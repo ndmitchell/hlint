@@ -40,6 +40,7 @@ doesMatch :: CoreExpr -> CoreExpr -> Bool
 doesMatch (CoreVar name) x | isLower (head name) = True
 doesMatch (CoreVar a) (CoreVar b) = a == b
 doesMatch (CoreApp a1 b1) (CoreApp a2 b2) = doesMatch a1 a2 && doesMatchList b1 b2
+doesMatch (CoreCon a) (CoreCon b) = a == b
 doesMatch _ _ = False
 
 
