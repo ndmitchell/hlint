@@ -9,27 +9,27 @@ type Hints = [(String, CoreExpr)]
 
 
 main = do x <- getArgs
-          system $ "yhc -corep Hints.hs 2> Hints.cr"
-          hints <- readFile "Hints.cr"
+          system $ "yhc -corep Hints.hs"
+          hints <- readFile "Hints.ycr"
           let hint = getHints $ readCore hints
           mapM_ (f hint) x
     where
         f hint x = do
-            system $ "yhc -corep " ++ x ++ " 2> " ++ x ++ ".cr"
-            src <- readFile $ x ++ ".cr"
+            system $ "yhc -corep " ++ x
+            src <- readFile $ takeWhile (/= '.') x ++ ".ycr"
             mapM_ putStrLn $ doChecks hint (readCore src)
 
 
 readCore :: String -> Core
-readCore = simplify . read . unlines . tail . lines
+readCore = simplify . read
 
 
 getHints :: Core -> Hints
-getHints (Core x y) = [(name, noPos expr) | CoreFunc (CoreApp (CoreVar name) _) expr <- y]
+getHints (Core _ _ x) = [(name, noPos expr) | CoreFunc (CoreApp (CoreVar name) _) expr <- x]
 
 
 doChecks :: Hints -> Core -> [String]
-doChecks hints (Core _ cr) =
+doChecks hints (Core _ _ cr) =
     ["I can apply " ++ hname ++ " in " ++ fname |
          (CoreFunc (CoreApp (CoreVar fname) _) fexpr) <- cr,
          (hname, hexpr) <- hints,
@@ -91,8 +91,8 @@ instance PlayCore CoreExpr where
                           _ -> [])
 
 instance PlayCore Core where
-    mapCore f (Core x xs) = Core x (mapCore f xs)
-    allCore (Core x xs) = allCore xs
+    mapCore f (Core a x xs) = Core a x (mapCore f xs)
+    allCore (Core a x xs) = allCore xs
 
 instance PlayCore CoreItem where
     mapCore f (CoreFunc x y) = CoreFunc (mapCore f x) (mapCore f y)

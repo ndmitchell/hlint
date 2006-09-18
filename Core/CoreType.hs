@@ -6,29 +6,32 @@ module Core.CoreType where
 -- wrong because of desugarring
 
 
--- module name, items in the module
-data Core = Core String [CoreItem]
-            deriving (Show, Read)
+-- module name, imports, items in the module
+data Core = Core String [String] [CoreItem]
+            deriving (Show, Read, Eq)
 
 
 data CoreItem = CoreFunc CoreExpr CoreExpr
-              | CoreData String [CoreCtor]
-                deriving (Show, Read)
+              | CoreData String [String] [CoreCtor]
+                deriving (Show, Read, Eq)
 
 
 -- Name, then list of maybe field names
-data CoreCtor = CoreCtor String [Maybe String]
-                deriving (Show, Read)
+data CoreCtor = CoreCtor String [(String, Maybe String)]
+                deriving (Show, Read, Eq)
 
 
 data CoreExpr = CoreCon String
               | CoreVar String
               | CoreApp CoreExpr [CoreExpr]
+              | CoreCase CoreExpr [(CoreExpr,CoreExpr)]
+              | CoreLet [CoreItem] CoreExpr
+              | CorePos String CoreExpr
+              
               | CoreInt Int
               | CoreInteger Integer
               | CoreChr Char
               | CoreStr String
-              | CoreCase CoreExpr [(CoreExpr,CoreExpr)]
-              | CoreLet [CoreItem] CoreExpr
-              | CorePos String CoreExpr
-                deriving (Show, Read)
+              | CoreFloat Float
+              | CoreDouble Double
+                deriving (Show, Read, Eq)
