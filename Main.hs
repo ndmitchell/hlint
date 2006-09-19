@@ -27,7 +27,8 @@ main = do x <- getArgs
 
 
 getHints :: Core -> Hints
-getHints (Core _ _ x) = [(name, noPos expr) | CoreFunc name _ expr <- x]
+getHints (Core _ _ x) = [(hname, noPos expr) | CoreFunc name _ expr <- x,
+                                               let hname = getName name, not $ null hname]
 
 
 doChecks :: Hints -> Core -> [String]
@@ -37,14 +38,15 @@ doChecks hints (Core modu _ cr) =
          (hname, hexpr) <- hints,
          any (doesMatch hexpr) (allCore fexpr)]
     where
-        getName x = concat $ intersperse "." [as | as@(a:_) <- splitMods x, isLower a]
-
-        splitMods x = if null b then [a] else a : splitMods (tail b)
-            where (a,b) = break (== '.') x
-            
         getPos (CorePos msg x) = " (" ++ msg ++ ")"
         getPos _ = ""
 
+
+getName x = concat $ intersperse "." [as | as@(a:_) <- splitMods x, isLower a]
+    where
+        splitMods x = if null b then [a] else a : splitMods (tail b)
+            where (a,b) = break (== '.') x
+            
 
 doesMatch :: CoreExpr -> CoreExpr -> Bool
 doesMatch (CoreVar name) x | isLower (head name) = True

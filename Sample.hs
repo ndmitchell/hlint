@@ -1,6 +1,9 @@
 
 module Sample where
 
+import Data.List
+
+
 myfunc f = concat . map f
 
 myfunc2 f g x = map f (map g x)
@@ -23,3 +26,8 @@ myfunc7 f g = concat . map f . g
 myfunc8 f x = concat $ map f x
 
 myfunc9 f g x = concat $ map f $ g x
+
+myfunc10 = "test" ++ concatMap (' ':) ["of","this"]
+
+myfunc11 = concat . intersperse " "
+
