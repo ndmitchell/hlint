@@ -30,10 +30,14 @@ getHints (Core _ _ x) = [(name, noPos expr) | CoreFunc (CoreApp (CoreVar name) _
 
 doChecks :: Hints -> Core -> [String]
 doChecks hints (Core _ _ cr) =
-    ["I can apply " ++ hname ++ " in " ++ fname |
+    ["I can apply " ++ dropMod hname ++ " in " ++ fname |
          (CoreFunc (CoreApp (CoreVar fname) _) fexpr) <- reverse cr,
          (hname, hexpr) <- hints,
          any (doesMatch hexpr) (allCore fexpr)]
+    where
+        dropMod x = case break (== '.') x of
+                        (a, []) -> a
+                        (a, _:b) -> b
 
 
 doesMatch :: CoreExpr -> CoreExpr -> Bool
