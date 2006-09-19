@@ -64,15 +64,16 @@ doesMatchList _ _ = False
 
 
 simplify :: Core -> Core
-simplify x = mapCore f x
+simplify (Core a b cs) = Core a b (map g cs)
     where
+        g (CoreFunc x y) = CoreFunc x (mapTop f y)
+        g x = x
+    
         f (CoreApp x []) = x
-        f (CoreApp (CoreVar "Prelude..") [x,CoreApp y xs]) = CoreApp x [CoreApp y (ensure2 xs)]
+        f (CoreApp (CoreApp x y) z) = CoreApp x (y++z)
+        f (CoreApp (CoreVar "Prelude..") [x,y,z]) = f $ CoreApp x [f $ CoreApp y [z]]
+        f (CoreApp (CoreVar "Prelude..") [x,y]) = f $ CoreApp (CoreVar "Prelude..") [x,y,CoreVar "?"]
         f x = x
-        
-        ensure2 [] = [CoreVar "x",CoreVar "x"]
-        ensure2 [x] = [x, CoreVar "x"]
-        ensure2 [x,y] = [x,y]
 
 
 noPos x = mapCore f x
@@ -101,6 +102,19 @@ instance PlayCore CoreExpr where
                           CoreLet x xs -> allCore x ++ [xs]
                           CorePos x xs -> [xs]
                           _ -> [])
+
+-- map top to bottom
+mapTop :: (CoreExpr -> CoreExpr) -> CoreExpr -> CoreExpr
+mapTop f x = case f x of
+                 CoreApp x xs -> CoreApp (g x) (gs xs)
+                 CoreCase x xs -> CoreCase (g x) [(g a, g b) | (a,b) <- xs]
+                 CoreLet x xs -> CoreLet x (g xs)
+                 CorePos x xs -> CorePos x (g xs)
+                 x -> x
+    where
+        g = mapTop f
+        gs = map g
+
 
 instance PlayCore Core where
     mapCore f (Core a x xs) = Core a x (mapCore f xs)

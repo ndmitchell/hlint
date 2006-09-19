@@ -17,3 +17,5 @@ myfunc5 x = (x !! 0) + (x !! 2)
 
 myfunc6 x = f x
     where f x = concat . map head
+
+myfunc7 f g = concat . map f . g
