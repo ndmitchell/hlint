@@ -19,7 +19,10 @@ main = do x <- getArgs
         f hint x = do
             system $ "yhc -corep " ++ x
             src <- readFile $ takeWhile (/= '.') x ++ ".ycr"
-            mapM_ putStrLn $ doChecks hint (readCore src)
+            let res = doChecks hint (readCore src)
+            if null res
+                then putStrLn "No hints for this program"
+                else mapM_ putStrLn res
 
 
 readCore :: String -> Core
