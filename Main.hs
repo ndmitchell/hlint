@@ -73,6 +73,7 @@ simplify (Core a b cs) = Core a b (map g cs)
         f (CoreApp (CoreApp x y) z) = CoreApp x (y++z)
         f (CoreApp (CoreVar "Prelude..") [x,y,z]) = f $ CoreApp x [f $ CoreApp y [z]]
         f (CoreApp (CoreVar "Prelude..") [x,y]) = f $ CoreApp (CoreVar "Prelude..") [x,y,CoreVar "?"]
+        f (CoreApp (CoreVar "Prelude.$") [x,y]) = f $ CoreApp x [y]
         f x = x
 
 

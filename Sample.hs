@@ -19,3 +19,7 @@ myfunc6 x = f x
     where f x = concat . map head
 
 myfunc7 f g = concat . map f . g
+
+myfunc8 f x = concat $ map f x
+
+myfunc9 f g x = concat $ map f $ g x
