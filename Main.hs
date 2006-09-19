@@ -32,7 +32,7 @@ getHints (Core _ _ x) = [(name, noPos expr) | CoreFunc (CoreApp (CoreVar name) _
 
 doChecks :: Hints -> Core -> [String]
 doChecks hints (Core modu _ cr) =
-    ["I can apply " ++ getName hname ++ " in " ++ getName fname |
+    ["I can apply " ++ getName hname ++ " in " ++ getName fname ++ getPos fexpr |
          (CoreFunc (CoreApp (CoreVar fname) _) fexpr) <- reverse cr,
          (hname, hexpr) <- hints,
          any (doesMatch hexpr) (allCore fexpr)]
@@ -41,6 +41,9 @@ doChecks hints (Core modu _ cr) =
 
         splitMods x = if null b then [a] else a : splitMods (tail b)
             where (a,b) = break (== '.') x
+            
+        getPos (CorePos msg x) = " (" ++ msg ++ ")"
+        getPos _ = ""
 
 
 doesMatch :: CoreExpr -> CoreExpr -> Bool
