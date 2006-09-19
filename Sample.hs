@@ -13,3 +13,7 @@ myfunc4 e l2 (x:xs) = if x == e then (l2 ++ xs) else [x] ++ check_elem xs
 
 
 myfunc5 x = (x !! 0) + (x !! 2)
+
+
+myfunc6 x = f x
+    where f x = concat . map head

@@ -2,8 +2,10 @@
 module Main where
 
 import Core.CoreType
-import System
-import Char
+import System.Cmd
+import System.Environment
+import Data.Char
+import Data.List
 
 type Hints = [(String, CoreExpr)]
 
@@ -29,15 +31,16 @@ getHints (Core _ _ x) = [(name, noPos expr) | CoreFunc (CoreApp (CoreVar name) _
 
 
 doChecks :: Hints -> Core -> [String]
-doChecks hints (Core _ _ cr) =
-    ["I can apply " ++ dropMod hname ++ " in " ++ fname |
+doChecks hints (Core modu _ cr) =
+    ["I can apply " ++ getName hname ++ " in " ++ getName fname |
          (CoreFunc (CoreApp (CoreVar fname) _) fexpr) <- reverse cr,
          (hname, hexpr) <- hints,
          any (doesMatch hexpr) (allCore fexpr)]
     where
-        dropMod x = case break (== '.') x of
-                        (a, []) -> a
-                        (a, _:b) -> b
+        getName x = concat $ intersperse "." [as | as@(a:_) <- splitMods x, isLower a]
+
+        splitMods x = if null b then [a] else a : splitMods (tail b)
+            where (a,b) = break (== '.') x
 
 
 doesMatch :: CoreExpr -> CoreExpr -> Bool
