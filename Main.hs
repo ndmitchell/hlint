@@ -63,9 +63,9 @@ doesMatchList _ _ _ _ = False
 
 -- are two functions the same (ish)
 doesEqual :: CoreFunc -> CoreFunc -> Bool
-doesEqual (CoreFunc _ a1 a2) (CoreFunc _ b1 b2) = a2 == mapUnderCore f b2
+doesEqual (CoreFunc _ a1 a2) (CoreFunc _ b1 b2) = noPos a2 == noPos (mapUnderCore f b2)
     where
-        f (CoreVar x) | x `elem` a1 = CoreVar $ fromJust $ lookup x $ zip b1 a1
+        f (CoreVar x) | x `elem` b1 = CoreVar $ fromJust $ lookup x $ zip b1 a1
         f x = x
 
 
