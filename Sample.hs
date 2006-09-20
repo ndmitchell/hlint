@@ -3,7 +3,6 @@ module Sample where
 
 import Data.List
 
-
 myfunc f = concat . map f
 
 myfunc2 f g x = map f (map g x)
@@ -31,3 +30,8 @@ myfunc10 = "test" ++ concatMap (' ':) ["of","this"]
 
 myfunc11 = concat . intersperse " "
 
+myfunc12 f a = if f a then True else False
+
+myfunc13 f a = if f a then False else True
+
+myfunc14 a b = not (a == b) && not (a /= b)

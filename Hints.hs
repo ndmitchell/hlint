@@ -19,3 +19,11 @@ use_replicate n x = take n (repeat x)
 use_unwords1 x xs = x ++ concatMap (' ':) xs
 
 use_unwords2 xs = concat (intersperse " " xs)
+
+no_if a = if a then True else False
+
+use_not a = if a then False else True
+
+use_neq a b = not (a == b)
+
+use_eq a b = not (a /= b)

@@ -53,6 +53,7 @@ doesMatch :: (Core, CoreExpr) -> (Core, CoreExpr) -> Bool
 doesMatch (_,CoreVar name) x | isLower (head name) = True
 doesMatch (c1,CoreApp a1 b1) (c2,CoreApp a2 b2) = doesMatchList c1 c2 (a1:b1) (a2:b2)
 doesMatch (c1, CoreVar a) (c2, CoreVar b) | isLambda a && isLambda b = doesEqual (coreFunc c1 a) (coreFunc c2 b)
+doesMatch (c1, CoreCase a1 b1) (c2, CoreCase a2 b2) = map fst b1 == map fst b2 && doesMatchList c1 c2 (a1:map snd b1) (a2:map snd b2)
 doesMatch (_,a) (_,b) = a == b
 
 
