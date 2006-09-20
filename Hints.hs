@@ -27,3 +27,7 @@ use_not a = if a then False else True
 use_neq a b = not (a == b)
 
 use_eq a b = not (a /= b)
+
+use_or a b t f = if a then t else (if b then t else f)
+
+use_and a b t f = if a then (if b then t else f) else f

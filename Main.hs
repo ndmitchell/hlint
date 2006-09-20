@@ -29,7 +29,7 @@ main = do x <- getArgs
 
 getHints :: Core -> Hints
 getHints core = [(hname, noPos expr) | CoreFunc name _ expr <- coreFuncs core,
-                                       let hname = getName name, not $ null hname]
+                                       not $ isLambda name, let hname = getName name]
 
 
 doChecks :: (Core,Hints) -> Core -> [String]
@@ -43,23 +43,35 @@ doChecks (c1,hints) core =
         getPos _ = ""
 
 
-getName x = concat $ intersperse "." [as | as@(a:_) <- splitMods x, isLower a]
+getName x = if null res then x else res
     where
+        res = concat $ intersperse "." [as | as@(a:_) <- splitMods x, isLower a]
+    
         splitMods x = if null b then [a] else a : splitMods (tail b)
             where (a,b) = break (== '.') x
 
 
 doesMatch :: (Core, CoreExpr) -> (Core, CoreExpr) -> Bool
-doesMatch (_,CoreVar name) x | isLower (head name) = True
-doesMatch (c1,CoreApp a1 b1) (c2,CoreApp a2 b2) = doesMatchList c1 c2 (a1:b1) (a2:b2)
-doesMatch (c1, CoreVar a) (c2, CoreVar b) | isLambda a && isLambda b = doesEqual (coreFunc c1 a) (coreFunc c2 b)
-doesMatch (c1, CoreCase a1 b1) (c2, CoreCase a2 b2) = map fst b1 == map fst b2 && doesMatchList c1 c2 (a1:map snd b1) (a2:map snd b2)
-doesMatch (_,a) (_,b) = a == b
-
-
-doesMatchList c1 c2 [] [] = True
-doesMatchList c1 c2 (x:xs) (y:ys) = doesMatch (c1,x) (c2,y) && doesMatchList c1 c2 xs ys
-doesMatchList _ _ _ _ = False
+doesMatch (c1, a1) (c2, a2) =
+        all (isLowerCore.fst) res && length (nub $ map fst res) == length res
+    where
+        isLowerCore (CoreVar x) = isLower (head x)
+        isLowerCore _ = False
+    
+        res = nub $ filter (uncurry (/=)) $ f a1 a2
+        
+        -- try and simplify where possible
+        f :: CoreExpr -> CoreExpr -> [(CoreExpr,CoreExpr)]
+        f (CoreApp a1 b1) (CoreApp a2 b2) = fs (a1:b1) (a2:b2)
+        f (CoreVar a) (CoreVar b) | isLambda a && isLambda b = 
+            if doesEqual (coreFunc c1 a) (coreFunc c2 b) then [] else [false]
+        f (CoreCase a1 b1) (CoreCase a2 b2) =
+            if map fst b1 /= map fst b2 then [false] else fs (a1:map snd b1) (a2:map snd b2)
+        f a b = [(a,b)]
+        
+        fs a b = concat $ zipWith f a b
+        
+        false = (CoreCon "0", CoreCon "1")
 
 
 -- are two functions the same (ish)

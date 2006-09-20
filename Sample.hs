@@ -35,3 +35,8 @@ myfunc12 f a = if f a then True else False
 myfunc13 f a = if f a then False else True
 
 myfunc14 a b = not (a == b) && not (a /= b)
+
+myfunc15 a b = if a then 1 else if b then 1 else 2
+
+myfunc15_NO a b = if a then 1 else if b then 3 else 2
+
