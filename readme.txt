@@ -1,0 +1,1 @@
+See http://www-users.cs.york.ac.uk/~ndm/projects/drhaskell.php for details :)
