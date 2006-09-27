@@ -45,3 +45,6 @@ use_or a b t f = if a then t else (if b then t else f)
 
 -- if a && b then t else f
 use_and a b t f = if a then (if b then t else f) else f
+
+-- liftM f m
+use_liftM m f = m >>= return . f
