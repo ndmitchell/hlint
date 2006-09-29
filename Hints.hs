@@ -48,3 +48,6 @@ use_and a b t f = if a then (if b then t else f) else f
 
 -- liftM f m
 use_liftM m f = m >>= return . f
+
+-- [x | b]
+use_list_comp b x = if b then [x] else []
