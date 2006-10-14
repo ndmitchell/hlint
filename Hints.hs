@@ -16,9 +16,6 @@ box_append x y = [x] ++ y
 -- head x
 head_index x = x !! 0
 
--- tail x
-tail_drop x = drop 1 x
-
 -- replicate n x
 use_replicate n x = take n (repeat x)
 
