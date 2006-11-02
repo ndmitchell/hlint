@@ -48,3 +48,9 @@ use_liftM m f = m >>= return . f
 
 -- [x | b]
 use_list_comp b x = if b then [x] else []
+
+-- x
+useless_seq x = x `seq` x
+
+-- x
+useless_strict x = id $! x
