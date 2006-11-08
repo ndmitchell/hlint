@@ -13,13 +13,13 @@ type Hints = [(String, CoreExpr)]
 
 
 main = do x <- getArgs
-          system $ "yhc -corep Hints.hs"
+          system $ "yhc -core Hints.hs"
           hints <- liftM simplify $ loadCore "Hints.ycr"
           let hint = getHints hints
           mapM_ (f hints hint) x
     where
         f core hint x = do
-            system $ "yhc -corep " ++ x
+            system $ "yhc -core " ++ x
             src <- loadCore $ takeWhile (/= '.') x ++ ".ycr"
             let res = doChecks (core,hint) (simplify src)
             if null res
