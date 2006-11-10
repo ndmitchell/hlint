@@ -97,6 +97,16 @@ isLambda :: String -> Bool
 isLambda = any (isPrefixOf "._LAMBDA") . tails
 
 
+
+dataTypes = [
+                [("Prelude.True",0)
+                ,("Prelude.False",0)]
+            ,
+                [("Prelude.:",2)
+                ,("Prelude.[]",0)]
+            ]
+
+
 simplify :: Core -> Core
 simplify x = mapOverCore f x
     where
@@ -105,7 +115,15 @@ simplify x = mapOverCore f x
         f (CoreApp (CoreVar "Prelude..") [x,y,z]) = f $ CoreApp x [f $ CoreApp y [z]]
         f (CoreApp (CoreVar "Prelude..") [x,y]) = f $ CoreApp (CoreVar "Prelude..") [x,y,CoreVar "?"]
         f (CoreApp (CoreVar "Prelude.$") [x,y]) = f $ CoreApp x [y]
+        f (CoreCase on alts) = CoreCase on (g alts)
         f x = x
+        
+        g orig@[a@(CoreApp (CoreCon a1) a2,a3),(CoreVar "_",b1)] =
+            case [(c,i) | dats <- dataTypes, a1 `elem` map fst dats, (c,i) <- dats, c /= a1] of
+                [(c,i)] -> [a, ((if null args then id else (`CoreApp` args)) (CoreCon c), b1)]
+                    where args = [CoreVar ("n" ++ show j) | j <- [1..i]]
+                _ -> orig
+        g x = x
 
 
 noPos x = mapUnderCore f x
