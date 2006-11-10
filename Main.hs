@@ -115,9 +115,17 @@ simplify x = mapOverCore f x
         f (CoreApp (CoreVar "Prelude..") [x,y,z]) = f $ CoreApp x [f $ CoreApp y [z]]
         f (CoreApp (CoreVar "Prelude..") [x,y]) = f $ CoreApp (CoreVar "Prelude..") [x,y,CoreVar "?"]
         f (CoreApp (CoreVar "Prelude.$") [x,y]) = f $ CoreApp x [y]
-        f (CoreCase on alts) = CoreCase on (g alts)
+        f (CoreCase on alts) = CoreCase on (sortBy (\x y -> cmp (fst x) (fst y)) (g alts))
         f x = x
         
+        cmp (CoreApp x _) y = cmp x y
+        cmp x (CoreApp y _) = cmp x y
+        cmp (CoreVar _) (CoreVar _) = EQ
+        cmp (CoreVar _) _ = LT
+        cmp _ (CoreVar _) = GT
+        cmp (CoreCon x) (CoreCon y) = compare x y
+        cmp _ _ = EQ
+
         g orig@[a@(CoreApp (CoreCon a1) a2,a3),(CoreVar "_",b1)] =
             case [(c,i) | dats <- dataTypes, a1 `elem` map fst dats, (c,i) <- dats, c /= a1] of
                 [(c,i)] -> [a, ((if null args then id else (`CoreApp` args)) (CoreCon c), b1)]
