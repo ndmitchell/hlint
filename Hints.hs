@@ -58,7 +58,7 @@ useless_strict x = id $! x
 
 -- head x
 head_head err (x:xs) = x
-head_head err _ = error err
+head_head err [] = error err
 
 
 -- map f x
