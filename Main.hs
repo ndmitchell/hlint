@@ -65,8 +65,18 @@ doesMatch (c1, a1) (c2, a2) =
         f (CoreApp a1 b1) (CoreApp a2 b2) = fs (a1:b1) (a2:b2)
         f (CoreVar a) (CoreVar b) | isLambda a && isLambda b = 
             if doesEqual (coreFunc c1 a) (coreFunc c2 b) then [] else [false]
-        f (CoreCase a1 b1) (CoreCase a2 b2) =
-            if map fst b1 /= map fst b2 then [false] else fs (a1:map snd b1) (a2:map snd b2)
+        
+        f (CoreCase a1 b1) (CoreCase a2 b2) = f a1 a2 ++ g b1 b2
+            where
+                g [] [] = []
+                g (x:xs) (y:ys) = g2 x y ++ g xs ys
+                g _ _ = [false]
+                
+                g2 (a1,b1) (a2,b2) | a1 == a2 = f b1 b2
+                g2 (CoreApp (CoreCon x1) x2,x3) (CoreApp (CoreCon y1) y2,y3)
+                    | x1 == y1 = f x3 (replaceFree (zip (map fromCoreVar y2) x2) y3)
+                g2 _ _ = [false]
+            
         f a b = [(a,b)]
         
         fs a b = concat $ zipWith f a b
@@ -102,3 +112,15 @@ noPos x = mapUnderCore f x
     where
         f (CorePos x y) = y
         f x = x
+
+
+fromCoreVar (CoreVar x) = x
+
+replaceFree reps x = mapUnderCore f x
+    where
+        f (CoreVar x) = case lookup x reps of
+                            Just y -> y
+                            Nothing -> CoreVar x
+        f x = x
+
+                            
