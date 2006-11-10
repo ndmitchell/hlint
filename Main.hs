@@ -9,7 +9,9 @@ import Data.Char
 import Data.Maybe
 import Data.List
 
-type Hints = [(String, CoreExpr)]
+type Hints = [Hint]
+
+data Hint = HintExpr String CoreExpr
 
 
 main = do x <- getArgs
@@ -28,15 +30,16 @@ main = do x <- getArgs
 
 
 getHints :: Core -> Hints
-getHints core = [(hname, noPos expr) | CoreFunc name _ expr <- coreFuncs core,
-                                       not $ isLambda name, let hname = getName name]
+getHints core = [HintExpr hname (noPos expr)
+                    | CoreFunc name _ expr <- coreFuncs core,
+                      not $ isLambda name, let hname = getName name]
 
 
 doChecks :: (Core,Hints) -> Core -> [String]
 doChecks (c1,hints) core =
     ["I can apply " ++ getName hname ++ " in " ++ getName fname ++ getPos fexpr |
          (CoreFunc fname _ fexpr) <- reverse $ coreFuncs core,
-         (hname, hexpr) <- hints,
+         HintExpr hname hexpr <- hints,
          any (\x -> doesMatch (c1,hexpr) (core,x)) (allCore fexpr)]
     where
         getPos (CorePos msg x) = " (" ++ msg ++ ")"
