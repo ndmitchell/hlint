@@ -45,3 +45,9 @@ myfunc16 a = a >>= return . id
 myfunc17 a b = if b < 42 then [a] else []
 
 myfunc18 (x:xs) = x
+
+myfunc19 f (x:xs) = f x : myfunc19 f xs
+myfunc19 f [] = []
+
+myfunc20 (x:xs) = head x : myfunc20 xs
+myfunc20 [] = []

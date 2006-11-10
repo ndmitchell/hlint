@@ -59,3 +59,17 @@ useless_strict x = id $! x
 -- head x
 head_head err (x:xs) = x
 head_head err _ = error err
+
+
+-- map f x
+redefined_map = mop
+    where
+        mop f (x:xs) = f x : mop f xs
+        mop f [] = []
+
+-- map<f> x
+special_map f = mop
+    where
+        mop (x:xs) = f x : mop xs
+        mop [] = []
+
