@@ -54,3 +54,8 @@ useless_seq x = x `seq` x
 
 -- x
 useless_strict x = id $! x
+
+
+-- head x
+head_head err (x:xs) = x
+head_head err _ = error err
