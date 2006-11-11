@@ -9,39 +9,18 @@ import Data.Char
 import Data.Maybe
 import Data.List
 
-type Hints = [Hint]
 
-data Hint = HintExpr Core String CoreExpr
+---------------------------------------------------------------------
+-- COMMAND LINE OPTIONS
 
 
 helpOpts = ["version","v","h","help","?"]
 testOpts = ["test","t"]
 
-
-main = do
-    args <- getArgs
-    let (opt,files) = partition isOpt args
-        opts = map fromOpt opt
-        deadOpts = opts \\ (helpOpts ++ testOpts)
-    
-    case () of
-        _ | not $ null deadOpts -> error $ "Unrecognised options: " ++ concat (intersperse ", " deadOpts)
-        _ | hasOpt opts helpOpts || null files -> putStr $ unlines helpMsg
-        _ -> do
-            hints <- loadHints
-            mapM_ (mainFile hints (hasOpt opts testOpts)) files
-
-
 optChar = "-/"
 isOpt (x:xs) = x `elem` optChar
 fromOpt = map toLower . dropWhile (`elem` optChar)
 hasOpt opts query = any (`elem` query) opts
-
-
-loadHints :: IO Hints
-loadHints = do
-    system $ "yhc -core Hints.hs"
-    liftM (getHints . simplify) $ loadCore "Hints.ycr"
 
 
 helpMsg =
@@ -57,6 +36,21 @@ helpMsg =
     ]
 
 
+---------------------------------------------------------------------
+-- MAIN DRIVER
+
+main = do
+    args <- getArgs
+    let (opt,files) = partition isOpt args
+        opts = map fromOpt opt
+        deadOpts = opts \\ (helpOpts ++ testOpts)
+    
+    case () of
+        _ | not $ null deadOpts -> error $ "Unrecognised options: " ++ concat (intersperse ", " deadOpts)
+        _ | hasOpt opts helpOpts || null files -> putStr $ unlines helpMsg
+        _ -> do
+            hints <- loadHints
+            mapM_ (mainFile hints (hasOpt opts testOpts)) files
 
 mainFile :: Hints -> Bool -> FilePath -> IO ()
 mainFile hints testMode file = do
@@ -68,11 +62,28 @@ mainFile hints testMode file = do
         else mapM_ putStrLn res
 
 
+---------------------------------------------------------------------
+-- HINT LOADING
+
+type Hints = [Hint]
+
+data Hint = HintExpr Core String CoreExpr
+
+
+loadHints :: IO Hints
+loadHints = do
+    system $ "yhc -core Hints.hs"
+    liftM (getHints . simplify) $ loadCore "Hints.ycr"
+
+
 getHints :: Core -> Hints
 getHints core = [HintExpr core hname (noPos expr)
                     | CoreFunc name _ expr <- coreFuncs core,
                       not $ isLambda name, let hname = getName name]
 
+
+---------------------------------------------------------------------
+-- CORE MATCHING
 
 doChecks :: Hints -> Core -> [String]
 doChecks hints core =
@@ -132,8 +143,6 @@ doesEqual (CoreFunc _ a1 a2) (CoreFunc _ b1 b2) = noPos a2 == noPos (mapUnderCor
     where
         f (CoreVar x) | x `elem` b1 = CoreVar $ fromJust $ lookup x $ zip b1 a1
         f x = x
-
-
 
 
 
