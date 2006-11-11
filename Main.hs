@@ -147,20 +147,26 @@ getHints core = concatMap f (coreFuncs core)
 doChecks :: Hints -> Core -> [String]
 doChecks hints core =
     ["I can apply " ++ hintName hint ++ " in " ++ getName fname ++ getPos fexpr |
-         (CoreFunc fname _ fexpr) <- reverse $ coreFuncs core,
+         func@(CoreFunc fname _ fexpr) <- {- reverse $ -} coreFuncs core,
          hint <- hints,
-         canApply hint core fexpr]
+         canApply hint core func]
     where
         getPos (CorePos msg x) = " (" ++ msg ++ ")"
         getPos _ = ""
 
 
 -- given a hint, and a core expr (within a given core)
-canApply :: Hint -> Core -> CoreExpr -> Bool
+canApply :: Hint -> Core -> CoreFunc -> Bool
 canApply (HintExpr hcore _ hexpr) core expr =
-    any (\x -> doesMatch (hcore,hexpr) (core,x)) (allCore expr)
+    any (\x -> doesMatch (hcore,hexpr) (core,x)) (allCore $ coreFuncBody expr)
 
-canApply (HintFunc hcore _ hexpr) core expr = False
+canApply (HintFunc hcore _ hexpr) core (CoreFunc fname _ fbody)
+        = doesMatch (hcore,hexpr) (core,body)
+    where
+        body = mapUnderCore f fbody
+        
+        f (CoreFun x) | x == fname = CoreFun "RECURSIVE"
+        f x = x
 
 
 -- get a shortened name
