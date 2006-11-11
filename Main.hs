@@ -181,11 +181,8 @@ getName x = if null res then x else res
 
 doesMatch :: (Core, CoreExpr) -> (Core, CoreExpr) -> Bool
 doesMatch (c1, a1) (c2, a2) =
-        all (isLowerCore.fst) res && length (nub $ map fst res) == length res
+        all (isCoreVar . fst) res && length (nub $ map fst res) == length res
     where
-        isLowerCore (CoreVar x) = isLower (head x)
-        isLowerCore _ = False
-    
         res = nub $ filter (uncurry (/=)) $ f a1 a2
         
         -- try and simplify where possible
