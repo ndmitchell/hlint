@@ -148,9 +148,9 @@ getHints poscore = concatMap f (coreFuncs core)
 doChecks :: Hints -> Core -> [String]
 doChecks hints core =
     ["I can apply " ++ hintName hint ++ " in " ++ getName fname ++ getPos fexpr |
-         func@(CoreFunc fname _ fexpr) <- {- reverse $ -} coreFuncs core,
+         func@(CoreFunc fname _ fexpr) <- reverse $ coreFuncs core,
          hint <- hints,
-         canApply hint core func]
+         canApply hint core (noPos func)]
     where
         getPos (CorePos msg x) = " (" ++ msg ++ ")"
         getPos _ = ""
