@@ -244,6 +244,7 @@ simplify :: Core -> Core
 simplify x = mapOverCore f x
     where
         f (CoreApp x []) = x
+        f (CoreLet [] x) = x
         f (CoreApp (CoreApp x y) z) = f $ CoreApp x (y++z)
         f (CoreApp (CoreFun "Prelude..") [x,y,z]) = f $ CoreApp x [f $ CoreApp y [z]]
         f (CoreApp (CoreFun "Prelude..") [x,y]) = f $ CoreApp (CoreFun "Prelude..") [x,y,CoreVar "?"]
