@@ -98,6 +98,13 @@ loadHaskellCore file = do
 type Hints = [Hint]
 
 data Hint = HintExpr Core String CoreExpr
+          | HintFunc Core String CoreExpr
+
+instance Show Hint where
+    show (HintExpr _ name expr) = "EXPR: " ++ name ++ " = " ++ show expr
+    show (HintFunc _ name expr) = "FUNC: " ++ name ++ " = " ++ show expr
+
+    showList x = showString $ "\n" ++ unlines (map show x)
 
 
 loadHints :: IO Hints
@@ -110,11 +117,25 @@ getHints core = concatMap f (coreFuncs core)
         name = coreName core ++ "."
     
         f func | name `isPrefixOf` fname && not (isLambda nam) && not ('.' `elem` nam) 
-                    = [HintExpr core nam (noPos $ coreFuncBody func)]
-               | otherwise = []
+               = g body
             where
+                body = noPos $ coreFuncBody func
                 fname = coreFuncName func
                 nam = drop (length name) fname
+
+                g (CoreApp (CoreFun call) args)
+                    | name `isPrefixOf` call = [HintFunc core nam $ getHintFunc call args]
+                g (CoreFun call) = g (CoreApp (CoreFun call) [])
+                g x = [HintExpr core nam x]
+
+        f func = []
+        
+        
+        getHintFunc call args = mapUnderCore g $ coreFuncBody $ coreFunc core call
+            where
+                g (CoreApp (CoreFun c) as) | c == call
+                    = CoreApp (CoreFun "RECURSIVE") (drop (length args) as)
+                g x = x
 
 
 ---------------------------------------------------------------------
@@ -209,7 +230,7 @@ simplify :: Core -> Core
 simplify x = mapOverCore f x
     where
         f (CoreApp x []) = x
-        f (CoreApp (CoreApp x y) z) = CoreApp x (y++z)
+        f (CoreApp (CoreApp x y) z) = f $ CoreApp x (y++z)
         f (CoreApp (CoreVar "Prelude..") [x,y,z]) = f $ CoreApp x [f $ CoreApp y [z]]
         f (CoreApp (CoreVar "Prelude..") [x,y]) = f $ CoreApp (CoreVar "Prelude..") [x,y,CoreVar "?"]
         f (CoreApp (CoreVar "Prelude.$") [x,y]) = f $ CoreApp x [y]
