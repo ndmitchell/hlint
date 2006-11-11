@@ -271,7 +271,7 @@ simplify x = mapOverCore f x
 
 
 -- remove all position information from a Core expression
-noPos :: CoreExpr -> CoreExpr
+noPos :: PlayCore a => a -> a
 noPos x = mapUnderCore f x
     where
         f (CorePos x y) = y
