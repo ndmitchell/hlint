@@ -1,14 +1,17 @@
 
 module Main where
 
-import Yhc.Core
 import System.Cmd
 import System.Environment
+import System.Exit
+import System.Directory
+import System.FilePath.Version_0_10
 import Control.Monad
 import Data.Char
 import Data.Maybe
 import Data.List
 
+import Yhc.Core
 
 ---------------------------------------------------------------------
 -- COMMAND LINE OPTIONS
@@ -54,12 +57,39 @@ main = do
 
 mainFile :: Hints -> Bool -> FilePath -> IO ()
 mainFile hints testMode file = do
-    system $ "yhc -core " ++ file
-    src <- loadCore $ takeWhile (/= '.') file ++ ".ycr"
-    let res = doChecks hints (simplify src)
+    core <- loadHaskellCore file
+    let res = doChecks hints core
     if null res
         then putStrLn "No hints for this program"
         else mapM_ putStrLn res
+
+
+-- load a Haskell file to a Core file
+loadHaskellCore :: FilePath -> IO Core
+loadHaskellCore file = do
+    let files = if hasExtension file then [file]
+                else [replaceExtension file "hs", replaceExtension file "lhs"]
+    exists <- mapM doesFileExist files
+    let fil = [a | (a,b) <- zip files exists, b]
+    when (null fil) $ error $ "Could not find file, " ++ file
+    let fileHs = head fil
+        fileCr = replaceExtension fileHs "ycr"
+    
+    -- fileHs and fileCr are now the Haskell and the Core file
+    fileCrExist <- doesFileExist fileCr
+    
+    rebuild <- if not fileCrExist then return True else do
+        fileHsTime <- getModificationTime fileHs
+        fileCrTime <- getModificationTime fileCr
+        return $ fileHsTime > fileCrTime 
+    
+    when rebuild $ do
+        response <- system $ "yhc -core " ++ fileHs
+        when (response /= ExitSuccess) $ error $ "Failed to build file using Yhc: " ++ fileHs
+        exist <- doesFileExist fileCr
+        when (not exist) $ error $ "Build with Yhc, but core file not created: " ++ fileHs
+    
+    liftM simplify $ loadCore fileCr
 
 
 ---------------------------------------------------------------------
@@ -71,9 +101,7 @@ data Hint = HintExpr Core String CoreExpr
 
 
 loadHints :: IO Hints
-loadHints = do
-    system $ "yhc -core Hints.hs"
-    liftM (getHints . simplify) $ loadCore "Hints.ycr"
+loadHints = liftM getHints $ loadHaskellCore "Hints.hs"
 
 
 getHints :: Core -> Hints
