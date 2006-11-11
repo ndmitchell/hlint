@@ -182,8 +182,6 @@ noPos x = mapUnderCore f x
         f x = x
 
 
-fromCoreVar (CoreVar x) = x
-
 replaceFree reps x = mapUnderCore f x
     where
         f (CoreVar x) = case lookup x reps of
