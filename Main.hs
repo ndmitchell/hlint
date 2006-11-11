@@ -191,7 +191,7 @@ doesMatch (c1, a1) (c2, a2) =
         -- try and simplify where possible
         f :: CoreExpr -> CoreExpr -> [(CoreExpr,CoreExpr)]
         f (CoreApp a1 b1) (CoreApp a2 b2) = fs (a1:b1) (a2:b2)
-        f (CoreVar a) (CoreVar b) | isLambda a && isLambda b = 
+        f (CoreFun a) (CoreFun b) | isLambda a && isLambda b = 
             if doesEqual (coreFunc c1 a) (coreFunc c2 b) then [] else [false]
         
         f (CoreCase a1 b1) (CoreCase a2 b2) = f a1 a2 ++ g b1 b2
@@ -226,7 +226,7 @@ doesEqual (CoreFunc _ a1 a2) (CoreFunc _ b1 b2) = noPos a2 == noPos (mapUnderCor
 
 -- is it a lambda introduced by Yhc (i.e. not a top level func)
 isLambda :: String -> Bool
-isLambda = isPrefixOf "_LAMBDA"
+isLambda = any (isPrefixOf "_LAMBDA") . tails
 
 
 dataTypes = [
@@ -248,9 +248,9 @@ simplify x = mapOverCore f x
     where
         f (CoreApp x []) = x
         f (CoreApp (CoreApp x y) z) = f $ CoreApp x (y++z)
-        f (CoreApp (CoreVar "Prelude..") [x,y,z]) = f $ CoreApp x [f $ CoreApp y [z]]
-        f (CoreApp (CoreVar "Prelude..") [x,y]) = f $ CoreApp (CoreVar "Prelude..") [x,y,CoreVar "?"]
-        f (CoreApp (CoreVar "Prelude.$") [x,y]) = f $ CoreApp x [y]
+        f (CoreApp (CoreFun "Prelude..") [x,y,z]) = f $ CoreApp x [f $ CoreApp y [z]]
+        f (CoreApp (CoreFun "Prelude..") [x,y]) = f $ CoreApp (CoreFun "Prelude..") [x,y,CoreVar "?"]
+        f (CoreApp (CoreFun "Prelude.$") [x,y]) = f $ CoreApp x [y]
         f (CoreCase on alts) = CoreCase on (sortBy (\x y -> cmp (fst x) (fst y)) (g alts))
         f x = x
         
