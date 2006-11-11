@@ -206,7 +206,9 @@ doesMatch (c1, a1) (c2, a2) =
             
         f a b = [(a,b)]
         
-        fs a b = concat $ zipWith f a b
+        fs (a:as) (b:bs) = f a b ++ fs as bs
+        fs [] [] = []
+        fs _ _ = [false]
         
         false = (CoreCon "0", CoreCon "1")
 
