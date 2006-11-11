@@ -134,10 +134,15 @@ doesEqual (CoreFunc _ a1 a2) (CoreFunc _ b1 b2) = noPos a2 == noPos (mapUnderCor
         f x = x
 
 
+
+
+
+---------------------------------------------------------------------
+-- MANIPULATE CORE AND UTILITIES
+
 -- is it a lambda introduced by Yhc (i.e. not a top level func)
 isLambda :: String -> Bool
 isLambda = any (isPrefixOf "._LAMBDA") . tails
-
 
 
 dataTypes = [
@@ -149,6 +154,11 @@ dataTypes = [
             ]
 
 
+-- simplify and normalise a Core data structure
+-- in particular:
+-- * remove (.) and ($) if possible
+-- * expand out case statements such as (:) then _, with [] after
+-- * put case statements in a given order (sorted)
 simplify :: Core -> Core
 simplify x = mapOverCore f x
     where
@@ -176,17 +186,18 @@ simplify x = mapOverCore f x
         g x = x
 
 
+-- remove all position information from a Core expression
+noPos :: CoreExpr -> CoreExpr
 noPos x = mapUnderCore f x
     where
         f (CorePos x y) = y
         f x = x
 
-
+-- replace all free variables in the replacement list
+replaceFree :: [(String, CoreExpr)] -> CoreExpr -> CoreExpr
 replaceFree reps x = mapUnderCore f x
     where
         f (CoreVar x) = case lookup x reps of
                             Just y -> y
                             Nothing -> CoreVar x
         f x = x
-
-                            
