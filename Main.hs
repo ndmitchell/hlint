@@ -105,9 +105,16 @@ loadHints = liftM getHints $ loadHaskellCore "Hints.hs"
 
 
 getHints :: Core -> Hints
-getHints core = [HintExpr core hname (noPos expr)
-                    | CoreFunc name _ expr <- coreFuncs core,
-                      not $ isLambda name, let hname = getName name]
+getHints core = concatMap f (coreFuncs core)
+    where
+        name = coreName core ++ "."
+    
+        f func | name `isPrefixOf` fname && not (isLambda nam) && not ('.' `elem` nam) 
+                    = [HintExpr core nam (noPos $ coreFuncBody func)]
+               | otherwise = []
+            where
+                fname = coreFuncName func
+                nam = drop (length name) fname
 
 
 ---------------------------------------------------------------------
@@ -115,7 +122,7 @@ getHints core = [HintExpr core hname (noPos expr)
 
 doChecks :: Hints -> Core -> [String]
 doChecks hints core =
-    ["I can apply " ++ getName hname ++ " in " ++ getName fname ++ getPos fexpr |
+    ["I can apply " ++ hname ++ " in " ++ getName fname ++ getPos fexpr |
          (CoreFunc fname _ fexpr) <- reverse $ coreFuncs core,
          HintExpr c1 hname hexpr <- hints,
          any (\x -> doesMatch (c1,hexpr) (core,x)) (allCore fexpr)]
@@ -124,6 +131,8 @@ doChecks hints core =
         getPos _ = ""
 
 
+-- get a shortened name
+getName :: String -> String
 getName x = if null res then x else res
     where
         res = concat $ intersperse "." [as | as@(a:_) <- splitMods x, isLower a]
@@ -179,7 +188,7 @@ doesEqual (CoreFunc _ a1 a2) (CoreFunc _ b1 b2) = noPos a2 == noPos (mapUnderCor
 
 -- is it a lambda introduced by Yhc (i.e. not a top level func)
 isLambda :: String -> Bool
-isLambda = any (isPrefixOf "._LAMBDA") . tails
+isLambda = isPrefixOf "_LAMBDA"
 
 
 dataTypes = [
