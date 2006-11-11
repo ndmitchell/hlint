@@ -189,8 +189,9 @@ doesMatch (c1, a1) (c2, a2) =
         -- try and simplify where possible
         f :: CoreExpr -> CoreExpr -> [(CoreExpr,CoreExpr)]
         f (CoreApp a1 b1) (CoreApp a2 b2) = fs (a1:b1) (a2:b2)
-        f (CoreFun a) (CoreFun b) | isLambda a && isLambda b = 
-            if doesEqual (coreFunc c1 a) (coreFunc c2 b) then [] else [false]
+        f (CoreFun a) (CoreFun b)
+            | isLambda a && isLambda b =  if doesEqual (coreFunc c1 a) (coreFunc c2 b) then [] else [false]
+            | a == b = []
         
         f (CoreCase a1 b1) (CoreCase a2 b2) = f a1 a2 ++ g b1 b2
             where
