@@ -11,35 +11,74 @@ import Data.List
 
 type Hints = [Hint]
 
-data Hint = HintExpr String CoreExpr
+data Hint = HintExpr Core String CoreExpr
 
 
-main = do x <- getArgs
-          system $ "yhc -core Hints.hs"
-          hints <- liftM simplify $ loadCore "Hints.ycr"
-          let hint = getHints hints
-          mapM_ (f hints hint) x
-    where
-        f core hint x = do
-            system $ "yhc -core " ++ x
-            src <- loadCore $ takeWhile (/= '.') x ++ ".ycr"
-            let res = doChecks (core,hint) (simplify src)
-            if null res
-                then putStrLn "No hints for this program"
-                else mapM_ putStrLn res
+helpOpts = ["version","v","h","help","?"]
+testOpts = ["test","t"]
+
+
+main = do
+    args <- getArgs
+    let (opt,files) = partition isOpt args
+        opts = map fromOpt opt
+        deadOpts = opts \\ (helpOpts ++ testOpts)
+    
+    case () of
+        _ | not $ null deadOpts -> error $ "Unrecognised options: " ++ concat (intersperse ", " deadOpts)
+        _ | hasOpt opts helpOpts || null files -> putStr $ unlines helpMsg
+        _ -> do
+            hints <- loadHints
+            mapM_ (mainFile hints (hasOpt opts testOpts)) files
+
+
+optChar = "-/"
+isOpt (x:xs) = x `elem` optChar
+fromOpt = map toLower . dropWhile (`elem` optChar)
+hasOpt opts query = any (`elem` query) opts
+
+
+loadHints :: IO Hints
+loadHints = do
+    system $ "yhc -core Hints.hs"
+    liftM (getHints . simplify) $ loadCore "Hints.ycr"
+
+
+helpMsg =
+    ["Dr Haskell, (C) Neil Mitchell 2006, University of York"
+    ,""
+    ,"   drhaskell [options] files"
+    ,""
+    ,"-help  - display this help message"
+    ,"-test  - test the program (for development only)"
+    ,""
+    ,"Dr Haskell spots common patterns in beginner code that map"
+    ,"naturally to a given standard function."
+    ]
+
+
+
+mainFile :: Hints -> Bool -> FilePath -> IO ()
+mainFile hints testMode file = do
+    system $ "yhc -core " ++ file
+    src <- loadCore $ takeWhile (/= '.') file ++ ".ycr"
+    let res = doChecks hints (simplify src)
+    if null res
+        then putStrLn "No hints for this program"
+        else mapM_ putStrLn res
 
 
 getHints :: Core -> Hints
-getHints core = [HintExpr hname (noPos expr)
+getHints core = [HintExpr core hname (noPos expr)
                     | CoreFunc name _ expr <- coreFuncs core,
                       not $ isLambda name, let hname = getName name]
 
 
-doChecks :: (Core,Hints) -> Core -> [String]
-doChecks (c1,hints) core =
+doChecks :: Hints -> Core -> [String]
+doChecks hints core =
     ["I can apply " ++ getName hname ++ " in " ++ getName fname ++ getPos fexpr |
          (CoreFunc fname _ fexpr) <- reverse $ coreFuncs core,
-         HintExpr hname hexpr <- hints,
+         HintExpr c1 hname hexpr <- hints,
          any (\x -> doesMatch (c1,hexpr) (core,x)) (allCore fexpr)]
     where
         getPos (CorePos msg x) = " (" ++ msg ++ ")"
