@@ -100,6 +100,9 @@ type Hints = [Hint]
 data Hint = HintExpr Core String CoreExpr
           | HintFunc Core String CoreExpr
 
+hintName (HintExpr _ x _) = x
+hintName (HintFunc _ x _) = x
+
 instance Show Hint where
     show (HintExpr _ name expr) = "EXPR: " ++ name ++ " = " ++ show expr
     show (HintFunc _ name expr) = "FUNC: " ++ name ++ " = " ++ show expr
@@ -143,13 +146,21 @@ getHints core = concatMap f (coreFuncs core)
 
 doChecks :: Hints -> Core -> [String]
 doChecks hints core =
-    ["I can apply " ++ hname ++ " in " ++ getName fname ++ getPos fexpr |
+    ["I can apply " ++ hintName hint ++ " in " ++ getName fname ++ getPos fexpr |
          (CoreFunc fname _ fexpr) <- reverse $ coreFuncs core,
-         HintExpr c1 hname hexpr <- hints,
-         any (\x -> doesMatch (c1,hexpr) (core,x)) (allCore fexpr)]
+         hint <- hints,
+         canApply hint core fexpr]
     where
         getPos (CorePos msg x) = " (" ++ msg ++ ")"
         getPos _ = ""
+
+
+-- given a hint, and a core expr (within a given core)
+canApply :: Hint -> Core -> CoreExpr -> Bool
+canApply (HintExpr hcore _ hexpr) core expr =
+    any (\x -> doesMatch (hcore,hexpr) (core,x)) (allCore expr)
+
+canApply (HintFunc hcore _ hexpr) core expr = False
 
 
 -- get a shortened name
