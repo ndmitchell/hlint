@@ -115,14 +115,15 @@ loadHints = liftM getHints $ loadHaskellCore "Hints.hs"
 
 
 getHints :: Core -> Hints
-getHints core = concatMap f (coreFuncs core)
+getHints poscore = concatMap f (coreFuncs core)
     where
+        core = noPos poscore
         name = coreName core ++ "."
     
         f func | name `isPrefixOf` fname && not (isLambda nam) && not ('.' `elem` nam) 
                = g body
             where
-                body = noPos $ coreFuncBody func
+                body = coreFuncBody func
                 fname = coreFuncName func
                 nam = drop (length name) fname
 
