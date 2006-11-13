@@ -73,3 +73,20 @@ special_map f = mop
         mop (x:xs) = f x : mop xs
         mop [] = []
 
+
+-- foldr f z x
+special_foldr f z = fold
+    where
+        fold [] = z
+        fold (x:xs) = f x (fold xs)
+
+-- foldl f z x
+special_foldl1 f = fold
+    where
+        fold acc [] = acc
+        fold acc (x:xs) = fold (f acc x) xs
+
+special_foldl2 f = fold
+    where
+        fold [] acc = acc
+        fold (x:xs) acc = fold (f x acc) xs

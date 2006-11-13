@@ -51,3 +51,11 @@ myfunc19 f [] = []
 
 myfunc20 (x:xs) = head x : myfunc20 xs
 myfunc20 [] = []
+
+myfunc21 [] = 0 :: Int
+myfunc21 (x:xs) = x + myfunc21 xs
+
+myfunc22 x = rev [] x
+    where
+        rev acc [] = acc
+        rev acc (x:xs) = rev (x:acc) xs
