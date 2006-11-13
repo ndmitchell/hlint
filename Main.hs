@@ -184,7 +184,10 @@ doesMatch :: (Core, CoreExpr) -> (Core, CoreExpr) -> Bool
 doesMatch (c1, a1) (c2, a2) =
         all (isCoreVar . fst) res && length (nub $ map fst res) == length res
     where
-        res = nub $ filter (uncurry (/=)) $ f a1 a2
+        res = nub $ filter neq $ f a1 a2
+        
+        neq (CoreVar _, CoreVar _) = True
+        neq (a,b) = a /= b
         
         -- try and simplify where possible
         f :: CoreExpr -> CoreExpr -> [(CoreExpr,CoreExpr)]
@@ -201,7 +204,7 @@ doesMatch (c1, a1) (c2, a2) =
                 
                 g2 (a1,b1) (a2,b2) | a1 == a2 = f b1 b2
                 g2 (CoreApp (CoreCon x1) x2,x3) (CoreApp (CoreCon y1) y2,y3)
-                    | x1 == y1 = f x3 (replaceFree (zip (map fromCoreVar y2) x2) y3)
+                    | x1 == y1 = zip x2 x2 ++ f x3 (replaceFree (zip (map fromCoreVar y2) x2) y3)
                 g2 _ _ = [false]
             
         f a b = [(a,b)]
