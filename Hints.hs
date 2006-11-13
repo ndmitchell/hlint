@@ -84,9 +84,9 @@ special_foldr f z = fold
 special_foldl1 f = fold
     where
         fold acc [] = acc
-        fold acc (x:xs) = fold (f acc x) xs
+        fold acc (x:xs) = fold (f x acc) xs
 
 special_foldl2 f = fold
     where
         fold [] acc = acc
-        fold (x:xs) acc = fold (f x acc) xs
+        fold (x:xs) acc = fold xs (f x acc)
