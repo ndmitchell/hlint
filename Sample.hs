@@ -63,3 +63,5 @@ myfunc22 x = rev [] x
 myfunc23 x blah = case x of
                       Just y -> y
                       Nothing -> blah
+
+myfunc24 f x y = mapM f x >> return y

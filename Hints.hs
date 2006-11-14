@@ -77,6 +77,9 @@ use_listMaybe (x:xs) = Just x
 use_maybeToList (Just x) = [x]
 use_maybeToList Nothing = []
 
+-- mapM_ f x >> y
+use_mapM_ f x y = mapM f x >> y
+
 
 -- map f x
 redefined_map = mop
