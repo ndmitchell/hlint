@@ -59,3 +59,7 @@ myfunc22 x = rev [] x
     where
         rev acc [] = acc
         rev acc (x:xs) = rev (x:acc) xs
+
+myfunc23 x blah = case x of
+                      Just y -> y
+                      Nothing -> blah

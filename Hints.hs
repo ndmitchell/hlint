@@ -60,6 +60,23 @@ useless_strict x = id $! x
 head_head err (x:xs) = x
 head_head err [] = error err
 
+-- fromJust x
+use_fromJust err (Just x) = x
+use_fromJust err Nothing = error err
+
+
+-- fromMaybe def x
+use_fromMaybe def (Just x) = x
+use_fromMaybe def Nothing = def
+
+-- listMaybe x
+use_listMaybe [] = Nothing
+use_listMaybe (x:xs) = Just x
+
+-- maybeToList x
+use_maybeToList (Just x) = [x]
+use_maybeToList Nothing = []
+
 
 -- map f x
 redefined_map = mop
@@ -90,3 +107,4 @@ special_foldl2 f = fold
     where
         fold [] acc = acc
         fold (x:xs) acc = fold xs (f x acc)
+
