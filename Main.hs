@@ -135,7 +135,7 @@ getHints poscore = concatMap f (coreFuncs core)
         f func = []
         
         
-        getHintFunc call args = mapUnderCore g $ coreFuncBody $ coreFunc core call
+        getHintFunc call args = transform g $ coreFuncBody $ coreFunc core call
             where
                 g (CoreApp (CoreFun c) as) | c == call
                     = CoreApp (CoreFun "RECURSIVE") (drop (length args) as)
@@ -159,12 +159,12 @@ doChecks hints core =
 -- given a hint, and a core expr (within a given core)
 canApply :: Hint -> Core -> CoreFunc -> Bool
 canApply (HintExpr hcore _ hexpr) core expr =
-    any (\x -> doesMatch (hcore,hexpr) (core,x)) (allCore $ coreFuncBody expr)
+    any (\x -> doesMatch (hcore,hexpr) (core,x)) (universe $ coreFuncBody expr)
 
 canApply (HintFunc hcore _ hexpr) core (CoreFunc fname _ fbody)
         = doesMatch (hcore,hexpr) (core,body)
     where
-        body = mapUnderCore f fbody
+        body = transform f fbody
         
         f (CoreFun x) | x == fname = CoreFun "RECURSIVE"
         f x = x
@@ -218,7 +218,7 @@ doesMatch (c1, a1) (c2, a2) =
 
 -- are two functions the same (ish)
 doesEqual :: CoreFunc -> CoreFunc -> Bool
-doesEqual (CoreFunc _ a1 a2) (CoreFunc _ b1 b2) = noPos a2 == noPos (mapUnderCore f b2)
+doesEqual (CoreFunc _ a1 a2) (CoreFunc _ b1 b2) = noPos a2 == noPos (transform f b2)
     where
         f (CoreVar x) | x `elem` b1 = CoreVar $ fromJust $ lookup x $ zip b1 a1
         f x = x
@@ -276,15 +276,15 @@ simplify x = mapOverCore f x
 
 
 -- remove all position information from a Core expression
-noPos :: PlayCore a => a -> a
-noPos x = mapUnderCore f x
+noPos :: UniplateExpr a => a -> a
+noPos x = transformExpr f x
     where
         f (CorePos x y) = y
         f x = x
 
 -- replace all free variables in the replacement list
 replaceFree :: [(String, CoreExpr)] -> CoreExpr -> CoreExpr
-replaceFree reps x = mapUnderCore f x
+replaceFree reps x = transform f x
     where
         f (CoreVar x) = case lookup x reps of
                             Just y -> y
