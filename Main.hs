@@ -5,7 +5,7 @@ import System.Cmd
 import System.Environment
 import System.Exit
 import System.Directory
-import System.FilePath.Version_0_10
+import System.FilePath
 import Control.Monad
 import Data.Char
 import Data.Maybe
