@@ -1,1 +1,2 @@
-ghc --make -iD:\sources\yhc\h.o\yhc\src\libraries\core -iD:\sources\yhc\h.o\yhc\src\libraries\general -hidir obj -odir obj -o drhaskell.exe Main 
+mkdir obj 2> nul
+ghc --make -iD:\sources\yhc\h.o\yhc\src\libraries\core -hidir obj -odir obj -o drhaskell.exe Main 
