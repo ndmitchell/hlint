@@ -24,8 +24,6 @@ myfunc7 f g = concat . map f . g
 
 myfunc8 f x = concat $ map f x
 
-myfunc9 f g x = concat $ map f $ g x
-
 myfunc10 = "test" ++ concatMap (' ':) ["of","this"]
 
 myfunc11 = concat . intersperse " "
@@ -44,6 +42,8 @@ myfunc16 a = a >>= return . id
 
 myfunc17 a b = if b < 42 then [a] else []
 
+{-
+-- out of scope for the new version
 myfunc18 (x:xs) = x
 
 myfunc19 f (x:xs) = f x : myfunc19 f xs
@@ -65,3 +65,4 @@ myfunc23 x blah = case x of
                       Nothing -> blah
 
 myfunc24 f x y = mapM f x >> return y
+-}
