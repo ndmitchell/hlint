@@ -1,25 +1,56 @@
 
 module Main where
 
-import Language.Haskell.Exts
-import System.Environment
-import Data.Generics.PlateData
+import Control.Monad
 import Data.Generics
-import Data.Maybe
+import Data.Generics.PlateData
 import Data.List
+import Data.Maybe
+import Language.Haskell.Exts
+import System.Console.GetOpt
+import System.Environment
+import System.Exit
 
 ---------------------------------------------------------------------
 -- COMMAND LINE OPTIONS
 
 
+data Opts = Help | HintFile FilePath | Test
+            deriving Eq
+
+opts = [Option "?" ["help"] (NoArg Help) "Display help message"
+       ,Option "h" ["hint"] (ReqArg HintFile "file") "Hint file to use"
+       ,Option "t" ["test"] (NoArg Test) "Run in test mode"
+       ]
+
 main = do
-    hints <- readHints "Hints.hs"
-    src <- parseFile2 "Sample.hs"
+    args <- getArgs
+    let (opt,files,err) = getOpt Permute opts args
+    when (not $ null err) $
+        error $ unlines $ "Unrecognised arguments:" : err
+
+    when (Help `elem` opt || null files) $ do
+        putStr $ unlines ["Dr Haskell, (C) Neil Mitchell 2006-2008, University of York"
+                         ,usageInfo "" opts
+                         ,"Dr Haskell makes hints on how to improve some Haskell code."]
+        exitWith ExitSuccess
+
+    let hintFiles = [x | HintFile x <- opt]
+    hints <- liftM concat $ mapM readHints $ if null hintFiles then ["Hints.hs"] else hintFiles
+
+    let test = Test `elem` opt
+    n <- liftM sum $ mapM (runFile test hints) files
+    if n == 0
+        then putStrLn "No relevant suggestions"
+        else putStrLn $ "Found " ++ show n ++ " suggestions"
+
+
+runFile test hints file = do
+    src <- parseFile2 file
     let ideas = findIdeas hints src
     putStr $ unlines $ map showIdea ideas
-    if null ideas
-        then putStrLn "No relevant suggestions"
-        else putStrLn $ "Found " ++ show (length ideas) ++ " suggestions"
+    return $ length ideas
+
 
 parseFile2 file = do
     res <- parseFile file
@@ -67,8 +98,8 @@ showHint :: Hint -> String
 showHint = hintName
 
 
-findIdeas :: [Hint] -> HsModule -> [Idea]
-findIdeas hints src@(HsModule pos _ _ _ _) = nub $ f pos src
+findIdeas :: Data a => [Hint] -> a -> [Idea]
+findIdeas hints = nub . f (SrcLoc "" 0 0)
     where
         f :: Data a => SrcLoc -> a -> [Idea]
         f pos x = case cast x of
