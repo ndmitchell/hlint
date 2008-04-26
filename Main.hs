@@ -137,32 +137,24 @@ matchIdeas hints pos x = [Idea h pos | h <- hints, matchIdea h x]
 
 
 matchIdea :: Hint -> HsExp -> Bool
-matchIdea hint x = hintExp hint ==? x
+matchIdea hint x = simplify (hintExp hint) ==? simplify x
 
 
 (==?) :: HsExp -> HsExp -> Bool
 (==?) x y | x == free || y == free = True
-(==?) x y = any (defEq nx) (reduce ny)
-    where (nx, ny) = (norm1 x, norm1 y)
-
-defEq x y = descend (const HsWildCard) x == descend (const HsWildCard) y &&
+(==?) x y = descend (const HsWildCard) x == descend (const HsWildCard) y &&
             and (zipWith (==?) (children x) (children y))
 
 
 
--- normalise them to one level
--- try to make them a bit more equal
-norm1 :: HsExp -> HsExp
-norm1 (HsInfixApp lhs (HsQVarOp op) rhs) = HsVar op `HsApp` lhs `HsApp` rhs
-norm1 (HsParen x) = norm1 x
-norm1 x = x
-
-
--- try to reduce the thing as much as possible
-reduce :: HsExp -> [HsExp]
-reduce o = [o]
-    ++ [x `HsApp` (y `HsApp` free) | HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y <- [o]]
-    ++ [x `HsApp` y | HsVar (UnQual (HsSymbol "$")) `HsApp` x `HsApp` y <- [o]]
+simplify :: HsExp -> HsExp
+simplify = transform f
+    where
+        f (HsInfixApp lhs (HsQVarOp op) rhs) = simplify $ HsVar op `HsApp` lhs `HsApp` rhs
+        f (HsParen x) = simplify x
+        f (HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` (y `HsApp` free)
+        f (HsVar (UnQual (HsSymbol "$")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` y
+        f x = x
 
 
 free = HsVar (UnQual (HsIdent "?"))
