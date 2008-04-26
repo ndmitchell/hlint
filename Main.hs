@@ -90,6 +90,7 @@ matchIdea hint x = hintExp hint ==? x
 
 
 (==?) :: HsExp -> HsExp -> Bool
+(==?) x y | x == free || y == free = True
 (==?) x y = any (defEq nx) (reduce ny)
     where (nx, ny) = (norm1 x, norm1 y)
 
@@ -102,11 +103,14 @@ defEq x y = descend (const HsWildCard) x == descend (const HsWildCard) y &&
 -- try to make them a bit more equal
 norm1 :: HsExp -> HsExp
 norm1 (HsInfixApp lhs (HsQVarOp op) rhs) = HsVar op `HsApp` lhs `HsApp` rhs
+norm1 (HsParen x) = norm1 x
 norm1 x = x
 
 
 -- try to reduce the thing as much as possible
 reduce :: HsExp -> [HsExp]
 reduce o = [o] ++
-    [x `HsApp` y `HsApp` HsWildCard | HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y <- [o]]
+    [x `HsApp` (y `HsApp` free) | HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y <- [o]]
 
+
+free = HsVar (UnQual (HsIdent "?"))
