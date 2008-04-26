@@ -40,6 +40,7 @@ main = do
 
     let test = Test `elem` opt
     n <- liftM sum $ mapM (runFile test hints) files
+    when test $ putStrLn $ "Tests " ++ if n == 0 then "passed" else "failed"
     if n == 0
         then putStrLn "No relevant suggestions"
         else putStrLn $ "Found " ++ show n ++ " suggestions"
@@ -47,9 +48,26 @@ main = do
 
 runFile test hints file = do
     src <- parseFile2 file
-    let ideas = findIdeas hints src
-    putStr $ unlines $ map showIdea ideas
-    return $ length ideas
+    if not test then do
+        let ideas = findIdeas hints src
+        putStr $ unlines $ map showIdea ideas
+        return $ length ideas
+     else do
+        let HsModule _ _ _ _ tests = src
+        liftM sum $ mapM f tests
+    where
+        f o | ("_NO" `isSuffixOf` name) == null ideas = return 0
+            | otherwise = do
+                putStrLn $ "Test failed in " ++ name ++ concatMap ((++) " | " . showIdea) ideas
+                return 1
+            where
+                ideas = findIdeas hints o
+                name = declName o
+
+
+declName (HsPatBind _ (HsPVar (HsIdent name)) _ _) = name
+declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _ : _)) = name
+declName x = error $ "declName: " ++ show x
 
 
 parseFile2 file = do
