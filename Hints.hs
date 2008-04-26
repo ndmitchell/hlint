@@ -56,6 +56,9 @@ useless_seq x = x `seq` x
 useless_strict x = id $! x
 
 
+{-
+-- more complicated, saved for later
+
 -- head x
 head_head err (x:xs) = x
 head_head err [] = error err
@@ -111,3 +114,4 @@ special_foldl2 f = fold
         fold [] acc = acc
         fold (x:xs) acc = fold xs (f x acc)
 
+-}
