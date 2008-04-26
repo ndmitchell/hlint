@@ -6,7 +6,7 @@ import System.Environment
 import Data.Generics.PlateData
 import Data.Generics
 import Data.Maybe
-import Debug.Trace
+import Data.List
 
 ---------------------------------------------------------------------
 -- COMMAND LINE OPTIONS
@@ -31,8 +31,8 @@ parseFile2 file = do
 ---------------------------------------------------------------------
 -- HINTS
 
-data Hint = Hint {hintName :: String, hintFree :: [String], hintExp :: HsExp}
-            deriving Show
+data Hint = Hint {hintName :: String, hintExp :: HsExp}
+            deriving (Show,Eq)
 
 
 readHints :: FilePath -> IO [Hint]
@@ -42,16 +42,18 @@ readHints file = do
 
 
 readHint :: HsDecl -> Hint
-readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDecls [])]) = Hint name (map f free) bod
+readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDecls [])]) = Hint name (transformBi f bod)
     where
-        f (HsPVar (HsIdent x)) = x
+        vars = [x | HsPVar (HsIdent x) <- free]
+        f (HsIdent x) | x `elem` vars = HsIdent "?"
+        f x = x
 
 
 ---------------------------------------------------------------------
 -- IDEAS
 
 data Idea = Idea {hint :: Hint, loc :: SrcLoc}
-            deriving Show
+            deriving (Show,Eq)
 
 
 showIdea :: Idea -> String
@@ -66,7 +68,7 @@ showHint = hintName
 
 
 findIdeas :: [Hint] -> HsModule -> [Idea]
-findIdeas hints src@(HsModule pos _ _ _ _) = f pos src
+findIdeas hints src@(HsModule pos _ _ _ _) = nub $ f pos src
     where
         f :: Data a => SrcLoc -> a -> [Idea]
         f pos x = case cast x of
