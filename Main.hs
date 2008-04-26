@@ -160,8 +160,9 @@ norm1 x = x
 
 -- try to reduce the thing as much as possible
 reduce :: HsExp -> [HsExp]
-reduce o = [o] ++
-    [x `HsApp` (y `HsApp` free) | HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y <- [o]]
+reduce o = [o]
+    ++ [x `HsApp` (y `HsApp` free) | HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y <- [o]]
+    ++ [x `HsApp` y | HsVar (UnQual (HsSymbol "$")) `HsApp` x `HsApp` y <- [o]]
 
 
 free = HsVar (UnQual (HsIdent "?"))
