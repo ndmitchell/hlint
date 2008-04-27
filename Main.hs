@@ -73,7 +73,7 @@ runFile test hints file = do
         let HsModule _ _ _ _ tests = src
         liftM sum $ mapM f tests
     where
-        f o | ("_NO" `isSuffixOf` name) == null ideas = return 0
+        f o | ("_NO" `isSuffixOf` name) == null ideas && length ideas <= 1 = return 0
             | otherwise = do
                 putStrLn $ "Test failed in " ++ name ++ concatMap ((++) " | " . showIdea) ideas
                 return 1
