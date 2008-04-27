@@ -111,8 +111,9 @@ readHint :: HsDecl -> Hint
 readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDecls [])]) = Hint name (transformBi f bod)
     where
         vars = [x | HsPVar (HsIdent x) <- free]
-        f (HsIdent x) | x `elem` vars = HsIdent "?"
-        f x = x
+        f x = case fromVar x of
+                  Just v | v `elem` vars -> toVar $ '?' : v
+                  _ -> x
 
 
 ---------------------------------------------------------------------
@@ -154,14 +155,31 @@ matchIdeas hints pos x = [Idea h pos | h <- hints, matchIdea h x]
 
 
 matchIdea :: Hint -> HsExp -> Bool
-matchIdea hint x = simplify (hintExp hint) ==? simplify x
+matchIdea hint x = doesUnify $ simplify (hintExp hint) ==? simplify x
 
 
-(==?) :: HsExp -> HsExp -> Bool
-(==?) x y | x == free || y == free = True
-(==?) x y = descend (const HsWildCard) x == descend (const HsWildCard) y &&
-            and (zipWith (==?) (children x) (children y))
+data Unify = Unify String HsExp
+           | Failure
+             deriving (Eq, Show)
 
+
+doesUnify :: [Unify] -> Bool
+doesUnify xs | Failure `elem` xs = False
+             | otherwise = f [(x,y) | Unify x y <- xs]
+    where
+        f :: [(String,HsExp)] -> Bool
+        f xs = all g vars
+            where
+                vars = nub $ map fst xs
+                g v = (==) 1 $ length $ nub [b | (a,b) <- xs, a == v]
+
+
+(==?) :: HsExp -> HsExp -> [Unify]
+(==?) x y | not $ null vars = vars
+          | descend (const HsWildCard) x == descend (const HsWildCard) y = concat $ zipWith (==?) (children x) (children y)
+          | otherwise = [Failure]
+    where
+        vars = [Unify v y | Just ('?':v) <- [fromVar x]]
 
 
 simplify :: HsExp -> HsExp
@@ -169,9 +187,21 @@ simplify = transform f
     where
         f (HsInfixApp lhs (HsQVarOp op) rhs) = simplify $ HsVar op `HsApp` lhs `HsApp` rhs
         f (HsParen x) = simplify x
-        f (HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` (y `HsApp` free)
+        f (HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` (y `HsApp` var)
+            where var = toVar $ '?' : freeVar (HsApp x y)
         f (HsVar (UnQual (HsSymbol "$")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` y
         f x = x
 
 
-free = HsVar (UnQual (HsIdent "?"))
+-- pick a variable that is not being used
+freeVar :: Data a => a -> String
+freeVar x = head $ allVars \\ concat [[y, drop 1 y] | HsIdent y <- universeBi x]
+    where allVars = [letter : number | number <- "" : map show [1..], letter <- ['a'..'z']]
+
+
+fromVar (HsVar (UnQual (HsIdent x))) = Just x
+fromVar _ = Nothing
+
+toVar = HsVar . UnQual . HsIdent
+
+isVar = isJust . fromVar
