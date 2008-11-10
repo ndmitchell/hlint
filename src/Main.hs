@@ -2,20 +2,18 @@
 module Main where
 
 import Control.Monad
-import Data.Generics
-import Data.Generics.PlateData
-import Data.List
-import Data.Maybe
 import Language.Haskell.Exts
+import Data.List
 
 import CmdLine
 import Hint.Type
 import Hint.Util
+import Hint.Read
 
 
 main = do
     mode <- getMode
-    hints <- liftM concat $ mapM readHints $ modeHints mode
+    hints <- readHints $ modeHints mode
     let test = modeTest mode
 
     n <- liftM sum $ mapM (runFile test hints) (modeFiles mode)
@@ -28,7 +26,7 @@ main = do
 runFile test hints file = do
     src <- parseHsModule file
     if not test then do
-        let ideas = findIdeas hints src
+        let ideas = applyHint hints src
         putStr $ unlines $ map show ideas
         return $ length ideas
      else do
@@ -40,104 +38,5 @@ runFile test hints file = do
                 putStrLn $ "Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas
                 return 1
             where
-                ideas = findIdeas hints o
+                ideas = applyHint hints $ HsModule undefined undefined undefined undefined [o]
                 name = declName o
-
-
----------------------------------------------------------------------
--- HINTS
-
-data Match = Match {hintName :: String, hintExp :: HsExp}
-            deriving (Show,Eq)
-
-
-readHints :: FilePath -> IO [Match]
-readHints file = do
-    res <- parseHsModule file
-    return $ map readHint $ childrenBi res
-
-
-readHint :: HsDecl -> Match
-readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDecls [])]) = Match name (transformBi f bod)
-    where
-        vars = [x | HsPVar (HsIdent x) <- free]
-        f x = case fromVar x of
-                  Just v | v `elem` vars -> toVar $ '?' : v
-                  _ -> x
-
-
----------------------------------------------------------------------
--- IDEAS
-
-
-findIdeas :: Data a => [Match] -> a -> [Idea]
-findIdeas hints = nub . f (SrcLoc "" 0 0)
-    where
-        f :: Data a => SrcLoc -> a -> [Idea]
-        f pos x = case cast x of
-                      Just y -> matchIdeas hints pos y ++ rest
-                      Nothing -> rest
-            where
-                rest = concat $ gmapQ (f pos2) x
-                pos2 = fromMaybe pos $ getSrcLoc x
-
-
-getSrcLoc :: Data a => a -> Maybe SrcLoc
-getSrcLoc x = head $ gmapQ cast x ++ [Nothing]
-
-
-matchIdeas :: [Match] -> SrcLoc -> HsExp -> [Idea]
-matchIdeas hints pos x = [Idea (hintName h) pos | h <- hints, matchIdea h x]
-
-
-matchIdea :: Match -> HsExp -> Bool
-matchIdea hint x = doesUnify $ simplify (hintExp hint) ==? simplify x
-
-
-data Unify = Unify String HsExp
-           | Failure
-             deriving (Eq, Show)
-
-
-doesUnify :: [Unify] -> Bool
-doesUnify xs | Failure `elem` xs = False
-             | otherwise = f [(x,y) | Unify x y <- xs]
-    where
-        f :: [(String,HsExp)] -> Bool
-        f xs = all g vars
-            where
-                vars = nub $ map fst xs
-                g v = (==) 1 $ length $ nub [b | (a,b) <- xs, a == v]
-
-
-(==?) :: HsExp -> HsExp -> [Unify]
-(==?) x y | not $ null vars = vars
-          | descend (const HsWildCard) x == descend (const HsWildCard) y = concat $ zipWith (==?) (children x) (children y)
-          | otherwise = [Failure]
-    where
-        vars = [Unify v y | Just ('?':v) <- [fromVar x]]
-
-
-simplify :: HsExp -> HsExp
-simplify = transform f
-    where
-        f (HsInfixApp lhs (HsQVarOp op) rhs) = simplify $ HsVar op `HsApp` lhs `HsApp` rhs
-        f (HsParen x) = x
-        f (HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` (y `HsApp` var)
-            where var = toVar $ '?' : freeVar (HsApp x y)
-        f (HsVar (UnQual (HsSymbol "$")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` y
-        f x = x
-
-
--- pick a variable that is not being used
-freeVar :: Data a => a -> String
-freeVar x = head $ allVars \\ concat [[y, drop 1 y] | HsIdent y <- universeBi x]
-    where allVars = [letter : number | number <- "" : map show [1..], letter <- ['a'..'z']]
-
-
-fromVar (HsVar (UnQual (HsIdent x))) = Just x
-fromVar _ = Nothing
-
-toVar = HsVar . UnQual . HsIdent
-
-isVar = isJust . fromVar

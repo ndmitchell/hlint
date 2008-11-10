@@ -18,5 +18,10 @@ showSrcLoc (SrcLoc file line col) = file ++ ":" ++ show line ++ ":" ++ show col 
 
 type Hint = HsDecl -> [Idea]
 
+
 concatHints :: [Hint] -> Hint
 concatHints hs x = concatMap ($x) hs
+
+
+applyHint :: Hint -> HsModule -> [Idea]
+applyHint h (HsModule _ _ _ _ xs) = concatMap h xs
