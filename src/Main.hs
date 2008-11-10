@@ -7,60 +7,20 @@ import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
 import Language.Haskell.Exts
-import System.Console.GetOpt
-import System.Directory
-import System.Environment
-import System.Exit
-import System.FilePath
 
----------------------------------------------------------------------
--- COMMAND LINE OPTIONS
+import CmdLine
 
-
-data Opts = Help | HintFile FilePath | Test
-            deriving Eq
-
-opts = [Option "?" ["help"] (NoArg Help) "Display help message"
-       ,Option "h" ["hint"] (ReqArg HintFile "file") "Hint file to use"
-       ,Option "t" ["test"] (NoArg Test) "Run in test mode"
-       ]
 
 main = do
-    args <- getArgs
-    let (opt,files,err) = getOpt Permute opts args
-    when (not $ null err) $
-        error $ unlines $ "Unrecognised arguments:" : err
+    mode <- getMode
+    hints <- liftM concat $ mapM readHints $ modeHints mode
+    let test = modeTest mode
 
-    when (Help `elem` opt || null files) $ do
-        putStr $ unlines ["Dr Haskell, (C) Neil Mitchell 2006-2008, University of York"
-                         ,usageInfo "" opts
-                         ,"Dr Haskell makes hints on how to improve some Haskell code."]
-        exitWith ExitSuccess
-
-    let hintFiles = [x | HintFile x <- opt]
-    hints <- liftM concat $ mapM readHints $ if null hintFiles then ["Hints.hs"] else hintFiles
-
-    let test = Test `elem` opt
-    files <- liftM concat $ mapM getFile files
-    n <- liftM sum $ mapM (runFile test hints) files
+    n <- liftM sum $ mapM (runFile test hints) (modeFiles mode)
     when test $ putStrLn $ "Tests " ++ if n == 0 then "passed" else "failed"
     if n == 0
         then putStrLn "No relevant suggestions"
         else putStrLn $ "Found " ++ show n ++ " suggestions"
-
-
-getFile file = do
-    b <- doesDirectoryExist file
-    if not b then return [file] else f file
-    where
-        f file | takeExtension file `elem` [".hs",".lhs"] = return [file]
-        f file = do
-            b <- doesDirectoryExist file
-            if not b then return [] else do
-                s <- getDirectoryContents file
-                liftM concat $ mapM (f . (</>) file) $ filter (not . isBadDir) s
-
-isBadDir x = "." `isPrefixOf` x || "_" `isPrefixOf` x
 
 
 runFile test hints file = do
