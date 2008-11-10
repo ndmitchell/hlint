@@ -81,10 +81,10 @@ readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDe
 -- IDEAS
 
 
-findIdeas :: Data a => [Match] -> a -> [Hint]
+findIdeas :: Data a => [Match] -> a -> [Idea]
 findIdeas hints = nub . f (SrcLoc "" 0 0)
     where
-        f :: Data a => SrcLoc -> a -> [Hint]
+        f :: Data a => SrcLoc -> a -> [Idea]
         f pos x = case cast x of
                       Just y -> matchIdeas hints pos y ++ rest
                       Nothing -> rest
@@ -97,8 +97,8 @@ getSrcLoc :: Data a => a -> Maybe SrcLoc
 getSrcLoc x = head $ gmapQ cast x ++ [Nothing]
 
 
-matchIdeas :: [Match] -> SrcLoc -> HsExp -> [Hint]
-matchIdeas hints pos x = [Hint (hintName h) pos | h <- hints, matchIdea h x]
+matchIdeas :: [Match] -> SrcLoc -> HsExp -> [Idea]
+matchIdeas hints pos x = [Idea (hintName h) pos | h <- hints, matchIdea h x]
 
 
 matchIdea :: Match -> HsExp -> Bool
