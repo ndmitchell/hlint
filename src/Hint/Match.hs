@@ -28,7 +28,7 @@ readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDe
 
 
 
-findIdeas :: Data a => [Match] -> a -> [Idea]
+findIdeas :: [Match] -> HsDecl -> [Idea]
 findIdeas hints = nub . f (SrcLoc "" 0 0)
     where
         f :: Data a => SrcLoc -> a -> [Idea]
