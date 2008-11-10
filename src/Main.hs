@@ -38,5 +38,5 @@ runFile test hints file = do
                 putStrLn $ "Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas
                 return 1
             where
-                ideas = applyHint hints $ HsModule undefined undefined undefined undefined [o]
+                ideas = hints o
                 name = declName o
