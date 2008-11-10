@@ -57,18 +57,18 @@ parseFile2 file = do
 ---------------------------------------------------------------------
 -- HINTS
 
-data Hint = Hint {hintName :: String, hintExp :: HsExp}
+data Match = Match {hintName :: String, hintExp :: HsExp}
             deriving (Show,Eq)
 
 
-readHints :: FilePath -> IO [Hint]
+readHints :: FilePath -> IO [Match]
 readHints file = do
     res <- parseFile2 file
     return $ map readHint $ childrenBi res
 
 
-readHint :: HsDecl -> Hint
-readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDecls [])]) = Hint name (transformBi f bod)
+readHint :: HsDecl -> Match
+readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDecls [])]) = Match name (transformBi f bod)
     where
         vars = [x | HsPVar (HsIdent x) <- free]
         f x = case fromVar x of
@@ -79,7 +79,7 @@ readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDe
 ---------------------------------------------------------------------
 -- IDEAS
 
-data Idea = Idea {hint :: Hint, loc :: SrcLoc}
+data Idea = Idea {hint :: Match, loc :: SrcLoc}
             deriving (Show,Eq)
 
 
@@ -90,11 +90,11 @@ showIdea idea = showSrcLoc (loc idea) ++ " " ++ showHint (hint idea)
 showSrcLoc (SrcLoc file line col) = file ++ ":" ++ show line ++ ":" ++ show col ++ ":"
 
 
-showHint :: Hint -> String
+showHint :: Match -> String
 showHint = hintName
 
 
-findIdeas :: Data a => [Hint] -> a -> [Idea]
+findIdeas :: Data a => [Match] -> a -> [Idea]
 findIdeas hints = nub . f (SrcLoc "" 0 0)
     where
         f :: Data a => SrcLoc -> a -> [Idea]
@@ -110,11 +110,11 @@ getSrcLoc :: Data a => a -> Maybe SrcLoc
 getSrcLoc x = head $ gmapQ cast x ++ [Nothing]
 
 
-matchIdeas :: [Hint] -> SrcLoc -> HsExp -> [Idea]
+matchIdeas :: [Match] -> SrcLoc -> HsExp -> [Idea]
 matchIdeas hints pos x = [Idea h pos | h <- hints, matchIdea h x]
 
 
-matchIdea :: Hint -> HsExp -> Bool
+matchIdea :: Match -> HsExp -> Bool
 matchIdea hint x = doesUnify $ simplify (hintExp hint) ==? simplify x
 
 
