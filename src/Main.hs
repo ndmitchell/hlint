@@ -9,6 +9,7 @@ import Data.Maybe
 import Language.Haskell.Exts
 
 import CmdLine
+import Hint.Type
 
 
 main = do
@@ -27,7 +28,7 @@ runFile test hints file = do
     src <- parseFile2 file
     if not test then do
         let ideas = findIdeas hints src
-        putStr $ unlines $ map showIdea ideas
+        putStr $ unlines $ map show ideas
         return $ length ideas
      else do
         let HsModule _ _ _ _ tests = src
@@ -35,7 +36,7 @@ runFile test hints file = do
     where
         f o | ("_NO" `isSuffixOf` name) == null ideas && length ideas <= 1 = return 0
             | otherwise = do
-                putStrLn $ "Test failed in " ++ name ++ concatMap ((++) " | " . showIdea) ideas
+                putStrLn $ "Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas
                 return 1
             where
                 ideas = findIdeas hints o
@@ -79,25 +80,11 @@ readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDe
 ---------------------------------------------------------------------
 -- IDEAS
 
-data Idea = Idea {hint :: Match, loc :: SrcLoc}
-            deriving (Show,Eq)
 
-
-showIdea :: Idea -> String
-showIdea idea = showSrcLoc (loc idea) ++ " " ++ showHint (hint idea)
-
-
-showSrcLoc (SrcLoc file line col) = file ++ ":" ++ show line ++ ":" ++ show col ++ ":"
-
-
-showHint :: Match -> String
-showHint = hintName
-
-
-findIdeas :: Data a => [Match] -> a -> [Idea]
+findIdeas :: Data a => [Match] -> a -> [Hint]
 findIdeas hints = nub . f (SrcLoc "" 0 0)
     where
-        f :: Data a => SrcLoc -> a -> [Idea]
+        f :: Data a => SrcLoc -> a -> [Hint]
         f pos x = case cast x of
                       Just y -> matchIdeas hints pos y ++ rest
                       Nothing -> rest
@@ -110,8 +97,8 @@ getSrcLoc :: Data a => a -> Maybe SrcLoc
 getSrcLoc x = head $ gmapQ cast x ++ [Nothing]
 
 
-matchIdeas :: [Match] -> SrcLoc -> HsExp -> [Idea]
-matchIdeas hints pos x = [Idea h pos | h <- hints, matchIdea h x]
+matchIdeas :: [Match] -> SrcLoc -> HsExp -> [Hint]
+matchIdeas hints pos x = [Hint (hintName h) pos | h <- hints, matchIdea h x]
 
 
 matchIdea :: Match -> HsExp -> Bool
