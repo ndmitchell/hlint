@@ -1,0 +1,22 @@
+cabal-version:      >= 1.2
+build-type:         Simple
+name:               drhaskell
+version:            0.9.0.0
+license:            GPL
+license-file:       LICENSE
+category:           Development
+author:             Neil Mitchell <ndmitchell@gmail.com>
+maintainer:         Neil Mitchell <ndmitchell@gmail.com>
+copyright:          Neil Mitchell 2006-2008
+synopsis:           Source code suggestions
+description:
+    DrHaskell gives suggestions on how to improve your source code.
+homepage:           http://www.cs.york.ac.uk/~ndm/drhaskell/
+stability:          Beta
+extra-source-files: readme.txt
+
+executable drhaskell
+    build-depends: base, haskell-src-exts, uniplate
+
+    main-is:            Main.hs
+    hs-source-dirs:     src
