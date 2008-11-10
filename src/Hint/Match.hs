@@ -7,6 +7,7 @@ import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
 import Hint.Type
+import Hint.Util
 
 
 data Match = Match {hintName :: String, hintExp :: HsExp}
@@ -29,7 +30,7 @@ readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDe
 
 
 findIdeas :: [Match] -> HsDecl -> [Idea]
-findIdeas hints = nub . f (SrcLoc "" 0 0)
+findIdeas hints = nub . f nullSrcLoc
     where
         f :: Data a => SrcLoc -> a -> [Idea]
         f pos x = case cast x of

@@ -18,3 +18,5 @@ parseHsModule file = do
         _ -> error $ "Failed to parse: " ++ file
 
 
+nullSrcLoc :: SrcLoc
+nullSrcLoc = SrcLoc "" 0 0
