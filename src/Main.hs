@@ -146,7 +146,7 @@ simplify :: HsExp -> HsExp
 simplify = transform f
     where
         f (HsInfixApp lhs (HsQVarOp op) rhs) = simplify $ HsVar op `HsApp` lhs `HsApp` rhs
-        f (HsParen x) = simplify x
+        f (HsParen x) = x
         f (HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` (y `HsApp` var)
             where var = toVar $ '?' : freeVar (HsApp x y)
         f (HsVar (UnQual (HsSymbol "$")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` y
