@@ -10,6 +10,7 @@ import Language.Haskell.Exts
 
 import CmdLine
 import Hint.Type
+import Hint.Util
 
 
 main = do
@@ -25,7 +26,7 @@ main = do
 
 
 runFile test hints file = do
-    src <- parseFile2 file
+    src <- parseHsModule file
     if not test then do
         let ideas = findIdeas hints src
         putStr $ unlines $ map show ideas
@@ -43,18 +44,6 @@ runFile test hints file = do
                 name = declName o
 
 
-declName (HsPatBind _ (HsPVar (HsIdent name)) _ _) = name
-declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _ : _)) = name
-declName x = error $ "declName: " ++ show x
-
-
-parseFile2 file = do
-    res <- parseFile file
-    case res of
-        ParseOk x -> return x
-        _ -> error $ "Failed to parse: " ++ file
-
-
 ---------------------------------------------------------------------
 -- HINTS
 
@@ -64,7 +53,7 @@ data Match = Match {hintName :: String, hintExp :: HsExp}
 
 readHints :: FilePath -> IO [Match]
 readHints file = do
-    res <- parseFile2 file
+    res <- parseHsModule file
     return $ map readHint $ childrenBi res
 
 
