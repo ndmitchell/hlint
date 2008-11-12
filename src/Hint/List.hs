@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 {-
     Find and match:
 
@@ -37,5 +39,8 @@ checks = let (*) = (,) in
 useString (HsList xs) | not (null xs) && all isCharExp xs = Just $ HsLit $ HsString [x | HsLit (HsChar x) <- xs]
 useString _ = Nothing
 
-
-useList _ = Nothing
+useList = fmap HsList . f True
+    where
+        f first (view -> Nil) = if first then Nothing else Just []
+        f first (view -> Cons a b) = fmap (a:) $ f False b
+        f first _ = Nothing
