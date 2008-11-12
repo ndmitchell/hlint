@@ -16,7 +16,7 @@ stability:          Beta
 extra-source-files: readme.txt
 
 executable drhaskell
-    build-depends: base, haskell-src-exts, uniplate
+    build-depends: base, syb, filepath, directory, haskell-src-exts, uniplate
 
     main-is:            Main.hs
     hs-source-dirs:     src
