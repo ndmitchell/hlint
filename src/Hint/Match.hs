@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 
 module Hint.Match(readMatch) where
 
@@ -30,15 +31,23 @@ readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDe
 
 
 findIdeas :: [Match] -> HsDecl -> [Idea]
-findIdeas hints = nub . f nullSrcLoc
-    where
-        f :: Data a => SrcLoc -> a -> [Idea]
-        f pos x = case cast x of
-                      Just y -> matchIdeas hints pos y ++ rest
-                      Nothing -> rest
-            where
-                rest = concat $ gmapQ (f pos2) x
-                pos2 = fromMaybe pos $ getSrcLoc x
+findIdeas hints = nub . concatMap (uncurry $ matchIdeas hints) . universeExp nullSrcLoc
+
+
+-- children on Exp, but with SrcLoc's
+children1Exp :: Data a => SrcLoc -> a -> [(SrcLoc, HsExp)]
+children1Exp src x = concat $ gmapQ (children0Exp src2) x
+    where src2 = fromMaybe src (getSrcLoc x)
+
+children0Exp :: Data a => SrcLoc -> a -> [(SrcLoc, HsExp)]
+children0Exp src x | Just y <- cast x = [(src, y)]
+                   | otherwise = children1Exp src x
+
+universeExp :: Data a => SrcLoc -> a -> [(SrcLoc, HsExp)]
+universeExp src x = concatMap f (children0Exp src x)
+    where f (src,x) = (src,x) : concatMap f (children1Exp src x)
+
+
 
 
 getSrcLoc :: Data a => a -> Maybe SrcLoc
