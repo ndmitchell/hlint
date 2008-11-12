@@ -14,29 +14,36 @@ import Hint.Read
 main = do
     mode <- getMode
     hints <- readHints $ modeHints mode
-    let test = modeTest mode
-
-    n <- liftM sum $ mapM (runFile test hints) (modeFiles mode)
-    when test $ putStrLn $ "Tests " ++ if n == 0 then "passed" else "failed"
-    if n == 0
-        then putStrLn "No relevant suggestions"
-        else putStrLn $ "Found " ++ show n ++ " suggestions"
-
-
-runFile test hints file = do
-    src <- parseHsModule file
-    if not test then do
-        let ideas = applyHint hints src
-        putStr $ unlines $ map show ideas
-        return $ length ideas
+    if modeTest mode then do
+        let files = ifNull (modeFiles mode) ["Test.hs"]
+        success <- liftM and $ mapM (runTest hints) files
+        putStrLn $ "Tests " ++ if success then "passed" else "failed"
      else do
-        let HsModule _ _ _ _ tests = src
-        liftM sum $ mapM f tests
+        n <- liftM sum $ mapM (runFile hints) (modeFiles mode)
+        if n == 0
+            then putStrLn "No relevant suggestions"
+            else putStrLn $ "Found " ++ show n ++ " suggestions"
+
+
+-- return the number of hints given
+runFile :: Hint -> FilePath -> IO Int
+runFile hint file = do
+    src <- parseHsModule file
+    let ideas = applyHint hint src
+    mapM_ print ideas
+    return $ length ideas
+
+
+-- return False for failure
+runTest :: Hint -> FilePath -> IO Bool
+runTest hint file = do
+    HsModule _ _ _ _ tests <- parseHsModule file
+    let failures = concatMap f tests
+    mapM_ putStr failures
+    return $ null failures
     where
-        f o | ("_NO" `isSuffixOf` name) == null ideas && length ideas <= 1 = return 0
-            | otherwise = do
-                putStrLn $ "Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas
-                return 1
+        f o | ("_NO" `isSuffixOf` name) == null ideas && length ideas <= 1 = []
+            | otherwise = ["Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas]
             where
-                ideas = hints o
+                ideas = hint o
                 name = declName o

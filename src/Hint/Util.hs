@@ -9,6 +9,14 @@ import Data.Maybe
 import Language.Haskell.Exts
 
 
+headDef :: a -> [a] -> a
+headDef x [] = x
+headDef x (y:ys) = y
+
+ifNull :: [a] -> [a] -> [a]
+ifNull x y = if null x then y else x
+
+
 declName :: HsDecl -> String
 declName (HsPatBind _ (HsPVar (HsIdent name)) _ _) = name
 declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _ : _)) = name
@@ -21,7 +29,7 @@ parseHsModule file = do
     case res of
         ParseOk x -> return x
         ParseFailed src msg -> do
-            putStrLn $ "" ++ showSrcLoc src ++ ": Parse failure, " ++ msg
+            putStrLn $ showSrcLoc src ++ " Parse failure, " ++ msg
             return $ HsModule nullSrcLoc (Module "") Nothing [] []
 
 
@@ -35,7 +43,7 @@ showSrcLoc :: SrcLoc -> String
 showSrcLoc (SrcLoc file line col) = file ++ ":" ++ show line ++ ":" ++ show col ++ ":"
 
 getSrcLoc :: Data a => a -> Maybe SrcLoc
-getSrcLoc x = head $ gmapQ cast x ++ [Nothing]
+getSrcLoc x = headDef Nothing $ gmapQ cast x
 
 
 ---------------------------------------------------------------------

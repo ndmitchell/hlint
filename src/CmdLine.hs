@@ -8,6 +8,7 @@ import System.Directory
 import System.Environment
 import System.Exit
 import System.FilePath
+import Hint.Util
 
 
 data Mode = Mode
@@ -31,10 +32,11 @@ getMode :: IO Mode
 getMode = do
     args <- getArgs
     let (opt,files,err) = getOpt Permute opts args
+    let test = Test `elem` opt
     when (not $ null err) $
         error $ unlines $ "Unrecognised arguments:" : err
 
-    when (Help `elem` opt || null files) $ do
+    when (Help `elem` opt || (null files && not test)) $ do
         putStr $ unlines ["Dr Haskell, (C) Neil Mitchell 2006-2008, University of York"
                          ,""
                          ,"  drhaskell [files] [options]"
@@ -42,10 +44,7 @@ getMode = do
                          ,"Dr Haskell makes hints on how to improve some Haskell code."]
         exitWith ExitSuccess
 
-    hints <- return [x | HintFile x <- opt]
-    hints <- return $ if null hints then ["Hints.hs"] else hints
-
-    let test = Test `elem` opt
+    let hints = ifNull [x | HintFile x <- opt] ["Hints.hs"]
     files <- liftM concat $ mapM getFile files
     return Mode{modeHints=hints, modeFiles=files, modeTest=test}
 
