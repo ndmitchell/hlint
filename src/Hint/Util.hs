@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, MultiParamTypeClasses #-}
 
 module Hint.Util where
 
@@ -87,3 +87,39 @@ isVar = isJust . fromVar
 isCharExp :: HsExp -> Bool
 isCharExp (HsLit (HsChar _)) = True
 isCharExp _ = False
+
+
+---------------------------------------------------------------------
+-- PATTERN MATCHING
+
+class View a b where
+    view :: a -> b
+
+
+data Nil = NoNil | Nil deriving Show
+
+instance View HsExp Nil where
+    view (HsList []) = Nil
+    view _ = NoNil
+
+
+data Cons = NoCons | Cons HsExp HsExp deriving Show
+
+instance View HsExp Cons where
+    view (view -> App2 f x y) | f ~= ":" = Cons x y
+    view _ = NoCons
+
+
+data App2 = NoApp2 | App2 HsExp HsExp HsExp deriving Show
+
+instance View HsExp App2 where
+    view (HsInfixApp lhs op rhs) = view $ f op `HsApp` lhs `HsApp` rhs
+        where f (HsQVarOp op) = HsVar op
+              f (HsQConOp op) = HsCon op
+    view (f `HsApp` x `HsApp` y) = App2 f x y
+    view _ = NoApp2
+
+
+(~=) :: HsExp -> String -> Bool
+(HsCon (Special HsCons)) ~= ":" = True
+_ ~= _ = False
