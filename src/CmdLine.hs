@@ -36,6 +36,8 @@ getMode = do
 
     when (Help `elem` opt || null files) $ do
         putStr $ unlines ["Dr Haskell, (C) Neil Mitchell 2006-2008, University of York"
+                         ,""
+                         ,"  drhaskell [files] [options]"
                          ,usageInfo "" opts
                          ,"Dr Haskell makes hints on how to improve some Haskell code."]
         exitWith ExitSuccess
