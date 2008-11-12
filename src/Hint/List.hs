@@ -22,8 +22,20 @@ listDecl :: HsDecl -> [Idea]
 listDecl = concatMap listExp . children0Exp nullSrcLoc
 
 listExp :: (SrcLoc,HsExp) -> [Idea]
-listExp (loc,x) = case x of
-    HsList xs | not (null xs) && all isCharExp xs ->
-        [Idea "Use a string literal" loc (Just $ prettyPrint x) (Just $ prettyPrint $ HsLit $ HsString [x | HsLit (HsChar x) <- xs])]
-    _ -> concatMap listExp $ children1Exp loc x
+listExp (loc,x) =
+        if null res then concatMap listExp $ children1Exp loc x else [head res]
+    where
+        res = [Idea name loc (Just $ prettyPrint x) (Just $ prettyPrint x2) | (name,f) <- checks, Just x2 <- [f x]]
 
+
+checks = let (*) = (,) in
+         ["Use a string literal" * useString
+         ,"Use a list literal" * useList
+         ]
+
+
+useString (HsList xs) | not (null xs) && all isCharExp xs = Just $ HsLit $ HsString [x | HsLit (HsChar x) <- xs]
+useString _ = Nothing
+
+
+useList _ = Nothing
