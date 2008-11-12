@@ -63,6 +63,7 @@ universeExp src x = concatMap f (children0Exp src x)
     where f (src,x) = (src,x) : concatMap f (children1Exp src x)
 
 
+
 ---------------------------------------------------------------------
 -- VARIABLE MANIPULATION
 
@@ -81,3 +82,8 @@ toVar = HsVar . UnQual . HsIdent
 
 isVar :: HsExp -> Bool
 isVar = isJust . fromVar
+
+
+isCharExp :: HsExp -> Bool
+isCharExp (HsLit (HsChar _)) = True
+isCharExp _ = False
