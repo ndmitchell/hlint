@@ -15,8 +15,15 @@ parseHsModule file = do
     res <- parseFile file
     case res of
         ParseOk x -> return x
-        _ -> error $ "Failed to parse: " ++ file
+        ParseFailed src msg -> do
+            putStrLn $ "" ++ showSrcLoc src ++ ": Parse failure, " ++ msg
+            return $ HsModule nullSrcLoc (Module "") Nothing [] []
 
 
 nullSrcLoc :: SrcLoc
 nullSrcLoc = SrcLoc "" 0 0
+
+
+showSrcLoc :: SrcLoc -> String
+showSrcLoc (SrcLoc file line col) = file ++ ":" ++ show line ++ ":" ++ show col ++ ":"
+

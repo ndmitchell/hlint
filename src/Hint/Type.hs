@@ -2,6 +2,7 @@
 module Hint.Type where
 
 import Language.Haskell.Exts
+import Hint.Util
 
 
 data Idea = Idea {idea :: String, loc :: SrcLoc}
@@ -9,11 +10,6 @@ data Idea = Idea {idea :: String, loc :: SrcLoc}
 
 instance Show Idea where
     show x = showSrcLoc (loc x) ++ " " ++ idea x
-
-
-showSrcLoc :: SrcLoc -> String
-showSrcLoc (SrcLoc file line col) = file ++ ":" ++ show line ++ ":" ++ show col ++ ":"
-
 
 
 type Hint = HsDecl -> [Idea]
