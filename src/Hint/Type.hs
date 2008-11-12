@@ -5,11 +5,18 @@ import Language.Haskell.Exts
 import Hint.Util
 
 
-data Idea = Idea {idea :: String, loc :: SrcLoc}
+data Idea = Idea {idea :: String, loc :: SrcLoc, from :: Maybe String, to :: Maybe String}
             deriving Eq
 
+nullIdea = Idea "" nullSrcLoc Nothing Nothing
+
+
 instance Show Idea where
-    show x = showSrcLoc (loc x) ++ " " ++ idea x
+    show x = unlines $
+        [showSrcLoc (loc x) ++ " " ++ idea x] ++ f "Found" from ++ f "Why not" to
+        where
+            f msg sel = maybe [] (\y -> (msg ++ ":") : map ("  "++) (lines y)) (sel x)
+
 
 
 type Hint = HsDecl -> [Idea]

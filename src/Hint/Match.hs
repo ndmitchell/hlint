@@ -33,7 +33,7 @@ findIdeas hints = nub . concatMap (uncurry $ matchIdeas hints) . universeExp nul
 
 
 matchIdeas :: [Match] -> SrcLoc -> HsExp -> [Idea]
-matchIdeas hints pos x = [Idea (hintName h) pos | h <- hints, matchIdea h x]
+matchIdeas hints pos x = [Idea (hintName h) pos (Just $ prettyPrint x) Nothing | h <- hints, matchIdea h x]
 
 
 matchIdea :: Match -> HsExp -> Bool

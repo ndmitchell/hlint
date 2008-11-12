@@ -23,6 +23,7 @@ listDecl = concatMap listExp . children0Exp nullSrcLoc
 
 listExp :: (SrcLoc,HsExp) -> [Idea]
 listExp (loc,x) = case x of
-    HsList xs | not (null xs) && all isCharExp xs -> [Idea "Use a string" loc]
+    HsList xs | not (null xs) && all isCharExp xs ->
+        [Idea "Use a string literal" loc (Just $ prettyPrint x) (Just $ prettyPrint $ HsLit $ HsString [x | HsLit (HsChar x) <- xs])]
     _ -> concatMap listExp $ children1Exp loc x
 
