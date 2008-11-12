@@ -1,9 +1,7 @@
-{-# LANGUAGE PatternGuards #-}
 
 module Hint.Match(readMatch) where
 
 import Language.Haskell.Exts
-import Data.Generics
 import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
@@ -32,26 +30,6 @@ readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDe
 
 findIdeas :: [Match] -> HsDecl -> [Idea]
 findIdeas hints = nub . concatMap (uncurry $ matchIdeas hints) . universeExp nullSrcLoc
-
-
--- children on Exp, but with SrcLoc's
-children1Exp :: Data a => SrcLoc -> a -> [(SrcLoc, HsExp)]
-children1Exp src x = concat $ gmapQ (children0Exp src2) x
-    where src2 = fromMaybe src (getSrcLoc x)
-
-children0Exp :: Data a => SrcLoc -> a -> [(SrcLoc, HsExp)]
-children0Exp src x | Just y <- cast x = [(src, y)]
-                   | otherwise = children1Exp src x
-
-universeExp :: Data a => SrcLoc -> a -> [(SrcLoc, HsExp)]
-universeExp src x = concatMap f (children0Exp src x)
-    where f (src,x) = (src,x) : concatMap f (children1Exp src x)
-
-
-
-
-getSrcLoc :: Data a => a -> Maybe SrcLoc
-getSrcLoc x = head $ gmapQ cast x ++ [Nothing]
 
 
 matchIdeas :: [Match] -> SrcLoc -> HsExp -> [Idea]
@@ -95,17 +73,3 @@ simplify = transform f
             where var = toVar $ '?' : freeVar (HsApp x y)
         f (HsVar (UnQual (HsSymbol "$")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` y
         f x = x
-
-
--- pick a variable that is not being used
-freeVar :: Data a => a -> String
-freeVar x = head $ allVars \\ concat [[y, drop 1 y] | HsIdent y <- universeBi x]
-    where allVars = [letter : number | number <- "" : map show [1..], letter <- ['a'..'z']]
-
-
-fromVar (HsVar (UnQual (HsIdent x))) = Just x
-fromVar _ = Nothing
-
-toVar = HsVar . UnQual . HsIdent
-
-isVar = isJust . fromVar
