@@ -44,6 +44,8 @@ myfunc16 a = a >>= return . id
 
 myfunc17 a b = if b < 42 then [a] else []
 
+myfunc18 a = ['h','e','l','l','o']
+
 {-
 -- out of scope for the new version
 myfunc18 (x:xs) = x
