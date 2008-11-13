@@ -89,15 +89,12 @@ isCharExp (HsLit (HsChar _)) = True
 isCharExp _ = False
 
 
-isParen :: HsExp -> Bool
-isParen (HsParen _) = True
-isParen _ = False
-
 ----------------------------------------------------------------------
 -- BRACKETS
 
-addParen :: HsExp -> HsExp
+addParen, hsParen :: HsExp -> HsExp
 addParen x = if atom x then x else HsXExpTag x
+hsParen x = if atom x then x else HsParen x
 
 remParen :: HsExp -> HsExp
 remParen = transform g . transform f
@@ -111,6 +108,10 @@ remParen = transform g . transform f
         
         f2 (HsXExpTag (HsApp a b)) = HsApp a b
         f2 x = x
+
+isParen :: HsExp -> Bool
+isParen (HsParen _) = True
+isParen _ = False
 
 
 atom x = case x of
