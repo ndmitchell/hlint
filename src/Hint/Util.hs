@@ -93,21 +93,38 @@ isParen :: HsExp -> Bool
 isParen (HsParen _) = True
 isParen _ = False
 
--- put brackets round something if it might be necessary
-hsParen :: HsExp -> HsExp
-hsParen x = if f x then x else HsParen x
+----------------------------------------------------------------------
+-- BRACKETS
+
+addParen :: HsExp -> HsExp
+addParen x = if atom x then x else HsXExpTag x
+
+remParen :: HsExp -> HsExp
+remParen = transform g . transform f
     where
-        f (HsParen _) = True
-        f (HsVar _) = True
-        f (HsCon _) = True
-        f (HsLit _) = True
-        f (HsTuple _) = True
-        f (HsList _) = True
-        f (HsLeftSection _ _) = True
-        f (HsRightSection _ _) = True
-        f (HsRecConstr _ _) = True
-        f (HsListComp _ _) = True
-        f _ = False
+        g (HsXExpTag x) = HsParen x
+        g x = x
+    
+        f (HsXExpTag x) | atom x = x
+        f (HsInfixApp a b c) = HsInfixApp (f2 a) b (f2 c)
+        f x = x
+        
+        f2 (HsXExpTag (HsApp a b)) = HsApp a b
+        f2 x = x
+
+
+atom x = case x of
+  HsParen _ -> True
+  HsVar _ -> True
+  HsCon _ -> True
+  HsLit _ -> True
+  HsTuple _ -> True
+  HsList _ -> True
+  HsLeftSection _ _ -> True
+  HsRightSection _ _ -> True
+  HsRecConstr _ _ -> True
+  HsListComp _ _ -> True
+  _ -> False
 
 
 ---------------------------------------------------------------------

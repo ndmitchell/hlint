@@ -69,18 +69,18 @@ matchIdea :: Match -> HsExp -> Maybe HsExp
 matchIdea Match{lhs=lhs,rhs=rhs} x = do
     u <- unify lhs x
     u <- check u
-    return $ simp $ subst u rhs
+    return $ simp $ remParen $ subst u rhs
 
 
 -- unify a b = c, a[c] = b
 unify :: HsExp -> HsExp -> Maybe [(String,HsExp)]
-unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,hsParen y)]
+unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,addParen y)]
 unify x y | ((==) `on` descend (const HsWildCard)) x y = liftM concat $ zipWithM unify (children x) (children y)
 unify (HsParen x) y = unify x y
 unify x (HsParen y) = unify x y
 unify x (view -> App2 op y1 y2)
-  | op ~= "$" = unify x $ hsParen y1 `HsApp` hsParen y2
-  | op ~= "." = unify x $ HsApp (hsParen y1) (hsParen y2 `HsApp` toVar "?")
+  | op ~= "$" = unify x $ addParen y1 `HsApp` addParen y2
+  | op ~= "." = unify x $ HsApp (addParen y1) (addParen y2 `HsApp` toVar "?")
 unify _ _ = Nothing
 
 
