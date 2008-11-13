@@ -51,9 +51,11 @@ lambdaDef _ = []
 
 etaReduce :: HsName -> HsExp -> Maybe HsExp
 etaReduce x (HsApp y (HsVar (UnQual z))) | x == z && x `notElem` universeBi y = Just y
-etaReduce x (view -> App2 dollar y z) | dollar ~= "$" && x `notElem` universeBi y = do
+etaReduce x (HsApp y z) | x `notElem` universeBi y = do
     z2 <- etaReduce x z
     return $ HsInfixApp y (HsQVarOp $ UnQual $ HsSymbol ".") z2
+etaReduce x (view -> App2 dollar y z) | dollar ~= "$" = etaReduce x (HsApp y z)
+etaReduce x y | isParen y = etaReduce x (fromParen y)
 etaReduce x _ = Nothing
 
 

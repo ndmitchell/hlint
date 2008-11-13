@@ -5,7 +5,7 @@ import Data.List
 
 myfunc f = concat . map f
 
-myfunc2 f g x = map f (map g x)
+myfunc2 f g x q = map f (map g x)
 
 
 myfunc3 e l' = concat.map (\x->if x==e then l' else [x])
