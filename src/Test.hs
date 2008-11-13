@@ -22,7 +22,7 @@ myfunc6 x = f x
 
 myfunc7 f g = concat . map f . g
 
-myfunc8 f x = concat $ map f x
+myfunc8 f x z = concat $ map f x
 
 myfunc10 = "test" ++ concatMap (' ':) ["of","this"]
 
@@ -57,6 +57,16 @@ myfunc21 x xs = "x" ++ xs
 myfunc20_NO x xs ys = [x] ++ xs ++ ys
 
 myfunc21_NO x xs ys = xs ++ [x] ++ ys
+
+
+myfunc22 x = g $ f $ map head x
+
+myfunc23 x = \y -> y
+
+myfunc24 = foo (\_ -> True)
+
+myfunc25_NO x = (f x) x
+
 
 
 {-
