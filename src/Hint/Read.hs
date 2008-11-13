@@ -7,6 +7,7 @@ import Hint.Type
 
 import Hint.Match
 import Hint.List
+import Hint.Monad
 
 
 readHints :: [FilePath] -> IO Hint
@@ -16,4 +17,4 @@ readHints = liftM (concatHints . concat) . mapM readHint
 readHint :: FilePath -> IO [Hint]
 readHint file = do
     modu <- parseHsModule file
-    return [readMatch modu, listHint]
+    return [readMatch modu, listHint, monadHint]
