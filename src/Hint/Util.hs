@@ -29,8 +29,13 @@ parseHsModule file = do
     case res of
         ParseOk x -> return x
         ParseFailed src msg -> do
-            putStrLn $ showSrcLoc src ++ " Parse failure, " ++ msg
+            putStrLn $ showSrcLoc src ++ " Parse failure, " ++ limit 50 msg
             return $ HsModule nullSrcLoc (Module "") Nothing [] []
+
+
+limit :: Int -> String -> String
+limit n s = if null post then s else pre ++ "..."
+    where (pre,post) = splitAt n s
 
 
 ---------------------------------------------------------------------
