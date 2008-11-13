@@ -116,8 +116,13 @@ remParen = transform g . transform f
 
 isParen :: HsExp -> Bool
 isParen (HsParen _) = True
+isParen (HsXExpTag _) = True
 isParen _ = False
 
+fromParen :: HsExp -> HsExp
+fromParen (HsParen x) = fromParen x
+fromParen (HsXExpTag x) = fromParen x
+fromParen x = x
 
 atom x = case x of
   HsParen _ -> True
