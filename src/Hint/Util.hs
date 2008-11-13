@@ -74,6 +74,7 @@ freeVar x = head $ allVars \\ concat [[y, drop 1 y] | HsIdent y <- universeBi x]
 
 fromVar :: HsExp -> Maybe String
 fromVar (HsVar (UnQual (HsIdent x))) = Just x
+fromVar (HsVar (UnQual (HsSymbol x))) = Just x
 fromVar _ = Nothing
 
 toVar :: String -> HsExp
@@ -126,5 +127,4 @@ instance View HsExp App2 where
 
 (~=) :: HsExp -> String -> Bool
 (HsCon (Special HsCons)) ~= ":" = True
-(HsVar (UnQual (HsSymbol x))) ~= y = x == y
-_ ~= _ = False
+x ~= y = fromVar x == Just y
