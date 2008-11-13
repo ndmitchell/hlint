@@ -46,11 +46,17 @@ myfunc17 a b = if b < 42 then [a] else []
 
 myfunc18 a = ['h','e','l','l','o']
 
-
 myfunc19 a b = do mapM print a; return b
 
 myfunc19_NO a b = mapM print a
 
+myfunc20 x xs = [x] ++ xs
+
+myfunc21 x xs = "x" ++ xs
+
+myfunc20_NO x xs ys = [x] ++ xs ++ ys
+
+myfunc21_NO x xs ys = xs ++ [x] ++ ys
 
 
 {-

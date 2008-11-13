@@ -4,7 +4,6 @@
 
 hint = concat (map f x) ==> concatMap f x
 hint "Use one map" = map f (map g x) ==> map (f . g) x
-hint "Use (:)" = ([x] ++ y) ==> (x : y)
 hint = (x !! 0) ==> head x
 hint = take n (repeat x) ==> replicate n x
 hint = (x ++ concatMap (' ':) y) ==> unwords (x:y)
