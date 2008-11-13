@@ -43,7 +43,7 @@ lambdaDecl _ = []
 lambdaDef :: HsMatch -> [Idea]
 lambdaDef o@(HsMatch loc name pats (HsUnGuardedRhs bod) (HsBDecls []))
     | HsLambda loc vs y <- bod = [idea "Lambda shift" loc o $ reform (pats++vs) y]
-    | pats /= [], HsPVar p <- last pats, p /= HsIdent "mr", Just y <- etaReduce p (dollarRotate bod) =
+    | pats /= [], HsPVar p <- last pats, HsIdent _ <- name, p /= HsIdent "mr", Just y <- etaReduce p (dollarRotate bod) =
               [idea "Eta reduce" loc o $ reform (init pats) y]
         where reform pats2 bod2 = HsMatch loc name pats2 (HsUnGuardedRhs bod2) (HsBDecls [])
 lambdaDef _ = []
