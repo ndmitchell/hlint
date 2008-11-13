@@ -76,8 +76,7 @@ matchIdea Match{lhs=lhs,rhs=rhs} x = do
 unify :: HsExp -> HsExp -> Maybe [(String,HsExp)]
 unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,addParen y)]
 unify x y | ((==) `on` descend (const HsWildCard)) x y = liftM concat $ zipWithM unify (children x) (children y)
-unify (HsParen x) y = unify x y
-unify x (HsParen y) = unify x y
+unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
 unify x (view -> App2 op y1 y2)
   | op ~= "$" = unify x $ addParen y1 `HsApp` addParen y2
   | op ~= "." = unify x $ HsApp (addParen y1) (addParen y2 `HsApp` toVar "?")
