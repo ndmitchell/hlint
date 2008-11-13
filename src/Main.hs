@@ -16,8 +16,10 @@ main = do
     hints <- readHints $ modeHints mode
     if modeTest mode then do
         let files = ifNull (modeFiles mode) ["Test.hs"]
-        success <- liftM and $ mapM (runTest hints) files
-        putStrLn $ "Tests " ++ if success then "passed" else "failed"
+        n <- liftM sum $ mapM (runTest hints) files
+        if n == 0
+            then putStrLn $ "Tests passed"
+            else putStrLn $ "Tests failed (" ++ show n ++ ")"
      else do
         n <- liftM sum $ mapM (runFile hints) (modeFiles mode)
         if n == 0
@@ -34,13 +36,13 @@ runFile hint file = do
     return $ length ideas
 
 
--- return False for failure
-runTest :: Hint -> FilePath -> IO Bool
+-- return the number of failures
+runTest :: Hint -> FilePath -> IO Int
 runTest hint file = do
     HsModule _ _ _ _ tests <- parseHsModule file
     let failures = concatMap f tests
-    mapM_ putStr failures
-    return $ null failures
+    mapM_ putStrLn failures
+    return $ length failures
     where
         f o | ("_NO" `isSuffixOf` name) == null ideas && length ideas <= 1 = []
             | otherwise = ["Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas]
