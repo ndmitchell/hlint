@@ -93,6 +93,22 @@ isParen :: HsExp -> Bool
 isParen (HsParen _) = True
 isParen _ = False
 
+-- put brackets round something if it might be necessary
+hsParen :: HsExp -> HsExp
+hsParen x = if f x then x else HsParen x
+    where
+        f (HsParen _) = True
+        f (HsVar _) = True
+        f (HsCon _) = True
+        f (HsLit _) = True
+        f (HsTuple _) = True
+        f (HsList _) = True
+        f (HsLeftSection _ _) = True
+        f (HsRightSection _ _) = True
+        f (HsRecConstr _ _) = True
+        f (HsListComp _ _) = True
+        f _ = False
+
 
 ---------------------------------------------------------------------
 -- PATTERN MATCHING

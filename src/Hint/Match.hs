@@ -74,13 +74,13 @@ matchIdea Match{lhs=lhs,rhs=rhs} x = do
 
 -- unify a b = c, a[c] = b
 unify :: HsExp -> HsExp -> Maybe [(String,HsExp)]
-unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,y)]
+unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,hsParen y)]
 unify x y | ((==) `on` descend (const HsWildCard)) x y = liftM concat $ zipWithM unify (children x) (children y)
 unify (HsParen x) y = unify x y
 unify x (HsParen y) = unify x y
 unify x (view -> App2 op y1 y2)
-  | op ~= "$" = unify x (y1 `HsApp` y2)
-  | op ~= "." = unify x (HsApp y1 (HsApp y2 (toVar "?")))
+  | op ~= "$" = unify x $ hsParen y1 `HsApp` hsParen y2
+  | op ~= "." = unify x $ HsApp (hsParen y1) (hsParen y2 `HsApp` toVar "?")
 unify _ _ = Nothing
 
 
