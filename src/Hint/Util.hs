@@ -126,4 +126,5 @@ instance View HsExp App2 where
 
 (~=) :: HsExp -> String -> Bool
 (HsCon (Special HsCons)) ~= ":" = True
+(HsVar (UnQual (HsSymbol x))) ~= y = x == y
 _ ~= _ = False
