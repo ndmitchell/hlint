@@ -60,7 +60,7 @@ pickName lhs rhs | null names = "Unnamed suggestion"
 
 findIdeas :: [Match] -> HsDecl -> [Idea]
 findIdeas matches decl =
-  [ Idea (message m) loc (Just $ prettyPrint x) (Just $ prettyPrint y)
+  [ idea (message m) loc x y
   | (loc, x) <- universeExp nullSrcLoc decl, not $ isParen x
   , m <- matches, Just y <- [matchIdea m x]]
 

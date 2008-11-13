@@ -5,15 +5,15 @@ import Language.Haskell.Exts
 import Hint.Util
 
 
-data Idea = Idea {idea :: String, loc :: SrcLoc, from :: Maybe String, to :: Maybe String}
+data Idea = Idea {text :: String, loc :: SrcLoc, from :: Maybe String, to :: Maybe String}
             deriving Eq
 
-nullIdea = Idea "" nullSrcLoc Nothing Nothing
+idea s loc from to = Idea s loc (Just $ prettyPrint from) (Just $ prettyPrint to)
 
 
 instance Show Idea where
     show x = unlines $
-        [showSrcLoc (loc x) ++ " " ++ idea x] ++ f "Found" from ++ f "Why not" to
+        [showSrcLoc (loc x) ++ " " ++ text x] ++ f "Found" from ++ f "Why not" to
         where
             f msg sel = maybe [] (\y -> (msg ++ ":") : map ("  "++) (lines y)) (sel x)
 

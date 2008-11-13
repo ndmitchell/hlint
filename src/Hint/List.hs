@@ -28,7 +28,7 @@ listExp :: Bool -> (SrcLoc,HsExp) -> [Idea]
 listExp b (loc,x) =
         if null res then concatMap (listExp $ isAppend x) $ children1Exp loc x else [head res]
     where
-        res = [Idea name loc (Just $ prettyPrint x) (Just $ prettyPrint x2) | (name,f) <- checks, Just x2 <- [f b x]]
+        res = [idea name loc x x2 | (name,f) <- checks, Just x2 <- [f b x]]
 
 
 isAppend (view -> App2 op _ _) = op ~= "++"

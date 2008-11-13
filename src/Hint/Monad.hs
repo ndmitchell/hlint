@@ -29,7 +29,7 @@ monadExp (loc,x) = case x of
         HsMDo xs -> monadExp (loc, HsDo xs)
         _ -> []
     where
-        f x = [Idea "Use a more efficient monadic variant" loc (Just $ prettyPrint x) (Just $ prettyPrint y)
+        f x = [idea "Use a more efficient monadic variant" loc x y
               |Just y <- [monadCall x]]
 
 
