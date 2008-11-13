@@ -1,59 +1,45 @@
 
-module Hints where
 
-import Data.List
+-- LIST
 
+hint = concat (map f x) ==> concatMap f x
+hint "Use one map" = map f (map g x) ==> map (f . g) x
+hint "Use (:)" = ([x] ++ y) ==> (x : y)
+hint = (x !! 0) ==> head x
+hint = take n (repeat x) ==> replicate n x
+hint = (x ++ concatMap (' ':) y) ==> unwords (x:y)
+hint = concat (intersperse " " x) ==> unwords x
 
--- concatMap f x
-concat_map f x = concat (map f x)
+-- BOOL
 
--- map (f . g) x
-map_map f g x = map f (map g x)
+hint = not (a == b) ==> (a /= b)
+hint = not (a /= b) ==> (a == b)
+hint "Redundant if" = (if a then True else False) ==> a
+hint "Redundant if" = (if a then False else True) ==> not a
+hint "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then t else f
+hint "Redundant if" = (if a then (if b then t else f) else f) ==> if a && b then t else f
+hint "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
+hint "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
+hint "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
 
--- x : y
-box_append x y = [x] ++ y
+-- MONAD
 
--- head x
-head_index x = x !! 0
+hint = m >>= return . f ==> liftM f m
 
--- replicate n x
-use_replicate n x = take n (repeat x)
+-- LIST COMP
 
--- unwords (x:xs)
-use_unwords1 x xs = x ++ concatMap (' ':) xs
+hint "Use a list comprehension" = (if b then [x] else []) ==> [x | b]
 
--- unwords xs
-use_unwords2 xs = concat (intersperse " " xs)
+-- SEQ
 
--- a
-no_if a = if a then True else False
+hint "The seq is redundant" = (x `seq` x) ==> x
+hint "The $! is redundant" = (id $! x) ==> x
 
--- not a
-use_not a = if a then False else True
+-- MAYBE
 
--- a /= b
-use_neq a b = not (a == b)
-
--- a == b
-use_eq a b = not (a /= b)
-
--- if a || b then t else f
-use_or a b t f = if a then t else (if b then t else f)
-
--- if a && b then t else f
-use_and a b t f = if a then (if b then t else f) else f
-
--- liftM f m
-use_liftM m f = m >>= return . f
-
--- [x | b]
-use_list_comp b x = if b then [x] else []
-
--- x
-useless_seq x = x `seq` x
-
--- x
-useless_strict x = id $! x
+hint = maybe x id  ==> fromMaybe x
+hint = maybe False (const True) ==> isJust
+hint = maybe True (const False) ==> isNothing
 
 
 {-

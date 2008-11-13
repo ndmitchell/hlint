@@ -1,75 +1,102 @@
+{-# LANGUAGE PatternGuards, ViewPatterns #-}
 
 module Hint.Match(readMatch) where
 
 import Language.Haskell.Exts
+import Data.Char
 import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
 import Hint.Type
 import Hint.Util
+import Control.Monad
+import Data.Function
+import Debug.Trace
 
 
-data Match = Match {hintName :: String, hintExp :: HsExp}
-            deriving (Show,Eq)
+data Match = Match {message :: String, lhs :: HsExp, rhs :: HsExp}
 
+instance Show Match where
+    show (Match x y z) = "Match " ++ show x ++ "\n  " ++ prettyPrint y ++ "\n  " ++ prettyPrint z ++ "\n"
+    showList = showString . concat . map show
+
+-- Any 1-letter variable names are assumed to be unification variables
+isFreeVar :: String -> Bool
+isFreeVar [x] = x == '?' || isAlpha x
+isFreeVar _ = False
+
+
+---------------------------------------------------------------------
+-- READ THE MATCHES
 
 readMatch :: HsModule -> Hint
-readMatch modu = findIdeas (map readHint $ childrenBi modu)
+readMatch modu = findIdeas (concatMap readOne $ childrenBi modu)
 
 
 
-readHint :: HsDecl -> Match
-readHint (HsFunBind [HsMatch src (HsIdent name) free (HsUnGuardedRhs bod) (HsBDecls [])]) = Match name (transformBi f bod)
+readOne :: HsDecl -> [Match]
+readOne (HsFunBind [HsMatch src (HsIdent "hint") [HsPLit (HsString msg)]
+           (HsUnGuardedRhs (HsInfixApp lhs (HsQVarOp (UnQual (HsSymbol "==>"))) rhs)) (HsBDecls [])]) =
+        [Match (ifNull msg (pickName lhs rhs)) lhs rhs]
+
+readOne (HsPatBind src (HsPVar name) bod bind) = readOne $ HsFunBind [HsMatch src name [HsPLit (HsString "")] bod bind]
+
+readOne (HsFunBind xs) = concatMap (readOne . HsFunBind . (:[])) xs
+
+readOne x = error $ "Failed to read hint " ++ maybe "" showSrcLoc (getSrcLoc x) ++ "\n" ++ prettyPrint x
+
+
+pickName :: HsExp -> HsExp -> String
+pickName lhs rhs | null names = "Unnamed suggestion"
+                 | otherwise = "Use " ++ head names
     where
-        vars = [x | HsPVar (HsIdent x) <- free]
-        f x = case fromVar x of
-                  Just v | v `elem` vars -> toVar $ '?' : v
-                  _ -> x
+        names = filter (not . isFreeVar) $ map f (childrenBi rhs) \\ map f (childrenBi lhs) 
+        f (HsIdent x) = x
+        f (HsSymbol x) = x
 
 
+---------------------------------------------------------------------
+-- PERFORM MATCHING
 
 findIdeas :: [Match] -> HsDecl -> [Idea]
-findIdeas hints = nub . concatMap (uncurry $ matchIdeas hints) . universeExp nullSrcLoc
+findIdeas matches decl =
+  [ Idea (message m) loc (Just $ prettyPrint x) (Just $ prettyPrint y)
+  | (loc, x) <- universeExp nullSrcLoc decl, not $ isParen x
+  , m <- matches, Just y <- [matchIdea m x]]
 
 
-matchIdeas :: [Match] -> SrcLoc -> HsExp -> [Idea]
-matchIdeas hints pos x = [Idea (hintName h) pos (Just $ prettyPrint x) Nothing | h <- hints, matchIdea h x]
+matchIdea :: Match -> HsExp -> Maybe HsExp
+matchIdea Match{lhs=lhs,rhs=rhs} x = do
+    u <- unify lhs x
+    u <- check u
+    return $ simp $ subst u rhs
 
 
-matchIdea :: Match -> HsExp -> Bool
-matchIdea hint x = doesUnify $ simplify (hintExp hint) ==? simplify x
+-- unify a b = c, a[c] = b
+unify :: HsExp -> HsExp -> Maybe [(String,HsExp)]
+unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,y)]
+unify x y | ((==) `on` descend (const HsWildCard)) x y = liftM concat $ zipWithM unify (children x) (children y)
+unify (HsParen x) y = unify x y
+unify x (HsParen y) = unify x y
+unify x (view -> App2 op y1 y2)
+  | op ~= "$" = unify x (y1 `HsApp` y2)
+  | op ~= "." = unify x (HsApp y1 (HsApp y2 (toVar "?")))
+unify _ _ = Nothing
 
 
-data Unify = Unify String HsExp
-           | Failure
-             deriving (Eq, Show)
+-- check the unification is valid
+check :: [(String,HsExp)] -> Maybe [(String,HsExp)]
+check = mapM f . groupBy ((==) `on` fst) . sortBy (compare `on` fst)
+    where f xs = if length (nub xs) == 1 then Just (head xs) else Nothing
 
 
-doesUnify :: [Unify] -> Bool
-doesUnify xs | Failure `elem` xs = False
-             | otherwise = f [(x,y) | Unify x y <- xs]
-    where
-        f :: [(String,HsExp)] -> Bool
-        f xs = all g vars
-            where
-                vars = nub $ map fst xs
-                g v = (==) 1 $ length $ nub [b | (a,b) <- xs, a == v]
+-- perform a substitution
+subst :: [(String,HsExp)] -> HsExp -> HsExp
+subst bind x | Just v <- fromVar x, isFreeVar v, Just y <- lookup v bind = y
+             | otherwise = descend (subst bind) x
 
 
-(==?) :: HsExp -> HsExp -> [Unify]
-(==?) x y | not $ null vars = vars
-          | descend (const HsWildCard) x == descend (const HsWildCard) y = concat $ zipWith (==?) (children x) (children y)
-          | otherwise = [Failure]
-    where
-        vars = [Unify v y | Just ('?':v) <- [fromVar x]]
-
-
-simplify :: HsExp -> HsExp
-simplify = transform f
-    where
-        f (HsInfixApp lhs (HsQVarOp op) rhs) = simplify $ HsVar op `HsApp` lhs `HsApp` rhs
-        f (HsParen x) = x
-        f (HsVar (UnQual (HsSymbol ".")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` (y `HsApp` var)
-            where var = toVar $ '?' : freeVar (HsApp x y)
-        f (HsVar (UnQual (HsSymbol "$")) `HsApp` x `HsApp` y) = simplify $ x `HsApp` y
-        f x = x
+-- simplify, removing any introduced ? vars (from expanding .)
+simp :: HsExp -> HsExp
+simp (HsApp x y) | Just "?" <- fromVar y = x
+simp x = x
