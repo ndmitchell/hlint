@@ -25,7 +25,7 @@ lambdaHint x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (unive
 
 lambdaExp :: HsExp -> [Idea]
 lambdaExp o@(HsLambda loc [v] y) | Just x <- f v, x `notElem` universeBi y =
-        [Idea "Use const" loc (Just $ prettyPrint o) (Just $ prettyPrint res)]
+        [idea "Use const" loc o res]
     where
         f (HsPVar x) = Just x
         f HsPWildCard = Just $ HsIdent "_"
