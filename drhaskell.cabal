@@ -13,10 +13,15 @@ description:
     DrHaskell gives suggestions on how to improve your source code.
 homepage:           http://www.cs.york.ac.uk/~ndm/drhaskell/
 stability:          Beta
-extra-source-files: readme.txt
+data-dir:           data
+data-files:
+    Hints.hs
+    Test.hs
 
 executable drhaskell
-    build-depends: base, syb, filepath, directory, haskell-src-exts, uniplate
+    build-depends: base, syb, filepath, directory, haskell-src-exts, uniplate, mtl
 
     main-is:            Main.hs
     hs-source-dirs:     src
+    other-modules:
+        CmdLine

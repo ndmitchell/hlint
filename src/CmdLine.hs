@@ -55,7 +55,12 @@ getMode = do
 getFile :: FilePath -> IO [FilePath]
 getFile file = do
     b <- doesDirectoryExist file
-    if not b then return [file] else f file
+    if b then f file else do
+        b <- doesFileExist file
+        if b then return [file] else do
+            dat <- getDataDir
+            b <- doesFileExist (dat </> file)
+            if b then return [file] else error $ "Couldn't find file: " ++ file
     where
         f file | takeExtension file `elem` [".hs",".lhs"] = return [file]
         f file = do
