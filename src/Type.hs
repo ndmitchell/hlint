@@ -1,8 +1,8 @@
 
-module Hint.Type where
+module Type where
 
 import Language.Haskell.Exts
-import Hint.Util
+import Util
 
 
 data Idea = Idea {text :: String, loc :: SrcLoc, from :: String, to :: String}

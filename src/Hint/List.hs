@@ -12,8 +12,8 @@
 
 module Hint.List where
 
-import Hint.Util
-import Hint.Type
+import Util
+import Type
 import Language.Haskell.Exts
 
 

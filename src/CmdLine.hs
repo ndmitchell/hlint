@@ -8,7 +8,7 @@ import System.Directory
 import System.Environment
 import System.Exit
 import System.FilePath
-import Hint.Util
+import Util
 
 
 data Mode = Mode

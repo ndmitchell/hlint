@@ -11,8 +11,8 @@
 module Hint.Monad where
 
 import Control.Monad
-import Hint.Util
-import Hint.Type
+import Util
+import Type
 import Language.Haskell.Exts
 
 

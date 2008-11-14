@@ -7,8 +7,8 @@ import Data.Char
 import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
-import Hint.Type
-import Hint.Util
+import Type
+import Util
 import Control.Monad
 import Data.Function
 import Debug.Trace

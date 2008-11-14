@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, MultiParamTypeClasses #-}
 
-module Hint.Util where
+module Util where
 
 import Data.Generics
 import Data.Generics.PlateData

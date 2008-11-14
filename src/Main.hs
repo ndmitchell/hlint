@@ -6,9 +6,9 @@ import Language.Haskell.Exts
 import Data.List
 
 import CmdLine
-import Hint.Type
-import Hint.Util
-import Hint.Read
+import Type
+import Util
+import Hint.All
 
 
 main = do

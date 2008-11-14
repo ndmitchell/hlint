@@ -13,8 +13,8 @@
 
 module Hint.Lambda where
 
-import Hint.Util
-import Hint.Type
+import Util
+import Type
 import Language.Haskell.Exts
 import Data.Generics.PlateData
 

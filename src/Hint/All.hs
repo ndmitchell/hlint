@@ -1,9 +1,9 @@
 
-module Hint.Read(readHints) where
+module Hint.All(readHints) where
 
 import Control.Monad
-import Hint.Util
-import Hint.Type
+import Util
+import Type
 
 import Hint.Match
 import Hint.List

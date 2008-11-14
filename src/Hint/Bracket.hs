@@ -15,8 +15,8 @@ import Control.Monad
 import Control.Monad.State
 import Data.Generics
 import Data.Maybe
-import Hint.Type
-import Hint.Util
+import Type
+import Util
 import Language.Haskell.Exts
 
 
