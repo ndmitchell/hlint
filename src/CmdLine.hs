@@ -10,6 +10,9 @@ import System.Exit
 import System.FilePath
 import Util
 
+import Paths_drhaskell
+import Data.Version
+
 
 data Mode = Mode
     {modeHints :: [FilePath]  -- ^ which hint files to use
@@ -37,7 +40,7 @@ getMode = do
         error $ unlines $ "Unrecognised arguments:" : err
 
     when (Help `elem` opt || (null files && not test)) $ do
-        putStr $ unlines ["Dr Haskell, (C) Neil Mitchell 2006-2008, University of York"
+        putStr $ unlines ["Dr Haskell v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2008, University of York"
                          ,""
                          ,"  drhaskell [files] [options]"
                          ,usageInfo "" opts
