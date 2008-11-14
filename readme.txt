@@ -1,1 +1,0 @@
-See http://www-users.cs.york.ac.uk/~ndm/drhaskell/ for details :)
