@@ -37,7 +37,7 @@ readMatch modu = findIdeas (concatMap readOne $ childrenBi modu)
 readOne :: HsDecl -> [Match]
 readOne (HsFunBind [HsMatch src (HsIdent "hint") [HsPLit (HsString msg)]
            (HsUnGuardedRhs (HsInfixApp lhs (HsQVarOp (UnQual (HsSymbol "==>"))) rhs)) (HsBDecls [])]) =
-        [Match (ifNull msg (pickName lhs rhs)) lhs rhs]
+        [Match (if null msg then pickName lhs rhs else msg) lhs rhs]
 
 readOne (HsPatBind src (HsPVar name) bod bind) = readOne $ HsFunBind [HsMatch src name [HsPLit (HsString "")] bod bind]
 
