@@ -22,20 +22,20 @@ badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM"]
 monadHint :: Hint
 monadHint = concatMap monadExp . universeExp nullSrcLoc
 
-monadExp :: (SrcLoc,HsExp) -> [Idea]
+monadExp :: (SrcLoc,Exp) -> [Idea]
 monadExp (loc,x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
-        HsDo xs -> concat [f x | HsQualifier x <- init xs]
-        HsMDo xs -> monadExp (loc, HsDo xs)
+        Do xs -> concat [f x | Qualifier x <- init xs]
+        MDo xs -> monadExp (loc, Do xs)
         _ -> []
     where
         f x = [idea "Use a more efficient monadic variant" loc x y
               |Just y <- [monadCall x]]
 
 
--- see through HsParen and down if/case etc
-monadCall :: HsExp -> Maybe HsExp
-monadCall (HsParen x) = liftM HsParen $ monadCall x
-monadCall (HsApp x y) = liftM (`HsApp` y) $ monadCall x
+-- see through Paren and down if/case etc
+monadCall :: Exp -> Maybe Exp
+monadCall (Paren x) = liftM Paren $ monadCall x
+monadCall (App x y) = liftM (`App` y) $ monadCall x
 monadCall x | x:_ <- filter (x ~=) badFuncs = Just $ toVar (x ++ "_")
 monadCall _ = Nothing

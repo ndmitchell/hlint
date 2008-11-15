@@ -14,20 +14,20 @@ headDef x [] = x
 headDef x (y:ys) = y
 
 
-declName :: HsDecl -> String
-declName (HsPatBind _ (HsPVar (HsIdent name)) _ _) = name
-declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _ : _)) = name
+declName :: Decl -> String
+declName (PatBind _ (PVar (Ident name)) _ _) = name
+declName (FunBind (Match _ (Ident name) _ _ _ : _)) = name
 declName x = error $ "declName: " ++ show x
 
 
-parseHsModule :: FilePath -> IO HsModule
+parseHsModule :: FilePath -> IO Module
 parseHsModule file = do
     res <- parseFile file
     case res of
         ParseOk x -> return x
         ParseFailed src msg -> do
             putStrLn $ showSrcLoc src ++ " Parse failure, " ++ limit 50 msg
-            return $ HsModule nullSrcLoc (Module "") Nothing [] []
+            return $ Module nullSrcLoc (ModuleName "") Nothing [] []
 
 
 limit :: Int -> String -> String
@@ -52,15 +52,15 @@ getSrcLoc x = headDef Nothing $ gmapQ cast x
 -- UNIPLATE STYLE FUNCTIONS
 
 -- children on Exp, but with SrcLoc's
-children1Exp :: Data a => SrcLoc -> a -> [(SrcLoc, HsExp)]
+children1Exp :: Data a => SrcLoc -> a -> [(SrcLoc, Exp)]
 children1Exp src x = concat $ gmapQ (children0Exp src2) x
     where src2 = fromMaybe src (getSrcLoc x)
 
-children0Exp :: Data a => SrcLoc -> a -> [(SrcLoc, HsExp)]
+children0Exp :: Data a => SrcLoc -> a -> [(SrcLoc, Exp)]
 children0Exp src x | Just y <- cast x = [(src, y)]
                    | otherwise = children1Exp src x
 
-universeExp :: Data a => SrcLoc -> a -> [(SrcLoc, HsExp)]
+universeExp :: Data a => SrcLoc -> a -> [(SrcLoc, Exp)]
 universeExp src x = concatMap f (children0Exp src x)
     where f (src,x) = (src,x) : concatMap f (children1Exp src x)
 
@@ -70,68 +70,68 @@ universeExp src x = concatMap f (children0Exp src x)
 
 -- pick a variable that is not being used
 freeVar :: Data a => a -> String
-freeVar x = head $ allVars \\ concat [[y, drop 1 y] | HsIdent y <- universeBi x]
+freeVar x = head $ allVars \\ concat [[y, drop 1 y] | Ident y <- universeBi x]
     where allVars = [letter : number | number <- "" : map show [1..], letter <- ['a'..'z']]
 
 
-fromVar :: HsExp -> Maybe String
-fromVar (HsVar (UnQual (HsIdent x))) = Just x
-fromVar (HsVar (UnQual (HsSymbol x))) = Just x
+fromVar :: Exp -> Maybe String
+fromVar (Var (UnQual (Ident x))) = Just x
+fromVar (Var (UnQual (Symbol x))) = Just x
 fromVar _ = Nothing
 
-toVar :: String -> HsExp
-toVar = HsVar . UnQual . HsIdent
+toVar :: String -> Exp
+toVar = Var . UnQual . Ident
 
-isVar :: HsExp -> Bool
+isVar :: Exp -> Bool
 isVar = isJust . fromVar
 
 
-isCharExp :: HsExp -> Bool
-isCharExp (HsLit (HsChar _)) = True
+isCharExp :: Exp -> Bool
+isCharExp (Lit (Char _)) = True
 isCharExp _ = False
 
 
 ----------------------------------------------------------------------
 -- BRACKETS
 
-addParen, hsParen :: HsExp -> HsExp
-addParen x = if atom x then x else HsXExpTag x
-hsParen x = if atom x then x else HsParen x
+addParen, hsParen :: Exp -> Exp
+addParen x = if atom x then x else XExpTag x
+hsParen x = if atom x then x else Paren x
 
-remParen :: HsExp -> HsExp
+remParen :: Exp -> Exp
 remParen = transform g . transform f
     where
-        g (HsXExpTag x) = HsParen x
+        g (XExpTag x) = Paren x
         g x = x
     
-        f (HsXExpTag x) | atom x = x
-        f (HsInfixApp a b c) = HsInfixApp (f2 a) b (f2 c)
+        f (XExpTag x) | atom x = x
+        f (InfixApp a b c) = InfixApp (f2 a) b (f2 c)
         f x = x
         
-        f2 (HsXExpTag (HsApp a b)) = HsApp a b
+        f2 (XExpTag (App a b)) = App a b
         f2 x = x
 
-isParen :: HsExp -> Bool
-isParen (HsParen _) = True
-isParen (HsXExpTag _) = True
+isParen :: Exp -> Bool
+isParen (Paren _) = True
+isParen (XExpTag _) = True
 isParen _ = False
 
-fromParen :: HsExp -> HsExp
-fromParen (HsParen x) = fromParen x
-fromParen (HsXExpTag x) = fromParen x
+fromParen :: Exp -> Exp
+fromParen (Paren x) = fromParen x
+fromParen (XExpTag x) = fromParen x
 fromParen x = x
 
 atom x = case x of
-  HsParen _ -> True
-  HsVar _ -> True
-  HsCon _ -> True
-  HsLit _ -> True
-  HsTuple _ -> True
-  HsList _ -> True
-  HsLeftSection _ _ -> True
-  HsRightSection _ _ -> True
-  HsRecConstr _ _ -> True
-  HsListComp _ _ -> True
+  Paren _ -> True
+  Var _ -> True
+  Con _ -> True
+  Lit _ -> True
+  Tuple _ -> True
+  List _ -> True
+  LeftSection _ _ -> True
+  RightSection _ _ -> True
+  RecConstr _ _ -> True
+  ListComp _ _ -> True
   _ -> False
 
 
@@ -142,30 +142,17 @@ class View a b where
     view :: a -> b
 
 
-data Nil = NoNil | Nil deriving Show
+data App2 = NoApp2 | App2 Exp Exp Exp deriving Show
 
-instance View HsExp Nil where
-    view (HsList []) = Nil
-    view _ = NoNil
-
-
-data Cons = NoCons | Cons HsExp HsExp deriving Show
-
-instance View HsExp Cons where
-    view (view -> App2 f x y) | f ~= ":" = Cons x y
-    view _ = NoCons
-
-
-data App2 = NoApp2 | App2 HsExp HsExp HsExp deriving Show
-
-instance View HsExp App2 where
-    view (HsInfixApp lhs op rhs) = view $ f op `HsApp` lhs `HsApp` rhs
-        where f (HsQVarOp op) = HsVar op
-              f (HsQConOp op) = HsCon op
-    view (f `HsApp` x `HsApp` y) = App2 f x y
+instance View Exp App2 where
+    view (InfixApp lhs op rhs) = view $ f op `App` lhs `App` rhs
+        where f (QVarOp op) = Var op
+              f (QConOp op) = Con op
+    view (f `App` x `App` y) = App2 f x y
     view _ = NoApp2
 
 
-(~=) :: HsExp -> String -> Bool
-(HsCon (Special HsCons)) ~= ":" = True
+(~=) :: Exp -> String -> Bool
+(Con (Special Cons)) ~= ":" = True
+(List []) ~= "[]" = True
 x ~= y = fromVar x == Just y

@@ -20,11 +20,11 @@ import Language.Haskell.Exts
 listHint :: Hint
 listHint = listDecl
 
-listDecl :: HsDecl -> [Idea]
+listDecl :: Decl -> [Idea]
 listDecl = concatMap (listExp False) . children0Exp nullSrcLoc
 
 -- boolean = are you in a ++ chain
-listExp :: Bool -> (SrcLoc,HsExp) -> [Idea]
+listExp :: Bool -> (SrcLoc,Exp) -> [Idea]
 listExp b (loc,x) =
         if null res then concatMap (listExp $ isAppend x) $ children1Exp loc x else [head res]
     where
@@ -42,18 +42,18 @@ checks = let (*) = (,) in
          ]
 
 
-useString b (HsList xs) | not (null xs) && all isCharExp xs = Just $ HsLit $ HsString [x | HsLit (HsChar x) <- xs]
+useString b (List xs) | not (null xs) && all isCharExp xs = Just $ Lit $ String [x | Lit (Char x) <- xs]
 useString b _ = Nothing
 
-useList b = fmap HsList . f True
+useList b = fmap List . f True
     where
-        f first (view -> Nil) = if first then Nothing else Just []
-        f first (view -> Cons a b) = fmap (a:) $ f False b
+        f first x | x ~= "[]" = if first then Nothing else Just []
+        f first (view -> App2 c a b) | c ~= ":" = fmap (a:) $ f False b
         f first _ = Nothing
 
-useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x = Just $ HsInfixApp x2 (HsQConOp list_cons_name) y
+useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x = Just $ InfixApp x2 (QConOp list_cons_name) y
     where
-        f (HsLit (HsString [x])) = Just $ HsLit $ HsChar x
-        f (HsList [x]) = Just x
+        f (Lit (String [x])) = Just $ Lit $ Char x
+        f (List [x]) = Just x
         f _ = Nothing
 useCons _ _ = Nothing

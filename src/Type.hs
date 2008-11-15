@@ -18,12 +18,12 @@ instance Show Idea where
 
 
 
-type Hint = HsDecl -> [Idea]
+type Hint = Decl -> [Idea]
 
 
 concatHints :: [Hint] -> Hint
 concatHints hs x = concatMap ($x) hs
 
 
-applyHint :: Hint -> HsModule -> [Idea]
-applyHint h (HsModule _ _ _ _ xs) = concatMap h xs
+applyHint :: Hint -> Module -> [Idea]
+applyHint h (Module _ _ _ _ xs) = concatMap h xs

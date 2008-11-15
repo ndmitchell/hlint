@@ -38,7 +38,7 @@ runFile hint file = do
 -- return the number of failures
 runTest :: Hint -> FilePath -> IO Int
 runTest hint file = do
-    HsModule _ _ _ _ tests <- parseHsModule file
+    Module _ _ _ _ tests <- parseHsModule file
     let failures = concatMap f tests
     mapM_ putStrLn failures
     return $ length failures
