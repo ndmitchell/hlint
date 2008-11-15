@@ -47,9 +47,10 @@ getMode = do
                          ,"Dr Haskell makes hints on how to improve some Haskell code."]
         exitWith ExitSuccess
 
-    let hints = ifNull [x | HintFile x <- opt] ["Hints.hs"]
+    hints <- return [x | HintFile x <- opt]
+    hints <- if null hints then getFile "Hints.hs" else return hints
     files <- liftM concat $ mapM getFile files
-    files <- return $ if null files && test then ["Test.hs"] else files
+    files <- if null files && test then getFile "Test.hs" else return files
     return Mode{modeHints=hints, modeFiles=files, modeTest=test}
 
 
@@ -64,8 +65,9 @@ getFile file = do
         b <- doesFileExist file
         if b then return [file] else do
             dat <- getDataDir
-            b <- doesFileExist (dat </> file)
-            if b then return [file] else error $ "Couldn't find file: " ++ file
+            let s = dat </> file
+            b <- doesFileExist s
+            if b then return [s] else error $ "Couldn't find file: " ++ file
     where
         f file | takeExtension file `elem` [".hs",".lhs"] = return [file]
         f file = do
