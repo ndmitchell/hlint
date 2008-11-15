@@ -49,6 +49,7 @@ getMode = do
 
     let hints = ifNull [x | HintFile x <- opt] ["Hints.hs"]
     files <- liftM concat $ mapM getFile files
+    files <- return $ if null files && test then ["Test.hs"] else files
     return Mode{modeHints=hints, modeFiles=files, modeTest=test}
 
 

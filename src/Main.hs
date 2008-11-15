@@ -15,8 +15,7 @@ main = do
     mode <- getMode
     hints <- readHints $ modeHints mode
     if modeTest mode then do
-        let files = ifNull (modeFiles mode) ["Test.hs"]
-        n <- liftM sum $ mapM (runTest hints) files
+        n <- liftM sum $ mapM (runTest hints) (modeFiles mode)
         if n == 0
             then putStrLn $ "Tests passed"
             else putStrLn $ "Tests failed (" ++ show n ++ ")"
