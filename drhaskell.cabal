@@ -18,8 +18,9 @@ data-files:
     Hints.hs
     Test.hs
 
+
 executable drhaskell
-    build-depends: base == 4.0.*, syb, filepath, directory, haskell-src-exts == 0.3.*, uniplate == 1.2.*, mtl
+    build-depends: base == 4.0.*, syb, filepath, directory, haskell-src-exts == 0.3.*, uniplate == 1.2.* && >= 1.2.0.2, mtl
 
     main-is:            Main.hs
     hs-source-dirs:     src
