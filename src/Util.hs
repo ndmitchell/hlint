@@ -13,9 +13,6 @@ headDef :: a -> [a] -> a
 headDef x [] = x
 headDef x (y:ys) = y
 
-ifNull :: [a] -> [a] -> [a]
-ifNull x y = if null x then y else x
-
 
 declName :: HsDecl -> String
 declName (HsPatBind _ (HsPVar (HsIdent name)) _ _) = name

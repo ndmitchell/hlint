@@ -53,6 +53,10 @@ getMode = do
     return Mode{modeHints=hints, modeFiles=files, modeTest=test}
 
 
+ifNull :: [a] -> [a] -> [a]
+ifNull x y = if null x then y else x
+
+
 getFile :: FilePath -> IO [FilePath]
 getFile file = do
     b <- doesDirectoryExist file
