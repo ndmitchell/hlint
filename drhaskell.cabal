@@ -22,6 +22,7 @@ data-files:
 executable drhaskell
     build-depends: base == 4.0.*, syb, filepath, directory, haskell-src-exts == 0.3.*, uniplate == 1.2.* && >= 1.2.0.2, mtl
 
+    ghc-options:        -fno-warn-overlapping-patterns
     main-is:            Main.hs
     hs-source-dirs:     src
     other-modules:
