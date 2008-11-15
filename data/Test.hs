@@ -10,7 +10,7 @@ myfunc2 f g x q = map f (map g x)
 
 myfunc3 e l' = concat.map (\x->if x==e then l' else [x])
 
-myfunc4 e l2 (x:xs) = if x == e then (l2 ++ xs) else [x] ++ check_elem xs
+myfunc4 e l2 (x:xs) = if x == e then l2 ++ xs else [x] ++ check_elem xs
     where check_elem x = undefined
 
 
@@ -65,7 +65,9 @@ myfunc23 x = \y -> y
 
 myfunc24 = foo (\_ -> True)
 
-myfunc25_NO x = (f x) x
+myfunc25 x = (f x) x
+
+myfunc25_NO x = f (x x)
 
 
 
