@@ -122,6 +122,7 @@ fromParen (XExpTag x) = fromParen x
 fromParen x = x
 
 atom x = case x of
+  XExpTag _ -> True -- because pretending to be Paren
   Paren _ -> True
   Var _ -> True
   Con _ -> True
