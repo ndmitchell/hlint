@@ -1,5 +1,9 @@
 {-# LANGUAGE ViewPatterns, PatternGuards #-}
 
+-- TODO: func x y = f (g x) (g x) ==> f `on` g
+--       \ x y -> ...
+-- TODO: don't eta reduce func a b c = .... (g b) (g c) to (g b) . g, looks ugly
+
 {-
     Find and match:
 

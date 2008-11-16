@@ -1,3 +1,4 @@
+-- TODO: Move the tests in to the hints.hs and src\Hint\*.hs
 
 module Sample where
 
@@ -70,6 +71,7 @@ myfunc25 x = (f x) x
 myfunc25_NO x = f (x x)
 
 
+-- TODO: Add RecMatch for things like map/foldr etc, with a similar entry in hints
 
 {-
 -- out of scope for the new version
