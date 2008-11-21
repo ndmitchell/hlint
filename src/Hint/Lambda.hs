@@ -1,8 +1,5 @@
 {-# LANGUAGE ViewPatterns, PatternGuards #-}
 
--- TODO: func x y = f (g x) (g x) ==> f `on` g
---       \ x y -> ...
-
 {-
     Find and match:
 
