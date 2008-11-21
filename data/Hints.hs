@@ -42,32 +42,33 @@ hint = maybe True (const False) ==> isNothing
 
 
 {-
+<TEST>
+
+yes = concat . map f
+yes = map f (map g x)
+yes = concat.map (\x->if x==e then l' else [x])
+yes = f x where f x = concat . map head
+yes = concat . map f . g
+yes = concat $ map f x
+yes = "test" ++ concatMap (' ':) ["of","this"]
+yes = concat . intersperse " "
+yes = if f a then True else False
+yes = if f a then False else True
+yes = not (a == b)
+yes = not (a /= b)
+yes = if a then 1 else if b then 1 else 2
+no  = if a then 1 else if b then 3 else 2
+yes = a >>= return . id
+yes = (x !! 0) + (x !! 2)
+yes = if x == e then l2 ++ xs else [x] ++ check_elem xs
+yes = if b < 42 then [a] else []
+
+</TEST>
+-}
+
+
+{-
 -- more complicated, saved for later
-
--- head x
-head_head err (x:xs) = x
-head_head err [] = error err
-
--- fromJust x
-use_fromJust err (Just x) = x
-use_fromJust err Nothing = error err
-
-
--- fromMaybe def x
-use_fromMaybe def (Just x) = x
-use_fromMaybe def Nothing = def
-
--- listMaybe x
-use_listMaybe [] = Nothing
-use_listMaybe (x:xs) = Just x
-
--- maybeToList x
-use_maybeToList (Just x) = [x]
-use_maybeToList Nothing = []
-
--- mapM_ f x >> y
-use_mapM_ f x y = mapM f x >> y
-
 
 -- map f x
 redefined_map = mop
