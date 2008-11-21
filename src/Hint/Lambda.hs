@@ -10,6 +10,7 @@
     \x -> y (use const, if the variable x does not occur in y, and it doesn't need bracketing)
     foo x = y x (eta reduce)
     foo x = f $ g x (eta reduce, convert to .)
+    foo x y = f (g x) (g y) ==> f `on` g
     -- Never offer to eta reduce if the variable is named mr and is the only one (Monomorphism Restriction)
     -- don't eta reduce func a b c = .... (g b) (g c) to (g b) . g, looks ugly
 
@@ -20,7 +21,8 @@ no1 = foo (\x -> map f [])
 yes3 x = y x -- eta reduce
 no2 mr = y mr
 yes4 x = g $ f $ map head x
-no3 x y = f (g x) (g y)
+no3 z x y = f (g x) (g y)
+yes5 x y = f (g x) (g y)
 </TEST>
 -}
 
@@ -61,8 +63,17 @@ lambdaDef o@(Match loc name pats (UnGuardedRhs bod) (BDecls []))
     | Lambda loc vs y <- bod = [idea "Lambda shift" loc o $ reform (pats++vs) y]
     | pats /= [], PVar p <- last pats, Ident _ <- name, p /= Ident "mr", Just y <- etaReduce p (dollarRotate bod) =
               [idea "Eta reduce" loc o $ reform (init pats) y]
+    | [PVar x, PVar y] <- pats, Just (f,g) <- useOn x y bod =
+              [idea "Use on" loc o $ reform [] (remParen $ InfixApp (addParen f) (QVarOp $ UnQual $ Ident "on") (addParen g))]
         where reform pats2 bod2 = Match loc name pats2 (UnGuardedRhs bod2) (BDecls [])
 lambdaDef _ = []
+
+
+-- given x y, f (g x) (g y) = Just (f, g)
+useOn :: Name -> Name -> Exp -> Maybe (Exp, Exp)
+useOn x1 y1 (view -> App2 f (view -> App1 g1 x2) (view -> App1 g2 y2))
+    | g1 == g2, map (Var . UnQual) [x1,y1] == [x2,y2] = Just (f,g1)
+useOn _ _ _ = Nothing
 
 
 etaReduce :: Name -> Exp -> Maybe Exp
