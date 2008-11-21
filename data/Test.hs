@@ -71,8 +71,6 @@ myfunc25 x = (f x) x
 myfunc25_NO x = f (x x)
 
 
--- TODO: Add RecMatch for things like map/foldr etc, with a similar entry in hints
-
 {-
 -- out of scope for the new version
 myfunc18 (x:xs) = x

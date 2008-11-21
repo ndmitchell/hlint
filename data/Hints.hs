@@ -66,6 +66,8 @@ yes = if b < 42 then [a] else []
 
 
 {-
+-- TODO: Add RecMatch for things like map/foldr etc, with a similar entry in hints
+
 -- more complicated, saved for later
 
 -- map f x
