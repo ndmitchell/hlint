@@ -2,7 +2,6 @@
 
 -- TODO: func x y = f (g x) (g x) ==> f `on` g
 --       \ x y -> ...
--- TODO: don't eta reduce func a b c = .... (g b) (g c) to (g b) . g, looks ugly
 
 {-
     Find and match:
@@ -12,6 +11,7 @@
     foo x = y x (eta reduce)
     foo x = f $ g x (eta reduce, convert to .)
     -- Never offer to eta reduce if the variable is named mr and is the only one (Monomorphism Restriction)
+    -- don't eta reduce func a b c = .... (g b) (g c) to (g b) . g, looks ugly
 
 <TEST>
 yes1 a = \x -> x + x
@@ -20,6 +20,7 @@ no1 = foo (\x -> map f [])
 yes3 x = y x -- eta reduce
 no2 mr = y mr
 yes4 x = g $ f $ map head x
+no3 x y = f (g x) (g y)
 </TEST>
 -}
 
@@ -28,8 +29,10 @@ module Hint.Lambda where
 
 import Util
 import Type
+import Control.Monad
 import Language.Haskell.Exts
 import Data.Generics.PlateData
+import Data.Maybe
 
 
 lambdaHint :: Hint
@@ -64,12 +67,18 @@ lambdaDef _ = []
 
 etaReduce :: Name -> Exp -> Maybe Exp
 etaReduce x (App y (Var (UnQual z))) | x == z && x `notElem` universeBi y = Just y
-etaReduce x (App y z) | x `notElem` universeBi y = do
+etaReduce x (App y z) | not (uglyEta y z) && x `notElem` universeBi y = do
     z2 <- etaReduce x z
     return $ InfixApp y (QVarOp $ UnQual $ Symbol ".") z2
 etaReduce x (view -> App2 dollar y z) | dollar ~= "$" = etaReduce x (App y z)
 etaReduce x y | isParen y = etaReduce x (fromParen y)
 etaReduce x _ = Nothing
+
+
+-- (f (g x)) (h y), ugly if g == h
+uglyEta :: Exp -> Exp -> Bool
+uglyEta (fromParen -> App f (fromParen -> App g x)) (fromParen -> App h y) = g == h
+uglyEta _ _ = False
 
 
 -- "f $ g $ x" is parsed as "(f $ g) $ x", but should be "f $ (g $ x)"
