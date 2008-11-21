@@ -13,13 +13,12 @@ import Hint.Lambda
 import Hint.Bracket
 
 
-hints :: [(String,Module -> Hint)]
+hints :: [(String,Hint)]
 hints = let (*) = (,) in
-    ["Match"   * readMatch
-    ,"List"    * const listHint
-    ,"Monad"   * const monadHint
-    ,"Lambda"  * const lambdaHint
-    ,"Bracket" * const bracketHint
+    ["List"    * listHint
+    ,"Monad"   * monadHint
+    ,"Lambda"  * lambdaHint
+    ,"Bracket" * bracketHint
     ]
 
 
@@ -30,4 +29,4 @@ readHints = liftM (concatHints . concat) . mapM readHint
 readHint :: FilePath -> IO [Hint]
 readHint file = do
     modu <- parseHsModule file
-    return $ map (($ modu) . snd) hints
+    return $ readMatch modu : map snd hints
