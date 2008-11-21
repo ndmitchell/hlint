@@ -8,7 +8,7 @@
     Find and match:
 
     foo a = \x -> y (provided no where's outside the lambda)
-    \x -> y (use const, if the variable x does not occur in y)
+    \x -> y (use const, if the variable x does not occur in y, and it doesn't need bracketing)
     foo x = y x (eta reduce)
     foo x = f $ g x (eta reduce, convert to .)
     -- Never offer to eta reduce if the variable is named mr and is the only one (Monomorphism Restriction)
@@ -16,6 +16,7 @@
 <TEST>
 yes1 a = \x -> x + x
 yes2 a = foo (\x -> True) -- const True
+no = foo (\x -> map f [])
 yes3 x = y x -- eta reduce
 yes4 x = g $ f $ map head x
 </TEST>
@@ -35,7 +36,7 @@ lambdaHint x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (unive
 
 
 lambdaExp :: Exp -> [Idea]
-lambdaExp o@(Lambda loc [v] y) | Just x <- f v, x `notElem` universeBi y =
+lambdaExp o@(Lambda loc [v] y) | atom y, Just x <- f v, x `notElem` universeBi y =
         [idea "Use const" loc o res]
     where
         f (PVar x) = Just x
