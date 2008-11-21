@@ -3,10 +3,16 @@
 {-
     Find and match:
 
-    1:2:[] -> [1,2]
-    ['a':'b'] -> "ab"
-    [a]++b -> a : b, but only if not in a chain of ++'s
-    "c"++x -> 'c':x, but only if not in a chain of ++'s
+<TEST>
+yes = 1:2:[] -- [1,2]
+yes = ['h','e','l','l','o'] -- "hello"
+
+-- [a]++b -> a : b, but only if not in a chain of ++'s
+yes = [x] ++ xs
+yes = "x" ++ xs
+no = [x] ++ xs ++ ys
+no = xs ++ [x] ++ ys
+</TEST>
 -}
 
 

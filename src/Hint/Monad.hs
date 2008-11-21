@@ -5,6 +5,11 @@
 
     mapM, foldM, forM, replicateM, sequence, zipWithM
     not at the last line of a do statement, or to the left of >>
+
+<TEST>
+yes = do mapM print a; return b
+no = mapM print a
+</TEST>
 -}
 
 

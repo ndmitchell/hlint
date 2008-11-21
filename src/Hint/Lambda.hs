@@ -12,6 +12,13 @@
     foo x = y x (eta reduce)
     foo x = f $ g x (eta reduce, convert to .)
     -- Never offer to eta reduce if the variable is named mr and is the only one (Monomorphism Restriction)
+
+<TEST>
+yes1 a = \x -> x + x
+yes2 a = foo (\x -> True) -- const True
+yes3 x = y x -- eta reduce
+yes4 x = g $ f $ map head x
+</TEST>
 -}
 
 

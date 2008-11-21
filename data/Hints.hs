@@ -43,7 +43,6 @@ hint = maybe True (const False) ==> isNothing
 
 {-
 <TEST>
-
 yes = concat . map f
 yes = map f (map g x)
 yes = concat.map (\x->if x==e then l' else [x])
@@ -62,7 +61,6 @@ yes = a >>= return . id
 yes = (x !! 0) + (x !! 2)
 yes = if x == e then l2 ++ xs else [x] ++ check_elem xs
 yes = if b < 42 then [a] else []
-
 </TEST>
 -}
 

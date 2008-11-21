@@ -1,5 +1,5 @@
 
-module Hint.All(readHints) where
+module Hint.All(readHints, allHints) where
 
 import Control.Monad
 import Util
@@ -13,8 +13,9 @@ import Hint.Lambda
 import Hint.Bracket
 
 
-hints :: [(String,Hint)]
-hints = let (*) = (,) in
+allHints :: [(String,Hint)]
+allHints =
+    let (*) = (,) in
     ["List"    * listHint
     ,"Monad"   * monadHint
     ,"Lambda"  * lambdaHint
@@ -29,4 +30,4 @@ readHints = liftM (concatHints . concat) . mapM readHint
 readHint :: FilePath -> IO [Hint]
 readHint file = do
     modu <- parseHsModule file
-    return $ readMatch modu : map snd hints
+    return $ readMatch modu : map snd allHints
