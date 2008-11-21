@@ -51,7 +51,7 @@ runTest hint file = do
     mapM_ putStrLn failures
     return (length failures, length tests)
     where
-        f o | (name == "no") == null ideas && length ideas <= 1 = []
+        f o | ("no" `isPrefixOf` name) == null ideas && length ideas <= 1 = []
             | otherwise = ["Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas]
             where
                 ideas = hint o
