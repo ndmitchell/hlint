@@ -16,8 +16,9 @@
 <TEST>
 yes1 a = \x -> x + x
 yes2 a = foo (\x -> True) -- const True
-no = foo (\x -> map f [])
+no1 = foo (\x -> map f [])
 yes3 x = y x -- eta reduce
+no2 mr = y mr
 yes4 x = g $ f $ map head x
 </TEST>
 -}
