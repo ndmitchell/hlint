@@ -30,7 +30,7 @@ isFreeVar _ = False
 -- READ THE MATCHES
 
 readMatch :: Module -> Hint
-readMatch modu = findIdeas (concatMap readOne $ childrenBi modu)
+readMatch = findIdeas . concatMap readOne . childrenBi
 
 
 

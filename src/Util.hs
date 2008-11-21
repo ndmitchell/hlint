@@ -45,7 +45,7 @@ showSrcLoc :: SrcLoc -> String
 showSrcLoc (SrcLoc file line col) = file ++ ":" ++ show line ++ ":" ++ show col ++ ":"
 
 getSrcLoc :: Data a => a -> Maybe SrcLoc
-getSrcLoc x = headDef Nothing $ gmapQ cast x
+getSrcLoc = headDef Nothing . gmapQ cast
 
 
 ---------------------------------------------------------------------
