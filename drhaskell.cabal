@@ -16,7 +16,6 @@ stability:          Beta
 data-dir:           data
 data-files:
     Hints.hs
-    Test.hs
 
 
 executable drhaskell
