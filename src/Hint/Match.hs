@@ -14,10 +14,12 @@ import Data.Function
 import Debug.Trace
 
 
-data Mat = Mat {message :: String, lhs :: Exp, rhs :: Exp}
+data Mat = Mat {message :: String, lhs :: Exp, rhs :: Exp, side :: Maybe Exp}
 
 instance Show Mat where
-    show (Mat x y z) = "Match " ++ show x ++ "\n  " ++ prettyPrint y ++ "\n  " ++ prettyPrint z ++ "\n"
+    show (Mat x y z q) = unlines $ ("Match " ++ show x) :
+        map (\x -> "  " ++ prettyPrint x) ([y,z] ++ maybeToList q)
+
     showList = showString . concat . map show
 
 -- Any 1-letter variable names are assumed to be unification variables
@@ -36,14 +38,20 @@ readMatch = findIdeas . concatMap readOne . childrenBi
 
 readOne :: Decl -> [Mat]
 readOne (FunBind [Match src (Ident "hint") [PLit (String msg)]
-           (UnGuardedRhs (InfixApp lhs (QVarOp (UnQual (Symbol "==>"))) rhs)) (BDecls [])]) =
-        [Mat (if null msg then pickName lhs rhs else msg) lhs rhs]
+           (UnGuardedRhs (InfixApp lhs (QVarOp (UnQual (Symbol "==>"))) rhs)) (BDecls bind)]) =
+        [Mat (if null msg then pickName lhs rhs else msg) lhs rhs (readSide bind)]
 
 readOne (PatBind src (PVar name) bod bind) = readOne $ FunBind [Match src name [PLit (String "")] bod bind]
 
 readOne (FunBind xs) | length xs /= 1 = concatMap (readOne . FunBind . (:[])) xs
 
 readOne x = error $ "Failed to read hint " ++ maybe "" showSrcLoc (getSrcLoc x) ++ "\n" ++ prettyPrint x
+
+
+readSide :: [Decl] -> Maybe Exp
+readSide [] = Nothing
+readSide [PatBind src PWildCard (UnGuardedRhs bod) (BDecls [])] = Just bod
+readSide (x:_) = error $ "Failed to read side condition " ++ maybe "" showSrcLoc (getSrcLoc x) ++ "\n" ++ prettyPrint x
 
 
 pickName :: Exp -> Exp -> String
