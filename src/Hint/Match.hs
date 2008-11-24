@@ -41,7 +41,7 @@ readOne (FunBind [Match src (Ident "hint") [PLit (String msg)]
 
 readOne (PatBind src (PVar name) bod bind) = readOne $ FunBind [Match src name [PLit (String "")] bod bind]
 
-readOne (FunBind xs) = concatMap (readOne . FunBind . (:[])) xs
+readOne (FunBind xs) | length xs /= 1 = concatMap (readOne . FunBind . (:[])) xs
 
 readOne x = error $ "Failed to read hint " ++ maybe "" showSrcLoc (getSrcLoc x) ++ "\n" ++ prettyPrint x
 
