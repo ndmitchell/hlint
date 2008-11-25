@@ -44,6 +44,7 @@ hint = maybe True (const False) ==> isNothing
 {-
 <TEST>
 yes = concat . map f
+yes = foo . bar . concat . map f . baz . bar
 yes = map f (map g x)
 yes = concat.map (\x->if x==e then l' else [x])
 yes = f x where f x = concat . map head
