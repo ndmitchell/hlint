@@ -73,10 +73,12 @@ findIdeas matches decl =
 
 
 matchIdea :: Mat -> Exp -> Maybe Exp
-matchIdea Mat{lhs=lhs,rhs=rhs} x = do
+matchIdea Mat{lhs=lhs,rhs=rhs,side=side} x = do
     u <- unify lhs x
     u <- check u
-    return $ remParen $ dotContract $ subst u rhs
+    if checkSide side u
+        then return $ remParen $ dotContract $ subst u rhs
+        else Nothing
 
 
 -- unify a b = c, a[c] = b
@@ -94,6 +96,20 @@ unify _ _ = Nothing
 check :: [(String,Exp)] -> Maybe [(String,Exp)]
 check = mapM f . groupBy ((==) `on` fst) . sortBy (compare `on` fst)
     where f xs = if length (nub xs) == 1 then Just (head xs) else Nothing
+
+
+checkSide :: Maybe Exp -> [(String,Exp)] -> Bool
+checkSide Nothing  bind = True
+checkSide (Just x) bind = f x
+    where
+        f (InfixApp x op y)
+            | opExp op ~= "&&" = f x && f y
+            | opExp op ~= "||" = f x || f y
+        f x | isParen x = f $ fromParen x
+        f (App x y)
+            | Just ('i':'s':typ) <- fromVar x, Just v <- fromVar y, Just e <- lookup v bind
+            = head (words $ show e) == typ
+        f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
 
 
 -- perform a substitution
