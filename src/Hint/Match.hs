@@ -81,9 +81,9 @@ matchIdea Mat{lhs=lhs,rhs=rhs} x = do
 
 -- unify a b = c, a[c] = b
 unify :: Exp -> Exp -> Maybe [(String,Exp)]
+unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
 unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,addParen y)]
 unify x y | ((==) `on` descend (const $ toVar "_")) x y = liftM concat $ zipWithM unify (children x) (children y)
-unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
 unify x o@(view -> App2 op y1 y2)
   | op ~= "$" = unify x $ addParen y1 `App` addParen y2
   | op ~= "." = unify x $ dotExpand o
