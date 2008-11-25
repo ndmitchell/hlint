@@ -20,6 +20,11 @@ declName (FunBind (Match _ (Ident name) _ _ _ : _)) = name
 declName x = error $ "declName: " ++ show x
 
 
+opExp ::  QOp -> Exp
+opExp (QVarOp op) = Var op
+opExp (QConOp op) = Con op
+
+
 parseHsModule :: FilePath -> IO Module
 parseHsModule file = do
     res <- parseFile file
