@@ -6,6 +6,7 @@ import Control.Monad
 import Data.List
 import Language.Haskell.Exts
 import System.Directory
+import Data.Generics.PlateData
 
 import CmdLine
 import Type
@@ -63,7 +64,7 @@ parseTestFile file = do
     src <- readFile file
     src <- return $ unlines $ f $ lines src
     case parseFileContents src of
-        ParseOk (Module _ _ _ _ xs) -> return xs
+        ParseOk x -> return $ childrenBi $ operatorPrec x
         _ -> error $ "Parse failure in test block of " ++ file
     where
         open = isPrefixOf "<TEST>"
