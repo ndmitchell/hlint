@@ -151,9 +151,7 @@ class View a b where
 data App2 = NoApp2 | App2 Exp Exp Exp deriving Show
 
 instance View Exp App2 where
-    view (fromParen -> InfixApp lhs op rhs) = view $ f op `App` lhs `App` rhs
-        where f (QVarOp op) = Var op
-              f (QConOp op) = Con op
+    view (fromParen -> InfixApp lhs op rhs) = view $ opExp op `App` lhs `App` rhs
     view (fromParen -> (fromParen -> f `App` x) `App` y) = App2 f x y
     view _ = NoApp2
 
