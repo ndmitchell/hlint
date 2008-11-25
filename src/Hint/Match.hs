@@ -19,7 +19,7 @@ instance Show Mat where
     show (Mat x y z q) = unlines $ ("Match " ++ show x) :
         map (\x -> "  " ++ prettyPrint x) ([y,z] ++ maybeToList q)
 
-    showList = showString . concat . map show
+    showList = showString . concatMap show
 
 -- Any 1-letter variable names are assumed to be unification variables
 isFreeVar :: String -> Bool
