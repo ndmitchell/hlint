@@ -38,7 +38,7 @@ readMatch = findIdeas . concatMap readOne . childrenBi
 readOne :: Decl -> [Mat]
 readOne (FunBind [Match src (Ident "hint") [PLit (String msg)]
            (UnGuardedRhs (InfixApp lhs (QVarOp (UnQual (Symbol "==>"))) rhs)) (BDecls bind)]) =
-        [Mat (if null msg then pickName lhs rhs else msg) lhs rhs (readSide bind)]
+        [Mat (if null msg then pickName lhs rhs else msg) (fromParen lhs) (fromParen rhs) (readSide bind)]
 
 readOne (PatBind src (PVar name) bod bind) = readOne $ FunBind [Match src name [PLit (String "")] bod bind]
 
