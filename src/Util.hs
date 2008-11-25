@@ -29,7 +29,7 @@ parseHsModule :: FilePath -> IO Module
 parseHsModule file = do
     res <- parseFile file
     case res of
-        ParseOk x -> return x
+        ParseOk x -> return $ operatorPrec x
         ParseFailed src msg -> do
             putStrLn $ showSrcLoc src ++ " Parse failure, " ++ limit 50 msg
             return $ Module nullSrcLoc (ModuleName "") Nothing [] []
@@ -38,6 +38,17 @@ parseHsModule file = do
 limit :: Int -> String -> String
 limit n s = if null post then s else pre ++ "..."
     where (pre,post) = splitAt n s
+
+
+-- "f $ g $ x" is parsed as "(f $ g) $ x", but should be "f $ (g $ x)"
+-- ditto for (.)
+-- this function rotates the ($) and (.), provided there are no explicit Parens
+operatorPrec :: Module -> Module
+operatorPrec = descendBi (transform f)
+    where
+        f (InfixApp (InfixApp x op2 y) op1 z) 
+            | op <- opExp op1, op1 == op2, op ~= "." || op ~= "$" = f $ InfixApp x op1 (f $ InfixApp y op1 z)
+        f x = x
 
 
 ---------------------------------------------------------------------
