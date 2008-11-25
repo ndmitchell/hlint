@@ -11,7 +11,6 @@ import Type
 import Util
 import Control.Monad
 import Data.Function
-import Debug.Trace
 
 
 data Mat = Mat {message :: String, lhs :: Exp, rhs :: Exp, side :: Maybe Exp}
@@ -77,7 +76,7 @@ matchIdea :: Mat -> Exp -> Maybe Exp
 matchIdea Mat{lhs=lhs,rhs=rhs} x = do
     u <- unify lhs x
     u <- check u
-    return $ simp $ remParen $ subst u rhs
+    return $ remParen $ dotContract $ subst u rhs
 
 
 -- unify a b = c, a[c] = b
@@ -85,9 +84,9 @@ unify :: Exp -> Exp -> Maybe [(String,Exp)]
 unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,addParen y)]
 unify x y | ((==) `on` descend (const $ toVar "_")) x y = liftM concat $ zipWithM unify (children x) (children y)
 unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
-unify x (view -> App2 op y1 y2)
+unify x o@(view -> App2 op y1 y2)
   | op ~= "$" = unify x $ addParen y1 `App` addParen y2
-  | op ~= "." = unify x $ App (addParen y1) (addParen y2 `App` toVar "?")
+  | op ~= "." = unify x $ dotExpand o
 unify _ _ = Nothing
 
 
@@ -103,7 +102,16 @@ subst bind x | Just v <- fromVar x, isFreeVar v, Just y <- lookup v bind = y
              | otherwise = descend (subst bind) x
 
 
--- simplify, removing any introduced ? vars (from expanding .)
-simp :: Exp -> Exp
-simp (App x y) | Just "?" <- fromVar y = x
-simp x = x
+dotExpand :: Exp -> Exp
+dotExpand (view -> App2 op x1 x2) | op ~= "." = App (addParen x1) (addParen $ dotExpand x2)
+dotExpand x = addParen x `App` toVar "?"
+
+
+-- simplify, removing any introduced ? vars, from expanding (.)
+dotContract :: Exp -> Exp
+dotContract x = fromMaybe x (f x)
+    where
+        f x | isParen x = f $ fromParen x
+        f (App x y) | Just "?" <- fromVar y = Just x
+                    | Just z <- f y = Just $ InfixApp x (QVarOp $ UnQual $ Symbol ".") z
+        f _ = Nothing
