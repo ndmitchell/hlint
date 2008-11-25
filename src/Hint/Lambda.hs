@@ -58,7 +58,7 @@ lambdaDecl _ = []
 lambdaDef :: Match -> [Idea]
 lambdaDef o@(Match loc name pats (UnGuardedRhs bod) (BDecls []))
     | Lambda loc vs y <- bod = [idea "Lambda shift" loc o $ reform (pats++vs) y]
-    | pats /= [], PVar p <- last pats, Ident _ <- name, p /= Ident "mr", Just y <- etaReduce p (dollarRotate bod) =
+    | pats /= [], PVar p <- last pats, Ident _ <- name, p /= Ident "mr", Just y <- etaReduce p bod =
               [idea "Eta reduce" loc o $ reform (init pats) y]
     | [PVar x, PVar y] <- pats, Just (f,g) <- useOn x y bod =
               [idea "Use on" loc o $ reform [] (remParen $ InfixApp (addParen f) (QVarOp $ UnQual $ Ident "on") (addParen g))]
@@ -87,14 +87,4 @@ etaReduce x _ = Nothing
 uglyEta :: Exp -> Exp -> Bool
 uglyEta (fromParen -> App f (fromParen -> App g x)) (fromParen -> App h y) = g == h
 uglyEta _ _ = False
-
-
--- "f $ g $ x" is parsed as "(f $ g) $ x", but should be "f $ (g $ x)"
--- this function rotates the dollars, provided there are no explicit Parens
-dollarRotate :: Exp -> Exp
-dollarRotate = foldr1 (\x y -> InfixApp x (QVarOp $ UnQual $ Symbol "$") y) . collect
-    where
-        collect (view -> App2 dollar x y) | dollar ~= "$" = collect x ++ [y]
-        collect x = [x]
-
 
