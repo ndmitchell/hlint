@@ -40,6 +40,11 @@ hint = maybe x id  ==> fromMaybe x
 hint = maybe False (const True) ==> isJust
 hint = maybe True (const False) ==> isNothing
 
+-- COMPLEX
+
+hint "Use isPrefixOf, and then remove the (==) test" = (take i s == t) ==> ((i == length t) && (t `isPrefixOf` s))
+    where _ = (isList t || isLit t) && isLit i
+
 
 {-
 <TEST>
@@ -62,6 +67,8 @@ yes = a >>= return . id
 yes = (x !! 0) + (x !! 2)
 yes = if x == e then l2 ++ xs else [x] ++ check_elem xs
 yes = if b < 42 then [a] else []
+yes = take 5 (foo xs) == "hello"
+no  = take n (foo xs) == "hello"
 </TEST>
 -}
 
