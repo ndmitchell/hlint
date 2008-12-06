@@ -26,4 +26,4 @@ concatHints hs x = concatMap ($x) hs
 
 
 applyHint :: Hint -> Module -> [Idea]
-applyHint h (Module _ _ _ _ xs) = concatMap h xs
+applyHint h = concatMap h . moduleDecls
