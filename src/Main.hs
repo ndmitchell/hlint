@@ -65,7 +65,7 @@ parseTestFile file = do
     src <- return $ unlines $ f $ lines src
     case parseFileContents src of
         ParseOk x -> return $ childrenBi $ operatorPrec x
-        _ -> error $ "Parse failure in test block of " ++ file
+        _ -> error $ "Parse failure in test block of " ++ file ++ "\n" ++ src
     where
         open = isPrefixOf "<TEST>"
         shut = isPrefixOf "</TEST>"
