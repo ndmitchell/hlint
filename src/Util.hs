@@ -32,10 +32,10 @@ parseHsModule file = do
         ParseOk x -> return $ operatorPrec x
         ParseFailed src msg -> do
             putStrLn $ showSrcLoc src ++ " Parse failure, " ++ limit 50 msg
-            return $ Module nullSrcLoc (ModuleName "") Nothing Nothing [] []
+            return $ Module nullSrcLoc (ModuleName "") [] Nothing Nothing [] []
 
 moduleDecls :: Module -> [Decl]
-moduleDecls (Module _ _ _ _ _ xs) = xs
+moduleDecls (Module _ _ _ _ _ _ xs) = xs
 
 
 limit :: Int -> String -> String
