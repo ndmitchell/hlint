@@ -9,6 +9,7 @@ import System.Directory
 import Data.Generics.PlateData
 
 import CmdLine
+import Report
 import Type
 import Util
 import Hint.All
@@ -28,19 +29,25 @@ main = do
             else putStrLn $ "Tests failed (" ++ show fail ++ " of " ++ show total ++ ")"
      else do
         hints <- readHints $ modeHints mode
-        n <- liftM sum $ mapM (runFile hints) (modeFiles mode)
-        if n == 0
-            then putStrLn "No relevant suggestions"
-            else putStrLn $ "Found " ++ show n ++ " suggestions"
+        ideas <- liftM concat $ mapM (runFile hints) (modeFiles mode)
+        let n = length ideas
+        if n == 0 then do
+            when (not $ null $ modeReports mode) $ putStrLn "Skipping writing reports"
+            putStrLn "No relevant suggestions"
+         else do
+            flip mapM_ (modeReports mode) $ \x -> do
+                putStrLn $ "Writing report to " ++ x ++ " ..."
+                writeReport x ideas
+            putStrLn $ "Found " ++ show n ++ " suggestions"
 
 
 -- return the number of hints given
-runFile :: Hint -> FilePath -> IO Int
+runFile :: Hint -> FilePath -> IO [Idea]
 runFile hint file = do
     src <- parseHsModule file
     let ideas = applyHint hint src
     mapM_ print ideas
-    return $ length ideas
+    return ideas
 
 
 
