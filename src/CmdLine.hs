@@ -29,7 +29,7 @@ data Opts = Help | HintFile FilePath | Test | Report FilePath
 opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "h" ["hint"] (ReqArg HintFile "file") "Hint file to use"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
-       ,Option "r" ["report"] (OptArg (Report . fromMaybe "report.htm") "file") "Generate a report in HTML"
+       ,Option "r" ["report"] (OptArg (Report . fromMaybe "report.html") "file") "Generate a report in HTML"
        ]
 
 
