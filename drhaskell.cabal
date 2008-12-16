@@ -27,3 +27,13 @@ executable drhaskell
     hs-source-dirs:     src
     other-modules:
         CmdLine
+        Main
+        Report
+        Type
+        Util
+        Hint.All
+        Hint.Bracket
+        Hint.Lambda
+        Hint.List
+        Hint.Match
+        Hint.Monad
