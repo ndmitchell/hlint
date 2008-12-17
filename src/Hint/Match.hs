@@ -89,6 +89,7 @@ unify x y | ((==) `on` descend (const $ toVar "_")) x y = liftM concat $ zipWith
 unify x o@(view -> App2 op y1 y2)
   | op ~= "$" = unify x $ addParen y1 `App` addParen y2
   | op ~= "." = unify x $ dotExpand o
+unify x (InfixApp lhs op rhs) = unify x (opExp op `App` lhs `App` rhs)
 unify _ _ = Nothing
 
 
