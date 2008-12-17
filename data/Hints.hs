@@ -8,6 +8,10 @@ hint = (x !! 0) ==> head x
 hint = take n (repeat x) ==> replicate n x
 hint = (x ++ concatMap (' ':) y) ==> unwords (x:y)
 hint = concat (intersperse " " x) ==> unwords x
+hint = head (reverse x) ==> last x
+hint "Use index" = head (drop n x) ==> (x !! n)
+hint = reverse (tail (reverse x)) ==> init x
+hint = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
 
 -- BOOL
 
@@ -69,6 +73,8 @@ yes = if x == e then l2 ++ xs else [x] ++ check_elem xs
 yes = if b < 42 then [a] else []
 yes = take 5 (foo xs) == "hello"
 no  = take n (foo xs) == "hello"
+yes = head (reverse xs)
+yes = reverse xs `isPrefixOf` reverse ys
 </TEST>
 -}
 
