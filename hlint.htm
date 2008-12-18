@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+        <title>HLint Manual</title>
+        <style type="text/css">
+pre {
+    border: 2px solid gray;
+    padding: 1px;
+    padding-left: 5px;
+    margin-left: 10px;
+    background-color: #eee;
+}
+
+pre.define {
+    background-color: #ffb;
+    border-color: #cc0;
+}
+
+body {
+    font-family: sans-serif;
+}
+
+h1, h2, h3 {
+    font-family: serif;
+}
+
+h1 {
+    color: rgb(23,54,93);
+    border-bottom: 1px solid rgb(79,129,189);
+    padding-bottom: 2px;
+    font-variant: small-caps;
+    text-align: center;
+}
+
+a {
+    color: rgb(54,95,145);
+}
+
+h2 {
+    color: rgb(54,95,145);
+}
+
+h3 {
+    color: rgb(79,129,189);
+}
+
+p.rule {
+    background-color: #ffb;
+	padding: 3px;
+	margin-left: 50px;
+	margin-right: 50px;
+}
+        </style>
+    </head>
+    <body>
+
+<h1>HLint Manual</h1>
+
+<p style="text-align:right;margin-bottom:25px;">
+    by <a href="http://www.cs.york.ac.uk/~ndm/">Neil Mitchell</a>
+</p>
+
+<p>
+	<a href="http://www.cs.york.ac.uk/~ndm/hlint/">HLint</a> is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
+</p>
+<ol>
+    <li>Installing and running HLint</li>
+    <li>Adding additional hints</li>
+    <li>Ignoring certain hints</li>
+</ol>
+
+<h3>Acknowledgements</h3>
+
+<p>
+	This program has only been made possible by the presence of the <a href="http://www.cs.chalmers.se/~d00nibro/haskell-src-exts/">haskell-src-exts</a> package, and many useful improvements have been made by <a href="http://www.cs.chalmers.se/~d00nibro/">Niklas Broberg</a> in response to feature requests.
+</p>
+
+<h3>Bugs and limitations</h3>
+
+<ul>
+	<li>In some cases, the precedence of infix operators will be incorrect, leading to incorrect suggestions. It is hoped this will be fixed in a future version.</li>
+	<li>Files requiring the C pre processor are not supported.</li>
+</ul>
+
+
+<h2>Installing and running HLint</h2>
+
+<p>
+	Installation follows the standard pattern of any Haskell library or program, simply type <tt>cabal update</tt> to update your local hackage database, then <tt>cabal install hlint</tt> to install HLint.
+</p><p>
+	Once HLint is installed, simply run <tt>hlint <i>source</i></tt> where <i>source</i> is either a Haskell file or a directory containing some Haskell files. For example, running HLint over darcs would give:
+</p>
+<pre>
+
+$ hlint darcs-2.1.2
+
+darcs-2.1.2\src\CommandLine.lhs:94:1: Use concatMap
+Found:
+  concat $ map escapeC s
+Why not:
+  concatMap escapeC s
+
+darcs-2.1.2\src\CommandLine.lhs:103:1: Use fewer brackets
+Found:
+  ftable ++ (map (\ (c, x) -&gt; (toUpper c, urlEncode x)) ftable)
+Why not:
+  ftable ++ map (\ (c, x) -&gt; (toUpper c, urlEncode x)) ftable
+
+darcs-2.1.2\src\Darcs\Patch\Test.lhs:306:1: Use a more efficient monadic variant
+Found:
+  mapM (delete_line (fn2fp f) line) old
+Why not:
+  mapM_ (delete_line (fn2fp f) line) old
+
+... lots more suggestions ...
+</pre>
+<p>
+	Each suggestion says which file/line the suggestion relates to, a description of the issue, what it found, and what you might want to replace it with. In the case of the first hint, it has suggested that instead of applying <tt>concat</tt> and <tt>map</tt> separately, it would be better to use the combination function <tt>concatMap</tt>.
+</p>
+<p class="rule">
+	<b>Disclaimer:</b> While these hints are meant to be correct, they aren't guaranteed to be. Please report non equivalent code which doesn't involve incorrect parsing of infix operators (see Bugs above), and is incorrect without <tt>seq</tt>.
+</p>
+
+<h3>Reports</h3>
+
+<p>
+	HLint can generate a lot of information, and often searching for either the errors specific to a file, or a specific class of errors, is difficult. Using the <tt>--report</tt> flag HLint will produce a report file in HTML, which can be viewed interactively. It is recommended that if investigating more than a handlful of hints, a report is used.
+</p>
+
+
+<h2>Adding additional hints</h2>
+
+<p>
+	The majority of hints are contained in a <tt>Hints.hs</tt> file which will be installed in the appropriate data directory by Cabal. This file may be freely edited, to add library specific knowledge, or to include hints that may have been missed. As an example of the contents of this file, the line specifying <tt>concatMap</tt> is:
+</p>
+<pre>
+hint = concat (map f x) ==> concatMap f x
+</pre>
+<p>
+	The line can be read as replace <tt>concat (map <i>f</i> <i>x</i>)</tt> with <tt>concat (map <i>f</i> <i>x</i>)</tt>. Anything with a 1-letter variable is treated as a substitution parameter. For examples of more complex hints see the supplied hints file.
+</p><p>
+	If you come up with interesting hints, please submit them. For example, some of the hints about <tt>last</tt> were supplied by Henning Thielemann.
+</p>
+
+
+<h2>Ignoring certain hints</h2>
+
+<p>
+	Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for supressing certain hints. Ignore directives are picked up from the <tt>hlint_ignore.txt</tt> file from the users data directory, along with any files specified with <tt>-I</tt> and any directives specified with <tt>-i</tt>. Some example directives are:
+</p>
+<ul>
+	<li><tt>Eta reduce</tt> - supress all eta reduction suggestions.</li>
+	<li><tt>{Data.List Prelude} Eta reduce</tt> - supress eta reduction hints in the Prelude and Data.List modules.</li>
+	<li><tt>{Data.List.map}</tt> - don't give any hints in the function Data.List.map.</li>
+	<li><tt>!{Data.List.map}</tt> - discard a previous ignore directive.</li>
+</ul>
+<p>
+	In hint files, any lines which are blank or start with the <tt>#</tt> character are ignored.
+</p>
+
+
+    </body>
+</html>

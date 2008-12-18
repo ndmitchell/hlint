@@ -18,6 +18,8 @@ data-files:
     Hints.hs
     report.html
     hlint_ignore.txt
+Extra-Source-Files:
+    hlint.htm
 
 
 executable hlint
