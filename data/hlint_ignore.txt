@@ -1,0 +1,17 @@
+## This is a template file for ignoring hints from hlint
+## Comments in this file start with a single # character
+
+## To ignore all hints about eta reduction
+# Eta reduce
+
+## To ignore all hints about eta reduction in the module Data.List
+# {Data.List} Eta reduce
+
+## To ignore in both Data.List and Prelude
+# {Data.List Prelude} Eta reduce
+
+## To ignore in only one function
+# {Data.List.map} Eta reduce
+
+## To undo a previously ignored line
+# !{Data.List.map} Eta reduce

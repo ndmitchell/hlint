@@ -17,6 +17,7 @@ data-dir:           data
 data-files:
     Hints.hs
     report.html
+    hint_ignore.txt
 
 
 executable hlint
