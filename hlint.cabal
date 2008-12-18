@@ -17,11 +17,11 @@ data-dir:           data
 data-files:
     Hints.hs
     report.html
-    hint_ignore.txt
+    hlint_ignore.txt
 
 
 executable hlint
-    build-depends: base == 4.0.*, syb, filepath, directory, haskell-src-exts == 0.4.6.*, uniplate == 1.2.* && >= 1.2.0.2, mtl
+    build-depends: base == 4.0.*, syb, filepath, directory, haskell-src-exts == 0.4.6.*, uniplate == 1.2.* && >= 1.2.0.2, mtl, containers
 
     ghc-options:        -fno-warn-overlapping-patterns
     main-is:            Main.hs
