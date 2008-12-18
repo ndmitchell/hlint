@@ -4,7 +4,7 @@
     auto-generated one.
 -}
 
-module Paths_drhaskell where
+module Paths_hlint where
 
 import Data.Version(Version(..))
 

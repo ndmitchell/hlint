@@ -5,7 +5,7 @@ import Type
 import Language.Haskell.Exts
 import Data.List
 import System.FilePath
-import Paths_drhaskell
+import Paths_hlint
 
 
 writeReport :: FilePath -> [Idea] -> IO ()

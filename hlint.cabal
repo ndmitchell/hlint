@@ -1,6 +1,6 @@
 cabal-version:      >= 1.2
 build-type:         Simple
-name:               drhaskell
+name:               hlint
 version:            0.9.0.0
 license:            GPL
 license-file:       LICENSE
@@ -10,8 +10,8 @@ maintainer:         Neil Mitchell <ndmitchell@gmail.com>
 copyright:          Neil Mitchell 2006-2008
 synopsis:           Source code suggestions
 description:
-    DrHaskell gives suggestions on how to improve your source code.
-homepage:           http://www.cs.york.ac.uk/~ndm/drhaskell/
+    HLint gives suggestions on how to improve your source code.
+homepage:           http://www.cs.york.ac.uk/~ndm/hlint/
 stability:          Beta
 data-dir:           data
 data-files:
@@ -19,7 +19,7 @@ data-files:
     report.html
 
 
-executable drhaskell
+executable hlint
     build-depends: base == 4.0.*, syb, filepath, directory, haskell-src-exts == 0.4.6.*, uniplate == 1.2.* && >= 1.2.0.2, mtl
 
     ghc-options:        -fno-warn-overlapping-patterns

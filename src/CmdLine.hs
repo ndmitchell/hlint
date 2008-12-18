@@ -11,7 +11,7 @@ import System.Exit
 import System.FilePath
 import Util
 
-import Paths_drhaskell
+import Paths_hlint
 import Data.Version
 
 
@@ -43,11 +43,11 @@ getMode = do
         error $ unlines $ "Unrecognised arguments:" : err
 
     when (Help `elem` opt || (null files && not test)) $ do
-        putStr $ unlines ["Dr Haskell v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2008, University of York"
+        putStr $ unlines ["HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2008, University of York"
                          ,""
-                         ,"  drhaskell [files] [options]"
+                         ,"  hlint [files] [options]"
                          ,usageInfo "" opts
-                         ,"Dr Haskell makes hints on how to improve some Haskell code."]
+                         ,"HLint makes hints on how to improve some Haskell code."]
         exitWith ExitSuccess
 
     hints <- return [x | HintFile x <- opt]
