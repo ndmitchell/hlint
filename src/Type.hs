@@ -29,4 +29,4 @@ concatHints hs x = concatMap ($x) hs
 applyHint :: Hint -> Module -> [Idea]
 applyHint h m = [i{key = name ++ ['.'|name/=""] ++ declName d}
                 | d <- moduleDecls m, i <- h d]
-    where name = moduleName m ++ ['.' | moduleName m /= ""]
+    where name = moduleName m

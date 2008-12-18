@@ -20,16 +20,20 @@ data Mode = Mode
     ,modeFiles :: [FilePath]  -- ^ which files to run it on
     ,modeTest :: Bool         -- ^ run in test mode?
     ,modeReports :: [FilePath]     -- ^ where to generate reports
+    ,modeIgnoreFiles :: [FilePath] -- ^ where the ignore files are
+    ,modeIgnore :: [String] -- ^ the ignore commands on the command line
     }
 
 
-data Opts = Help | HintFile FilePath | Test | Report FilePath
+data Opts = Help | HintFile FilePath | Test | Report FilePath | Ignore String | IgnoreFile FilePath
             deriving Eq
 
 opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "h" ["hint"] (ReqArg HintFile "file") "Hint file to use"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
        ,Option "r" ["report"] (OptArg (Report . fromMaybe "report.html") "file") "Generate a report in HTML"
+       ,Option "i" ["ignore"] (ReqArg Ignore "message") "Ignore a particular hint"
+       ,Option "I" ["ignore-file"] (ReqArg IgnoreFile "file") "A file of things to ignore"
        ]
 
 
@@ -53,8 +57,16 @@ getMode = do
     hints <- return [x | HintFile x <- opt]
     hints <- if null hints then getFile "Hints.hs" else return hints
     files <- liftM concat $ mapM getFile files
-    let reports = [x | Report x <- opt]
-    return Mode{modeHints=hints, modeFiles=files, modeTest=test, modeReports=reports}
+
+    dat <- getDataDir
+    let stdIgnoreFile = dat </> "hlint_ignore.txt"
+    hasIgnoreFile <- doesFileExist stdIgnoreFile
+
+    return Mode{modeHints=hints, modeFiles=files, modeTest=test
+        ,modeReports=[x | Report x <- opt]
+        ,modeIgnore=[x | Ignore x <- opt]
+        ,modeIgnoreFiles=[stdIgnoreFile | hasIgnoreFile] ++ [x | IgnoreFile x <- opt]
+        }
 
 
 ifNull :: [a] -> [a] -> [a]

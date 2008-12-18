@@ -11,6 +11,7 @@ import Data.Generics.PlateData
 import CmdLine
 import Report
 import Type
+import Ignore
 import Util
 import Hint.All
 
@@ -29,7 +30,8 @@ main = do
             else putStrLn $ "Tests failed (" ++ show fail ++ " of " ++ show total ++ ")"
      else do
         hints <- readHints $ modeHints mode
-        ideas <- liftM concat $ mapM (runFile hints) (modeFiles mode)
+        ignore <- ignore (modeIgnoreFiles mode) (modeIgnore mode)
+        ideas <- liftM concat $ mapM (runFile ignore hints) (modeFiles mode)
         let n = length ideas
         if n == 0 then do
             when (not $ null $ modeReports mode) $ putStrLn "Skipping writing reports"
@@ -42,10 +44,10 @@ main = do
 
 
 -- return the number of hints given
-runFile :: Hint -> FilePath -> IO [Idea]
-runFile hint file = do
+runFile :: (Idea -> Bool) -> Hint -> FilePath -> IO [Idea]
+runFile ignore hint file = do
     src <- parseHsModule file
-    let ideas = applyHint hint src
+    let ideas = filter (not . ignore) $ applyHint hint src
     mapM_ print ideas
     return ideas
 
