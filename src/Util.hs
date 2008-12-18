@@ -15,9 +15,22 @@ headDef x (y:ys) = y
 
 
 declName :: Decl -> String
-declName (PatBind _ (PVar (Ident name)) _ _) = name
-declName (FunBind (Match _ (Ident name) _ _ _ : _)) = name
-declName x = error $ "declName: " ++ show x
+declName (TypeDecl _ name _ _) = fromName name
+declName (DataDecl _ _ _ name _ _ _) = fromName name
+declName (GDataDecl _ _ _ name _ _ _ _) = fromName name
+declName (TypeFamDecl _ name _ _) = fromName name
+declName (DataFamDecl _ _ name _ _) = fromName name
+declName (ClassDecl _ _ name _ _ _) = fromName name
+declName (PatBind _ (PVar name) _ _) = fromName name
+declName (FunBind (Match _ name _ _ _ : _)) = fromName name
+declName (ForImp _ _ _ _ name _) = fromName name
+declName (ForExp _ _ _ name _) = fromName name
+declName _ = ""
+
+
+fromName :: Name -> String
+fromName (Ident x) = x
+fromName (Symbol x) = x
 
 
 opExp ::  QOp -> Exp
@@ -36,6 +49,10 @@ parseHsModule file = do
 
 moduleDecls :: Module -> [Decl]
 moduleDecls (Module _ _ _ _ _ _ xs) = xs
+
+moduleName :: Module -> String
+moduleName (Module _ (ModuleName x) _ _ _ _ _) = x
+
 
 
 limit :: Int -> String -> String
