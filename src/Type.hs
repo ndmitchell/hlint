@@ -5,10 +5,11 @@ import Language.Haskell.Exts
 import Util
 
 
-data Idea = Idea {text :: String, loc :: SrcLoc, from :: String, to :: String}
+-- Key is Data.List.split, for example
+data Idea = Idea {key :: String, text :: String, loc :: SrcLoc, from :: String, to :: String}
             deriving Eq
 
-idea s loc from to = Idea s loc (prettyPrint from) (prettyPrint to)
+idea s loc from to = Idea "" s loc (prettyPrint from) (prettyPrint to)
 
 
 instance Show Idea where
@@ -26,4 +27,6 @@ concatHints hs x = concatMap ($x) hs
 
 
 applyHint :: Hint -> Module -> [Idea]
-applyHint h = concatMap h . moduleDecls
+applyHint h m = [i{key = name ++ ['.'|name/=""] ++ declName d}
+                | d <- moduleDecls m, i <- h d]
+    where name = moduleName m ++ ['.' | moduleName m /= ""]
