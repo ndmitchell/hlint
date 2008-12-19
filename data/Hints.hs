@@ -28,6 +28,7 @@ hint "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
 -- MONAD
 
 hint = m >>= return . f ==> liftM f m
+hint = (if x then y else return ()) ==> (when x $ y)
 
 -- LIST COMP
 
