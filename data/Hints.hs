@@ -1,4 +1,6 @@
+-- I/O
 
+hint = putStrLn (show x) ==> print x
 
 -- LIST
 
