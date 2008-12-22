@@ -130,6 +130,24 @@ Why not:
 	HLint can generate a lot of information, and often searching for either the errors specific to a file, or a specific class of errors, is difficult. Using the <tt>--report</tt> flag HLint will produce a report file in HTML, which can be viewed interactively. It is recommended that if investigating more than a handlful of hints, a report is used.
 </p>
 
+<h3>Recursive Suggestions</h3>
+
+<p>
+	Suggestions are not applied recursively. Consider:
+</p>
+<pre>
+foo xs = concat (map op xs)
+</pre>
+<p>
+	This will suggest eta reduction to <tt>concat . map op</tt>, and then after making that change and running HLint again, will suggest use of <tt>concatMap</tt>. Many people wonder why HLint doesn't directly suggest <tt>concatMap op</tt>. There are a number of reasons:
+</p>
+<ul>
+	<li>HLint aims to both improve code, and to teach the author better style. Doing modifications individually helps this process.</li>
+	<li>Sometimes the steps are reasonably complex, by automatically composing them the user may become confused.</li>
+	<li>Sometimes HLint gets transformations wrong - particularly with operators. If suggestions are applied recursively, one error will cascade.</li>
+	<li>Some people only make use of some of the suggestions. In the above example using concatMap is a good idea, but sometimes eta reduction isn't. By suggesting them separately, people can pick and choose.</li>
+</ul>
+
 
 <h2>Adding additional hints</h2>
 
