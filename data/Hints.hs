@@ -1,6 +1,20 @@
 -- I/O
 
 hint = putStrLn (show x) ==> print x
+hint = mapM_ putChar ==> putStr
+
+-- ORD
+
+hint = compare x y /= GT ==> (x <= y)
+hint = compare x y == LT ==> (x < y)
+hint = compare x y /= LT ==> (x >= y)
+hint = compare x y == GT ==> (x > y)
+
+-- READ/SHOW
+
+hint = showsPrec 0 x "" ==> show x
+hint = readsPrec 0 ==> reads
+hint = showsPrec 0 ==> shows
 
 -- LIST
 
@@ -14,6 +28,22 @@ hint = head (reverse x) ==> last x
 hint "Use index" = head (drop n x) ==> (x !! n)
 hint = reverse (tail (reverse x)) ==> init x
 hint = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
+hint = foldr (++) [] x ==> concat x
+hint = span (not . p) ==> break p
+hint = break (not . p) ==> span p
+hint = concatMap (++ "\n") ==> unlines
+hint = or (map p x) ==> any p x
+hint = and (map p x) ==> all p x
+hint = zipWith (,) ==> zip
+hint = zipWith3 (,,) ==> zip3
+
+-- FOLDS
+
+hint = foldr (&&) True ==> and
+hint = foldr (>>) (return ()) ==> sequence_
+hint = foldr (||) False ==> or
+hint = foldl (+) 0 ==> sum
+hint = foldl (*) 1 ==> product
 
 -- BOOL
 
@@ -31,6 +61,8 @@ hint "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
 
 hint = m >>= return . f ==> liftM f m
 hint = (if x then y else return ()) ==> (when x $ y)
+hint = sequence (map f as) ==> mapM f as
+hint = sequence_ (map f as) ==> mapM_ f as
 
 -- LIST COMP
 
@@ -46,6 +78,54 @@ hint "The $! is redundant" = (id $! x) ==> x
 hint = maybe x id  ==> fromMaybe x
 hint = maybe False (const True) ==> isJust
 hint = maybe True (const False) ==> isNothing
+
+-- MATHS
+
+hint = x + negate y ==> (x - y)
+hint = 0 - x ==> negate x
+hint = log y / log x ==> logBase x y
+hint = x ** 0.5 ==> sqrt x
+hint = sin x / cos x ==> tan x
+hint = sinh x / cosh x ==> tanh x
+hint = n `rem` 2 == 0 ==> even n
+hint = n `rem` 2 /= 0 ==> even n
+hint = not (even x) ==> odd x
+hint = not (odd x) ==> even x
+hint "Use 1" = x ^ 0 ==> 1
+
+-- EVALUATE
+
+hint "Evaluate" = True && x ==> x
+hint "Evaluate" = False && x ==> False
+hint "Evaluate" = True || x ==> True
+hint "Evaluate" = False || x ==> x
+hint "Evaluate" = not True ==> False
+hint "Evaluate" = not False ==> True
+hint "Evaluate" = Nothing >>= k ==> Nothing
+hint "Evaluate" = either f g (Left x) ==> f x
+hint "Evaluate" = either f g (Right y) ==> g y
+hint "Evaluate" = fst (x,y) ==> x
+hint "Evaluate" = snd (x,y) ==> y
+hint "Evaluate" = f (fst p) (snd p) ==> uncurry f p
+hint "Evaluate" = init [x] ==> []
+hint "Evaluate" = null [] ==> True
+hint "Evaluate" = length [] ==> 0
+hint "Evaluate" = foldl f z [] ==> z
+hint "Evaluate" = foldr f z [] ==> z
+hint "Evaluate" = foldr1 f [x] ==> x
+hint "Evaluate" = scanr f q0 [] ==> [q0]
+hint "Evaluate" = scanr1 f [] ==> []
+hint "Evaluate" = scanr1 f [x] ==> [x]
+hint "Evaluate" = take n [] ==> []
+hint "Evaluate" = drop n [] ==> []
+hint "Evaluate" = takeWhile p [] ==> []
+hint "Evaluate" = dropWhile p [] ==> []
+hint "Evaluate" = span p [] ==> ([],[])
+hint "Evaluate" = lines "" ==> []
+hint "Evaluate" = unwords [] ==> ""
+hint "Evaluate" = x - 0 ==> x
+hint "Evaluate" = x * 1 ==> x
+hint "Evaluate" = x / 1 ==> x
 
 -- COMPLEX
 
