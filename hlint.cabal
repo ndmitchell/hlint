@@ -28,6 +28,10 @@ executable hlint
         haskell-src-exts == 0.4.6.*, uniplate == 1.2.* && >= 1.2.0.2
 
     ghc-options:        -fno-warn-overlapping-patterns
+
+    -- ViewPatterns not yet supported by Cabal as an extension
+    -- extensions:         ViewPatterns, PatternGuards, MultiParamTypeClasses
+
     main-is:            Main.hs
     hs-source-dirs:     src
     other-modules:
