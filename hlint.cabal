@@ -23,7 +23,9 @@ Extra-Source-Files:
 
 
 executable hlint
-    build-depends: base == 4.0.*, syb, filepath, directory, haskell-src-exts == 0.4.6.*, uniplate == 1.2.* && >= 1.2.0.2, mtl, containers
+    build-depends:
+        base == 4.0.*, syb, filepath, directory, mtl, containers,
+        haskell-src-exts == 0.4.6.*, uniplate == 1.2.* && >= 1.2.0.2
 
     ghc-options:        -fno-warn-overlapping-patterns
     main-is:            Main.hs
