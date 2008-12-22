@@ -1,4 +1,4 @@
-cabal-version:      >= 1.4
+cabal-version:      >= 1.6
 build-type:         Simple
 name:               hlint
 version:            1.0.0.1
