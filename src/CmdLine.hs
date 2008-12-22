@@ -49,9 +49,14 @@ getMode = do
     when (Help `elem` opt || (null files && not test)) $ do
         putStr $ unlines ["HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2008, University of York"
                          ,""
-                         ,"  hlint [files] [options]"
+                         ,"  hlint [files/directories] [options]"
                          ,usageInfo "" opts
-                         ,"HLint makes hints on how to improve some Haskell code."]
+                         ,"HLint makes hints on how to improve some Haskell code."
+                         ,""
+                         ,"For example, to check all .hs and .lhs files in the folder src and"
+                         ,"generate a report:"
+                         ,"  hlint src --report"
+                         ]
         exitWith ExitSuccess
 
     hints <- return [x | HintFile x <- opt]
