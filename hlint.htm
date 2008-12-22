@@ -91,7 +91,7 @@ p.rule {
 <p>
 	Installation follows the standard pattern of any Haskell library or program, simply type <tt>cabal update</tt> to update your local hackage database, then <tt>cabal install hlint</tt> to install HLint.
 </p><p>
-	Once HLint is installed, simply run <tt>hlint <i>source</i></tt> where <i>source</i> is either a Haskell file or a directory containing some Haskell files. For example, running HLint over darcs would give:
+	Once HLint is installed, simply run <tt>hlint <i>source</i></tt> where <i>source</i> is either a Haskell file or a directory containing some Haskell files. Any directory will be searched recursively for any files ending with <tt>.hs</tt> or <tt>.lhs</tt>. For example, running HLint over darcs would give:
 </p>
 <pre>
 
