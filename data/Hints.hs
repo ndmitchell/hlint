@@ -137,7 +137,7 @@ hint "Evaluate" = id x ==> x
 
 -- COMPLEX
 
-hint "Use isPrefixOf, and then remove the (==) test" = (take i s == t) ==> ((i == length t) && (t `isPrefixOf` s))
+hint "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i == length t) && (t `isPrefixOf` s))
     where _ = (isList t || isLit t) && isLit i
 
 

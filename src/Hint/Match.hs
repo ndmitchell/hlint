@@ -11,6 +11,7 @@ import Type
 import Util
 import Control.Monad
 import Data.Function
+import HSE.Evaluate(evaluate)
 
 
 data Mat = Mat {message :: String, lhs :: Exp, rhs :: Exp, side :: Maybe Exp}
@@ -77,7 +78,7 @@ matchIdea Mat{lhs=lhs,rhs=rhs,side=side} x = do
     u <- unify lhs x
     u <- check u
     if checkSide side u
-        then return $ remParen $ dotContract $ subst u rhs
+        then return $ remParen $ dotContract $ performEval $ subst u rhs
         else Nothing
 
 
@@ -132,3 +133,8 @@ dotContract x = fromMaybe x (f x)
         f (App x y) | Just "?" <- fromVar y = Just x
                     | Just z <- f y = Just $ InfixApp x (QVarOp $ UnQual $ Symbol ".") z
         f _ = Nothing
+
+-- if it has _eval_ do evaluation on it
+performEval :: Exp -> Exp
+performEval (App e x) | e ~= "_eval_" = evaluate x
+performEval x = x
