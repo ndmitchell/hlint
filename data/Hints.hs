@@ -36,6 +36,8 @@ hint = or (map p x) ==> any p x
 hint = and (map p x) ==> all p x
 hint = zipWith (,) ==> zip
 hint = zipWith3 (,,) ==> zip3
+hint = length x == 0 ==> null x
+hint "Use null" = length x /= 0 ==> not (null x)
 
 -- FOLDS
 
@@ -56,6 +58,11 @@ hint "Redundant if" = (if a then (if b then t else f) else f) ==> if a && b then
 hint "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
 hint "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
 hint "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
+
+-- ARROW
+
+hint = id *** g ==> second g
+hint = f *** id ==> first f
 
 -- MONAD
 
@@ -126,6 +133,7 @@ hint "Evaluate" = unwords [] ==> ""
 hint "Evaluate" = x - 0 ==> x
 hint "Evaluate" = x * 1 ==> x
 hint "Evaluate" = x / 1 ==> x
+hint "Evaluate" = id x ==> x
 
 -- COMPLEX
 
