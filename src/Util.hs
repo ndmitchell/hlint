@@ -33,6 +33,12 @@ fromName (Ident x) = x
 fromName (Symbol x) = x
 
 
+toName :: String -> Name
+toName x = Ident x
+
+toQName :: String -> QName
+toQName = UnQual . toName
+
 opExp ::  QOp -> Exp
 opExp (QVarOp op) = Var op
 opExp (QConOp op) = Con op
@@ -196,5 +202,6 @@ instance View Exp App1 where
 
 (~=) :: Exp -> String -> Bool
 (Con (Special Cons)) ~= ":" = True
+(Con x) ~= y = Var x ~= y
 (List []) ~= "[]" = True
 x ~= y = fromVar x == Just y
