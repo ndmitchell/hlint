@@ -102,6 +102,8 @@ hint "Use 1" = x ^ 0 ==> 1
 
 -- EVALUATE
 
+-- TODO: These should be moved in to HSE\Evaluate.hs and applied
+--       through a special evaluate hint mechanism
 hint "Evaluate" = True && x ==> x
 hint "Evaluate" = False && x ==> False
 hint "Evaluate" = True || x ==> True
