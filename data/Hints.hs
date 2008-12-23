@@ -142,6 +142,8 @@ hint "Evaluate" = id x ==> x
 hint "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i == length t) && (t `isPrefixOf` s))
     where _ = (isList t || isLit t) && isLit i
 
+hint "Unnecessary $" = f $ x ==> f x
+    where _ = isAtom x
 
 {-
 <TEST>
