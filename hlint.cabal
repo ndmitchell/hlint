@@ -47,3 +47,4 @@ executable hlint
         Hint.List
         Hint.Match
         Hint.Monad
+        HSE.Evaluate
