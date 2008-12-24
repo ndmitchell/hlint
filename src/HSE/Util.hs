@@ -9,10 +9,63 @@ import Data.Maybe
 import Language.Haskell.Exts
 
 
+---------------------------------------------------------------------
+-- GENERAL FUNCTIONS
+
 headDef :: a -> [a] -> a
 headDef x [] = x
 headDef x (y:ys) = y
 
+
+limit :: Int -> String -> String
+limit n s = if null post then s else pre ++ "..."
+    where (pre,post) = splitAt n s
+
+
+---------------------------------------------------------------------
+-- ACCESSOR/TESTER
+
+fromName :: Name -> String
+fromName (Ident x) = x
+fromName (Symbol x) = x
+
+toName :: String -> Name
+toName x = Ident x
+
+toQName :: String -> QName
+toQName = UnQual . toName
+
+opExp ::  QOp -> Exp
+opExp (QVarOp op) = Var op
+opExp (QConOp op) = Con op
+
+moduleDecls :: Module -> [Decl]
+moduleDecls (Module _ _ _ _ _ _ xs) = xs
+
+moduleName :: Module -> String
+moduleName (Module _ (ModuleName x) _ _ _ _ _) = x
+
+fromParseOk :: ParseResult a -> a
+fromParseOk (ParseOk x) = x
+
+fromVar :: Exp -> Maybe String
+fromVar (Var (UnQual (Ident x))) = Just x
+fromVar (Var (UnQual (Symbol x))) = Just x
+fromVar _ = Nothing
+
+toVar :: String -> Exp
+toVar = Var . UnQual . Ident
+
+isVar :: Exp -> Bool
+isVar = isJust . fromVar
+
+isCharExp :: Exp -> Bool
+isCharExp (Lit (Char _)) = True
+isCharExp _ = False
+
+
+---------------------------------------------------------------------
+-- HSE FUNCTIONS
 
 declName :: Decl -> String
 declName (TypeDecl _ name _ _) = fromName name
@@ -28,42 +81,15 @@ declName (ForExp _ _ _ name _) = fromName name
 declName _ = ""
 
 
-fromName :: Name -> String
-fromName (Ident x) = x
-fromName (Symbol x) = x
-
-
-toName :: String -> Name
-toName x = Ident x
-
-toQName :: String -> QName
-toQName = UnQual . toName
-
-opExp ::  QOp -> Exp
-opExp (QVarOp op) = Var op
-opExp (QConOp op) = Con op
-
-
-moduleDecls :: Module -> [Decl]
-moduleDecls (Module _ _ _ _ _ _ xs) = xs
-
-moduleName :: Module -> String
-moduleName (Module _ (ModuleName x) _ _ _ _ _) = x
-
-
-
-limit :: Int -> String -> String
-limit n s = if null post then s else pre ++ "..."
-    where (pre,post) = splitAt n s
-
-
-fromParseOk :: ParseResult a -> a
-fromParseOk (ParseOk x) = x
-
-
 instance Eq Module where
     Module x1 x2 x3 x4 x5 x6 x7 == Module y1 y2 y3 y4 y5 y6 y7 =
         x1 == y1 && x2 == y2 && x3 == y3 && x4 == y4 && x5 == y5 && x6 == y6 && x7 == y7
+
+
+-- pick a variable that is not being used
+freeVar :: Data a => a -> String
+freeVar x = head $ allVars \\ concat [[y, drop 1 y] | Ident y <- universeBi x]
+    where allVars = [letter : number | number <- "" : map show [1..], letter <- ['a'..'z']]
 
 
 ---------------------------------------------------------------------
@@ -94,30 +120,4 @@ children0Exp src x | Just y <- cast x = [(src, y)]
 universeExp :: Data a => SrcLoc -> a -> [(SrcLoc, Exp)]
 universeExp src x = concatMap f (children0Exp src x)
     where f (src,x) = (src,x) : concatMap f (children1Exp src x)
-
-
----------------------------------------------------------------------
--- VARIABLE MANIPULATION
-
--- pick a variable that is not being used
-freeVar :: Data a => a -> String
-freeVar x = head $ allVars \\ concat [[y, drop 1 y] | Ident y <- universeBi x]
-    where allVars = [letter : number | number <- "" : map show [1..], letter <- ['a'..'z']]
-
-
-fromVar :: Exp -> Maybe String
-fromVar (Var (UnQual (Ident x))) = Just x
-fromVar (Var (UnQual (Symbol x))) = Just x
-fromVar _ = Nothing
-
-toVar :: String -> Exp
-toVar = Var . UnQual . Ident
-
-isVar :: Exp -> Bool
-isVar = isJust . fromVar
-
-
-isCharExp :: Exp -> Bool
-isCharExp (Lit (Char _)) = True
-isCharExp _ = False
 
