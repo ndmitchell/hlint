@@ -59,9 +59,12 @@ toVar = Var . UnQual . Ident
 isVar :: Exp -> Bool
 isVar = isJust . fromVar
 
-isCharExp :: Exp -> Bool
-isCharExp (Lit (Char _)) = True
-isCharExp _ = False
+isChar :: Exp -> Bool
+isChar (Lit (Char _)) = True
+isChar _ = False
+
+fromChar :: Exp -> Char
+fromChar (Lit (Char x)) = x
 
 
 ---------------------------------------------------------------------

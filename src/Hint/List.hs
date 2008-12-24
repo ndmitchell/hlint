@@ -47,7 +47,7 @@ checks = let (*) = (,) in
          ]
 
 
-useString b (List xs) | not (null xs) && all isCharExp xs = Just $ Lit $ String [x | Lit (Char x) <- xs]
+useString b (List xs) | xs /= [] && all isChar xs = Just $ Lit $ String $ map fromChar xs
 useString b _ = Nothing
 
 useList b = fmap List . f True
