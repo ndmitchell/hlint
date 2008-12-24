@@ -37,14 +37,17 @@ executable hlint
     other-modules:
         CmdLine
         Ignore
-        Main
         Report
         Type
+        HSE.All
+        HSE.Bracket
+        HSE.Evaluate
+        HSE.Match
+        HSE.Operators
+        HSE.Util
         Hint.All
         Hint.Bracket
         Hint.Lambda
         Hint.List
         Hint.Match
         Hint.Monad
-        HSE.Util
-        HSE.Evaluate
