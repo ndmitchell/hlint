@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, MultiParamTypeClasses #-}
 
-module Util where
+module HSE.Util where
 
 import Data.Generics
 import Data.Generics.PlateData

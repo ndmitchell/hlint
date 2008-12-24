@@ -40,11 +40,11 @@ executable hlint
         Main
         Report
         Type
-        Util
         Hint.All
         Hint.Bracket
         Hint.Lambda
         Hint.List
         Hint.Match
         Hint.Monad
+        HSE.Util
         HSE.Evaluate

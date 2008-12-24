@@ -5,7 +5,7 @@ module HSE.Evaluate(evaluate) where
 
 import Language.Haskell.Exts
 import Data.Generics.PlateData
-import Util
+import HSE.Util
 
 
 evaluate :: Exp -> Exp

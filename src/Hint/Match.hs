@@ -8,7 +8,7 @@ import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
 import Type
-import Util
+import HSE.Util
 import Control.Monad
 import Data.Function
 import HSE.Evaluate(evaluate)

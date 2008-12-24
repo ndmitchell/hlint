@@ -2,7 +2,7 @@
 module Hint.All(readHints, allHints) where
 
 import Control.Monad
-import Util
+import HSE.Util
 import Type
 import Language.Haskell.Exts
 

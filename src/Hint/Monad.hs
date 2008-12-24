@@ -16,7 +16,7 @@ no = mapM print a
 module Hint.Monad where
 
 import Control.Monad
-import Util
+import HSE.Util
 import Type
 import Language.Haskell.Exts
 

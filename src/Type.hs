@@ -2,7 +2,7 @@
 module Type where
 
 import Language.Haskell.Exts
-import Util
+import HSE.Util
 
 
 -- Key is Data.List.split, for example

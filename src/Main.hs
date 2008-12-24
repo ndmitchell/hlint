@@ -12,7 +12,7 @@ import CmdLine
 import Report
 import Type
 import Ignore
-import Util
+import HSE.Util
 import Hint.All
 
 
