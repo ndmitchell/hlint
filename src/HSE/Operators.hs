@@ -1,6 +1,10 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, MultiParamTypeClasses, FlexibleContexts #-}
 
-module HSE.Operators where
+module HSE.Operators(
+    FixityDecl(..), preludeFixities,
+    applyFixities, testFixities,
+    operatorPrec
+    ) where
 
 import Data.Generics
 import Data.Generics.PlateData
