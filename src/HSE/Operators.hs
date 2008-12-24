@@ -17,15 +17,6 @@ import qualified Data.Map as Map
 data FixityDecl = Fixity Assoc Int Op
 
 
-declFixity :: Decl -> [FixityDecl]
-declFixity (InfixDecl _ assoc priority xs) = map (Fixity assoc priority) xs
-declFixity _ = []
-
-
-moduleFixities :: Module -> [FixityDecl]
-moduleFixities = concatMap declFixity . moduleDecls
-
-
 preludeFixities :: [FixityDecl]
 preludeFixities = concat
     [infixr_ 9  ["."]
