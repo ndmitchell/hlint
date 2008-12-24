@@ -28,5 +28,5 @@ readHints = liftM (concatHints . concat) . mapM readHint
 
 readHint :: FilePath -> IO [Hint]
 readHint file = do
-    modu <- parseHsModule file
+    modu <- parseFile file
     return $ readMatch modu : map snd allHints

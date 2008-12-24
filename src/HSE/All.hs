@@ -4,10 +4,12 @@ module HSE.All(
     module HSE.Util, module HSE.Evaluate,
     module HSE.Bracket, module HSE.Match,
     module HSE.Operators,
-    parseHsModule, parseString
+    parseFile, parseString
     ) where
 
-import Language.Haskell.Exts
+import Language.Haskell.Exts hiding (parseFile)
+import qualified Language.Haskell.Exts as HSE
+
 import HSE.Util
 import HSE.Evaluate
 import HSE.Bracket
@@ -17,9 +19,9 @@ import HSE.Operators
 
 
 -- | On failure returns an empty module and prints to the console
-parseHsModule :: FilePath -> IO Module
-parseHsModule file = do
-    res <- parseFile file
+parseFile :: FilePath -> IO Module
+parseFile file = do
+    res <- HSE.parseFile file
     case res of
         ParseOk x -> return $ hlintFixities x
         ParseFailed src msg -> do

@@ -45,7 +45,7 @@ main = do
 -- return the number of hints given
 runFile :: (Idea -> Bool) -> Hint -> FilePath -> IO [Idea]
 runFile ignore hint file = do
-    src <- parseHsModule file
+    src <- parseFile file
     let ideas = filter (not . ignore) $ applyHint hint src
     mapM_ print ideas
     return ideas
