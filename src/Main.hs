@@ -71,9 +71,7 @@ parseTestFile :: FilePath -> IO [Decl]
 parseTestFile file = do
     src <- readFile file
     src <- return $ unlines $ f $ lines src
-    case parseFileContents src of
-        ParseOk x -> return $ childrenBi $ operatorPrec x
-        _ -> error $ "Parse failure in test block of " ++ file ++ "\n" ++ src
+    return $ childrenBi $ parseString file src
     where
         open = isPrefixOf "<TEST>"
         shut = isPrefixOf "</TEST>"

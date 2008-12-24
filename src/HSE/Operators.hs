@@ -3,7 +3,7 @@
 module HSE.Operators(
     FixityDecl(..), preludeFixities,
     applyFixities, testFixities,
-    operatorPrec
+    infixr_, infixl_, infix_
     ) where
 
 import Data.Generics
@@ -90,8 +90,3 @@ askFixity xs = \k -> Map.findWithDefault (AssocLeft, 9) (f k) mp
         g (Qual _ x) = x
         g (UnQual x) = x
         g (Special Cons) = Symbol ":"
-
-
-
-operatorPrec :: Module -> Module
-operatorPrec = applyFixities (infix_ (-1) ["==>"] ++ preludeFixities)
