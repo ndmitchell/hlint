@@ -79,12 +79,9 @@ p.rule {
 
 <h3>Bugs and limitations</h3>
 
-<ul>
-	<li>In some cases, the precedence of infix operators will be incorrect, leading to incorrect suggestions. It is hoped this will be fixed in a future version.</li>
-	<li>Files requiring the C pre processor are not supported.</li>
-	<li>A complete bug list is kept at <a href="http://code.google.com/p/ndmitchell/issues/list?q=proj:HLint">my bug tracker</a>.</li>
-</ul>
-
+<p>
+	A complete bug list is kept at <a href="http://code.google.com/p/ndmitchell/issues/list?q=proj:HLint">my bug tracker</a>.
+</p>
 
 <h2>Installing and running HLint</h2>
 
@@ -121,7 +118,7 @@ Why not:
 	Each suggestion says which file/line the suggestion relates to, a description of the issue, what it found, and what you might want to replace it with. In the case of the first hint, it has suggested that instead of applying <tt>concat</tt> and <tt>map</tt> separately, it would be better to use the combination function <tt>concatMap</tt>.
 </p>
 <p class="rule">
-	<b>Disclaimer:</b> While these hints are meant to be correct, they aren't guaranteed to be. Please report non equivalent code which doesn't involve incorrect parsing of infix operators (see Bugs above), and is incorrect without <tt>seq</tt>.
+	<b>Disclaimer:</b> While these hints are meant to be correct, they aren't guaranteed to be. Please report any non equivalent hints (ignoring effects of <tt>seq</tt>).
 </p>
 
 <h3>Reports</h3>
@@ -158,9 +155,7 @@ foo xs = concat (map op xs)
 hint = concat (map f x) ==> concatMap f x
 </pre>
 <p>
-	The line can be read as replace <tt>concat (map <i>f</i> <i>x</i>)</tt> with <tt>concat (map <i>f</i> <i>x</i>)</tt>. Anything with a 1-letter variable is treated as a substitution parameter. For examples of more complex hints see the supplied hints file.
-</p><p>
-	If your hint has operators in it, for example <tt>1+0 ==> 0+1</tt> then you must add brackets, i.e. <tt>(1+0) ==> (0+1)</tt>, otherwise you will get a parse error. In general, hints should <i>not</i> be given in point free style, as this reduces the power of the matching.
+	The line can be read as replace <tt>concat (map <i>f</i> <i>x</i>)</tt> with <tt>concat (map <i>f</i> <i>x</i>)</tt>. Anything with a 1-letter variable is treated as a substitution parameter. For examples of more complex hints see the supplied hints file. In general, hints should <i>not</i> be given in point free style, as this reduces the power of the matching.
 </p><p>
 	If you come up with interesting hints, please submit them. For example, some of the hints about <tt>last</tt> were supplied by Henning Thielemann.
 </p>
