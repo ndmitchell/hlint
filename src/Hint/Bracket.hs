@@ -18,8 +18,7 @@ import Control.Monad.State
 import Data.Generics
 import Data.Maybe
 import Type
-import HSE.Util
-import Language.Haskell.Exts
+import HSE.All
 
 
 bracketHint :: Hint

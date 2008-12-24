@@ -4,7 +4,6 @@ module Main where
 import Control.Arrow
 import Control.Monad
 import Data.List
-import Language.Haskell.Exts
 import System.Directory
 import Data.Generics.PlateData
 
@@ -12,7 +11,7 @@ import CmdLine
 import Report
 import Type
 import Ignore
-import HSE.Util
+import HSE.All
 import Hint.All
 
 

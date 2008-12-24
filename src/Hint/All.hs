@@ -2,9 +2,8 @@
 module Hint.All(readHints, allHints) where
 
 import Control.Monad
-import HSE.Util
+import HSE.All
 import Type
-import Language.Haskell.Exts
 
 import Hint.Match
 import Hint.List

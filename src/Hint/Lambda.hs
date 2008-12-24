@@ -26,10 +26,9 @@ yes5 x y = f (g x) (g y)
 
 module Hint.Lambda where
 
-import HSE.Util
+import HSE.All
 import Type
 import Control.Monad
-import Language.Haskell.Exts
 import Data.Generics.PlateData
 import Data.Maybe
 
