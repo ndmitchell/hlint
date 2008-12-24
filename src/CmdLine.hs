@@ -1,5 +1,5 @@
 
-module CmdLine(Mode(..), getMode) where
+module CmdLine(CmdMode(..), getMode) where
 
 import Control.Monad
 import Data.List
@@ -15,7 +15,7 @@ import Paths_hlint
 import Data.Version
 
 
-data Mode = Mode
+data CmdMode = CmdMode
     {modeHints :: [FilePath]  -- ^ which hint files to use
     ,modeFiles :: [FilePath]  -- ^ which files to run it on
     ,modeTest :: Bool         -- ^ run in test mode?
@@ -38,7 +38,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
 
 
 -- | Exit out if you need to display help info
-getMode :: IO Mode
+getMode :: IO CmdMode
 getMode = do
     args <- getArgs
     let (opt,files,err) = getOpt Permute opts args
@@ -67,7 +67,7 @@ getMode = do
     let stdIgnoreFile = dat </> "hlint_ignore.txt"
     hasIgnoreFile <- doesFileExist stdIgnoreFile
 
-    return Mode{modeHints=hints, modeFiles=files, modeTest=test
+    return CmdMode{modeHints=hints, modeFiles=files, modeTest=test
         ,modeReports=[x | Report x <- opt]
         ,modeIgnore=[x | Ignore x <- opt]
         ,modeIgnoreFiles=[stdIgnoreFile | hasIgnoreFile] ++ [x | IgnoreFile x <- opt]
