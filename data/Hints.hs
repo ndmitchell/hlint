@@ -173,6 +173,7 @@ yes = head (reverse xs)
 yes = reverse xs `isPrefixOf` reverse ys
 yes = operator foo $ operator
 no = operator foo $ operator bar
+no = putStrLn $ show (length xs) ++ "Test"
 </TEST>
 -}
 
