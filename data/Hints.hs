@@ -5,10 +5,10 @@ hint = mapM_ putChar ==> putStr
 
 -- ORD
 
-hint = compare x y /= GT ==> (x <= y)
-hint = compare x y == LT ==> (x < y)
-hint = compare x y /= LT ==> (x >= y)
-hint = compare x y == GT ==> (x > y)
+hint = compare x y /= GT ==> x <= y
+hint = compare x y == LT ==> x < y
+hint = compare x y /= LT ==> x >= y
+hint = compare x y == GT ==> x > y
 
 -- READ/SHOW
 
@@ -20,12 +20,12 @@ hint = showsPrec 0 ==> shows
 
 hint = concat (map f x) ==> concatMap f x
 hint "Use one map" = map f (map g x) ==> map (f . g) x
-hint = (x !! 0) ==> head x
+hint = x !! 0 ==> head x
 hint = take n (repeat x) ==> replicate n x
-hint = (x ++ concatMap (' ':) y) ==> unwords (x:y)
+hint = x ++ concatMap (' ':) y ==> unwords (x:y)
 hint = concat (intersperse " " x) ==> unwords x
 hint = head (reverse x) ==> last x
-hint "Use index" = head (drop n x) ==> (x !! n)
+hint "Use index" = head (drop n x) ==> x !! n
 hint = reverse (tail (reverse x)) ==> init x
 hint = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
 hint = foldr (++) [] x ==> concat x
@@ -49,14 +49,14 @@ hint = foldl (*) 1 ==> product
 
 -- BOOL
 
-hint = not (a == b) ==> (a /= b)
-hint = not (a /= b) ==> (a == b)
+hint = not (a == b) ==> a /= b
+hint = not (a /= b) ==> a == b
 hint "Redundant if" = (if a then True else False) ==> a
 hint "Redundant if" = (if a then False else True) ==> not a
 hint "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then t else f
 hint "Redundant if" = (if a then (if b then t else f) else f) ==> if a && b then t else f
-hint "Redundant if" = (if x then True else y) ==> (x || y)
-hint "Redundant if" = (if x then y else False) ==> (x && y)
+hint "Redundant if" = (if x then True else y) ==> x || y
+hint "Redundant if" = (if x then y else False) ==> x && y
 hint "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
 hint "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
 hint "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
@@ -69,7 +69,7 @@ hint = f *** id ==> first f
 -- MONAD
 
 hint = m >>= return . f ==> liftM f m
-hint = (if x then y else return ()) ==> (when x $ y)
+hint = (if x then y else return ()) ==> when x $ y
 hint = sequence (map f as) ==> mapM f as
 hint = sequence_ (map f as) ==> mapM_ f as
 
@@ -79,8 +79,8 @@ hint "Use a list comprehension" = (if b then [x] else []) ==> [x | b]
 
 -- SEQ
 
-hint "The seq is redundant" = (x `seq` x) ==> x
-hint "The $! is redundant" = (id $! x) ==> x
+hint "The seq is redundant" = x `seq` x ==> x
+hint "The $! is redundant" = id $! x ==> x
 
 -- MAYBE
 
@@ -90,7 +90,7 @@ hint = maybe True (const False) ==> isNothing
 
 -- MATHS
 
-hint = x + negate y ==> (x - y)
+hint = x + negate y ==> x - y
 hint = 0 - x ==> negate x
 hint = log y / log x ==> logBase x y
 hint = x ** 0.5 ==> sqrt x
