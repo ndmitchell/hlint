@@ -5,7 +5,9 @@ module HSE.Evaluate(evaluate) where
 
 import Language.Haskell.Exts
 import Data.Generics.PlateData
+import HSE.Match
 import HSE.Util
+import HSE.Bracket
 
 
 evaluate :: Exp -> Exp

@@ -2,13 +2,12 @@
 
 module Hint.Match(readMatch) where
 
-import Language.Haskell.Exts
 import Data.Char
 import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
 import Type
-import HSE.Util
+import HSE.All
 import Control.Monad
 import Data.Function
 import HSE.Evaluate(evaluate)

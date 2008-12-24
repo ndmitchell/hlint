@@ -18,9 +18,8 @@ no = xs ++ [x] ++ ys
 
 module Hint.List where
 
-import HSE.Util
+import HSE.All
 import Type
-import Language.Haskell.Exts
 
 
 listHint :: Hint

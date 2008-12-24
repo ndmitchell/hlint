@@ -44,15 +44,6 @@ opExp (QVarOp op) = Var op
 opExp (QConOp op) = Con op
 
 
-parseHsModule :: FilePath -> IO Module
-parseHsModule file = do
-    res <- parseFile file
-    case res of
-        ParseOk x -> return $ operatorPrec x
-        ParseFailed src msg -> do
-            putStrLn $ showSrcLoc src ++ " Parse failure, " ++ limit 50 msg
-            return $ Module nullSrcLoc (ModuleName "") [] Nothing Nothing [] []
-
 moduleDecls :: Module -> [Decl]
 moduleDecls (Module _ _ _ _ _ _ xs) = xs
 
@@ -64,17 +55,6 @@ moduleName (Module _ (ModuleName x) _ _ _ _ _) = x
 limit :: Int -> String -> String
 limit n s = if null post then s else pre ++ "..."
     where (pre,post) = splitAt n s
-
-
--- "f $ g $ x" is parsed as "(f $ g) $ x", but should be "f $ (g $ x)"
--- ditto for (.)
--- this function rotates the ($) and (.), provided there are no explicit Parens
-operatorPrec :: Module -> Module
-operatorPrec = descendBi (transform f)
-    where
-        f (InfixApp (InfixApp x op2 y) op1 z) 
-            | op <- opExp op1, op1 == op2, op ~= "." || op ~= "$" = f $ InfixApp x op1 (f $ InfixApp y op1 z)
-        f x = x
 
 
 ---------------------------------------------------------------------
@@ -132,76 +112,3 @@ isCharExp :: Exp -> Bool
 isCharExp (Lit (Char _)) = True
 isCharExp _ = False
 
-
-----------------------------------------------------------------------
--- BRACKETS
-
-addParen, hsParen :: Exp -> Exp
-addParen x = if atom x then x else XExpTag x
-hsParen x = if atom x then x else Paren x
-
-remParen :: Exp -> Exp
-remParen = transform g . transform f
-    where
-        g (XExpTag x) = Paren x
-        g x = x
-    
-        f (XExpTag x) | atom x = x
-        f (InfixApp a b c) = InfixApp (f2 a) b (f2 c)
-        f x = x
-        
-        f2 (XExpTag (App a b)) = App a b
-        f2 x = x
-
-isParen :: Exp -> Bool
-isParen (Paren _) = True
-isParen (XExpTag _) = True
-isParen _ = False
-
-fromParen :: Exp -> Exp
-fromParen (Paren x) = fromParen x
-fromParen (XExpTag x) = fromParen x
-fromParen x = x
-
-atom x = case x of
-  XExpTag _ -> True -- because pretending to be Paren
-  Paren _ -> True
-  Var _ -> True
-  Con _ -> True
-  Lit _ -> True
-  Tuple _ -> True
-  List _ -> True
-  LeftSection _ _ -> True
-  RightSection _ _ -> True
-  RecConstr _ _ -> True
-  ListComp _ _ -> True
-  _ -> False
-
-
----------------------------------------------------------------------
--- PATTERN MATCHING
-
-class View a b where
-    view :: a -> b
-
-
-data App2 = NoApp2 | App2 Exp Exp Exp deriving Show
-
-instance View Exp App2 where
-    view (fromParen -> InfixApp lhs op rhs) = view $ opExp op `App` lhs `App` rhs
-    view (fromParen -> (fromParen -> f `App` x) `App` y) = App2 f x y
-    view _ = NoApp2
-
-
-data App1 = NoApp1 | App1 Exp Exp deriving Show
-
-instance View Exp App1 where
-  view (fromParen -> f `App` x) = App1 f x
-  view _ = NoApp1
-
-
-(~=) :: Exp -> String -> Bool
-(Con (Special Cons)) ~= ":" = True
-(Con x) ~= y = Var x ~= y
-(List []) ~= "[]" = True
-x ~= y = fromVar x == Just y
