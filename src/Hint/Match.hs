@@ -13,6 +13,13 @@ import Data.Function
 import HSE.Evaluate(evaluate)
 
 
+{-
+TODO:
+Currently brackets are placed around expressions during unify, but they
+shouldn't be (it makes isAtom harder).
+Should instead insert them during subst
+-}
+
 data Mat = Mat {message :: String, lhs :: Exp, rhs :: Exp, side :: Maybe Exp}
 
 instance Show Mat where
@@ -109,7 +116,7 @@ checkSide (Just x) bind = f x
         f x | isParen x = f $ fromParen x
         f (App x y)
             | Just ('i':'s':typ) <- fromVar x, Just v <- fromVar y, Just e <- lookup v bind
-            = if typ == "Atom" then atom e
+            = if typ == "Atom" then case e of XExpTag _ -> False ; _ -> atom e
               else head (words $ show e) == typ
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
 

@@ -170,6 +170,8 @@ yes = take 5 (foo xs) == "hello"
 no  = take n (foo xs) == "hello"
 yes = head (reverse xs)
 yes = reverse xs `isPrefixOf` reverse ys
+yes = operator foo $ operator
+no = operator foo $ operator bar
 </TEST>
 -}
 
