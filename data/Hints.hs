@@ -55,6 +55,8 @@ hint "Redundant if" = (if a then True else False) ==> a
 hint "Redundant if" = (if a then False else True) ==> not a
 hint "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then t else f
 hint "Redundant if" = (if a then (if b then t else f) else f) ==> if a && b then t else f
+hint "Redundant if" = (if x then True else y) ==> (x || y)
+hint "Redundant if" = (if x then y else False) ==> (x && y)
 hint "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
 hint "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
 hint "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
@@ -156,8 +158,7 @@ yes = concat . map f . g
 yes = concat $ map f x
 yes = "test" ++ concatMap (' ':) ["of","this"]
 yes = concat . intersperse " "
-yes = if f a then True else False
-yes = if f a then False else True
+yes = if f a then True else b
 yes = not (a == b)
 yes = not (a /= b)
 yes = if a then 1 else if b then 1 else 2
