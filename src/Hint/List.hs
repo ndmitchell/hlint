@@ -56,7 +56,8 @@ useList b = fmap List . f True
         f first (view -> App2 c a b) | c ~= ":" = fmap (a:) $ f False b
         f first _ = Nothing
 
-useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x = Just $ InfixApp x2 (QConOp list_cons_name) y
+useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend y =
+        Just $ InfixApp x2 (QConOp list_cons_name) y
     where
         f (Lit (String [x])) = Just $ Lit $ Char x
         f (List [x]) = Just (hsParen x)
