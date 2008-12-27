@@ -97,7 +97,7 @@ hint = x ** 0.5 ==> sqrt x
 hint = sin x / cos x ==> tan x
 hint = sinh x / cosh x ==> tanh x
 hint = n `rem` 2 == 0 ==> even n
-hint = n `rem` 2 /= 0 ==> even n
+hint = n `rem` 2 /= 0 ==> odd n
 hint = not (even x) ==> odd x
 hint = not (odd x) ==> even x
 hint "Use 1" = x ^ 0 ==> 1
