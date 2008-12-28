@@ -64,12 +64,21 @@ isAtom x = case x of
 
 
 
+
 -- Nothing = I don't know, i.e. because of fixities
 needBracket :: Int -> Exp -> Exp -> Maybe Bool
 needBracket i parent child 
     | isAtom child = Just False
     | InfixApp{} <- parent, App{} <- child = Just False
+    | ListComp{} <- parent = Just False
+    | If{} <- parent, isAnyApp child = Just False
     | otherwise = Nothing
+
+
+isAnyApp App{} = True
+isAnyApp InfixApp{} = True
+isAnyApp _ = False
+
 
 {-
 -- return my precedence, and the precedence of my children
