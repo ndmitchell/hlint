@@ -116,7 +116,7 @@ checkSide (Just x) bind = f x
         f x | isParen x = f $ fromParen x
         f (App x y)
             | Just ('i':'s':typ) <- fromVar x, Just v <- fromVar y, Just e <- lookup v bind
-            = if typ == "Atom" then case e of XExpTag _ -> False ; _ -> isAtom e
+            = if typ == "Atom" then isAtom e
               else head (words $ show e) == typ
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
 

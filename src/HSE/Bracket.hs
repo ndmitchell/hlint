@@ -12,13 +12,11 @@ import Language.Haskell.Exts
 
 isParen :: Exp -> Bool
 isParen (Paren _) = True
-isParen (XExpTag _) = True
 isParen _ = False
 
 
 fromParen :: Exp -> Exp
 fromParen (Paren x) = fromParen x
-fromParen (XExpTag x) = fromParen x
 fromParen x = x
 
 
@@ -30,7 +28,6 @@ paren x = if isAtom x then x else Paren x
 --   i.e. is totally atomic
 isAtom :: Exp -> Bool
 isAtom x = case x of
-    XExpTag{} -> True -- because pretending to be Paren
     Paren{} -> True
     Var{} -> True
     Con{} -> True
