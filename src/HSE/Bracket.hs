@@ -2,6 +2,7 @@
 
 module HSE.Bracket where
 
+import Control.Monad.State
 import Data.Generics
 import Data.Generics.PlateData
 import Data.List
@@ -49,3 +50,28 @@ atom x = case x of
   RecConstr _ _ -> True
   ListComp _ _ -> True
   _ -> False
+
+
+
+
+-- Nothing = I don't know, i.e. because of fixities
+needBracket :: Int -> Exp -> Exp -> Maybe Bool
+needBracket _ _ _ = Nothing
+
+
+
+-- True implies I changed this level
+descendBracket :: (Exp -> (Bool, Exp)) -> Exp -> Exp
+descendBracket f x = flip evalState 0 $ flip descendM x $ \y -> do
+    i <- get
+    modify (+1)
+    (b,y) <- return $ f y
+    let p = if b && needBracket i x y /= Just False then Paren else id
+    return $ p y
+
+
+transformBracket :: (Exp -> Maybe Exp) -> Exp -> Exp
+transformBracket f = snd . g
+    where
+        g = f2 . descendBracket g
+        f2 x = maybe (False,x) ((,) True) (f x)
