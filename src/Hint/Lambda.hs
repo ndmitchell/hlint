@@ -60,7 +60,7 @@ lambdaDef o@(Match loc name pats (UnGuardedRhs bod) (BDecls []))
     | pats /= [], PVar p <- last pats, Ident _ <- name, p /= Ident "mr", Just y <- etaReduce p bod =
               [idea "Eta reduce" loc o $ reform (init pats) y]
     | [PVar x, PVar y] <- pats, Just (f,g) <- useOn x y bod =
-              [idea "Use on" loc o $ reform [] (remParen $ InfixApp (addParen f) (QVarOp $ UnQual $ Ident "on") (addParen g))]
+              [idea "Use on" loc o $ reform [] (ensureBracket1 $ InfixApp f (QVarOp $ UnQual $ Ident "on") g)]
         where reform pats2 bod2 = Match loc name pats2 (UnGuardedRhs bod2) (BDecls [])
 lambdaDef _ = []
 
