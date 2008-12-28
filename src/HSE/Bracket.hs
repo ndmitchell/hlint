@@ -48,17 +48,17 @@ paren x = if isAtom x then x else Paren x
 --   i.e. is totally atomic
 isAtom :: Exp -> Bool
 isAtom x = case x of
-    XExpTag _ -> True -- because pretending to be Paren
-    Paren _ -> True
-    Var _ -> True
-    Con _ -> True
-    Lit _ -> True
-    Tuple _ -> True
-    List _ -> True
-    LeftSection _ _ -> True
-    RightSection _ _ -> True
-    RecConstr _ _ -> True
-    ListComp _ _ -> True
+    XExpTag{} -> True -- because pretending to be Paren
+    Paren{} -> True
+    Var{} -> True
+    Con{} -> True
+    Lit{} -> True
+    Tuple{} -> True
+    List{} -> True
+    LeftSection{} -> True
+    RightSection{} -> True
+    RecConstr{} -> True
+    ListComp{} -> True
     _ -> False
 
 
