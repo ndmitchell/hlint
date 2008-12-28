@@ -66,8 +66,27 @@ isAtom x = case x of
 
 -- Nothing = I don't know, i.e. because of fixities
 needBracket :: Int -> Exp -> Exp -> Maybe Bool
-needBracket _ _ _ = Nothing
+needBracket i parent child 
+    | isAtom child = Just False
+    | InfixApp{} <- parent, App{} <- child = Just False
+    | otherwise = Nothing
 
+{-
+-- return my precedence, and the precedence of my children
+-- higher precedence means no brackets
+-- if the object in a position has a lower priority, the brackets are unnecessary
+precedence :: Exp -> (Int,[Int])
+precedence x = case x of
+        If{} -> block * [block,block,block]
+        Let{} -> block * [block]
+        Case{} -> block * [block]
+        InfixApp{} -> op * [op,op]
+        App{} -> appL * [appR,appL]
+        _ -> unknown * []
+    where
+        (*) = (,)
+        unknown:appL:appR:op:block:top:_ = [1..]
+-}
 
 
 -- True implies I changed this level
@@ -85,3 +104,8 @@ transformBracket f = snd . g
     where
         g = f2 . descendBracket g
         f2 x = maybe (False,x) ((,) True) (f x)
+
+
+-- ensure that all the 1-level children are appropriately bracketed
+ensureBracket1 :: Exp -> Exp
+ensureBracket1 = descendBracket ((,) True)

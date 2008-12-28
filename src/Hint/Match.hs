@@ -84,17 +84,17 @@ matchIdea Mat{lhs=lhs,rhs=rhs,side=side} x = do
     u <- unify lhs x
     u <- check u
     if checkSide side u
-        then return $ remParen $ dotContract $ performEval $ subst u rhs
+        then return $ dotContract $ performEval $ subst u rhs
         else Nothing
 
 
 -- unify a b = c, a[c] = b
 unify :: Exp -> Exp -> Maybe [(String,Exp)]
 unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
-unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,addParen y)]
+unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,y)]
 unify x y | ((==) `on` descend (const $ toVar "_")) x y = liftM concat $ zipWithM unify (children x) (children y)
 unify x o@(view -> App2 op y1 y2)
-  | op ~= "$" = unify x $ addParen y1 `App` addParen y2
+  | op ~= "$" = unify x $ y1 `App` y2
   | op ~= "." = unify x $ dotExpand o
 unify x (InfixApp lhs op rhs) = unify x (opExp op `App` lhs `App` rhs)
 unify _ _ = Nothing
@@ -123,13 +123,15 @@ checkSide (Just x) bind = f x
 
 -- perform a substitution
 subst :: [(String,Exp)] -> Exp -> Exp
-subst bind x | Just v <- fromVar x, isFreeVar v, Just y <- lookup v bind = y
-             | otherwise = descend (subst bind) x
+subst bind = transformBracket f
+    where
+        f x | Just v <- fromVar x, isFreeVar v, Just y <- lookup v bind = Just y
+            | otherwise = Nothing
 
 
 dotExpand :: Exp -> Exp
-dotExpand (view -> App2 op x1 x2) | op ~= "." = App (addParen x1) (addParen $ dotExpand x2)
-dotExpand x = addParen x `App` toVar "?"
+dotExpand (view -> App2 op x1 x2) | op ~= "." = ensureBracket1 $ App x1 (dotExpand x2)
+dotExpand x = ensureBracket1 $ App x (toVar "?")
 
 
 -- simplify, removing any introduced ? vars, from expanding (.)
