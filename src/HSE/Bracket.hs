@@ -10,24 +10,6 @@ import Data.Maybe
 import Language.Haskell.Exts
 
 
-addParen :: Exp -> Exp
-addParen x = if isAtom x then x else XExpTag x
-
-
-remParen :: Exp -> Exp
-remParen = transform g . transform f
-    where
-        g (XExpTag x) = Paren x
-        g x = x
-    
-        f (XExpTag x) | isAtom x = x
-        f (InfixApp a b c) = InfixApp (f2 a) b (f2 c)
-        f x = x
-        
-        f2 (XExpTag (App a b)) = App a b
-        f2 x = x
-
-
 isParen :: Exp -> Bool
 isParen (Paren _) = True
 isParen (XExpTag _) = True
