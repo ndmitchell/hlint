@@ -60,6 +60,6 @@ useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend
         Just $ InfixApp x2 (QConOp list_cons_name) y
     where
         f (Lit (String [x])) = Just $ Lit $ Char x
-        f (List [x]) = Just (hsParen x)
+        f (List [x]) = Just $ paren x
         f _ = Nothing
 useCons _ _ = Nothing

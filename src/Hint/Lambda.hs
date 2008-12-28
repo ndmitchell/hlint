@@ -38,13 +38,13 @@ lambdaHint x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (unive
 
 
 lambdaExp :: Exp -> [Idea]
-lambdaExp o@(Lambda loc [v] y) | atom y, Just x <- f v, x `notElem` universeBi y =
+lambdaExp o@(Lambda loc [v] y) | isAtom y, Just x <- f v, x `notElem` universeBi y =
         [idea "Use const" loc o res]
     where
         f (PVar x) = Just x
         f PWildCard = Just $ Ident "_"
         f _ = Nothing
-        res = App (toVar "const") (hsParen y)
+        res = App (toVar "const") y
 lambdaExp _ = []
 
 

@@ -20,7 +20,7 @@ evaluate1 (view -> App2 op (Lit x) (Lit y)) | op ~= "==" = Con $ toQName $ show 
 evaluate1 (view -> App2 op x y)
     | op ~= "&&" && x ~= "True"  = y
     | op ~= "&&" && x ~= "False" = x
-evaluate1 (Paren x) | atom x = x
+evaluate1 (Paren x) | isAtom x = x
 evaluate1 x = x
 
 

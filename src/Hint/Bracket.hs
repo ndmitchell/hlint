@@ -28,7 +28,7 @@ bracketExp :: (SrcLoc,Exp) -> [Idea]
 bracketExp (loc,x) = [idea "Use fewer brackets" loc x y | Just y <- [f x]]
     where
         f :: Exp -> Maybe Exp
-        f (Paren x) | atom x = Just x
+        f (Paren x) | isAtom x = Just x
         f x = if cs /= [] && b then Just r else Nothing
             where
                 (r,(b,[])) = runState (gmapM g x) (False, cs)

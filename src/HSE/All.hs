@@ -7,7 +7,7 @@ module HSE.All(
     parseFile, parseString
     ) where
 
-import Language.Haskell.Exts hiding (parseFile)
+import Language.Haskell.Exts hiding (parseFile, paren)
 import qualified Language.Haskell.Exts as HSE
 
 import HSE.Util
