@@ -68,6 +68,8 @@ hint = f *** id ==> first f
 
 -- MONAD
 
+hint "Left identity monad law" = return a >>= f ==> f a
+hint "Right identity monad law" = m >>= return ==> m
 hint = m >>= return . f ==> liftM f m
 hint = (if x then y else return ()) ==> when x $ y
 hint = sequence (map f as) ==> mapM f as
