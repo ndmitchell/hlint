@@ -74,6 +74,7 @@ hint = m >>= return . f ==> liftM f m
 hint = (if x then y else return ()) ==> when x $ y
 hint = sequence (map f as) ==> mapM f as
 hint = sequence_ (map f as) ==> mapM_ f as
+hint = (do a <- f; g a) ==> f >>= g
 
 -- LIST COMP
 
@@ -176,6 +177,7 @@ yes = reverse xs `isPrefixOf` reverse ys
 yes = operator foo $ operator
 no = operator foo $ operator bar
 no = putStrLn $ show (length xs) ++ "Test"
+yes = do line <- getLine; putStrLn line
 </TEST>
 -}
 
