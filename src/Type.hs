@@ -1,8 +1,9 @@
 
 module Type where
 
-import Language.Haskell.Exts
-import HSE.Util
+import HSE.All
+import Data.List
+import Data.Ord
 
 
 -- Key is Data.List.split, for example
@@ -28,5 +29,5 @@ concatHints hs x = concatMap ($x) hs
 
 applyHint :: Hint -> Module -> [Idea]
 applyHint h m = [i{key = name ++ ['.'|name/=""] ++ declName d}
-                | d <- moduleDecls m, i <- h d]
+                | d <- moduleDecls m, i <- sortBy (comparing loc) $ h d]
     where name = moduleName m
