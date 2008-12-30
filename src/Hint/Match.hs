@@ -92,12 +92,16 @@ matchIdea Mat{lhs=lhs,rhs=rhs,side=side} x = do
 unify :: Exp -> Exp -> Maybe [(String,Exp)]
 unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
 unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,y)]
-unify x y | ((==) `on` descend (const $ toVar "_")) x y = liftM concat $ zipWithM unify (children x) (children y)
+unify x y | ((==) `on` descend (const $ toVar "_")) x y = concatZipWithM unify (children x) (children y)
 unify x o@(view -> App2 op y1 y2)
   | op ~= "$" = unify x $ y1 `App` y2
   | op ~= "." = unify x $ dotExpand o
 unify x (InfixApp lhs op rhs) = unify x (opExp op `App` lhs `App` rhs)
 unify _ _ = Nothing
+
+
+
+concatZipWithM f xs ys = liftM concat $ zipWithM f xs ys
 
 
 -- check the unification is valid
