@@ -91,6 +91,7 @@ matchIdea Mat{lhs=lhs,rhs=rhs,side=side} x = do
 -- unify a b = c, a[c] = b
 unify :: Exp -> Exp -> Maybe [(String,Exp)]
 unify (Do xs) (Do ys) | length xs == length ys = concatZipWithM unifyStmt xs ys
+unify (Lambda _ xs x) (Lambda _ ys y) | length xs == length ys = liftM2 (++) (unify x y) (concatZipWithM unifyPat xs ys)
 unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
 unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,y)]
 unify x y | ((==) `on` descend (const $ toVar "_")) x y = concatZipWithM unify (children x) (children y)
@@ -109,7 +110,7 @@ unifyStmt _ _ = Nothing
 
 unifyPat :: Pat -> Pat -> Maybe [(String,Exp)]
 unifyPat x y | Just x1 <- fromPVar x, Just y1 <- fromPVar y = Just [(x1,toVar y1)]
-unifyPat x y | ((==) `on` descendBi (const $ toVar "_")) x y = concatZipWithM unify (childrenBi x) (childrenBi y)
+unifyPat x y | ((==) `on` descend (const $ PWildCard)) x y = concatZipWithM unifyPat (children x) (children y)
 unifyPat _ _ = Nothing
 
 

@@ -47,6 +47,14 @@ hint = foldr (||) False ==> or
 hint = foldl (+) 0 ==> sum
 hint = foldl (*) 1 ==> product
 
+-- FUNCTION
+
+hint = (\x -> x) ==> id
+hint = (\(_,y) -> y) ==> snd
+hint = (\(x,_) -> x) ==> fst
+hint = (\x y-> f (x,y)) ==> curry f
+hint = (\(x,y) -> f x y) ==> uncurry f
+
 -- BOOL
 
 hint = not (a == b) ==> a /= b
@@ -65,6 +73,10 @@ hint "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
 
 hint = id *** g ==> second g
 hint = f *** id ==> first f
+hint = (\(x,y) -> (f x, g y)) ==> f *** g
+hint = (\x -> (f x, g x)) ==> f &&& g
+hint = (\(x,y) -> (f x,y)) ==> first f
+hint = (\(x,y) -> (x,g y)) ==> second g
 
 -- MONAD
 
@@ -178,6 +190,7 @@ yes = operator foo $ operator
 no = operator foo $ operator bar
 no = putStrLn $ show (length xs) ++ "Test"
 yes = do line <- getLine; putStrLn line
+yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable
 </TEST>
 -}
 
