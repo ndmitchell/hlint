@@ -49,8 +49,7 @@ fromParseOk :: ParseResult a -> a
 fromParseOk (ParseOk x) = x
 
 fromVar :: Exp -> Maybe String
-fromVar (Var (UnQual (Ident x))) = Just x
-fromVar (Var (UnQual (Symbol x))) = Just x
+fromVar (Var (UnQual x)) = Just $ fromName x
 fromVar _ = Nothing
 
 isVar :: Exp -> Bool
