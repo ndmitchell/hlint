@@ -53,11 +53,11 @@ fromVar (Var (UnQual (Ident x))) = Just x
 fromVar (Var (UnQual (Symbol x))) = Just x
 fromVar _ = Nothing
 
-toVar :: String -> Exp
-toVar = Var . UnQual . Ident
-
 isVar :: Exp -> Bool
 isVar = isJust . fromVar
+
+toVar :: String -> Exp
+toVar = Var . UnQual . Ident
 
 isChar :: Exp -> Bool
 isChar (Lit (Char _)) = True
@@ -65,6 +65,18 @@ isChar _ = False
 
 fromChar :: Exp -> Char
 fromChar (Lit (Char x)) = x
+
+fromParen :: Exp -> Exp
+fromParen (Paren x) = fromParen x
+fromParen x = x
+
+-- is* :: Exp -> Bool
+isApp App{} = True; isApp _ = False
+isInfixApp InfixApp{} = True; isInfixApp _ = False
+isAnyApp x = isApp x || isInfixApp x
+isParen Paren{} = True; isParen _ = False
+isListComp ListComp{} = True; isListComp _ = False
+isIf If{} = True; isIf _ = False
 
 
 ---------------------------------------------------------------------

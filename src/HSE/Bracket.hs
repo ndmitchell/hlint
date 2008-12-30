@@ -8,16 +8,7 @@ import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
 import Language.Haskell.Exts
-
-
-isParen :: Exp -> Bool
-isParen (Paren _) = True
-isParen _ = False
-
-
-fromParen :: Exp -> Exp
-fromParen (Paren x) = fromParen x
-fromParen x = x
+import HSE.Util
 
 
 paren :: Exp -> Exp
@@ -53,10 +44,6 @@ needBracket i parent child
     | If{} <- parent, isAnyApp child = Just False
     | otherwise = Nothing
 
-
-isAnyApp App{} = True
-isAnyApp InfixApp{} = True
-isAnyApp _ = False
 
 
 {-
