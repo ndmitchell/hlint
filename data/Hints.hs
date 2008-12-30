@@ -191,6 +191,8 @@ no = operator foo $ operator bar
 no = putStrLn $ show (length xs) ++ "Test"
 yes = do line <- getLine; putStrLn line
 yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable
+yes = map (\(a,b) -> a) xs
+yes = map (\(a,_) -> a) xs
 </TEST>
 -}
 
