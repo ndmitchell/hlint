@@ -113,7 +113,7 @@ checkSide (Just x) bind = f x
         f (InfixApp x op y)
             | opExp op ~= "&&" = f x && f y
             | opExp op ~= "||" = f x || f y
-        f x | isParen x = f $ fromParen x
+        f (Paren x) = f x
         f (App x y)
             | Just ('i':'s':typ) <- fromVar x, Just v <- fromVar y, Just e <- lookup v bind
             = if typ == "Atom" then isAtom e
