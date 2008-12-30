@@ -57,10 +57,10 @@ lambdaDecl _ = []
 lambdaDef :: Match -> [Idea]
 lambdaDef o@(Match loc name pats (UnGuardedRhs bod) (BDecls []))
     | Lambda loc vs y <- bod = [idea "Lambda shift" loc o $ reform (pats++vs) y]
-    | pats /= [], PVar p <- last pats, Ident _ <- name, p /= Ident "mr", Just y <- etaReduce p bod =
-              [idea "Eta reduce" loc o $ reform (init pats) y]
     | [PVar x, PVar y] <- pats, Just (f,g) <- useOn x y bod =
               [idea "Use on" loc o $ reform [] (ensureBracket1 $ InfixApp f (QVarOp $ UnQual $ Ident "on") g)]
+    | Ident _ <- name, (p2,y) <- etaReduces pats bod, length p2 /= length pats = [idea "Eta reduce" loc o $ reform p2 y]
+    | otherwise = []
         where reform pats2 bod2 = Match loc name pats2 (UnGuardedRhs bod2) (BDecls [])
 lambdaDef _ = []
 
@@ -70,6 +70,11 @@ useOn :: Name -> Name -> Exp -> Maybe (Exp, Exp)
 useOn x1 y1 (view -> App2 f (view -> App1 g1 x2) (view -> App1 g2 y2))
     | g1 == g2, map (Var . UnQual) [x1,y1] == [x2,y2] = Just (f,g1)
 useOn _ _ _ = Nothing
+
+
+etaReduces :: [Pat] -> Exp -> ([Pat], Exp)
+etaReduces ps x | ps /= [], PVar p <- last ps, p /= Ident "mr", Just y <- etaReduce p x = etaReduces (init ps) y
+                | otherwise = (ps,x)
 
 
 etaReduce :: Name -> Exp -> Maybe Exp
