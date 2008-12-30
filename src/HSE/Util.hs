@@ -52,6 +52,10 @@ fromVar :: Exp -> Maybe String
 fromVar (Var (UnQual x)) = Just $ fromName x
 fromVar _ = Nothing
 
+fromPVar :: Pat -> Maybe String
+fromPVar (PVar x) = Just $ fromName x
+fromPVar _ = Nothing
+
 isVar :: Exp -> Bool
 isVar = isJust . fromVar
 
