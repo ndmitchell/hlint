@@ -9,6 +9,9 @@
 <TEST>
 yes = do mapM print a; return b
 no = mapM print a
+no = do foo ; mapM print a
+yes = do (bar+foo)
+no = do bar ; foo
 </TEST>
 -}
 
@@ -29,7 +32,8 @@ monadHint = concatMap monadExp . universeExp nullSrcLoc
 monadExp :: (SrcLoc,Exp) -> [Idea]
 monadExp (loc,x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
-        Do xs -> concat [f x | Qualifier x <- init xs]
+        Do xs -> [idea "Redundant do" loc x y | [Qualifier y] <- [xs]] ++
+                 concat [f x | Qualifier x <- init xs]
         MDo xs -> monadExp (loc, Do xs)
         _ -> []
     where
