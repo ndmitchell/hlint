@@ -13,13 +13,6 @@ import Data.Function
 import HSE.Evaluate(evaluate)
 
 
-{-
-TODO:
-Currently brackets are placed around expressions during unify, but they
-shouldn't be (it makes isAtom harder).
-Should instead insert them during subst
--}
-
 data Mat = Mat {message :: String, lhs :: Exp, rhs :: Exp, side :: Maybe Exp}
 
 instance Show Mat where
