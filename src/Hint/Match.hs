@@ -90,6 +90,7 @@ matchIdea Mat{lhs=lhs,rhs=rhs,side=side} x = do
 
 -- unify a b = c, a[c] = b
 unify :: Exp -> Exp -> Maybe [(String,Exp)]
+unify (Do xs) (Do ys) | length xs == length ys = concatZipWithM unifyStmt xs ys
 unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
 unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,y)]
 unify x y | ((==) `on` descend (const $ toVar "_")) x y = concatZipWithM unify (children x) (children y)
@@ -99,6 +100,17 @@ unify x o@(view -> App2 op y1 y2)
 unify x (InfixApp lhs op rhs) = unify x (opExp op `App` lhs `App` rhs)
 unify _ _ = Nothing
 
+
+unifyStmt :: Stmt -> Stmt -> Maybe [(String,Exp)]
+unifyStmt (Generator _ p1 x1) (Generator _ p2 x2) = liftM2 (++) (unifyPat p1 p2) (unify x1 x2)
+unifyStmt x y | ((==) `on` descendBi (const $ toVar "_")) x y = concatZipWithM unify (childrenBi x) (childrenBi y)
+unifyStmt _ _ = Nothing
+
+
+unifyPat :: Pat -> Pat -> Maybe [(String,Exp)]
+unifyPat x y | Just x1 <- fromPVar x, Just y1 <- fromPVar y = Just [(x1,toVar y1)]
+unifyPat x y | ((==) `on` descendBi (const $ toVar "_")) x y = concatZipWithM unify (childrenBi x) (childrenBi y)
+unifyPat _ _ = Nothing
 
 
 concatZipWithM f xs ys = liftM concat $ zipWithM f xs ys
