@@ -20,20 +20,18 @@ data CmdMode = CmdMode
     ,modeFiles :: [FilePath]  -- ^ which files to run it on
     ,modeTest :: Bool         -- ^ run in test mode?
     ,modeReports :: [FilePath]     -- ^ where to generate reports
-    ,modeIgnoreFiles :: [FilePath] -- ^ where the ignore files are
     ,modeIgnore :: [String] -- ^ the ignore commands on the command line
     }
 
 
-data Opts = Help | HintFile FilePath | Test | Report FilePath | Ignore String | IgnoreFile FilePath
+data Opts = Help | HintFile FilePath | Test | Report FilePath | Ignore String
             deriving Eq
 
 opts = [Option "?" ["help"] (NoArg Help) "Display help message"
-       ,Option "h" ["hint"] (ReqArg HintFile "file") "Hint file to use"
+       ,Option "h" ["hint"] (ReqArg HintFile "file") "Hint/ignore file to use"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
        ,Option "r" ["report"] (OptArg (Report . fromMaybe "report.html") "file") "Generate a report in HTML"
        ,Option "i" ["ignore"] (ReqArg Ignore "message") "Ignore a particular hint"
-       ,Option "I" ["ignore-file"] (ReqArg IgnoreFile "file") "A file of things to ignore"
        ]
 
 
@@ -59,18 +57,11 @@ getMode = do
                          ]
         exitWith ExitSuccess
 
-    hints <- return [x | HintFile x <- opt]
-    hints <- if null hints then getFile "Hints.hs" else return hints
     files <- liftM concat $ mapM getFile files
-
-    dat <- getDataDir
-    let stdIgnoreFile = dat </> "hlint_ignore.txt"
-    hasIgnoreFile <- doesFileExist stdIgnoreFile
-
-    return CmdMode{modeHints=hints, modeFiles=files, modeTest=test
+    return CmdMode{modeFiles=files, modeTest=test
+        ,modeHints=[x | HintFile x <- opt]
         ,modeReports=[x | Report x <- opt]
         ,modeIgnore=[x | Ignore x <- opt]
-        ,modeIgnoreFiles=[stdIgnoreFile | hasIgnoreFile] ++ [x | IgnoreFile x <- opt]
         }
 
 
@@ -83,11 +74,8 @@ getFile file = do
     b <- doesDirectoryExist file
     if b then f file else do
         b <- doesFileExist file
-        if b then return [file] else do
-            dat <- getDataDir
-            let s = dat </> file
-            b <- doesFileExist s
-            if b then return [s] else error $ "Couldn't find file: " ++ file
+        when (not b) $ error $ "Couldn't find file: " ++ file
+        return [file]
     where
         f file | takeExtension file `elem` [".hs",".lhs"] = return [file]
         f file = do

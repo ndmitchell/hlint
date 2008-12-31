@@ -3,6 +3,7 @@ module Type where
 
 import HSE.All
 import Data.List
+import Data.Maybe
 import Data.Ord
 
 
@@ -10,14 +11,24 @@ import Data.Ord
 -- SETTINGS
 
 data Rank = Skip | Warn | Error
+            deriving (Eq,Ord,Show)
 
 -- (modulename,functionname)
 -- either being blank implies universal matching
 type FuncName = (String,String)
 
 data Setting = Classify Rank String FuncName
-             | Hint String Exp Exp (Maybe Exp) -- lhs rhs side-cond
+             | Hint {message :: String, lhs :: Exp, rhs :: Exp, side :: Maybe Exp} -- lhs rhs side-cond
 
+
+isClassify Classify{} = True; isClassify _ = False
+
+
+instance Show Setting where
+    show (Hint x y z q) = unlines $ ("Hint " ++ show x) :
+        map (\x -> "  " ++ prettyPrint x) ([y,z] ++ maybeToList q)
+
+    showList = showString . concatMap show
 
 
 ---------------------------------------------------------------------

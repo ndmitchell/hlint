@@ -11,26 +11,28 @@ import CmdLine
 import Settings
 import Report
 import Type
-import Ignore
 import HSE.All
 import Hint.All
+import Paths_hlint
 
 
 main = do
     mode <- getMode
+    settings <- readSettings $ modeHints mode
+    let ignore idea = let f = classify settings in f (text idea) ("","") == Skip
+    let hints = readHints settings
+
     if modeTest mode then do
-        hints <- mapM (readHints . (:[])) (modeHints mode)
         src <- doesDirectoryExist "src/Hint"
+        dat <- getDataDir
         (fail,total) <- liftM ((sum *** sum) . unzip) $ sequence $
-                zipWith runTest hints (modeHints mode) ++
+                runTest hints (dat ++ "/Hints.hs") :
                 [runTest h ("src/Hint/" ++ name ++ ".hs") | (name,h) <- allHints, src]
         when (not src) $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
         if fail == 0
             then putStrLn $ "Tests passed (" ++ show total ++ ")"
             else putStrLn $ "Tests failed (" ++ show fail ++ " of " ++ show total ++ ")"
      else do
-        hints <- readHints $ modeHints mode
-        ignore <- ignore (modeIgnoreFiles mode) (modeIgnore mode)
         ideas <- liftM concat $ mapM (runFile ignore hints) (modeFiles mode)
         let n = length ideas
         if n == 0 then do

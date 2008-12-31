@@ -29,10 +29,11 @@ pickFiles :: [FilePath] -> IO [Module]
 pickFiles files = mapM parseFile files
 
 
-
 classify :: [Setting] -> String -> FuncName -> Rank
-classify _ _ _ = Warn
-
+classify xs = \hint func -> foldl' (f hint) Warn xs2
+    where
+        xs2 = filter isClassify xs
+        f hint x (Classify y hint2 _) = if hint == hint2 then y else x
 
 
 ---------------------------------------------------------------------

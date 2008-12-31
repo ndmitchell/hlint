@@ -13,14 +13,6 @@ import Data.Function
 import HSE.Evaluate(evaluate)
 
 
-data Mat = Mat {message :: String, lhs :: Exp, rhs :: Exp, side :: Maybe Exp}
-
-instance Show Mat where
-    show (Mat x y z q) = unlines $ ("Match " ++ show x) :
-        map (\x -> "  " ++ prettyPrint x) ([y,z] ++ maybeToList q)
-
-    showList = showString . concatMap show
-
 -- Any 1-letter variable names are assumed to be unification variables
 isFreeVar :: String -> Bool
 isFreeVar [x] = x == '?' || isAlpha x
@@ -28,52 +20,21 @@ isFreeVar _ = False
 
 
 ---------------------------------------------------------------------
--- READ THE MATCHES
-
-readMatch :: Module -> Hint
-readMatch = findIdeas . concatMap readOne . childrenBi
-
-
-
-readOne :: Decl -> [Mat]
-readOne (FunBind [Match src (Ident "hint") [PLit (String msg)]
-           (UnGuardedRhs (InfixApp lhs (QVarOp (UnQual (Symbol "==>"))) rhs)) (BDecls bind)]) =
-        [Mat (if null msg then pickName lhs rhs else msg) (fromParen lhs) (fromParen rhs) (readSide bind)]
-
-readOne (PatBind src (PVar name) bod bind) = readOne $ FunBind [Match src name [PLit (String "")] bod bind]
-
-readOne (FunBind xs) | length xs /= 1 = concatMap (readOne . FunBind . (:[])) xs
-
-readOne x = error $ "Failed to read hint " ++ maybe "" showSrcLoc (getSrcLoc x) ++ "\n" ++ prettyPrint x
-
-
-readSide :: [Decl] -> Maybe Exp
-readSide [] = Nothing
-readSide [PatBind src PWildCard (UnGuardedRhs bod) (BDecls [])] = Just bod
-readSide (x:_) = error $ "Failed to read side condition " ++ maybe "" showSrcLoc (getSrcLoc x) ++ "\n" ++ prettyPrint x
-
-
-pickName :: Exp -> Exp -> String
-pickName lhs rhs | null names = "Unnamed suggestion"
-                 | otherwise = "Use " ++ head names
-    where
-        names = filter (not . isFreeVar) $ map f (childrenBi rhs) \\ map f (childrenBi lhs) 
-        f (Ident x) = x
-        f (Symbol x) = x
-
-
----------------------------------------------------------------------
 -- PERFORM MATCHING
 
-findIdeas :: [Mat] -> Decl -> [Idea]
+readMatch :: [Setting] -> Hint
+readMatch = findIdeas . filter (not . isClassify)
+
+
+findIdeas :: [Setting] -> Decl -> [Idea]
 findIdeas matches decl =
   [ idea (message m) loc x y
   | (loc, x) <- universeExp nullSrcLoc decl, not $ isParen x
   , m <- matches, Just y <- [matchIdea m x]]
 
 
-matchIdea :: Mat -> Exp -> Maybe Exp
-matchIdea Mat{lhs=lhs,rhs=rhs,side=side} x = do
+matchIdea :: Setting -> Exp -> Maybe Exp
+matchIdea Hint{lhs=lhs,rhs=rhs,side=side} x = do
     u <- unify lhs x
     u <- check u
     if checkSide side u

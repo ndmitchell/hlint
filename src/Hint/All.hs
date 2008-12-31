@@ -22,11 +22,5 @@ allHints =
     ]
 
 
-readHints :: [FilePath] -> IO Hint
-readHints = liftM (concatHints . concat) . mapM readHint
-
-
-readHint :: FilePath -> IO [Hint]
-readHint file = do
-    modu <- parseFile file
-    return $ readMatch modu : map snd allHints
+readHints :: [Setting] -> Hint
+readHints settings = concatHints $ readMatch settings : map snd allHints
