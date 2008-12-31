@@ -19,9 +19,9 @@ import Paths_hlint
 
 -- Input, Output
 -- Output = Nothing, should not match
--- Output = Just Nothing, should match, no required match
--- Output = Just (Just x), should match x
-data Test = Test String Decl (Maybe (Maybe Decl))
+-- Output = Just "", should match, no required match
+-- Output = Just xs, should match xs
+data Test = Test String Decl (Maybe String)
 
 
 test :: IO ()
@@ -49,10 +49,13 @@ runTest hint file = do
     putStr $ unlines failures
     return (length failures, length tests)
     where
-        f (Test name inp out)
-            | isNothing out == null ideas && length ideas <= 1 = []
-            | otherwise = ["Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas]
-            where ideas = hint inp
+        f (Test name inp out) =
+                ["Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas | failed]
+            where
+                ideas = hint inp
+                failed = or [isNothing out && ideas /= []
+                            ,isJust out && length ideas /= 1
+                            ,not $ maybe True null out || to (head ideas) == fromJust out]
 
 
 parseTestFile :: FilePath -> IO [Test]
@@ -70,5 +73,10 @@ parseTestFile file = do
 
 createTest :: Decl -> Test
 createTest x = Test name x $
-    if "no" `isPrefixOf` name then Nothing else Just Nothing
+    if "no" `isPrefixOf` name then Nothing else Just $ getRes x
     where name = declName x
+
+getRes :: Decl -> String
+getRes (FunBind [Match src (Ident name) [] (UnGuardedRhs bod) (BDecls bind)]) | res /= [] = head res
+    where res = [prettyPrint res | PatBind _ v (UnGuardedRhs res) _ <- bind, fromPVar v == Just "res"]
+getRes _ = ""
