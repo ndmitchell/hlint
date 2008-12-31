@@ -13,7 +13,7 @@
 
 <TEST>
 yes1 a = \x -> x + x
-yes2 a = foo (\x -> True) -- const True
+yes2 a = foo (\x -> True) where res = const True
 no1 = foo (\x -> map f [])
 yes3 x = y x -- eta reduce
 no2 mr = y mr

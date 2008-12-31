@@ -2,11 +2,11 @@
 
 {-
 <TEST>
-yes = (f x) x
+yes = (f x) x where res = f x x
 no = f (x x)
-yes = (f x) ||| y
-yes = if (f x) then y else z
-yes = if x then (f y) else z
+yes = (f x) ||| y where res = f x ||| y
+yes = if (f x) then y else z where res = if f x then y else z
+yes = if x then (f y) else z where res = if x then f y else z
 </TEST>
 -}
 
