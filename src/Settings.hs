@@ -26,7 +26,7 @@ readSettings xs = do
 -- in future this should also do import chasing, but
 -- currently it doesn't
 pickFiles :: [FilePath] -> IO [Module]
-pickFiles files = mapM parseFile files
+pickFiles = mapM parseFile
 
 
 classify :: [Setting] -> String -> FuncName -> Rank

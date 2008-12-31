@@ -30,7 +30,7 @@ fromName (Ident x) = x
 fromName (Symbol x) = x
 
 toName :: String -> Name
-toName x = Ident x
+toName = Ident
 
 toQName :: String -> QName
 toQName = UnQual . toName

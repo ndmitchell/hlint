@@ -65,11 +65,11 @@ unifyStmt _ _ = Nothing
 unifyPat :: Pat -> Pat -> Maybe [(String,Exp)]
 unifyPat x y | Just x1 <- fromPVar x, Just y1 <- fromPVar y = Just [(x1,toVar y1)]
 unifyPat PWildCard y | Just y1 <- fromPVar y = Just []
-unifyPat x y | ((==) `on` descend (const $ PWildCard)) x y = concatZipWithM unifyPat (children x) (children y)
+unifyPat x y | ((==) `on` descend (const PWildCard)) x y = concatZipWithM unifyPat (children x) (children y)
 unifyPat _ _ = Nothing
 
 
-concatZipWithM f xs ys = liftM concat $ zipWithM f xs ys
+concatZipWithM f xs = liftM concat . zipWithM f xs
 
 
 -- check the unification is valid
