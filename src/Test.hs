@@ -4,6 +4,7 @@ module Test where
 import Control.Arrow
 import Control.Monad
 import Data.List
+import Data.Maybe
 import System.Directory
 import Data.Generics.PlateData
 
@@ -14,6 +15,13 @@ import Type
 import HSE.All
 import Hint.All
 import Paths_hlint
+
+
+-- Input, Output
+-- Output = Nothing, should not match
+-- Output = Just Nothing, should match, no required match
+-- Output = Just (Just x), should match x
+data Test = Test String Decl (Maybe (Maybe Decl))
 
 
 test :: IO ()
@@ -38,24 +46,29 @@ runTest :: Hint -> FilePath -> IO (Int,Int)
 runTest hint file = do
     tests <- parseTestFile file
     let failures = concatMap f tests
-    mapM_ putStrLn failures
+    putStr $ unlines failures
     return (length failures, length tests)
     where
-        f o | ("no" `isPrefixOf` name) == null ideas && length ideas <= 1 = []
+        f (Test name inp out)
+            | isNothing out == null ideas && length ideas <= 1 = []
             | otherwise = ["Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas]
-            where
-                ideas = hint o
-                name = declName o
+            where ideas = hint inp
 
 
-parseTestFile :: FilePath -> IO [Decl]
+parseTestFile :: FilePath -> IO [Test]
 parseTestFile file = do
     src <- readFile file
     src <- return $ unlines $ f $ lines src
-    return $ childrenBi $ parseString file src
+    return $ map createTest $ moduleDecls $ parseString file src
     where
         open = isPrefixOf "<TEST>"
         shut = isPrefixOf "</TEST>"
         f [] = []
         f xs = inner ++ f (drop 1 test)
             where (inner,test) = break shut $ drop 1 $ dropWhile (not . open) xs
+
+
+createTest :: Decl -> Test
+createTest x = Test name x $
+    if "no" `isPrefixOf` name then Nothing else Just Nothing
+    where name = declName x
