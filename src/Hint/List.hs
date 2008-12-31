@@ -4,12 +4,12 @@
     Find and match:
 
 <TEST>
-yes = 1:2:[] -- [1,2]
-yes = ['h','e','l','l','o'] -- "hello"
+yes = 1:2:[] where res = [1,2]
+yes = ['h','e','l','l','o'] where res = "hello"
 
 -- [a]++b -> a : b, but only if not in a chain of ++'s
-yes = [x] ++ xs
-yes = "x" ++ xs
+yes = [x] ++ xs where res = x : xs
+yes = "x" ++ xs where res = 'x' : xs
 no = [x] ++ xs ++ ys
 no = xs ++ [x] ++ ys
 </TEST>
