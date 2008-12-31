@@ -36,9 +36,10 @@ executable hlint
     hs-source-dirs:     src
     other-modules:
         CmdLine
-        Ignore
+        Settings
         Report
         Type
+        Test
         HSE.All
         HSE.Bracket
         HSE.Evaluate
