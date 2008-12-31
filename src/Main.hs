@@ -8,6 +8,7 @@ import System.Directory
 import Data.Generics.PlateData
 
 import CmdLine
+import Settings
 import Report
 import Type
 import Ignore

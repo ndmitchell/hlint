@@ -6,6 +6,23 @@ import Data.List
 import Data.Ord
 
 
+---------------------------------------------------------------------
+-- SETTINGS
+
+data Rank = Skip | Warn | Error
+
+-- (modulename,functionname)
+-- either being blank implies universal matching
+type FuncName = (String,String)
+
+data Setting = Classify Rank String FuncName
+             | Hint String Exp Exp (Maybe Exp) -- lhs rhs side-cond
+
+
+
+---------------------------------------------------------------------
+-- IDEAS
+
 -- Key is Data.List.split, for example
 data Idea = Idea {key :: String, text :: String, loc :: SrcLoc, from :: String, to :: String}
             deriving Eq
@@ -19,6 +36,8 @@ instance Show Idea where
         where f msg sel = (msg ++ ":") : map ("  "++) (lines $ sel x)
 
 
+---------------------------------------------------------------------
+-- HINTS
 
 type Hint = Decl -> [Idea]
 
