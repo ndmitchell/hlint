@@ -110,6 +110,12 @@ freeVar x = head $ allVars \\ concat [[y, drop 1 y] | Ident y <- universeBi x]
     where allVars = [letter : number | number <- "" : map show [1..], letter <- ['a'..'z']]
 
 
+getEquations :: Decl -> [Decl]
+getEquations (FunBind xs) = map (FunBind . (:[])) xs
+getEquations (PatBind src (PVar name) bod bind) = [FunBind [Match src name [] bod bind]]
+getEquations x = [x]
+
+
 ---------------------------------------------------------------------
 -- SRCLOC FUNCTIONS
 
