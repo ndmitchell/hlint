@@ -69,6 +69,16 @@ isChar _ = False
 fromChar :: Exp -> Char
 fromChar (Lit (Char x)) = x
 
+isString :: Exp -> Bool
+isString (Lit (String _)) = True
+isString _ = False
+
+fromString :: Exp -> String
+fromString (Lit (String x)) = x
+
+isPString (PLit (String _)) = True; isPString _ = False
+fromPString (PLit (String x)) = x
+
 fromParen :: Exp -> Exp
 fromParen (Paren x) = fromParen x
 fromParen x = x

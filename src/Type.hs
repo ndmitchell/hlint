@@ -18,14 +18,14 @@ data Rank = Skip | Warn | Error
 type FuncName = (String,String)
 
 data Setting = Classify Rank String FuncName
-             | Hint {message :: String, lhs :: Exp, rhs :: Exp, side :: Maybe Exp} -- lhs rhs side-cond
+             | Hint {message :: String, rank :: Rank, lhs :: Exp, rhs :: Exp, side :: Maybe Exp} -- lhs rhs side-cond
 
 
 isClassify Classify{} = True; isClassify _ = False
 
 
 instance Show Setting where
-    show (Hint x y z q) = unlines $ ("Hint " ++ show x) :
+    show (Hint x _ y z q) = unlines $ ("Hint " ++ show x) :
         map (\x -> "  " ++ prettyPrint x) ([y,z] ++ maybeToList q)
 
     showList = showString . concatMap show

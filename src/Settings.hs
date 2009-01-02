@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, ViewPatterns #-}
 
 module Settings where
 
@@ -19,7 +19,7 @@ readSettings xs = do
     b <- doesFileExist "Hints.hs"
     mods <- pickFiles $
         [dat ++ "/Hints.hs"] ++ ["Hints.hs" | b && null xs] ++ xs
-    return $ concatMap (concatMap readSetting . moduleDecls) mods
+    return $ concatMap (concatMap readSetting . concatMap getEquations . moduleDecls) mods
 
 
 -- read all the files
@@ -40,12 +40,15 @@ classify xs = \hint func -> foldl' (f hint) Warn xs2
 -- READ A HINT
 
 readSetting :: Decl -> [Setting]
-readSetting (FunBind [Match src (Ident name) [PLit (String msg)]
+readSetting (FunBind [Match src (Ident (getRank -> rank)) pats
            (UnGuardedRhs bod) (BDecls bind)])
-    | name == "hint", InfixApp lhs op rhs <- bod, opExp op ~= "==>" =
-        [Hint (if null msg then pickName lhs rhs else msg) (fromParen lhs) (fromParen rhs) (readSide bind)]
-    | Just rank <- getRank name =
-        map (Classify rank msg) $ readFuncs bod
+    | InfixApp lhs op rhs <- bod, opExp op ~= "==>", [name] <- names =
+        [Hint name rank (fromParen lhs) (fromParen rhs) (readSide bind)]
+    | otherwise = [Classify rank n func | n <- names2, func <- readFuncs bod]
+    where
+        names = getNames pats bod
+        names2 = ["" | null names] ++ names
+
 
 readSetting (PatBind src (PVar name) bod bind) = readSetting $ FunBind [Match src name [PLit (String "")] bod bind]
 readSetting (FunBind xs) | length xs /= 1 = concatMap (readSetting . FunBind . (:[])) xs
@@ -66,9 +69,10 @@ readFuncs (Var (Qual (ModuleName mod) name)) = [(mod, fromName name)]
 readFuncs x = error $ "Failed to read classification rule\n" ++ prettyPrint x
 
 
-pickName :: Exp -> Exp -> String
-pickName lhs rhs | null names = "Unnamed suggestion"
-                 | otherwise = "Use " ++ head names
+
+getNames :: [Pat] -> Exp -> [String]
+getNames ps _ | ps /= [] && all isPString ps = map fromPString ps
+getNames [] (InfixApp lhs op rhs) | opExp op ~= "==>" = ["Use " ++ head names]
     where
         names = filter (not . isFreeVar) $ map f (childrenBi rhs) \\ map f (childrenBi lhs) 
         f (Ident x) = x
@@ -81,8 +85,7 @@ isFreeVar [x] = x == '?' || isAlpha x
 isFreeVar _ = False
 
 
-getRank :: String -> Maybe Rank
-getRank "skip" = Just Skip
-getRank "warn" = Just Warn
-getRank "error" = Just Error
-getRank _ = Nothing
+getRank :: String -> Rank
+getRank "skip" = Skip
+getRank "warn" = Warn
+getRank "fix" = Error
