@@ -43,6 +43,7 @@ needBracket i parent child
     | isInfixApp parent, i == 0, isApp child = Just False
     | isListComp parent = Just False
     | isIf parent, isAnyApp child = Just False
+    | isApp parent, i == 0, isApp child = Just False
     | otherwise = Nothing
 
 
