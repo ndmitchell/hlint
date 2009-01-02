@@ -24,7 +24,7 @@ bracketHint = concatMap bracketExp . children0Exp nullSrcLoc
 
 bracketExp :: (SrcLoc,Exp) -> [Idea]
 bracketExp (loc,x) =
-    [idea "Use fewer brackets" loc x (fromParen x) | isParen x] ++ f loc x
+    [idea "Redundant brackets" loc x (fromParen x) | isParen x] ++ f loc x
     where
-        f loc x = [idea "Use fewer brackets" loc x y | let y = descendBracket (isParen &&& fromParen) x, x /= y] ++
+        f loc x = [idea "Redundant brackets" loc x y | let y = descendBracket (isParen &&& fromParen) x, x /= y] ++
                   concatMap (uncurry f) (children1Exp loc x)

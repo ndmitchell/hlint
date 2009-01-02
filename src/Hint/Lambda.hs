@@ -56,7 +56,7 @@ lambdaDecl _ = []
 
 lambdaDef :: Match -> [Idea]
 lambdaDef o@(Match loc name pats (UnGuardedRhs bod) (BDecls []))
-    | Lambda loc vs y <- bod = [idea "Lambda shift" loc o $ reform (pats++vs) y]
+    | Lambda loc vs y <- bod = [idea "Redundant lambda" loc o $ reform (pats++vs) y]
     | [PVar x, PVar y] <- pats, Just (f,g) <- useOn x y bod =
               [idea "Use on" loc o $ reform [] (ensureBracket1 $ InfixApp f (QVarOp $ UnQual $ Ident "on") g)]
     | Ident _ <- name, (p2,y) <- etaReduces pats bod, length p2 /= length pats = [idea "Eta reduce" loc o $ reform p2 y]

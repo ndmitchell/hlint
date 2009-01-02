@@ -42,9 +42,9 @@ isAppend _ = False
 
 
 checks = let (*) = (,) in
-         ["Use a string literal" * useString
-         ,"Use a list literal" * useList
-         ,"Use (:)" * useCons
+         ["Use string literal" * useString
+         ,"Use list literal" * useList
+         ,"Use :" * useCons
          ]
 
 

@@ -19,13 +19,13 @@ hint = showsPrec 0 ==> shows
 -- LIST
 
 hint = concat (map f x) ==> concatMap f x
-hint "Use one map" = map f (map g x) ==> map (f . g) x
+hint "Use map once" = map f (map g x) ==> map (f . g) x
 hint = x !! 0 ==> head x
 hint = take n (repeat x) ==> replicate n x
 hint = x ++ concatMap (' ':) y ==> unwords (x:y)
 hint = concat (intersperse " " x) ==> unwords x
 hint = head (reverse x) ==> last x
-hint "Use index" = head (drop n x) ==> x !! n
+hint = head (drop n x) ==> x !! n
 hint = reverse (tail (reverse x)) ==> init x
 hint = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
 hint = foldr (++) [] x ==> concat x
@@ -81,8 +81,8 @@ hint = (\(x,y) -> (x,g y)) ==> second g
 
 -- MONAD
 
-hint "Left identity monad law" = return a >>= f ==> f a
-hint "Right identity monad law" = m >>= return ==> m
+hint "Monad law, left identity" = return a >>= f ==> f a
+hint "Monad law, right identity" = m >>= return ==> m
 hint = m >>= return . f ==> liftM f m
 hint = (if x then y else return ()) ==> when x $ y
 hint = sequence (map f as) ==> mapM f as
@@ -90,12 +90,12 @@ hint = sequence_ (map f as) ==> mapM_ f as
 
 -- LIST COMP
 
-hint "Use a list comprehension" = (if b then [x] else []) ==> [x | b]
+hint "Use list comprehension" = (if b then [x] else []) ==> [x | b]
 
 -- SEQ
 
-hint "The seq is redundant" = x `seq` x ==> x
-hint "The $! is redundant" = id $! x ==> x
+hint "Redundant seq" = x `seq` x ==> x
+hint "Redundant $!" = id $! x ==> x
 
 -- MAYBE
 
@@ -159,7 +159,7 @@ hint "Evaluate" = id x ==> x
 hint "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i == length t) && (t `isPrefixOf` s))
     where _ = (isList t || isLit t) && isLit i
 
-hint "Unnecessary $" = f $ x ==> f x
+hint "Redundant $" = f $ x ==> f x
     where _ = isAtom x
 
 hint = (do a <- f; g a) ==> f >>= g

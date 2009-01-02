@@ -40,7 +40,7 @@ monadExp (loc,x) = case x of
         MDo xs -> monadExp (loc, Do xs)
         _ -> []
     where
-        f x = [idea "Use a more efficient monadic variant" loc x y
+        f x = [idea "Inefficient monadic variant" loc x y
               |Just y <- [monadCall x]]
 
 
