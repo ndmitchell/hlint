@@ -38,6 +38,7 @@ hint = zipWith (,) ==> zip
 hint = zipWith3 (,,) ==> zip3
 hint = length x == 0 ==> null x
 hint "Use null" = length x /= 0 ==> not (null x)
+hint "Use :" = (\x -> [x]) ==> (:[])
 
 -- FOLDS
 
