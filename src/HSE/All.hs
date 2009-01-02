@@ -32,7 +32,7 @@ parseFile file = do
 -- | On failure crashes
 parseString :: String -> String -> Module
 parseString file src =
-    case parseFileContents src of
+    case parseFileContentsWithMode (ParseMode file) src of
         ParseOk x -> hlintFixities x
         _ -> error $ "Parse failure in " ++ file ++ "\n" ++ src
 
