@@ -32,16 +32,15 @@ isAtom x = case x of
     _ -> False
 
 
--- Nothing = I don't know, i.e. because of fixities
-needBracket :: Int -> Exp -> Exp -> Maybe Bool
+-- Err on the side of caution, True = don't know
+needBracket :: Int -> Exp -> Exp -> Bool
 needBracket i parent child 
-    | isAtom child = Just False
-    | isInfixApp parent, i == 1, not (isInfixApp child) = Just False
-    | isInfixApp parent, i == 0, isApp child = Just False
-    | isListComp parent = Just False
-    | isIf parent, isAnyApp child = Just False
-    | isApp parent, i == 0, isApp child = Just False
-    | otherwise = Nothing
+    | isAtom child = False
+    | isInfixApp parent, isApp child = False
+    | isListComp parent = False
+    | isIf parent, isAnyApp child = False
+    | isApp parent, i == 0, isApp child = False
+    | otherwise = True
 
 
 -- True implies I changed this level
@@ -50,7 +49,7 @@ descendBracket f x = flip evalState 0 $ flip descendM x $ \y -> do
     i <- get
     modify (+1)
     (b,y) <- return $ f y
-    let p = if b && needBracket i x y /= Just False then Paren else id
+    let p = if b && needBracket i x y then Paren else id
     return $ p y
 
 
