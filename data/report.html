@@ -112,9 +112,17 @@ function on_load()
 		var s;
 		link_count++;
 		s = "<p><a id='link_" + link_count + "' href='javascript:show_" + text + "(" + link_count + ",\"\")'>All " + text + " (" + sum(xs) + ")</a></p><ul>";
+
+		var ys = [];
+		var j = 0;
 		for (var i in xs)
+			ys[j++] = i;
+		ys.sort();
+
+		for (var j in ys)
 		{
 			link_count++;
+			var i = ys[j];
 			s += "<li><a id='link_" + link_count + "' href='javascript:show_" + text + "(" + link_count + ",\"" + i + "\")'>" + i + " (" + xs[i] + ")</a></li>";
 		}
 		s += "</ul>";
