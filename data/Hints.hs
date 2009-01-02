@@ -183,7 +183,7 @@ yes = a >>= return . id where res = liftM id a
 yes = (x !! 0) + (x !! 2) where res = head x
 yes = if x == e then l2 ++ xs else [x] ++ check_elem xs where res = x : check_elem xs
 yes = if b < 42 then [a] else [] where res = [a | b < 42]
-yes = take 5 (foo xs) == "hello" where res = "hello" `isPrefixOf` xs
+yes = take 5 (foo xs) == "hello" where res = "hello" `isPrefixOf` foo xs
 no  = take n (foo xs) == "hello"
 yes = head (reverse xs) where res = last xs
 yes = reverse xs `isPrefixOf` reverse ys where res = isSuffixOf xs ys

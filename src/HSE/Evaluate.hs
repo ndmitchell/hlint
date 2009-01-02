@@ -11,7 +11,7 @@ import HSE.Bracket
 
 
 evaluate :: Exp -> Exp
-evaluate = transform evaluate1
+evaluate = fromParen . transform evaluate1
 
 
 evaluate1 :: Exp -> Exp
@@ -22,5 +22,3 @@ evaluate1 (view -> App2 op x y)
     | op ~= "&&" && x ~= "False" = x
 evaluate1 (Paren x) | isAtom x = x
 evaluate1 x = x
-
-
