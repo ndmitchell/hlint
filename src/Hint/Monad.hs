@@ -7,7 +7,7 @@
     not at the last line of a do statement, or to the left of >>
 
 <TEST>
-yes = do mapM print a; return b where res = do mapM_ print a ; return b
+yes = do mapM print a; return b where res = mapM_ print a
 no = mapM print a
 no = do foo ; mapM print a
 yes = do (bar+foo) where res = (bar+foo)

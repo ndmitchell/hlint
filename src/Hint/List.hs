@@ -12,6 +12,7 @@ yes = [x] ++ xs where res = x : xs
 yes = "x" ++ xs where res = 'x' : xs
 no = [x] ++ xs ++ ys
 no = xs ++ [x] ++ ys
+yes = [if a then b else c] ++ xs where res = (if a then b else c) : xs
 </TEST>
 -}
 

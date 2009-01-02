@@ -12,14 +12,14 @@
     -- don't eta reduce func a b c = .... (g b) (g c) to (g b) . g, looks ugly
 
 <TEST>
-yes1 a = \x -> x + x
-yes2 a = foo (\x -> True) where res = const True
-no1 = foo (\x -> map f [])
-yes3 x = y x -- eta reduce
-no2 mr = y mr
-yes4 x = g $ f $ map head x
-no3 z x y = f (g x) (g y)
-yes5 x y = f (g x) (g y)
+yes a = \x -> x + x
+yes a = foo (\x -> True) where res = const True
+no = foo (\x -> map f [])
+yes x = y x -- eta reduce
+no mr = y mr
+yes x = g $ f $ map head x
+no z x y = f (g x) (g y)
+yes x y = f (g x) (g y)
 </TEST>
 -}
 
