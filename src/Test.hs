@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 
 module Test where
 
@@ -21,7 +22,7 @@ import Paths_hlint
 -- Output = Nothing, should not match
 -- Output = Just "", should match, no required match
 -- Output = Just xs, should match xs
-data Test = Test String Decl (Maybe String)
+data Test = Test SrcLoc Decl (Maybe String)
 
 
 test :: IO ()
@@ -49,8 +50,8 @@ runTest hint file = do
     putStr $ unlines failures
     return (length failures, length tests)
     where
-        f (Test name inp out) =
-                ["Test failed in " ++ name ++ concatMap ((++) " | " . show) ideas | failed]
+        f (Test loc inp out) =
+                ["Test failed " ++ showSrcLoc loc ++ " " ++ concatMap ((++) " | " . show) ideas | failed]
             where
                 ideas = hint inp
                 failed = or [isNothing out && ideas /= []
@@ -62,7 +63,7 @@ parseTestFile :: FilePath -> IO [Test]
 parseTestFile file = do
     src <- readFile file
     src <- return $ unlines $ f $ lines src
-    return $ map createTest $ moduleDecls $ parseString file src
+    return $ map createTest $ concatMap getEquations . moduleDecls $ parseString file src
     where
         open = isPrefixOf "<TEST>"
         shut = isPrefixOf "</TEST>"
@@ -72,11 +73,10 @@ parseTestFile file = do
 
 
 createTest :: Decl -> Test
-createTest x = Test name x $
-    if "no" `isPrefixOf` name then Nothing else Just $ getRes x
-    where name = declName x
+createTest o@(FunBind [Match src (Ident name) _ _ (BDecls binds)]) = Test src o $
+    if "no" == name then Nothing else Just $ getRes binds
 
-getRes :: Decl -> String
-getRes (FunBind [Match src (Ident name) [] (UnGuardedRhs bod) (BDecls bind)]) | res /= [] = head res
-    where res = [prettyPrint res | PatBind _ v (UnGuardedRhs res) _ <- bind, fromPVar v == Just "res"]
-getRes _ = ""
+
+getRes :: [Decl] -> String
+getRes xs = fromMaybe "" $ listToMaybe $
+    [prettyPrint res | PatBind _ (fromPVar -> Just "res") (UnGuardedRhs res) _ <- xs]
