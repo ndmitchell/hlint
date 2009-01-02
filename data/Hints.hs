@@ -87,7 +87,6 @@ hint = m >>= return . f ==> liftM f m
 hint = (if x then y else return ()) ==> when x $ y
 hint = sequence (map f as) ==> mapM f as
 hint = sequence_ (map f as) ==> mapM_ f as
-hint = (do a <- f; g a) ==> f >>= g
 
 -- LIST COMP
 
@@ -162,6 +161,9 @@ hint "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i == length t) && (t `isPre
 
 hint "Unnecessary $" = f $ x ==> f x
     where _ = isAtom x
+
+hint = (do a <- f; g a) ==> f >>= g
+    where _ = isAtom f || isApp f
 
 {-
 <TEST>
