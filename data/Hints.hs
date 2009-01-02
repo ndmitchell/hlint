@@ -165,35 +165,35 @@ hint "Unnecessary $" = f $ x ==> f x
 
 {-
 <TEST>
-yes = concat . map f
-yes = foo . bar . concat . map f . baz . bar
-yes = map f (map g x)
-yes = concat.map (\x->if x==e then l' else [x])
+yes = concat . map f where res = concatMap f
+yes = foo . bar . concat . map f . baz . bar where res = concatMap f . baz . bar
+yes = map f (map g x) where res = map (f . g) x
+yes = concat.map (\x->if x==e then l' else [x]) where res = concatMap (\x->if x==e then l' else [x])
 yes = f x where f x = concat . map head
-yes = concat . map f . g
-yes = concat $ map f x
-yes = "test" ++ concatMap (' ':) ["of","this"]
-yes = concat . intersperse " "
-yes = if f a then True else b
-yes = not (a == b)
-yes = not (a /= b)
-yes = if a then 1 else if b then 1 else 2
+yes = concat . map f . g where res = concatMap f . g
+yes = concat $ map f x where res = concatMap f x
+yes = "test" ++ concatMap (' ':) ["of","this"] where res = unwords ("test":["of","this"])
+yes = concat . intersperse " " where res = unwords
+yes = if f a then True else b where res = f a || b
+yes = not (a == b) where res = a /= b
+yes = not (a /= b) where res = a == b
+yes = if a then 1 else if b then 1 else 2 where res = if a || b then 1 else 2
 no  = if a then 1 else if b then 3 else 2
-yes = a >>= return . id
-yes = (x !! 0) + (x !! 2)
-yes = if x == e then l2 ++ xs else [x] ++ check_elem xs
-yes = if b < 42 then [a] else []
-yes = take 5 (foo xs) == "hello"
+yes = a >>= return . id where res = liftM id a
+yes = (x !! 0) + (x !! 2) where res = head x
+yes = if x == e then l2 ++ xs else [x] ++ check_elem xs where res = x : check_elem xs
+yes = if b < 42 then [a] else [] where res = [a | b < 42]
+yes = take 5 (foo xs) == "hello" where res = "hello" `isPrefixOf` xs
 no  = take n (foo xs) == "hello"
-yes = head (reverse xs)
-yes = reverse xs `isPrefixOf` reverse ys
-yes = operator foo $ operator
+yes = head (reverse xs) where res = last xs
+yes = reverse xs `isPrefixOf` reverse ys where res = isSuffixOf xs ys
+yes = operator foo $ operator where res = operator foo operator
 no = operator foo $ operator bar
 no = putStrLn $ show (length xs) ++ "Test"
-yes = do line <- getLine; putStrLn line
-yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable
-yes = map (\(a,b) -> a) xs
-yes = map (\(a,_) -> a) xs
+yes = do line <- getLine; putStrLn line where res = getLine >>= putStrLn 
+yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable where res = toUpper *** urlEncode
+yes = map (\(a,b) -> a) xs where res = fst
+yes = map (\(a,_) -> a) xs where res = fst
 </TEST>
 -}
 
