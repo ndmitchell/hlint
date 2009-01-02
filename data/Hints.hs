@@ -194,6 +194,12 @@ yes = do line <- getLine; putStrLn line where res = getLine >>= putStrLn
 yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable where res = toUpper *** urlEncode
 yes = map (\(a,b) -> a) xs where res = fst
 yes = map (\(a,_) -> a) xs where res = fst
+yes = readFile $ args !! 0 where res = head args
+yes = if Debug `elem` opts then ["--debug"] else [] where res = ["--debug" | Debug `elem` opts]
+yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True
+    where res = if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
+yes = if foo then do stuff; moreStuff; lastOfTheStuff else return ()
+    where res = when foo $ do stuff ; moreStuff ; lastOfTheStuff
 </TEST>
 -}
 
