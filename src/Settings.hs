@@ -77,7 +77,7 @@ getNames [] (InfixApp lhs op rhs) | opExp op ~= "==>" = ["Use " ++ head names]
         names = filter (not . isFreeVar) $ map f (childrenBi rhs) \\ map f (childrenBi lhs) 
         f (Ident x) = x
         f (Symbol x) = x
-
+getNames [] _ = [""]
 
 -- TODO: Duplicated from Hint.Match
 isFreeVar :: String -> Bool
