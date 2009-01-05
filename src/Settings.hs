@@ -89,4 +89,4 @@ getNames [] _ = [""]
 getRank :: String -> Rank
 getRank "skip" = Skip
 getRank "warn" = Warn
-getRank "fix" = Error
+getRank "fix"  = Fix

@@ -11,7 +11,7 @@ import Data.Ord
 ---------------------------------------------------------------------
 -- GENERAL DATA TYPES
 
-data Rank = Skip | Warn | Error
+data Rank = Skip | Warn | Fix
             deriving (Eq,Ord,Show)
 
 -- (modulename,functionname)
@@ -27,7 +27,7 @@ type FuncName = (String,String)
 data Idea
     = Classify {func :: FuncName, rank :: Rank, hint :: String}
     | MatchExp {rank :: Rank, hint :: String, lhs :: Exp, rhs :: Exp, side :: Maybe Exp}
-    | Idea {func :: FuncName, hint :: String, loc :: SrcLoc, from :: String, to :: String}
+    | Idea {func :: FuncName, rank :: Rank, hint :: String, loc :: SrcLoc, from :: String, to :: String}
       deriving Eq
 
 type Setting = Idea
