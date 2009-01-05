@@ -68,7 +68,7 @@ p.rule {
 <ol>
     <li>Installing and running HLint</li>
     <li>Adding additional hints</li>
-    <li>Ignoring certain hints</li>
+    <li>Ignoring particular hints</li>
 </ol>
 
 <h3>Acknowledgements</h3>
@@ -94,19 +94,19 @@ p.rule {
 
 $ hlint darcs-2.1.2
 
-darcs-2.1.2\src\CommandLine.lhs:94:1: Use concatMap
+darcs-2.1.2\src\CommandLine.lhs:94:1: Error: Use concatMap
 Found:
   concat $ map escapeC s
 Why not:
   concatMap escapeC s
 
-darcs-2.1.2\src\CommandLine.lhs:103:1: Use fewer brackets
+darcs-2.1.2\src\CommandLine.lhs:103:1: Warning: Use fewer brackets
 Found:
   ftable ++ (map (\ (c, x) -&gt; (toUpper c, urlEncode x)) ftable)
 Why not:
   ftable ++ map (\ (c, x) -&gt; (toUpper c, urlEncode x)) ftable
 
-darcs-2.1.2\src\Darcs\Patch\Test.lhs:306:1: Use a more efficient monadic variant
+darcs-2.1.2\src\Darcs\Patch\Test.lhs:306:1: Error: Use a more efficient monadic variant
 Found:
   mapM (delete_line (fn2fp f) line) old
 Why not:
@@ -115,7 +115,7 @@ Why not:
 ... lots more suggestions ...
 </pre>
 <p>
-	Each suggestion says which file/line the suggestion relates to, a description of the issue, what it found, and what you might want to replace it with. In the case of the first hint, it has suggested that instead of applying <tt>concat</tt> and <tt>map</tt> separately, it would be better to use the combination function <tt>concatMap</tt>.
+	Each suggestion says which file/line the suggestion relates to, how serious the issue is, a description of the issue, what it found, and what you might want to replace it with. In the case of the first hint, it has suggested that instead of applying <tt>concat</tt> and <tt>map</tt> separately, it would be better to use the combination function <tt>concatMap</tt>. The first suggestion is marked as an error, because using <tt>concatMap</tt> in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always.
 </p>
 <p class="rule">
 	<b>Disclaimer:</b> While these hints are meant to be correct, they aren't guaranteed to be. Please report any non equivalent hints (ignoring effects of <tt>seq</tt>).
@@ -143,39 +143,37 @@ foo xs = concat (map op xs)
 	<li>Sometimes the steps are reasonably complex, by automatically composing them the user may become confused.</li>
 	<li>Sometimes HLint gets transformations wrong - particularly with operators. If suggestions are applied recursively, one error will cascade.</li>
 	<li>Some people only make use of some of the suggestions. In the above example using concatMap is a good idea, but sometimes eta reduction isn't. By suggesting them separately, people can pick and choose.</li>
+	<li>Sometimes a transformed expression will be large, and a further hint will apply to some small part of the result, which appears confusing.</li>
 </ul>
 
 
 <h2>Adding additional hints</h2>
 
 <p>
-	The majority of hints are contained in a <tt>Hints.hs</tt> file which will be installed in the appropriate data directory by Cabal. This file may be freely edited, to add library specific knowledge, or to include hints that may have been missed. As an example of the contents of this file, the line specifying <tt>concatMap</tt> is:
+	The majority of hints are contained in a <tt>Hints.hs</tt> file which will be installed in the appropriate data directory by Cabal. This file may be freely edited, to add library specific knowledge, or to include hints that may have been missed. In addition, any <tt>Hints.hs</tt> in the current directory, or specified with the <tt>--hint</tt> flag, will be used. As an example of a hint file, the line specifying <tt>concatMap</tt> is:
 </p>
 <pre>
-hint = concat (map f x) ==> concatMap f x
+error = concat (map f x) ==> concatMap f x
 </pre>
 <p>
-	The line can be read as replace <tt>concat (map <i>f</i> <i>x</i>)</tt> with <tt>concat (map <i>f</i> <i>x</i>)</tt>. Anything with a 1-letter variable is treated as a substitution parameter. For examples of more complex hints see the supplied hints file. In general, hints should <i>not</i> be given in point free style, as this reduces the power of the matching.
+	The line can be read as replace <tt>concat (map <i>f</i> <i>x</i>)</tt> with <tt>concat (map <i>f</i> <i>x</i>)</tt>. Anything with a 1-letter variable is treated as a substitution parameter. For examples of more complex hints see the supplied hints file. In general, hints should <i>not</i> be given in point free style, as this reduces the power of the matching. Hints may start with <tt>error</tt> or <tt>warn</tt> to denote how severe they are by default.
 </p><p>
 	If you come up with interesting hints, please submit them. For example, some of the hints about <tt>last</tt> were supplied by Henning Thielemann.
 </p>
 
 
-<h2>Ignoring certain hints</h2>
+<h2>Ignoring particular hints</h2>
 
 <p>
-	Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for supressing certain hints. Ignore directives are picked up from the <tt>hlint_ignore.txt</tt> file from the users data directory, along with any files specified with <tt>-I</tt> and any directives specified with <tt>-i</tt>. Some example directives are:
+	Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for supressing certain hints. Ignore directives are picked up from the hint files. Some example directives are:
 </p>
 <ul>
-	<li><tt>Eta reduce</tt> - supress all eta reduction suggestions.</li>
-	<li><tt>{Data.List Prelude} Eta reduce</tt> - supress eta reduction hints in the Prelude and Data.List modules.</li>
-	<li><tt>{Data.List.map}</tt> - don't give any hints in the function Data.List.map.</li>
-	<li><tt>!{Data.List.map}</tt> - discard a previous ignore directive.</li>
+	<li><tt>ignore "Eta reduce" = ""</tt> - supress all eta reduction suggestions.</li>
+	<li><tt>ignore "Eta reduce" = Data.List Prelude</tt> - supress eta reduction hints in the Prelude and Data.List modules.</li>
+	<li><tt>ignore = Data.List.map</tt> - don't give any hints in the function Data.List.map.</li>
+	<li><tt>error = Data.List.map</tt> - any hint in the function is an error.</li>
+	<li><tt>error "Use concatMap" = ""</tt> - the hint to use concatMap is an error.</li>
 </ul>
-<p>
-	In hint files, any lines which are blank or start with the <tt>#</tt> character are ignored.
-</p>
-
 
     </body>
 </html>
