@@ -27,6 +27,7 @@ isClassify Classify{} = True; isClassify _ = False
 instance Show Setting where
     show (Hint x _ y z q) = unlines $ ("Hint " ++ show x) :
         map (\x -> "  " ++ prettyPrint x) ([y,z] ++ maybeToList q)
+    show (Classify x y z) = unwords ["Classify",show x,show y,show z]
 
     showList = showString . concatMap show
 
