@@ -43,7 +43,7 @@ instance Show Idea where
     show (Classify x y z) = unwords ["Classify",show x,show y,show z]
 
     show x = unlines $
-        [showSrcLoc (loc x) ++ " " ++ hint x] ++ f "Found" from ++ f "Why not" to
+        [showSrcLoc (loc x) ++ " (" ++ show (rank x) ++ ") " ++ hint x] ++ f "Found" from ++ f "Why not" to
         where f msg sel = (msg ++ ":") : map ("  "++) (lines $ sel x)
 
     showList = showString . concatMap show
