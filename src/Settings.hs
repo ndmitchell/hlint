@@ -29,11 +29,17 @@ pickFiles :: [FilePath] -> IO [Module]
 pickFiles = mapM parseFile
 
 
-classify :: [Setting] -> String -> FuncName -> Rank
-classify xs = \hint func -> foldl' (f hint) Warn xs2
+-- Eta bound variable lifted so the filter only happens once per classify
+classify :: [Setting] -> Idea -> Rank
+classify xs = \idea -> foldl'
+        (\x (Classify y text2 key2) -> if matchHint (text idea) text2 && matchFunc (key idea) key2 then y else x)
+        Warn xs2
     where
         xs2 = filter isClassify xs
-        f hint x (Classify y hint2 _) = if hint == hint2 then y else x
+
+        matchHint x y = x ~= y
+        matchFunc (x1,x2) (y1,y2) = (x1~=y1) && (x2~=y2)
+        x ~= y = null y || x == y
 
 
 ---------------------------------------------------------------------

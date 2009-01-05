@@ -35,11 +35,11 @@ instance Show Setting where
 ---------------------------------------------------------------------
 -- IDEAS
 
--- Key is Data.List.split, for example
-data Idea = Idea {key :: String, text :: String, loc :: SrcLoc, from :: String, to :: String}
+data Idea = Idea {key :: FuncName, text :: String, loc :: SrcLoc, from :: String, to :: String}
             deriving Eq
 
-idea s loc from to = Idea "" s loc (prettyPrint from) (prettyPrint to)
+-- The real key will be filled in by applyHint
+idea s loc from to = Idea ("","") s loc (prettyPrint from) (prettyPrint to)
 
 
 instance Show Idea where
@@ -59,6 +59,6 @@ concatHints hs x = concatMap ($x) hs
 
 
 applyHint :: Hint -> Module -> [Idea]
-applyHint h m = [i{key = name ++ ['.'|name/=""] ++ declName d}
+applyHint h m = [i{key = (name,declName d)}
                 | d <- moduleDecls m, i <- sortBy (comparing loc) $ h d]
     where name = moduleName m

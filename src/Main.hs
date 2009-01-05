@@ -21,7 +21,7 @@ main = do
     mode <- getMode
     if modeTest mode then test else do
         settings <- readSettings $ modeHints mode
-        let ignore idea = let f = classify settings in f (text idea) ("","") == Skip
+        let ignore idea = let f = classify settings in f idea == Skip
         let hints = readHints settings
 
         ideas <- liftM concat $ mapM (runFile ignore hints) (modeFiles mode)
