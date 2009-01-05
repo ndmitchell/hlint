@@ -23,7 +23,8 @@ main = do
     Cmd{..} <- getCmd
     if cmdTest then test else do
         settings <- readSettings cmdHintFiles
-        let apply = map (classify settings) . applyHint (readHints settings)
+        let skips = [Classify ("","") Skip x | x <- cmdSkip]
+        let apply = map (classify $ settings ++ skips) . applyHint (readHints settings)
         ideas <- liftM concat $ mapM (liftM apply . parseFile) cmdFiles
         mapM_ print [i | i <- ideas, cmdShowSkip || rank i /= Skip]
 
