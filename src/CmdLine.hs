@@ -45,7 +45,7 @@ getMode = do
         error $ unlines $ "Unrecognised arguments:" : err
 
     when (Help `elem` opt || (null files && not test)) $ do
-        putStr $ unlines ["HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2008, University of York"
+        putStr $ unlines ["HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2009, University of York"
                          ,""
                          ,"  hlint [files/directories] [options]"
                          ,usageInfo "" opts
