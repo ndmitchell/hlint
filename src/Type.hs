@@ -11,7 +11,7 @@ import Data.Ord
 ---------------------------------------------------------------------
 -- GENERAL DATA TYPES
 
-data Rank = Skip | Warn | Fix
+data Rank = Ignore | Warning | Error
             deriving (Eq,Ord,Show)
 
 -- (modulename,functionname)
@@ -43,7 +43,7 @@ instance Show Idea where
     show (Classify x y z) = unwords ["Classify",show x,show y,show z]
 
     show x = unlines $
-        [showSrcLoc (loc x) ++ " (" ++ show (rank x) ++ ") " ++ hint x] ++ f "Found" from ++ f "Why not" to
+        [showSrcLoc (loc x) ++ " " ++ show (rank x) ++ ": " ++ hint x] ++ f "Found" from ++ f "Why not" to
         where f msg sel = (msg ++ ":") : map ("  "++) (lines $ sel x)
 
     showList = showString . concatMap show
@@ -51,7 +51,7 @@ instance Show Idea where
 
 -- The real key will be filled in by applyHint
 idea rank hint loc from to = Idea ("","") rank hint loc (prettyPrint from) (prettyPrint to)
-warn mr = idea Warn mr
+warn mr = idea Warning mr
 
 
 -- Any 1-letter variable names are assumed to be unification variables

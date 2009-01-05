@@ -20,23 +20,23 @@ data Cmd = Cmd
     ,cmdFiles :: [FilePath]          -- ^ which files to run it on
     ,cmdHintFiles :: [FilePath]      -- ^ which settingsfiles to use
     ,cmdReports :: [FilePath]        -- ^ where to generate reports
-    ,cmdSkip :: [String]             -- ^ the hints to skip
-    ,cmdShowSkip :: Bool             -- ^ display all skipped items
+    ,cmdIgnore :: [String]           -- ^ the hints to ignore
+    ,cmdShowAll :: Bool              -- ^ display all skipped items
     }
 
 
 data Opts = Help | Test
           | Hints FilePath
           | Report FilePath
-          | Skip String | ShowSkip
+          | Skip String | ShowAll
             deriving Eq
 
 
 opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "r" ["report"] (OptArg (Report . fromMaybe "report.html") "file") "Generate a report in HTML"
        ,Option "h" ["hint"] (ReqArg Hints "file") "Hint/ignore file to use"
-       ,Option "s" ["skip"] (ReqArg Skip "message") "Skip a particular hint"
-       ,Option "S" ["showskip"] (NoArg ShowSkip) "Show all skipped ideas"
+       ,Option "i" ["ignore"] (ReqArg Skip "message") "Ignore a particular hint"
+       ,Option "s" ["show"] (NoArg ShowAll) "Show all ignored ideas"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
        ]
 
@@ -60,8 +60,8 @@ getCmd = do
         ,cmdFiles = files
         ,cmdHintFiles = [x | Hints x <- opt]
         ,cmdReports = [x | Report x <- opt]
-        ,cmdSkip = [x | Skip x <- opt]
-        ,cmdShowSkip = ShowSkip `elem` opt
+        ,cmdIgnore = [x | Skip x <- opt]
+        ,cmdShowAll = ShowAll `elem` opt
         }
 
 

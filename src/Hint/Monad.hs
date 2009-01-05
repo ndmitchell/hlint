@@ -34,13 +34,13 @@ monadHint = concatMap monadExp . universeExp nullSrcLoc
 monadExp :: (SrcLoc,Exp) -> [Idea]
 monadExp (loc,x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
-        Do xs -> [idea Fix "Redundant return" loc x y | Just y <- [monadReturn xs]] ++
-                 [idea Fix "Redundant do" loc x y | [Qualifier y] <- [xs]] ++
+        Do xs -> [idea Error "Redundant return" loc x y | Just y <- [monadReturn xs]] ++
+                 [idea Error "Redundant do" loc x y | [Qualifier y] <- [xs]] ++
                  concat [f x | Qualifier x <- init xs]
         MDo xs -> monadExp (loc, Do xs)
         _ -> []
     where
-        f x = [idea Fix "Inefficient monadic variant" loc x y
+        f x = [idea Error "Inefficient monadic variant" loc x y
               |Just y <- [monadCall x]]
 
 

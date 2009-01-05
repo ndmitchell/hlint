@@ -87,6 +87,7 @@ getNames [] _ = [""]
 
 
 getRank :: String -> Rank
-getRank "skip" = Skip
-getRank "warn" = Warn
-getRank "fix"  = Fix
+getRank "ignore" = Ignore
+getRank "warn" = Warning
+getRank "warning" = Warning
+getRank "error"  = Error

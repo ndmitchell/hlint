@@ -23,34 +23,31 @@ main = do
     Cmd{..} <- getCmd
     if cmdTest then test else do
         settings <- readSettings cmdHintFiles
-        let skips = [Classify ("","") Skip x | x <- cmdSkip]
-        let apply = map (classify $ settings ++ skips) . applyHint (readHints settings)
+        let extra = [Classify ("","") Ignore x | x <- cmdIgnore]
+        let apply = map (classify $ settings ++ extra) . applyHint (readHints settings)
         ideas <- liftM concat $ mapM (liftM apply . parseFile) cmdFiles
-        mapM_ print [i | i <- ideas, cmdShowSkip || rank i /= Skip]
+        mapM_ print [i | i <- ideas, cmdShowAll || rank i /= Ignore]
 
         -- figure out statistics        
         let counts = map (head &&& length) $ group $ sort $ map rank ideas
-        let [skip,warn,fix] = map (fromMaybe 0 . flip lookup counts) [Skip,Warn,Fix]
-        let total = skip + warn + fix
-        let shown = if cmdShowSkip then total else total-skip
-        let skipped = total-shown
+        let [ignore,warn,err] = map (fromMaybe 0 . flip lookup counts) [Ignore,Warning,Error]
+        let total = ignore + warn + err
+        let shown = if cmdShowAll then total else total-ignore
+
+        let ignored = [show i ++ " ignored" | let i = total-shown, i /= 0]
+        let errors = [show err ++ " error" ++ ['s'|err/=1] | err /= 0]
 
         if shown == 0 then do
             when (cmdReports /= []) $ putStrLn "Skipping writing reports"
-            printMsg "No relevant suggestions" [(skipped,"skipped")]
+            printMsg "No relevant suggestions" ignored
          else do
             flip mapM_ cmdReports $ \x -> do
                 putStrLn $ "Writing report to " ++ x ++ " ..."
                 writeReport x ideas
-            printMsg ("Found " ++ show shown ++ " suggestion" ++ ['s'|shown/=1])
-                     [(fix,"serious"),(skipped,"skipped")]
+            printMsg ("Found " ++ show shown ++ " suggestion" ++ ['s'|shown/=1]) (errors++ignored)
 
 
-printMsg :: String -> [(Int, String)] -> IO ()
-printMsg msg extras =
+printMsg :: String -> [String] -> IO ()
+printMsg msg xs =
     putStrLn $ msg ++ if null xs then "" else
         " (" ++ intercalate ", " xs ++ ")"
-    where
-        xs = concatMap f extras
-        f (0,_) = []
-        f (i,x) = [unwords [show i, if i == 1 then "was" else "were", x]]
