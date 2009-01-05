@@ -80,15 +80,10 @@ getNames :: [Pat] -> Exp -> [String]
 getNames ps _ | ps /= [] && all isPString ps = map fromPString ps
 getNames [] (InfixApp lhs op rhs) | opExp op ~= "==>" = ["Use " ++ head names]
     where
-        names = filter (not . isFreeVar) $ map f (childrenBi rhs) \\ map f (childrenBi lhs) 
+        names = filter (not . isUnifyVar) $ map f (childrenBi rhs) \\ map f (childrenBi lhs) 
         f (Ident x) = x
         f (Symbol x) = x
 getNames [] _ = [""]
-
--- TODO: Duplicated from Hint.Match
-isFreeVar :: String -> Bool
-isFreeVar [x] = x == '?' || isAlpha x
-isFreeVar _ = False
 
 
 getRank :: String -> Rank

@@ -13,12 +13,6 @@ import Data.Function
 import HSE.Evaluate(evaluate)
 
 
--- Any 1-letter variable names are assumed to be unification variables
-isFreeVar :: String -> Bool
-isFreeVar [x] = x == '?' || isAlpha x
-isFreeVar _ = False
-
-
 ---------------------------------------------------------------------
 -- PERFORM MATCHING
 
@@ -47,7 +41,7 @@ unify :: Exp -> Exp -> Maybe [(String,Exp)]
 unify (Do xs) (Do ys) | length xs == length ys = concatZipWithM unifyStmt xs ys
 unify (Lambda _ xs x) (Lambda _ ys y) | length xs == length ys = liftM2 (++) (unify x y) (concatZipWithM unifyPat xs ys)
 unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
-unify x y | Just v <- fromVar x, isFreeVar v = Just [(v,y)]
+unify x y | Just v <- fromVar x, isUnifyVar v = Just [(v,y)]
 unify x y | ((==) `on` descend (const $ toVar "_")) x y = concatZipWithM unify (children x) (children y)
 unify x o@(view -> App2 op y1 y2)
   | op ~= "$" = unify x $ y1 `App` y2
@@ -97,7 +91,7 @@ checkSide (Just x) bind = f x
 subst :: [(String,Exp)] -> Exp -> Exp
 subst bind = transformBracket f
     where
-        f x | Just v <- fromVar x, isFreeVar v, Just y <- lookup v bind = Just y
+        f x | Just v <- fromVar x, isUnifyVar v, Just y <- lookup v bind = Just y
             | otherwise = Nothing
 
 

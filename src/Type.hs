@@ -2,6 +2,7 @@
 module Type where
 
 import HSE.All
+import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Ord
@@ -49,7 +50,14 @@ instance Show Idea where
 
 
 -- The real key will be filled in by applyHint
-idea hint loc from to = Idea ("","") hint loc (prettyPrint from) (prettyPrint to)
+idea rank hint loc from to = Idea ("","") rank hint loc (prettyPrint from) (prettyPrint to)
+warn mr = idea Warn mr
+
+
+-- Any 1-letter variable names are assumed to be unification variables
+isUnifyVar :: String -> Bool
+isUnifyVar [x] = x == '?' || isAlpha x
+isUnifyVar _ = False
 
 ---------------------------------------------------------------------
 -- HINTS
