@@ -1,5 +1,5 @@
 
-module CmdLine(CmdMode(..), getMode) where
+module CmdLine(Cmd(..), getCmd) where
 
 import Control.Monad
 import Data.List
@@ -15,29 +15,35 @@ import Paths_hlint
 import Data.Version
 
 
-data CmdMode = CmdMode
-    {modeHints :: [FilePath]  -- ^ which hint files to use
-    ,modeFiles :: [FilePath]  -- ^ which files to run it on
-    ,modeTest :: Bool         -- ^ run in test mode?
-    ,modeReports :: [FilePath]     -- ^ where to generate reports
-    ,modeIgnore :: [String] -- ^ the ignore commands on the command line
+data Cmd = Cmd
+    {cmdTest :: Bool                 -- ^ run in test mode?
+    ,cmdFiles :: [FilePath]          -- ^ which files to run it on
+    ,cmdHintFiles :: [FilePath]      -- ^ which settingsfiles to use
+    ,cmdReports :: [FilePath]        -- ^ where to generate reports
+    ,cmdSkip :: [String]             -- ^ the hints to skip
+    ,cmdShowSkip :: Bool             -- ^ display all skipped items
     }
 
 
-data Opts = Help | HintFile FilePath | Test | Report FilePath | Ignore String
+data Opts = Help | Test
+          | Hints FilePath
+          | Report FilePath
+          | Skip String | ShowSkip
             deriving Eq
 
+
 opts = [Option "?" ["help"] (NoArg Help) "Display help message"
-       ,Option "h" ["hint"] (ReqArg HintFile "file") "Hint/ignore file to use"
-       ,Option "t" ["test"] (NoArg Test) "Run in test mode"
        ,Option "r" ["report"] (OptArg (Report . fromMaybe "report.html") "file") "Generate a report in HTML"
-       ,Option "i" ["ignore"] (ReqArg Ignore "message") "Ignore a particular hint"
+       ,Option "h" ["hint"] (ReqArg Hints "file") "Hint/ignore file to use"
+       ,Option "s" ["skip"] (ReqArg Skip "message") "Skip a particular hint"
+       ,Option "S" ["showskip"] (NoArg ShowSkip) "Show all skipped ideas"
+       ,Option "t" ["test"] (NoArg Test) "Run in test mode"
        ]
 
 
 -- | Exit out if you need to display help info
-getMode :: IO CmdMode
-getMode = do
+getCmd :: IO Cmd
+getCmd = do
     args <- getArgs
     let (opt,files,err) = getOpt Permute opts args
     let test = Test `elem` opt
@@ -45,45 +51,67 @@ getMode = do
         error $ unlines $ "Unrecognised arguments:" : err
 
     when (Help `elem` opt || (null files && not test)) $ do
-        putStr $ unlines ["HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2009, University of York"
-                         ,""
-                         ,"  hlint [files/directories] [options]"
-                         ,usageInfo "" opts
-                         ,"HLint makes hints on how to improve some Haskell code."
-                         ,""
-                         ,"For example, to check all .hs and .lhs files in the folder src and"
-                         ,"generate a report:"
-                         ,"  hlint src --report"
-                         ]
+        helpMsg
         exitWith ExitSuccess
 
     files <- liftM concat $ mapM getFile files
-    return CmdMode{modeFiles=files, modeTest=test
-        ,modeHints=[x | HintFile x <- opt]
-        ,modeReports=[x | Report x <- opt]
-        ,modeIgnore=[x | Ignore x <- opt]
+    return Cmd
+        {cmdTest = test
+        ,cmdFiles = files
+        ,cmdHintFiles = [x | Hints x <- opt]
+        ,cmdReports = [x | Report x <- opt]
+        ,cmdSkip = [x | Skip x <- opt]
+        ,cmdShowSkip = ShowSkip `elem` opt
         }
 
 
-ifNull :: [a] -> [a] -> [a]
-ifNull x y = if null x then y else x
+helpMsg :: IO ()
+helpMsg = putStr $ unlines
+    ["HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2009, University of York"
+    ,""
+    ,"  hlint [files/directories] [options]"
+    ,usageInfo "" opts
+    ,"HLint makes hints on how to improve some Haskell code."
+    ,""
+    ,"For example, to check all .hs and .lhs files in the folder src and"
+    ,"generate a report:"
+    ,"  hlint src --report"
+    ]
 
 
 getFile :: FilePath -> IO [FilePath]
 getFile file = do
     b <- doesDirectoryExist file
-    if b then f file else do
+    if b then do
+        xs <- getDirectoryContentsRecursive file
+        return [x | x <- xs, takeExtension x `elem` [".hs",".lhs"]]
+     else do
         b <- doesFileExist file
         when (not b) $ error $ "Couldn't find file: " ++ file
         return [file]
-    where
-        f file | takeExtension file `elem` [".hs",".lhs"] = return [file]
-        f file = do
-            b <- doesDirectoryExist file
-            if not b then return [] else do
-                s <- getDirectoryContents file
-                liftM concat $ mapM (f . (</>) file) $ filter (not . isBadDir) s
+
+
+getDirectoryContentsRecursive :: FilePath -> IO [FilePath]
+getDirectoryContentsRecursive dir = do
+    xs <- getDirectoryContents dir
+    (dirs,files) <- partitionM doesDirectoryExist [dir </> x | x <- xs, not $ isBadDir x]
+    rest <- concatMapM getDirectoryContentsRecursive dirs
+    return $ files++rest
+
+
+partitionM :: Monad m => (a -> m Bool) -> [a] -> m ([a], [a])
+partitionM f [] = return ([], [])
+partitionM f (x:xs) = do
+    res <- f x
+    (as,bs) <- partitionM f xs
+    return ([x|res]++as, [x|not res]++bs)
+
+
+concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
+concatMapM f = liftM concat . mapM f
 
 
 isBadDir :: FilePath -> Bool
 isBadDir x = "." `isPrefixOf` x || "_" `isPrefixOf` x
+
+
