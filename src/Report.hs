@@ -25,12 +25,8 @@ writeReport file ideas = do
 repContent :: [String] -> [String] -> [String]
 repContent content xs = pre ++ take 1 mid ++ content ++ post
     where
-        (pre,mid) = break (isInfixOf_ "<CONTENT>") xs
-        post = dropWhile (not . isInfixOf_ "</CONTENT>") mid
-
-
--- from GHC 6.10 is in the real libraries
-isInfixOf_ find = any (isPrefixOf find) . tails
+        (pre,mid) = break (isInfixOf "<CONTENT>") xs
+        post = dropWhile (not . isInfixOf "</CONTENT>") mid
 
 
 filePrefix :: [FilePath] -> (FilePath -> FilePath)
