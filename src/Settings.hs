@@ -31,15 +31,15 @@ pickFiles = mapM parseFile
 
 -- Eta bound variable lifted so the filter only happens once per classify
 classify :: [Setting] -> Idea -> Rank
-classify xs = \idea -> foldl'
-        (\x (Classify y text2 key2) -> if matchHint (text idea) text2 && matchFunc (key idea) key2 then y else x)
+classify xs = \i -> foldl'
+        (\r c -> if matchHint (hint c) (hint i) && matchFunc (func c) (func i) then rank c else r)
         Warn xs2
     where
         xs2 = filter isClassify xs
 
         matchHint x y = x ~= y
         matchFunc (x1,x2) (y1,y2) = (x1~=y1) && (x2~=y2)
-        x ~= y = null y || x == y
+        x ~= y = null x || x == y
 
 
 ---------------------------------------------------------------------
@@ -49,8 +49,8 @@ readSetting :: Decl -> [Setting]
 readSetting (FunBind [Match src (Ident (getRank -> rank)) pats
            (UnGuardedRhs bod) (BDecls bind)])
     | InfixApp lhs op rhs <- bod, opExp op ~= "==>", [name] <- names =
-        [Hint name rank (fromParen lhs) (fromParen rhs) (readSide bind)]
-    | otherwise = [Classify rank n func | n <- names2, func <- readFuncs bod]
+        [MatchExp rank name (fromParen lhs) (fromParen rhs) (readSide bind)]
+    | otherwise = [Classify func rank n | n <- names2, func <- readFuncs bod]
     where
         names = getNames pats bod
         names2 = ["" | null names] ++ names

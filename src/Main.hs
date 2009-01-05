@@ -36,7 +36,6 @@ main = do
             putStrLn $ "Found " ++ show n ++ " suggestions"
 
 
--- return the number of hints given
 runFile :: (Idea -> Bool) -> Hint -> FilePath -> IO [Idea]
 runFile ignore hint file = do
     src <- parseFile file

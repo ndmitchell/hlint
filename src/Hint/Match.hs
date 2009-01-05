@@ -23,18 +23,18 @@ isFreeVar _ = False
 -- PERFORM MATCHING
 
 readMatch :: [Setting] -> Hint
-readMatch = findIdeas . filter (not . isClassify)
+readMatch = findIdeas . filter isMatchExp
 
 
 findIdeas :: [Setting] -> Decl -> [Idea]
 findIdeas matches decl =
-  [ idea (message m) loc x y
+  [ idea (hint m) loc x y
   | (loc, x) <- universeExp nullSrcLoc decl, not $ isParen x
   , m <- matches, Just y <- [matchIdea m x]]
 
 
 matchIdea :: Setting -> Exp -> Maybe Exp
-matchIdea Hint{lhs=lhs,rhs=rhs,side=side} x = do
+matchIdea MatchExp{lhs=lhs,rhs=rhs,side=side} x = do
     u <- unify lhs x
     u <- check u
     if checkSide side u

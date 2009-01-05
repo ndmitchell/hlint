@@ -17,7 +17,7 @@ writeReport file ideas = do
         content = map f ideas
         drp = filePrefix $ map (srcFilename . loc) ideas
         f x = "idea(" ++ concat (intersperse "," args) ++ ");"
-            where args = [show $ text x
+            where args = [show $ hint x
                          ,show $ drp $ srcFilename $ loc x, show $ srcLine $ loc x, show $ srcColumn $ loc x
                          ,show $ from x, show $ to x]
 
