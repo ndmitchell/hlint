@@ -21,10 +21,10 @@ main = do
     mode <- getMode
     if modeTest mode then test else do
         settings <- readSettings $ modeHints mode
-        let ignore idea = let f = classify settings in f idea == Skip
-        let hints = readHints settings
-
-        ideas <- liftM concat $ mapM (runFile ignore hints) (modeFiles mode)
+        let apply = map (classify settings) . applyHint (readHints settings)
+        ideas <- liftM concat $ mapM (liftM apply . parseFile) (modeFiles mode)
+        mapM_ print ideas
+        
         let n = length ideas
         if n == 0 then do
             when (not $ null $ modeReports mode) $ putStrLn "Skipping writing reports"
@@ -34,11 +34,3 @@ main = do
                 putStrLn $ "Writing report to " ++ x ++ " ..."
                 writeReport x ideas
             putStrLn $ "Found " ++ show n ++ " suggestions"
-
-
-runFile :: (Idea -> Bool) -> Hint -> FilePath -> IO [Idea]
-runFile ignore hint file = do
-    src <- parseFile file
-    let ideas = filter (not . ignore) $ applyHint hint src
-    mapM_ print ideas
-    return ideas

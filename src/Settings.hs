@@ -30,10 +30,10 @@ pickFiles = mapM parseFile
 
 
 -- Eta bound variable lifted so the filter only happens once per classify
-classify :: [Setting] -> Idea -> Rank
-classify xs = \i -> foldl'
+classify :: [Setting] -> Idea -> Idea
+classify xs = \i -> i{rank=foldl'
         (\r c -> if matchHint (hint c) (hint i) && matchFunc (func c) (func i) then rank c else r)
-        Warn xs2
+        (rank i) xs2}
     where
         xs2 = filter isClassify xs
 
