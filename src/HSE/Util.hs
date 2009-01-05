@@ -7,19 +7,7 @@ import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
 import Language.Haskell.Exts
-
-
----------------------------------------------------------------------
--- GENERAL FUNCTIONS
-
-headDef :: a -> [a] -> a
-headDef x [] = x
-headDef x (y:ys) = y
-
-
-limit :: Int -> String -> String
-limit n s = if null post then s else pre ++ "..."
-    where (pre,post) = splitAt n s
+import Util
 
 
 ---------------------------------------------------------------------

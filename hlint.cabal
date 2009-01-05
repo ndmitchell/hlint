@@ -40,6 +40,7 @@ executable hlint
         Report
         Type
         Test
+        Util
         HSE.All
         HSE.Bracket
         HSE.Evaluate

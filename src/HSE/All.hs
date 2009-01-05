@@ -15,7 +15,7 @@ import HSE.Evaluate
 import HSE.Bracket
 import HSE.Match
 import HSE.Operators
-
+import Util
 
 
 -- | On failure returns an empty module and prints to the console

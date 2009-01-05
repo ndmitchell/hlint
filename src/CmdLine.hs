@@ -11,6 +11,7 @@ import System.Exit
 import System.FilePath
 import HSE.All
 
+import Util
 import Paths_hlint
 import Data.Version
 
@@ -89,29 +90,3 @@ getFile file = do
         b <- doesFileExist file
         when (not b) $ error $ "Couldn't find file: " ++ file
         return [file]
-
-
-getDirectoryContentsRecursive :: FilePath -> IO [FilePath]
-getDirectoryContentsRecursive dir = do
-    xs <- getDirectoryContents dir
-    (dirs,files) <- partitionM doesDirectoryExist [dir </> x | x <- xs, not $ isBadDir x]
-    rest <- concatMapM getDirectoryContentsRecursive dirs
-    return $ files++rest
-
-
-partitionM :: Monad m => (a -> m Bool) -> [a] -> m ([a], [a])
-partitionM f [] = return ([], [])
-partitionM f (x:xs) = do
-    res <- f x
-    (as,bs) <- partitionM f xs
-    return ([x|res]++as, [x|not res]++bs)
-
-
-concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
-concatMapM f = liftM concat . mapM f
-
-
-isBadDir :: FilePath -> Bool
-isBadDir x = "." `isPrefixOf` x || "_" `isPrefixOf` x
-
-

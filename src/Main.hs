@@ -14,6 +14,7 @@ import Settings
 import Report
 import Type
 import Test
+import Util
 import HSE.All
 import Hint.All
 import Paths_hlint
@@ -25,7 +26,7 @@ main = do
         settings <- readSettings cmdHintFiles
         let extra = [Classify ("","") Ignore x | x <- cmdIgnore]
         let apply = map (classify $ settings ++ extra) . applyHint (readHints settings)
-        ideas <- liftM concat $ mapM (liftM apply . parseFile) cmdFiles
+        ideas <- concatMapM (liftM apply . parseFile) cmdFiles
         mapM_ print [i | i <- ideas, cmdShowAll || rank i /= Ignore]
 
         -- figure out statistics        
