@@ -72,6 +72,8 @@ readFuncs (App x y) = readFuncs x ++ readFuncs y
 readFuncs (Lit (String "")) = [("","")]
 readFuncs (Var (UnQual name)) = [("",fromName name)]
 readFuncs (Var (Qual (ModuleName mod) name)) = [(mod, fromName name)]
+readFuncs (Con (UnQual name)) = [(fromName name,"")]
+readFuncs (Con (Qual (ModuleName mod) name)) = [(mod ++ "." ++ fromName name,"")]
 readFuncs x = error $ "Failed to read classification rule\n" ++ prettyPrint x
 
 
