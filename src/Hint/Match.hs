@@ -1,5 +1,12 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
+{-
+Supported meta-hints:
+
+_eval_ - perform deep evaluation, must be used at the top of a RHS
+_noParen_ - don't bracket this particular item
+-}
+
 module Hint.Match(readMatch) where
 
 import Data.Char
@@ -89,10 +96,13 @@ checkSide (Just x) bind = f x
 
 -- perform a substitution
 subst :: [(String,Exp)] -> Exp -> Exp
-subst bind = transformBracket f
+subst bind = transform g . transformBracket f
     where
         f x | Just v <- fromVar x, isUnifyVar v, Just y <- lookup v bind = Just y
             | otherwise = Nothing
+
+        g (App np (Paren x)) | np ~= "_noParen_" = x
+        g x = x
 
 
 dotExpand :: Exp -> Exp
