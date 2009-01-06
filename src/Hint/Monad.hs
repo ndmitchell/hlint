@@ -20,6 +20,7 @@ no = do bar; a <- foo; return b
 
 module Hint.Monad where
 
+import Control.Arrow
 import Control.Monad
 import HSE.All
 import Type
@@ -40,15 +41,15 @@ monadExp (loc,x) = case x of
         MDo xs -> monadExp (loc, Do xs)
         _ -> []
     where
-        f x = [idea Error "Inefficient monadic variant" loc x y
-              |Just y <- [monadCall x]]
+        f x = [idea Error ("Use " ++ name) loc x y
+              |Just (name,y) <- [monadCall x]]
 
 
 -- see through Paren and down if/case etc
-monadCall :: Exp -> Maybe Exp
-monadCall (Paren x) = liftM Paren $ monadCall x
-monadCall (App x y) = liftM (`App` y) $ monadCall x
-monadCall x | x:_ <- filter (x ~=) badFuncs = Just $ toVar (x ++ "_")
+monadCall :: Exp -> Maybe (String,Exp)
+monadCall (Paren x) = liftM (second Paren) $ monadCall x
+monadCall (App x y) = liftM (second (`App` y)) $ monadCall x
+monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, toVar x2)
 monadCall _ = Nothing
 
 
