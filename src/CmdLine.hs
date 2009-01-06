@@ -48,7 +48,7 @@ getCmd = do
     args <- getArgs
     let (opt,files,err) = getOpt Permute opts args
     let test = Test `elem` opt
-    when (not $ null err) $
+    unless (null err) $
         error $ unlines $ "Unrecognised arguments:" : err
 
     when (Help `elem` opt || (null files && not test)) $ do
@@ -88,5 +88,5 @@ getFile file = do
         return [x | x <- xs, takeExtension x `elem` [".hs",".lhs"]]
      else do
         b <- doesFileExist file
-        when (not b) $ error $ "Couldn't find file: " ++ file
+        unless b $ error $ "Couldn't find file: " ++ file
         return [file]

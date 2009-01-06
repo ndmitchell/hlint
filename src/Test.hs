@@ -36,7 +36,7 @@ test = do
     (fail,total) <- liftM ((sum *** sum) . unzip) $ sequence $
             runTest hints (dat ++ "/Hints.hs") :
             [runTest h ("src/Hint/" ++ name ++ ".hs") | (name,h) <- allHints, src]
-    when (not src) $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
+    unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
     if fail == 0
         then putStrLn $ "Tests passed (" ++ show total ++ ")"
         else putStrLn $ "Tests failed (" ++ show fail ++ " of " ++ show total ++ ")"
