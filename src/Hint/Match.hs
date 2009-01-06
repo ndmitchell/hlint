@@ -38,9 +38,8 @@ matchIdea :: Setting -> Exp -> Maybe Exp
 matchIdea MatchExp{lhs=lhs,rhs=rhs,side=side} x = do
     u <- unify lhs x
     u <- check u
-    if checkSide side u
-        then return $ dotContract $ performEval $ subst u rhs
-        else Nothing
+    guard $ checkSide side u
+    return $ dotContract $ performEval $ subst u rhs
 
 
 -- unify a b = c, a[c] = b
