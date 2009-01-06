@@ -67,6 +67,8 @@ error = (\(x,y) -> f x y) ==> uncurry f
 
 -- BOOL
 
+error "Redundant ==" = a == True ==> a
+warn  "Redundant ==" = a == False ==> not a
 error "Redundant if" = (if a then True else False) ==> a
 error "Redundant if" = (if a then False else True) ==> not a
 error "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then t else f
