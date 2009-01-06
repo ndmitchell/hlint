@@ -81,8 +81,8 @@ error "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
 
 -- ARROW
 
-warn  = id *** g ==> second g
-warn  = f *** id ==> first f
+error = id *** g ==> second g
+error = f *** id ==> first f
 warn  = (\(x,y) -> (f x, g y)) ==> f *** g
 warn  = (\x -> (f x, g x)) ==> f &&& g
 warn  = (\(x,y) -> (f x,y)) ==> first f
