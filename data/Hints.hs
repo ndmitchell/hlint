@@ -94,8 +94,8 @@ error "Monad law, left identity" = return a >>= f ==> f a
 error "Monad law, right identity" = m >>= return ==> m
 warn  = m >>= return . f ==> liftM f m
 error = (if x then y else return ()) ==> when x $ _noParen_ y
-error = sequence (map f as) ==> mapM f as
-error = sequence_ (map f as) ==> mapM_ f as
+error = sequence (map f x) ==> mapM f x
+error = sequence_ (map f x) ==> mapM_ f x
 warn  = flip mapM ==> forM
 warn  = flip mapM_ ==> forM_
 
