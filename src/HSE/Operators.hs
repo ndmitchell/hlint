@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, MultiParamTypeClasses, FlexibleContexts #-}
 
 module HSE.Operators(
-    FixityDecl(..), preludeFixities,
+    FixityDecl(..), preludeFixities, baseFixities,
     applyFixities, testFixities,
     infixr_, infixl_, infix_
     ) where
@@ -35,6 +35,26 @@ preludeFixities = concat
     ,infixl_ 1  [">>",">>="]
     ,infixr_ 1  ["=<<"]
     ,infixr_ 0  ["$","$!","`seq`"]
+    ]
+
+baseFixities :: [FixityDecl]
+baseFixities = preludeFixities ++ concat
+    [infixl_ 9 ["!","//","!:"]
+    ,infixl_ 8 ["`shift`","`rotate`","`shiftL`","`shiftR`","`rotateL`","`rotateR`"]
+    ,infixl_ 7 [".&."]
+    ,infixl_ 6 ["`xor`"]
+    ,infix_  6 [":+"]
+    ,infixl_ 5 [".|."]
+    ,infixr_ 5 ["+:+","+++","<++","<+>"]
+    ,infix_  5 ["\\"]
+    ,infixl_ 4 ["<$>","<$","<*>","<*","*>","<**>"]
+    ,infix_  4 ["`elemP`","`notElemP`"]
+    ,infixl_ 3 ["<|>"]
+    ,infixr_ 3 ["&&&","***"]
+    ,infixr_ 2 ["+++","|||"]
+    ,infixr_ 1 ["<=<",">=>",">>>","<<<","^<<","<<^","^>>",">>^"]
+    ,infixl_ 0 ["`on`"]
+    ,infixr_ 0 ["`par`","`pseq`"]
     ]
 
 

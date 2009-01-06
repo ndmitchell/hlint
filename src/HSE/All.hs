@@ -38,5 +38,5 @@ parseString file src =
 
 
 hlintFixities :: Module -> Module
-hlintFixities = applyFixities (infix_ (-1) ["==>"] ++ preludeFixities)
+hlintFixities = applyFixities (infix_ (-1) ["==>"] ++ baseFixities)
 
