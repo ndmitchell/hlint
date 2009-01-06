@@ -170,9 +170,6 @@ error "Evaluate" = id x ==> x
 error "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i == length t) && (t `isPrefixOf` s))
     where _ = (isList t || isLit t) && isLit i
 
-error "Redundant $" = f $ x ==> f x
-    where _ = isAtom x
-
 warn  = (do a <- f; g a) ==> f >>= g
     where _ = isAtom f || isApp f
 
@@ -202,8 +199,6 @@ yes = take 5 (foo xs) == "hello" where res = "hello" `isPrefixOf` foo xs
 no  = take n (foo xs) == "hello"
 yes = head (reverse xs) where res = last xs
 yes = reverse xs `isPrefixOf` reverse ys where res = isSuffixOf xs ys
-yes = operator foo $ operator where res = operator foo operator
-no = operator foo $ operator bar
 no = putStrLn $ show (length xs) ++ "Test"
 yes = do line <- getLine; putStrLn line where res = getLine >>= putStrLn 
 yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable where res = toUpper *** urlEncode
