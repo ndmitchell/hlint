@@ -90,6 +90,8 @@ warn  = m >>= return . f ==> liftM f m
 error = (if x then y else return ()) ==> when x $ y
 error = sequence (map f as) ==> mapM f as
 error = sequence_ (map f as) ==> mapM_ f as
+warn  = flip mapM ==> forM
+warn  = flip mapM_ ==> forM_
 
 -- LIST COMP
 
