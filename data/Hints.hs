@@ -8,6 +8,12 @@ error = mapM_ putChar ==> putStr
 
 -- ORD
 
+error = not (a == b) ==> a /= b
+error = not (a /= b) ==> a == b
+error = not (a >  b) ==> a <= b
+error = not (a >= b) ==> a <  b
+error = not (a <  b) ==> a >= b
+error = not (a <= b) ==> a >  b
 error = compare x y /= GT ==> x <= y
 error = compare x y == LT ==> x < y
 error = compare x y /= LT ==> x >= y
@@ -61,8 +67,6 @@ error = (\(x,y) -> f x y) ==> uncurry f
 
 -- BOOL
 
-error = not (a == b) ==> a /= b
-error = not (a /= b) ==> a == b
 error "Redundant if" = (if a then True else False) ==> a
 error "Redundant if" = (if a then False else True) ==> not a
 error "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then t else f
