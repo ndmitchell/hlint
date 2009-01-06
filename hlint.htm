@@ -146,6 +146,7 @@ foo xs = concat (map op xs)
 	<li>Sometimes HLint gets transformations wrong - particularly with operators. If suggestions are applied recursively, one error will cascade.</li>
 	<li>Some people only make use of some of the suggestions. In the above example using concatMap is a good idea, but sometimes eta reduction isn't. By suggesting them separately, people can pick and choose.</li>
 	<li>Sometimes a transformed expression will be large, and a further hint will apply to some small part of the result, which appears confusing.</li>
+	<li>Consider <tt>f $ (a b)</tt>. There are two valid hints, either remove the <tt>$</tt> or remove the brackets, but only one can be applied.</li>
 </ul>
 
 
