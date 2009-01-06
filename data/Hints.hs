@@ -93,7 +93,7 @@ warn  = (\(x,y) -> (x,g y)) ==> second g
 error "Monad law, left identity" = return a >>= f ==> f a
 error "Monad law, right identity" = m >>= return ==> m
 warn  = m >>= return . f ==> liftM f m
-error = (if x then y else return ()) ==> when x $ y
+error = (if x then y else return ()) ==> when x $ _noParen_ y
 error = sequence (map f as) ==> mapM f as
 error = sequence_ (map f as) ==> mapM_ f as
 warn  = flip mapM ==> forM
@@ -214,6 +214,6 @@ yes = if Debug `elem` opts then ["--debug"] else [] where res = ["--debug" | Deb
 yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True
     where res = if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
 yes = if foo then do stuff; moreStuff; lastOfTheStuff else return ()
-    where res = when foo $ (do stuff ; moreStuff ; lastOfTheStuff)
+    where res = when foo $ do stuff ; moreStuff ; lastOfTheStuff
 </TEST>
 -}
