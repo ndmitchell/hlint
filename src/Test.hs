@@ -13,6 +13,7 @@ import CmdLine
 import Settings
 import Report
 import Type
+import Util
 import HSE.All
 import Hint.All
 import Paths_hlint
@@ -78,5 +79,5 @@ createTest o@(FunBind [Match src (Ident name) _ _ (BDecls binds)]) = Test src o 
 
 
 getRes :: [Decl] -> String
-getRes xs = fromMaybe "" $ listToMaybe $
+getRes xs = headDef ""
     [prettyPrint res | PatBind _ (fromPVar -> Just "res") (UnGuardedRhs res) _ <- xs]
