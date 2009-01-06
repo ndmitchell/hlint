@@ -50,5 +50,6 @@ executable hlint
         Hint.Bracket
         Hint.Lambda
         Hint.List
+        Hint.ListRec
         Hint.Match
         Hint.Monad
