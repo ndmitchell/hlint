@@ -42,7 +42,7 @@ main = do
             when (cmdReports /= []) $ putStrLn "Skipping writing reports"
             printMsg "No relevant suggestions" ignored
          else do
-            flip mapM_ cmdReports $ \x -> do
+            forM_ cmdReports $ \x -> do
                 putStrLn $ "Writing report to " ++ x ++ " ..."
                 writeReport x ideas
             printMsg ("Found " ++ show shown ++ " suggestion" ++ ['s'|shown/=1]) (errors++ignored)
