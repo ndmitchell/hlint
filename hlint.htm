@@ -115,7 +115,9 @@ Why not:
 ... lots more suggestions ...
 </pre>
 <p>
-	Each suggestion says which file/line the suggestion relates to, how serious the issue is, a description of the issue, what it found, and what you might want to replace it with. In the case of the first hint, it has suggested that instead of applying <tt>concat</tt> and <tt>map</tt> separately, it would be better to use the combination function <tt>concatMap</tt>. The first suggestion is marked as an error, because using <tt>concatMap</tt> in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always.
+	Each suggestion says which file/line the suggestion relates to, how serious the issue is, a description of the issue, what it found, and what you might want to replace it with. In the case of the first hint, it has suggested that instead of applying <tt>concat</tt> and <tt>map</tt> separately, it would be better to use the combination function <tt>concatMap</tt>.
+</p><p>
+	The first suggestion is marked as an error, because using <tt>concatMap</tt> in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always. Reasons that a hint might be a warning include requiring an additional import, something not everyone agrees on, and functions only available in more recent versions of the base library.
 </p>
 <p class="rule">
 	<b>Disclaimer:</b> While these hints are meant to be correct, they aren't guaranteed to be. Please report any non equivalent hints (ignoring effects of <tt>seq</tt>).
@@ -173,7 +175,11 @@ error = concat (map f x) ==> concatMap f x
 	<li><tt>ignore = Data.List.map</tt> - don't give any hints in the function Data.List.map.</li>
 	<li><tt>error = Data.List.map</tt> - any hint in the function is an error.</li>
 	<li><tt>error "Use concatMap" = ""</tt> - the hint to use concatMap is an error.</li>
+	<li><tt>warn "Use concatMap" = ""</tt> - the hint to use concatMap is a warning.</li>
 </ul>
+<p>
+	These directives are applied in the order they are given, with later hints overriding earlier ones.
+</p>
 
     </body>
 </html>
