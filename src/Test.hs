@@ -80,4 +80,5 @@ createTest o@(FunBind [Match src (Ident name) _ _ (BDecls binds)]) = Test src o 
 
 getRes :: [Decl] -> String
 getRes xs = headDef ""
-    [prettyPrint res | PatBind _ (fromPVar -> Just "res") (UnGuardedRhs res) _ <- xs]
+    [if isString res then fromString res else prettyPrint res
+    |PatBind _ (fromPVar -> Just "res") (UnGuardedRhs res) _ <- xs]
