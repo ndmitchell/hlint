@@ -161,6 +161,8 @@ fromApps x = [x]
 -- generate a lambda, but prettier (if possible)
 lambda :: [Name] -> Exp -> Exp
 lambda xs (Paren x) = lambda xs x
+lambda xs (Lambda s (PVar v:vs) x) = lambda (xs++[v]) (Lambda s vs x)
+lambda xs (Lambda _ [] x) = lambda xs x
 lambda [x] (InfixApp a op b)
     | a == Var (UnQual x) = RightSection op b
     | b == Var (UnQual x) = LeftSection a op
