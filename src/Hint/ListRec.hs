@@ -13,9 +13,9 @@ foldl f z (x:xs) = foldl f (f z x) xs
 
 {-
 <TEST>
-yes = 0 where f (x:xs) = negate x + f xs ; f [] = 0
-yes = 0 where f (x:xs) = x + 1 : f xs ; f [] = []
-yes = 0 where f z (x:xs) = f (z*x) xs ; f z [] = z
+yes = 0 where f (x:xs) = negate x + f xs ; f [] = 0 ; res = "f xs = foldr (\\ x -> (+) (negate x)) 0 xs"
+yes = 0 where f (x:xs) = x + 1 : f xs ; f [] = [] ; res = "f xs = map (+ 1) xs"
+yes = 0 where f z (x:xs) = f (z*x) xs ; f z [] = z ; res = "f z xs = foldl (*) z xs"
 </TEST>
 -}
 
