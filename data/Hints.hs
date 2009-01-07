@@ -182,7 +182,7 @@ yes = concat . map f where res = concatMap f
 yes = foo . bar . concat . map f . baz . bar where res = concatMap f . baz . bar
 yes = map f (map g x) where res = map (f . g) x
 yes = concat.map (\x->if x==e then l' else [x]) where res = concatMap (\x->if x==e then l' else [x])
-yes = f x where f x = concat . map head
+yes = f x where f x = concat . map head ; res = concatMap head
 yes = concat . map f . g where res = concatMap f . g
 yes = concat $ map f x where res = concatMap f x
 yes = "test" ++ concatMap (' ':) ["of","this"] where res = unwords ("test":["of","this"])
