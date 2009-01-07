@@ -21,7 +21,6 @@ import Paths_hlint
 
 -- Input, Output
 -- Output = Nothing, should not match
--- Output = Just "", should match, no required match
 -- Output = Just xs, should match xs
 data Test = Test SrcLoc Decl (Maybe String)
 
@@ -52,12 +51,12 @@ runTest hint file = do
     return (length failures, length tests)
     where
         f (Test loc inp out) =
-                ["Test failed " ++ showSrcLoc loc ++ " " ++ concatMap ((++) " | " . show) ideas | failed]
+                ["Test failed " ++ showSrcLoc loc ++ " " ++ concatMap ((++) " | " . show) ideas | not good]
             where
                 ideas = hint inp
-                failed = or [isNothing out && ideas /= []
-                            ,isJust out && length ideas /= 1
-                            ,not $ maybe True null out || to (head ideas) == fromJust out]
+                good = case out of
+                    Nothing -> ideas == []
+                    Just x -> length ideas == 1 && to (head ideas) == x
 
 
 parseTestFile :: FilePath -> IO [Test]
@@ -79,6 +78,6 @@ createTest o@(FunBind [Match src (Ident name) _ _ (BDecls binds)]) = Test src o 
 
 
 getRes :: [Decl] -> String
-getRes xs = headDef ""
+getRes xs = headDef "<error: no res clause>"
     [if isString res then fromString res else prettyPrint res
     |PatBind _ (fromPVar -> Just "res") (UnGuardedRhs res) _ <- xs]
