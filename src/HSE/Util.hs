@@ -114,6 +114,14 @@ getEquations (PatBind src (PVar name) bod bind) = [FunBind [Match src name [] bo
 getEquations x = [x]
 
 
+apps :: [Exp] -> Exp
+apps = foldl1 App
+
+
+fromApps :: Exp -> [Exp]
+fromApps (App x y) = fromApps x ++ [y]
+fromApps x = [x]
+
 ---------------------------------------------------------------------
 -- SRCLOC FUNCTIONS
 

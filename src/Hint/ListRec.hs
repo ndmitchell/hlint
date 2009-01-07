@@ -142,20 +142,11 @@ removeInvariantArgs x = (x, id)
 
 
 ---------------------------------------------------------------------
--- UTILITY FUNCTIONS (most should move out over time)
+-- UTILITY FUNCTIONS
 
 -- a list of application, with any necessary brackets
 appsBracket :: [Exp] -> Exp
 appsBracket = foldl1 (\x y -> ensureBracket1 $ App x y)
-
-
-apps :: [Exp] -> Exp
-apps = foldl1 App
-
-
-fromApps :: Exp -> [Exp]
-fromApps (App x y) = fromApps x ++ [y]
-fromApps x = [x]
 
 
 -- generate a lambda, but prettier (if possible)
@@ -169,12 +160,3 @@ lambda [x] (InfixApp a op b)
 lambda [x,y] (view -> App2 op x1 y1)
     | x1 == Var (UnQual x) && y1 == Var (UnQual y) = op
 lambda ps x = Lambda nullSrcLoc (map PVar ps) x
-
-
-isLeft Left{} = True; isLeft _ = False
-isRight = not . isLeft
-
-unzipEither :: [Either a b] -> ([a],[b])
-unzipEither (Left  x:xs) = let (a,b) = unzipEither xs in (x:a,b)
-unzipEither (Right x:xs) = let (a,b) = unzipEither xs in (a,x:b)
-unzipEither [] = ([], [])
