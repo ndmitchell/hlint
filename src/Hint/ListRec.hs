@@ -98,23 +98,19 @@ findCase x = do
     Branch name2 ps2 p2 c2 b2 <- findBranch x2
     guard (name1 == name2 && ps1 == ps2 && p1 == p2)
     [(BNil, b1), (BCons x xs, b2)] <- return $ sortBy (comparing fst) [(c1,b1), (c2,b2)]
-    b2 <- delCons name1 p1 xs b2
+    b2 <- transformAppsM (delCons name1 p1 xs) b2
 
     let ps = let (a,b) = splitAt p1 ps1 in map PVar $ a ++ xs : b
     return (ListCase ps1 b1 (x,xs,b2)
            ,\e -> FunBind [Match nullSrcLoc name1 ps (UnGuardedRhs e) (BDecls [])])
 
 
--- delete the variable x from position n in each call to name
--- if a call exists, but doesn't have that variable in that position, then Nothing
 delCons :: Name -> Int -> Name -> Exp -> Maybe Exp
-delCons func pos var (fromApps -> (rec@(Var (UnQual func2)):xs)) | func == func2 = do
-    (pre,Var (UnQual x):post) <- return $ splitAt pos xs
-    guard $ x == var
-    res <- mapM (descendM $ delCons func pos var) (pre++post)
-    return $ apps $ recursive : res
-delCons func pos var x = descendM (delCons func pos var) x
-
+delCons func pos var (fromApps -> Var (UnQual x):xs) | func == x = do
+    (pre,Var (UnQual v):post) <- return $ splitAt pos xs
+    guard $ v == var
+    return $ apps $ recursive : pre ++ post
+delCons _ _ _ x = return x
 
 ---------------------------------------------------------------------
 -- FIND A BRANCH
