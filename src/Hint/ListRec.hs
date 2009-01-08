@@ -39,10 +39,10 @@ listRecHint = concatMap f . universe
             let x = o
             (x, addArgs) <- return $ removeInvariantArgs x
             (x, addCase) <- findCase x
-            x <- matchListRec x
+            (use,rank,x) <- matchListRec x
             let res = addArgs $ addCase x
                 loc = headDef nullSrcLoc $ universeBi o
-            return $ idea Error "Use recursion" loc o res
+            return $ idea rank ("Use " ++ use) loc o res
 
 
 recursive = toVar "_recursive_"
@@ -67,21 +67,24 @@ data Branch = Branch Name [Name] Int BList Exp
 -- MATCH THE RECURSION
 
 
-matchListRec :: ListCase -> Maybe Exp
+matchListRec :: ListCase -> Maybe (String,Rank,Exp)
 matchListRec o@(ListCase vars nil (x,xs,cons))
     
     | [] <- vars, nil ~= "[]", InfixApp lhs c rhs <- cons, opExp c ~= ":"
     , rhs == recursive, Var (UnQual xs) `notElem` universe lhs
-    = Just $ appsBracket [toVar "map", lambda [x] lhs, Var $ UnQual xs]
+    = Just $ (,,) "map" Error $ appsBracket
+        [toVar "map", lambda [x] lhs, Var $ UnQual xs]
 
     | [] <- vars, App2 op lhs rhs <- view cons
     , null $ universe op `intersect` [Var (UnQual x), Var (UnQual xs)]
     , rhs == recursive, Var (UnQual xs) `notElem` universe lhs
-    = Just $ appsBracket [toVar "foldr", lambda [x] $ appsBracket [op,lhs], nil, Var $ UnQual xs]
+    = Just $ (,,) "foldr" Warning $ appsBracket
+        [toVar "foldr", lambda [x] $ appsBracket [op,lhs], nil, Var $ UnQual xs]
 
     | [v] <- vars, Var (UnQual v) == nil, App r lhs <- cons, r == recursive
     , Var (UnQual xs) `notElem` universe lhs
-    = Just $ appsBracket [toVar "foldl", lambda [v,x] lhs, Var $ UnQual v, Var $ UnQual xs]
+    = Just $ (,,) "foldl" Warning $ appsBracket
+        [toVar "foldl", lambda [v,x] lhs, Var $ UnQual v, Var $ UnQual xs]
 
     | otherwise = Nothing
 
