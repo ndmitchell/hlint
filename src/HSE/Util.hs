@@ -2,6 +2,7 @@
 
 module HSE.Util where
 
+import Control.Monad
 import Data.Generics
 import Data.Generics.PlateData
 import Data.List
@@ -142,11 +143,20 @@ descendApps f (App x y) = App (descend f x) (f y)
 descendApps f x = descend f x
 
 
+descendAppsM :: Monad m => (Exp -> m Exp) -> Exp -> m Exp
+descendAppsM f (App x@App{} y) = liftM2 App (descendAppsM f x) (f y)
+descendAppsM f (App x y) = liftM2 App (descendM f x) (f y)
+descendAppsM f x = descendM f x
+
+
 universeApps :: Exp -> [Exp]
 universeApps x = x : concatMap universeApps (childrenApps x)
 
 transformApps :: (Exp -> Exp) -> Exp -> Exp
 transformApps f = f . descendApps (transformApps f)
+
+transformAppsM :: Monad m => (Exp -> m Exp) -> Exp -> m Exp
+transformAppsM f x = f =<< descendAppsM (transformAppsM f) x
 
 
 ---------------------------------------------------------------------
