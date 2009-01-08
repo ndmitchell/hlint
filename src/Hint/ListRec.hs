@@ -16,6 +16,7 @@ foldl f z (x:xs) = foldl f (f z x) xs
 yes = 0 where f (x:xs) = negate x + f xs ; f [] = 0 ; res = "f xs = foldr (\\ x -> (+) (negate x)) 0 xs"
 yes = 0 where f (x:xs) = x + 1 : f xs ; f [] = [] ; res = "f xs = map (+ 1) xs"
 yes = 0 where f z (x:xs) = f (z*x) xs ; f z [] = z ; res = "f z xs = foldl (*) z xs"
+yes = 0 where f a (x:xs) b = x + a + b : f a xs b ; f a [] b = [] ; res = "f a xs b = map (\\ x -> x + a + b) xs"
 </TEST>
 -}
 
@@ -99,10 +100,11 @@ findCase x = do
     guard (name1 == name2 && ps1 == ps2 && p1 == p2)
     [(BNil, b1), (BCons x xs, b2)] <- return $ sortBy (comparing fst) [(c1,b1), (c2,b2)]
     b2 <- transformAppsM (delCons name1 p1 xs) b2
+    (ps,b2) <- return $ eliminateArgs ps1 b2
 
-    let ps = let (a,b) = splitAt p1 ps1 in map PVar $ a ++ xs : b
-    return (ListCase ps1 b1 (x,xs,b2)
-           ,\e -> FunBind [Match nullSrcLoc name1 ps (UnGuardedRhs e) (BDecls [])])
+    let ps12 = let (a,b) = splitAt p1 ps1 in map PVar $ a ++ xs : b
+    return (ListCase ps b1 (x,xs,b2)
+           ,\e -> FunBind [Match nullSrcLoc name1 ps12 (UnGuardedRhs e) (BDecls [])])
 
 
 delCons :: Name -> Int -> Name -> Exp -> Maybe Exp
@@ -111,6 +113,18 @@ delCons func pos var (fromApps -> Var (UnQual x):xs) | func == x = do
     guard $ v == var
     return $ apps $ recursive : pre ++ post
 delCons _ _ _ x = return x
+
+
+eliminateArgs :: [Name] -> Exp -> ([Name], Exp)
+eliminateArgs ps cons = (remove ps, transform f cons)
+    where
+        args = [zs | z:zs <- map fromApps $ universeApps cons, z == recursive]
+        elim = [all (\xs -> length xs > i && xs !! i == Var (UnQual p)) args | (i,p) <- zip [0..] ps] ++ repeat False
+        remove = concat . zipWith (\b x -> [x | not b]) elim
+
+        f (fromApps -> x:xs) | x == recursive = apps $ x : remove xs
+        f x = x
+
 
 ---------------------------------------------------------------------
 -- FIND A BRANCH
