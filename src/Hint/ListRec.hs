@@ -37,10 +37,9 @@ listRecHint = concatMap f . universe
     where
         f o = maybeToList $ do
             let x = o
-            (x, addArgs) <- return $ removeInvariantArgs x
             (x, addCase) <- findCase x
             (use,rank,x) <- matchListRec x
-            let res = addArgs $ addCase x
+            let res = addCase x
                 loc = headDef nullSrcLoc $ universeBi o
             return $ idea rank ("Use " ++ use) loc o res
 
@@ -140,16 +139,6 @@ readPat (PVar x) = Just $ Left x
 readPat (PParen (PInfixApp (PVar x) (Special Cons) (PVar xs))) = Just $ Right $ BCons x xs
 readPat (PList []) = Just $ Right BNil
 readPat _ = Nothing
-
-
----------------------------------------------------------------------
--- REMOVE INVARIANT ARGUMENTS
-
--- An invariant argument is passed in the same location
--- in every recursive call, provide a function for putting them
--- back in. This is similar to reverse lambda lifting.
-removeInvariantArgs :: Decl -> (Decl, Decl -> Decl)
-removeInvariantArgs x = (x, id)
 
 
 ---------------------------------------------------------------------
