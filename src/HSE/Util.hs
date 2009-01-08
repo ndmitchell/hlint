@@ -114,6 +114,10 @@ getEquations (PatBind src (PVar name) bod bind) = [FunBind [Match src name [] bo
 getEquations x = [x]
 
 
+---------------------------------------------------------------------
+-- VECTOR APPLICATION
+
+
 apps :: [Exp] -> Exp
 apps = foldl1 App
 
@@ -121,6 +125,29 @@ apps = foldl1 App
 fromApps :: Exp -> [Exp]
 fromApps (App x y) = fromApps x ++ [y]
 fromApps x = [x]
+
+
+-- Rule for the Uniplate Apps functions
+-- Given (f a) b, consider the children to be: children f ++ [a,b]
+
+childrenApps :: Exp -> [Exp]
+childrenApps (App x@App{} y) = childrenApps x ++ [y]
+childrenApps (App x y) = children x ++ [y]
+childrenApps x = children x
+
+
+descendApps :: (Exp -> Exp) -> Exp -> Exp
+descendApps f (App x@App{} y) = App (descendApps f x) (f y)
+descendApps f (App x y) = App (descend f x) (f y)
+descendApps f x = descend f x
+
+
+universeApps :: Exp -> [Exp]
+universeApps x = x : concatMap universeApps (childrenApps x)
+
+transformApps :: (Exp -> Exp) -> Exp -> Exp
+transformApps f = f . descendApps (transformApps f)
+
 
 ---------------------------------------------------------------------
 -- SRCLOC FUNCTIONS
