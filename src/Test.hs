@@ -73,11 +73,11 @@ parseTestFile file = do
 
 
 createTest :: Decl -> Test
-createTest o@(FunBind [Match src (Ident name) _ _ (BDecls binds)]) = Test src o $
+createTest o@(FunBind [Match src (Ident name) _ _ _ (BDecls binds)]) = Test src o $
     if "no" == name then Nothing else Just $ getRes binds
 
 
 getRes :: [Decl] -> String
 getRes xs = headDef "<error: no res clause>"
     [if isString res then fromString res else prettyPrint res
-    |PatBind _ (fromPVar -> Just "res") (UnGuardedRhs res) _ <- xs]
+    |PatBind _ (fromPVar -> Just "res") _ (UnGuardedRhs res) _ <- xs]

@@ -104,7 +104,7 @@ findCase x = do
 
     let ps12 = let (a,b) = splitAt p1 ps1 in map PVar $ a ++ xs : b
     return (ListCase ps b1 (x,xs,b2)
-           ,\e -> FunBind [Match nullSrcLoc name1 ps12 (UnGuardedRhs e) (BDecls [])])
+           ,\e -> FunBind [Match nullSrcLoc name1 ps12 Nothing (UnGuardedRhs e) (BDecls [])])
 
 
 delCons :: Name -> Int -> Name -> Exp -> Maybe Exp
@@ -131,7 +131,7 @@ eliminateArgs ps cons = (remove ps, transform f cons)
 
 findBranch :: Match -> Maybe Branch
 findBranch x = do
-    Match _ name ps (UnGuardedRhs bod) (BDecls []) <- return x
+    Match _ name ps Nothing (UnGuardedRhs bod) (BDecls []) <- return x
     (a,b,c) <- findPat ps
     return $ Branch name a b c bod
 

@@ -91,8 +91,8 @@ declName (GDataDecl _ _ _ name _ _ _ _) = fromName name
 declName (TypeFamDecl _ name _ _) = fromName name
 declName (DataFamDecl _ _ name _ _) = fromName name
 declName (ClassDecl _ _ name _ _ _) = fromName name
-declName (PatBind _ (PVar name) _ _) = fromName name
-declName (FunBind (Match _ name _ _ _ : _)) = fromName name
+declName (PatBind _ (PVar name) _ _ _) = fromName name
+declName (FunBind (Match _ name _ _ _ _ : _)) = fromName name
 declName (ForImp _ _ _ _ name _) = fromName name
 declName (ForExp _ _ _ name _) = fromName name
 declName _ = ""
@@ -111,7 +111,7 @@ freeVar x = head $ allVars \\ concat [[y, drop 1 y] | Ident y <- universeBi x]
 
 getEquations :: Decl -> [Decl]
 getEquations (FunBind xs) = map (FunBind . (:[])) xs
-getEquations (PatBind src (PVar name) bod bind) = [FunBind [Match src name [] bod bind]]
+getEquations (PatBind src (PVar name) typ bod bind) = [FunBind [Match src name [] typ bod bind]]
 getEquations x = [x]
 
 

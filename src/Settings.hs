@@ -46,7 +46,7 @@ classify xs = \i -> i{rank=foldl'
 -- READ A HINT
 
 readSetting :: Decl -> [Setting]
-readSetting (FunBind [Match src (Ident (getRank -> rank)) pats
+readSetting (FunBind [Match src (Ident (getRank -> rank)) pats _
            (UnGuardedRhs bod) (BDecls bind)])
     | InfixApp lhs op rhs <- bod, opExp op ~= "==>", [name] <- names =
         [MatchExp rank name (fromParen lhs) (fromParen rhs) (readSide bind)]
@@ -56,14 +56,14 @@ readSetting (FunBind [Match src (Ident (getRank -> rank)) pats
         names2 = ["" | null names] ++ names
 
 
-readSetting (PatBind src (PVar name) bod bind) = readSetting $ FunBind [Match src name [PLit (String "")] bod bind]
+readSetting (PatBind src (PVar name) typ bod bind) = readSetting $ FunBind [Match src name [PLit (String "")] typ bod bind]
 readSetting (FunBind xs) | length xs /= 1 = concatMap (readSetting . FunBind . (:[])) xs
 readSetting x = error $ "Failed to read hint " ++ maybe "" showSrcLoc (getSrcLoc x) ++ "\n" ++ prettyPrint x
 
 
 readSide :: [Decl] -> Maybe Exp
 readSide [] = Nothing
-readSide [PatBind src PWildCard (UnGuardedRhs bod) (BDecls [])] = Just bod
+readSide [PatBind src PWildCard Nothing (UnGuardedRhs bod) (BDecls [])] = Just bod
 readSide (x:_) = error $ "Failed to read side condition " ++ maybe "" showSrcLoc (getSrcLoc x) ++ "\n" ++ prettyPrint x
 
 

@@ -49,19 +49,19 @@ lambdaExp _ = []
 
 
 lambdaDecl :: Decl -> [Idea]
-lambdaDecl (PatBind loc (PVar x) rhs bind) = lambdaDef $ Match loc x [] rhs bind
+lambdaDecl (PatBind loc (PVar x) typ rhs bind) = lambdaDef $ Match loc x [] typ rhs bind
 lambdaDecl (FunBind [x]) = lambdaDef x --only apply to 1-def, because arities must be the same
 lambdaDecl _ = []
 
 
 lambdaDef :: Match -> [Idea]
-lambdaDef o@(Match loc name pats (UnGuardedRhs bod) (BDecls []))
+lambdaDef o@(Match loc name pats typ (UnGuardedRhs bod) (BDecls []))
     | Lambda loc vs y <- bod = [warn "Redundant lambda" loc o $ reform (pats++vs) y]
     | [PVar x, PVar y] <- pats, Just (f,g) <- useOn x y bod =
               [warn "Use on" loc o $ reform [] (ensureBracket1 $ InfixApp f (QVarOp $ UnQual $ Ident "on") g)]
     | Ident _ <- name, (p2,y) <- etaReduces pats bod, length p2 /= length pats = [warn "Eta reduce" loc o $ reform p2 y]
     | otherwise = []
-        where reform pats2 bod2 = Match loc name pats2 (UnGuardedRhs bod2) (BDecls [])
+        where reform pats2 bod2 = Match loc name pats2 typ (UnGuardedRhs bod2) (BDecls [])
 lambdaDef _ = []
 
 
