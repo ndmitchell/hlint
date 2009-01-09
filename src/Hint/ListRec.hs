@@ -164,9 +164,13 @@ lambda :: [Name] -> Exp -> Exp
 lambda xs (Paren x) = lambda xs x
 lambda xs (Lambda s (PVar v:vs) x) = lambda (xs++[v]) (Lambda s vs x)
 lambda xs (Lambda _ [] x) = lambda xs x
+lambda [x] (App a b) | Var (UnQual x) == b = a
+lambda [x] (App a@Var{} (Paren (App b@Var{} c)))
+    | Var (UnQual x) == c = InfixApp a (QVarOp $ UnQual $ Symbol ".") b
 lambda [x] (InfixApp a op b)
     | a == Var (UnQual x) = RightSection op b
     | b == Var (UnQual x) = LeftSection a op
 lambda [x,y] (view -> App2 op x1 y1)
     | x1 == Var (UnQual x) && y1 == Var (UnQual y) = op
+    | x1 == Var (UnQual y) && y1 == Var (UnQual x) = App (toVar "flip") op
 lambda ps x = Lambda nullSrcLoc (map PVar ps) x
