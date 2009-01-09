@@ -16,6 +16,7 @@ evaluate = fromParen . transform evaluate1
 
 evaluate1 :: Exp -> Exp
 evaluate1 (App len (Lit (String xs))) | len ~= "length" = Lit $ Int $ fromIntegral $ length xs
+evaluate1 (App len (List xs)) | len ~= "length" = Lit $ Int $ fromIntegral $ length xs
 evaluate1 (view -> App2 op (Lit x) (Lit y)) | op ~= "==" = Con $ toQName $ show $ x == y
 evaluate1 (view -> App2 op x y)
     | op ~= "&&" && x ~= "True"  = y
