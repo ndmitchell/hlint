@@ -13,7 +13,7 @@ foldl f z (x:xs) = foldl f (f z x) xs
 
 {-
 <TEST>
-yes = 0 where f (x:xs) = negate x + f xs ; f [] = 0 ; res = "f xs = foldr (\\ x -> (+) (negate x)) 0 xs"
+yes = 0 where f (x:xs) = negate x + f xs ; f [] = 0 ; res = "f xs = foldr ((+) . negate) 0 xs"
 yes = 0 where f (x:xs) = x + 1 : f xs ; f [] = [] ; res = "f xs = map (+ 1) xs"
 yes = 0 where f z (x:xs) = f (z*x) xs ; f z [] = z ; res = "f z xs = foldl (*) z xs"
 yes = 0 where f a (x:xs) b = x + a + b : f a xs b ; f a [] b = [] ; res = "f a xs b = map (\\ x -> x + a + b) xs"
