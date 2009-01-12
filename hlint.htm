@@ -129,6 +129,18 @@ Why not:
 	HLint can generate a lot of information, and often searching for either the errors specific to a file, or a specific class of errors, is difficult. Using the <tt>--report</tt> flag HLint will produce a report file in HTML, which can be viewed interactively. It is recommended that if investigating more than a handlful of hints, a report is used.
 </p>
 
+<h3>Emacs Integration</h3>
+
+<p>
+	Emacs integration of HLint has been provided by <a href="http://xtalk.msk.su/~ott/">Alex Ott</a>. The integration is similar to compilation-mode, allowing navigation between errors, etc. The script is at <a href="http://www.cs.york.ac.uk/fp/darcs/hlint/data/hs-lint.el">hs-lint.el</a>, and a copy is installed locally in the data directory. To use, just add the following code to the Emacs init file:
+</p>
+<pre>
+(require 'hs-lint)
+(defun my-haskell-mode-hook ()
+   (local-set-key "\C-cl" 'hs-lint))
+(add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
+</pre>
+
 <h3>Recursive Suggestions</h3>
 
 <p>
