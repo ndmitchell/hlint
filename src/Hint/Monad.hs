@@ -53,7 +53,7 @@ monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, to
 monadCall _ = Nothing
 
 
-monadReturn (reverse -> Qualifier (App ret v):Generator _ p x:rest)
-    | ret ~= "return", Just v2 <- fromVar v, Just p2 <- fromPVar p, v2 == p2
+monadReturn (reverse -> Qualifier (App ret (Var v)):Generator _ (PVar p) x:rest)
+    | ret ~= "return", fromNamed v == fromNamed p
     = Just $ Do $ reverse $ Qualifier x : rest
 monadReturn _ = Nothing

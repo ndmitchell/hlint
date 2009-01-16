@@ -47,7 +47,7 @@ unify :: Exp -> Exp -> Maybe [(String,Exp)]
 unify (Do xs) (Do ys) | length xs == length ys = concatZipWithM unifyStmt xs ys
 unify (Lambda _ xs x) (Lambda _ ys y) | length xs == length ys = liftM2 (++) (unify x y) (concatZipWithM unifyPat xs ys)
 unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
-unify x y | Just v <- fromVar x, isUnifyVar v = Just [(v,y)]
+unify (Var (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
 unify x y | ((==) `on` descend (const $ toVar "_")) x y = concatZipWithM unify (children x) (children y)
 unify x o@(view -> App2 op y1 y2)
   | op ~= "$" = unify x $ y1 `App` y2
@@ -63,8 +63,8 @@ unifyStmt _ _ = Nothing
 
 
 unifyPat :: Pat -> Pat -> Maybe [(String,Exp)]
-unifyPat x y | Just x1 <- fromPVar x, Just y1 <- fromPVar y = Just [(x1,toVar y1)]
-unifyPat PWildCard y | Just y1 <- fromPVar y = Just []
+unifyPat (PVar x) (PVar y) = Just [(fromNamed x, toNamed $ fromNamed y)]
+unifyPat PWildCard (PVar _) = Just []
 unifyPat x y | ((==) `on` descend (const PWildCard)) x y = concatZipWithM unifyPat (children x) (children y)
 unifyPat _ _ = Nothing
 
@@ -86,8 +86,8 @@ checkSide (Just x) bind = f x
             | opExp op ~= "&&" = f x && f y
             | opExp op ~= "||" = f x || f y
         f (Paren x) = f x
-        f (App x y)
-            | Just ('i':'s':typ) <- fromVar x, Just v <- fromVar y, Just e <- lookup v bind
+        f (App x (Var y))
+            | 'i':'s':typ <- fromNamed x, Just e <- lookup (fromNamed y) bind
             = if typ == "Atom" then isAtom e
               else head (words $ show e) == typ
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
@@ -97,8 +97,8 @@ checkSide (Just x) bind = f x
 subst :: [(String,Exp)] -> Exp -> Exp
 subst bind = transform g . transformBracket f
     where
-        f x | Just v <- fromVar x, isUnifyVar v, Just y <- lookup v bind = Just y
-            | otherwise = Nothing
+        f (Var (fromNamed -> x)) | isUnifyVar x = lookup x bind
+        f _ = Nothing
 
         g (App np (Paren x)) | np ~= "_noParen_" = x
         g x = x
@@ -114,7 +114,7 @@ dotContract :: Exp -> Exp
 dotContract x = fromMaybe x (f x)
     where
         f x | isParen x = f $ fromParen x
-        f (App x y) | Just "?" <- fromVar y = Just x
+        f (App x y) | "?" <- fromNamed y = Just x
                     | Just z <- f y = Just $ InfixApp x (QVarOp $ UnQual $ Symbol ".") z
         f _ = Nothing
 

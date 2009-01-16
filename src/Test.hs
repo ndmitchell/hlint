@@ -82,4 +82,4 @@ createTest o@(FunBind [Match src (Ident name) _ _ _ (BDecls binds)]) = Test src 
 getRes :: [Decl] -> String
 getRes xs = headDef "<error: no res clause>"
     [if isString res then fromString res else prettyPrint res
-    |PatBind _ (fromPVar -> Just "res") _ (UnGuardedRhs res) _ <- xs]
+    |PatBind _ (fromNamed -> "res") _ (UnGuardedRhs res) _ <- xs]
