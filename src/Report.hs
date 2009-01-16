@@ -4,6 +4,7 @@ module Report(writeReport) where
 import Type
 import Language.Haskell.Exts
 import Data.List
+import Data.Maybe
 import System.FilePath
 import Paths_hlint
 
@@ -16,7 +17,7 @@ writeReport file ideas = do
 
 
 writeReport1 :: FilePath -> [Idea] -> IO ()
-writeReport1 file ideas = writeTemplate "report.html" content file
+writeReport1 file ideas = writeTemplate "report.html" [("CONTENT",content)] file
     where
         content = map f ideas
         drp = filePrefix $ map (srcFilename . loc) ideas
@@ -26,18 +27,14 @@ writeReport1 file ideas = writeTemplate "report.html" content file
                          ,show $ from x, show $ to x]
 
 
-writeTemplate :: FilePath -> [String] -> FilePath -> IO ()
+writeTemplate :: FilePath -> [(String,[String])] -> FilePath -> IO ()
 writeTemplate from content to = do
     dat <- getDataDir
     src <- readFile $ dat </> from
-    writeFile to $ unlines $ repContent content $ lines src
-
-
-repContent :: [String] -> [String] -> [String]
-repContent content xs = pre ++ take 1 mid ++ content ++ post
+    writeFile to $ unlines $ concatMap f $ lines src
     where
-        (pre,mid) = break (isInfixOf "<CONTENT>") xs
-        post = dropWhile (not . isInfixOf "</CONTENT>") mid
+        f ('$':xs) = fromMaybe (error "writeTemplate") $ lookup xs content
+        f x = [x]
 
 
 filePrefix :: [FilePath] -> (FilePath -> FilePath)

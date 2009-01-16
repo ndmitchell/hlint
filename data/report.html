@@ -11,14 +11,7 @@ var items = [];
 var link_sel = 1;
 var link_count = 0;
 
-// <CONTENT>
-idea("Eta reduce","Data/Binary/Defer/Class.hs",31,1,"get0 f = return f","get0 = return");
-idea("Eta reduce","Data/Binary/Defer/Class.hs",41,1,"getFixed0 f = return f","getFixed0 = return");
-idea("Eta reduce","Data/Binary/Defer/Class.hs",51,1,"put1 x1 = put x1","put1 = put");
-idea("Use on","Data/Binary/Defer/Class.hs",52,1,"put2 x1 x2 = put x1 >> put x2","put2 = (>>) `on` put");
-idea("Use on","Data/Binary/Defer/Link.hs",48,5,"a == b = linkKey a == linkKey b","(==) = (==) `on` linkKey");
-idea("Use concatMap","General/Util.hs",71,1,"concat $ map (\\ a -> zipWith f (inits a) (tails a)) (permute xs)","concatMap (\\ a -> zipWith f (inits a) (tails a)) (permute xs)");
-// </CONTENT>
+$CONTENT
 
 function idea(name,file,line,col,old,suggest)
 {
