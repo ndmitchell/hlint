@@ -51,7 +51,9 @@ runTest hint file = do
     return (length failures, length tests)
     where
         f (Test loc inp out) =
-                ["Test failed " ++ showSrcLoc loc ++ " " ++ concatMap ((++) " | " . show) ideas | not good]
+                ["Test failed " ++ showSrcLoc loc ++ " " ++
+                 concatMap ((++) " | " . show) ideas ++ "\n" ++
+                 prettyPrint inp | not good]
             where
                 ideas = hint inp
                 good = case out of
