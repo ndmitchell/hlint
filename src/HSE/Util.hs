@@ -14,10 +14,6 @@ import Util
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER
 
-fromName :: Name -> String
-fromName (Ident x) = x
-fromName (Symbol x) = x
-
 toName :: String -> Name
 toName = Ident
 
