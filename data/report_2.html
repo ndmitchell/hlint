@@ -5,11 +5,18 @@
 <title>HLint report</title>
 <script type='text/javascript'>
 
+/* == Algorithm for show/unshow ==
+   Each hint/file is given a number, hint# or file#
+   When we say showOnly with a class name we add the rules to
+   the css #content div {display:none}, #content div.className {display:block}
+   When going back to showAll we remove these results
+*/
+
 function showAll()
 {
 }
 
-function showOnly(xs)
+function showOnly(className)
 {
 }
 
