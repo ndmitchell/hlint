@@ -38,10 +38,7 @@ instance View Exp Infix where
 
 
 (~=) :: Exp -> String -> Bool
-(Con (Special Cons)) ~= ":" = True
-(Con x) ~= y = Var x ~= y
-(List []) ~= "[]" = True
-x ~= y = fromVar x == Just y
+(~=) x y = fromNamed x == y
 
 
 -- | fromNamed will return "" when it cannot be represented
@@ -63,7 +60,7 @@ instance Named Exp where
     
     toNamed "[]" = List []
     toNamed x | isCon x = Con $ toNamed x
-              | otherwise = toNamed x
+              | otherwise = Var $ toNamed x
 
 instance Named QName where
     fromNamed (Special Cons) = ":"
