@@ -3,7 +3,7 @@ module HSE.All(
     module Language.Haskell.Exts,
     module HSE.Util, module HSE.Evaluate,
     module HSE.Bracket, module HSE.Match,
-    module HSE.Operators,
+    module HSE.Operators, module HSE.Generics,
     parseFile, parseString
     ) where
 
@@ -12,6 +12,7 @@ import qualified Language.Haskell.Exts as HSE
 
 import HSE.Util
 import HSE.Evaluate
+import HSE.Generics
 import HSE.Bracket
 import HSE.Match
 import HSE.Operators
