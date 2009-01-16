@@ -2,8 +2,8 @@
 
 module HSE.Match where
 
-import Data.Generics
-import Data.Generics.PlateData
+import HSE.Generics
+import Data.Char
 import Data.List
 import Data.Maybe
 import Language.Haskell.Exts
@@ -42,3 +42,35 @@ instance View Exp Infix where
 (Con x) ~= y = Var x ~= y
 (List []) ~= "[]" = True
 x ~= y = fromVar x == Just y
+
+
+-- | fromNamed will return "" when it cannot be represented
+--   toNamed may crash on ""
+class Named a where
+    toNamed :: String -> a
+    fromNamed :: a -> String
+
+instance Named Exp where
+    fromNamed (Var x) = fromNamed x
+    fromNamed (Con x) = fromNamed x
+    fromNamed (List []) = "[]"
+    fromNamed _ = ""
+    
+    toNamed "[]" = List []
+    toNamed xs@(x:_) | isUpper x || x == ':' = Con $ toNamed xs
+                     | otherwise = toNamed xs
+
+instance Named QName where
+    fromNamed (Special Cons) = ":"
+    fromNamed (UnQual x) = fromNamed x
+    fromNamed _ = ""
+
+    toNamed ":" = Special Cons
+    toNamed x = UnQual $ toNamed x
+
+instance Named Name where
+    fromNamed (Ident x) = x
+    fromNamed (Symbol x) = x
+
+    toNamed xs@(x:_) | isAlpha x || x `elem` "_'" = Ident xs
+                     | otherwise = Symbol xs
