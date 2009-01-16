@@ -37,13 +37,6 @@ moduleName (Module _ (ModuleName x) _ _ _ _ _) = x
 fromParseOk :: ParseResult a -> a
 fromParseOk (ParseOk x) = x
 
-fromVar :: Exp -> Maybe QName
-fromVar (Var x) = Just x
-fromVar _ = Nothing
-
-isVar :: Exp -> Bool
-isVar = isJust . fromVar
-
 toVar :: String -> Exp
 toVar = Var . UnQual . Ident
 
