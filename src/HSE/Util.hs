@@ -14,12 +14,6 @@ import Util
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER
 
-toName :: String -> Name
-toName = Ident
-
-toQName :: String -> QName
-toQName = UnQual . toName
-
 opExp :: QOp -> Exp
 opExp (QVarOp op) = Var op
 opExp (QConOp op) = Con op
