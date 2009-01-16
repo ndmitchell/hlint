@@ -50,6 +50,11 @@ class Named a where
     toNamed :: String -> a
     fromNamed :: a -> String
 
+
+isCon (x:_) = isUpper x || x == ':'
+isSym (x:_) = not $ isAlpha x || x `elem` "_'"
+
+
 instance Named Exp where
     fromNamed (Var x) = fromNamed x
     fromNamed (Con x) = fromNamed x
@@ -57,8 +62,8 @@ instance Named Exp where
     fromNamed _ = ""
     
     toNamed "[]" = List []
-    toNamed xs@(x:_) | isUpper x || x == ':' = Con $ toNamed xs
-                     | otherwise = toNamed xs
+    toNamed x | isCon x = Con $ toNamed x
+              | otherwise = toNamed x
 
 instance Named QName where
     fromNamed (Special Cons) = ":"
@@ -72,5 +77,13 @@ instance Named Name where
     fromNamed (Ident x) = x
     fromNamed (Symbol x) = x
 
-    toNamed xs@(x:_) | isAlpha x || x `elem` "_'" = Ident xs
-                     | otherwise = Symbol xs
+    toNamed x | isSym x = Symbol x
+              | otherwise = Ident x
+
+instance Named Pat where
+    fromNamed (PVar x) = fromNamed x
+    fromNamed (PApp x []) = fromNamed x
+    fromNamed _ = ""
+
+    toNamed x | isCon x = PApp (toNamed x) []
+              | otherwise = PVar $ toNamed x
