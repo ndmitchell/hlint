@@ -14,6 +14,7 @@ no = [x] ++ xs ++ ys
 no = xs ++ [x] ++ ys
 yes = [if a then b else c] ++ xs where res = (if a then b else c) : xs
 yes = [1] : [2] : [3] : [4] : [5] : [] where res = [[1], [2], [3], [4], [5]]
+yes = if x == e then l2 ++ xs else [x] ++ check_elem xs where res = x : check_elem xs
 </TEST>
 -}
 
