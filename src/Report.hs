@@ -10,9 +10,13 @@ import Paths_hlint
 
 writeReport :: FilePath -> [Idea] -> IO ()
 writeReport file ideas = do
-        dat <- getDataDir
-        src <- readFile (dat </> "report.html")
-        writeFile file $ unlines $ repContent content $ lines src
+    writeReport1 file ideas
+    let file2 = dropExtension file ++ "_2" ++ takeExtension file
+    writeReport2 file2 ideas
+
+
+writeReport1 :: FilePath -> [Idea] -> IO ()
+writeReport1 file ideas = writeTemplate "report.html" content file
     where
         content = map f ideas
         drp = filePrefix $ map (srcFilename . loc) ideas
@@ -20,6 +24,13 @@ writeReport file ideas = do
             where args = [show $ show (rank x) ++ ": " ++ hint x
                          ,show $ drp $ srcFilename $ loc x, show $ srcLine $ loc x, show $ srcColumn $ loc x
                          ,show $ from x, show $ to x]
+
+
+writeTemplate :: FilePath -> [String] -> FilePath -> IO ()
+writeTemplate from content to = do
+    dat <- getDataDir
+    src <- readFile $ dat </> from
+    writeFile to $ unlines $ repContent content $ lines src
 
 
 repContent :: [String] -> [String] -> [String]
@@ -38,3 +49,10 @@ filePrefix xs | null xs = flipSlash
         n2 = length $ dropWhile (`notElem` "\\/") $ reverse $ take n mn
 
         flipSlash = map (\x -> if x == '\\' then '/' else x)
+
+
+
+
+writeReport2 :: FilePath -> [Idea] -> IO ()
+writeReport2 out ideas = return ()
+
