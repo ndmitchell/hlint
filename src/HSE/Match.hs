@@ -84,3 +84,19 @@ instance Named Pat where
 
     toNamed x | isCon x = PApp (toNamed x) []
               | otherwise = PVar $ toNamed x
+
+
+instance Named Decl where
+    fromNamed (TypeDecl _ name _ _) = fromNamed name
+    fromNamed (DataDecl _ _ _ name _ _ _) = fromNamed name
+    fromNamed (GDataDecl _ _ _ name _ _ _ _) = fromNamed name
+    fromNamed (TypeFamDecl _ name _ _) = fromNamed name
+    fromNamed (DataFamDecl _ _ name _ _) = fromNamed name
+    fromNamed (ClassDecl _ _ name _ _ _) = fromNamed name
+    fromNamed (PatBind _ (PVar name) _ _ _) = fromNamed name
+    fromNamed (FunBind (Match _ name _ _ _ _ : _)) = fromNamed name
+    fromNamed (ForImp _ _ _ _ name _) = fromNamed name
+    fromNamed (ForExp _ _ _ name _) = fromNamed name
+    fromNamed _ = ""
+
+    toNamed = error "No toNamed for Decl"

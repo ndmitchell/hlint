@@ -70,6 +70,6 @@ concatHints hs x = concatMap ($x) hs
 
 
 applyHint :: Hint -> Module -> [Idea]
-applyHint h m = [i{func = (name,declName d)}
+applyHint h m = [i{func = (name,fromNamed d)}
                 | d <- moduleDecls m, i <- sortBy (comparing loc) $ h d]
     where name = moduleName m

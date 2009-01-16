@@ -70,19 +70,6 @@ isIf If{} = True; isIf _ = False
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
 
-declName :: Decl -> String
-declName (TypeDecl _ name _ _) = fromName name
-declName (DataDecl _ _ _ name _ _ _) = fromName name
-declName (GDataDecl _ _ _ name _ _ _ _) = fromName name
-declName (TypeFamDecl _ name _ _) = fromName name
-declName (DataFamDecl _ _ name _ _) = fromName name
-declName (ClassDecl _ _ name _ _ _) = fromName name
-declName (PatBind _ (PVar name) _ _ _) = fromName name
-declName (FunBind (Match _ name _ _ _ _ : _)) = fromName name
-declName (ForImp _ _ _ _ name _) = fromName name
-declName (ForExp _ _ _ name _) = fromName name
-declName _ = ""
-
 
 instance Eq Module where
     Module x1 x2 x3 x4 x5 x6 x7 == Module y1 y2 y3 y4 y5 y6 y7 =

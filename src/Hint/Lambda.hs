@@ -68,9 +68,9 @@ lambdaDef _ = []
 
 -- given x y, f (g x) (g y) = Just (f, g)
 useOn :: Name -> Name -> Exp -> Maybe (Exp, Exp)
-useOn x1 y1 (view -> App2 (Var (UnQual f)) (view -> App1 g1 x2) (view -> App1 g2 y2))
-    | fromName f `elem` ["==",">=",">","!=","<","<="] && g1 == g2, map (Var . UnQual) [x1,y1] == [x2,y2]
-    = Just (Var (UnQual f),g1)
+useOn x1 y1 (view -> App2 f (view -> App1 g1 x2) (view -> App1 g2 y2))
+    | fromNamed f `elem` ["==",">=",">","!=","<","<="] && g1 == g2, map (Var . UnQual) [x1,y1] == [x2,y2]
+    = Just (f,g1)
 useOn _ _ _ = Nothing
 
 

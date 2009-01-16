@@ -70,10 +70,10 @@ readSide (x:_) = error $ "Failed to read side condition " ++ maybe "" showSrcLoc
 readFuncs :: Exp -> [FuncName]
 readFuncs (App x y) = readFuncs x ++ readFuncs y
 readFuncs (Lit (String "")) = [("","")]
-readFuncs (Var (UnQual name)) = [("",fromName name)]
-readFuncs (Var (Qual (ModuleName mod) name)) = [(mod, fromName name)]
-readFuncs (Con (UnQual name)) = [(fromName name,"")]
-readFuncs (Con (Qual (ModuleName mod) name)) = [(mod ++ "." ++ fromName name,"")]
+readFuncs (Var (UnQual name)) = [("",fromNamed name)]
+readFuncs (Var (Qual (ModuleName mod) name)) = [(mod, fromNamed name)]
+readFuncs (Con (UnQual name)) = [(fromNamed name,"")]
+readFuncs (Con (Qual (ModuleName mod) name)) = [(mod ++ "." ++ fromNamed name,"")]
 readFuncs x = error $ "Failed to read classification rule\n" ++ prettyPrint x
 
 
