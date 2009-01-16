@@ -44,13 +44,6 @@ fromVar _ = Nothing
 isVar :: Exp -> Bool
 isVar = isJust . fromVar
 
-fromPVar :: Pat -> Maybe Name
-fromPVar (PVar x) = Just x
-fromPVar _ = Nothing
-
-isPVar :: Pat -> Bool
-isPVar = isJust . fromPVar 
-
 toVar :: String -> Exp
 toVar = Var . UnQual . Ident
 
