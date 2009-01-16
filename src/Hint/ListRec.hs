@@ -45,7 +45,7 @@ listRecHint = concatMap f . universe
             return $ idea rank ("Use " ++ use) loc o res
 
 
-recursive = toVar "_recursive_"
+recursive = toNamed "_recursive_"
 
 -- recursion parameters, nil-case, (x,xs,cons-case)
 -- for cons-case delete any recursive calls with xs from them
@@ -73,18 +73,18 @@ matchListRec o@(ListCase vars nil (x,xs,cons))
     | [] <- vars, nil ~= "[]", InfixApp lhs c rhs <- cons, opExp c ~= ":"
     , rhs == recursive, Var (UnQual xs) `notElem` universe lhs
     = Just $ (,,) "map" Error $ appsBracket
-        [toVar "map", lambda [x] lhs, Var $ UnQual xs]
+        [toNamed "map", lambda [x] lhs, Var $ UnQual xs]
 
     | [] <- vars, App2 op lhs rhs <- view cons
     , null $ universe op `intersect` [Var (UnQual x), Var (UnQual xs)]
     , rhs == recursive, Var (UnQual xs) `notElem` universe lhs
     = Just $ (,,) "foldr" Warning $ appsBracket
-        [toVar "foldr", lambda [x] $ appsBracket [op,lhs], nil, Var $ UnQual xs]
+        [toNamed "foldr", lambda [x] $ appsBracket [op,lhs], nil, Var $ UnQual xs]
 
     | [v] <- vars, Var (UnQual v) == nil, App r lhs <- cons, r == recursive
     , Var (UnQual xs) `notElem` universe lhs
     = Just $ (,,) "foldl" Warning $ appsBracket
-        [toVar "foldl", lambda [v,x] lhs, Var $ UnQual v, Var $ UnQual xs]
+        [toNamed "foldl", lambda [v,x] lhs, Var $ UnQual v, Var $ UnQual xs]
 
     | otherwise = Nothing
 
@@ -172,5 +172,5 @@ lambda [x] (InfixApp a op b)
     | b == Var (UnQual x) = LeftSection a op
 lambda [x,y] (view -> App2 op x1 y1)
     | x1 == Var (UnQual x) && y1 == Var (UnQual y) = op
-    | x1 == Var (UnQual y) && y1 == Var (UnQual x) = App (toVar "flip") op
+    | x1 == Var (UnQual y) && y1 == Var (UnQual x) = App (toNamed "flip") op
 lambda ps x = Lambda nullSrcLoc (map PVar ps) x

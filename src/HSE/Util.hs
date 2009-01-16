@@ -37,9 +37,6 @@ moduleName (Module _ (ModuleName x) _ _ _ _ _) = x
 fromParseOk :: ParseResult a -> a
 fromParseOk (ParseOk x) = x
 
-toVar :: String -> Exp
-toVar = Var . UnQual . Ident
-
 isChar :: Exp -> Bool
 isChar (Lit (Char _)) = True
 isChar _ = False

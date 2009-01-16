@@ -49,7 +49,7 @@ monadExp (loc,x) = case x of
 monadCall :: Exp -> Maybe (String,Exp)
 monadCall (Paren x) = liftM (second Paren) $ monadCall x
 monadCall (App x y) = liftM (second (`App` y)) $ monadCall x
-monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, toVar x2)
+monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, toNamed x2)
 monadCall _ = Nothing
 
 

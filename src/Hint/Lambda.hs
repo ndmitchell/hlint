@@ -45,7 +45,7 @@ lambdaExp o@(Lambda loc [v] y) | isAtom y, Just x <- f v, x `notElem` universeBi
         f (PVar x) = Just x
         f PWildCard = Just $ Ident "_"
         f _ = Nothing
-        res = App (toVar "const") y
+        res = App (toNamed "const") y
 lambdaExp _ = []
 
 

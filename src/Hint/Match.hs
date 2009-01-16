@@ -48,7 +48,7 @@ unify (Do xs) (Do ys) | length xs == length ys = concatZipWithM unifyStmt xs ys
 unify (Lambda _ xs x) (Lambda _ ys y) | length xs == length ys = liftM2 (++) (unify x y) (concatZipWithM unifyPat xs ys)
 unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
 unify (Var (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
-unify x y | ((==) `on` descend (const $ toVar "_")) x y = concatZipWithM unify (children x) (children y)
+unify x y | ((==) `on` descend (const $ toNamed "_")) x y = concatZipWithM unify (children x) (children y)
 unify x o@(view -> App2 op y1 y2)
   | op ~= "$" = unify x $ y1 `App` y2
   | op ~= "." = unify x $ dotExpand o
@@ -58,7 +58,7 @@ unify _ _ = Nothing
 
 unifyStmt :: Stmt -> Stmt -> Maybe [(String,Exp)]
 unifyStmt (Generator _ p1 x1) (Generator _ p2 x2) = liftM2 (++) (unifyPat p1 p2) (unify x1 x2)
-unifyStmt x y | ((==) `on` descendBi (const $ toVar "_")) x y = concatZipWithM unify (childrenBi x) (childrenBi y)
+unifyStmt x y | ((==) `on` descendBi (const $ (toNamed "_" :: Exp))) x y = concatZipWithM unify (childrenBi x) (childrenBi y)
 unifyStmt _ _ = Nothing
 
 
@@ -106,7 +106,7 @@ subst bind = transform g . transformBracket f
 
 dotExpand :: Exp -> Exp
 dotExpand (view -> App2 op x1 x2) | op ~= "." = ensureBracket1 $ App x1 (dotExpand x2)
-dotExpand x = ensureBracket1 $ App x (toVar "?")
+dotExpand x = ensureBracket1 $ App x (toNamed "?")
 
 
 -- simplify, removing any introduced ? vars, from expanding (.)
