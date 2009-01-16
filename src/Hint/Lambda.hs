@@ -19,7 +19,8 @@ yes = 0 where f x = y x ; res = "f = y"
 no mr = y mr
 yes = 0 where f x = g $ f $ map head x ; res = "f = g . f . map head"
 no z x y = f (g x) (g y)
-yes = 0 where f x y = f (g x) (g y) ; res = "f = f `on` g"
+no = 0 where f x y = f (g x) (g y) ; res = "f = f `on` g"
+yes = 0 where f x y = g x == g y ; res = "f = (==) `on` g"
 </TEST>
 -}
 
@@ -67,8 +68,9 @@ lambdaDef _ = []
 
 -- given x y, f (g x) (g y) = Just (f, g)
 useOn :: Name -> Name -> Exp -> Maybe (Exp, Exp)
-useOn x1 y1 (view -> App2 f (view -> App1 g1 x2) (view -> App1 g2 y2))
-    | g1 == g2, map (Var . UnQual) [x1,y1] == [x2,y2] = Just (f,g1)
+useOn x1 y1 (view -> App2 (Var (UnQual f)) (view -> App1 g1 x2) (view -> App1 g2 y2))
+    | fromName f `elem` ["==",">=",">","!=","<","<="] && g1 == g2, map (Var . UnQual) [x1,y1] == [x2,y2]
+    = Just (Var (UnQual f),g1)
 useOn _ _ _ = Nothing
 
 
