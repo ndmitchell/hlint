@@ -11,9 +11,10 @@
 <TEST>
 data Yes = Foo | Bar'Test
 data Yes = Bar | Test_Bar
+data No = a :::: b
 data Yes = Foo {bar_cap :: Int}
 data No = FOO | BarBAR | BarBBar
-yes_foo = yes_foo + yes_foo where res = "yesFoo = yesFoo + yesFoo"
+yes_foo = yes_foo + yes_foo where res = "yesFoo = ..."
 no = 1 where yes_foo = 2
 </TEST>
 -}
