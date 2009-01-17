@@ -4,8 +4,10 @@ module Test where
 
 import Control.Arrow
 import Control.Monad
+import Data.Char
 import Data.List
 import Data.Maybe
+import Data.Either
 import System.Directory
 import Data.Generics.PlateData
 
@@ -58,7 +60,7 @@ runTest hint file = do
                 ideas = hint inp
                 good = case out of
                     Nothing -> ideas == []
-                    Just x -> length ideas == 1 && to (head ideas) == x
+                    Just x -> length ideas == 1 && (null x || to (head ideas) == x)
 
 
 parseTestFile :: FilePath -> IO [Test]
@@ -75,11 +77,17 @@ parseTestFile file = do
 
 
 createTest :: Decl -> Test
-createTest o@(FunBind [Match src (Ident name) _ _ _ (BDecls binds)]) = Test src o $
-    if "no" == name then Nothing else Just $ getRes binds
+createTest x = Test (declSrcLoc x) x2 (if negative then Nothing else Just res)
+    where
+        negative = "no" `isPrefixOf` map toLower (fromNamed x)
+        (res,x2) = getRes x
 
 
-getRes :: [Decl] -> String
-getRes xs = headDef "<error: no res clause>"
-    [if isString res then fromString res else prettyPrint res
-    |PatBind _ (fromNamed -> "res") _ (UnGuardedRhs res) _ <- xs]
+getRes :: Decl -> (String, Decl)
+getRes (FunBind [Match x1 x2 x3 x4 x5 (BDecls binds)]) =
+        (headDef "<error: no res clause>" res, FunBind [Match x1 x2 x3 x4 x5 (BDecls binds2)])
+    where (res, binds2) = partitionEithers $ map f binds
+          f (PatBind _ (fromNamed -> "res") _ (UnGuardedRhs res) _) =
+              Left $ if isString res then fromString res else prettyPrint res
+          f x = Right x
+getRes x = ("", x)
