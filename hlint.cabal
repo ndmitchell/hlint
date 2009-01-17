@@ -55,3 +55,4 @@ executable hlint
         Hint.ListRec
         Hint.Match
         Hint.Monad
+        Hint.Naming

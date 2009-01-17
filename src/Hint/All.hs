@@ -11,6 +11,7 @@ import Hint.ListRec
 import Hint.Monad
 import Hint.Lambda
 import Hint.Bracket
+import Hint.Naming
 
 
 allHints :: [(String,Hint)]
@@ -21,6 +22,7 @@ allHints =
     ,"Monad"   * monadHint
     ,"Lambda"  * lambdaHint
     ,"Bracket" * bracketHint
+    ,"Naming"  * namingHint
     ]
 
 
