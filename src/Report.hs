@@ -56,14 +56,28 @@ filePrefix xs | null xs = flipSlash
 writeReport2 :: FilePath -> [Idea] -> IO ()
 writeReport2 file ideas = writeTemplate "report_2.html" inner file
     where
-        inner = [("VERSION",['v' : showVersion version]),("CONTENT",content)] -- ,("HINTS",hints),("FILES",files)]
+        generateIds :: [String] -> [(String,Int)] -- sorted by name
+        generateIds = map (\x -> (head x, length x)) . group . sort
+        files = generateIds $ map (srcFilename . loc) ideas
+        hints = generateIds $ map hint ideas
 
-        content = concatMap writeIdea ideas
+        inner = [("VERSION",['v' : showVersion version]),("CONTENT",content),
+                 ("HINTS",list "hint" hints),("FILES",list "file" files)]
+
+        content = concatMap (\i -> writeIdea (getClass i) i) ideas
+        getClass i = "hint" ++ f hints (hint i) ++ " file" ++ f files (srcFilename $ loc i)
+            where f xs x = show $ fromJust $ findIndex ((==) x . fst) xs
+
+        list mode xs = zipWith f [0..] xs
+            where
+                f i (name,n) = "<li><a id=" ++ show id ++ " href=\"javascript:show('" ++ id ++ "')\">" ++
+                               name ++ " (" ++ show n ++ ")</a></li>"
+                    where id = mode ++ show i
 
 
-writeIdea :: Idea -> [String]
-writeIdea i@Idea{..} =
-    ["<div>"
+writeIdea :: String -> Idea -> [String]
+writeIdea cls Idea{..} =
+    ["<div class=" ++ show cls ++ ">"
     ,showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint ++ "<br/>"
     ,"Found<br/>"
     ,code from
@@ -73,4 +87,3 @@ writeIdea i@Idea{..} =
     ,""]
     where
         code x = "<pre>" ++ x ++ "</pre>"
-
