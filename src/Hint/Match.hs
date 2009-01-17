@@ -58,7 +58,7 @@ unify _ _ = Nothing
 
 unifyStmt :: Stmt -> Stmt -> Maybe [(String,Exp)]
 unifyStmt (Generator _ p1 x1) (Generator _ p2 x2) = liftM2 (++) (unifyPat p1 p2) (unify x1 x2)
-unifyStmt x y | ((==) `on` descendBi (const $ (toNamed "_" :: Exp))) x y = concatZipWithM unify (childrenBi x) (childrenBi y)
+unifyStmt x y | ((==) `on` descendBi (const (toNamed "_" :: Exp))) x y = concatZipWithM unify (childrenBi x) (childrenBi y)
 unifyStmt _ _ = Nothing
 
 
