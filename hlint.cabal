@@ -17,7 +17,6 @@ data-dir:           data
 data-files:
     Hints.hs
     report.html
-    report_2.html
     hs-lint.el
 Extra-Source-Files:
     hlint.htm
