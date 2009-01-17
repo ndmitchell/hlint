@@ -40,7 +40,7 @@ writeReport file ideas = writeTemplate inner file
         list mode xs = zipWith f [0..] xs
             where
                 f i (name,n) = "<li><a id=" ++ show id ++ " href=\"javascript:show('" ++ id ++ "')\">" ++
-                               name ++ " (" ++ show n ++ ")</a></li>"
+                               escapeHTML name ++ " (" ++ show n ++ ")</a></li>"
                     where id = mode ++ show i
 
 
