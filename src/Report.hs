@@ -28,13 +28,14 @@ writeReport file ideas = writeTemplate inner file
         generateIds :: [String] -> [(String,Int)] -- sorted by name
         generateIds = map (\x -> (head x, length x)) . group . sort
         files = generateIds $ map (srcFilename . loc) ideas
-        hints = generateIds $ map hint ideas
+        hints = generateIds $ map hintName ideas
+        hintName x = show (rank x) ++ ": " ++ hint x
 
         inner = [("VERSION",['v' : showVersion version]),("CONTENT",content),
                  ("HINTS",list "hint" hints),("FILES",list "file" files)]
 
         content = concatMap (\i -> writeIdea (getClass i) i) ideas
-        getClass i = "hint" ++ f hints (hint i) ++ " file" ++ f files (srcFilename $ loc i)
+        getClass i = "hint" ++ f hints (hintName i) ++ " file" ++ f files (srcFilename $ loc i)
             where f xs x = show $ fromJust $ findIndex ((==) x . fst) xs
 
         list mode xs = zipWith f [0..] xs
