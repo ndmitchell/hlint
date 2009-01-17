@@ -47,7 +47,7 @@ writeReport file ideas = writeTemplate inner file
 writeIdea :: String -> Idea -> [String]
 writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
-    ,showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint ++ "<br/>"
+    ,escapeHTML (showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint) ++ "<br/>"
     ,"Found<br/>"
     ,code from
     ,"Why not<br/>"
@@ -55,7 +55,12 @@ writeIdea cls Idea{..} =
     ,"</div>"
     ,""]
     where
-        code x = "<pre>" ++ concatMap f x ++ "</pre>"
+        code x = "<pre>" ++ escapeHTML x ++ "</pre>"
+
+
+escapeHTML :: String -> String
+escapeHTML = concatMap f
+    where
         f '>' = "&gt;"
         f '<' = "&lt;"
         f '&' = "&amp;"
