@@ -10,6 +10,7 @@ import Data.Version
 import System.FilePath
 import HSE.All
 import Paths_hlint
+import Language.Haskell.HsColour.CSS
 
 
 writeTemplate :: [(String,[String])] -> FilePath -> IO ()
@@ -56,7 +57,7 @@ writeIdea cls Idea{..} =
     ,"</div>"
     ,""]
     where
-        code x = "<pre>" ++ escapeHTML x ++ "</pre>"
+        code = hscolour False True ""
 
 
 escapeHTML :: String -> String
