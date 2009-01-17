@@ -27,7 +27,8 @@ main = do
         let extra = [Classify ("","") Ignore x | x <- cmdIgnore]
         let apply = map (classify $ settings ++ extra) . applyHint (readHints settings)
         ideas <- concatMapM (liftM apply . parseFile) cmdFiles
-        mapM_ print [i | i <- ideas, cmdShowAll || rank i /= Ignore]
+        showItem <- if cmdColor then showANSI else return show
+        mapM_ putStrLn [showItem i | i <- ideas, cmdShowAll || rank i /= Ignore]
 
         -- figure out statistics        
         let counts = map (head &&& length) $ group $ sort $ map rank ideas

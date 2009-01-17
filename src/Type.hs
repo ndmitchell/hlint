@@ -7,6 +7,8 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Ord
+import Language.Haskell.HsColour.TTY
+import Language.Haskell.HsColour.Colourise
 
 
 ---------------------------------------------------------------------
@@ -48,6 +50,18 @@ instance Show Idea where
         where f msg x = (msg ++ ":") : map ("  "++) (lines x)
 
     showList = showString . concatMap show
+
+
+showANSI :: IO (Idea -> String)
+showANSI = do
+    prefs <- readColourPrefs
+    return $ showPrefsANSI prefs
+
+showPrefsANSI :: ColourPrefs -> Idea -> String
+showPrefsANSI prefs Idea{..} = unlines $
+    [showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint] ++ f "Found" from ++ f "Why not" to
+    where f msg x = (msg ++ ":") : map ("  "++) (lines $ hscolour prefs x)
+showPrefsANSI prefs x = show x
 
 
 -- The real key will be filled in by applyHint

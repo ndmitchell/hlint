@@ -23,6 +23,7 @@ data Cmd = Cmd
     ,cmdReports :: [FilePath]        -- ^ where to generate reports
     ,cmdIgnore :: [String]           -- ^ the hints to ignore
     ,cmdShowAll :: Bool              -- ^ display all skipped items
+    ,cmdColor :: Bool                -- ^ color the result
     }
 
 
@@ -30,12 +31,14 @@ data Opts = Help | Test
           | Hints FilePath
           | Report FilePath
           | Skip String | ShowAll
+          | Color
             deriving Eq
 
 
 opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "r" ["report"] (OptArg (Report . fromMaybe "report.html") "file") "Generate a report in HTML"
        ,Option "h" ["hint"] (ReqArg Hints "file") "Hint/ignore file to use"
+       ,Option "c" ["color","colour"] (NoArg Color) "Color the output (requires ANSI terminal)"
        ,Option "i" ["ignore"] (ReqArg Skip "message") "Ignore a particular hint"
        ,Option "s" ["show"] (NoArg ShowAll) "Show all ignored ideas"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
@@ -63,6 +66,7 @@ getCmd = do
         ,cmdReports = [x | Report x <- opt]
         ,cmdIgnore = [x | Skip x <- opt]
         ,cmdShowAll = ShowAll `elem` opt
+        ,cmdColor = Color `elem` opt
         }
 
 
