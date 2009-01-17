@@ -29,8 +29,20 @@ import Data.Maybe
 
 
 namingHint :: Hint
-namingHint x = [warn "Use camelCase" (declSrcLoc x) x (replaceNames res x) | not $ null res]
+namingHint x = [warn "Use camelCase" (declSrcLoc x) x2 (replaceNames res x2) | not $ null res]
     where res = [(n,y) | n <- nub $ getNames x, Just y <- [suggestName n]]
+          x2 = shorten x
+
+
+shorten :: Decl -> Decl
+shorten x = case x of
+    FunBind (Match a b c d e _:_) -> FunBind [f (Match a b c d) e]
+    PatBind a b c d _ -> f (PatBind a b c) d
+    x -> x
+    where
+        dots = Var $ UnQual $ Ident "..."
+        f cont (UnGuardedRhs _) = cont (UnGuardedRhs dots) (BDecls [])
+        f cont (GuardedRhss _) = cont (GuardedRhss [GuardedRhs nullSrcLoc [Qualifier dots] dots]) (BDecls [])
 
 
 getNames :: Decl -> [String]
