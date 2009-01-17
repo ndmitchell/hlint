@@ -135,6 +135,10 @@ getSrcLoc :: Data a => a -> Maybe SrcLoc
 getSrcLoc = headDef Nothing . gmapQ cast
 
 
+declSrcLoc :: Decl -> SrcLoc
+declSrcLoc (FunBind (x:xs)) = fromMaybe nullSrcLoc $ getSrcLoc x
+declSrcLoc x = fromMaybe nullSrcLoc $ getSrcLoc x
+
 ---------------------------------------------------------------------
 -- UNIPLATE STYLE FUNCTIONS
 
