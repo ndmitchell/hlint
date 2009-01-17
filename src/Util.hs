@@ -41,11 +41,3 @@ limit n s = if null post then s else pre ++ "..."
 
 isLeft Left{} = True; isLeft _ = False
 isRight = not . isLeft
-
-
-unzipEither :: [Either a b] -> ([a],[b])
-unzipEither (Left  x:xs) = let (a,b) = unzipEither xs in (x:a,b)
-unzipEither (Right x:xs) = let (a,b) = unzipEither xs in (a,x:b)
-unzipEither [] = ([], [])
-
-

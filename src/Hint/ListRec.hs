@@ -29,6 +29,7 @@ import HSE.All
 import Data.List
 import Data.Maybe
 import Data.Ord
+import Data.Either
 import Control.Monad
 import Data.Generics.PlateData
 
@@ -140,7 +141,7 @@ findPat :: [Pat] -> Maybe ([Name], Int, BList)
 findPat ps = do
     ps <- mapM readPat ps
     [i] <- return $ findIndices isRight ps
-    let (left,[right]) = unzipEither ps
+    let (left,[right]) = partitionEithers ps
     return (left, i, right)
 
 
