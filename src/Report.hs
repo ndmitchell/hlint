@@ -55,4 +55,8 @@ writeIdea cls Idea{..} =
     ,"</div>"
     ,""]
     where
-        code x = "<pre>" ++ x ++ "</pre>"
+        code x = "<pre>" ++ concatMap f x ++ "</pre>"
+        f '>' = "&gt;"
+        f '<' = "&lt;"
+        f '&' = "&amp;"
+        f x = [x]
