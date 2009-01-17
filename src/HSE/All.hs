@@ -17,11 +17,12 @@ import HSE.Bracket
 import HSE.Match
 import HSE.Operators
 import Util
+import System.IO.Unsafe(unsafeInterleaveIO)
 
 
 -- | On failure returns an empty module and prints to the console
 parseFile :: FilePath -> IO Module
-parseFile file = do
+parseFile file = unsafeInterleaveIO $ do
     res <- HSE.parseFile file
     case res of
         ParseOk x -> return $ hlintFixities x
