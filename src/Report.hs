@@ -6,6 +6,7 @@ import Type
 import Language.Haskell.Exts
 import Data.List
 import Data.Maybe
+import Data.Version
 import System.FilePath
 import HSE.All
 import Paths_hlint
@@ -55,7 +56,7 @@ filePrefix xs | null xs = flipSlash
 writeReport2 :: FilePath -> [Idea] -> IO ()
 writeReport2 file ideas = writeTemplate "report_2.html" inner file
     where
-        inner = [("CONTENT",content)] -- ,("HINTS",hints),("FILES",files)]
+        inner = [("VERSION",['v' : showVersion version]),("CONTENT",content)] -- ,("HINTS",hints),("FILES",files)]
 
         content = concatMap writeIdea ideas
 
