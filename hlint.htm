@@ -141,15 +141,6 @@ Why not:
 (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
 </pre>
 
-<h3>Syntax Colouring of Console Output</h3>
-
-<p>
-	To colour the HLint output on a non-Windows system with <a href="http://www.cs.york.ac.uk/fp/darcs/hscolour/">HsColour</a> installed, the following command may be useful:
-</p>
-<pre>
-find \( -name \*.lhs -o -name \*.hs \) -exec hlint {} + | HsColour | less -SR
-</pre>
-
 <h2>FAQ</h2>
 
 <h3>Why are suggestions not applied recursively?</h3>
