@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 
 module Type where
 
@@ -38,13 +39,13 @@ isMatchExp MatchExp{} = True; isMatchExp _ = False
 
 
 instance Show Idea where
-    show (MatchExp x _ y z q) = unlines $ ("MatchExp " ++ show x) :
-        map (\x -> "  " ++ prettyPrint x) ([y,z] ++ maybeToList q)
-    show (Classify x y z) = unwords ["Classify",show x,show y,show z]
+    show MatchExp{..} = unlines $ ("MatchExp " ++ show rank) :
+        map (\x -> "  " ++ prettyPrint x) ([lhs,rhs] ++ maybeToList side)
+    show Classify{..} = unwords ["Classify",show func,show rank,show hint]
 
-    show x = unlines $
-        [showSrcLoc (loc x) ++ " " ++ show (rank x) ++ ": " ++ hint x] ++ f "Found" from ++ f "Why not" to
-        where f msg sel = (msg ++ ":") : map ("  "++) (lines $ sel x)
+    show Idea{..} = unlines $
+        [showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint] ++ f "Found" from ++ f "Why not" to
+        where f msg x = (msg ++ ":") : map ("  "++) (lines x)
 
     showList = showString . concatMap show
 
