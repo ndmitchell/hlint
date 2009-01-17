@@ -28,7 +28,7 @@ writeReport :: FilePath -> [Idea] -> IO ()
 writeReport file ideas = writeTemplate inner file
     where
         generateIds :: [String] -> [(String,Int)] -- sorted by name
-        generateIds = map (head && length) . group . sort
+        generateIds = map (head &&& length) . group . sort
         files = generateIds $ map (srcFilename . loc) ideas
         hints = generateIds $ map hintName ideas
         hintName x = show (rank x) ++ ": " ++ hint x
