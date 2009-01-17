@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 
 module Report(writeReport) where
 
@@ -6,6 +7,7 @@ import Language.Haskell.Exts
 import Data.List
 import Data.Maybe
 import System.FilePath
+import HSE.All
 import Paths_hlint
 
 
@@ -33,7 +35,7 @@ writeTemplate from content to = do
     src <- readFile $ dat </> from
     writeFile to $ unlines $ concatMap f $ lines src
     where
-        f ('$':xs) = fromMaybe (error "writeTemplate") $ lookup xs content
+        f ('$':xs) = fromMaybe ['$':xs] $ lookup xs content
         f x = [x]
 
 
@@ -51,5 +53,23 @@ filePrefix xs | null xs = flipSlash
 
 
 writeReport2 :: FilePath -> [Idea] -> IO ()
-writeReport2 out ideas = return ()
+writeReport2 file ideas = writeTemplate "report_2.html" inner file
+    where
+        inner = [("CONTENT",content)] -- ,("HINTS",hints),("FILES",files)]
+
+        content = concatMap writeIdea ideas
+
+
+writeIdea :: Idea -> [String]
+writeIdea i@Idea{..} =
+    ["<div>"
+    ,showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint ++ "<br/>"
+    ,"Found<br/>"
+    ,code from
+    ,"Why not<br/>"
+    ,code to
+    ,"</div>"
+    ,""]
+    where
+        code x = "<pre>" ++ x ++ "</pre>"
 
