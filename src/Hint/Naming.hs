@@ -16,6 +16,7 @@ data Yes = Foo {bar_cap :: Int}
 data No = FOO | BarBAR | BarBBar
 yes_foo = yes_foo + yes_foo where res = "yesFoo = ..."
 no = 1 where yes_foo = 2
+a -== b = 1
 </TEST>
 -}
 
@@ -63,7 +64,7 @@ getNames x = case x of
 
 
 suggestName :: String -> Maybe String
-suggestName x = listToMaybe [f x | not good]
+suggestName x = listToMaybe [f x | not $ isSym x || good]
     where
         good = all isAlphaNum $ drp '_' $ drp '\'' $ reverse $ drp '_' x
         drp x ys = if [x] `isPrefixOf` ys then tail ys else ys
