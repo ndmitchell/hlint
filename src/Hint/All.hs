@@ -1,5 +1,5 @@
 
-module Hint.All(readHints, allHints) where
+module Hint.All where
 
 import Control.Monad
 import HSE.All
@@ -15,8 +15,8 @@ import Hint.Naming
 import Hint.Structure
 
 
-allHints :: [(String,Hint)]
-allHints =
+staticHints :: [(String,Hint)]
+staticHints =
     let (*) = (,) in
     ["List"      * listHint
     ,"ListRec"   * listRecHint
@@ -27,6 +27,9 @@ allHints =
     ,"Structure" * structureHint
     ]
 
+dynamicHints :: [Setting] -> Hint
+dynamicHints = readMatch
 
-readHints :: [Setting] -> Hint
-readHints settings = concatHints $ readMatch settings : map snd allHints
+
+allHints :: [Setting] -> Hint
+allHints xs = concatHints $ dynamicHints xs : map snd staticHints

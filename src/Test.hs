@@ -31,12 +31,12 @@ test :: IO ()
 test = do
     dat <- getDataDir
     settings <- readSettings []
-    let hints = readHints settings
+    let hints = allHints settings
         
     src <- doesDirectoryExist "src/Hint"
     (fail,total) <- liftM ((sum *** sum) . unzip) $ sequence $
             runTest hints (dat ++ "/Hints.hs") :
-            [runTest h ("src/Hint/" ++ name ++ ".hs") | (name,h) <- allHints, src]
+            [runTest h ("src/Hint/" ++ name ++ ".hs") | (name,h) <- staticHints, src]
     unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
     if fail == 0
         then putStrLn $ "Tests passed (" ++ show total ++ ")"

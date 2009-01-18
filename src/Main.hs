@@ -25,7 +25,7 @@ main = do
     if cmdTest then test else do
         settings <- readSettings cmdHintFiles
         let extra = [Classify ("","") Ignore x | x <- cmdIgnore]
-        let apply = map (classify $ settings ++ extra) . applyHint (readHints settings)
+        let apply = map (classify $ settings ++ extra) . applyHint (allHints settings)
         ideas <- concatMapM (liftM apply . parseFile) cmdFiles
         showItem <- if cmdColor then showANSI else return show
         mapM_ putStrLn [showItem i | i <- ideas, cmdShowAll || rank i /= Ignore]
