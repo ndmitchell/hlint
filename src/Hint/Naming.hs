@@ -69,11 +69,11 @@ getNames x = case x of
 suggestName :: String -> Maybe String
 suggestName x = listToMaybe [f x | not $ isSym x || good]
     where
-        good = all isAlphaNum $ drp '_' $ drp '\'' $ reverse $ drp '_' x
+        good = all isAlphaNum $ drp '_' $ drp '\'' $ reverse $ dropWhile (== '_') x
         drp x ys = if [x] `isPrefixOf` ys then tail ys else ys
 
-        f ('_':xs) = '_' : g xs
-        f xs = g xs
+        f xs = us ++ g ys
+            where (us,ys) = span (== '_') xs
 
         g x | x `elem` ["_","'","_'"] = x
         g ('_':x:xs) | isAlphaNum x = toUpper x : g xs
