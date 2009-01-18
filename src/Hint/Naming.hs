@@ -51,16 +51,19 @@ getNames :: Decl -> [String]
 getNames x = case x of
     FunBind{} -> name
     PatBind{} -> name
-    TypeDecl{} -> names
-    DataDecl{} -> names
-    GDataDecl{} -> names
-    TypeFamDecl{} -> names
-    DataFamDecl{} -> names
-    ClassDecl{} -> names
+    TypeDecl{} -> name
+    DataDecl _ _ _ _ _ cons _ -> name ++ [fromNamed x | QualConDecl _ _ _ x <- cons, x <- f x]
+    GDataDecl _ _ _ _ _ _ cons _ -> name ++ [fromNamed x | GadtDecl _ x _ <- cons]
+    TypeFamDecl{} -> name
+    DataFamDecl{} -> name
+    ClassDecl{} -> name
     _ -> []
     where
         name = [fromNamed x]
         names = map fromNamed (universeBi x :: [Name])
+
+        f (ConDecl x _) = [x]
+        f (RecDecl x ys) = x : concatMap fst ys
 
 
 suggestName :: String -> Maybe String
