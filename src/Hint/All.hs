@@ -12,17 +12,19 @@ import Hint.Monad
 import Hint.Lambda
 import Hint.Bracket
 import Hint.Naming
+import Hint.Structure
 
 
 allHints :: [(String,Hint)]
 allHints =
     let (*) = (,) in
-    ["List"    * listHint
-    ,"ListRec" * listRecHint
-    ,"Monad"   * monadHint
-    ,"Lambda"  * lambdaHint
-    ,"Bracket" * bracketHint
-    ,"Naming"  * namingHint
+    ["List"      * listHint
+    ,"ListRec"   * listRecHint
+    ,"Monad"     * monadHint
+    ,"Lambda"    * lambdaHint
+    ,"Bracket"   * bracketHint
+    ,"Naming"    * namingHint
+    ,"Structure" * structureHint
     ]
 
 
