@@ -4,7 +4,7 @@
     Suggest the use of camelCase
 
     Only permit:
-    _?[A-Za-z]*_?'?
+    _*[A-Za-z]*_?'?
 
     Apply this to things that would get exported by default only
 
