@@ -21,6 +21,7 @@ yes = 0 where f x = g $ f $ map head x ; res = "f = g . f . map head"
 no z x y = f (g x) (g y)
 no = 0 where f x y = f (g x) (g y) ; res = "f = f `on` g"
 yes = 0 where f x y = g x == g y ; res = "f = (==) `on` g"
+a + b = foo a b where res = "(+) = foo"
 </TEST>
 -}
 
@@ -60,7 +61,7 @@ lambdaDef o@(Match loc name pats typ (UnGuardedRhs bod) (BDecls []))
     | Lambda loc vs y <- bod = [warn "Redundant lambda" loc o $ reform (pats++vs) y]
     | [PVar x, PVar y] <- pats, Just (f,g) <- useOn x y bod =
               [warn "Use on" loc o $ reform [] (ensureBracket1 $ InfixApp f (QVarOp $ UnQual $ Ident "on") g)]
-    | Ident _ <- name, (p2,y) <- etaReduces pats bod, length p2 /= length pats = [warn "Eta reduce" loc o $ reform p2 y]
+    | (p2,y) <- etaReduces pats bod, length p2 /= length pats = [warn "Eta reduce" loc o $ reform p2 y]
     | otherwise = []
         where reform pats2 bod2 = Match loc name pats2 typ (UnGuardedRhs bod2) (BDecls [])
 lambdaDef _ = []
