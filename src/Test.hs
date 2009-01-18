@@ -79,7 +79,8 @@ parseTestFile file = do
 createTest :: Decl -> Test
 createTest x = Test (declSrcLoc x) x2 (if negative then Nothing else Just res)
     where
-        negative = "no" `isPrefixOf` map toLower (fromNamed x)
+        s = map toLower $ fromNamed x
+        negative = "no" `isPrefixOf` s || "-" `isPrefixOf` s
         (res,x2) = getRes x
 
 
