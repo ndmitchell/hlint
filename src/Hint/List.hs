@@ -15,6 +15,8 @@ no = xs ++ [x] ++ ys
 yes = [if a then b else c] ++ xs where res = (if a then b else c) : xs
 yes = [1] : [2] : [3] : [4] : [5] : [] where res = [[1], [2], [3], [4], [5]]
 yes = if x == e then l2 ++ xs else [x] ++ check_elem xs where res = x : check_elem xs
+data Yes = Yes (Maybe [Char])
+yes = y :: [Char] -> a where res = "String -> a"
 </TEST>
 -}
 
@@ -29,7 +31,8 @@ listHint :: Hint
 listHint = listDecl
 
 listDecl :: Decl -> [Idea]
-listDecl = concatMap (listExp False) . children0Exp nullSrcLoc
+listDecl x = concatMap (listExp False) (children0Exp nullSrcLoc x) ++
+             concatMap (stringType (declSrcLoc x)) (childrenBi x)
 
 -- boolean = are you in a ++ chain
 listExp :: Bool -> (SrcLoc,Exp) -> [Idea]
@@ -66,3 +69,13 @@ useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend
         f (List [x]) = Just $ paren x
         f _ = Nothing
 useCons _ _ = Nothing
+
+
+
+typeListChar = TyApp (TyCon (Special ListCon)) (TyCon (UnQual (Ident "Char")))
+typeString = TyCon (UnQual (Ident "String"))
+
+
+stringType :: SrcLoc -> Type -> [Idea]
+stringType loc x = [warn "Use String" loc x (transform f x) | typeListChar `elem` universe x]
+    where f x = if x == typeListChar then typeString else x
