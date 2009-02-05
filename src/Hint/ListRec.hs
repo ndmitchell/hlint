@@ -79,7 +79,7 @@ matchListRec o@(ListCase vars nil (x,xs,cons))
 
     | [] <- vars, App2 op lhs rhs <- view cons
     , null $ universe op `intersect` [Var (UnQual x), Var (UnQual xs)]
-    , rhs == recursive, Var (UnQual xs) `notElem` universe lhs
+    , fromParen rhs == recursive, Var (UnQual xs) `notElem` universe lhs
     = Just $ (,,) "foldr" Warning $ appsBracket
         [toNamed "foldr", lambda [x] $ appsBracket [op,lhs], nil, Var $ UnQual xs]
 
