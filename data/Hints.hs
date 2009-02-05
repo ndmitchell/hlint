@@ -99,6 +99,15 @@ error = sequence_ (map f x) ==> mapM_ f x
 warn  = flip mapM ==> forM
 warn  = flip mapM_ ==> forM_
 error = when (not x) y ==> unless x y
+error = join x ==> x >>= id
+
+-- MONAD LIST
+
+error = liftM unzip (mapM f x) ==> mapAndUnzipM f x
+error = sequence (zipWith f x y) ==> zipWithM f x y
+error = sequence_ (zipWith f x y) ==> zipWithM_ f x y
+error = sequence (replicate n x) ==> replicateM n x
+error = sequence_ (replicate n x) ==> replicateM_ n x
 
 -- LIST COMP
 
