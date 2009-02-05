@@ -180,8 +180,8 @@ lambda xs (Paren x) = lambda xs x
 lambda xs (Lambda s (PVar v:vs) x) = lambda (xs++[v]) (Lambda s vs x)
 lambda xs (Lambda _ [] x) = lambda xs x
 lambda [x] (App a b) | Var (UnQual x) == b = a
-lambda [x] (App a (Paren (App b@Var{} c)))
-    | Var (UnQual x) == c = InfixApp a (QVarOp $ UnQual $ Symbol ".") b
+lambda [x] (App a (Paren (App b c)))
+    | isAtom a && isAtom b && Var (UnQual x) == c = InfixApp a (QVarOp $ UnQual $ Symbol ".") b
 lambda [x] (InfixApp a op b)
     | a == Var (UnQual x) = RightSection op b
     | b == Var (UnQual x) = LeftSection a op
