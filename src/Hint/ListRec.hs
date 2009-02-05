@@ -17,6 +17,7 @@ yes = 0 where f (x:xs) = negate x + f xs ; f [] = 0 ; res = "f xs = foldr ((+) .
 yes = 0 where f (x:xs) = x + 1 : f xs ; f [] = [] ; res = "f xs = map (+ 1) xs"
 yes = 0 where f z (x:xs) = f (z*x) xs ; f z [] = z ; res = "f z xs = foldl (*) z xs"
 yes = 0 where f a (x:xs) b = x + a + b : f a xs b ; f a [] b = [] ; res = "f a xs b = map (\\ x -> x + a + b) xs"
+yes = 0 where f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax ; res = "f xs a = foldM (+) a xs"
 </TEST>
 -}
 
@@ -87,8 +88,21 @@ matchListRec o@(ListCase vars nil (x,xs,cons))
     = Just $ (,,) "foldl" Warning $ appsBracket
         [toNamed "foldl", lambda [v,x] lhs, Var $ UnQual v, Var $ UnQual xs]
 
+    | [v] <- vars, App ret res <- nil, ret ~= "return", res ~= "()" || res == Var (UnQual v)
+    , [Generator _ (PVar b1) e, Qualifier (App r (Var (UnQual b2)))] <- asDo cons
+    , b1 == b2, r == recursive, Var (UnQual xs) `notElem` universe e
+    , name <- "foldM" ++ ['_'|res ~= "()"]
+    = Just $ (,,) name Warning $ appsBracket
+        [toNamed name, lambda [v,x] e, Var $ UnQual v, Var $ UnQual xs]
+
     | otherwise = Nothing
 
+
+-- Very limited attempt to convert >>= to do, only useful for foldM/foldM_
+asDo :: Exp -> [Stmt]
+asDo (view -> App2 bind lhs (Lambda src [v] rhs)) = [Generator src v lhs, Qualifier rhs]
+asDo (Do x) = x
+asDo x = [Qualifier x]
 
 ---------------------------------------------------------------------
 -- FIND THE CASE ANALYSIS
