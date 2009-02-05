@@ -22,6 +22,7 @@ no z x y = f (g x) (g y)
 no = 0 where f x y = f (g x) (g y) ; res = "f = f `on` g"
 yes = 0 where f x y = g x == g y ; res = "f = (==) `on` g"
 a + b = foo a b where res = "(+) = foo"
+type Yes a = Foo Char a
 </TEST>
 -}
 
@@ -30,12 +31,14 @@ module Hint.Lambda where
 
 import HSE.All
 import Type
+import Control.Arrow
 import Control.Monad
 import Data.Generics.PlateData
 import Data.Maybe
 
 
 lambdaHint :: Hint
+lambdaHint x@TypeDecl{} = lambdaType x
 lambdaHint x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (universe x)
 
 
@@ -95,3 +98,15 @@ uglyEta :: Exp -> Exp -> Bool
 uglyEta (fromParen -> App f (fromParen -> App g x)) (fromParen -> App h y) = g == h
 uglyEta _ _ = False
 
+
+
+lambdaType :: Decl -> [Idea]
+lambdaType o@(TypeDecl src name args typ) = [warn "Type eta reduce" src o t2 | i /= 0]
+    where
+        (i,t) = f (reverse args) typ
+        t2 = TypeDecl src name (take (length args - i) args) t
+    
+        -- return the number you managed to delete
+        f :: [Name] -> Type -> (Int, Type)
+        f (x:xs) (TyApp t1 (TyVar v)) | v == x = first (+1) $ f xs t1
+        f _ t = (0,t)
