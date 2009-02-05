@@ -73,7 +73,7 @@ matchListRec :: ListCase -> Maybe (String,Rank,Exp)
 matchListRec o@(ListCase vars nil (x,xs,cons))
     
     | [] <- vars, nil ~= "[]", InfixApp lhs c rhs <- cons, opExp c ~= ":"
-    , rhs == recursive, Var (UnQual xs) `notElem` universe lhs
+    , fromParen rhs == recursive, Var (UnQual xs) `notElem` universe lhs
     = Just $ (,,) "map" Error $ appsBracket
         [toNamed "map", lambda [x] lhs, Var $ UnQual xs]
 
@@ -89,7 +89,7 @@ matchListRec o@(ListCase vars nil (x,xs,cons))
         [toNamed "foldl", lambda [v,x] lhs, Var $ UnQual v, Var $ UnQual xs]
 
     | [v] <- vars, App ret res <- nil, ret ~= "return", res ~= "()" || res == Var (UnQual v)
-    , [Generator _ (PVar b1) e, Qualifier (App r (Var (UnQual b2)))] <- asDo cons
+    , [Generator _ (PVar b1) e, Qualifier (fromParen -> App r (Var (UnQual b2)))] <- asDo cons
     , b1 == b2, r == recursive, Var (UnQual xs) `notElem` universe e
     , name <- "foldM" ++ ['_'|res ~= "()"]
     = Just $ (,,) name Warning $ appsBracket
