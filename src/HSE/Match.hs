@@ -64,6 +64,7 @@ instance Named Exp where
 
 instance Named QName where
     fromNamed (Special Cons) = ":"
+    fromNamed (Special UnitCon) = "()"
     fromNamed (UnQual x) = fromNamed x
     fromNamed _ = ""
 
