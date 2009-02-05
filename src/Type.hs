@@ -65,7 +65,8 @@ showPrefsANSI prefs x = show x
 
 
 -- The real key will be filled in by applyHint
-idea rank hint loc from to = Idea ("","") rank hint loc (prettyPrint from) (prettyPrint to)
+idea rank hint loc from to = Idea ("","") rank hint loc (f from) (f to)
+    where f = dropWhile isSpace . prettyPrint
 warn mr = idea Warning mr
 
 
