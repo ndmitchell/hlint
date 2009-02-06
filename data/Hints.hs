@@ -5,6 +5,14 @@
 
 error = putStrLn (show x) ==> print x
 error = mapM_ putChar ==> putStr
+error = hGetChar stdin ==> getChar
+error = hGetLine stdin ==> getLine
+error = hGetContents stdin ==> getContents
+error = hPutChar stdout ==> putChar
+error = hPutStr stdout ==> putStr
+error = hPutStrLn stdout ==> putStrLn
+error = hPrint stdout ==> print
+
 
 -- ORD
 
