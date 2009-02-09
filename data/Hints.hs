@@ -70,8 +70,8 @@ warn  = foldl (*) 1 ==> product
 error = (\x -> x) ==> id
 error = (\(_,y) -> y) ==> snd
 error = (\(x,_) -> x) ==> fst
-error = (\x y-> f (x,y)) ==> curry f
-error = (\(x,y) -> f x y) ==> uncurry f
+error = (\x y-> f (x,y)) ==> curry f where _ = notIn [x,y] f
+error = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f
 
 -- BOOL
 
@@ -91,10 +91,10 @@ error "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
 
 error = id *** g ==> second g
 error = f *** id ==> first f
-warn  = (\(x,y) -> (f x, g y)) ==> f *** g
-warn  = (\x -> (f x, g x)) ==> f &&& g
-warn  = (\(x,y) -> (f x,y)) ==> first f
-warn  = (\(x,y) -> (x,g y)) ==> second g
+warn  = (\(x,y) -> (f x, g y)) ==> f *** g where _ = notIn [x,y] [f,g]
+warn  = (\x -> (f x, g x)) ==> f &&& g where _ = notIn x [f,g]
+warn  = (\(x,y) -> (f x,y)) ==> first f where _ = notIn [x,y] f
+warn  = (\(x,y) -> (x,f y)) ==> second f where _ = notIn [x,y] f
 
 -- MONAD
 
@@ -227,5 +227,7 @@ yes = if nullPS s then return False else if headPS s /= '\n' then return False e
     where res = if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
 yes = if foo then do stuff; moreStuff; lastOfTheStuff else return ()
     where res = when foo $ do stuff ; moreStuff ; lastOfTheStuff
+yes = foo $ \(a, b) -> (a, y + b) where res = second ((+) y)
+no  = foo $ \(a, b) -> (a, a + b)
 </TEST>
 -}

@@ -90,7 +90,17 @@ checkSide (Just x) bind = f x
             | 'i':'s':typ <- fromNamed x, Just e <- lookup (fromNamed y) bind
             = if typ == "Atom" then isAtom e
               else head (words $ show e) == typ
+        f (App (App nin xs) ys) | nin ~= "notIn" = and [notIn x y | x <- g xs, y <- g ys]
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
+
+        g :: Exp -> [Exp]
+        g (List xs) = xs
+        g x = [x]
+
+        notIn x y = fromMaybe False $ do
+            x2 <- lookup (fromNamed x) bind
+            y2 <- lookup (fromNamed y) bind
+            return $ x2 `notElem` universe y2
 
 
 -- perform a substitution
