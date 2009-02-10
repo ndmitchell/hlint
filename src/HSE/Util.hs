@@ -24,6 +24,9 @@ moduleDecls (Module _ _ _ _ _ _ xs) = xs
 moduleName :: Module -> String
 moduleName (Module _ (ModuleName x) _ _ _ _ _) = x
 
+moduleImports :: Module -> [ImportDecl]
+moduleImports (Module _ _ _ _ _ x _) = x
+
 fromParseOk :: ParseResult a -> a
 fromParseOk (ParseOk x) = x
 
