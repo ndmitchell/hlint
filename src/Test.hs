@@ -9,6 +9,7 @@ import Data.List
 import Data.Maybe
 import Data.Either
 import System.Directory
+import System.FilePath
 import Data.Generics.PlateData
 
 import CmdLine
@@ -30,17 +31,22 @@ data Test = Test SrcLoc Decl (Maybe String)
 test :: IO ()
 test = do
     dat <- getDataDir
-    settings <- readSettings []
-        
+    datDir <- getDirectoryContents dat
+
     src <- doesDirectoryExist "src/Hint"
     (fail,total) <- liftM ((sum *** sum) . unzip) $ sequence $
-            runTest (dynamicHints settings) (dat ++ "/Hints.hs") :
-            [runTest h ("src/Hint/" ++ name ++ ".hs") | (name,h) <- staticHints, src]
+        [runTestDyn (dat </> h) | h <- datDir, takeExtension h == ".hs"] ++
+        [runTest h ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints, src]
     unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
     if fail == 0
         then putStrLn $ "Tests passed (" ++ show total ++ ")"
         else putStrLn $ "Tests failed (" ++ show fail ++ " of " ++ show total ++ ")"
 
+
+runTestDyn :: FilePath -> IO (Int,Int)
+runTestDyn file = do
+    settings <- readSettings [file]
+    runTest (dynamicHints settings) file
 
 
 -- return the number of fails/total
