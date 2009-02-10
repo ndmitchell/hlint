@@ -78,6 +78,11 @@ instance Named Name where
     toNamed x | isSym x = Symbol x
               | otherwise = Ident x
 
+instance Named ModuleName where
+    fromNamed (ModuleName x) = x
+    toNamed = ModuleName
+
+
 instance Named Pat where
     fromNamed (PVar x) = fromNamed x
     fromNamed (PApp x []) = fromNamed x
