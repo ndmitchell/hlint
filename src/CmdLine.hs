@@ -58,11 +58,15 @@ getCmd = do
         helpMsg
         exitWith ExitSuccess
 
-    files <- liftM concat $ mapM getFile files
+    files <- concatMapM getFile files
+    
+    let hintFiles = [x | Hints x <- opt]
+    hints <- mapM getHintFile $ hintFiles ++ ["HLint" | null hintFiles]
+
     return Cmd
         {cmdTest = test
         ,cmdFiles = files
-        ,cmdHintFiles = [x | Hints x <- opt]
+        ,cmdHintFiles = hints
         ,cmdReports = [x | Report x <- opt]
         ,cmdIgnore = [x | Skip x <- opt]
         ,cmdShowAll = ShowAll `elem` opt
@@ -94,3 +98,17 @@ getFile file = do
         b <- doesFileExist file
         unless b $ error $ "Couldn't find file: " ++ file
         return [file]
+
+
+getHintFile :: FilePath -> IO FilePath
+getHintFile x = do
+        dat <- getDataDir
+        let poss = nub $ concat [x : [x <.> "hs" | takeExtension x /= ".hs"] | x <- [x,dat </> x]]
+        f poss poss
+    where
+        f o [] = error $ unlines $ [
+            "Couldn't find file: " ++ x,
+            "Tried with:"] ++ map ("  "++) o
+        f o (x:xs) = do
+            b <- doesFileExist x
+            if b then return x else f o xs

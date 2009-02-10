@@ -67,8 +67,8 @@ p.rule {
 </p>
 <ol>
     <li>Installing and running HLint</li>
-    <li>Adding additional hints</li>
-    <li>Ignoring particular hints</li>
+    <li>FAQ</li>
+    <li>Customizing the hints</li>
 </ol>
 
 <h3>Acknowledgements</h3>
@@ -157,17 +157,55 @@ foo xs = concat (map op xs)
 <ul>
 	<li>HLint aims to both improve code, and to teach the author better style. Doing modifications individually helps this process.</li>
 	<li>Sometimes the steps are reasonably complex, by automatically composing them the user may become confused.</li>
-	<li>Sometimes HLint gets transformations wrong - particularly with operators. If suggestions are applied recursively, one error will cascade.</li>
+	<li>Sometimes HLint gets transformations wrong. If suggestions are applied recursively, one error will cascade.</li>
 	<li>Some people only make use of some of the suggestions. In the above example using concatMap is a good idea, but sometimes eta reduction isn't. By suggesting them separately, people can pick and choose.</li>
 	<li>Sometimes a transformed expression will be large, and a further hint will apply to some small part of the result, which appears confusing.</li>
 	<li>Consider <tt>f $ (a b)</tt>. There are two valid hints, either remove the <tt>$</tt> or remove the brackets, but only one can be applied.</li>
 </ul>
 
-
-<h2>Adding additional hints</h2>
+<h3>Why aren't the suggestions automatically applied?</h3>
 
 <p>
-	The majority of hints are contained in a <tt>Hints.hs</tt> file which will be installed in the appropriate data directory by Cabal. This file may be freely edited, to add library specific knowledge, or to include hints that may have been missed. In addition, any <tt>Hints.hs</tt> in the current directory, or specified with the <tt>--hint</tt> flag, will be used. As an example of a hint file, the line specifying <tt>concatMap</tt> is:
+	If you want to automatically apply suggestions, the Emacs integration offers such a feature. However, there are a number of reasons that HLint itself doesn't have an option to automatically apply suggestions:
+</p>
+<ul>
+	<li>The underlying Haskell parser library doesn't maintain sufficient position information to figure out exactly where the code came from.</li>
+	<li>The underlying parser doesn't preserve comments.</li>
+	<li>Sometimes multiple transformations may apply.</li>
+	<li>After applying one transformation, others that were otherwise suggested may become inappropriate.</li>
+</ul>
+<p>
+	If someone wanted to write such a feature, trying to work round some of the issues above, it would be happily accepted.
+</p>
+
+<h2>Customizing the hints</h2>
+
+<p>
+	Many of the hints that are applied by HLint are contained in Haskell source files which are installed in the data directory by Cabal. These files may be edited, to add library specific knowledge, to include hints that may have been missed, or to ignore unwanted hints.
+</p>
+
+<h3>Choosing a package of hints</h3>
+
+<p>
+	By default, HLint will use the <tt>HLint.hs</tt> file either from the current working directory, or from the data directory. Alternatively, hint files can be specified with the <tt>--hint</tt> flag. HLint comes with a number of hint packages:
+</p>
+<ul>
+	<li><b>Default</b> - these are the hints that are used by default, covering most of the base libraries.</li>
+	<li><b>Dollar</b> - suggests the replacement <tt>a $ b $ c</tt> with <tt>a . b $ c</tt>. This hint is especially popular on the <a href="http://www.haskell.org/haskellwiki/IRC_channel"><tt>#haskell</tt> IRC channel</a>.</li>
+	<li><b>Generalise</b> - suggests replacing specific variants of functions (i.e. <tt>map</tt>) with more generic functions (i.e. <tt>fmap</tt>).</li>
+</ul>
+<p>
+	As an example, to check the file <tt>Example.hs</tt> with both the default hints and the dollar hint, I could type: <tt>hlint Example.hs --hint Default --hint Dollar</tt>. Alternatively, I could create the file <tt>HLint.hs</tt> in the working directory and give it the contents:
+</p>
+<pre>
+import HLint.Default
+import HLint.Dollar
+</pre>
+
+<h3>Adding hints</h3>
+
+<p>
+	The hint suggesting <tt>concatMap</tt> is defined as:
 </p>
 <pre>
 error = concat (map f x) ==> concatMap f x
@@ -179,7 +217,7 @@ error = concat (map f x) ==> concatMap f x
 </p>
 
 
-<h2>Ignoring particular hints</h2>
+<h3>Ignoring hints</h3>
 
 <p>
 	Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for supressing certain hints. Ignore directives are picked up from the hint files. Some example directives are:

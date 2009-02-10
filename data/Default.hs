@@ -1,5 +1,5 @@
 
--- Important hints:
+module HLint.Default where
 
 -- I/O
 

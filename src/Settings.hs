@@ -8,25 +8,32 @@ import Type
 import Data.Char
 import Data.List
 import System.Directory
+import System.FilePath
+import Util
 import Data.Generics.PlateData
 
 
--- Given a list of hint files to start from ([] = use default)
+-- Given a list of hint files to start from
 -- Return the list of settings commands
 readSettings :: [FilePath] -> IO [Setting]
 readSettings xs = do
-    dat <- getDataDir
-    b <- doesFileExist "Hints.hs"
-    mods <- pickFiles $
-        [dat ++ "/Hints.hs"] ++ ["Hints.hs" | b && null xs] ++ xs
+    mods <- concatMapM readHints xs
     return $ concatMap (concatMap readSetting . concatMap getEquations . moduleDecls) mods
 
 
 -- read all the files
 -- in future this should also do import chasing, but
 -- currently it doesn't
-pickFiles :: [FilePath] -> IO [Module]
-pickFiles = mapM parseFile
+readHints :: FilePath -> IO [Module]
+readHints file = do
+    y <- parseFile file
+    ys <- concatMapM (f . fromNamed . importModule) $ moduleImports y
+    return $ y:ys
+    where
+        f x | "HLint." `isPrefixOf` x = do
+                dat <- getDataDir
+                readHints $ dat </> drop 6 x <.> "hs"
+            | otherwise = readHints $ x <.> "hs"
 
 
 -- Eta bound variable lifted so the filter only happens once per classify
