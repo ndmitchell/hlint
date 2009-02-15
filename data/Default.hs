@@ -116,6 +116,8 @@ error = sequence (zipWith f x y) ==> zipWithM f x y
 error = sequence_ (zipWith f x y) ==> zipWithM_ f x y
 error = sequence (replicate n x) ==> replicateM n x
 error = sequence_ (replicate n x) ==> replicateM_ n x
+error = mapM f (map g x) ==> mapM (f . g) x
+error = mapM_ f (map g x) ==> mapM_ (f . g) x
 
 -- LIST COMP
 
