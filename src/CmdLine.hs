@@ -27,7 +27,7 @@ data Cmd = Cmd
     }
 
 
-data Opts = Help | Test
+data Opts = Help | Ver | Test
           | Hints FilePath
           | Report FilePath
           | Skip String | ShowAll
@@ -36,6 +36,7 @@ data Opts = Help | Test
 
 
 opts = [Option "?" ["help"] (NoArg Help) "Display help message"
+       ,Option "v" ["version"] (NoArg Ver) "Display version information"
        ,Option "r" ["report"] (OptArg (Report . fromMaybe "report.html") "file") "Generate a report in HTML"
        ,Option "h" ["hint"] (ReqArg Hints "file") "Hint/ignore file to use"
        ,Option "c" ["color","colour"] (NoArg Color) "Color the output (requires ANSI terminal)"
@@ -54,8 +55,12 @@ getCmd = do
     unless (null err) $
         error $ unlines $ "Unrecognised arguments:" : err
 
+    when (Ver `elem` opt) $ do
+        putStr versionText
+        exitWith ExitSuccess
+
     when (Help `elem` opt || (null files && not test)) $ do
-        helpMsg
+        putStr helpText
         exitWith ExitSuccess
 
     files <- concatMapM getFile files
@@ -74,10 +79,12 @@ getCmd = do
         }
 
 
-helpMsg :: IO ()
-helpMsg = putStr $ unlines
-    ["HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2009, University of York"
-    ,""
+versionText :: String
+versionText = "HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2009\n"
+
+helpText :: String
+helpText = unlines
+    [versionText
     ,"  hlint [files/directories] [options]"
     ,usageInfo "" opts
     ,"HLint makes hints on how to improve some Haskell code."
