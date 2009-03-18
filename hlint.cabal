@@ -15,7 +15,10 @@ homepage:           http://www.cs.york.ac.uk/~ndm/hlint/
 stability:          Beta
 data-dir:           data
 data-files:
-    Hints.hs
+    Default.hs
+    Generalise.hs
+    Dollar.hs
+    HLint.hs
     report.html
     hs-lint.el
 Extra-Source-Files:
