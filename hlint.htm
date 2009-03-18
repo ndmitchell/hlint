@@ -81,7 +81,12 @@ p.rule {
 
 <p>
 	A complete bug list is kept at <a href="http://code.google.com/p/ndmitchell/issues/list?q=proj:HLint">my bug tracker</a>.
+	Some common issues that I do not intend to fix include:
 </p>
+<ul>
+	<li>The presence of <tt>seq</tt> may cause some hints (i.e. eta-reduction) to change the semantics of the program.</li>
+	<li>The monomorphism restriction or uses of rank-2 types may sometimes cause transformed programs to become ill-typed.</li>
+</ul>
 
 <h2>Installing and running HLint</h2>
 
@@ -120,7 +125,7 @@ Why not:
 	The first suggestion is marked as an error, because using <tt>concatMap</tt> in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always. Reasons that a hint might be a warning include requiring an additional import, something not everyone agrees on, and functions only available in more recent versions of the base library.
 </p>
 <p class="rule">
-	<b>Disclaimer:</b> While these hints are meant to be correct, they aren't guaranteed to be. Please report any non equivalent hints (ignoring effects of <tt>seq</tt>).
+	<b>Disclaimer:</b> While these hints are meant to be correct, they aren't guaranteed to be. Please report any non equivalent hints not listed above in the limitations.
 </p>
 
 <h3>Reports</h3>
