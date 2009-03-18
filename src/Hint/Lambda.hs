@@ -13,6 +13,7 @@
 
 <TEST>
 yes = 0 where f a = \x -> x + x ; res = "f a x = x + x"
+yes = 0 where h a = f (g a ==) ; res = "h = f . (==) . g"
 yes a = foo (\x -> True) where res = const True
 no = foo (\x -> map f [])
 yes = 0 where f x = y x ; res = "f = y"
@@ -89,8 +90,9 @@ etaReduce x (App y z) | not (uglyEta y z) && x `notElem` universeBi y = do
     z2 <- etaReduce x z
     return $ InfixApp y (QVarOp $ UnQual $ Symbol ".") z2
 etaReduce x (view -> App2 dollar y z) | dollar ~= "$" = etaReduce x (App y z)
+etaReduce x (LeftSection y op) = etaReduce x $ App (opExp op) y
 etaReduce x y | isParen y = etaReduce x (fromParen y)
-etaReduce x _ = Nothing
+etaReduce x y = Nothing
 
 
 -- (f (g x)) (h y), ugly if g == h
