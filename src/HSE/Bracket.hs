@@ -29,6 +29,10 @@ isAtom x = case x of
     RightSection{} -> True
     RecConstr{} -> True
     ListComp{} -> True
+    EnumFrom{} -> True
+    EnumFromTo{} -> True
+    EnumFromThen{} -> True
+    EnumFromThenTo{} -> True
     _ -> False
 
 
