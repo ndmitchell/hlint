@@ -56,6 +56,7 @@ error = zipWith3 (,,) ==> zip3
 warn  = length x == 0 ==> null x
 warn  "Use null" = length x /= 0 ==> not (null x)
 error "Use :" = (\x -> [x]) ==> (:[])
+error = map (uncurry f) (zip x y) ==> zipWith f x y
 
 -- FOLDS
 
@@ -231,5 +232,6 @@ yes = if foo then do stuff; moreStuff; lastOfTheStuff else return ()
     where res = when foo $ do stuff ; moreStuff ; lastOfTheStuff
 yes = foo $ \(a, b) -> (a, y + b) where res = second ((+) y)
 no  = foo $ \(a, b) -> (a, a + b)
+yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] where res = zipWith (+) [1 .. 5] [6 .. 10]
 </TEST>
 -}
