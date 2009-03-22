@@ -11,7 +11,7 @@ copyright:          Neil Mitchell 2006-2009
 synopsis:           Source code suggestions
 description:
     HLint gives suggestions on how to improve your source code.
-homepage:           http://www.cs.york.ac.uk/~ndm/hlint/
+homepage:           http://community.haskell.org/~ndm/hlint/
 stability:          Beta
 data-dir:           data
 data-files:
