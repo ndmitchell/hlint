@@ -108,7 +108,7 @@ error = sequence_ (map f x) ==> mapM_ f x
 warn  = flip mapM ==> forM
 warn  = flip mapM_ ==> forM_
 error = when (not x) y ==> unless x y
-error = join x ==> x >>= id
+error = x >>= id ==> join x
 
 -- MONAD LIST
 
