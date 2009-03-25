@@ -14,6 +14,8 @@ yes = do (bar+foo) where res = (bar+foo)
 no = do bar ; foo
 yes = do bar; a <- foo; return a where res = do bar; foo
 no = do bar; a <- foo; return b
+yes = do x <- bar; x where res = do join bar
+no = do x <- bar; x; x
 </TEST>
 -}
 
@@ -22,6 +24,7 @@ module Hint.Monad where
 
 import Control.Arrow
 import Control.Monad
+import Data.Maybe
 import HSE.All
 import Type
 
@@ -36,6 +39,7 @@ monadExp :: (SrcLoc,Exp) -> [Idea]
 monadExp (loc,x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         Do xs -> [idea Error "Redundant return" loc x y | Just y <- [monadReturn xs]] ++
+                 [idea Error "Use join" loc x (Do y) | Just y <- [monadJoin xs]] ++
                  [idea Error "Redundant do" loc x y | [Qualifier y] <- [xs]] ++
                  concat [f x | Qualifier x <- init xs]
         MDo xs -> monadExp (loc, Do xs)
@@ -57,3 +61,10 @@ monadReturn (reverse -> Qualifier (App ret (Var v)):Generator _ (PVar p) x:rest)
     | ret ~= "return", fromNamed v == fromNamed p
     = Just $ Do $ reverse $ Qualifier x : rest
 monadReturn _ = Nothing
+
+
+monadJoin (Generator _ (PVar p) x:Qualifier (Var v):xs)
+    | fromNamed p == fromNamed v && Var v `notElem` universeBi xs
+    = Just $ Qualifier (ensureBracket1 $ App (toNamed "join") x) : fromMaybe xs (monadJoin xs)
+monadJoin (x:xs) = liftM (x:) $ monadJoin xs
+monadJoin [] = Nothing
