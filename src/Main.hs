@@ -34,9 +34,9 @@ main = do
         let counts = map (head &&& length) $ group $ sort $ map rank ideas
         let [ignore,warn,err] = map (fromMaybe 0 . flip lookup counts) [Ignore,Warning,Error]
         let total = ignore + warn + err
-        let shown = if cmdShowAll then total else total-ignore
+        let shown = if cmdShowAll then total else total - ignore
 
-        let ignored = [show i ++ " ignored" | let i = total-shown, i /= 0]
+        let ignored = [show i ++ " ignored" | let i = total - shown, i /= 0]
         let errors = [show err ++ " error" ++ ['s'|err/=1] | err /= 0]
 
         if shown == 0 then do
