@@ -28,9 +28,9 @@ Extra-Source-Files:
 executable hlint
     build-depends:
         base == 4.*, syb, filepath, directory, mtl, containers, hscolour == 1.10.*,
-        haskell-src-exts == 0.4.8.*, uniplate == 1.2.* && >= 1.2.0.2
+        haskell-src-exts == 0.4.8.*, uniplate == 1.2.* && >= 1.2.0.2, parallel
 
-    ghc-options:        -fno-warn-overlapping-patterns
+    ghc-options:        -fno-warn-overlapping-patterns -threaded
 
     -- ViewPatterns not yet supported by Cabal as an extension
     -- extensions:         ViewPatterns, PatternGuards, MultiParamTypeClasses
