@@ -44,6 +44,7 @@ needBracket i parent child
     | ListComp{} <- parent = False
     | If{} <- parent, isAnyApp child = False
     | App{} <- parent, i == 0, isApp child = False
+    | ExpTypeSig{} <- parent, i == 0 = False
     | otherwise = True
 
 

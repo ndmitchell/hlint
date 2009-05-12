@@ -7,6 +7,7 @@ no = f (x x)
 yes = (f x) ||| y where res = f x ||| y
 yes = if (f x) then y else z where res = if f x then y else z
 yes = if x then (f y) else z where res = if x then f y else z
+yes = (a foo) :: Int where res = a foo :: Int
 
 no = groupFsts . sortFst $ mr
 yes = split "to" $ names where res = split "to" names
