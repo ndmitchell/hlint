@@ -56,8 +56,6 @@ isApp App{} = True; isApp _ = False
 isInfixApp InfixApp{} = True; isInfixApp _ = False
 isAnyApp x = isApp x || isInfixApp x
 isParen Paren{} = True; isParen _ = False
-isListComp ListComp{} = True; isListComp _ = False
-isIf If{} = True; isIf _ = False
 
 
 ---------------------------------------------------------------------
