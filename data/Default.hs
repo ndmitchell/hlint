@@ -134,6 +134,7 @@ error "Redundant $!" = id $! x ==> x
 error = maybe x id  ==> fromMaybe x
 error = maybe False (const True) ==> isJust
 error = maybe True (const False) ==> isNothing
+error = catMaybes (map f x) ==> mapMaybe f x
 
 -- MATHS
 
