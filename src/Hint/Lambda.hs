@@ -24,6 +24,8 @@ no = 0 where f x y = f (g x) (g y) ; res = "f = f `on` g"
 yes = 0 where f x y = g x == g y ; res = "f = (==) `on` g"
 a + b = foo a b where res = "(+) = foo"
 type Yes a = Foo Char a
+yes = foo (\x -> sum x) where res = sum
+yes = foo (\x l -> sum x x l) where res = \x -> sum x x
 </TEST>
 -}
 
@@ -51,6 +53,9 @@ lambdaExp o@(Lambda loc [v] y) | isAtom y, Just x <- f v, x `notElem` universeBi
         f PWildCard = Just $ Ident "_"
         f _ = Nothing
         res = App (toNamed "const") y
+lambdaExp o@(Lambda loc vs x) | length vs /= length vs2 =
+        [warn "Eta reduce" loc o $ if null vs2 then x2 else Lambda loc vs2 x2]
+    where (vs2,x2) = etaReduces vs x
 lambdaExp _ = []
 
 
