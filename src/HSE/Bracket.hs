@@ -40,10 +40,10 @@ isAtom x = case x of
 needBracket :: Int -> Exp -> Exp -> Bool
 needBracket i parent child 
     | isAtom child = False
-    | isInfixApp parent, isApp child = False
-    | isListComp parent = False
-    | isIf parent, isAnyApp child = False
-    | isApp parent, i == 0, isApp child = False
+    | InfixApp{} <- parent, isApp child = False
+    | ListComp{} <- parent = False
+    | If{} <- parent, isAnyApp child = False
+    | App{} <- parent, i == 0, isApp child = False
     | otherwise = True
 
 
