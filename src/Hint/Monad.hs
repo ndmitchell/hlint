@@ -16,6 +16,7 @@ yes = do bar; a <- foo; return a where res = do bar; foo
 no = do bar; a <- foo; return b
 yes = do x <- bar; x where res = do join bar
 no = do x <- bar; x; x
+no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
 </TEST>
 -}
 
@@ -42,7 +43,6 @@ monadExp (loc,x) = case x of
                  [idea Error "Use join" loc x (Do y) | Just y <- [monadJoin xs]] ++
                  [idea Error "Redundant do" loc x y | [Qualifier y] <- [xs]] ++
                  concat [f x | Qualifier x <- init xs]
-        MDo xs -> monadExp (loc, Do xs)
         _ -> []
     where
         f x = [idea Error ("Use " ++ name) loc x y
