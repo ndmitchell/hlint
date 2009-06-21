@@ -1,5 +1,5 @@
 
-module HSE.NameMatch(NameMatch, nameMatch, nullNameMatch) where
+module HSE.NameMatch(NameMatch, nameMatch) where
 
 import Language.Haskell.Exts
 import qualified Data.Map as Map
@@ -9,10 +9,6 @@ import Data.Function
 
 
 type NameMatch = QName -> QName -> Bool
-
-
-nullNameMatch :: NameMatch
-nullNameMatch = (==)
 
 
 -- Given a list of import statements, are the names equal
