@@ -52,12 +52,12 @@ runTestDyn file = do
 -- return the number of fails/total
 runTest :: Hint -> FilePath -> IO (Int,Int)
 runTest hint file = do
-    (nm,tests) <- parseTestFile file
-    let failures = concatMap (f nm) tests
+    tests <- parseTestFile file
+    let failures = concatMap f tests
     putStr $ unlines failures
     return (length failures, length tests)
     where
-        f nm (Test loc inp out) =
+        f (nm, Test loc inp out) =
                 ["Test failed " ++ showSrcLoc loc ++ " " ++
                  concatMap ((++) " | " . show) ideas ++ "\n" ++
                  prettyPrint inp | not good]
@@ -68,18 +68,18 @@ runTest hint file = do
                     Just x -> length ideas == 1 && (null x || to (head ideas) == x)
 
 
-parseTestFile :: FilePath -> IO (NameMatch, [Test])
+parseTestFile :: FilePath -> IO [(NameMatch, Test)]
 parseTestFile file = do
     src <- readFile file
-    src <- return $ unlines $ f $ lines src
-    let modu = parseString file src
-    return (nameMatch $ moduleImports modu
-           ,map createTest $ concatMap getEquations $ moduleDecls modu)
+    return [(nm, createTest eqn)
+           | code <- f $ lines src, let modu = parseString file code
+           , let nm = nameMatch $ moduleImports modu
+           , eqn <- concatMap getEquations $ moduleDecls modu]
     where
         open = isPrefixOf "<TEST>"
         shut = isPrefixOf "</TEST>"
         f [] = []
-        f xs = inner ++ f (drop 1 test)
+        f xs = unlines inner : f (drop 1 test)
             where (inner,test) = break shut $ drop 1 $ dropWhile (not . open) xs
 
 
