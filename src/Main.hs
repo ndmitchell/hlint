@@ -7,6 +7,7 @@ import Control.Monad
 import Data.List
 import Data.Maybe
 import System.Directory
+import System.Exit
 import Data.Generics.PlateData
 
 import CmdLine
@@ -49,6 +50,9 @@ main = do
                 putStrLn $ "Writing report to " ++ x ++ " ..."
                 writeReport x ideas
             printMsg ("Found " ++ show shown ++ " suggestion" ++ ['s'|shown/=1]) (errors++ignored)
+
+        when (err > 0) $
+            exitWith $ ExitFailure 1
 
 
 printMsg :: String -> [String] -> IO ()
