@@ -31,35 +31,36 @@ findIdeas :: [Setting] -> NameMatch -> Decl -> [Idea]
 findIdeas matches nm decl =
   [ idea (rank m) (hint m) loc x y
   | (loc, x) <- universeExp nullSrcLoc decl, not $ isParen x
-  , m <- matches, Just y <- [matchIdea m x]]
+  , m <- matches, Just y <- [matchIdea nm m x]]
 
 
-matchIdea :: Setting -> Exp -> Maybe Exp
-matchIdea MatchExp{lhs=lhs,rhs=rhs,side=side} x = do
-    u <- unify lhs x
+matchIdea :: NameMatch -> Setting -> Exp -> Maybe Exp
+matchIdea nm MatchExp{lhs=lhs,rhs=rhs,side=side} x = do
+    u <- unify nm lhs x
     u <- check u
     guard $ checkSide side u
     return $ dotContract $ performEval $ subst u rhs
 
 
 -- unify a b = c, a[c] = b
-unify :: Exp -> Exp -> Maybe [(String,Exp)]
-unify (Do xs) (Do ys) | length xs == length ys = concatZipWithM unifyStmt xs ys
-unify (Lambda _ xs x) (Lambda _ ys y) | length xs == length ys = liftM2 (++) (unify x y) (concatZipWithM unifyPat xs ys)
-unify x y | isParen x || isParen y = unify (fromParen x) (fromParen y)
-unify (Var (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
-unify x y | ((==) `on` descend (const $ toNamed "_")) x y = concatZipWithM unify (children x) (children y)
-unify x o@(view -> App2 op y1 y2)
-  | op ~= "$" = unify x $ y1 `App` y2
-  | op ~= "." = unify x $ dotExpand o
-unify x (InfixApp lhs op rhs) = unify x (opExp op `App` lhs `App` rhs)
-unify _ _ = Nothing
+unify :: NameMatch -> Exp -> Exp -> Maybe [(String,Exp)]
+unify nm (Do xs) (Do ys) | length xs == length ys = concatZipWithM (unifyStmt nm) xs ys
+unify nm (Lambda _ xs x) (Lambda _ ys y) | length xs == length ys = liftM2 (++) (unify nm x y) (concatZipWithM unifyPat xs ys)
+unify nm x y | isParen x || isParen y = unify nm (fromParen x) (fromParen y)
+unify nm (Var (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
+unify nm (Var x) (Var y) | nm x y = Just []
+unify nm x y | ((==) `on` descend (const $ toNamed "_")) x y = concatZipWithM (unify nm) (children x) (children y)
+unify nm x o@(view -> App2 op y1 y2)
+  | op ~= "$" = unify nm x $ y1 `App` y2
+  | op ~= "." = unify nm x $ dotExpand o
+unify nm x (InfixApp lhs op rhs) = unify nm x (opExp op `App` lhs `App` rhs)
+unify nm _ _ = Nothing
 
 
-unifyStmt :: Stmt -> Stmt -> Maybe [(String,Exp)]
-unifyStmt (Generator _ p1 x1) (Generator _ p2 x2) = liftM2 (++) (unifyPat p1 p2) (unify x1 x2)
-unifyStmt x y | ((==) `on` descendBi (const (toNamed "_" :: Exp))) x y = concatZipWithM unify (childrenBi x) (childrenBi y)
-unifyStmt _ _ = Nothing
+unifyStmt :: NameMatch -> Stmt -> Stmt -> Maybe [(String,Exp)]
+unifyStmt nm (Generator _ p1 x1) (Generator _ p2 x2) = liftM2 (++) (unifyPat p1 p2) (unify nm x1 x2)
+unifyStmt nm x y | ((==) `on` descendBi (const (toNamed "_" :: Exp))) x y = concatZipWithM (unify nm) (childrenBi x) (childrenBi y)
+unifyStmt nm _ _ = Nothing
 
 
 unifyPat :: Pat -> Pat -> Maybe [(String,Exp)]
