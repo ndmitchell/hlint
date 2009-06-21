@@ -63,6 +63,7 @@ getNames x = case x of
         names = map fromNamed (universeBi x :: [Name])
 
         f (ConDecl x _) = [x]
+        f (InfixConDecl _ x _) = [x]
         f (RecDecl x ys) = x : concatMap fst ys
 
 

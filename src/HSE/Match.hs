@@ -92,6 +92,12 @@ instance Named Pat where
               | otherwise = PVar $ toNamed x
 
 
+instance Named TyVarBind where
+    fromNamed (KindedVar x _) = fromNamed x
+    fromNamed (UnkindedVar x) = fromNamed x
+    toNamed = UnkindedVar . toNamed
+
+
 instance Named Decl where
     fromNamed (TypeDecl _ name _ _) = fromNamed name
     fromNamed (DataDecl _ _ _ name _ _ _) = fromNamed name

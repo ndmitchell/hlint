@@ -114,6 +114,6 @@ lambdaType o@(TypeDecl src name args typ) = [warn "Type eta reduce" src o t2 | i
         t2 = TypeDecl src name (take (length args - i) args) t
     
         -- return the number you managed to delete
-        f :: [Name] -> Type -> (Int, Type)
-        f (x:xs) (TyApp t1 (TyVar v)) | v == x = first (+1) $ f xs t1
+        f :: [TyVarBind] -> Type -> (Int, Type)
+        f (x:xs) (TyApp t1 (TyVar v)) | fromNamed v == fromNamed x = first (+1) $ f xs t1
         f _ t = (0,t)

@@ -3,12 +3,13 @@ module HSE.All(
     module Language.Haskell.Exts,
     module HSE.Util, module HSE.Evaluate,
     module HSE.Bracket, module HSE.Match,
-    module HSE.Operators, module HSE.Generics,
+    module HSE.Generics,
     module HSE.NameMatch,
     parseFile, parseString
     ) where
 
-import Language.Haskell.Exts hiding (parseFile, paren)
+import Language.Haskell.Exts hiding (parse, parseFile, paren,
+    preludeFixities, applyFixities, Fixity, baseFixities, infix_)
 import qualified Language.Haskell.Exts as HSE
 
 import HSE.Util
@@ -16,18 +17,31 @@ import HSE.Evaluate
 import HSE.Generics
 import HSE.Bracket
 import HSE.Match
-import HSE.Operators
 import HSE.NameMatch
+import HSE.Operators
 import Util
 import System.IO.Unsafe(unsafeInterleaveIO)
+
+
+
+-- | Parse a Haskell module
+parse :: FilePath -> String -> ParseResult Module
+parse file = fmap (applyFixities (infix_ (-1) ["==>"] ++ baseFixities)) .
+             parseFileContentsWithMode mode
+    where
+        mode = defaultParseMode
+            {parseFilename = file
+            ,extensions = extension
+            ,fixities = [] -- don't get HSE to do fixities, it breaks
+            }
 
 
 -- | On failure returns an empty module and prints to the console
 parseFile :: FilePath -> IO Module
 parseFile file = unsafeInterleaveIO $ do
-    res <- HSE.parseFile file
-    case res of
-        ParseOk x -> return $ hlintFixities x
+    src <- readFile file
+    case parse file src of
+        ParseOk x -> return x
         ParseFailed src msg -> do
             putStrLn $ showSrcLoc src ++ " Parse failure, " ++ limit 50 msg
             return $ Module nullSrcLoc (ModuleName "") [] Nothing Nothing [] []
@@ -36,11 +50,27 @@ parseFile file = unsafeInterleaveIO $ do
 -- | On failure crashes
 parseString :: String -> String -> Module
 parseString file src =
-    case parseFileContentsWithMode (ParseMode file) src of
-        ParseOk x -> hlintFixities x
+    case parse file src of
+        ParseOk x -> x
         _ -> error $ "Parse failure in " ++ file ++ "\n" ++ src
 
 
-hlintFixities :: Module -> Module
-hlintFixities = applyFixities (infix_ (-1) ["==>"] ++ baseFixities)
+
+extension =
+    [OverlappingInstances, UndecidableInstances, IncoherentInstances, RecursiveDo
+    ,ParallelListComp, MultiParamTypeClasses, NoMonomorphismRestriction, FunctionalDependencies
+    ,Rank2Types, RankNTypes, PolymorphicComponents, ExistentialQuantification, ScopedTypeVariables
+    ,ImplicitParams,FlexibleContexts,FlexibleInstances,EmptyDataDecls
+    -- NOT: CPP
+    ,ExplicitForallTypes,KindSignatures,BangPatterns,TypeSynonymInstances,TemplateHaskell
+    ,ForeignFunctionInterface,Arrows,Generics,NoImplicitPrelude,NamedFieldPuns,PatternGuards
+    ,GeneralizedNewtypeDeriving,ExtensibleRecords,RestrictedTypeSynonyms,HereDocuments
+    ,MagicHash,TypeFamilies,StandaloneDeriving,UnicodeSyntax,PatternSignatures,UnliftedFFITypes
+    ,LiberalTypeSynonyms,TypeOperators,RecordWildCards,RecordPuns,DisambiguateRecordFields
+    ,OverloadedStrings,GADTs,MonoPatBinds,RelaxedPolyRec,ExtendedDefaultRules,UnboxedTuples
+    ,DeriveDataTypeable,ConstrainedClassMethods,PackageImports,ImpredicativeTypes
+    ,NewQualifiedOperators,PostfixOperators,QuasiQuotes,ViewPatterns
+    -- ,TransformListComp - FIXME: Currently screwed up by HSE
+    -- NOT: XmlSyntax, RegularPatterns
+    ]
 

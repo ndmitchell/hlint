@@ -11,7 +11,9 @@ import Data.Generics.PlateData
 import Data.Char
 import Data.List
 import Data.Maybe
-import Language.Haskell.Exts
+import Language.Haskell.Exts hiding
+    (preludeFixities, baseFixities, applyFixities, Fixity, askFixity, fixity,
+    infixr_, infixl_, infix_)
 import HSE.Match
 import HSE.Util
 import HSE.Bracket
