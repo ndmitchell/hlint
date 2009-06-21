@@ -4,6 +4,7 @@ module HSE.All(
     module HSE.Util, module HSE.Evaluate,
     module HSE.Bracket, module HSE.Match,
     module HSE.Operators, module HSE.Generics,
+    module HSE.NameMatch,
     parseFile, parseString
     ) where
 
@@ -16,6 +17,7 @@ import HSE.Generics
 import HSE.Bracket
 import HSE.Match
 import HSE.Operators
+import HSE.NameMatch
 import Util
 import System.IO.Unsafe(unsafeInterleaveIO)
 

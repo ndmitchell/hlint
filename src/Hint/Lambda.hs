@@ -41,8 +41,8 @@ import Data.Maybe
 
 
 lambdaHint :: Hint
-lambdaHint x@TypeDecl{} = lambdaType x
-lambdaHint x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (universe x)
+lambdaHint _ x@TypeDecl{} = lambdaType x
+lambdaHint _ x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (universe x)
 
 
 lambdaExp :: Exp -> [Idea]

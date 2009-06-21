@@ -78,14 +78,15 @@ isUnifyVar _ = False
 ---------------------------------------------------------------------
 -- HINTS
 
-type Hint = Decl -> [Idea]
+type Hint = NameMatch -> Decl -> [Idea]
 
 
 concatHints :: [Hint] -> Hint
-concatHints hs x = concatMap ($x) hs
+concatHints hs nm x = concatMap (\h -> h nm x) hs
 
 
 applyHint :: Hint -> Module -> [Idea]
 applyHint h m = [i{func = (name,fromNamed d)}
-                | d <- moduleDecls m, i <- sortBy (comparing loc) $ h d]
+                | d <- moduleDecls m, i <- sortBy (comparing loc) $ h nm d]
     where name = moduleName m
+          nm = nameMatch $ moduleImports m

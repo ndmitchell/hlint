@@ -51,6 +51,7 @@ executable hlint
         HSE.Match
         HSE.Operators
         HSE.Util
+        HSE.NameMatch
         Hint.All
         Hint.Bracket
         Hint.Lambda

@@ -22,8 +22,8 @@ import Data.Maybe
 
 
 structureHint :: Hint
-structureHint x = concat [concatMap useGuards xs | FunBind xs <- [x]] ++
-                  concatMap useIf (universeExp nullSrcLoc x)
+structureHint _ x = concat [concatMap useGuards xs | FunBind xs <- [x]] ++
+                    concatMap useIf (universeExp nullSrcLoc x)
 
 
 useGuards :: Match -> [Idea]

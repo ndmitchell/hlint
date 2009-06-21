@@ -28,7 +28,7 @@ import Type
 
 
 listHint :: Hint
-listHint = listDecl
+listHint _ = listDecl
 
 listDecl :: Decl -> [Idea]
 listDecl x = concatMap (listExp False) (children0Exp nullSrcLoc x) ++

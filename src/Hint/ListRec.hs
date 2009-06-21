@@ -35,8 +35,8 @@ import Control.Monad
 import Data.Generics.PlateData
 
 
-listRecHint :: Decl -> [Idea]
-listRecHint = concatMap f . universe
+listRecHint :: Hint
+listRecHint _ = concatMap f . universe
     where
         f o = maybeToList $ do
             let x = o
