@@ -55,8 +55,8 @@ classify xs = \i -> i{rank=foldl'
 readSetting :: Decl -> [Setting]
 readSetting (FunBind [Match src (Ident (getRank -> rank)) pats _
            (UnGuardedRhs bod) (BDecls bind)])
-    | InfixApp lhs op rhs <- bod, opExp op ~= "==>", [name] <- names =
-        [MatchExp rank name (fromParen lhs) (fromParen rhs) (readSide bind)]
+    | InfixApp lhs op rhs <- bod, opExp op ~= "==>" =
+        [MatchExp rank (head names) (fromParen lhs) (fromParen rhs) (readSide bind)]
     | otherwise = [Classify func rank n | n <- names2, func <- readFuncs bod]
     where
         names = getNames pats bod
@@ -89,7 +89,9 @@ getNames :: [Pat] -> Exp -> [String]
 getNames ps _ | ps /= [] && all isPString ps = map fromPString ps
 getNames [] (InfixApp lhs op rhs) | opExp op ~= "==>" = ["Use " ++ head names]
     where
-        names = filter (not . isUnifyVar) $ map f (childrenBi rhs) \\ map f (childrenBi lhs) 
+        lnames = map f $ childrenBi lhs
+        rnames = map f $ childrenBi rhs
+        names = filter (not . isUnifyVar) $ (rnames \\ lnames) ++ rnames
         f (Ident x) = x
         f (Symbol x) = x
 getNames [] _ = [""]
