@@ -171,7 +171,7 @@ readPat _ = Nothing
 
 -- a list of application, with any necessary brackets
 appsBracket :: [Exp] -> Exp
-appsBracket = foldl1 (\x y -> ensureBracket1 $ App x y)
+appsBracket = foldl1 (\x -> ensureBracket1 . App x)
 
 
 -- generate a lambda, but prettier (if possible)
