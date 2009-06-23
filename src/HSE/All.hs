@@ -8,8 +8,7 @@ module HSE.All(
     parseFile, parseString
     ) where
 
-import Language.Haskell.Exts hiding (parse, parseFile, paren,
-    preludeFixities, applyFixities, Fixity, baseFixities, infix_)
+import Language.Haskell.Exts hiding (parse, parseFile, paren)
 import qualified Language.Haskell.Exts as HSE
 
 import HSE.Util
@@ -18,7 +17,6 @@ import HSE.Generics
 import HSE.Bracket
 import HSE.Match
 import HSE.NameMatch
-import HSE.Operators
 import Util
 import System.IO.Unsafe(unsafeInterleaveIO)
 
@@ -26,13 +24,12 @@ import System.IO.Unsafe(unsafeInterleaveIO)
 
 -- | Parse a Haskell module
 parse :: FilePath -> String -> ParseResult Module
-parse file = fmap (applyFixities (infix_ (-1) ["==>"] ++ baseFixities)) .
-             parseFileContentsWithMode mode
+parse file = parseFileContentsWithMode mode
     where
         mode = defaultParseMode
             {parseFilename = file
             ,extensions = extension
-            ,fixities = [] -- don't get HSE to do fixities, it breaks
+            ,fixities = infix_ (-1) ["==>"] ++ baseFixities
             }
 
 
