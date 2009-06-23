@@ -67,7 +67,7 @@ extension =
     ,OverloadedStrings,GADTs,MonoPatBinds,RelaxedPolyRec,ExtendedDefaultRules,UnboxedTuples
     ,DeriveDataTypeable,ConstrainedClassMethods,PackageImports,ImpredicativeTypes
     ,NewQualifiedOperators,PostfixOperators,QuasiQuotes,ViewPatterns
-    -- ,TransformListComp - FIXME: Currently screwed up by HSE
-    -- NOT: XmlSyntax, RegularPatterns
+    -- NOT: TransformListComp - steals the group keyword
+    -- NOT: XmlSyntax, RegularPatterns - steals a-b
     ]
 
