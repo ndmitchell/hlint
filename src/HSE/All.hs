@@ -62,7 +62,7 @@ extension =
     ,Rank2Types, RankNTypes, PolymorphicComponents, ExistentialQuantification, ScopedTypeVariables
     ,ImplicitParams,FlexibleContexts,FlexibleInstances,EmptyDataDecls
     -- NOT: CPP
-    ,ExplicitForallTypes,KindSignatures,BangPatterns,TypeSynonymInstances,TemplateHaskell
+    ,KindSignatures,BangPatterns,TypeSynonymInstances,TemplateHaskell
     ,ForeignFunctionInterface,Arrows,Generics,NoImplicitPrelude,NamedFieldPuns,PatternGuards
     ,GeneralizedNewtypeDeriving,ExtensibleRecords,RestrictedTypeSynonyms,HereDocuments
     ,MagicHash,TypeFamilies,StandaloneDeriving,UnicodeSyntax,PatternSignatures,UnliftedFFITypes

@@ -12,7 +12,7 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import Language.Haskell.Exts hiding
-    (preludeFixities, baseFixities, applyFixities, Fixity, askFixity, fixity,
+    (preludeFixities, baseFixities, applyFixities, Fixity,
     infixr_, infixl_, infix_)
 import HSE.Match
 import HSE.Util
