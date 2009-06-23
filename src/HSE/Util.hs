@@ -27,9 +27,6 @@ moduleName (Module _ (ModuleName x) _ _ _ _ _) = x
 moduleImports :: Module -> [ImportDecl]
 moduleImports (Module _ _ _ _ _ x _) = x
 
-fromParseOk :: ParseResult a -> a
-fromParseOk (ParseOk x) = x
-
 isChar :: Exp -> Bool
 isChar (Lit (Char _)) = True
 isChar _ = False

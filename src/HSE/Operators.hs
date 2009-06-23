@@ -98,7 +98,7 @@ testFixities = let (==) = f in and
     ]
     where
         f lhs rhs = g lhs == g rhs || error ("Fixity mismatch " ++ lhs ++ " =/= " ++ rhs)
-        g = transformBi (const nullSrcLoc) $ transformBi fromParen . applyFixities preludeFixities . fromParseOk . parseFileContents . (++) "foo = "
+        g = transformBi (const nullSrcLoc) $ transformBi fromParen . applyFixities preludeFixities . fromParseResult . parseFileContents . (++) "foo = "
 
 
 askFixity :: [FixityDecl] -> QOp -> (Assoc, Int)
