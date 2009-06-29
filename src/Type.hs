@@ -9,6 +9,7 @@ import Data.Maybe
 import Data.Ord
 import Language.Haskell.HsColour.TTY
 import Language.Haskell.HsColour.Colourise
+import System.IO.Unsafe
 
 
 ---------------------------------------------------------------------
@@ -92,4 +93,7 @@ applyHint h (ParseOk m) =
     where name = moduleName m
           nm = nameMatch $ moduleImports m
 
-applyHint h (ParseFailed sl msg) = [Idea ("","") Warning "Parse error" sl msg "Fix the parse error"]
+applyHint h (ParseFailed sl msg) = unsafePerformIO $ do
+    src <- readFile $ srcFilename sl
+    let bad = zipWith (++) ["  ","  ","> ","  ","  "] $ take 5 $ drop (srcLine sl - 3) $ lines src
+    return [Idea ("","") Warning "Parse error" sl msg (unlines bad)]
