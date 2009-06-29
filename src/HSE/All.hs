@@ -18,14 +18,19 @@ import HSE.Bracket
 import HSE.Match
 import HSE.NameMatch
 import Util
+import Data.Char
+import Data.List
 import System.IO.Unsafe(unsafeInterleaveIO)
 
 
 
 -- | Parse a Haskell module
 parseString :: FilePath -> String -> ParseResult Module
-parseString file = parseFileContentsWithMode mode
+parseString file = parseFileContentsWithMode mode . unlines . map f . lines
     where
+        f x | "#" `isPrefixOf` dropWhile isSpace x = ""
+            | otherwise = x
+    
         mode = defaultParseMode
             {parseFilename = file
             ,extensions = extension
