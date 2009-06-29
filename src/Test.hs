@@ -72,7 +72,7 @@ parseTestFile :: FilePath -> IO [(NameMatch, Test)]
 parseTestFile file = do
     src <- readFile file
     return [(nm, createTest eqn)
-           | code <- f $ lines src, let modu = parseString file code
+           | code <- f $ lines src, let modu = fromParseResult $ parseString file code
            , let nm = nameMatch $ moduleImports modu
            , eqn <- concatMap getEquations $ moduleDecls modu]
     where

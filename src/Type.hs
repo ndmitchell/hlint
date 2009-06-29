@@ -85,8 +85,11 @@ concatHints :: [Hint] -> Hint
 concatHints hs nm x = concatMap (\h -> h nm x) hs
 
 
-applyHint :: Hint -> Module -> [Idea]
-applyHint h m = [i{func = (name,fromNamed d)}
-                | d <- moduleDecls m, i <- sortBy (comparing loc) $ h nm d]
+applyHint :: Hint -> ParseResult Module -> [Idea]
+applyHint h (ParseOk m) =
+        [i{func = (name,fromNamed d)}
+        | d <- moduleDecls m, i <- sortBy (comparing loc) $ h nm d]
     where name = moduleName m
           nm = nameMatch $ moduleImports m
+
+applyHint h (ParseFailed sl msg) = [Idea ("","") Warning "Parse error" sl msg "Fix the parse error"]

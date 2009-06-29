@@ -26,7 +26,7 @@ readSettings xs = do
 -- currently it doesn't
 readHints :: FilePath -> IO [Module]
 readHints file = do
-    y <- parseFile file
+    y <- fromParseResult `fmap` parseFile file
     ys <- concatMapM (f . fromNamed . importModule) $ moduleImports y
     return $ y:ys
     where

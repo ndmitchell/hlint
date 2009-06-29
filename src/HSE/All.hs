@@ -23,8 +23,8 @@ import System.IO.Unsafe(unsafeInterleaveIO)
 
 
 -- | Parse a Haskell module
-parse :: FilePath -> String -> ParseResult Module
-parse file = parseFileContentsWithMode mode
+parseString :: FilePath -> String -> ParseResult Module
+parseString file = parseFileContentsWithMode mode
     where
         mode = defaultParseMode
             {parseFilename = file
@@ -34,23 +34,16 @@ parse file = parseFileContentsWithMode mode
 
 
 -- | On failure returns an empty module and prints to the console
-parseFile :: FilePath -> IO Module
+parseFile :: FilePath -> IO (ParseResult Module)
 parseFile file = unsafeInterleaveIO $ do
     src <- readFile file
-    case parse file src of
-        ParseOk x -> return x
-        ParseFailed src msg -> do
-            putStrLn $ showSrcLoc src ++ " Parse failure, " ++ limit 50 msg
-            return $ Module nullSrcLoc (ModuleName "") [] Nothing Nothing [] []
+    return $ parseString file src
 
 
--- | On failure crashes
-parseString :: String -> String -> Module
-parseString file src =
-    case parse file src of
-        ParseOk x -> x
-        _ -> error $ "Parse failure in " ++ file ++ "\n" ++ src
-
+-- | TODO: Use the fromParseResult in HSE once it gives source location
+fromParseResult :: ParseResult Module -> Module
+fromParseResult (ParseOk x) = x
+fromParseResult (ParseFailed src msg) = error $ showSrcLoc src ++ " Parse failure, " ++ limit 50 msg
 
 
 extension =
