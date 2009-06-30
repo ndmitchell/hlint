@@ -57,6 +57,7 @@ warn  = length x == 0 ==> null x
 warn  "Use null" = length x /= 0 ==> not (null x)
 error "Use :" = (\x -> [x]) ==> (:[])
 error = map (uncurry f) (zip x y) ==> zipWith f x y
+error = not (elem x y) ==> notElem x y
 
 -- FOLDS
 
