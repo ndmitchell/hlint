@@ -92,7 +92,8 @@ applyHint h file = do
         ParseFailed sl msg -> do
             let ticks = ["  ","  ","> ","  ","  "]
             let bad = zipWith (++) ticks $ take 5 $ drop (srcLine sl - 3) $ lines src
-            return [Idea ("","") Warning "Parse error" sl msg (unlines bad)]
+            let bad2 = reverse $ dropWhile (all isSpace) $ reverse $ dropWhile (all isSpace) bad
+            return [Idea ("","") Warning "Parse error" sl msg (unlines bad2)]
         ParseOk m -> do
             let name = moduleName m
             let nm = nameMatch $ moduleImports m
