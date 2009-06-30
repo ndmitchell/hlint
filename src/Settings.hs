@@ -7,7 +7,6 @@ import Paths_hlint
 import Type
 import Data.Char
 import Data.List
-import System.Directory
 import System.FilePath
 import Util
 import Data.Generics.PlateData

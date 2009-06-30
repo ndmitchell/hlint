@@ -5,10 +5,10 @@ module HSE.All(
     module HSE.Bracket, module HSE.Match,
     module HSE.Generics,
     module HSE.NameMatch,
-    parseFile, parseString
+    parseFile, parseString, fromParseResult
     ) where
 
-import Language.Haskell.Exts hiding (parse, parseFile, paren)
+import Language.Haskell.Exts hiding (parse, parseFile, paren, fromParseResult)
 import qualified Language.Haskell.Exts as HSE
 
 import HSE.Util

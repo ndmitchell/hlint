@@ -10,11 +10,8 @@ import Data.Maybe
 import Data.Either
 import System.Directory
 import System.FilePath
-import Data.Generics.PlateData
 
-import CmdLine
 import Settings
-import Report
 import Type
 import Util
 import HSE.All

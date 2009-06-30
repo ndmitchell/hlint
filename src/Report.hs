@@ -4,7 +4,6 @@ module Report(writeReport) where
 
 import Type
 import Control.Arrow
-import Language.Haskell.Exts
 import Data.List
 import Data.Maybe
 import Data.Version

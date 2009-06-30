@@ -6,9 +6,7 @@ import Control.Arrow
 import Control.Monad
 import Data.List
 import Data.Maybe
-import System.Directory
 import System.Exit
-import Data.Generics.PlateData
 
 import CmdLine
 import Settings
@@ -17,9 +15,7 @@ import Type
 import Test
 import Util
 import Parallel
-import HSE.All
 import Hint.All
-import Paths_hlint
 
 
 main = do

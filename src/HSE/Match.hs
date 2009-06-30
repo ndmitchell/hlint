@@ -2,12 +2,9 @@
 
 module HSE.Match where
 
-import HSE.Generics
 import Data.Char
 import Data.List
-import Data.Maybe
 import Language.Haskell.Exts
-import HSE.Bracket
 import HSE.Util
 
 

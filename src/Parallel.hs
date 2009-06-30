@@ -5,7 +5,6 @@ import System.IO.Unsafe(unsafeInterleaveIO)
 import GHC.Conc(numCapabilities)
 import Control.Concurrent
 import Control.Monad
-import Control.Parallel
 
 
 parallel :: [IO a] -> IO [a]

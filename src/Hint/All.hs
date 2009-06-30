@@ -1,8 +1,6 @@
 
 module Hint.All where
 
-import Control.Monad
-import HSE.All
 import Type
 
 import Hint.Match

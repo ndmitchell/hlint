@@ -10,7 +10,6 @@ _noParen_ - don't bracket this particular item
 module Hint.Match(readMatch) where
 
 import Data.Char
-import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
 import Type

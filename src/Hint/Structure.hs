@@ -17,7 +17,6 @@ module Hint.Structure where
 import HSE.All
 import Type
 import Data.List
-import Data.Char
 import Data.Maybe
 
 

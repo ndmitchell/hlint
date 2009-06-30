@@ -3,9 +3,7 @@
 module HSE.Bracket where
 
 import Control.Monad.State
-import Data.Generics
 import Data.Generics.PlateData
-import Data.List
 import Data.Maybe
 import Language.Haskell.Exts
 import HSE.Util

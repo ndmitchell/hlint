@@ -9,7 +9,6 @@ import System.Directory
 import System.Environment
 import System.Exit
 import System.FilePath
-import HSE.All
 
 import Util
 import Paths_hlint

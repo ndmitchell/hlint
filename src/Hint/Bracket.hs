@@ -22,7 +22,6 @@ yes = (b $ c d) ++ e where res = b (c d) ++ e
 module Hint.Bracket where
 
 import Control.Arrow
-import Data.Maybe
 import Type
 import HSE.All
 

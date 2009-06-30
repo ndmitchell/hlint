@@ -60,7 +60,6 @@ getNames x = case x of
     _ -> []
     where
         name = [fromNamed x]
-        names = map fromNamed (universeBi x :: [Name])
 
         f (ConDecl x _) = [x]
         f (InfixConDecl _ x _) = [x]
