@@ -20,8 +20,6 @@ import HSE.NameMatch
 import Util
 import Data.Char
 import Data.List
-import System.IO.Unsafe(unsafeInterleaveIO)
-
 
 
 -- | Parse a Haskell module
@@ -40,7 +38,7 @@ parseString file = parseFileContentsWithMode mode . unlines . map f . lines
 
 -- | On failure returns an empty module and prints to the console
 parseFile :: FilePath -> IO (ParseResult Module)
-parseFile file = unsafeInterleaveIO $ do
+parseFile file = do
     src <- readFile file
     return $ parseString file src
 

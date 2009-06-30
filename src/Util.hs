@@ -41,3 +41,7 @@ limit n s = if null post then s else pre ++ "..."
 
 isLeft Left{} = True; isLeft _ = False
 isRight = not . isLeft
+
+
+listM' :: Monad m => [a] -> m [a]
+listM' x = length x `seq` return x

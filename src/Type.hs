@@ -9,7 +9,6 @@ import Data.Maybe
 import Data.Ord
 import Language.Haskell.HsColour.TTY
 import Language.Haskell.HsColour.Colourise
-import System.IO.Unsafe
 
 
 ---------------------------------------------------------------------
@@ -86,14 +85,16 @@ concatHints :: [Hint] -> Hint
 concatHints hs nm x = concatMap (\h -> h nm x) hs
 
 
-applyHint :: Hint -> ParseResult Module -> [Idea]
-applyHint h (ParseOk m) =
-        [i{func = (name,fromNamed d)}
-        | d <- moduleDecls m, i <- sortBy (comparing loc) $ h nm d]
-    where name = moduleName m
-          nm = nameMatch $ moduleImports m
-
-applyHint h (ParseFailed sl msg) = unsafePerformIO $ do
-    src <- readFile $ srcFilename sl
-    let bad = zipWith (++) ["  ","  ","> ","  ","  "] $ take 5 $ drop (srcLine sl - 3) $ lines src
-    return [Idea ("","") Warning "Parse error" sl msg (unlines bad)]
+applyHint :: Hint -> FilePath -> IO [Idea]
+applyHint h file = do
+    src <- readFile file
+    case parseString file src of
+        ParseFailed sl msg -> do
+            let ticks = ["  ","  ","> ","  ","  "]
+            let bad = zipWith (++) ticks $ take 5 $ drop (srcLine sl - 3) $ lines src
+            return [Idea ("","") Warning "Parse error" sl msg (unlines bad)]
+        ParseOk m -> do
+            let name = moduleName m
+            let nm = nameMatch $ moduleImports m
+            return [ i{func = (name,fromNamed d)}
+                   | d <- moduleDecls m, i <- sortBy (comparing loc) $ h nm d]
