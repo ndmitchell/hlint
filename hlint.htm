@@ -146,6 +146,12 @@ Why not:
 (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
 </pre>
 
+<h3>Parallel Operation</h3>
+
+<p>
+	To run HLint on <i>n</i> processors append the flags <tt>+RTS -N<i>n</i></tt>, as described in the <a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/runtime-control.html">GHC user manual</a>. HLint will usually perform fastest if <i>n</i> is equal to the number of physical processors.
+</p>
+
 <h2>FAQ</h2>
 
 <h3>Why are suggestions not applied recursively?</h3>
