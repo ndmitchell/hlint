@@ -200,7 +200,7 @@ foo xs = concat (map op xs)
 	<li><b>Generalise</b> - suggests replacing specific variants of functions (i.e. <tt>map</tt>) with more generic functions (i.e. <tt>fmap</tt>).</li>
 </ul>
 <p>
-	As an example, to check the file <tt>Example.hs</tt> with both the default hints and the dollar hint, I could type: <tt>hlint Example.hs --hint Default --hint Dollar</tt>. Alternatively, I could create the file <tt>HLint.hs</tt> in the working directory and give it the contents:
+	As an example, to check the file <tt>Example.hs</tt> with both the default hints and the dollar hint, I could type: <tt>hlint Example.hs --hint=Default --hint=Dollar</tt>. Alternatively, I could create the file <tt>HLint.hs</tt> in the working directory and give it the contents:
 </p>
 <pre>
 import HLint.Default
