@@ -86,10 +86,9 @@ helpText = unlines
     [versionText
     ,"  hlint [files/directories] [options]"
     ,usageInfo "" opts
-    ,"HLint makes hints on how to improve some Haskell code."
+    ,"HLint gives hints on how to improve Haskell code."
     ,""
-    ,"For example, to check all .hs and .lhs files in the folder src and"
-    ,"generate a report:"
+    ,"To check all Haskell files in 'src' and generate a report type:"
     ,"  hlint src --report"
     ]
 
