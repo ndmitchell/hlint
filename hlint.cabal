@@ -1,7 +1,7 @@
 cabal-version:      >= 1.6
 build-type:         Simple
 name:               hlint
-version:            1.6
+version:            1.6.1
 license:            GPL
 license-file:       LICENSE
 category:           Development
@@ -44,6 +44,7 @@ executable hlint
         Type
         Test
         Util
+        Parallel
         HSE.All
         HSE.Bracket
         HSE.Evaluate
