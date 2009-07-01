@@ -46,7 +46,10 @@ class Named a where
 
 
 isCon (x:_) = isUpper x || x == ':'
+isCon _ = False
+
 isSym (x:_) = not $ isAlpha x || x `elem` "_'"
+isSym _ = False
 
 
 instance Named Exp where
