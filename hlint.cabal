@@ -19,6 +19,7 @@ data-files:
     Generalise.hs
     Dollar.hs
     HLint.hs
+    Test.hs
     report.html
     hs-lint.el
 Extra-Source-Files:
