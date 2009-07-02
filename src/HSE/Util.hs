@@ -49,6 +49,7 @@ fromParen (Paren x) = fromParen x
 fromParen x = x
 
 -- is* :: Exp -> Bool
+isVar Var{} = True; isVar _ = False
 isApp App{} = True; isApp _ = False
 isInfixApp InfixApp{} = True; isInfixApp _ = False
 isAnyApp x = isApp x || isInfixApp x
