@@ -7,6 +7,7 @@
     _*[A-Za-z]*_?'?
 
     Apply this to things that would get exported by default only
+    Also disallow prop_ as it's a standard QuickCheck idiom
 
 <TEST>
 data Yes = Foo | Bar'Test
@@ -67,7 +68,7 @@ getNames x = case x of
 
 
 suggestName :: String -> Maybe String
-suggestName x = listToMaybe [f x | not $ isSym x || good]
+suggestName x = listToMaybe [f x | not $ isSym x || good || "prop_" `isPrefixOf` x]
     where
         good = all isAlphaNum $ drp '_' $ drp '\'' $ reverse $ dropWhile (== '_') x
         drp x ys = if [x] `isPrefixOf` ys then tail ys else ys
