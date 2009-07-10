@@ -56,13 +56,14 @@ extension =
     ,ImplicitParams,FlexibleContexts,FlexibleInstances,EmptyDataDecls
     -- NOT: CPP
     ,KindSignatures,BangPatterns,TypeSynonymInstances,TemplateHaskell
-    ,ForeignFunctionInterface,Arrows,Generics,NoImplicitPrelude,NamedFieldPuns,PatternGuards
+    ,ForeignFunctionInterface,Generics,NoImplicitPrelude,NamedFieldPuns,PatternGuards
     ,GeneralizedNewtypeDeriving,ExtensibleRecords,RestrictedTypeSynonyms,HereDocuments
     ,MagicHash,TypeFamilies,StandaloneDeriving,UnicodeSyntax,PatternSignatures,UnliftedFFITypes
     ,LiberalTypeSynonyms,TypeOperators,RecordWildCards,RecordPuns,DisambiguateRecordFields
     ,OverloadedStrings,GADTs,MonoPatBinds,RelaxedPolyRec,ExtendedDefaultRules,UnboxedTuples
     ,DeriveDataTypeable,ConstrainedClassMethods,PackageImports,ImpredicativeTypes
     ,NewQualifiedOperators,PostfixOperators,QuasiQuotes,ViewPatterns
+    -- NOT: Arrows - steals proc
     -- NOT: TransformListComp - steals the group keyword
     -- NOT: XmlSyntax, RegularPatterns - steals a-b
     ]
