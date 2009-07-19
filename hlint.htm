@@ -189,6 +189,12 @@ foo xs = concat (map op xs)
 	If someone wanted to write such a feature, trying to work round some of the issues above, it would be happily accepted.
 </p>
 
+<h3>Why doesn't the compiler automatically apply the optimisations?</h3>
+
+<p>
+	HLint doesn't suggest optimisations, it suggests code improvements - the intention is to make the code simpler, rather than making the code perform faster. The <a href="http://haskell.org/ghc/">GHC compiler</a> automatically applies many of the rules suggested by HLint, so HLint suggestions will rarely improve performance.
+</p>
+
 <h2>Customizing the hints</h2>
 
 <p>
