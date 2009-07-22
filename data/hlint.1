@@ -1,0 +1,47 @@
+.TH HLINT "1" "July 2009" "HLint (C) Neil Mitchell 2006-2009" "User Commands"
+.SH NAME
+HLint \- haskell source code suggestions
+.SH SYNOPSIS
+.B hlint
+[\fIfiles/directories\fR] [\fIoptions\fR]
+
+.SH DESCRIPTION
+\fIHLint\fR is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies.
+
+.SH OPTIONS
+.TP
+\fB\-?\fR \fB\-\-help\fR
+Display help message
+.TP
+\fB\-v\fR \fB\-\-version\fR
+Display version information
+.TP
+\fB\-r[file]\fR \fB\-\-report\fR[=\fIfile\fR]
+Generate a report in HTML
+.TP
+\fB\-h\fR \fIfile\fR \fB\-\-hint\fR=\fIfile\fR
+Hint/ignore file to use
+.TP
+\fB\-c\fR \fB\-\-color\fR, \fB\-\-colour\fR
+Color the output (requires ANSI terminal)
+.TP
+\fB\-i\fR \fImessage\fR \fB\-\-ignore\fR=\fImessage\fR
+Ignore a particular hint
+.TP
+\fB\-s\fR \fB\-\-show\fR
+Show all ignored ideas
+.TP
+\fB\-t\fR \fB\-\-test\fR
+Run in test mode
+.SH EXAMPLE
+"To check all Haskell files in 'src' and generate a report type:"
+.IP
+hlint src \fB\-\-report\fR
+.SH "SEE ALSO"
+The full documentation for
+.B HLint
+is available in \fI/usr/share/doc/hlint/hlint.html\fI.
+.SH AUTHOR
+This   manual   page   was  written  by  Joachim Breitner <nomeata@debian.org>
+for the Debian system (but may be used by others).
+

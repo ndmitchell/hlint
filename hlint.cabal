@@ -22,6 +22,7 @@ data-files:
     Test.hs
     report.html
     hs-lint.el
+    hlint.1
 Extra-Source-Files:
     hlint.htm
 
