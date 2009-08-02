@@ -88,7 +88,7 @@ concatHints hs nm x = concatMap (\h -> h nm x) hs
 applyHint :: Hint -> FilePath -> IO [Idea]
 applyHint h file = do
     src <- readFile file
-    case parseString file src of
+    case parseString False file src of
         ParseFailed sl msg -> do
             let ticks = ["  ","  ","> ","  ","  "]
             let bad = zipWith (++) ticks $ take 5 $ drop (srcLine sl - 3) $ lines src

@@ -23,8 +23,8 @@ import Data.List
 
 
 -- | Parse a Haskell module
-parseString :: FilePath -> String -> ParseResult Module
-parseString file = parseFileContentsWithMode mode . unlines . map f . lines
+parseString :: Bool -> FilePath -> String -> ParseResult Module
+parseString implies file = parseFileContentsWithMode mode . unlines . map f . lines
     where
         f x | "#" `isPrefixOf` dropWhile isSpace x = ""
             | otherwise = x
@@ -32,15 +32,15 @@ parseString file = parseFileContentsWithMode mode . unlines . map f . lines
         mode = defaultParseMode
             {parseFilename = file
             ,extensions = extension
-            ,fixities = infix_ (-1) ["==>"] ++ baseFixities
+            ,fixities = concat [infix_ (-1) ["==>"] | implies] ++ baseFixities
             }
 
 
 -- | On failure returns an empty module and prints to the console
-parseFile :: FilePath -> IO (ParseResult Module)
-parseFile file = do
+parseFile :: Bool -> FilePath -> IO (ParseResult Module)
+parseFile implies file = do
     src <- readFile file
-    return $ parseString file src
+    return $ parseString implies file src
 
 
 -- | TODO: Use the fromParseResult in HSE once it gives source location
