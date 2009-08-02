@@ -22,7 +22,7 @@ main = do
     Cmd{..} <- getCmd
     if cmdTest then test else do
         settings <- readSettings cmdHintFiles
-        let extra = [Classify ("","") Ignore x | x <- cmdIgnore]
+        let extra = [Classify Ignore x ("","") | x <- cmdIgnore]
         let apply :: FilePath -> IO [Idea]
             apply = fmap (fmap $ classify $ settings ++ extra) . applyHint (allHints settings)
         ideas <- liftM concat $ parallel [listM' =<< apply x | x <- cmdFiles]

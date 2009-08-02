@@ -56,7 +56,7 @@ readSetting (FunBind [Match src (Ident (getRank -> rank)) pats _
            (UnGuardedRhs bod) (BDecls bind)])
     | InfixApp lhs op rhs <- bod, opExp op ~= "==>" =
         [MatchExp rank (head names) (fromParen lhs) (fromParen rhs) (readSide bind)]
-    | otherwise = [Classify func rank n | n <- names2, func <- readFuncs bod]
+    | otherwise = [Classify rank n func | n <- names2, func <- readFuncs bod]
     where
         names = getNames pats bod
         names2 = ["" | null names] ++ names
