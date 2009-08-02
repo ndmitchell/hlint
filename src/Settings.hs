@@ -38,7 +38,7 @@ readHints file = do
 -- Eta bound variable lifted so the filter only happens once per classify
 classify :: [Setting] -> Idea -> Idea
 classify xs = \i -> i{rank=foldl'
-        (\r c -> if matchHint (hint c) (hint i) && matchFunc (func c) (func i) then rank c else r)
+        (\r c -> if matchHint (hintS c) (hint i) && matchFunc (funcS c) (func i) then rankS c else r)
         (rank i) xs2}
     where
         xs2 = filter isClassify xs
