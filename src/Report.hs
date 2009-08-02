@@ -46,6 +46,9 @@ writeReport file ideas = writeTemplate inner file
                     where id = mode ++ show i
 
 
+code = hscolour False True ""
+
+
 writeIdea :: String -> Idea -> [String]
 writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
@@ -56,8 +59,17 @@ writeIdea cls Idea{..} =
     ,code to
     ,"</div>"
     ,""]
-    where
-        code = hscolour False True ""
+
+
+writeIdea cls ParseError{..} =
+    ["<div class=" ++ show cls ++ ">"
+    ,escapeHTML (showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint) ++ "<br/>"
+    ,"Error message<br/>"
+    ,"<pre>" ++ escapeHTML msg ++ "</pre>"
+    ,"Code<br/>"
+    ,code from
+    ,"</div>"
+    ,""]
 
 
 escapeHTML :: String -> String

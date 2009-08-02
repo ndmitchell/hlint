@@ -34,30 +34,31 @@ data Setting
 
 data Idea
     = Idea {func :: FuncName, rank :: Rank, hint :: String, loc :: SrcLoc, from :: String, to :: String}
+    | ParseError {rank :: Rank, hint :: String, loc :: SrcLoc, msg :: String, from :: String}
       deriving Eq
 
 
 isClassify Classify{} = True; isClassify _ = False
 isMatchExp MatchExp{} = True; isMatchExp _ = False
+isParseError ParseError{} = True; isParseError _ = False
 
 
 instance Show Idea where
-    show Idea{..} = unlines $
-        [showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint] ++ f "Found" from ++ f "Why not" to
-        where f msg x = (msg ++ ":") : map ("  "++) (lines x)
-
-    showList = showString . concatMap show
+    show = showEx id
 
 
 showANSI :: IO (Idea -> String)
 showANSI = do
     prefs <- readColourPrefs
-    return $ showPrefsANSI prefs
+    return $ showEx (hscolour prefs)
 
-showPrefsANSI :: ColourPrefs -> Idea -> String
-showPrefsANSI prefs Idea{..} = unlines $
+showEx :: (String -> String) -> Idea -> String
+showEx tt Idea{..} = unlines $
     [showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint] ++ f "Found" from ++ f "Why not" to
-    where f msg x = (msg ++ ":") : map ("  "++) (lines $ hscolour prefs x)
+    where f msg x = (msg ++ ":") : map ("  "++) (lines $ tt x)
+
+showEx tt ParseError{..} = unlines $
+    [showSrcLoc loc ++ " Parse error","Error message:","  " ++ msg,"Code:"] ++ map ("  "++) (lines $ tt from)
 
 
 -- The real key will be filled in by applyHint
@@ -87,9 +88,9 @@ applyHint h file = do
     case parseString False file src of
         ParseFailed sl msg -> do
             let ticks = ["  ","  ","> ","  ","  "]
-            let bad = zipWith (++) ticks $ take 5 $ drop (srcLine sl - 3) $ lines src
+            let bad = zipWith (++) ticks $ take 5 $ drop (srcLine sl - 3) $ lines src ++ [""]
             let bad2 = reverse $ dropWhile (all isSpace) $ reverse $ dropWhile (all isSpace) bad
-            return [Idea ("","") Warning "Parse error" sl msg (unlines bad2)]
+            return [ParseError Warning "Parse error" sl msg (unlines bad2)]
         ParseOk m -> do
             let name = moduleName m
             let nm = nameMatch $ moduleImports m
