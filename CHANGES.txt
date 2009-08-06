@@ -1,0 +1,7 @@
+Changelog for HLint
+
+1.6.5
+    #206, better presentation of parse errors
+    #208, give the correct precedence to ==> in source files
+1.6.4
+    Start of changelog
