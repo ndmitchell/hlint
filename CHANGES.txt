@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to haskell-src-exts 1.1.*
 1.6.5
     #206, better presentation of parse errors
     #208, give the correct precedence to ==> in source files
