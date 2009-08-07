@@ -27,7 +27,7 @@ import HSE.All
 import Type
 
 
-listHint :: Hint
+listHint :: DeclHint
 listHint _ = listDecl
 
 listDecl :: Decl -> [Idea]

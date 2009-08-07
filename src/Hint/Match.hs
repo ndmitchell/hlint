@@ -22,7 +22,7 @@ import HSE.Evaluate(evaluate)
 ---------------------------------------------------------------------
 -- PERFORM MATCHING
 
-readMatch :: [Setting] -> Hint
+readMatch :: [Setting] -> DeclHint
 readMatch = findIdeas . filter isMatchExp
 
 

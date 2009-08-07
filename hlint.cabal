@@ -57,6 +57,7 @@ executable hlint
         HSE.NameMatch
         Hint.All
         Hint.Bracket
+        Hint.Import
         Hint.Lambda
         Hint.List
         Hint.ListRec

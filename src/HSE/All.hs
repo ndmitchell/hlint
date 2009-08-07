@@ -67,4 +67,3 @@ extension =
     -- NOT: TransformListComp - steals the group keyword
     -- NOT: XmlSyntax, RegularPatterns - steals a-b
     ]
-

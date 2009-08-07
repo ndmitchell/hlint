@@ -28,7 +28,7 @@ import Type
 import HSE.All
 
 
-bracketHint :: Hint
+bracketHint :: DeclHint
 bracketHint _ = concatMap bracketExp . children0Exp nullSrcLoc
 
 bracketExp :: (SrcLoc,Exp) -> [Idea]

@@ -11,11 +11,12 @@ import Hint.Lambda
 import Hint.Bracket
 import Hint.Naming
 import Hint.Structure
+import Hint.Import
 
 
 staticHints :: [(String,Hint)]
 staticHints =
-    let (*) = (,) in
+    let x*y = (x,DeclHint y) ; x+y = (x,ModuHint y) in
     ["List"      * listHint
     ,"ListRec"   * listRecHint
     ,"Monad"     * monadHint
@@ -23,11 +24,12 @@ staticHints =
     ,"Bracket"   * bracketHint
     ,"Naming"    * namingHint
     ,"Structure" * structureHint
+    ,"Import"    + importHint
     ]
 
 dynamicHints :: [Setting] -> Hint
-dynamicHints = readMatch
+dynamicHints = DeclHint . readMatch
 
 
-allHints :: [Setting] -> Hint
-allHints xs = concatHints $ dynamicHints xs : map snd staticHints
+allHints :: [Setting] -> [Hint]
+allHints xs = dynamicHints xs : map snd staticHints

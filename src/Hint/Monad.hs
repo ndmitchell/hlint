@@ -33,7 +33,7 @@ import Type
 badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM"]
 
 
-monadHint :: Hint
+monadHint :: DeclHint
 monadHint _ = concatMap monadExp . universeExp nullSrcLoc
 
 monadExp :: (SrcLoc,Exp) -> [Idea]

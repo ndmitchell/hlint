@@ -20,7 +20,7 @@ import Data.List
 import Data.Maybe
 
 
-structureHint :: Hint
+structureHint :: DeclHint
 structureHint _ x = concat [concatMap useGuards xs | FunBind xs <- [x]] ++
                     concatMap useIf (universeExp nullSrcLoc x)
 

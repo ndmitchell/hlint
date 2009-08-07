@@ -59,7 +59,7 @@ runTest hint file = do
                  concatMap ((++) " | " . show) ideas ++ "\n" ++
                  prettyPrint inp | not good]
             where
-                ideas = hint nm inp
+                ideas = declHint hint nm inp
                 good = case out of
                     Nothing -> ideas == []
                     Just x -> length ideas == 1 && (null x || to (head ideas) == x)

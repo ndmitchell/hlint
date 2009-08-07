@@ -62,7 +62,8 @@ showEx tt ParseError{..} = unlines $
 
 
 -- The real key will be filled in by applyHint
-idea rank hint loc from to = Idea ("","") rank hint loc (f from) (f to)
+rawIdea = Idea ("","")
+idea rank hint loc from to = rawIdea rank hint loc (f from) (f to)
     where f = dropWhile isSpace . prettyPrint
 warn mr = idea Warning mr
 
@@ -75,14 +76,13 @@ isUnifyVar _ = False
 ---------------------------------------------------------------------
 -- HINTS
 
-type Hint = NameMatch -> Decl -> [Idea]
+type DeclHint = NameMatch -> Decl   -> [Idea]
+type ModuHint = NameMatch -> Module -> [Idea]
+
+data Hint = DeclHint {declHint :: DeclHint} | ModuHint {moduHint :: ModuHint}
 
 
-concatHints :: [Hint] -> Hint
-concatHints hs nm x = concatMap (\h -> h nm x) hs
-
-
-applyHint :: Hint -> FilePath -> IO [Idea]
+applyHint :: [Hint] -> FilePath -> IO [Idea]
 applyHint h file = do
     src <- readFile file
     case parseString False file src of
@@ -94,5 +94,7 @@ applyHint h file = do
         ParseOk m -> do
             let name = moduleName m
             let nm = nameMatch $ moduleImports m
-            return [ i{func = (name,fromNamed d)}
-                   | d <- moduleDecls m, i <- sortBy (comparing loc) $ h nm d]
+            let order n = map (\i -> i{func = (name,n)}) . sortBy (comparing loc)
+            return $
+                order "" [i | ModuHint h <- h, i <- h nm m] ++
+                concat [order (fromNamed d) [i | DeclHint h <- h, i <- h nm d] | d <- moduleDecls m]

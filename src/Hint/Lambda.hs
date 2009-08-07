@@ -40,7 +40,7 @@ import Data.Generics.PlateData
 import Data.Maybe
 
 
-lambdaHint :: Hint
+lambdaHint :: DeclHint
 lambdaHint _ x@TypeDecl{} = lambdaType x
 lambdaHint _ x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (universe x)
 
