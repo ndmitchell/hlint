@@ -98,6 +98,11 @@ warn  = (\x -> (f x, g x)) ==> f &&& g where _ = notIn x [f,g]
 warn  = (\(x,y) -> (f x,y)) ==> first f where _ = notIn [x,y] f
 warn  = (\(x,y) -> (x,f y)) ==> second f where _ = notIn [x,y] f
 
+-- FUNCTOR
+
+error "Functor law" = fmap f (fmap g x) ==> fmap (f . g) x
+error "Functor law" = fmap id ==> id
+
 -- MONAD
 
 error "Monad law, left identity" = return a >>= f ==> f a
@@ -110,6 +115,7 @@ warn  = flip mapM ==> forM
 warn  = flip mapM_ ==> forM_
 error = when (not x) ==> unless x
 error = x >>= id ==> join x
+error = liftM f (liftM g x) = liftM (f . g) x
 
 -- MONAD LIST
 
