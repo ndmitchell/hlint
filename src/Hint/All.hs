@@ -12,6 +12,7 @@ import Hint.Bracket
 import Hint.Naming
 import Hint.Structure
 import Hint.Import
+import Hint.Pragma
 
 
 staticHints :: [(String,Hint)]
@@ -25,6 +26,7 @@ staticHints =
     ,"Naming"    * namingHint
     ,"Structure" * structureHint
     ,"Import"    + importHint
+    ,"Pragma"    + pragmaHint
     ]
 
 dynamicHints :: [Setting] -> Hint

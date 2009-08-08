@@ -27,6 +27,9 @@ moduleName (Module _ (ModuleName x) _ _ _ _ _) = x
 moduleImports :: Module -> [ImportDecl]
 moduleImports (Module _ _ _ _ _ x _) = x
 
+modulePragmas :: Module -> [OptionPragma]
+modulePragmas (Module _ _ x _ _ _ _) = x
+
 isChar :: Exp -> Bool
 isChar (Lit (Char _)) = True
 isChar _ = False

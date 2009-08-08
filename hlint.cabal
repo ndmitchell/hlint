@@ -64,4 +64,5 @@ executable hlint
         Hint.Match
         Hint.Monad
         Hint.Naming
+        Hint.Pragma
         Hint.Structure
