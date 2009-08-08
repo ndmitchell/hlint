@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add a few addition hints (Functor laws)
     #137, add cpphs support
     #189, give hints for redundant imports
     Upgrade to haskell-src-exts 1.1.*
