@@ -20,15 +20,15 @@ import HSE.NameMatch
 import Util
 import Data.Char
 import Data.List
+import Language.Preprocessor.Cpphs
 
 
 -- | Parse a Haskell module
 parseString :: Bool -> FilePath -> String -> ParseResult Module
-parseString implies file = parseFileContentsWithMode mode . unlines . map f . lines
+parseString implies file = parseFileContentsWithMode mode . runCpphs opts file
     where
-        f x | "#" `isPrefixOf` dropWhile isSpace x = ""
-            | otherwise = x
-    
+        opts = defaultCpphsOptions{boolopts=defaultBoolOptions{locations=False}}
+
         mode = defaultParseMode
             {parseFilename = file
             ,extensions = extension

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #137, add basic cpphs support
     #189, give hints for redundant imports
     Upgrade to haskell-src-exts 1.1.*
 1.6.5
