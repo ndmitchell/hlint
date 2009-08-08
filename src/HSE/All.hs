@@ -5,7 +5,7 @@ module HSE.All(
     module HSE.Bracket, module HSE.Match,
     module HSE.Generics,
     module HSE.NameMatch,
-    parseFile, parseString, fromParseResult
+    ParseFlags(..), parseFlags, parseFile, parseString, fromParseResult
     ) where
 
 import Language.Haskell.Exts hiding (parse, parseFile, paren, fromParseResult)
@@ -23,22 +23,31 @@ import Data.List
 import Language.Preprocessor.Cpphs
 
 
+data ParseFlags = ParseFlags
+    {cpphs :: Maybe CpphsOptions
+    ,implies :: Bool
+    }
+
+parseFlags :: ParseFlags
+parseFlags = ParseFlags Nothing False
+
+
 -- | Parse a Haskell module
-parseString :: Maybe CpphsOptions -> Bool -> FilePath -> String -> ParseResult Module
-parseString cpphs implies file = parseFileContentsWithMode mode . maybe id (`runCpphs` file) cpphs
+parseString :: ParseFlags -> FilePath -> String -> ParseResult Module
+parseString flags file = parseFileContentsWithMode mode . maybe id (`runCpphs` file) (cpphs flags)
     where
         mode = defaultParseMode
             {parseFilename = file
             ,extensions = extension
-            ,fixities = concat [infix_ (-1) ["==>"] | implies] ++ baseFixities
+            ,fixities = concat [infix_ (-1) ["==>"] | implies flags] ++ baseFixities
             }
 
 
 -- | On failure returns an empty module and prints to the console
-parseFile :: Maybe CpphsOptions -> Bool -> FilePath -> IO (ParseResult Module)
-parseFile cpphs implies file = do
+parseFile :: ParseFlags -> FilePath -> IO (ParseResult Module)
+parseFile flags file = do
     src <- readFile file
-    return $ parseString cpphs implies file src
+    return $ parseString flags file src
 
 
 -- | TODO: Use the fromParseResult in HSE once it gives source location
