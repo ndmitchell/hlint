@@ -1,12 +1,14 @@
+{-# LANGUAGE PatternGuards #-}
 {-
     Reduce the number of import declarations.
     Two import declarations can be combined if:
       (note, A[] is A with whatever import list, or none)
     
+    import A[]; import A[] = import A[]
     import A(B); import A(C) = import A(B,C)
     import A; import A(C) = import A
+    import A; import A hiding (C) = import A
     import A[]; import A[] as Y = import A[] as Y
-    import A[]; import A[] = import A[]
 
 <TEST>
 </TEST>
@@ -47,6 +49,23 @@ simplifyHead x (y:ys) = case reduce x y of
     Just xy -> Just $ xy : ys
 
 
+-- Useful fields in import are:
+-- importModule :: ModuleName [same]
+-- importPkg :: Maybe String [same]
+-- importQualified :: Bool
+-- importSrc :: Bool [False]
+-- importAs :: Maybe ModuleName
+-- importSpecs :: Maybe (Bool, [ImportSpec])
+
 reduce :: ImportDecl -> ImportDecl -> Maybe ImportDecl
-reduce x y | x == y{importLoc=importLoc x} = Just x
+reduce x y | qual, as, specs = Just x
+           | qual, as, Just (False, xs) <- importSpecs x, Just (False, ys) <- importSpecs y =
+                Just x{importSpecs = Just (False, nub $ xs ++ ys)}
+           | qual, as, isNothing (importSpecs x) || isNothing (importSpecs y) = Just x{importSpecs=Nothing}
+           | not (importQualified x), qual, specs, isNothing (importAs x) || isNothing (importAs y) = Just x{importAs=Nothing}
+    where
+        qual = importQualified x == importQualified y
+        as = importAs x == importAs y
+        specs = importSpecs x == importSpecs y
+
 reduce _ _ = Nothing
