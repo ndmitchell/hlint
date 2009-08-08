@@ -9,6 +9,7 @@ import System.Directory
 import System.Environment
 import System.Exit
 import System.FilePath
+import Language.Preprocessor.Cpphs
 
 import Util
 import Paths_hlint
@@ -23,6 +24,7 @@ data Cmd = Cmd
     ,cmdIgnore :: [String]           -- ^ the hints to ignore
     ,cmdShowAll :: Bool              -- ^ display all skipped items
     ,cmdColor :: Bool                -- ^ color the result
+    ,cmdCpphs :: CpphsOptions        -- ^ options for cpphs
     }
 
 
@@ -31,6 +33,8 @@ data Opts = Help | Ver | Test
           | Report FilePath
           | Skip String | ShowAll
           | Color
+          | Define String
+          | Include String
             deriving Eq
 
 
@@ -42,6 +46,8 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "i" ["ignore"] (ReqArg Skip "message") "Ignore a particular hint"
        ,Option "s" ["show"] (NoArg ShowAll) "Show all ignored ideas"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
+       ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
+       ,Option ""  ["cpp-include"] (ReqArg Include "dir") "CPP include path"
        ]
 
 
@@ -67,6 +73,12 @@ getCmd = do
     let hintFiles = [x | Hints x <- opt]
     hints <- mapM getHintFile $ hintFiles ++ ["HLint" | null hintFiles]
 
+    let cpphs = defaultCpphsOptions
+            {boolopts=defaultBoolOptions{locations=False}
+            ,includes = [x | Include x <- opt]
+            ,defines = [(a,drop 1 b) | Define x <- opt, let (a,b) = break (== '=') x]
+            }
+
     return Cmd
         {cmdTest = test
         ,cmdFiles = files
@@ -75,6 +87,7 @@ getCmd = do
         ,cmdIgnore = [x | Skip x <- opt]
         ,cmdShowAll = ShowAll `elem` opt
         ,cmdColor = Color `elem` opt
+        ,cmdCpphs = cpphs
         }
 
 

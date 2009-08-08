@@ -24,7 +24,7 @@ main = do
         settings <- readSettings cmdHintFiles
         let extra = [Classify Ignore x ("","") | x <- cmdIgnore]
         let apply :: FilePath -> IO [Idea]
-            apply = fmap (fmap $ classify $ settings ++ extra) . applyHint (allHints settings)
+            apply = fmap (fmap $ classify $ settings ++ extra) . applyHint (Just cmdCpphs) (allHints settings)
         ideas <- liftM concat $ parallel [listM' =<< apply x | x <- cmdFiles]
         showItem <- if cmdColor then showANSI else return show
         mapM_ putStrLn [showItem i | i <- ideas, cmdShowAll || rank i /= Ignore]

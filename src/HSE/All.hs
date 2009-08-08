@@ -24,11 +24,9 @@ import Language.Preprocessor.Cpphs
 
 
 -- | Parse a Haskell module
-parseString :: Bool -> FilePath -> String -> ParseResult Module
-parseString implies file = parseFileContentsWithMode mode . runCpphs opts file
+parseString :: Maybe CpphsOptions -> Bool -> FilePath -> String -> ParseResult Module
+parseString cpphs implies file = parseFileContentsWithMode mode . maybe id (`runCpphs` file) cpphs
     where
-        opts = defaultCpphsOptions{boolopts=defaultBoolOptions{locations=False}}
-
         mode = defaultParseMode
             {parseFilename = file
             ,extensions = extension
@@ -37,10 +35,10 @@ parseString implies file = parseFileContentsWithMode mode . runCpphs opts file
 
 
 -- | On failure returns an empty module and prints to the console
-parseFile :: Bool -> FilePath -> IO (ParseResult Module)
-parseFile implies file = do
+parseFile :: Maybe CpphsOptions -> Bool -> FilePath -> IO (ParseResult Module)
+parseFile cpphs implies file = do
     src <- readFile file
-    return $ parseString implies file src
+    return $ parseString cpphs implies file src
 
 
 -- | TODO: Use the fromParseResult in HSE once it gives source location

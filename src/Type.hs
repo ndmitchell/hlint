@@ -7,6 +7,7 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Ord
+import Language.Preprocessor.Cpphs
 import Language.Haskell.HsColour.TTY
 import Language.Haskell.HsColour.Colourise
 
@@ -82,10 +83,10 @@ type ModuHint = NameMatch -> Module -> [Idea]
 data Hint = DeclHint {declHint :: DeclHint} | ModuHint {moduHint :: ModuHint}
 
 
-applyHint :: [Hint] -> FilePath -> IO [Idea]
-applyHint h file = do
+applyHint :: Maybe CpphsOptions -> [Hint] -> FilePath -> IO [Idea]
+applyHint cpphs h file = do
     src <- readFile file
-    case parseString False file src of
+    case parseString cpphs False file src of
         ParseFailed sl msg -> do
             let ticks = ["  ","  ","> ","  ","  "]
             let bad = zipWith (++) ticks $ take 5 $ drop (srcLine sl - 3) $ lines src ++ [""]
