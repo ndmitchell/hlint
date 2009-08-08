@@ -115,7 +115,7 @@ warn  = flip mapM ==> forM
 warn  = flip mapM_ ==> forM_
 error = when (not x) ==> unless x
 error = x >>= id ==> join x
-error = liftM f (liftM g x) = liftM (f . g) x
+error = liftM f (liftM g x) ==> liftM (f . g) x
 
 -- MONAD LIST
 
