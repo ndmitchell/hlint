@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #211, add hints for unused extensions
     #188, add pragma hints
     Add a few additional hints (Functor laws)
     #137, add cpphs support
