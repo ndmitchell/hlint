@@ -30,7 +30,7 @@ Extra-Source-Files:
 executable hlint
     build-depends:
         base == 4.*, syb, filepath, directory, mtl, containers, hscolour >= 1.10, cpphs >= 1.7,
-        haskell-src-exts == 1.1.*, uniplate == 1.2.* && >= 1.2.0.2, parallel
+        haskell-src-exts == 1.1.*, uniplate == 1.2.* && >= 1.2.0.2
 
     ghc-options:        -fno-warn-overlapping-patterns -threaded
 
