@@ -1,5 +1,3 @@
-{-# LANGUAGE PatternGuards #-}
-
 {-
 <TEST>
 yes = (f x) x where res = f x x

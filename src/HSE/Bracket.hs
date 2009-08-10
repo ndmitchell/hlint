@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards #-}
 
 module HSE.Bracket where
 

@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, MultiParamTypeClasses, FlexibleContexts #-}
 
 module HSE.Operators(
     FixityDecl(..), preludeFixities, baseFixities,

@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, MultiParamTypeClasses #-}
+{-# LANGUAGE ViewPatterns, MultiParamTypeClasses #-}
 
 module HSE.Match where
 

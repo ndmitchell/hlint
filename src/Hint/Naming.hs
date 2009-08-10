@@ -1,5 +1,3 @@
-{-# LANGUAGE ViewPatterns, PatternGuards #-}
-
 {-
     Suggest the use of camelCase
 
