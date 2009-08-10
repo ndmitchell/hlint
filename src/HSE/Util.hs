@@ -57,7 +57,18 @@ isApp App{} = True; isApp _ = False
 isInfixApp InfixApp{} = True; isInfixApp _ = False
 isAnyApp x = isApp x || isInfixApp x
 isParen Paren{} = True; isParen _ = False
-
+isMDo MDo{} = True; isMDo _ = False
+isBoxed Boxed{} = True; isBoxed _ = False
+isDerivDecl DerivDecl{} = True; isDerivDecl _ = False
+isFunDep FunDep{} = True; isFunDep _ = False
+isPBangPat PBangPat{} = True; isPBangPat _ = False
+isPExplTypeArg PExplTypeArg{} = True; isPExplTypeArg _ = False
+isPFieldPun PFieldPun{} = True; isPFieldPun _ = False
+isPFieldWildcard PFieldWildcard{} = True; isPFieldWildcard _ = False
+isPViewPat PViewPat{} = True; isPViewPat _ = False
+isParComp ParComp{} = True; isParComp _ = False
+isPatTypeSig PatTypeSig{} = True; isPatTypeSig _ = False
+isQuasiQuote QuasiQuote{} = True; isQuasiQuote _ = False
 
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
