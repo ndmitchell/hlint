@@ -153,6 +153,17 @@ Why not:
 	To run HLint on <i>n</i> processors append the flags <tt>+RTS -N<i>n</i></tt>, as described in the <a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/runtime-control.html">GHC user manual</a>. HLint will usually perform fastest if <i>n</i> is equal to the number of physical processors.
 </p>
 
+<h3>C preprocesor support</h3>
+
+<p>
+	HLint always runs the <a href="http://hackage.haskell.org/package/cpphs">cpphs C preprocessor</a> over all input files, by default using the current directory as the include path with no defined macros. These settings can be modified using the flags <tt>--cpp-include</tt> and <tt>--cpp-define</tt>. There are a number of limitations to the C preprocessor support:
+</p>
+<ul>
+	<li>HLint will only check one branch of an <tt>#if</tt>, based on which macros have been defined.</li>
+	<li>Any line numbers after a <tt>#include</tt> directive may be wrong.</li>
+	<li>Any missing <tt>#include</tt> files will produce a warning on the console, but no information in the reports.</li>
+</ul>
+
 <h2>FAQ</h2>
 
 <h3>Why are suggestions not applied recursively?</h3>
