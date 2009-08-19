@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add a hint for using unless
     #211, add hints for unused extensions
     #188, add pragma hints
     Add a few additional hints (Functor laws)
