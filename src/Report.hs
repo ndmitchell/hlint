@@ -46,7 +46,7 @@ writeReport file ideas = writeTemplate inner file
                     where id = mode ++ show i
 
 
-code = hscolour False True ""
+code = hscolour False
 
 
 writeIdea :: String -> Idea -> [String]

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to hscolour 1.15
     Add a hint for using unless
     #211, add hints for unused extensions
     #188, add pragma hints
