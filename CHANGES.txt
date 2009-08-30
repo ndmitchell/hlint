@@ -1,5 +1,7 @@
 Changelog for HLint
 
+1.6.7
+    NOTE: #213 has not been fixed, cpphs can cause hangs
     Add threaded flag to Cabal to disable -threaded mode
     #212, fix crash
     Fix bug, incorrectly decided TemplateHaskell was unnecessary
