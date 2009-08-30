@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #212, fix crash
     Fix bug, incorrectly decided TemplateHaskell was unnecessary
 1.6.6
     Upgrade to hscolour 1.15

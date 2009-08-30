@@ -54,6 +54,7 @@ used Arrows x = any f $ universeBi x
           f RightArrApp{} = True
           f LeftArrHighApp{} = True
           f RightArrHighApp{} = True
+          f _ = False
 used TransformListComp x = any f $ universeBi x
     where f QualStmt{} = False
           f _ = True
