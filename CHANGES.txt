@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add threaded flag to Cabal to disable -threaded mode
     #212, fix crash
     Fix bug, incorrectly decided TemplateHaskell was unnecessary
 1.6.6
