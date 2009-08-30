@@ -23,7 +23,7 @@ data-files:
     report.html
     hs-lint.el
     hlint.1
-Extra-Source-Files:
+extra-source-files:
     hlint.htm
 
 
