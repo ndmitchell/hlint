@@ -26,15 +26,15 @@ used :: Extension -> Module -> Bool
 used RecursiveDo x = any isMDo $ universeBi x
 used ParallelListComp x = any isParComp $ universeBi x
 used FunctionalDependencies x = any isFunDep $ universeBi x
-used ImplicitParams x = not $ null (universeBi x :: [IPName])
+used ImplicitParams x = has x (undefined :: IPName)
 used EmptyDataDecls x = any f $ universeBi x
     where f (DataDecl _ _ _ _ _ [] _) = True
           f (GDataDecl _ _ _ _ _ _ [] _) = True
           f _ = False
-used KindSignatures x = not $ null (universeBi x :: [Kind])
+used KindSignatures x = has x (undefined :: Kind)
 used BangPatterns x = any isPBangPat $ universeBi x
-used TemplateHaskell x = not (null (universeBi x :: [Bracket])) || not (null (universeBi x :: [Splice]))
-used ForeignFunctionInterface x = not $ null (universeBi x :: [CallConv])
+used TemplateHaskell x = has x (undefined :: Bracket) || has x (undefined :: Splice)
+used ForeignFunctionInterface x = has x (undefined :: CallConv)
 used Generics x = any isPExplTypeArg $ universeBi x
 used PatternGuards x = any f $ universeBi x
     where f (GuardedRhs _ [] _) = False
@@ -60,3 +60,6 @@ used TransformListComp x = any f $ universeBi x
           f _ = True
 
 used _ _ = True
+
+
+has x t = not $ null (universeBi x `asTypeOf` [t])
