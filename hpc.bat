@@ -3,7 +3,6 @@ ghc --make -isrc -i. src\Main.hs -w -fhpc -odir .hpc -hidir .hpc -threaded -o .h
 del hlint-test.tix
 .hpc\hlint-test --help
 .hpc\hlint-test --test
-.hpc\hlint-test src --report=.hpc\report.html +RTS -N2
 hpc.exe markup hlint-test.tix --destdir=.hpc
 hpc.exe report hlint-test.tix
 del hlint-test.tix
