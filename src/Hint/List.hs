@@ -4,19 +4,19 @@
     Find and match:
 
 <TEST>
-yes = 1:2:[] where res = [1,2]
-yes = ['h','e','l','l','o'] where res = "\"hello\""
+yes = 1:2:[] -- [1,2]
+yes = ['h','e','l','l','o'] -- "hello"
 
 -- [a]++b -> a : b, but only if not in a chain of ++'s
-yes = [x] ++ xs where res = x : xs
-yes = "x" ++ xs where res = 'x' : xs
+yes = [x] ++ xs -- x : xs
+yes = "x" ++ xs -- 'x' : xs
 no = [x] ++ xs ++ ys
 no = xs ++ [x] ++ ys
-yes = [if a then b else c] ++ xs where res = (if a then b else c) : xs
-yes = [1] : [2] : [3] : [4] : [5] : [] where res = [[1], [2], [3], [4], [5]]
-yes = if x == e then l2 ++ xs else [x] ++ check_elem xs where res = x : check_elem xs
-data Yes = Yes (Maybe [Char])
-yes = y :: [Char] -> a where res = "String -> a"
+yes = [if a then b else c] ++ xs -- (if a then b else c) : xs
+yes = [1] : [2] : [3] : [4] : [5] : [] -- [[1], [2], [3], [4], [5]]
+yes = if x == e then l2 ++ xs else [x] ++ check_elem xs -- x : check_elem xs
+data Yes = Yes (Maybe [Char]) -- (Maybe String)
+yes = y :: [Char] -> a -- String -> a
 </TEST>
 -}
 

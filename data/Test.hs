@@ -8,21 +8,16 @@ error = Prelude.readFile ==> bad
 
 {-
 <TEST>
-yes = readFile "foo" >>= putStr where res = bad
-</TEST>
--}
+{main = readFile "foo" >>= putStr
+} -- bad
 
-{-
-<TEST>
-import Prelude hiding(readFile)
-import Data.ByteString.Char8(readFile)
-no = readFile "foo" >>= putStr
-</TEST>
--}
+{import Prelude hiding(readFile)
+;import Data.ByteString.Char8(readFile)
+;test = readFile "foo" >>= putStr
+}
 
-{-
-<TEST>
-import Prelude as Prelude2
-yes = Prelude2.readFile "foo" >>= putStr where res = bad
+{import Prelude as Prelude2
+;yes = Prelude2.readFile "foo" >>= putStr
+} -- bad
 </TEST>
 -}

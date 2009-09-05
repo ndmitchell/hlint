@@ -5,7 +5,7 @@ error = a $ b $ c ==> a . b $ c
 
 {-
 <TEST>
-yes = concat $ concat $ map f x where res = concat . concat $ map f x
+yes = concat $ concat $ map f x -- concat . concat $ map f x
 </TEST>
 -}
 

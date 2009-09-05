@@ -11,6 +11,7 @@
     import A[]; import A[] as Y = import A[] as Y
 
 <TEST>
+import A; import A -- import A
 </TEST>
 -}
 

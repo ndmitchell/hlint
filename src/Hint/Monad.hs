@@ -7,14 +7,14 @@
     not at the last line of a do statement, or to the left of >>
 
 <TEST>
-yes = do mapM print a; return b where res = mapM_ print a
+yes = do mapM print a; return b -- mapM_ print a
 no = mapM print a
 no = do foo ; mapM print a
-yes = do (bar+foo) where res = (bar+foo)
+yes = do (bar+foo) -- (bar+foo)
 no = do bar ; foo
-yes = do bar; a <- foo; return a where res = do bar; foo
+yes = do bar; a <- foo; return a -- do bar; foo
 no = do bar; a <- foo; return b
-yes = do x <- bar; x where res = do join bar
+yes = do x <- bar; x -- do join bar
 no = do x <- bar; x; x
 no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
 </TEST>

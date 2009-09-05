@@ -7,13 +7,12 @@ import Control.Monad
 import Data.Char
 import Data.List
 import Data.Maybe
-import Data.Either
+import Data.Function
 import System.Directory
 import System.FilePath
 
 import Settings
 import Type
-import Util
 import HSE.All
 import Hint.All
 import Paths_hlint
@@ -22,7 +21,7 @@ import Paths_hlint
 -- Input, Output
 -- Output = Nothing, should not match
 -- Output = Just xs, should match xs
-data Test = Test SrcLoc Decl (Maybe String)
+data Test = Test SrcLoc String (Maybe String)
 
 
 test :: IO ()
@@ -54,45 +53,48 @@ runTest hint file = do
     putStr $ unlines failures
     return (length failures, length tests)
     where
-        f (nm, Test loc inp out) =
-                ["Test failed " ++ showSrcLoc loc ++ " " ++
-                 concatMap ((++) " | " . show) ideas ++ "\n" ++
-                 prettyPrint inp | not good]
+        f (Test loc inp out) =
+                ["TEST FAILURE\n" ++
+                 "SRC: " ++ showSrcLoc loc ++ "\n" ++
+                 "INPUT: " ++ inp ++ "\n" ++
+                 concatMap ((++) "OUTPUT: " . show) ideas ++
+                 "WANTED: " ++ fromMaybe "<failure>" out ++ "\n\n"
+                | not good]
             where
-                ideas = declHint hint nm inp
+                ideas = applyHintStr parseFlags [hint] file inp
                 good = case out of
                     Nothing -> ideas == []
-                    Just x -> length ideas == 1 && (null x || to (head ideas) == x)
+                    Just x -> length ideas == 1 &&
+                              not (isParseError (head ideas)) &&
+                              on (==) norm (to $ head ideas) x
+
+        -- FIXME: Should use a better check for expected results
+        norm = filter $ \x -> not (isSpace x) && x /= ';'
 
 
-parseTestFile :: FilePath -> IO [(NameMatch, Test)]
+parseTestFile :: FilePath -> IO [Test]
 parseTestFile file = do
     src <- readFile file
-    return [(nm, createTest eqn)
-           | code <- f $ lines src, let modu = fromParseResult $ parseString parseFlags file code
-           , let nm = nameMatch $ moduleImports modu
-           , eqn <- concatMap getEquations $ moduleDecls modu]
+    return $ f False $ zip [1..] $ lines src
     where
         open = isPrefixOf "<TEST>"
         shut = isPrefixOf "</TEST>"
-        f [] = []
-        f xs = unlines inner : f (drop 1 test)
-            where (inner,test) = break shut $ drop 1 $ dropWhile (not . open) xs
+
+        f False ((i,x):xs) = f (open x) xs
+        f True  ((i,x):xs)
+            | shut x = f False xs
+            | null x || "--" `isPrefixOf` x = f True xs
+            | otherwise = let (a,b) = parseTest file ((i,x):xs) in a : f True b
+        f _ [] = []
 
 
-createTest :: Decl -> Test
-createTest x = Test (declSrcLoc x) x2 (if negative then Nothing else Just res)
-    where
-        s = map toLower $ fromNamed x
-        negative = "no" `isPrefixOf` s || "-" `isPrefixOf` s
-        (res,x2) = getRes x
+parseTest :: FilePath -> [(Int,String)]  -> (Test, [(Int,String)])
+parseTest file ((i,x):xs) | "{" `isPrefixOf` x =
+    if null bs then error $ "Messed up test brackets near: " ++ show (file,i)
+               else (parseTestOne file (i, unlines $ x : map snd (a ++ [head bs])), tail bs)
+    where (a,bs) = break (isPrefixOf "}" . snd) xs
+parseTest file (x:xs) = (parseTestOne file x, xs)
 
-
-getRes :: Decl -> (String, Decl)
-getRes (FunBind [Match x1 x2 x3 x4 x5 (BDecls binds)]) =
-        (headDef "<error: no res clause>" res, FunBind [Match x1 x2 x3 x4 x5 (BDecls binds2)])
-    where (res, binds2) = partitionEithers $ map f binds
-          f (PatBind _ (fromNamed -> "res") _ (UnGuardedRhs res) _) =
-              Left $ if isString res then fromString res else prettyPrint res
-          f x = Right x
-getRes x = ("", x)
+parseTestOne file (i,x) = Test (SrcLoc file i 0) x $ case drop 1 $ dropWhile (/= "--") $ words x of
+    [] -> Nothing
+    xs -> Just $ unwords xs

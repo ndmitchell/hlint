@@ -207,40 +207,40 @@ warn  = (do a <- f; g a) ==> f >>= g
 
 {-
 <TEST>
-yes = concat . map f where res = concatMap f
-yes = foo . bar . concat . map f . baz . bar where res = concatMap f . baz . bar
-yes = map f (map g x) where res = map (f . g) x
-yes = concat.map (\x->if x==e then l' else [x]) where res = concatMap (\x->if x==e then l' else [x])
-yes = f x where f x = concat . map head ; res = concatMap head
-yes = concat . map f . g where res = concatMap f . g
-yes = concat $ map f x where res = concatMap f x
-yes = "test" ++ concatMap (' ':) ["of","this"] where res = unwords ("test":["of","this"])
-yes = concat . intersperse " " where res = unwords
-yes = if f a then True else b where res = f a || b
-yes = not (a == b) where res = a /= b
-yes = not (a /= b) where res = a == b
-yes = if a then 1 else if b then 1 else 2 where res = if a || b then 1 else 2
+yes = concat . map f -- concatMap f
+yes = foo . bar . concat . map f . baz . bar -- concatMap f . baz . bar
+yes = map f (map g x) -- map (f . g) x
+yes = concat.map (\x->if x==e then l' else [x]) -- concatMap (\x->if x==e then l' else [x])
+yes = f x where f x = concat . map head -- concatMap head
+yes = concat . map f . g -- concatMap f . g
+yes = concat $ map f x -- concatMap f x
+yes = "test" ++ concatMap (' ':) ["of","this"] -- unwords ("test":["of","this"])
+yes = concat . intersperse " " -- unwords
+yes = if f a then True else b -- f a || b
+yes = not (a == b) -- a /= b
+yes = not (a /= b) -- a == b
+yes = if a then 1 else if b then 1 else 2 -- if a || b then 1 else 2
 no  = if a then 1 else if b then 3 else 2
-yes = a >>= return . id where res = liftM id a
-yes = (x !! 0) + (x !! 2) where res = head x
-yes = if b < 42 then [a] else [] where res = [a | b < 42]
-yes = take 5 (foo xs) == "hello" where res = "hello" `isPrefixOf` foo xs
+yes = a >>= return . id -- liftM id a
+yes = (x !! 0) + (x !! 2) -- head x
+yes = if b < 42 then [a] else [] -- [a | b < 42]
+yes = take 5 (foo xs) == "hello" -- "hello" `isPrefixOf` foo xs
 no  = take n (foo xs) == "hello"
-yes = head (reverse xs) where res = last xs
-yes = reverse xs `isPrefixOf` reverse ys where res = isSuffixOf xs ys
+yes = head (reverse xs) -- last xs
+yes = reverse xs `isPrefixOf` reverse ys -- isSuffixOf xs ys
 no = putStrLn $ show (length xs) ++ "Test"
-yes = do line <- getLine; putStrLn line where res = getLine >>= putStrLn 
-yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable where res = toUpper *** urlEncode
-yes = map (\(a,b) -> a) xs where res = fst
-yes = map (\(a,_) -> a) xs where res = fst
-yes = readFile $ args !! 0 where res = head args
-yes = if Debug `elem` opts then ["--debug"] else [] where res = ["--debug" | Debug `elem` opts]
-yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True
-    where res = if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
-yes = if foo then do stuff; moreStuff; lastOfTheStuff else return ()
-    where res = when foo $ do stuff ; moreStuff ; lastOfTheStuff
-yes = foo $ \(a, b) -> (a, y + b) where res = second ((+) y)
+yes = do line <- getLine; putStrLn line -- getLine >>= putStrLn 
+yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable -- toUpper *** urlEncode
+yes = map (\(a,b) -> a) xs -- fst
+yes = map (\(a,_) -> a) xs -- fst
+yes = readFile $ args !! 0 -- head args
+yes = if Debug `elem` opts then ["--debug"] else [] -- ["--debug" | Debug `elem` opts]
+{yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True
+}    -- if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
+{yes = if foo then do stuff; moreStuff; lastOfTheStuff else return ()
+}    -- when foo $ do stuff ; moreStuff ; lastOfTheStuff
+yes = foo $ \(a, b) -> (a, y + b) -- second ((+) y)
 no  = foo $ \(a, b) -> (a, a + b)
-yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] where res = zipWith (+) [1 .. 5] [6 .. 10]
+yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 10]
 </TEST>
 -}

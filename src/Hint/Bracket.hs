@@ -1,19 +1,19 @@
 {-
 <TEST>
-yes = (f x) x where res = f x x
+yes = (f x) x -- f x x
 no = f (x x)
-yes = (f x) ||| y where res = f x ||| y
-yes = if (f x) then y else z where res = if f x then y else z
-yes = if x then (f y) else z where res = if x then f y else z
-yes = (a foo) :: Int where res = a foo :: Int
+yes = (f x) ||| y -- f x ||| y
+yes = if (f x) then y else z -- if f x then y else z
+yes = if x then (f y) else z -- if x then f y else z
+yes = (a foo) :: Int -- a foo :: Int
 
 no = groupFsts . sortFst $ mr
-yes = split "to" $ names where res = split "to" names
-yes = white $ keysymbol where res = white keysymbol
-yes = operator foo $ operator where res = operator foo operator
+yes = split "to" $ names -- split "to" names
+yes = white $ keysymbol -- white keysymbol
+yes = operator foo $ operator -- operator foo operator
 no = operator foo $ operator bar
-yes = (b $ c d) ++ e where res = b (c d) ++ e
-yes = (a b $ c d) ++ e where res = a b (c d) ++ e
+yes = (b $ c d) ++ e -- b (c d) ++ e
+yes = (a b $ c d) ++ e -- a b (c d) ++ e
 no = (f . g $ a) ++ e
 </TEST>
 -}

@@ -12,22 +12,22 @@
     -- don't eta reduce func a b c = .... (g b) (g c) to (g b) . g, looks ugly
 
 <TEST>
-yes = 0 where f a = \x -> x + x ; res = "f a x = x + x"
-yes = 0 where h a = f (g a ==) ; res = "h = f . (==) . g"
-yes a = foo (\x -> True) where res = const True
-no = foo (\x -> map f [])
-yes = 0 where f x = y x ; res = "f = y"
-no mr = y mr
-yes = 0 where f x = g $ f $ map head x ; res = "f = g . f . map head"
-no z x y = f (g x) (g y)
-no = 0 where f x y = f (g x) (g y) ; res = "f = f `on` g"
-yes = 0 where f x y = g x == g y ; res = "f = (==) `on` g"
-a + b = foo a b where res = "(+) = foo"
-type Yes a = Foo Char a
-type No a = Foo a Char a
-type No (a :: * -> *) = Foo Char a
-yes = foo (\x -> sum x) where res = sum
-yes = foo (\x l -> sum x x l) where res = \x -> sum x x
+f a = \x -> x + x -- f a x = x + x
+h a = f (g a ==) -- h = f . (==) . g
+test a = foo (\x -> True) -- const True
+test = foo (\x -> map f [])
+test = 0 where f x = y x -- f = y
+test mr = y mr
+test = 0 where f x = g $ f $ map head x -- f = g . f . map head
+test z x y = f (g x) (g y)
+f x y = f (g x) (g y)
+f x y = g x == g y -- f = (==) `on` g
+a + b = foo a b -- (+) = foo
+type Test a = Foo Char a -- type Test = Foo Char
+type Test a = Foo a Char a
+type Test (a :: * -> *) = Foo Char a
+yes = foo (\x -> sum x) -- sum
+yes = foo (\x l -> sum x x l) -- \x -> sum x x
 </TEST>
 -}
 

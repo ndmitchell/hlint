@@ -4,10 +4,10 @@
     Improve the structure of code
 
 <TEST>
-yes x y = if a then b else if c then d else e where res = "yes x y\n  | a = b\n  | c = d\n  | otherwise = e"
+yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
 no x y = if a then b else c
-yes x = case x of {True -> a ; False -> b} where res = "if x then a else b"
-yes x = case x of {False -> a ; _ -> b} where res = "if x then b else a"
+yes x = case x of {True -> a ; False -> b} -- if x then a else b
+yes x = case x of {False -> a ; _ -> b} -- if x then b else a
 </TEST>
 -}
 

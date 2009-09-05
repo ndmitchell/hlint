@@ -8,12 +8,12 @@
     Also disallow prop_ as it's a standard QuickCheck idiom
 
 <TEST>
-data Yes = Foo | Bar'Test
-data Yes = Bar | Test_Bar
+data Yes = Foo | Bar'Test -- data Yes = Foo | BarTest
+data Yes = Bar | Test_Bar -- data Yes = Bar | TestBar
 data No = a :::: b
-data Yes = Foo {bar_cap :: Int}
+data Yes = Foo {bar_cap :: Int} -- data Yes = Foo{barCap :: Int}
 data No = FOO | BarBAR | BarBBar
-yes_foo = yes_foo + yes_foo where res = "yesFoo = ..."
+yes_foo = yes_foo + yes_foo -- yesFoo = ...
 no = 1 where yes_foo = 2
 a -== b = 1
 </TEST>
