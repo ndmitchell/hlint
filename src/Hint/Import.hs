@@ -12,6 +12,19 @@
 
 <TEST>
 import A; import A -- import A
+import A; import A; import A -- import A
+import A(Foo) ; import A -- import A
+import A(Bar(..)); import {-# SOURCE #-} A
+import A; import B
+import A(B) ; import A(C) -- import A(B,C)
+import A; import A hiding (C) -- import A
+import A; import A as Y -- import A as Y
+import A; import qualified A as Y
+import A as B; import A as C
+import A; import B; import A -- import A
+import qualified A; import A
+import B; import A; import A -- import A
+import A hiding(Foo); import A hiding(Bar)
 </TEST>
 -}
 
