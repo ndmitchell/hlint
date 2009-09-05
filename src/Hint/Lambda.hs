@@ -24,6 +24,8 @@ no = 0 where f x y = f (g x) (g y) ; res = "f = f `on` g"
 yes = 0 where f x y = g x == g y ; res = "f = (==) `on` g"
 a + b = foo a b where res = "(+) = foo"
 type Yes a = Foo Char a
+type No a = Foo a Char a
+type No (a :: * -> *) = Foo Char a
 yes = foo (\x -> sum x) where res = sum
 yes = foo (\x l -> sum x x l) where res = \x -> sum x x
 </TEST>
@@ -115,5 +117,7 @@ lambdaType o@(TypeDecl src name args typ) = [warn "Type eta reduce" src o t2 | i
     
         -- return the number you managed to delete
         f :: [TyVarBind] -> Type -> (Int, Type)
-        f (x:xs) (TyApp t1 (TyVar v)) | fromNamed v == fromNamed x = first (+1) $ f xs t1
+        f (UnkindedVar x:xs) (TyApp t1 (TyVar v))
+            | fromNamed v == fromNamed x && x `notElem` universeBi t1
+            = first (+1) $ f xs t1
         f _ t = (0,t)
