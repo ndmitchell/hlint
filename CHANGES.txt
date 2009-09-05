@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Fix bug, import A as Y; import A gave import A, missing the as Y
     Fix bug, type Foo a = Bar a a incorrectly suggested eta reduce
 1.6.7
     NOTE: #213 has not been fixed, cpphs can cause hangs

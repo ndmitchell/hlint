@@ -63,10 +63,11 @@ reduce x y | qual, as, specs = Just x
            | qual, as, Just (False, xs) <- importSpecs x, Just (False, ys) <- importSpecs y =
                 Just x{importSpecs = Just (False, nub $ xs ++ ys)}
            | qual, as, isNothing (importSpecs x) || isNothing (importSpecs y) = Just x{importSpecs=Nothing}
-           | not (importQualified x), qual, specs, isNothing (importAs x) || isNothing (importAs y) = Just x{importAs=Nothing}
+           | not (importQualified x), qual, specs, length ass == 1 = Just x{importAs=Just $ head ass}
     where
         qual = importQualified x == importQualified y
         as = importAs x == importAs y
+        ass = mapMaybe importAs [x,y]
         specs = importSpecs x == importSpecs y
 
 reduce _ _ = Nothing
