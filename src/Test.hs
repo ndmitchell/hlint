@@ -65,6 +65,7 @@ runTest hint file = do
                 good = case out of
                     Nothing -> ideas == []
                     Just x -> length ideas == 1 &&
+                              length (show ideas) >= 0 && -- force, mainly for hpc
                               not (isParseError (head ideas)) &&
                               on (==) norm (to $ head ideas) x
 
