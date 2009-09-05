@@ -6,14 +6,14 @@
     LANGUAGE A, A => LANGUAGE A
     -- do not do LANGUAGE A, LANGUAGE B to combine
 <TEST>
- {-# OPTIONS_GHC -cpp #-} -- {-# LANGUAGE CPP #-}
- {-# OPTIONS     -cpp #-} -- {-# LANGUAGE CPP #-}
- {-# OPTIONS_YHC -cpp #-}
- {-# OPTIONS_GHC -XFoo #-} -- {-# LANGUAGE Foo #-}
- {-# OPTIONS_GHC -fglasgow-exts #-} -- ???
- {-# LANGUAGE A, B, C, A #-} -- {-# LANGUAGE A, B, C #-}
- {-# LANGUAGE A #-}
- {-# OPTIONS_GHC -cpp -foo #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -foo #-}
+{-# OPTIONS_GHC -cpp #-} -- {-# LANGUAGE CPP #-}
+{-# OPTIONS     -cpp #-} -- {-# LANGUAGE CPP #-}
+{-# OPTIONS_YHC -cpp #-}
+{-# OPTIONS_GHC -XFoo #-} -- {-# LANGUAGE Foo #-}
+{-# OPTIONS_GHC -fglasgow-exts #-} -- ???
+{-# LANGUAGE A, B, C, A #-} -- {-# LANGUAGE A, B, C #-}
+{-# LANGUAGE A #-}
+{-# OPTIONS_GHC -cpp -foo #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -foo #-}
 </TEST>
 -}
 

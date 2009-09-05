@@ -235,10 +235,10 @@ yes = map (\(a,b) -> a) xs -- fst
 yes = map (\(a,_) -> a) xs -- fst
 yes = readFile $ args !! 0 -- head args
 yes = if Debug `elem` opts then ["--debug"] else [] -- ["--debug" | Debug `elem` opts]
-{yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True
-}    -- if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
-{yes = if foo then do stuff; moreStuff; lastOfTheStuff else return ()
-}    -- when foo $ do stuff ; moreStuff ; lastOfTheStuff
+yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True \
+    -- if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
+yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
+    -- when foo $ do stuff ; moreStuff ; lastOfTheStuff
 yes = foo $ \(a, b) -> (a, y + b) -- second ((+) y)
 no  = foo $ \(a, b) -> (a, a + b)
 yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 10]

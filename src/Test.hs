@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns, PatternGuards #-}
 
 module Test where
 
@@ -85,18 +85,12 @@ parseTestFile file = do
         f True  ((i,x):xs)
             | shut x = f False xs
             | null x || "--" `isPrefixOf` x = f True xs
-            | otherwise = let (a,b) = parseTest file ((i,x):xs) in a : f True b
+            | "\\" `isSuffixOf` x, (_,y):ys <- xs = f True $ (i,init x++"\n"++y):ys
+            | otherwise = parseTest file i x : f True xs
         f _ [] = []
 
 
-parseTest :: FilePath -> [(Int,String)]  -> (Test, [(Int,String)])
-parseTest file ((i,x):xs) | "{" `isPrefixOf` x =
-    if null bs then error $ "Messed up test brackets near: " ++ show (file,i)
-               else (parseTestOne file (i, unlines $ x : map snd (a ++ [head bs])), tail bs)
-    where (a,bs) = break (isPrefixOf "}" . snd) xs
-parseTest file (x:xs) = (parseTestOne file x, xs)
-
-parseTestOne file (i,x) = Test (SrcLoc file i 0) (dropWhile isSpace x) $
+parseTest file i x = Test (SrcLoc file i 0) x $
     case drop 1 $ dropWhile (/= "--") $ words x of
         [] -> Nothing
         xs -> Just $ unwords xs
