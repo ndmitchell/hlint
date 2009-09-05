@@ -67,7 +67,7 @@ runTest hint file = do
                     Just x -> length ideas == 1 &&
                               length (show ideas) >= 0 && -- force, mainly for hpc
                               not (isParseError (head ideas)) &&
-                              on (==) norm (to $ head ideas) x
+                              (x == "???" || on (==) norm (to $ head ideas) x)
 
         -- FIXME: Should use a better check for expected results
         norm = filter $ \x -> not (isSpace x) && x /= ';'
@@ -96,6 +96,7 @@ parseTest file ((i,x):xs) | "{" `isPrefixOf` x =
     where (a,bs) = break (isPrefixOf "}" . snd) xs
 parseTest file (x:xs) = (parseTestOne file x, xs)
 
-parseTestOne file (i,x) = Test (SrcLoc file i 0) x $ case drop 1 $ dropWhile (/= "--") $ words x of
-    [] -> Nothing
-    xs -> Just $ unwords xs
+parseTestOne file (i,x) = Test (SrcLoc file i 0) (dropWhile isSpace x) $
+    case drop 1 $ dropWhile (/= "--") $ words x of
+        [] -> Nothing
+        xs -> Just $ unwords xs
