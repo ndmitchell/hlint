@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add suggestion to replace lambda with operator sections
     Fix bug, ''Name decided TemplateHaskell was unnecessary
     HPC statistics, and increase in test coverage
     Fix bug, import A as Y; import A gave import A, missing the as Y

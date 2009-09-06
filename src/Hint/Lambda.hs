@@ -28,6 +28,9 @@ type Test a = Foo a Char a
 type Test (a :: * -> *) = Foo Char a
 yes = foo (\x -> sum x) -- sum
 yes = foo (\x l -> sum x x l) -- \x -> sum x x
+test = foo (\x -> y == x) -- (y ==)
+test = foo (\x -> x == g y) -- (== g y)
+test = foo (\x -> g x == x)
 </TEST>
 -}
 
@@ -93,6 +96,8 @@ etaReduces ps x | ps /= [], PVar p <- last ps, p /= Ident "mr", Just y <- etaRed
 
 etaReduce :: Name -> Exp -> Maybe Exp
 etaReduce x (App y (Var (UnQual z))) | x == z && x `notElem` universeBi y = Just y
+etaReduce x (InfixApp y op z) | var x == y && x `notElem` universeBi z = Just $ RightSection op z
+                              | var x == z && x `notElem` universeBi y = Just $ LeftSection y op
 etaReduce x (App y z) | not (uglyEta y z) && x `notElem` universeBi y = do
     z2 <- etaReduce x z
     return $ InfixApp y (QVarOp $ UnQual $ Symbol ".") z2
