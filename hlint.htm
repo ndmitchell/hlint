@@ -151,6 +151,8 @@ Why not:
 
 <p>
 	To run HLint on <i>n</i> processors append the flags <tt>+RTS -N<i>n</i></tt>, as described in the <a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/runtime-control.html">GHC user manual</a>. HLint will usually perform fastest if <i>n</i> is equal to the number of physical processors.
+</p><p>
+	If your version of GHC does not support the GHC threaded runtime then install with the command: <tt>cabal install --flags="-threaded"</tt>
 </p>
 
 <h3>C preprocesor support</h3>
