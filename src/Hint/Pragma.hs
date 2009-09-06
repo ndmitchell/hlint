@@ -14,6 +14,12 @@
 {-# LANGUAGE A, B, C, A #-} -- {-# LANGUAGE A, B, C #-}
 {-# LANGUAGE A #-}
 {-# OPTIONS_GHC -cpp -foo #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -foo #-}
+{-# OPTIONS_GHC -cpp #-} \
+{-# LANGUAGE CPP, Text #-} -- ???
+{-# LANGUAGE A #-} \
+{-# LANGUAGE B #-}
+{-# LANGUAGE A #-} \
+{-# LANGUAGE B, A #-} -- {-# LANGUAGE A, B #-}
 </TEST>
 -}
 
