@@ -91,6 +91,6 @@ parseTestFile file = do
 
 
 parseTest file i x = Test (SrcLoc file i 0) x $
-    case drop 1 $ dropWhile (/= "--") $ words x of
+    case dropWhile (/= "--") $ words x of
         [] -> Nothing
-        xs -> Just $ unwords xs
+        _:xs -> Just $ unwords xs
