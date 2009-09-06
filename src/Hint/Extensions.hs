@@ -8,6 +8,10 @@ f = id --
 f = [(a,c) | a <- b | c <- d] -- {-# LANGUAGE Foo, ParallelListComp #-}
 {-# LANGUAGE EmptyDataDecls #-} \
 data Foo
+{-# LANGUAGE TemplateHaskell #-} \
+$(deriveNewtypes typeInfo)
+{-# LANGUAGE TemplateHaskell #-} \
+main = foo ''Bar
 </TEST>
 -}
 
@@ -40,7 +44,10 @@ used EmptyDataDecls = has f
           f _ = False
 used KindSignatures = hasT (un :: Kind)
 used BangPatterns = has isPBangPat
-used TemplateHaskell = hasT2 (un :: (Bracket,Splice))
+used TemplateHaskell = hasT2 (un :: (Bracket,Splice)) & has f
+    where f VarQuote{} = True
+          f TypQuote{} = True
+          f _ = False
 used ForeignFunctionInterface = hasT (un :: CallConv)
 used Generics = has isPExplTypeArg
 used PatternGuards = has f
