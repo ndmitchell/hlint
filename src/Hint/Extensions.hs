@@ -2,6 +2,8 @@
     Suggest removal of unnecessary extensions
     i.e. They have {-# LANGUAGE RecursiveDo #-} but no mdo keywords
 <TEST>
+{-# LANGUAGE Arrows #-} \
+f = id --
 </TEST>
 -}
 
@@ -16,7 +18,8 @@ import Data.Function
 
 
 extensionsHint :: ModuHint
-extensionsHint _ x = [idea Error "Unused LANGUAGE pragma" sl o (LanguagePragma sl new)
+extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" sl
+          (prettyPrint o) (if null new then "" else prettyPrint $ LanguagePragma sl new)
     | o@(LanguagePragma sl old) <- modulePragmas x
     , let new = filter (flip used x . classifyExtension . prettyPrint) old
     , length new /= length old]
