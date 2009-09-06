@@ -30,43 +30,53 @@ extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" sl
 
 
 used :: Extension -> Module -> Bool
-used RecursiveDo x = any isMDo $ universeBi x
-used ParallelListComp x = any isParComp $ universeBi x
-used FunctionalDependencies x = any isFunDep $ universeBi x
-used ImplicitParams x = has x (undefined :: IPName)
-used EmptyDataDecls x = any f $ universeBi x
+used RecursiveDo = has isMDo
+used ParallelListComp = has isParComp
+used FunctionalDependencies = has isFunDep
+used ImplicitParams = hasT (un :: IPName)
+used EmptyDataDecls = has f
     where f (DataDecl _ _ _ _ _ [] _) = True
           f (GDataDecl _ _ _ _ _ _ [] _) = True
           f _ = False
-used KindSignatures x = has x (undefined :: Kind)
-used BangPatterns x = any isPBangPat $ universeBi x
-used TemplateHaskell x = has x (undefined :: Bracket) || has x (undefined :: Splice)
-used ForeignFunctionInterface x = has x (undefined :: CallConv)
-used Generics x = any isPExplTypeArg $ universeBi x
-used PatternGuards x = any f $ universeBi x
+used KindSignatures = hasT (un :: Kind)
+used BangPatterns = has isPBangPat
+used TemplateHaskell = hasT2 (un :: (Bracket,Splice))
+used ForeignFunctionInterface = hasT (un :: CallConv)
+used Generics = has isPExplTypeArg
+used PatternGuards = has f
     where f (GuardedRhs _ [] _) = False
           f (GuardedRhs _ [Qualifier _] _) = False
           f _ = True
-used StandaloneDeriving x = any isDerivDecl $ universeBi x
-used PatternSignatures x = any isPatTypeSig $ universeBi x
-used RecordWildCards x = any isPFieldWildcard $ universeBi x
-used RecordPuns x = any isPFieldPun $ universeBi x
-used UnboxedTuples x = any isBoxed $ universeBi x
-used PackageImports x = any (isJust . importPkg) $ universeBi x
-used QuasiQuotes x = any isQuasiQuote $ universeBi x
-used ViewPatterns x = any isPViewPat $ universeBi x
-used Arrows x = any f $ universeBi x
+used StandaloneDeriving = has isDerivDecl
+used PatternSignatures = has isPatTypeSig
+used RecordWildCards = has isPFieldWildcard
+used RecordPuns = has isPFieldPun
+used UnboxedTuples = has isBoxed
+used PackageImports = has (isJust . importPkg)
+used QuasiQuotes = has isQuasiQuote
+used ViewPatterns = has isPViewPat
+used Arrows = has f
     where f Proc{} = True
           f LeftArrApp{} = True
           f RightArrApp{} = True
           f LeftArrHighApp{} = True
           f RightArrHighApp{} = True
           f _ = False
-used TransformListComp x = any f $ universeBi x
+used TransformListComp = has f
     where f QualStmt{} = False
           f _ = True
 
-used _ _ = True
+used _ = const True
 
 
-has x t = not $ null (universeBi x `asTypeOf` [t])
+
+un = undefined
+
+(&) f g = \x -> f x || g x
+
+hasT t x = not $ null (universeBi x `asTypeOf` [t])
+hasT2 ~(t1,t2) = hasT t1 & hasT t2
+hasT3 ~(t1,t2,t3) = hasT t1 & hasT t2 & hasT t3
+
+has f x = any f $ universeBi x
+
