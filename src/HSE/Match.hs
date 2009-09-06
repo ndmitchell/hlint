@@ -35,7 +35,7 @@ instance View Exp Infix where
 
 
 (~=) :: Exp -> String -> Bool
-(~=) x y = fromNamed x == y
+(~=) = (==) . fromNamed
 
 
 -- | fromNamed will return "" when it cannot be represented

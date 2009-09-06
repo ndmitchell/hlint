@@ -79,11 +79,11 @@ used _ = const True
 
 un = undefined
 
-(&) f g = \x -> f x || g x
+(&) f g x = f x || g x
 
 hasT t x = not $ null (universeBi x `asTypeOf` [t])
 hasT2 ~(t1,t2) = hasT t1 & hasT t2
 hasT3 ~(t1,t2,t3) = hasT t1 & hasT t2 & hasT t3
 
-has f x = any f $ universeBi x
+has f = any f . universeBi
 

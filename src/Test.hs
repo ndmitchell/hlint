@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards #-}
+{-# LANGUAGE PatternGuards #-}
 
 module Test where
 

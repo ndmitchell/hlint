@@ -43,7 +43,7 @@ classify xs = \i -> if isParseError i then i else i{rank = foldl'
     where
         xs2 = filter isClassify xs
 
-        matchHint x y = x ~= y
+        matchHint = (~=)
         matchFunc (x1,x2) (y1,y2) = (x1~=y1) && (x2~=y2)
         x ~= y = null x || x == y
 
