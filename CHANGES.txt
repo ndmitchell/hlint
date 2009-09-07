@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #213, upgrade to cpphs 1.9
     Add suggestion to replace lambda with operator sections
     Fix bug, ''Name decided TemplateHaskell was unnecessary
     HPC statistics, and increase in test coverage
