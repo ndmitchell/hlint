@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Fix bug, PatternGuards under case alternatives were ignored
 1.6.8
     #213, upgrade to cpphs 1.9
     Add suggestion to replace lambda with operator sections

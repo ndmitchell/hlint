@@ -12,6 +12,8 @@ data Foo
 $(deriveNewtypes typeInfo)
 {-# LANGUAGE TemplateHaskell #-} \
 main = foo ''Bar
+{-# LANGUAGE PatternGuards #-} \
+test = case x of _ | y <- z -> w
 </TEST>
 -}
 
@@ -50,10 +52,12 @@ used TemplateHaskell = hasT2 (un :: (Bracket,Splice)) & has f
           f _ = False
 used ForeignFunctionInterface = hasT (un :: CallConv)
 used Generics = has isPExplTypeArg
-used PatternGuards = has f
-    where f (GuardedRhs _ [] _) = False
-          f (GuardedRhs _ [Qualifier _] _) = False
-          f _ = True
+used PatternGuards = has f1 & has f2
+    where f1 (GuardedRhs _ xs _) = g xs
+          f2 (GuardedAlt _ xs _) = g xs
+          g [] = False
+          g [Qualifier _] = False
+          g _ = True
 used StandaloneDeriving = has isDerivDecl
 used PatternSignatures = has isPatTypeSig
 used RecordWildCards = has isPFieldWildcard
