@@ -1,7 +1,7 @@
 cabal-version:      >= 1.6
 build-type:         Simple
 name:               hlint
-version:            1.6.8
+version:            1.6.9
 license:            GPL
 license-file:       LICENSE
 category:           Development

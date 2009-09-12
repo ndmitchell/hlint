@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.6.9
     #217, don't suggest eta reduction on - or +
     Fix bug, PatternGuards under case alternatives were ignored
 1.6.8
