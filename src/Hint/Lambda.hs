@@ -23,7 +23,7 @@ test z x y = f (g x) (g y)
 f x y = f (g x) (g y)
 f x y = g x == g y -- f = (==) `on` g
 a + b = foo a b -- (+) = foo
-type Test a = Foo Char a -- type Test = Foo Char
+type Test a = Foo Char a
 type Test a = Foo a Char a
 type Test (a :: * -> *) = Foo Char a
 yes = foo (\x -> sum x) -- sum
@@ -42,7 +42,6 @@ module Hint.Lambda where
 
 import HSE.All
 import Type
-import Control.Arrow
 import Control.Monad
 import Data.Generics.PlateData
 import Data.Maybe
@@ -119,8 +118,15 @@ uglyEta _ _ = False
 
 
 
+-- NOTE: Never perform lambda reduction on types
+-- > type Foo a = Bar a
+-- can be reduced for type Foo = Bar, only if Bar is
+-- a data type, not a type alias - but we can't know
+-- which it is
 lambdaType :: Decl -> [Idea]
-lambdaType o@(TypeDecl src name args typ) = [warn "Type eta reduce" src o t2 | i /= 0]
+lambdaType o@(TypeDecl src name args typ) = []
+{-
+        [warn "Type eta reduce" src o t2 | i /= 0]
     where
         (i,t) = f (reverse args) typ
         t2 = TypeDecl src name (take (length args - i) args) t
@@ -131,3 +137,4 @@ lambdaType o@(TypeDecl src name args typ) = [warn "Type eta reduce" src o t2 | i
             | fromNamed v == fromNamed x && x `notElem` universeBi t1
             = first (+1) $ f xs t1
         f _ t = (0,t)
+-}
