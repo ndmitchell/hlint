@@ -33,6 +33,7 @@ test = foo (\x -> x == g y) -- (== g y)
 test = foo (\x -> g x == x)
 cp i = show (i - 1)
 cp i = show (i + 1)
+test c = 1 # 2 # c
 </TEST>
 -}
 
@@ -98,9 +99,10 @@ etaReduces ps x | ps /= [], PVar p <- last ps, p /= Ident "mr", Just y <- etaRed
 
 etaReduce :: Name -> Exp -> Maybe Exp
 etaReduce x (App y (Var (UnQual z))) | x == z && x `notElem` universeBi y = Just y
-etaReduce x (InfixApp y op z) | goodOp && var x == y && x `notElem` universeBi z = Just $ RightSection op z
-                              | goodOp && var x == z && x `notElem` universeBi y = Just $ LeftSection y op
-    where goodOp = op `notElem` map (QVarOp . UnQual . Symbol . return) "+-"
+etaReduce x (InfixApp y op z) | f y z = Just $ RightSection op z
+                              | f z y = Just $ LeftSection y op
+    where f y z = op `notElem` map (QVarOp . UnQual . Symbol . return) "+-" &&
+                  all (not . isInfixApp) [y,z] && var x == y && x `notElem` universeBi z
 etaReduce x (App y z) | not (uglyEta y z) && x `notElem` universeBi y = do
     z2 <- etaReduce x z
     return $ InfixApp y (QVarOp $ UnQual $ Symbol ".") z2
