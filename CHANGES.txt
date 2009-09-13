@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.6.11
     Don't perform type eta reduction
 1.6.10
     Fix bug, eta reduction on chained infix operators, i.e. x#y#z
