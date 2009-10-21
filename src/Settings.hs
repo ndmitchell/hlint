@@ -86,7 +86,7 @@ readFuncs x = error $ "Failed to read classification rule\n" ++ prettyPrint x
 
 getNames :: [Pat] -> Exp -> [String]
 getNames ps _ | ps /= [] && all isPString ps = map fromPString ps
-getNames [] (InfixApp lhs op rhs) | opExp op ~= "==>" = ["Use " ++ head names]
+getNames [] (InfixApp lhs op rhs) | opExp op ~= "==>" = ["Use " ++ head (names ++ ["alternative"])]
     where
         lnames = map f $ childrenBi lhs
         rnames = map f $ childrenBi rhs
