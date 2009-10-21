@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    A few small additional hints (use flip, redundant id)
 1.6.11
     Don't perform type eta reduction
 1.6.10
