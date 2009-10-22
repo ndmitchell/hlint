@@ -204,7 +204,7 @@ error "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i == length t) && (t `isPr
     where _ = (isList t || isLit t) && isLit i
 
 warn  = (do a <- f; g a) ==> f >>= g
-    where _ = isAtom f || isApp f
+    where _ = (isAtom f || isApp f) && notIn a g
 
 
 
@@ -245,6 +245,7 @@ yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
 yes = foo $ \(a, b) -> (a, y + b) -- second ((+) y)
 no  = foo $ \(a, b) -> (a, a + b)
 yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 10]
+no = do iter <- textBufferGetTextIter tb ; textBufferSelectRange tb iter iter
 no = flip f x $ \y -> y*y+y
 no = \x -> f x (g x)
 yes = \x -> f x (g y) -- flip f (g y)
