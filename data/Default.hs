@@ -74,7 +74,7 @@ error = (\(_,y) -> y) ==> snd
 error = (\(x,_) -> x) ==> fst
 error = (\x y-> f (x,y)) ==> curry f where _ = notIn [x,y] f
 error = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f
-warn  = (\x -> f x y) ==> flip f y where _ = notIn [x] f && notIn [x] y
+warn  = (\x -> f x y) ==> flip f y where _ = notIn x [f,y]
 error "Redundant id" = id x ==> x
 error "Redundant const" = const x y ==> x
 
@@ -245,5 +245,7 @@ yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
 yes = foo $ \(a, b) -> (a, y + b) -- second ((+) y)
 no  = foo $ \(a, b) -> (a, a + b)
 yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 10]
+no = \x -> f x (g x)
+yes = \x -> f x (g y) -- flip f (g y)
 </TEST>
 -}
