@@ -245,6 +245,7 @@ yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
 yes = foo $ \(a, b) -> (a, y + b) -- second ((+) y)
 no  = foo $ \(a, b) -> (a, a + b)
 yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 10]
+no = flip f x $ \y -> y*y+y
 no = \x -> f x (g x)
 yes = \x -> f x (g y) -- flip f (g y)
 </TEST>
