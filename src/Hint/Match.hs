@@ -38,7 +38,7 @@ matchIdea nm MatchExp{lhs=lhs,rhs=rhs,side=side} x = do
     u <- unify nm lhs x
     u <- check u
     guard $ checkSide side u
-    return $ dotContract $ performEval $ subst u rhs
+    return $ unqualify nm $ dotContract $ performEval $ subst u rhs
 
 
 -- unify a b = c, a[c] = b
@@ -132,3 +132,12 @@ dotContract x = fromMaybe x (f x)
 performEval :: Exp -> Exp
 performEval (App e x) | e ~= "_eval_" = evaluate x
 performEval x = x
+
+
+-- contract Data.List.foo ==> foo, if Data.List is loaded
+unqualify :: NameMatch -> Exp -> Exp
+unqualify nm = transformBi f
+    where
+        f (Qual mod x) | nm (Qual mod x) (UnQual x) = UnQual x
+        f x = x
+
