@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #???, qualify all non-Prelude suggestions
     #225, Add redundant flip hint
     #???, Add ((+) x) ==> (x +)
     #223, TemplateHaskell may allow other extensions via code
