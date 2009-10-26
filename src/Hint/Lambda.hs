@@ -23,6 +23,7 @@ test z x y = f (g x) (g y)
 f x y = f (g x) (g y)
 f x y = g x == g y -- f = (==) `on` g
 a + b = foo a b -- (+) = foo
+h a = f ((++) a) a -- (a ++)
 type Test a = Foo Char a
 type Test a = Foo a Char a
 type Test (a :: * -> *) = Foo Char a
@@ -49,21 +50,23 @@ import Data.Maybe
 
 lambdaHint :: DeclHint
 lambdaHint _ x@TypeDecl{} = lambdaType x
-lambdaHint _ x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (universe x)
+lambdaHint _ x = concatMap (uncurry lambdaExp) (universeExp nullSrcLoc x) ++ concatMap lambdaDecl (universe x)
 
 
-lambdaExp :: Exp -> [Idea]
-lambdaExp o@(Lambda loc [v] y) | isAtom y, Just x <- f v, x `notElem` universeBi y =
+lambdaExp :: SrcLoc -> Exp -> [Idea]
+lambdaExp _ o@(Lambda loc [v] y) | isAtom y, Just x <- f v, x `notElem` universeBi y =
         [warn "Use const" loc o res]
     where
         f (PVar x) = Just x
         f PWildCard = Just $ Ident "_"
         f _ = Nothing
         res = App (toNamed "const") y
-lambdaExp o@(Lambda loc vs x) | length vs /= length vs2 =
+lambdaExp _ o@(Lambda loc vs x) | length vs /= length vs2 =
         [warn "Eta reduce" loc o $ if null vs2 then x2 else Lambda loc vs2 x2]
     where (vs2,x2) = etaReduces vs x
-lambdaExp _ = []
+lambdaExp loc o@(Paren (App (Var x@(UnQual (Symbol _))) y)) | isAtom y =
+        [warn "Operator rotate" loc o $ LeftSection y (QVarOp x)]
+lambdaExp _ _ = []
 
 
 lambdaDecl :: Decl -> [Idea]

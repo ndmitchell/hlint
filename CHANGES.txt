@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #???, Add ((+) x) ==> (x +)
     #223, TemplateHaskell may allow other extensions via code
     Fix incorrect suggestion on do x <- f ; g x x
     A few small additional hints (use flip, redundant id)
