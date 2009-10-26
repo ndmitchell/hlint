@@ -110,7 +110,7 @@ error "Functor law" = fmap id ==> id
 
 error "Monad law, left identity" = return a >>= f ==> f a
 error "Monad law, right identity" = m >>= return ==> m
-warn  = m >>= return . f ==> liftM f m
+warn  = m >>= return . f ==> fmap f m
 error = (if x then y else return ()) ==> when x $ _noParen_ y
 error = (if x then return () else y) ==> unless x $ _noParen_ y
 error = sequence (map f x) ==> mapM f x
