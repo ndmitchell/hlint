@@ -24,6 +24,8 @@ f x y = f (g x) (g y)
 f x y = g x == g y -- f = (==) `on` g
 a + b = foo a b -- (+) = foo
 h a = f ((++) a) a -- (a ++)
+h a = flip f x (y z) -- f (y z) x
+h a = flip f x $ y z
 type Test a = Foo Char a
 type Test a = Foo a Char a
 type Test (a :: * -> *) = Foo Char a
@@ -66,6 +68,8 @@ lambdaExp _ o@(Lambda loc vs x) | length vs /= length vs2 =
     where (vs2,x2) = etaReduces vs x
 lambdaExp loc o@(Paren (App (Var x@(UnQual (Symbol _))) y)) | isAtom y =
         [warn "Operator rotate" loc o $ LeftSection y (QVarOp x)]
+lambdaExp loc o@(App (App (App flp x) y) z) | flp ~= "flip" =
+        [idea Error "Redundant flip" loc o $ App (App x z) y]
 lambdaExp _ _ = []
 
 

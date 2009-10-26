@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #225, Add redundant flip hint
     #???, Add ((+) x) ==> (x +)
     #223, TemplateHaskell may allow other extensions via code
     Fix incorrect suggestion on do x <- f ; g x x
