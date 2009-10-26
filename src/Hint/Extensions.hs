@@ -14,6 +14,8 @@ $(deriveNewtypes typeInfo)
 main = foo ''Bar
 {-# LANGUAGE PatternGuards #-} \
 test = case x of _ | y <- z -> w
+{-# LANGUAGE TemplateHaskell,EmptyDataDecls #-} \
+$(fmap return $ dataD (return []) (mkName "Void") [] [] [])
 </TEST>
 -}
 
@@ -30,7 +32,8 @@ import Data.Function
 extensionsHint :: ModuHint
 extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" sl
           (prettyPrint o) (if null new then "" else prettyPrint $ LanguagePragma sl new)
-    | o@(LanguagePragma sl old) <- modulePragmas x
+    | let usedTH = used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
+    , o@(LanguagePragma sl old) <- modulePragmas x, not usedTH
     , let new = filter (flip used x . classifyExtension . prettyPrint) old
     , length new /= length old]
 
