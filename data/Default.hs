@@ -224,7 +224,7 @@ yes = not (a == b) -- a /= b
 yes = not (a /= b) -- a == b
 yes = if a then 1 else if b then 1 else 2 -- if a || b then 1 else 2
 no  = if a then 1 else if b then 3 else 2
-yes = a >>= return . id -- liftM id a
+yes = a >>= return . id -- fmap id a
 yes = (x !! 0) + (x !! 2) -- head x
 yes = if b < 42 then [a] else [] -- [a | b < 42]
 yes = take 5 (foo xs) == "hello" -- "hello" `isPrefixOf` foo xs
