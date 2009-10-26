@@ -96,10 +96,10 @@ error "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
 
 error = id *** g ==> second g
 error = f *** id ==> first f
-warn  = (\(x,y) -> (f x, g y)) ==> f *** g where _ = notIn [x,y] [f,g]
-warn  = (\x -> (f x, g x)) ==> f &&& g where _ = notIn x [f,g]
-warn  = (\(x,y) -> (f x,y)) ==> first f where _ = notIn [x,y] f
-warn  = (\(x,y) -> (x,f y)) ==> second f where _ = notIn [x,y] f
+warn  = (\(x,y) -> (f x, g y)) ==> f Control.Arrow.*** g where _ = notIn [x,y] [f,g]
+warn  = (\x -> (f x, g x)) ==> f Control.Arrow.&&& g where _ = notIn x [f,g]
+warn  = (\(x,y) -> (f x,y)) ==> Control.Arrow.first f where _ = notIn [x,y] f
+warn  = (\(x,y) -> (x,f y)) ==> Control.Arrow.second f where _ = notIn [x,y] f
 
 -- FUNCTOR
 
@@ -111,23 +111,23 @@ error "Functor law" = fmap id ==> id
 error "Monad law, left identity" = return a >>= f ==> f a
 error "Monad law, right identity" = m >>= return ==> m
 warn  = m >>= return . f ==> fmap f m
-error = (if x then y else return ()) ==> when x $ _noParen_ y
-error = (if x then return () else y) ==> unless x $ _noParen_ y
+error = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y
+error = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y
 error = sequence (map f x) ==> mapM f x
 error = sequence_ (map f x) ==> mapM_ f x
-warn  = flip mapM ==> forM
-warn  = flip mapM_ ==> forM_
+warn  = flip mapM ==> Control.Monad.forM
+warn  = flip mapM_ ==> Control.Monad.forM_
 error = when (not x) ==> unless x
-error = x >>= id ==> join x
+error = x >>= id ==> Control.Monad.join x
 error = liftM f (liftM g x) ==> liftM (f . g) x
 
 -- MONAD LIST
 
-error = liftM unzip (mapM f x) ==> mapAndUnzipM f x
-error = sequence (zipWith f x y) ==> zipWithM f x y
-error = sequence_ (zipWith f x y) ==> zipWithM_ f x y
-error = sequence (replicate n x) ==> replicateM n x
-error = sequence_ (replicate n x) ==> replicateM_ n x
+error = liftM unzip (mapM f x) ==> Control.Monad.mapAndUnzipM f x
+error = sequence (zipWith f x y) ==> Control.Monad.zipWithM f x y
+error = sequence_ (zipWith f x y) ==> Control.Monad.zipWithM_ f x y
+error = sequence (replicate n x) ==> Control.Monad.replicateM n x
+error = sequence_ (replicate n x) ==> Control.Monad.replicateM_ n x
 error = mapM f (map g x) ==> mapM (f . g) x
 error = mapM_ f (map g x) ==> mapM_ (f . g) x
 
@@ -142,9 +142,9 @@ error "Redundant $!" = id $! x ==> x
 
 -- MAYBE
 
-error = maybe x id  ==> fromMaybe x
-error = maybe False (const True) ==> isJust
-error = maybe True (const False) ==> isNothing
+error = maybe x id  ==> Data.Maybe.fromMaybe x
+error = maybe False (const True) ==> Data.Maybe.isJust
+error = maybe True (const False) ==> Data.Maybe.isNothing
 error = catMaybes (map f x) ==> mapMaybe f x
 
 -- MATHS
@@ -200,7 +200,7 @@ error "Evaluate" = id x ==> x
 
 -- COMPLEX
 
-error "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i == length t) && (t `isPrefixOf` s))
+error "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i == length t) && (t `Data.List.isPrefixOf` s))
     where _ = (isList t || isLit t) && isLit i
 
 warn  = (do a <- f; g a) ==> f >>= g
@@ -227,13 +227,13 @@ no  = if a then 1 else if b then 3 else 2
 yes = a >>= return . id -- fmap id a
 yes = (x !! 0) + (x !! 2) -- head x
 yes = if b < 42 then [a] else [] -- [a | b < 42]
-yes = take 5 (foo xs) == "hello" -- "hello" `isPrefixOf` foo xs
+yes = take 5 (foo xs) == "hello" -- "hello" `Data.List.isPrefixOf` foo xs
 no  = take n (foo xs) == "hello"
 yes = head (reverse xs) -- last xs
 yes = reverse xs `isPrefixOf` reverse ys -- isSuffixOf xs ys
 no = putStrLn $ show (length xs) ++ "Test"
 yes = do line <- getLine; putStrLn line -- getLine >>= putStrLn 
-yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable -- toUpper *** urlEncode
+yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable -- toUpper Control.Arrow.*** urlEncode
 yes = map (\(a,b) -> a) xs -- fst
 yes = map (\(a,_) -> a) xs -- fst
 yes = readFile $ args !! 0 -- head args
@@ -241,8 +241,8 @@ yes = if Debug `elem` opts then ["--debug"] else [] -- ["--debug" | Debug `elem`
 yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True \
     -- if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
 yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
-    -- when foo $ do stuff ; moreStuff ; lastOfTheStuff
-yes = foo $ \(a, b) -> (a, y + b) -- second ((+) y)
+    -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff
+yes = foo $ \(a, b) -> (a, y + b) -- Control.Arrow.second ((+) y)
 no  = foo $ \(a, b) -> (a, a + b)
 yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 10]
 no = do iter <- textBufferGetTextIter tb ; textBufferSelectRange tb iter iter
