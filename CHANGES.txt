@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #228, suggest let instead of <- return in do statements
     #229, suggest comparing
     #???, qualify all non-Prelude suggestions
     #225, Add redundant flip hint

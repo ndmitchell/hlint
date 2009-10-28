@@ -6,6 +6,9 @@
     mapM, foldM, forM, replicateM, sequence, zipWithM
     not at the last line of a do statement, or to the left of >>
 
+    Use let x = y instead of x <- return y, unless x is contained
+    within y, or bound more than once in that do block.
+
 <TEST>
 yes = do mapM print a; return b -- mapM_ print a
 no = mapM print a
@@ -17,6 +20,10 @@ no = do bar; a <- foo; return b
 yes = do x <- bar; x -- do join bar
 no = do x <- bar; x; x
 no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
+yes = do x <- return y; foo x -- do let x = y; foo x
+yes = do x <- return $ y + z; foo x -- do let x = y + z; foo x
+no = do x <- return x; foo x
+no = do x <- return y; x <- return y; foo x
 </TEST>
 -}
 
@@ -26,6 +33,7 @@ module Hint.Monad where
 import Control.Arrow
 import Control.Monad
 import Data.Maybe
+import Data.List
 import HSE.All
 import Type
 
@@ -42,6 +50,7 @@ monadExp (loc,x) = case x of
         Do xs -> [idea Error "Redundant return" loc x y | Just y <- [monadReturn xs]] ++
                  [idea Error "Use join" loc x (Do y) | Just y <- [monadJoin xs]] ++
                  [idea Error "Redundant do" loc x y | [Qualifier y] <- [xs]] ++
+                 [idea Error "Use let" loc x (Do y) | Just y <- [monadLet xs]] ++
                  concat [f x | Qualifier x <- init xs]
         _ -> []
     where
@@ -68,3 +77,18 @@ monadJoin (Generator _ (PVar p) x:Qualifier (Var v):xs)
     = Just $ Qualifier (ensureBracket1 $ App (toNamed "join") x) : fromMaybe xs (monadJoin xs)
 monadJoin (x:xs) = liftM (x:) $ monadJoin xs
 monadJoin [] = Nothing
+
+
+monadLet xs = if xs == ys then Nothing else Just ys
+    where
+        ys = map mkLet xs
+        vars = [v | Generator _ p _ <- xs, PVar v <- universe p]
+        mkLet (Generator sl (PVar p) (fromRet -> Just y))
+            | p `notElem` [v | Var (UnQual v) <- universeBi y], p `notElem` delete p vars
+            = LetStmt $ BDecls [PatBind sl (PVar p) Nothing (UnGuardedRhs y) (BDecls [])]
+        mkLet x = x
+
+fromRet (Paren x) = fromRet x
+fromRet (InfixApp x y z) | opExp y ~= "$" = fromRet $ App x z
+fromRet (App x y) | x ~= "return" = Just y
+fromRet _ = Nothing
