@@ -26,6 +26,10 @@ error = compare x y /= GT ==> x <= y
 error = compare x y == LT ==> x < y
 error = compare x y /= LT ==> x >= y
 error = compare x y == GT ==> x > y
+error = compare (f x) (f y) ==> Data.Ord.comparing f x y
+error = on compare f ==> Data.Ord.comparing f
+warn  = on (==) f ==> Data.Eq.equating f
+
 
 -- READ/SHOW
 
