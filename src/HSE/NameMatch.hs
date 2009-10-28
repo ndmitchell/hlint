@@ -3,10 +3,9 @@ module HSE.NameMatch(NameMatch, nameMatch) where
 
 import Language.Haskell.Exts
 import qualified Data.Map as Map
-import Control.Arrow
 import Data.List
 import Data.Function
-import Data.Ord
+import Util
 
 
 type NameMatch = QName -> QName -> Bool
@@ -28,8 +27,7 @@ nameMatch imps = f
         -- return True if x is potentially imported by B
         importedFrom :: ModuleName -> Name -> Bool
         importedFrom = \modu x -> any (g x) $ Map.findWithDefault [(True,[]) | modu == ModuleName "Prelude"] modu mp
-            where mp = Map.fromList $ map (fst . head &&& map snd) $
-                            groupBy ((==) `on` fst) $ sortBy (comparing fst)
+            where mp = Map.fromList $ groupSortFst
                             [(importModule i, importSpecNames i) | i <- imps, not $ importQualified i]
 
                   g x (hide,y) = hide /= (x `elem` y)

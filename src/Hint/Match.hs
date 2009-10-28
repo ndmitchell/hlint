@@ -16,7 +16,7 @@ import Type
 import HSE.All
 import Control.Monad
 import Data.Function
-import Data.Ord
+import Util
 import HSE.Evaluate(evaluate)
 
 
@@ -75,8 +75,8 @@ concatZipWithM f xs = liftM concat . zipWithM f xs
 
 -- check the unification is valid
 check :: [(String,Exp)] -> Maybe [(String,Exp)]
-check = mapM f . groupBy ((==) `on` fst) . sortBy (comparing fst)
-    where f xs = if length (nub xs) == 1 then Just (head xs) else Nothing
+check = mapM f . groupSortFst
+    where f (x,ys) = if length (nub ys) == 1 then Just (x,head ys) else Nothing
 
 
 checkSide :: Maybe Exp -> [(String,Exp)] -> Bool

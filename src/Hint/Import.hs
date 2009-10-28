@@ -33,14 +33,13 @@ module Hint.Import where
 
 import HSE.All
 import Type
+import Util
 import Data.List
 import Data.Maybe
-import Data.Function
-import Data.Ord
 
 
 importHint :: ModuHint
-importHint _ x = concatMap (wrap . map snd) $ groupBy ((==) `on` fst) $ sortBy (comparing fst)
+importHint _ x = concatMap (wrap . snd) $ groupSortFst
                  [((importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]
 
 

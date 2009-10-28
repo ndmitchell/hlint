@@ -1,8 +1,11 @@
 
 module Util where
 
+import Control.Arrow
 import Control.Monad
+import Data.Function
 import Data.List
+import Data.Ord
 import System.Directory
 import System.FilePath
 
@@ -45,3 +48,7 @@ isRight = not . isLeft
 
 listM' :: Monad m => [a] -> m [a]
 listM' x = length x `seq` return x
+
+
+groupSortFst :: Ord a => [(a,b)] -> [(a,[b])]
+groupSortFst = map (fst . head &&& map snd) . groupBy ((==) `on` fst) . sortBy (comparing fst)
