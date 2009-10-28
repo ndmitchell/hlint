@@ -6,6 +6,7 @@ import qualified Data.Map as Map
 import Control.Arrow
 import Data.List
 import Data.Function
+import Data.Ord
 
 
 type NameMatch = QName -> QName -> Bool
@@ -28,7 +29,7 @@ nameMatch imps = f
         importedFrom :: ModuleName -> Name -> Bool
         importedFrom = \modu x -> any (g x) $ Map.findWithDefault [(True,[]) | modu == ModuleName "Prelude"] modu mp
             where mp = Map.fromList $ map (fst . head &&& map snd) $
-                            groupBy ((==) `on` fst) $ sortBy (compare `on` fst)
+                            groupBy ((==) `on` fst) $ sortBy (comparing fst)
                             [(importModule i, importSpecNames i) | i <- imps, not $ importQualified i]
 
                   g x (hide,y) = hide /= (x `elem` y)

@@ -36,10 +36,11 @@ import Type
 import Data.List
 import Data.Maybe
 import Data.Function
+import Data.Ord
 
 
 importHint :: ModuHint
-importHint _ x = concatMap (wrap . map snd) $ groupBy ((==) `on` fst) $ sortBy (compare `on` fst)
+importHint _ x = concatMap (wrap . map snd) $ groupBy ((==) `on` fst) $ sortBy (comparing fst)
                  [((importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]
 
 
