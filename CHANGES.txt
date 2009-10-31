@@ -2,9 +2,9 @@ Changelog for HLint
 
     #228, suggest let instead of <- return in do statements
     #229, suggest comparing
-    #???, qualify all non-Prelude suggestions
+    Qualify all non-Prelude function suggestions
     #225, Add redundant flip hint
-    #???, Add ((+) x) ==> (x +)
+    #226, Add ((+) x) ==> (x +)
     #223, TemplateHaskell may allow other extensions via code
     Fix incorrect suggestion on do x <- f ; g x x
     A few small additional hints (use flip, redundant id)
