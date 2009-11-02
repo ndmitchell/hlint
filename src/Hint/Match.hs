@@ -126,7 +126,7 @@ dotContract x = fromMaybe x (f x)
     where
         f x | isParen x = f $ fromParen x
         f (App x y) | "?" <- fromNamed y = Just x
-                    | Just z <- f y = Just $ InfixApp x (QVarOp $ UnQual $ Symbol ".") z
+                    | Just z <- f y = Just $ InfixApp x (toNamed ".") z
         f _ = Nothing
 
 -- if it has _eval_ do evaluation on it

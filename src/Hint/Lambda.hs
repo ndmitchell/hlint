@@ -111,7 +111,7 @@ etaReduce x (InfixApp y op z) | f y z = Just $ RightSection op z
                   all (not . isInfixApp) [y,z] && var x == y && x `notElem` universeBi z
 etaReduce x (App y z) | not (uglyEta y z) && x `notElem` universeBi y = do
     z2 <- etaReduce x z
-    return $ InfixApp y (QVarOp $ UnQual $ Symbol ".") z2
+    return $ InfixApp y (toNamed ".") z2
 etaReduce x (view -> App2 dollar y z) | dollar ~= "$" = etaReduce x (App y z)
 etaReduce x (LeftSection y op) = etaReduce x $ App (opExp op) y
 etaReduce x y | isParen y = etaReduce x (fromParen y)
