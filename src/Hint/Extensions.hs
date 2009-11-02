@@ -16,6 +16,13 @@ main = foo ''Bar
 test = case x of _ | y <- z -> w
 {-# LANGUAGE TemplateHaskell,EmptyDataDecls #-} \
 $(fmap return $ dataD (return []) (mkName "Void") [] [] [])
+{-# LANGUAGE RecursiveDo #-} \
+main = mdo x <- y; return y
+{-# LANGUAGE ImplicitParams, BangPatterns #-} \
+sort :: (?cmp :: a -> a -> Bool) => [a] -> [a] \
+sort !f = undefined
+{-# LANGUAGE KindSignatures #-} \
+data Set (cxt :: * -> *) a = Set [a]
 </TEST>
 -}
 
