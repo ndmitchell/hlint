@@ -83,7 +83,7 @@ lambdaDef :: Match -> [Idea]
 lambdaDef o@(Match loc name pats typ (UnGuardedRhs bod) (BDecls []))
     | Lambda loc vs y <- bod = [warn "Redundant lambda" loc o $ reform (pats++vs) y]
     | [PVar x, PVar y] <- pats, Just (f,g) <- useOn x y bod =
-              [warn "Use on" loc o $ reform [] (ensureBracket1 $ InfixApp f (QVarOp $ UnQual $ Ident "on") g)]
+              [warn "Use on" loc o $ reform [] (ensureBracket1 $ InfixApp f (toNamed "on") g)]
     | (p2,y) <- etaReduces pats bod, length p2 /= length pats = [warn "Eta reduce" loc o $ reform p2 y]
     | otherwise = []
         where reform pats2 bod2 = Match loc name pats2 typ (UnGuardedRhs bod2) (BDecls [])
@@ -107,7 +107,7 @@ etaReduce :: Name -> Exp -> Maybe Exp
 etaReduce x (App y (Var (UnQual z))) | x == z && x `notElem` universeBi y = Just y
 etaReduce x (InfixApp y op z) | f y z = Just $ RightSection op z
                               | f z y = Just $ LeftSection y op
-    where f y z = op `notElem` map (QVarOp . UnQual . Symbol . return) "+-" &&
+    where f y z = op `notElem` map (toNamed . return) "+-" &&
                   all (not . isInfixApp) [y,z] && var x == y && x `notElem` universeBi z
 etaReduce x (App y z) | not (uglyEta y z) && x `notElem` universeBi y = do
     z2 <- etaReduce x z
