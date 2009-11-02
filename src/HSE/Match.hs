@@ -27,13 +27,6 @@ instance View Exp App1 where
     view _ = NoApp1
 
 
-data Infix = NoInfix | Infix Exp Exp Exp deriving Show
-
-instance View Exp Infix where
-    view (fromParen -> InfixApp a b c) = Infix a (opExp b) c
-    view _ = NoInfix
-
-
 (~=) :: Exp -> String -> Bool
 (~=) = (==) . fromNamed
 
