@@ -41,7 +41,7 @@ shorten x = case x of
     PatBind a b c d _ -> f (PatBind a b c) d
     x -> x
     where
-        dots = Var $ UnQual $ Ident "..."
+        dots = Var $ UnQual $ Ident "..." -- Must be an Ident, not a Symbol
         f cont (UnGuardedRhs _) = cont (UnGuardedRhs dots) (BDecls [])
         f cont (GuardedRhss _) = cont (GuardedRhss [GuardedRhs nullSrcLoc [Qualifier dots] dots]) (BDecls [])
 

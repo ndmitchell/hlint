@@ -72,8 +72,8 @@ useCons _ _ = Nothing
 
 
 
-typeListChar = TyApp (TyCon (Special ListCon)) (TyCon (UnQual (Ident "Char")))
-typeString = TyCon (UnQual (Ident "String"))
+typeListChar = TyApp (TyCon (Special ListCon)) (TyCon (toNamed "Char"))
+typeString = TyCon (toNamed "String")
 
 
 stringType :: SrcLoc -> Type -> [Idea]
