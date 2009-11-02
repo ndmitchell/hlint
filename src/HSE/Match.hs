@@ -91,6 +91,12 @@ instance Named TyVarBind where
     toNamed = UnkindedVar . toNamed
 
 
+instance Named QOp where
+    fromNamed (QVarOp x) = fromNamed x
+    fromNamed (QConOp x) = fromNamed x
+    toNamed x | isCon x = QConOp $ toNamed x
+              | otherwise = QVarOp $ toNamed x
+
 instance Named Decl where
     fromNamed (TypeDecl _ name _ _) = fromNamed name
     fromNamed (DataDecl _ _ _ name _ _ _) = fromNamed name
