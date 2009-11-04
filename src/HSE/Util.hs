@@ -73,12 +73,6 @@ isQuasiQuote QuasiQuote{} = True; isQuasiQuote _ = False
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
 
-
-instance Eq Module where
-    Module x1 x2 x3 x4 x5 x6 x7 == Module y1 y2 y3 y4 y5 y6 y7 =
-        x1 == y1 && x2 == y2 && x3 == y3 && x4 == y4 && x5 == y5 && x6 == y6 && x7 == y7
-
-
 -- pick a variable that is not being used
 freeVar :: Data a => a -> String
 freeVar x = head $ allVars \\ concat [[y, drop 1 y] | Ident y <- universeBi x]
