@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to haskell-src-exts 1.3.*
     #228, suggest let instead of <- return in do statements
     #229, suggest comparing
     Qualify all non-Prelude function suggestions
