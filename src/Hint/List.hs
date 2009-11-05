@@ -72,7 +72,7 @@ useCons _ _ = Nothing
 
 
 
-typeListChar = TyApp (TyCon (Special ListCon)) (TyCon (toNamed "Char"))
+typeListChar = TyList (TyCon (toNamed "Char"))
 typeString = TyCon (toNamed "String")
 
 
