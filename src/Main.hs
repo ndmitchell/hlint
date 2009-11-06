@@ -27,8 +27,9 @@ main = do
         let apply :: FilePath -> IO [Idea]
             apply = fmap (fmap $ classify $ settings ++ extra) . applyHint parseFlags{cpphs=Just cmdCpphs} (allHints settings)
         ideas <- liftM concat $ parallel [listM' =<< apply x | x <- cmdFiles]
+        let visideas = filter (\i -> cmdShowAll || rank i /= Ignore) ideas
         showItem <- if cmdColor then showANSI else return show
-        mapM_ putStrLn [showItem i | i <- ideas, cmdShowAll || rank i /= Ignore]
+        mapM_ (putStrLn . showItem) visideas
 
         -- figure out statistics        
         let counts = map (head &&& length) $ group $ sort $ map rank ideas
@@ -45,7 +46,7 @@ main = do
          else do
             forM_ cmdReports $ \x -> do
                 putStrLn $ "Writing report to " ++ x ++ " ..."
-                writeReport x ideas
+                writeReport x visideas
             printMsg ("Found " ++ show shown ++ " suggestion" ++ ['s'|shown/=1]) (errors++ignored)
 
         when (err > 0) $
