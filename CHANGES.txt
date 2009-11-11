@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Suggest changing some pattern guards to view patterns
 1.6.12
     Fix a bug with ignored hints being written to reports
     Upgrade to haskell-src-exts 1.3.*

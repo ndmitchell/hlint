@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns, PatternGuards #-}
 
 {-
     Improve the structure of code
@@ -8,6 +8,13 @@ yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; |
 no x y = if a then b else c
 yes x = case x of {True -> a ; False -> b} -- if x then a else b
 yes x = case x of {False -> a ; _ -> b} -- if x then b else a
+foo b | c <- f b = c -- foo (f -> c) = c
+foo x y b z | c:cs <- f g b = c -- foo x y (f g -> c:cs) z = c
+foo b | c <- f b = c + b
+foo b | c <- f b = c where f = here
+foo b | c <- f b = c where foo = b
+foo b | c <- f b = c \
+      | c <- f b = c
 </TEST>
 -}
 
@@ -16,6 +23,7 @@ module Hint.Structure where
 
 import HSE.All
 import Type
+import Util
 import Data.List
 import Data.Maybe
 
@@ -31,6 +39,19 @@ useGuards x@(Match a b c d (UnGuardedRhs bod) e)
     where
         guards = asGuards bod
         x2 = Match a b c d (GuardedRhss guards) e
+
+useGuards o@(Match sl b pats d (GuardedRhss [GuardedRhs _ [Generator _ pat (App op (Var (UnQual p)))] bod]) (BDecls decs))
+    | Just i <- findIndex (== PVar p) pats
+    , p `notElem` (vr bod ++ vr decs)
+    , vr op `disjoint` decsBind, pvr pats `disjoint` vr op, pvr pat `disjoint` pvr pats
+    = [warn "Use view patterns" sl o $
+       Match sl b (take i pats ++ [PParen $ PViewPat op pat] ++ drop (i+1) pats) d (UnGuardedRhs bod) (BDecls decs)]
+    where
+        decsBind = nub $ concatMap declBind decs
+
+        vr x = [y | Var (UnQual y) <- universeBi x]
+        pvr x = [y | PVar y <- universeBi x]
+
 useGuards _ = []
 
 
