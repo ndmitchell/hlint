@@ -70,6 +70,13 @@ isParComp ParComp{} = True; isParComp _ = False
 isPatTypeSig PatTypeSig{} = True; isPatTypeSig _ = False
 isQuasiQuote QuasiQuote{} = True; isQuasiQuote _ = False
 
+
+-- which names are bound by a declaration
+declBind :: Decl -> [Name]
+declBind (FunBind (Match _ x _ _ _ _ : _)) = [x]
+declBind (PatBind _ x _ _ _) = [x | PVar x <- universe x]
+declBind _ = []
+
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
 
