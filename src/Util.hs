@@ -52,3 +52,7 @@ listM' x = length x `seq` return x
 
 groupSortFst :: Ord a => [(a,b)] -> [(a,[b])]
 groupSortFst = map (fst . head &&& map snd) . groupBy ((==) `on` fst) . sortBy (comparing fst)
+
+
+disjoint :: Eq a => [a] -> [a] -> Bool
+disjoint xs = null . intersect xs
