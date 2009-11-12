@@ -252,6 +252,7 @@ no = do iter <- textBufferGetTextIter tb ; textBufferSelectRange tb iter iter
 no = flip f x $ \y -> y*y+y
 no = \x -> f x (g x)
 yes = \x -> f x (g y) -- flip f (g y)
+no = foo (\ v -> f v . g)
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

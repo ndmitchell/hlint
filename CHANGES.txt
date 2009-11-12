@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Fix matching bug, said "Use flip" on "\v -> f v . g"
     Suggest changing some pattern guards to view patterns
 1.6.12
     Fix a bug with ignored hints being written to reports

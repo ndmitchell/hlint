@@ -39,7 +39,9 @@ matchIdea nm MatchExp{lhs=lhs,rhs=rhs,side=side} x = do
     u <- unify nm lhs x
     u <- check u
     guard $ checkSide side u
-    return $ unqualify nm $ dotContract $ performEval $ subst u rhs
+    let rhs2 = subst u rhs
+    guard $ checkDot lhs rhs2
+    return $ unqualify nm $ dotContract $ performEval rhs2
 
 
 -- unify a b = c, a[c] = b
@@ -102,6 +104,12 @@ checkSide (Just x) bind = f x
             x2 <- lookup (fromNamed x) bind
             y2 <- lookup (fromNamed y) bind
             return $ x2 `notElem` universe y2
+
+
+-- If they have have a lambda in the pattern
+-- don't allow dot contraction to happen, as it's usually wrong
+checkDot :: Exp -> Exp -> Bool
+checkDot lhs rhs2 = not $ any isLambda (universeBi lhs) && toNamed "?" `elem` universe rhs2
 
 
 -- perform a substitution
