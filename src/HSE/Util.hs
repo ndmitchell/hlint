@@ -57,6 +57,7 @@ isApp App{} = True; isApp _ = False
 isInfixApp InfixApp{} = True; isInfixApp _ = False
 isAnyApp x = isApp x || isInfixApp x
 isParen Paren{} = True; isParen _ = False
+isLambda Lambda{} = True; isLambda _ = False
 isMDo MDo{} = True; isMDo _ = False
 isBoxed Boxed{} = True; isBoxed _ = False
 isDerivDecl DerivDecl{} = True; isDerivDecl _ = False
