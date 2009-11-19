@@ -46,6 +46,14 @@ isLeft Left{} = True; isLeft _ = False
 isRight = not . isLeft
 
 
+unzipEither :: [Either a b] -> ([a], [b])
+unzipEither (x:xs) = case x of
+    Left y -> (y:a,b)
+    Right y -> (a,y:b)
+    where (a,b) = unzipEither xs
+unzipEither [] = ([], [])
+
+
 listM' :: Monad m => [a] -> m [a]
 listM' x = length x `seq` return x
 
