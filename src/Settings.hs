@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
-module Settings where
+module Settings(readSettings, classify) where
 
 import HSE.All
 import Paths_hlint
@@ -16,20 +16,21 @@ import Data.Generics.PlateData
 -- Return the list of settings commands
 readSettings :: [FilePath] -> IO [Setting]
 readSettings xs = do
-    mods <- concatMapM readHints xs
-    return $ concatMap (concatMap readSetting . concatMap getEquations . moduleDecls) mods
+    (builtin,mods) <- fmap unzipEither $ concatMapM readHints xs
+    return $ map Builtin builtin ++ concatMap (concatMap readSetting . concatMap getEquations . moduleDecls) mods
 
 
 -- read all the files
 -- in future this should also do import chasing, but
 -- currently it doesn't
-readHints :: FilePath -> IO [Module]
+readHints :: FilePath -> IO [Either String Module]
 readHints file = do
     y <- fromParseResult `fmap` parseFile parseFlags{implies=True} file
     ys <- concatMapM (f . fromNamed . importModule) $ moduleImports y
-    return $ y:ys
+    return $ Right y:ys
     where
-        f x | "HLint." `isPrefixOf` x = do
+        f x | "HLint.Builtin." `isPrefixOf` x = return [Left $ drop 14 x]
+            | "HLint." `isPrefixOf` x = do
                 dat <- getDataDir
                 readHints $ dat </> drop 6 x <.> "hs"
             | otherwise = readHints $ x <.> "hs"

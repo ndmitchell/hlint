@@ -30,6 +30,7 @@ type FuncName = (String,String)
 data Setting
     = Classify {rankS :: Rank, hintS :: String, funcS :: FuncName}
     | MatchExp {rankS :: Rank, hintS :: String, lhs :: Exp, rhs :: Exp, side :: Maybe Exp}
+    | Builtin String -- use a builtin hint set
       deriving Show
 
 data Idea
