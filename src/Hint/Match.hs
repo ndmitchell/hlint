@@ -27,8 +27,8 @@ readMatch :: [Setting] -> DeclHint
 readMatch = findIdeas . filter isMatchExp
 
 
-findIdeas :: [Setting] -> NameMatch -> Decl -> [Idea]
-findIdeas matches nm decl =
+findIdeas :: [Setting] -> NameMatch -> Module -> Decl -> [Idea]
+findIdeas matches nm _ decl =
   [ idea (rankS m) (hintS m) loc x y
   | (loc, x) <- universeExp nullSrcLoc decl, not $ isParen x
   , m <- matches, Just y <- [matchIdea nm m x]]

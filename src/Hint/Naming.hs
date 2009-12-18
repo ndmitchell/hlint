@@ -30,7 +30,7 @@ import Data.Maybe
 
 
 namingHint :: DeclHint
-namingHint _ x = [warn "Use camelCase" (declSrcLoc x) x2 (replaceNames res x2) | not $ null res]
+namingHint _ _ x = [warn "Use camelCase" (declSrcLoc x) x2 (replaceNames res x2) | not $ null res]
     where res = [(n,y) | n <- nub $ getNames x, Just y <- [suggestName n]]
           x2 = shorten x
 

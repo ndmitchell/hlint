@@ -27,7 +27,7 @@ import HSE.All
 
 
 bracketHint :: DeclHint
-bracketHint _ = concatMap bracketExp . children0Exp nullSrcLoc
+bracketHint _ _ = concatMap bracketExp . children0Exp nullSrcLoc
 
 bracketExp :: (SrcLoc,Exp) -> [Idea]
 bracketExp (loc,x) =

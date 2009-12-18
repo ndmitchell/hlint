@@ -29,8 +29,8 @@ import Data.Maybe
 
 
 structureHint :: DeclHint
-structureHint _ x = concat [concatMap useGuards xs | FunBind xs <- [x]] ++
-                    concatMap useIf (universeExp nullSrcLoc x)
+structureHint _ _ x = concat [concatMap useGuards xs | FunBind xs <- [x]] ++
+                      concatMap useIf (universeExp nullSrcLoc x)
 
 
 useGuards :: Match -> [Idea]

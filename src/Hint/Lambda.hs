@@ -51,8 +51,8 @@ import Data.Maybe
 
 
 lambdaHint :: DeclHint
-lambdaHint _ x@TypeDecl{} = lambdaType x
-lambdaHint _ x = concatMap (uncurry lambdaExp) (universeExp nullSrcLoc x) ++ concatMap lambdaDecl (universe x)
+lambdaHint _ _ x@TypeDecl{} = lambdaType x
+lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeExp nullSrcLoc x) ++ concatMap lambdaDecl (universe x)
 
 
 lambdaExp :: SrcLoc -> Exp -> [Idea]

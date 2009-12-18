@@ -77,8 +77,8 @@ isUnifyVar _ = False
 ---------------------------------------------------------------------
 -- HINTS
 
-type DeclHint = NameMatch -> Decl   -> [Idea]
-type ModuHint = NameMatch -> Module -> [Idea]
+type DeclHint = NameMatch -> Module -> Decl -> [Idea]
+type ModuHint = NameMatch -> Module         -> [Idea]
 
 data Hint = DeclHint {declHint :: DeclHint} | ModuHint {moduHint :: ModuHint}
 
@@ -102,4 +102,4 @@ applyHintStr flags h file src =
                 nm = nameMatch $ moduleImports m
                 order n = map (\i -> i{func = (name,n)}) . sortBy (comparing loc)
             in order "" [i | ModuHint h <- h, i <- h nm m] ++
-               concat [order (fromNamed d) [i | DeclHint h <- h, i <- h nm d] | d <- moduleDecls m]
+               concat [order (fromNamed d) [i | DeclHint h <- h, i <- h nm m d] | d <- moduleDecls m]

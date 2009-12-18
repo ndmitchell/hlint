@@ -42,7 +42,7 @@ badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM"]
 
 
 monadHint :: DeclHint
-monadHint _ = concatMap monadExp . universeExp nullSrcLoc
+monadHint _ _ = concatMap monadExp . universeExp nullSrcLoc
 
 monadExp :: (SrcLoc,Exp) -> [Idea]
 monadExp (loc,x) = case x of

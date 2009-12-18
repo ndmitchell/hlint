@@ -36,7 +36,7 @@ import Data.Generics.PlateData
 
 
 listRecHint :: DeclHint
-listRecHint _ = concatMap f . universe
+listRecHint _ _ = concatMap f . universe
     where
         f o = maybeToList $ do
             let x = o
