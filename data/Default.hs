@@ -65,8 +65,10 @@ error = not (elem x y) ==> notElem x y
 -- FOLDS
 
 error = foldr (&&) True ==> and
-error = foldr (>>) (return ()) ==> sequence_
+error = foldl (&&) True ==> and
 error = foldr (||) False ==> or
+error = foldl (||) False ==> or
+error = foldr (>>) (return ()) ==> sequence_
 error = foldl (+) 0 ==> sum
 warn  = foldl (*) 1 ==> product
 

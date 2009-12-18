@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #239, Add suggestions of and/or on foldl
     Add --extension flag, to find files not named .hs/.lhs
     Only activate the builtin hints when they are imported
     Fix matching bug, said "Use flip" on "\v -> f v . g"
