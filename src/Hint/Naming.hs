@@ -5,7 +5,8 @@
     _*[A-Za-z]*_?'?
 
     Apply this to things that would get exported by default only
-    Also disallow prop_ as it's a standard QuickCheck idiom
+    Also allow prop_ as it's a standard QuickCheck idiom
+    Also don't suggest anything mentioned elsewhere in the module
 
 <TEST>
 data Yes = Foo | Bar'Test -- data Yes = Foo | BarTest
@@ -16,22 +17,27 @@ data No = FOO | BarBAR | BarBBar
 yes_foo = yes_foo + yes_foo -- yesFoo = ...
 no = 1 where yes_foo = 2
 a -== b = 1
+myTest = 1; my_test = 1
 </TEST>
 -}
 
 
-module Hint.Naming where
+module Hint.Naming(namingHint) where
 
 import HSE.All
 import Type
 import Data.List
 import Data.Char
 import Data.Maybe
+import qualified Data.Set as Set
 
 
 namingHint :: DeclHint
-namingHint _ _ x = [warn "Use camelCase" (declSrcLoc x) x2 (replaceNames res x2) | not $ null res]
-    where res = [(n,y) | n <- nub $ getNames x, Just y <- [suggestName n]]
+namingHint _ modu = naming $ Set.fromList [x | Ident x <- universeBi modu]
+
+naming :: Set.Set String -> Decl -> [Idea]
+naming seen x = [warn "Use camelCase" (declSrcLoc x) x2 (replaceNames res x2) | not $ null res]
+    where res = [(n,y) | n <- nub $ getNames x, Just y <- [suggestName n], not $ y `Set.member` seen]
           x2 = shorten x
 
 

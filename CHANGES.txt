@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Don't suggest namings that are already used in the module
     #239, Add suggestions of and/or on foldl
     Add --extension flag, to find files not named .hs/.lhs
     Only activate the builtin hints when they are imported
