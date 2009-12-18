@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add --extension flag, to find files not named .hs/.lhs
     Only activate the builtin hints when they are imported
     Fix matching bug, said "Use flip" on "\v -> f v . g"
     Suggest changing some pattern guards to view patterns

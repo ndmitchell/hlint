@@ -35,6 +35,7 @@ data Opts = Help | Ver | Test
           | Color
           | Define String
           | Include String
+          | Ext String
             deriving Eq
 
 
@@ -45,6 +46,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "c" ["color","colour"] (NoArg Color) "Color the output (requires ANSI terminal)"
        ,Option "i" ["ignore"] (ReqArg Skip "message") "Ignore a particular hint"
        ,Option "s" ["show"] (NoArg ShowAll) "Show all ignored ideas"
+       ,Option "e" ["extension"] (ReqArg Ext "ext") "File extensions to search (defaults to hs and lhs)"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
        ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
        ,Option ""  ["cpp-include"] (ReqArg Include "dir") "CPP include path"
@@ -68,7 +70,8 @@ getCmd = do
         putStr helpText
         exitWith ExitSuccess
 
-    files <- concatMapM getFile files
+    let exts = [x | Ext x <- opt]
+    files <- concatMapM (getFile $ if null exts then ["hs","lhs"] else exts) files
     
     let hintFiles = [x | Hints x <- opt]
     hints <- mapM getHintFile $ hintFiles ++ ["HLint" | null hintFiles]
@@ -106,12 +109,12 @@ helpText = unlines
     ]
 
 
-getFile :: FilePath -> IO [FilePath]
-getFile file = do
+getFile :: [String] -> FilePath -> IO [FilePath]
+getFile exts file = do
     b <- doesDirectoryExist file
     if b then do
         xs <- getDirectoryContentsRecursive file
-        return [x | x <- xs, takeExtension x `elem` [".hs",".lhs"]]
+        return [x | x <- xs, drop 1 (takeExtension x) `elem` exts]
      else do
         b <- doesFileExist file
         unless b $ error $ "Couldn't find file: " ++ file
