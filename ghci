@@ -1,0 +1,10 @@
+-- -*- mode: haskell; -*-
+-- Begin copied material.
+-- <http://www.cs.kent.ac.uk/people/staff/cr3/toolbox/haskell/dot-squashed.ghci641>
+let { redir varcmd = case break Data.Char.isSpace varcmd of { (var,_:cmd) -> return $ unlines [":set -fno-print-bind-result","tmp <- System.Directory.getTemporaryDirectory","(f,h) <- System.IO.openTempFile tmp \"ghci\"","sto <- GHC.Handle.hDuplicate System.IO.stdout","GHC.Handle.hDuplicateTo h System.IO.stdout","System.IO.hClose h",cmd,"GHC.Handle.hDuplicateTo sto System.IO.stdout","let readFileNow f = readFile f >>= \\t->length t `seq` return t",var++" <- readFileNow f","System.Directory.removeFile f"]; _ -> return "putStrLn \"usage: :redir <var> <cmd>\"" } }
+:def redir redir
+-- End copied material
+
+--- Integration with the hlint code style tool
+let hlint _ = return $ unlines [":set -w",    ":redir hlintvar1 :show modules", ":cmd return (\":! hlint \" ++ (concat $ Data.List.intersperse \" \" (map (fst . break (==',') . drop 2 . snd . break (== '(')) $ lines hlintvar1)))",    ":set -Wall"]
+:def hlint hlint
