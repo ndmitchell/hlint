@@ -64,7 +64,7 @@ error = not (elem x y) ==> notElem x y
 
 warn  = foldr f z (map g x) ==> foldr (f . g) z x
 warn  = foldl f z (map g x) ==> foldl  (f . g) z x
-warn  = foldl' f (map g x) ==> foldl' (f . g) x
+warn  = foldl' f z (map g x) ==> foldl' (f . g) z x
 warn  = foldl1 f (map g x) ==> foldl1  (f . g) x
 warn  = foldl1' f (map g x) ==> foldl1' (f . g) x
 warn  = foldr1' f (map g x) ==> foldr1' (f . g) x
