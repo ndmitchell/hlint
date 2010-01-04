@@ -40,6 +40,7 @@ needBracket i parent child
     | isAtom child = False
     | InfixApp{} <- parent, isApp child = False
     | ListComp{} <- parent = False
+    | List{} <- parent = False
     | If{} <- parent, isAnyApp child = False
     | App{} <- parent, i == 0, isApp child = False
     | ExpTypeSig{} <- parent, i == 0 = False

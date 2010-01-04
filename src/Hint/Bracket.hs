@@ -15,6 +15,7 @@ no = operator foo $ operator bar
 yes = (b $ c d) ++ e -- b (c d) ++ e
 yes = (a b $ c d) ++ e -- a b (c d) ++ e
 no = (f . g $ a) ++ e
+yes = [(foo bar)] -- [foo bar]
 </TEST>
 -}
 
