@@ -2,6 +2,7 @@
 <TEST>
 yes = (f x) x -- f x x
 no = f (x x)
+yes = (foo) -- foo
 yes = (f x) ||| y -- f x ||| y
 yes = if (f x) then y else z -- if f x then y else z
 yes = if x then (f y) else z -- if x then f y else z
