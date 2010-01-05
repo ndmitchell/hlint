@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to haskell-src-exts 1.5.*
 1.6.13
     #246, redundant brackets in [(...)]
     Add fold/map fusion hints
