@@ -1,6 +1,6 @@
 Changelog for HLint
 
-    #???, redundant brackets in [(...)]
+    #246, redundant brackets in [(...)]
     Add fold/map fusion hints
     Don't suggest namings that are already used in the module
     #239, Add suggestions of and/or on foldl
