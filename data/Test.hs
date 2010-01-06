@@ -7,6 +7,7 @@ module HLint.Test where
 error = Prelude.readFile ==> bad
 
 {-
+<TEST>
 main = readFile "foo" >>= putStr            \
   -- bad
 
