@@ -6,6 +6,9 @@ module HLint.Test where
 
 error = Prelude.readFile ==> bad
 
+error = (x :: Int) ==> (x :: Int32)
+
+
 {-
 <TEST>
 main = readFile "foo" >>= putStr            \
@@ -18,5 +21,7 @@ test = readFile "foo" >>= putStr
 import Prelude as Prelude2                  \
 yes = Prelude2.readFile "foo" >>= putStr    \
   -- bad
+
+yes = 32 :: Int -- 32 :: Int32
 </TEST>
 -}

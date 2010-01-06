@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #247, Fix bug matching expressions containing position info
 1.6.14
     Upgrade to haskell-src-exts 1.5.*
 1.6.13

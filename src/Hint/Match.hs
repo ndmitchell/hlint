@@ -36,7 +36,7 @@ findIdeas matches nm _ decl =
 
 matchIdea :: NameMatch -> Setting -> Exp -> Maybe Exp
 matchIdea nm MatchExp{lhs=lhs,rhs=rhs,side=side} x = do
-    u <- unify nm lhs x
+    u <- unify nm lhs $ dropSrcLocs x
     u <- check u
     guard $ checkSide side u
     let rhs2 = subst u rhs
