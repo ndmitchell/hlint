@@ -143,6 +143,9 @@ transformAppsM f x = f =<< descendAppsM (transformAppsM f) x
 nullSrcLoc :: SrcLoc
 nullSrcLoc = SrcLoc "" 0 0
 
+dropSrcLocs :: Data a => a -> a
+dropSrcLocs = transformBi (const nullSrcLoc)
+
 showSrcLoc :: SrcLoc -> String
 showSrcLoc (SrcLoc file line col) = file ++ ":" ++ show line ++ ":" ++ show col ++ ":"
 
