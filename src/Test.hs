@@ -13,6 +13,7 @@ import System.FilePath
 
 import Settings
 import Type
+import Hint
 import HSE.All
 import Hint.All
 import Paths_hlint

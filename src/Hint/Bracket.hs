@@ -25,6 +25,7 @@ module Hint.Bracket where
 
 import Control.Arrow
 import Type
+import Hint
 import HSE.All
 
 

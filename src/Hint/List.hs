@@ -25,6 +25,7 @@ module Hint.List where
 
 import HSE.All
 import Type
+import Hint
 
 
 listHint :: DeclHint

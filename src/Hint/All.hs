@@ -2,6 +2,7 @@
 module Hint.All where
 
 import Type
+import Hint
 import Data.List
 import Data.Maybe
 

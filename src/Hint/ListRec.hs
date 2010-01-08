@@ -25,6 +25,7 @@ f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax -- f xs a = foldM (+
 module Hint.ListRec(listRecHint) where
 
 import Type
+import Hint
 import Util
 import HSE.All
 import Data.List

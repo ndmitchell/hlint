@@ -28,6 +28,7 @@ module Hint.Pragma where
 
 import HSE.All
 import Type
+import Hint
 import Data.List
 import Data.Maybe
 import Data.Function

@@ -23,6 +23,7 @@ module Hint.Structure where
 
 import HSE.All
 import Type
+import Hint
 import Util
 import Data.List
 import Data.Maybe

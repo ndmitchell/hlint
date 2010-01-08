@@ -13,6 +13,7 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import Type
+import Hint
 import HSE.All
 import Control.Monad
 import Data.Function

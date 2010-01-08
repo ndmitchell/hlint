@@ -47,6 +47,7 @@ executable hlint
     hs-source-dirs:     src
     other-modules:
         CmdLine
+        Hint
         Settings
         Report
         Type

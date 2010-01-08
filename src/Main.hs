@@ -30,6 +30,7 @@ import CmdLine
 import Settings
 import Report
 import Type
+import Hint
 import Test
 import Util
 import Parallel

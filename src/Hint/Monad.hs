@@ -36,6 +36,7 @@ import Data.Maybe
 import Data.List
 import HSE.All
 import Type
+import Hint
 
 
 badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM"]

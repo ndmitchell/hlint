@@ -26,6 +26,7 @@ module Hint.Naming(namingHint) where
 
 import HSE.All
 import Type
+import Hint
 import Data.List
 import Data.Char
 import Data.Maybe

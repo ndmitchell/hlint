@@ -42,6 +42,7 @@ module Hint.Lambda where
 
 import HSE.All
 import Type
+import Hint
 import Control.Monad
 import Data.Generics.PlateData
 import Data.Maybe
