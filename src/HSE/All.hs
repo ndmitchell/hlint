@@ -5,10 +5,10 @@ module HSE.All(
     module HSE.Bracket, module HSE.Match,
     module HSE.Generics,
     module HSE.NameMatch,
-    ParseFlags(..), parseFlags, parseFile, parseString, fromParseResult
+    ParseFlags(..), parseFlags, parseFile, parseString
     ) where
 
-import Language.Haskell.Exts hiding (parse, parseFile, paren, fromParseResult)
+import Language.Haskell.Exts hiding (parse, parseFile, paren)
 import qualified Language.Haskell.Exts as HSE
 
 import HSE.Util
@@ -48,12 +48,6 @@ parseFile :: ParseFlags -> FilePath -> IO (ParseResult Module)
 parseFile flags file = do
     src <- readFile file
     return $ parseString flags file src
-
-
--- | TODO: Use the fromParseResult in HSE once it gives source location
-fromParseResult :: ParseResult Module -> Module
-fromParseResult (ParseOk x) = x
-fromParseResult (ParseFailed src msg) = error $ showSrcLoc src ++ " Parse failure, " ++ limit 50 msg
 
 
 extension =
