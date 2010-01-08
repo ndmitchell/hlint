@@ -26,9 +26,6 @@ a + b = foo a b -- (+) = foo
 h a = f ((++) a) a -- (a ++)
 h a = flip f x (y z) -- f (y z) x
 h a = flip f x $ y z
-type Test a = Foo Char a
-type Test a = Foo a Char a
-type Test (a :: * -> *) = Foo Char a
 yes = foo (\x -> sum x) -- sum
 yes = foo (\x l -> sum x x l) -- \x -> sum x x
 test = foo (\x -> y == x) -- (y ==)
@@ -51,7 +48,6 @@ import Data.Maybe
 
 
 lambdaHint :: DeclHint
-lambdaHint _ _ x@TypeDecl{} = lambdaType x
 lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeExp nullSrcLoc x) ++ concatMap lambdaDecl (universe x)
 
 
@@ -122,26 +118,3 @@ etaReduce x y = Nothing
 uglyEta :: Exp -> Exp -> Bool
 uglyEta (fromParen -> App f (fromParen -> App g x)) (fromParen -> App h y) = g == h
 uglyEta _ _ = False
-
-
-
--- NOTE: Never perform lambda reduction on types
--- > type Foo a = Bar a
--- can be reduced for type Foo = Bar, only if Bar is
--- a data type, not a type alias - but we can't know
--- which it is
-lambdaType :: Decl -> [Idea]
-lambdaType o@(TypeDecl src name args typ) = []
-{-
-        [warn "Type eta reduce" src o t2 | i /= 0]
-    where
-        (i,t) = f (reverse args) typ
-        t2 = TypeDecl src name (take (length args - i) args) t
-    
-        -- return the number you managed to delete
-        f :: [TyVarBind] -> Type -> (Int, Type)
-        f (UnkindedVar x:xs) (TyApp t1 (TyVar v))
-            | fromNamed v == fromNamed x && x `notElem` universeBi t1
-            = first (+1) $ f xs t1
-        f _ t = (0,t)
--}
