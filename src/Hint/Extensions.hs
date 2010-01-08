@@ -39,8 +39,8 @@ import Data.Function
 extensionsHint :: ModuHint
 extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" sl
           (prettyPrint o) (if null new then "" else prettyPrint $ LanguagePragma sl new)
-    | let usedTH = used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
-    , o@(LanguagePragma sl old) <- modulePragmas x, not usedTH
+    | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
+    , o@(LanguagePragma sl old) <- modulePragmas x
     , let new = filter (flip used x . classifyExtension . prettyPrint) old
     , length new /= length old]
 
