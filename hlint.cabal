@@ -24,6 +24,7 @@ data-files:
     report.html
     hs-lint.el
     hlint.1
+    hlint.ghci
 extra-source-files:
     hlint.htm
 
