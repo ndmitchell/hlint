@@ -42,7 +42,7 @@ useGuards x@(Match a b c (UnGuardedRhs d bod) e)
         x2 = Match a b c (GuardedRhss d guards) e
 
 useGuards o@(Match sl b pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op (view -> Var_ p))] bod]) decs)
-    | Just i <- findIndex (=~= toNamed p) pats
+    | Just i <- findIndex (=~= (toNamed p :: Pat_)) pats
     , p `notElem` (vars bod ++ vars decs)
     , vars op `disjoint` decsBind, pvars pats `disjoint` vars op, pvars pat `disjoint` pvars pats
     = [warn "Use view patterns" o $

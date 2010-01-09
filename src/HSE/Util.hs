@@ -6,7 +6,7 @@ import Data.Generics
 import Data.Generics.PlateData
 import Data.List
 import Data.Maybe
-import Language.Haskell.Exts.Annotated hiding (parse, loc, parseFile, paren, (=~=))
+import Language.Haskell.Exts.Annotated hiding (parse, loc, parseFile, paren)
 
 
 type S = SrcSpanInfo
@@ -185,27 +185,24 @@ dropAnn = fmap (const ())
 
 -- enforce all being on S, as otherwise easy to =~= on a Just, and get the wrong functor
 
-(=~=) :: (Functor f, Eq (f ())) => f S -> f S -> Bool
-x =~= y = fmap (const ()) x == fmap (const ()) y
-
 x /=~= y = not $ x =~= y
 
-elem_ :: (Functor f, Eq (f ())) => f S -> [f S] -> Bool
+elem_ :: (Annotated f, Eq (f ())) => f S -> [f S] -> Bool
 elem_ x y = any (x =~=) y
 
-nub_ :: (Functor f, Eq (f ())) => [f S] -> [f S]
+nub_ :: (Annotated f, Eq (f ())) => [f S] -> [f S]
 nub_ = nubBy (=~=)
 
-intersect_ :: (Functor f, Eq (f ())) => [f S] -> [f S] -> [f S]
+intersect_ :: (Annotated f, Eq (f ())) => [f S] -> [f S] -> [f S]
 intersect_ = intersectBy (=~=)
 
-eqList, neqList :: (Functor f, Eq (f ())) => [f S] -> [f S] -> Bool
+eqList, neqList :: (Annotated f, Eq (f ())) => [f S] -> [f S] -> Bool
 neqList x y = not $ eqList x y
 eqList (x:xs) (y:ys) = x =~= y && eqList xs ys
 eqList [] [] = True
 eqList _ _ = False
 
-eqMaybe:: (Functor f, Eq (f ())) => Maybe (f S) -> Maybe (f S) -> Bool
+eqMaybe:: (Annotated f, Eq (f ())) => Maybe (f S) -> Maybe (f S) -> Bool
 eqMaybe (Just x) (Just y) = x =~= y
 eqMaybe Nothing Nothing = True
 eqMaybe _ _ = False
