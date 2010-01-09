@@ -35,36 +35,36 @@ import Data.Function
 
 
 pragmaHint :: ModuHint
-pragmaHint _ x = languageDupes lang ++ [pragmaIdea old $ [LanguagePragma nullSrcLoc ns2 | ns2 /= []] ++ catMaybes new | old /= []]
+pragmaHint _ x = languageDupes lang ++ [pragmaIdea old $ [LanguagePragma nullSSI (map toNamed ns2) | ns2 /= []] ++ catMaybes new | old /= []]
     where
         lang = [x | x@LanguagePragma{} <- modulePragmas x]
         (old,new,ns) = unzip3 [(old,new,ns) | old <- modulePragmas x, Just (new,ns) <- [optToLanguage old]]
-        ns2 = nub (concat ns) \\ concat [n | LanguagePragma _ n <- lang]
+        ns2 = nub (concat ns) \\ concat [map fromNamed n | LanguagePragma _ n <- lang]
 
 
-pragmaIdea :: [OptionPragma] -> [OptionPragma] -> Idea
-pragmaIdea xs ys = rawIdea Error "Use better pragmas" (fromJust $ getSrcLoc $ head xs) (f xs) (f ys)
+pragmaIdea :: [OptionPragma S] -> [OptionPragma S] -> Idea
+pragmaIdea xs ys = rawIdea Error "Use better pragmas" (toSrcLoc $ ann $ head xs) (f xs) (f ys)
     where f = unlines . map prettyPrint
 
 
-languageDupes :: [OptionPragma] -> [Idea]
+languageDupes :: [OptionPragma S] -> [Idea]
 languageDupes [] = []
-languageDupes (a@(LanguagePragma sl x):xs) =
-    (if nub x /= x
-        then [pragmaIdea [a] [LanguagePragma sl $ nub x]]
-        else [pragmaIdea [a,b] [LanguagePragma sl (nub $ x ++ y)] | b@(LanguagePragma _ y) <- xs, not $ null $ intersect x y]) ++
+languageDupes (a@(LanguagePragma _ x):xs) =
+    (if nub_ x `neqList` x
+        then [pragmaIdea [a] [LanguagePragma an $ nub_ x]]
+        else [pragmaIdea [a,b] [LanguagePragma an (nub_ $ x ++ y)] | b@(LanguagePragma _ y) <- xs, not $ null $ intersect_ x y]) ++
     languageDupes xs
 
 
 -- Given a pragma, can you extract some language features out
-strToLanguage :: String -> Maybe [Name]
-strToLanguage "-cpp" = Just [Ident "CPP"]
-strToLanguage x | "-X" `isPrefixOf` x = Just [Ident $ drop 2 x]
-strToLanguage "-fglasgow-exts" = Just $ map (Ident . show) glasgowExts
+strToLanguage :: String -> Maybe [String]
+strToLanguage "-cpp" = Just ["CPP"]
+strToLanguage x | "-X" `isPrefixOf` x = Just [drop 2 x]
+strToLanguage "-fglasgow-exts" = Just $ map show glasgowExts
 strToLanguage _ = Nothing
 
 
-optToLanguage :: OptionPragma -> Maybe (Maybe OptionPragma, [Name])
+optToLanguage :: OptionPragma S -> Maybe (Maybe (OptionPragma S), [String])
 optToLanguage (OptionsPragma sl tool val)
     | maybe True (== GHC) tool && any isJust vs = Just (res, concat $ catMaybes vs)
     where

@@ -41,23 +41,23 @@ import Data.Maybe
 
 importHint :: ModuHint
 importHint _ x = concatMap (wrap . snd) $ groupSortFst
-                 [((importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]
+                 [((fromNamed $ importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]
 
 
-wrap :: [ImportDecl] -> [Idea]
-wrap o = [ rawIdea Error "Use fewer imports" (importLoc $ head x) (f o) (f x)
+wrap :: [ImportDecl S] -> [Idea]
+wrap o = [ rawIdea Error "Use fewer imports" (toSrcLoc $ ann $ head o) (f o) (f x)
          | Just x <- [simplify o]]
     where f = unlines . map prettyPrint
 
 
-simplify :: [ImportDecl] -> Maybe [ImportDecl]
+simplify :: [ImportDecl S] -> Maybe [ImportDecl S]
 simplify [] = Nothing
 simplify (x:xs) = case simplifyHead x xs of
     Nothing -> fmap (x:) $ simplify xs
     Just xs -> Just $ fromMaybe xs $ simplify xs
 
 
-simplifyHead :: ImportDecl -> [ImportDecl] -> Maybe [ImportDecl]
+simplifyHead :: ImportDecl S -> [ImportDecl S] -> Maybe [ImportDecl S]
 simplifyHead x [] = Nothing
 simplifyHead x (y:ys) = case reduce x y of
     Nothing -> fmap (y:) $ simplifyHead x ys
@@ -72,16 +72,16 @@ simplifyHead x (y:ys) = case reduce x y of
 -- importAs :: Maybe ModuleName
 -- importSpecs :: Maybe (Bool, [ImportSpec])
 
-reduce :: ImportDecl -> ImportDecl -> Maybe ImportDecl
+reduce :: ImportDecl S -> ImportDecl S -> Maybe (ImportDecl S)
 reduce x y | qual, as, specs = Just x
-           | qual, as, Just (False, xs) <- importSpecs x, Just (False, ys) <- importSpecs y =
-                Just x{importSpecs = Just (False, nub $ xs ++ ys)}
+           | qual, as, Just (ImportSpecList _ False xs) <- importSpecs x, Just (ImportSpecList _ False ys) <- importSpecs y =
+                Just x{importSpecs = Just $ ImportSpecList an False $ nub_ $ xs ++ ys}
            | qual, as, isNothing (importSpecs x) || isNothing (importSpecs y) = Just x{importSpecs=Nothing}
            | not (importQualified x), qual, specs, length ass == 1 = Just x{importAs=Just $ head ass}
     where
         qual = importQualified x == importQualified y
-        as = importAs x == importAs y
+        as = importAs x `eqMaybe` importAs y
         ass = mapMaybe importAs [x,y]
-        specs = importSpecs x == importSpecs y
+        specs = importSpecs x `eqMaybe` importSpecs y
 
 reduce _ _ = Nothing

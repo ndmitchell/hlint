@@ -43,9 +43,7 @@ listRecHint _ _ = concatMap f . universe
             let x = o
             (x, addCase) <- findCase x
             (use,rank,x) <- matchListRec x
-            let res = addCase x
-                loc = headDef nullSrcLoc $ universeBi o
-            return $ idea rank ("Use " ++ use) loc o res
+            return $ idea rank ("Use " ++ use) o $ addCase x
 
 
 recursive = toNamed "_recursive_"
@@ -53,15 +51,15 @@ recursive = toNamed "_recursive_"
 -- recursion parameters, nil-case, (x,xs,cons-case)
 -- for cons-case delete any recursive calls with xs from them
 -- any recursive calls are marked "_recursive_"
-data ListCase = ListCase [Name] Exp (Name,Name,Exp)
+data ListCase = ListCase [String] Exp_ (String,String,Exp_)
                 deriving Show
 
 
-data BList = BNil | BCons Name Name
+data BList = BNil | BCons String String
              deriving (Eq,Ord,Show)
 
 -- function name, parameters, list-position, list-type, body (unmodified)
-data Branch = Branch Name [Name] Int BList Exp
+data Branch = Branch String [String] Int BList Exp_
               deriving Show
 
 
@@ -70,47 +68,47 @@ data Branch = Branch Name [Name] Int BList Exp
 -- MATCH THE RECURSION
 
 
-matchListRec :: ListCase -> Maybe (String,Rank,Exp)
-matchListRec o@(ListCase vars nil (x,xs,cons))
+matchListRec :: ListCase -> Maybe (String,Rank,Exp_)
+matchListRec o@(ListCase vs nil (x,xs,cons))
     
-    | [] <- vars, nil ~= "[]", InfixApp lhs c rhs <- cons, opExp c ~= ":"
-    , fromParen rhs == recursive, Var (UnQual xs) `notElem` universe lhs
+    | [] <- vs, nil ~= "[]", InfixApp _ lhs c rhs <- cons, opExp c ~= ":"
+    , fromParen rhs =~= recursive, xs `notElem` vars lhs
     = Just $ (,,) "map" Error $ appsBracket
-        [toNamed "map", lambda [x] lhs, Var $ UnQual xs]
+        [toNamed "map", lambda [x] lhs, toNamed xs]
 
-    | [] <- vars, App2 op lhs rhs <- view cons
-    , null $ universe op `intersect` [Var (UnQual x), Var (UnQual xs)]
-    , fromParen rhs == recursive, Var (UnQual xs) `notElem` universe lhs
+    | [] <- vs, App2 op lhs rhs <- view cons
+    , null $ vars op `intersect` [x,xs]
+    , fromParen rhs == recursive, xs `notElem` vars lhs
     = Just $ (,,) "foldr" Warning $ appsBracket
-        [toNamed "foldr", lambda [x] $ appsBracket [op,lhs], nil, Var $ UnQual xs]
+        [toNamed "foldr", lambda [x] $ appsBracket [op,lhs], nil, toNamed xs]
 
-    | [v] <- vars, Var (UnQual v) == nil, App r lhs <- cons, r == recursive
-    , Var (UnQual xs) `notElem` universe lhs
+    | [v] <- vs, view nil == Var_ v, App _ r lhs <- cons, r =~= recursive
+    , xs `notElem` vars lhs
     = Just $ (,,) "foldl" Warning $ appsBracket
-        [toNamed "foldl", lambda [v,x] lhs, Var $ UnQual v, Var $ UnQual xs]
+        [toNamed "foldl", lambda [v,x] lhs, toNamed v, toNamed xs]
 
-    | [v] <- vars, App ret res <- nil, ret ~= "return", res ~= "()" || res == Var (UnQual v)
-    , [Generator _ (PVar b1) e, Qualifier (fromParen -> App r (Var (UnQual b2)))] <- asDo cons
-    , b1 == b2, r == recursive, Var (UnQual xs) `notElem` universe e
+    | [v] <- vs, App _ ret res <- nil, ret ~= "return", res ~= "()" || view res == Var_ v
+    , [Generator _ (view -> PVar_ b1) e, Qualifier _ (fromParen -> App _ r (view -> Var_ b2))] <- asDo cons
+    , b1 == b2, r == recursive, xs `notElem` vars e
     , name <- "foldM" ++ ['_'|res ~= "()"]
     = Just $ (,,) name Warning $ appsBracket
-        [toNamed name, lambda [v,x] e, Var $ UnQual v, Var $ UnQual xs]
+        [toNamed name, lambda [v,x] e, toNamed v, toNamed xs]
 
     | otherwise = Nothing
 
 
 -- Very limited attempt to convert >>= to do, only useful for foldM/foldM_
-asDo :: Exp -> [Stmt]
-asDo (view -> App2 bind lhs (Lambda src [v] rhs)) = [Generator src v lhs, Qualifier rhs]
-asDo (Do x) = x
-asDo x = [Qualifier x]
+asDo :: Exp_ -> [Stmt S]
+asDo (view -> App2 bind lhs (Lambda _ [v] rhs)) = [Generator an v lhs, Qualifier an rhs]
+asDo (Do _ x) = x
+asDo x = [Qualifier an x]
 
 ---------------------------------------------------------------------
 -- FIND THE CASE ANALYSIS
 
-findCase :: Decl -> Maybe (ListCase, Exp -> Decl)
+findCase :: Decl_ -> Maybe (ListCase, Exp_ -> Decl_)
 findCase x = do
-    FunBind [x1,x2] <- return x
+    FunBind _ [x1,x2] <- return x
     Branch name1 ps1 p1 c1 b1 <- findBranch x1
     Branch name2 ps2 p2 c2 b2 <- findBranch x2
     guard (name1 == name2 && ps1 == ps2 && p1 == p2)
@@ -118,24 +116,24 @@ findCase x = do
     b2 <- transformAppsM (delCons name1 p1 xs) b2
     (ps,b2) <- return $ eliminateArgs ps1 b2
 
-    let ps12 = let (a,b) = splitAt p1 ps1 in map PVar $ a ++ xs : b
+    let ps12 = let (a,b) = splitAt p1 ps1 in map toNamed $ a ++ xs : b
     return (ListCase ps b1 (x,xs,b2)
-           ,\e -> FunBind [Match nullSrcLoc name1 ps12 Nothing (UnGuardedRhs e) (BDecls [])])
+           ,\e -> FunBind an [Match an (toNamed name1) ps12 (UnGuardedRhs an e) Nothing])
 
 
-delCons :: Name -> Int -> Name -> Exp -> Maybe Exp
-delCons func pos var (fromApps -> Var (UnQual x):xs) | func == x = do
-    (pre,Var (UnQual v):post) <- return $ splitAt pos xs
+delCons :: String -> Int -> String -> Exp_ -> Maybe Exp_
+delCons func pos var (fromApps -> (view -> Var_ x):xs) | func == x = do
+    (pre, (view -> Var_ v):post) <- return $ splitAt pos xs
     guard $ v == var
     return $ apps $ recursive : pre ++ post
 delCons _ _ _ x = return x
 
 
-eliminateArgs :: [Name] -> Exp -> ([Name], Exp)
+eliminateArgs :: [String] -> Exp_ -> ([String], Exp_)
 eliminateArgs ps cons = (remove ps, transform f cons)
     where
-        args = [zs | z:zs <- map fromApps $ universeApps cons, z == recursive]
-        elim = [all (\xs -> length xs > i && xs !! i == Var (UnQual p)) args | (i,p) <- zip [0..] ps] ++ repeat False
+        args = [zs | z:zs <- map fromApps $ universeApps cons, z =~= recursive]
+        elim = [all (\xs -> length xs > i && view (xs !! i) == Var_ p) args | (i,p) <- zip [0..] ps] ++ repeat False
         remove = concat . zipWith (\b x -> [x | not b]) elim
 
         f (fromApps -> x:xs) | x == recursive = apps $ x : remove xs
@@ -145,14 +143,14 @@ eliminateArgs ps cons = (remove ps, transform f cons)
 ---------------------------------------------------------------------
 -- FIND A BRANCH
 
-findBranch :: Match -> Maybe Branch
+findBranch :: Match S -> Maybe Branch
 findBranch x = do
-    Match _ name ps Nothing (UnGuardedRhs bod) (BDecls []) <- return x
+    Match _ name ps (UnGuardedRhs _ bod) Nothing <- return x
     (a,b,c) <- findPat ps
-    return $ Branch name a b c bod
+    return $ Branch (fromNamed name) a b c bod
 
 
-findPat :: [Pat] -> Maybe ([Name], Int, BList)
+findPat :: [Pat_] -> Maybe ([String], Int, BList)
 findPat ps = do
     ps <- mapM readPat ps
     [i] <- return $ findIndices isRight ps
@@ -160,10 +158,10 @@ findPat ps = do
     return (left, i, right)
 
 
-readPat :: Pat -> Maybe (Either Name BList)
-readPat (PVar x) = Just $ Left x
-readPat (PParen (PInfixApp (PVar x) (Special Cons) (PVar xs))) = Just $ Right $ BCons x xs
-readPat (PList []) = Just $ Right BNil
+readPat :: Pat_ -> Maybe (Either String BList)
+readPat (view -> PVar_ x) = Just $ Left x
+readPat (PParen _ (PInfixApp _ (view -> PVar_ x) (Special _ Cons{}) (view -> PVar_ xs))) = Just $ Right $ BCons x xs
+readPat (PList _ []) = Just $ Right BNil
 readPat _ = Nothing
 
 
@@ -171,22 +169,22 @@ readPat _ = Nothing
 -- UTILITY FUNCTIONS
 
 -- a list of application, with any necessary brackets
-appsBracket :: [Exp] -> Exp
-appsBracket = foldl1 (\x -> ensureBracket1 . App x)
+appsBracket :: [Exp_] -> Exp_
+appsBracket = foldl1 (\x -> ensureBracket1 . App an x)
 
 
 -- generate a lambda, but prettier (if possible)
-lambda :: [Name] -> Exp -> Exp
-lambda xs (Paren x) = lambda xs x
-lambda xs (Lambda s (PVar v:vs) x) = lambda (xs++[v]) (Lambda s vs x)
+lambda :: [String] -> Exp_ -> Exp_
+lambda xs (Paren _ x) = lambda xs x
+lambda xs (Lambda _ ((view -> PVar_ v):vs) x) = lambda (xs++[v]) (Lambda an vs x)
 lambda xs (Lambda _ [] x) = lambda xs x
-lambda [x] (App a b) | Var (UnQual x) == b = a
-lambda [x] (App a (Paren (App b c)))
-    | isAtom a && isAtom b && Var (UnQual x) == c = InfixApp a (toNamed ".") b
-lambda [x] (InfixApp a op b)
-    | a == Var (UnQual x) = RightSection op b
-    | b == Var (UnQual x) = LeftSection a op
-lambda [x,y] (view -> App2 op x1 y1)
-    | x1 == Var (UnQual x) && y1 == Var (UnQual y) = op
-    | x1 == Var (UnQual y) && y1 == Var (UnQual x) = App (toNamed "flip") op
-lambda ps x = Lambda nullSrcLoc (map PVar ps) x
+lambda [x] (App _ a (view -> Var_ b)) | x == b = a
+lambda [x] (App _ a (Paren _ (App _ b (view -> Var_ c))))
+    | isAtom a && isAtom b && x == c = InfixApp an a (toNamed ".") b
+lambda [x] (InfixApp _ a op b)
+    | view a == Var_ x = RightSection an op b
+    | view b == Var_ x = LeftSection an a op
+lambda [x,y] (view -> App2 op (view -> Var_ x1) (view -> Var_ y1))
+    | x1 == x && y1 == y = op
+    | x1 == y && y1 == x = App an (toNamed "flip") op
+lambda ps x = Lambda an (map toNamed ps) x

@@ -30,28 +30,28 @@ import HSE.All
 
 
 bracketHint :: DeclHint
-bracketHint _ _ = concatMap bracketExp . children0Exp nullSrcLoc
+bracketHint _ _ = concatMap bracketExp . childrenBi
 
-bracketExp :: (SrcLoc,Exp) -> [Idea]
-bracketExp (loc,x) =
-    [g loc x (fromParen x) | isParen x] ++ f loc x
+bracketExp :: Exp_ -> [Idea]
+bracketExp x =
+    [g x (fromParen x) | isParen x] ++ f x
     where
-        f loc x = testDirect loc x ++ testDollar loc x ++ concatMap (uncurry f) (children1Exp loc x)
-        g = warn "Redundant brackets"
+        f x = testDirect x ++ testDollar x ++ concatMap f (children x)
+        g x = warn "Redundant brackets" x
 
-        testDirect loc x = [g loc x y | let y = descendBracket (isParen &&& fromParen) x, x /= y]
+        testDirect x = [g x y | let y = descendBracket (isParen &&& fromParen) x, x /=~= y]
 
-        testDollar loc x =
-            [idea Error "Redundant $" loc x y | InfixApp a d b <- [x], opExp d ~= "$"
-            ,let y = App a b, not $ needBracket 0 y a, not $ needBracket 1 y b]
+        testDollar x =
+            [idea Error "Redundant $" x y | InfixApp _ a d b <- [x], opExp d ~= "$"
+            ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b]
             ++
-            [idea Error "Redundant $" loc x (t y)
-            |(t, Paren (InfixApp a1 op1 a2)) <- infixes x
+            [idea Error "Redundant $" x (t y)
+            |(t, Paren _ (InfixApp _ a1 op1 a2)) <- infixes x
             ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
-            ,let y = App a1 (Paren a2)]
+            ,let y = App an a1 (Paren an a2)]
 
 
 -- return both sides, and a way to put them together again
-infixes :: Exp -> [(Exp -> Exp, Exp)]
-infixes (InfixApp a b c) = [(InfixApp a b, c), (\a -> InfixApp a b c, a)]
+infixes :: Exp_ -> [(Exp_ -> Exp_, Exp_)]
+infixes (InfixApp s a b c) = [(InfixApp s a b, c), (\a -> InfixApp s a b c, a)]
 infixes _ = []

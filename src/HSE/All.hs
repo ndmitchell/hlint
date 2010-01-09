@@ -1,6 +1,5 @@
 
 module HSE.All(
-    module Language.Haskell.Exts,
     module HSE.Util, module HSE.Evaluate,
     module HSE.Bracket, module HSE.Match,
     module HSE.Generics,
@@ -8,16 +7,12 @@ module HSE.All(
     ParseFlags(..), parseFlags, parseFile, parseString
     ) where
 
-import Language.Haskell.Exts hiding (parse, parseFile, paren)
-import qualified Language.Haskell.Exts as HSE
-
 import HSE.Util
 import HSE.Evaluate
 import HSE.Generics
 import HSE.Bracket
 import HSE.Match
 import HSE.NameMatch
-import Util
 import Data.Char
 import Data.List
 import Language.Preprocessor.Cpphs
@@ -33,7 +28,7 @@ parseFlags = ParseFlags Nothing False
 
 
 -- | Parse a Haskell module
-parseString :: ParseFlags -> FilePath -> String -> ParseResult Module
+parseString :: ParseFlags -> FilePath -> String -> ParseResult Module_
 parseString flags file = parseFileContentsWithMode mode . maybe id (`runCpphs` file) (cpphs flags)
     where
         mode = defaultParseMode
@@ -43,8 +38,7 @@ parseString flags file = parseFileContentsWithMode mode . maybe id (`runCpphs` f
             }
 
 
--- | On failure returns an empty module and prints to the console
-parseFile :: ParseFlags -> FilePath -> IO (ParseResult Module)
+parseFile :: ParseFlags -> FilePath -> IO (ParseResult Module_)
 parseFile flags file = do
     src <- readFile file
     return $ parseString flags file src

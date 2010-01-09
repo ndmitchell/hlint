@@ -30,46 +30,43 @@ import Data.Maybe
 
 
 structureHint :: DeclHint
-structureHint _ _ x = concat [concatMap useGuards xs | FunBind xs <- [x]] ++
-                      concatMap useIf (universeExp nullSrcLoc x)
+structureHint _ _ x = concat [concatMap useGuards xs | FunBind _ xs <- [x]] ++
+                      concatMap useIf (universeBi x)
 
 
-useGuards :: Match -> [Idea]
-useGuards x@(Match a b c d (UnGuardedRhs bod) e) 
-    | length guards > 2 = [warn "Use guards" a x x2]
+useGuards :: Match S -> [Idea]
+useGuards x@(Match a b c (UnGuardedRhs d bod) e) 
+    | length guards > 2 = [warn "Use guards" x x2]
     where
         guards = asGuards bod
-        x2 = Match a b c d (GuardedRhss guards) e
+        x2 = Match a b c (GuardedRhss d guards) e
 
-useGuards o@(Match sl b pats d (GuardedRhss [GuardedRhs _ [Generator _ pat (App op (Var (UnQual p)))] bod]) (BDecls decs))
-    | Just i <- findIndex (== PVar p) pats
-    , p `notElem` (vr bod ++ vr decs)
-    , vr op `disjoint` decsBind, pvr pats `disjoint` vr op, pvr pat `disjoint` pvr pats
-    = [warn "Use view patterns" sl o $
-       Match sl b (take i pats ++ [PParen $ PViewPat op pat] ++ drop (i+1) pats) d (UnGuardedRhs bod) (BDecls decs)]
+useGuards o@(Match sl b pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op (view -> Var_ p))] bod]) decs)
+    | Just i <- findIndex (=~= toNamed p) pats
+    , p `notElem` (vars bod ++ vars decs)
+    , vars op `disjoint` decsBind, pvars pats `disjoint` vars op, pvars pat `disjoint` pvars pats
+    = [warn "Use view patterns" o $
+       Match sl b (take i pats ++ [PParen nullSSI $ PViewPat nullSSI op pat] ++ drop (i+1) pats) (UnGuardedRhs nullSSI bod) decs]
     where
-        decsBind = nub $ concatMap declBind decs
-
-        vr x = [y | Var (UnQual y) <- universeBi x]
-        pvr x = [y | PVar y <- universeBi x]
+        decsBind = nub $ concatMap declBind $ childrenBi decs
 
 useGuards _ = []
 
 
-asGuards :: Exp -> [GuardedRhs]
-asGuards (Paren x) = asGuards x
-asGuards (If a b c) = GuardedRhs nullSrcLoc [Qualifier a] b : asGuards c
-asGuards x = [GuardedRhs nullSrcLoc [Qualifier $ toNamed "otherwise"] x]
+asGuards :: Exp_ -> [GuardedRhs S]
+asGuards (Paren _ x) = asGuards x
+asGuards (If _ a b c) = GuardedRhs nullSSI [Qualifier nullSSI a] b : asGuards c
+asGuards x = [GuardedRhs nullSSI [Qualifier nullSSI $ toNamed "otherwise"] x]
 
 
-useIf :: (SrcLoc,Exp) -> [Idea]
-useIf (loc,x@(Case on [simpAlt -> Just (as,av), simpAlt -> Just (bs,bv)]))
+useIf :: Exp_ -> [Idea]
+useIf x@(Case _ on [simpAlt -> Just (as,av), simpAlt -> Just (bs,bv)])
     | as == "True"  && bs `elem` ["False","_"] = iff av bv
     | as == "False" && bs `elem` ["True" ,"_"] = iff bv av
     where
-        iff t f = [warn "Use if" loc x (If on t f)]
+        iff t f = [warn "Use if" x (If nullSSI on t f)]
 useIf _ = []
 
-simpAlt (Alt _ p (UnGuardedAlt x) (BDecls [])) = Just (prettyPrint p, x)
+simpAlt (Alt _ p (UnGuardedAlt _ x) Nothing) = Just (prettyPrint p, x)
 simpAlt _ = Nothing
 

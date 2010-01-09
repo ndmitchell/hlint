@@ -23,7 +23,7 @@ readSettings xs = do
 -- read all the files
 -- in future this should also do import chasing, but
 -- currently it doesn't
-readHints :: FilePath -> IO [Either String Module]
+readHints :: FilePath -> IO [Either String Module_]
 readHints file = do
     y <- fromParseResult `fmap` parseFile parseFlags{implies=True} file
     ys <- concatMapM (f . fromNamed . importModule) $ moduleImports y
@@ -52,48 +52,47 @@ classify xs = \i -> if isParseError i then i else i{rank = foldl'
 ---------------------------------------------------------------------
 -- READ A HINT
 
-readSetting :: Decl -> [Setting]
-readSetting (FunBind [Match src (Ident (getRank -> rank)) pats _
-           (UnGuardedRhs bod) (BDecls bind)])
-    | InfixApp lhs op rhs <- bod, opExp op ~= "==>" =
-        [MatchExp rank (head names) (dropSrcLocs $ fromParen lhs) (fromParen rhs) (readSide bind)]
+readSetting :: Decl_ -> [Setting]
+readSetting (FunBind _ [Match _ (Ident _ (getRank -> rank)) pats (UnGuardedRhs _ bod) bind])
+    | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
+        [MatchExp rank (head names) (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
     | otherwise = [Classify rank n func | n <- names2, func <- readFuncs bod]
     where
         names = getNames pats bod
         names2 = ["" | null names] ++ names
 
 
-readSetting (PatBind src (PVar name) typ bod bind) = readSetting $ FunBind [Match src name [PLit (String "")] typ bod bind]
-readSetting (FunBind xs) | length xs /= 1 = concatMap (readSetting . FunBind . (:[])) xs
-readSetting x = error $ "Failed to read hint " ++ maybe "" showSrcLoc (getSrcLoc x) ++ "\n" ++ prettyPrint x
+readSetting (PatBind _ (PVar _ name) _ bod bind) = readSetting $ FunBind an [Match an name [PLit an (String an "" "")] bod bind]
+readSetting (FunBind _ xs) | length xs /= 1 = concatMap (readSetting . FunBind an . (:[])) xs
+readSetting x = error $ "Failed to read hint " ++ prettyPrint (getPointLoc $ ann x) ++ "\n" ++ prettyPrint x
 
 
-readSide :: [Decl] -> Maybe Exp
+readSide :: [Decl_] -> Maybe Exp_
 readSide [] = Nothing
-readSide [PatBind src PWildCard Nothing (UnGuardedRhs bod) (BDecls [])] = Just bod
-readSide (x:_) = error $ "Failed to read side condition " ++ maybe "" showSrcLoc (getSrcLoc x) ++ "\n" ++ prettyPrint x
+readSide [PatBind _ PWildCard{} Nothing (UnGuardedRhs _ bod) Nothing] = Just bod
+readSide (x:_) = error $ "Failed to read side condition " ++ prettyPrint (getPointLoc $ ann x) ++ "\n" ++ prettyPrint x
 
 
-readFuncs :: Exp -> [FuncName]
-readFuncs (App x y) = readFuncs x ++ readFuncs y
-readFuncs (Lit (String "")) = [("","")]
-readFuncs (Var (UnQual name)) = [("",fromNamed name)]
-readFuncs (Var (Qual (ModuleName mod) name)) = [(mod, fromNamed name)]
-readFuncs (Con (UnQual name)) = [(fromNamed name,"")]
-readFuncs (Con (Qual (ModuleName mod) name)) = [(mod ++ "." ++ fromNamed name,"")]
+readFuncs :: Exp_ -> [FuncName]
+readFuncs (App _ x y) = readFuncs x ++ readFuncs y
+readFuncs (Lit _ (String _ "" _)) = [("","")]
+readFuncs (Var _ (UnQual _ name)) = [("",fromNamed name)]
+readFuncs (Var _ (Qual _ (ModuleName _ mod) name)) = [(mod, fromNamed name)]
+readFuncs (Con _ (UnQual _ name)) = [(fromNamed name,"")]
+readFuncs (Con _ (Qual _ (ModuleName _ mod) name)) = [(mod ++ "." ++ fromNamed name,"")]
 readFuncs x = error $ "Failed to read classification rule\n" ++ prettyPrint x
 
 
 
-getNames :: [Pat] -> Exp -> [String]
+getNames :: [Pat_] -> Exp_ -> [String]
 getNames ps _ | ps /= [] && all isPString ps = map fromPString ps
-getNames [] (InfixApp lhs op rhs) | opExp op ~= "==>" = ["Use " ++ head (names ++ ["alternative"])]
+getNames [] (InfixApp _ lhs op rhs) | opExp op ~= "==>" = ["Use " ++ head (names ++ ["alternative"])]
     where
-        lnames = map f $ childrenBi lhs
-        rnames = map f $ childrenBi rhs
+        lnames = map f $ childrenS lhs
+        rnames = map f $ childrenS rhs
         names = filter (not . isUnifyVar) $ (rnames \\ lnames) ++ rnames
-        f (Ident x) = x
-        f (Symbol x) = x
+        f (Ident _ x) = x
+        f (Symbol _ x) = x
 getNames [] _ = [""]
 
 

@@ -38,7 +38,7 @@ import Data.Function
 
 
 extensionsHint :: ModuHint
-extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" sl
+extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" (toSrcLoc sl)
           (prettyPrint o) (if null new then "" else prettyPrint $ LanguagePragma sl new)
     | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
     , o@(LanguagePragma sl old) <- modulePragmas x
@@ -46,45 +46,45 @@ extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" sl
     , length new /= length old]
 
 
-used :: Extension -> Module -> Bool
-used RecursiveDo = has isMDo
-used ParallelListComp = has isParComp
-used FunctionalDependencies = has isFunDep
-used ImplicitParams = hasT (un :: IPName)
-used EmptyDataDecls = has f
-    where f (DataDecl _ _ _ _ _ [] _) = True
-          f (GDataDecl _ _ _ _ _ _ [] _) = True
+used :: Extension -> Module_ -> Bool
+used RecursiveDo = hasS isMDo
+used ParallelListComp = hasS isParComp
+used FunctionalDependencies = hasS isFunDep
+used ImplicitParams = hasT (un :: IPName S)
+used EmptyDataDecls = hasS f
+    where f (DataDecl _ _ _ _ [] _) = True
+          f (GDataDecl _ _ _ _ _ [] _) = True
           f _ = False
-used KindSignatures = hasT (un :: Kind)
-used BangPatterns = has isPBangPat
-used TemplateHaskell = hasT2 (un :: (Bracket,Splice)) & has f
+used KindSignatures = hasT (un :: Kind S)
+used BangPatterns = hasS isPBangPat
+used TemplateHaskell = hasT2 (un :: (Bracket S, Splice S)) & hasS f
     where f VarQuote{} = True
           f TypQuote{} = True
           f _ = False
-used ForeignFunctionInterface = hasT (un :: CallConv)
-used Generics = has isPExplTypeArg
-used PatternGuards = has f1 & has f2
+used ForeignFunctionInterface = hasT (un :: CallConv S)
+used Generics = hasS isPExplTypeArg
+used PatternGuards = hasS f1 & hasS f2
     where f1 (GuardedRhs _ xs _) = g xs
           f2 (GuardedAlt _ xs _) = g xs
           g [] = False
-          g [Qualifier _] = False
+          g [Qualifier{}] = False
           g _ = True
-used StandaloneDeriving = has isDerivDecl
-used PatternSignatures = has isPatTypeSig
-used RecordWildCards = has isPFieldWildcard
-used RecordPuns = has isPFieldPun
+used StandaloneDeriving = hasS isDerivDecl
+used PatternSignatures = hasS isPatTypeSig
+used RecordWildCards = hasS isPFieldWildcard
+used RecordPuns = hasS isPFieldPun
 used UnboxedTuples = has isBoxed
-used PackageImports = has (isJust . importPkg)
-used QuasiQuotes = has isQuasiQuote
-used ViewPatterns = has isPViewPat
-used Arrows = has f
+used PackageImports = hasS (isJust . importPkg)
+used QuasiQuotes = hasS isQuasiQuote
+used ViewPatterns = hasS isPViewPat
+used Arrows = hasS f
     where f Proc{} = True
           f LeftArrApp{} = True
           f RightArrApp{} = True
           f LeftArrHighApp{} = True
           f RightArrHighApp{} = True
           f _ = False
-used TransformListComp = has f
+used TransformListComp = hasS f
     where f QualStmt{} = False
           f _ = True
 
@@ -98,6 +98,9 @@ un = undefined
 
 hasT t x = not $ null (universeBi x `asTypeOf` [t])
 hasT2 ~(t1,t2) = hasT t1 & hasT t2
+
+hasS :: (Data (f S), Data x, Functor f) => (f S -> Bool) -> x -> Bool
+hasS test = any test . universeBi
 
 has f = any f . universeBi
 

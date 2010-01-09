@@ -34,32 +34,32 @@ import qualified Data.Set as Set
 
 
 namingHint :: DeclHint
-namingHint _ modu = naming $ Set.fromList [x | Ident x <- universeBi modu]
+namingHint _ modu = naming $ Set.fromList [x | Ident _ x <- universeS modu]
 
-naming :: Set.Set String -> Decl -> [Idea]
-naming seen x = [warn "Use camelCase" (declSrcLoc x) x2 (replaceNames res x2) | not $ null res]
+naming :: Set.Set String -> Decl_ -> [Idea]
+naming seen x = [warn "Use camelCase" x2 (replaceNames res x2) | not $ null res]
     where res = [(n,y) | n <- nub $ getNames x, Just y <- [suggestName n], not $ y `Set.member` seen]
           x2 = shorten x
 
 
-shorten :: Decl -> Decl
+shorten :: Decl_ -> Decl_
 shorten x = case x of
-    FunBind (Match a b c d e _:_) -> FunBind [f (Match a b c d) e]
+    FunBind sl (Match a b c d _:_) -> FunBind sl [f (Match a b c) d]
     PatBind a b c d _ -> f (PatBind a b c) d
     x -> x
     where
-        dots = Var $ UnQual $ Ident "..." -- Must be an Ident, not a Symbol
-        f cont (UnGuardedRhs _) = cont (UnGuardedRhs dots) (BDecls [])
-        f cont (GuardedRhss _) = cont (GuardedRhss [GuardedRhs nullSrcLoc [Qualifier dots] dots]) (BDecls [])
+        dots = Var an $ UnQual an $ Ident an "..." -- Must be an Ident, not a Symbol
+        f cont (UnGuardedRhs _ _) = cont (UnGuardedRhs an dots) Nothing
+        f cont (GuardedRhss _ _) = cont (GuardedRhss an [GuardedRhs an [Qualifier an dots] dots]) Nothing
 
 
-getNames :: Decl -> [String]
+getNames :: Decl_ -> [String]
 getNames x = case x of
     FunBind{} -> name
     PatBind{} -> name
     TypeDecl{} -> name
-    DataDecl _ _ _ _ _ cons _ -> name ++ [fromNamed x | QualConDecl _ _ _ x <- cons, x <- f x]
-    GDataDecl _ _ _ _ _ _ cons _ -> name ++ [fromNamed x | GadtDecl _ x _ <- cons]
+    DataDecl _ _ _ _ cons _ -> name ++ [fromNamed x | QualConDecl _ _ _ x <- cons, x <- f x]
+    GDataDecl _ _ _ _ _ cons _ -> name ++ [fromNamed x | GadtDecl _ x _ <- cons]
     TypeFamDecl{} -> name
     DataFamDecl{} -> name
     ClassDecl{} -> name
@@ -67,9 +67,9 @@ getNames x = case x of
     where
         name = [fromNamed x]
 
-        f (ConDecl x _) = [x]
-        f (InfixConDecl _ x _) = [x]
-        f (RecDecl x ys) = x : concatMap fst ys
+        f (ConDecl _ x _) = [x]
+        f (InfixConDecl _ _ x _) = [x]
+        f (RecDecl _ x ys) = x : concat [y | FieldDecl _ y _ <- ys]
 
 
 suggestName :: String -> Maybe String

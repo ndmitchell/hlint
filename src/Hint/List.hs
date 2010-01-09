@@ -31,16 +31,16 @@ import Hint
 listHint :: DeclHint
 listHint _ _ = listDecl
 
-listDecl :: Decl -> [Idea]
-listDecl x = concatMap (listExp False) (children0Exp nullSrcLoc x) ++
-             concatMap (stringType (declSrcLoc x)) (childrenBi x)
+listDecl :: Decl_ -> [Idea]
+listDecl x = concatMap (listExp False) (childrenBi x) ++
+             concatMap stringType (childrenBi x)
 
 -- boolean = are you in a ++ chain
-listExp :: Bool -> (SrcLoc,Exp) -> [Idea]
-listExp b (loc,x) =
-        if null res then concatMap (listExp $ isAppend x) $ children1Exp loc x else [head res]
+listExp :: Bool -> Exp_ -> [Idea]
+listExp b x =
+        if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
     where
-        res = [warn name loc x x2 | (name,f) <- checks, Just x2 <- [f b x]]
+        res = [warn name x x2 | (name,f) <- checks, Just x2 <- [f b x]]
 
 
 isAppend (view -> App2 op _ _) = op ~= "++"
@@ -54,29 +54,30 @@ checks = let (*) = (,) in
          ]
 
 
-useString b (List xs) | xs /= [] && all isChar xs = Just $ Lit $ String $ map fromChar xs
+useString b (List _ xs) | xs /= [] && all isChar xs = Just $ Lit an $ String an s (show s)
+    where s = map fromChar xs
 useString b _ = Nothing
 
-useList b = fmap List . f True
+useList b = fmap (List an) . f True
     where
         f first x | x ~= "[]" = if first then Nothing else Just []
         f first (view -> App2 c a b) | c ~= ":" = fmap (a:) $ f False b
         f first _ = Nothing
 
 useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend y =
-        Just $ InfixApp x2 (QConOp list_cons_name) y
+        Just $ InfixApp an x2 (QConOp an $ list_cons_name an) y
     where
-        f (Lit (String [x])) = Just $ Lit $ Char x
-        f (List [x]) = Just $ paren x
+        f (Lit _ (String _ [x] _)) = Just $ Lit an $ Char an x (show x)
+        f (List _ [x]) = Just $ paren x
         f _ = Nothing
 useCons _ _ = Nothing
 
 
 
-typeListChar = TyList (TyCon (toNamed "Char"))
-typeString = TyCon (toNamed "String")
+typeListChar = TyList an (TyCon an (toNamed "Char"))
+typeString = TyCon an (toNamed "String")
 
 
-stringType :: SrcLoc -> Type -> [Idea]
-stringType loc x = [warn "Use String" loc x (transform f x) | typeListChar `elem` universe x]
-    where f x = if x == typeListChar then typeString else x
+stringType :: Type_ -> [Idea]
+stringType x = [warn "Use String" x (transform f x) | any (=~= typeListChar) $ universe x]
+    where f x = if x =~= typeListChar then typeString else x

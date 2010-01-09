@@ -49,73 +49,74 @@ import Data.Maybe
 
 
 lambdaHint :: DeclHint
-lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeExp nullSrcLoc x) ++ concatMap lambdaDecl (universe x)
+lambdaHint _ _ x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (universe x)
 
 
-lambdaExp :: SrcLoc -> Exp -> [Idea]
-lambdaExp _ o@(Lambda loc [v] y) | isAtom y, Just x <- f v, x `notElem` universeBi y =
-        [warn "Use const" loc o res]
+lambdaExp :: Exp_ -> [Idea]
+lambdaExp o@(Lambda _ [v] y) | isAtom y, Just x <- f v, x `notElem` universeBi y =
+        [warn "Use const" o res]
     where
-        f (PVar x) = Just x
-        f PWildCard = Just $ Ident "_"
+        f (view -> PVar_ x) = Just x
+        f PWildCard{} = Just "_"
         f _ = Nothing
-        res = App (toNamed "const") y
-lambdaExp _ o@(Lambda loc vs x) | length vs /= length vs2 =
-        [warn "Eta reduce" loc o $ if null vs2 then x2 else Lambda loc vs2 x2]
+        res = App an (toNamed "const") y
+lambdaExp o@(Lambda _ vs x) | length vs /= length vs2 =
+        [warn "Eta reduce" o $ if null vs2 then x2 else Lambda an vs2 x2]
     where (vs2,x2) = etaReduces vs x
-lambdaExp loc o@(Paren (App (Var x@(UnQual (Symbol _))) y)) | isAtom y =
-        [warn "Operator rotate" loc o $ LeftSection y (QVarOp x)]
-lambdaExp loc o@(App (App (App flp x) y) z) | flp ~= "flip" =
-        [idea Error "Redundant flip" loc o $ App (App x z) y]
-lambdaExp _ _ = []
+lambdaExp o@(Paren _ (App _ (Var _ x@(UnQual _ Symbol{})) y)) | isAtom y =
+        [warn "Operator rotate" o $ LeftSection an y (QVarOp an x)]
+lambdaExp o@(App _ (App _ (App _ flp x) y) z) | flp ~= "flip" =
+        [idea Error "Redundant flip" o $ App an (App an x z) y]
+lambdaExp _ = []
 
 
-lambdaDecl :: Decl -> [Idea]
-lambdaDecl (PatBind loc (PVar x) typ rhs bind) = lambdaDef $ Match loc x [] typ rhs bind
-lambdaDecl (FunBind [x]) = lambdaDef x --only apply to 1-def, because arities must be the same
+lambdaDecl :: Decl_ -> [Idea]
+lambdaDecl (PatBind _ (PVar _ x) typ rhs bind) = lambdaDef $ Match an x [] rhs bind
+lambdaDecl (FunBind _ [x]) = lambdaDef x --only apply to 1-def, because arities must be the same
 lambdaDecl _ = []
 
 
-lambdaDef :: Match -> [Idea]
-lambdaDef o@(Match loc name pats typ (UnGuardedRhs bod) (BDecls []))
-    | Lambda loc vs y <- bod = [warn "Redundant lambda" loc o $ reform (pats++vs) y]
-    | [PVar x, PVar y] <- pats, Just (f,g) <- useOn x y bod =
-              [warn "Use on" loc o $ reform [] (ensureBracket1 $ InfixApp f (toNamed "on") g)]
-    | (p2,y) <- etaReduces pats bod, length p2 /= length pats = [warn "Eta reduce" loc o $ reform p2 y]
+lambdaDef :: Match S -> [Idea]
+lambdaDef o@(Match _ name pats (UnGuardedRhs _ bod) Nothing)
+    | Lambda loc vs y <- bod = [warn "Redundant lambda" o $ reform (pats++vs) y]
+    | [PVar _ x, PVar _ y] <- pats, Just (f,g) <- useOn x y bod =
+              [warn "Use on" o $ reform [] (ensureBracket1 $ InfixApp an f (toNamed "on") g)]
+    | (p2,y) <- etaReduces pats bod, length p2 /= length pats = [warn "Eta reduce" o $ reform p2 y]
     | otherwise = []
-        where reform pats2 bod2 = Match loc name pats2 typ (UnGuardedRhs bod2) (BDecls [])
+        where reform pats2 bod2 = Match an name pats2 (UnGuardedRhs an bod2) Nothing
+lambdaDef (InfixMatch _ p1 name p2 rhs binds) = lambdaDef $ Match an name [p1,p2] rhs binds
 lambdaDef _ = []
 
 
 -- given x y, f (g x) (g y) = Just (f, g)
-useOn :: Name -> Name -> Exp -> Maybe (Exp, Exp)
+useOn :: Name S -> Name S -> Exp_ -> Maybe (Exp_, Exp_)
 useOn x1 y1 (view -> App2 f (view -> App1 g1 x2) (view -> App1 g2 y2))
-    | fromNamed f `elem` ["==",">=",">","!=","<","<="] && g1 == g2, map (Var . UnQual) [x1,y1] == [x2,y2]
+    | fromNamed f `elem` ["==",">=",">","!=","<","<="] && g1 =~= g2, map (Var an . UnQual an) [x1,y1] `eqList` [x2,y2]
     = Just (f,g1)
 useOn _ _ _ = Nothing
 
 
-etaReduces :: [Pat] -> Exp -> ([Pat], Exp)
-etaReduces ps x | ps /= [], PVar p <- last ps, p /= Ident "mr", Just y <- etaReduce p x = etaReduces (init ps) y
+etaReduces :: [Pat S] -> Exp_ -> ([Pat S], Exp_)
+etaReduces ps x | ps /= [], PVar_ p <- view $ last ps, p /= "mr", Just y <- etaReduce p x = etaReduces (init ps) y
                 | otherwise = (ps,x)
 
 
-etaReduce :: Name -> Exp -> Maybe Exp
-etaReduce x (App y (Var (UnQual z))) | x == z && x `notElem` universeBi y = Just y
-etaReduce x (InfixApp y op z) | f y z = Just $ RightSection op z
-                              | f z y = Just $ LeftSection y op
-    where f y z = op `notElem` map (toNamed . return) "+-" &&
-                  all (not . isInfixApp) [y,z] && var x == y && x `notElem` universeBi z
-etaReduce x (App y z) | not (uglyEta y z) && x `notElem` universeBi y = do
+etaReduce :: String -> Exp_ -> Maybe Exp_
+etaReduce x (App _ y (view -> Var_ z)) | x == z && x `notElem` vars y = Just y
+etaReduce x (InfixApp _ y op z) | f y z = Just $ RightSection an op z
+                                | f z y = Just $ LeftSection an y op
+    where f y z = prettyPrint op `notElem` ["+","-"] &&
+                  all (not . isInfixApp) [y,z] && view y == Var_ x && x `notElem` vars z
+etaReduce x (App _ y z) | not (uglyEta y z) && x `notElem` vars y = do
     z2 <- etaReduce x z
-    return $ InfixApp y (toNamed ".") z2
-etaReduce x (view -> App2 dollar y z) | dollar ~= "$" = etaReduce x (App y z)
-etaReduce x (LeftSection y op) = etaReduce x $ App (opExp op) y
+    return $ InfixApp an y (toNamed ".") z2
+etaReduce x (view -> App2 dollar y z) | dollar ~= "$" = etaReduce x (App an y z)
+etaReduce x (LeftSection _ y op) = etaReduce x $ App an (opExp op) y
 etaReduce x y | isParen y = etaReduce x (fromParen y)
 etaReduce x y = Nothing
 
 
 -- (f (g x)) (h y), ugly if g == h
-uglyEta :: Exp -> Exp -> Bool
-uglyEta (fromParen -> App f (fromParen -> App g x)) (fromParen -> App h y) = g == h
+uglyEta :: Exp_ -> Exp_ -> Bool
+uglyEta (fromParen -> App _ f (fromParen -> App _ g x)) (fromParen -> App _ h y) = g =~= h
 uglyEta _ _ = False

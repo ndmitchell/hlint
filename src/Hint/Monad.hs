@@ -43,39 +43,39 @@ badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM"]
 
 
 monadHint :: DeclHint
-monadHint _ _ = concatMap monadExp . universeExp nullSrcLoc
+monadHint _ _ = concatMap monadExp . universeBi
 
-monadExp :: (SrcLoc,Exp) -> [Idea]
-monadExp (loc,x) = case x of
+monadExp :: Exp_ -> [Idea]
+monadExp x = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
-        Do xs -> [idea Error "Redundant return" loc x y | Just y <- [monadReturn xs]] ++
-                 [idea Error "Use join" loc x (Do y) | Just y <- [monadJoin xs]] ++
-                 [idea Error "Redundant do" loc x y | [Qualifier y] <- [xs]] ++
-                 [idea Error "Use let" loc x (Do y) | Just y <- [monadLet xs]] ++
-                 concat [f x | Qualifier x <- init xs]
+        Do _ xs -> [idea Error "Redundant return" x y | Just y <- [monadReturn xs]] ++
+                   [idea Error "Use join" x (Do an y) | Just y <- [monadJoin xs]] ++
+                   [idea Error "Redundant do" x y | [Qualifier _ y] <- [xs]] ++
+                   [idea Error "Use let" x (Do an y) | Just y <- [monadLet xs]] ++
+                   concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where
-        f x = [idea Error ("Use " ++ name) loc x y
+        f x = [idea Error ("Use " ++ name) x y
               |Just (name,y) <- [monadCall x]]
 
 
 -- see through Paren and down if/case etc
-monadCall :: Exp -> Maybe (String,Exp)
-monadCall (Paren x) = liftM (second Paren) $ monadCall x
-monadCall (App x y) = liftM (second (`App` y)) $ monadCall x
+monadCall :: Exp_ -> Maybe (String,Exp_)
+monadCall (Paren _ x) = liftM (second $ Paren an) $ monadCall x
+monadCall (App _ x y) = liftM (second $ \x -> App an x y) $ monadCall x
 monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, toNamed x2)
 monadCall _ = Nothing
 
 
-monadReturn (reverse -> Qualifier (App ret (Var v)):Generator _ (PVar p) x:rest)
+monadReturn (reverse -> Qualifier _ (App _ ret (Var _ v)):Generator _ (PVar _ p) x:rest)
     | ret ~= "return", fromNamed v == fromNamed p
-    = Just $ Do $ reverse $ Qualifier x : rest
+    = Just $ Do an $ reverse $ Qualifier an x : rest
 monadReturn _ = Nothing
 
 
-monadJoin (Generator _ (PVar p) x:Qualifier (Var v):xs)
-    | fromNamed p == fromNamed v && Var v `notElem` universeBi xs
-    = Just $ Qualifier (ensureBracket1 $ App (toNamed "join") x) : fromMaybe xs (monadJoin xs)
+monadJoin (Generator _ (view -> PVar_ p) x:Qualifier _ (view -> Var_ v):xs)
+    | p == v && v `notElem` vars xs
+    = Just $ Qualifier an (ensureBracket1 $ App an (toNamed "join") x) : fromMaybe xs (monadJoin xs)
 monadJoin (x:xs) = liftM (x:) $ monadJoin xs
 monadJoin [] = Nothing
 
@@ -83,13 +83,13 @@ monadJoin [] = Nothing
 monadLet xs = if xs == ys then Nothing else Just ys
     where
         ys = map mkLet xs
-        vars = [v | Generator _ p _ <- xs, PVar v <- universe p]
-        mkLet (Generator sl (PVar p) (fromRet -> Just y))
-            | p `notElem` [v | Var (UnQual v) <- universeBi y], p `notElem` delete p vars
-            = LetStmt $ BDecls [PatBind sl (PVar p) Nothing (UnGuardedRhs y) (BDecls [])]
+        vs = concatMap pvars [p | Generator _ p _ <- xs]
+        mkLet (Generator _ (view -> PVar_ p) (fromRet -> Just y))
+            | p `notElem` vars y, p `notElem` delete p vs
+            = LetStmt an $ BDecls an [PatBind an (toNamed p) Nothing (UnGuardedRhs an y) Nothing]
         mkLet x = x
 
-fromRet (Paren x) = fromRet x
-fromRet (InfixApp x y z) | opExp y ~= "$" = fromRet $ App x z
-fromRet (App x y) | x ~= "return" = Just y
+fromRet (Paren _ x) = fromRet x
+fromRet (InfixApp _ x y z) | opExp y ~= "$" = fromRet $ App an x z
+fromRet (App _ x y) | x ~= "return" = Just y
 fromRet _ = Nothing
