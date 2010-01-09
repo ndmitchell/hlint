@@ -6,7 +6,7 @@ module HSE.Operators(
     ) where
 
 import Data.Generics
-import Data.Generics.PlateData
+import Data.Generics.Uniplate.Data
 import Data.Char
 import Data.List
 import Data.Maybe
