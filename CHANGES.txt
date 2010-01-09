@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to haskell-src-exts 1.6.*
     Add a .ghci file snippet
     #247, Fix bug matching expressions containing position info
 1.6.14
