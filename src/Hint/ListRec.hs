@@ -33,7 +33,6 @@ import Data.Maybe
 import Data.Ord
 import Data.Either
 import Control.Monad
-import Data.Generics.PlateData
 
 
 listRecHint :: DeclHint

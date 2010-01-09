@@ -4,7 +4,7 @@ module HSE.Bracket where
 
 import Control.Monad.State
 import Data.Data
-import Data.Generics.PlateData
+import Data.Generics.Uniplate.Data
 import Data.Maybe
 import HSE.Util
 

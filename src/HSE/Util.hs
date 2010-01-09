@@ -3,7 +3,7 @@ module HSE.Util(module Language.Haskell.Exts.Annotated, module HSE.Util) where
 
 import Control.Monad
 import Data.Generics
-import Data.Generics.PlateData
+import Data.Generics.Uniplate.Data
 import Data.List
 import Data.Maybe
 import Language.Haskell.Exts.Annotated hiding (parse, loc, parseFile, paren)

@@ -3,7 +3,7 @@
 -- Evaluate a HSE Exp as much as possible
 module HSE.Evaluate(evaluate) where
 
-import Data.Generics.PlateData
+import Data.Generics.Uniplate.Data
 import HSE.Match
 import HSE.Util
 import HSE.Bracket
