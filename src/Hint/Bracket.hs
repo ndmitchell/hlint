@@ -37,7 +37,7 @@ bracketExp x =
     [g x (fromParen x) | isParen x] ++ f x
     where
         f x = testDirect x ++ testDollar x ++ concatMap f (children x)
-        g x = warn "Redundant brackets" x
+        g = warn "Redundant brackets"
 
         testDirect x = [g x y | let y = descendBracket (isParen &&& fromParen) x, x /=~= y]
 

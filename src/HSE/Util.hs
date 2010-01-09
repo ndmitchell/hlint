@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards #-}
 
 module HSE.Util(module Language.Haskell.Exts.Annotated, module HSE.Util) where
 
