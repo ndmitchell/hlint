@@ -55,7 +55,7 @@ runTest hint file = do
     return (length failures, length tests)
     where
         f (Test loc inp out) =
-                ["TEST FAILURE\n" ++
+                ["TEST FAILURE (" ++ show (length ideas) ++ " hints generated)\n" ++
                  "SRC: " ++ showSrcLoc loc ++ "\n" ++
                  "INPUT: " ++ inp ++ "\n" ++
                  concatMap ((++) "OUTPUT: " . show) ideas ++
