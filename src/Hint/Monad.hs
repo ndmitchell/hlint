@@ -61,8 +61,8 @@ monadExp x = case x of
 
 -- see through Paren and down if/case etc
 monadCall :: Exp_ -> Maybe (String,Exp_)
-monadCall (Paren _ x) = liftM (second $ Paren an) $ monadCall x
-monadCall (App _ x y) = liftM (second $ \x -> App an x y) $ monadCall x
+monadCall (Paren _ x) = fmap (second $ Paren an) $ monadCall x
+monadCall (App _ x y) = fmap (second $ \x -> App an x y) $ monadCall x
 monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, toNamed x2)
 monadCall _ = Nothing
 
@@ -76,7 +76,7 @@ monadReturn _ = Nothing
 monadJoin (Generator _ (view -> PVar_ p) x:Qualifier _ (view -> Var_ v):xs)
     | p == v && v `notElem` vars xs
     = Just $ Qualifier an (ensureBracket1 $ App an (toNamed "join") x) : fromMaybe xs (monadJoin xs)
-monadJoin (x:xs) = liftM (x:) $ monadJoin xs
+monadJoin (x:xs) = fmap (x:) $ monadJoin xs
 monadJoin [] = Nothing
 
 

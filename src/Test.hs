@@ -31,7 +31,7 @@ test = do
     datDir <- getDirectoryContents dat
 
     src <- doesDirectoryExist "src/Hint"
-    (fail,total) <- liftM ((sum *** sum) . unzip) $ sequence $
+    (fail,total) <- fmap ((sum *** sum) . unzip) $ sequence $
         [runTestDyn (dat </> h) | h <- datDir, takeExtension h == ".hs"] ++
         [runTest h ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints, src]
     unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
