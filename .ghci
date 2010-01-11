@@ -1,4 +1,4 @@
-:set -fno-warn-overlapping-patterns -w -fwarn-unused-binds -fwarn-unused-imports
+:set -fno-warn-overlapping-patterns -fwarn-unused-binds -fwarn-unused-imports
 :set -isrc;.
 :load Main
 
