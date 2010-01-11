@@ -49,6 +49,7 @@ executable hlint
     other-modules:
         CmdLine
         Hint
+        HLint
         Settings
         Report
         Type
