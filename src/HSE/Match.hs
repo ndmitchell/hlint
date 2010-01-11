@@ -117,6 +117,7 @@ instance Named (DeclHead S) where
     fromNamed (DHead _ x _) = fromNamed x
     fromNamed (DHInfix _ _ x _) = fromNamed x
     fromNamed (DHParen _ x) = fromNamed x
+    toNamed = error "No toNamed for DeclHead"
 
 instance Named (Decl S) where
     fromNamed (TypeDecl _ name _) = fromNamed name
