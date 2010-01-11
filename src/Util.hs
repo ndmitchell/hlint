@@ -32,6 +32,10 @@ concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
 concatMapM f = liftM concat . mapM f
 
 
+concatZipWithM :: Monad m => (a -> b -> m [c]) -> [a] -> [b] -> m [c]
+concatZipWithM f xs ys = liftM concat $ zipWithM f xs ys
+
+
 headDef :: a -> [a] -> a
 headDef x [] = x
 headDef x (y:ys) = y

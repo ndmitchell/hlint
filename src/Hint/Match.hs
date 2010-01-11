@@ -73,9 +73,6 @@ unifyPat x y | ((==) `on` descend (const $ PWildCard an)) x y = concatZipWithM u
 unifyPat _ _ = Nothing
 
 
-concatZipWithM f xs = liftM concat . zipWithM f xs
-
-
 -- check the unification is valid
 check :: [(String,Exp_)] -> Maybe [(String,Exp_)]
 check = mapM f . groupSortFst
