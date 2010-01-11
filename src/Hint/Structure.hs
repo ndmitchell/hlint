@@ -46,7 +46,7 @@ useGuards o@(Match sl b pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App 
     , p `notElem` (vars bod ++ vars decs)
     , vars op `disjoint` decsBind, pvars pats `disjoint` vars op, pvars pat `disjoint` pvars pats
     = [warn "Use view patterns" o $
-       Match sl b (take i pats ++ [PParen nullSSI $ PViewPat nullSSI op pat] ++ drop (i+1) pats) (UnGuardedRhs nullSSI bod) decs]
+       Match sl b (take i pats ++ [PParen an $ PViewPat an op pat] ++ drop (i+1) pats) (UnGuardedRhs an bod) decs]
     where
         decsBind = nub $ concatMap declBind $ childrenBi decs
 
@@ -55,8 +55,8 @@ useGuards _ = []
 
 asGuards :: Exp_ -> [GuardedRhs S]
 asGuards (Paren _ x) = asGuards x
-asGuards (If _ a b c) = GuardedRhs nullSSI [Qualifier nullSSI a] b : asGuards c
-asGuards x = [GuardedRhs nullSSI [Qualifier nullSSI $ toNamed "otherwise"] x]
+asGuards (If _ a b c) = GuardedRhs an [Qualifier an a] b : asGuards c
+asGuards x = [GuardedRhs an [Qualifier an $ toNamed "otherwise"] x]
 
 
 useIf :: Exp_ -> [Idea]
@@ -64,7 +64,7 @@ useIf x@(Case _ on [simpAlt -> Just (as,av), simpAlt -> Just (bs,bv)])
     | as == "True"  && bs `elem` ["False","_"] = iff av bv
     | as == "False" && bs `elem` ["True" ,"_"] = iff bv av
     where
-        iff t f = [warn "Use if" x (If nullSSI on t f)]
+        iff t f = [warn "Use if" x (If an on t f)]
 useIf _ = []
 
 simpAlt (Alt _ p (UnGuardedAlt _ x) Nothing) = Just (prettyPrint p, x)

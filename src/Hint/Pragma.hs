@@ -35,7 +35,7 @@ import Data.Function
 
 
 pragmaHint :: ModuHint
-pragmaHint _ x = languageDupes lang ++ [pragmaIdea old $ [LanguagePragma nullSSI (map toNamed ns2) | ns2 /= []] ++ catMaybes new | old /= []]
+pragmaHint _ x = languageDupes lang ++ [pragmaIdea old $ [LanguagePragma an (map toNamed ns2) | ns2 /= []] ++ catMaybes new | old /= []]
     where
         lang = [x | x@LanguagePragma{} <- modulePragmas x]
         (old,new,ns) = unzip3 [(old,new,ns) | old <- modulePragmas x, Just (new,ns) <- [optToLanguage old]]

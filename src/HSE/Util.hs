@@ -171,10 +171,8 @@ toSrcLoc = getPointLoc
 nullSrcLoc :: SrcLoc
 nullSrcLoc = SrcLoc "" 0 0
 
-nullSSI :: SrcSpanInfo
-nullSSI = toSrcInfo nullSrcLoc [] nullSrcLoc
-
-an = nullSSI
+an :: SrcSpanInfo
+an = toSrcInfo nullSrcLoc [] nullSrcLoc
 
 dropAnn :: Functor f => f s -> f ()
 dropAnn = fmap (const ())
