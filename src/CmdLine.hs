@@ -25,6 +25,7 @@ data Cmd = Cmd
     ,cmdShowAll :: Bool              -- ^ display all skipped items
     ,cmdColor :: Bool                -- ^ color the result
     ,cmdCpphs :: CpphsOptions        -- ^ options for cpphs
+    ,cmdDataDir :: FilePath          -- ^ the data directory
     }
 
 
@@ -36,6 +37,7 @@ data Opts = Help | Ver | Test
           | Define String
           | Include String
           | Ext String
+          | DataDir String
             deriving Eq
 
 
@@ -48,6 +50,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "s" ["show"] (NoArg ShowAll) "Show all ignored ideas"
        ,Option "e" ["extension"] (ReqArg Ext "ext") "File extensions to search (defaults to hs and lhs)"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
+       ,Option "d" ["datadir"] (ReqArg DataDir "dir") "Override the data directory"
        ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
        ,Option ""  ["cpp-include"] (ReqArg Include "dir") "CPP include path"
        ]
@@ -70,11 +73,13 @@ getCmd = do
         putStr helpText
         exitWith ExitSuccess
 
+    dataDir <- last $ getDataDir : [return x | DataDir x <- opt]
+
     let exts = [x | Ext x <- opt]
     files <- concatMapM (getFile $ if null exts then ["hs","lhs"] else exts) files
     
     let hintFiles = [x | Hints x <- opt]
-    hints <- mapM getHintFile $ hintFiles ++ ["HLint" | null hintFiles]
+    hints <- mapM (getHintFile dataDir) $ hintFiles ++ ["HLint" | null hintFiles]
 
     let cpphs = defaultCpphsOptions
             {boolopts=defaultBoolOptions{locations=False}
@@ -91,6 +96,7 @@ getCmd = do
         ,cmdShowAll = ShowAll `elem` opt
         ,cmdColor = Color `elem` opt
         ,cmdCpphs = cpphs
+        ,cmdDataDir = dataDir
         }
 
 
@@ -121,10 +127,9 @@ getFile exts file = do
         return [file]
 
 
-getHintFile :: FilePath -> IO FilePath
-getHintFile x = do
-        dat <- getDataDir
-        let poss = nub $ concat [x : [x <.> "hs" | takeExtension x /= ".hs"] | x <- [x,dat </> x]]
+getHintFile :: FilePath -> FilePath -> IO FilePath
+getHintFile dataDir x = do
+        let poss = nub $ concat [x : [x <.> "hs" | takeExtension x /= ".hs"] | x <- [x,dataDir </> x]]
         f poss poss
     where
         f o [] = error $ unlines $ [

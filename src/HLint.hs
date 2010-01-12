@@ -22,8 +22,8 @@ import HSE.All
 
 main = do
     Cmd{..} <- getCmd
-    if cmdTest then test else do
-        settings <- readSettings cmdHintFiles
+    if cmdTest then test cmdDataDir else do
+        settings <- readSettings cmdDataDir cmdHintFiles
         let extra = [Classify Ignore x ("","") | x <- cmdIgnore]
         let apply :: FilePath -> IO [Idea]
             apply = fmap (fmap $ classify $ settings ++ extra) . applyHint parseFlags{cpphs=Just cmdCpphs} (allHints settings)
@@ -47,7 +47,7 @@ main = do
          else do
             forM_ cmdReports $ \x -> do
                 putStrLn $ "Writing report to " ++ x ++ " ..."
-                writeReport x visideas
+                writeReport cmdDataDir x visideas
             printMsg ("Found " ++ show shown ++ " suggestion" ++ ['s'|shown/=1]) (errors++ignored)
 
         when (err > 0) $

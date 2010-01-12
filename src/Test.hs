@@ -20,7 +20,6 @@ import Type
 import Hint
 import HSE.All
 import Hint.All
-import Paths_hlint
 
 
 -- Input, Output
@@ -29,14 +28,13 @@ import Paths_hlint
 data Test = Test SrcLoc String (Maybe String)
 
 
-test :: IO ()
-test = do
-    dat <- getDataDir
-    datDir <- getDirectoryContents dat
+test :: FilePath -> IO ()
+test dataDir = do
+    dataLs <- getDirectoryContents dataDir
 
     src <- doesDirectoryExist "src/Hint"
     (fail,total) <- fmap ((sum *** sum) . unzip) $ sequence $
-        [runTestDyn (dat </> h) | h <- datDir, takeExtension h == ".hs", not $ "HLint" `isPrefixOf` takeBaseName h] ++
+        [runTestDyn dataDir (dataDir </> h) | h <- dataLs, takeExtension h == ".hs", not $ "HLint" `isPrefixOf` takeBaseName h] ++
         [runTest h ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints, src]
     unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
     if fail == 0
@@ -44,9 +42,9 @@ test = do
         else putStrLn $ "Tests failed (" ++ show fail ++ " of " ++ show total ++ ")"
 
 
-runTestDyn :: FilePath -> IO (Int,Int)
-runTestDyn file = do
-    settings <- readSettings [file]
+runTestDyn :: FilePath -> FilePath -> IO (Int,Int)
+runTestDyn dataDir file = do
+    settings <- readSettings dataDir [file]
     let bad = [putStrLn $ "No name for the hint " ++ prettyPrint (lhs x) | x@MatchExp{} <- settings, hintS x == defaultName]
     sequence_ bad
 

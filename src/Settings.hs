@@ -3,7 +3,6 @@
 module Settings(readSettings, classify, defaultName) where
 
 import HSE.All
-import Paths_hlint
 import Type
 import Data.Char
 import Data.List
@@ -14,26 +13,24 @@ import Data.Generics.Uniplate.Data
 
 -- Given a list of hint files to start from
 -- Return the list of settings commands
-readSettings :: [FilePath] -> IO [Setting]
-readSettings xs = do
-    (builtin,mods) <- fmap unzipEither $ concatMapM readHints xs
+readSettings :: FilePath -> [FilePath] -> IO [Setting]
+readSettings dataDir xs = do
+    (builtin,mods) <- fmap unzipEither $ concatMapM (readHints dataDir) xs
     return $ map Builtin builtin ++ concatMap (concatMap readSetting . concatMap getEquations . moduleDecls) mods
 
 
 -- read all the files
 -- in future this should also do import chasing, but
 -- currently it doesn't
-readHints :: FilePath -> IO [Either String Module_]
-readHints file = do
+readHints :: FilePath -> FilePath -> IO [Either String Module_]
+readHints dataDir file = do
     y <- fromParseResult `fmap` parseFile parseFlags{implies=True} file
     ys <- concatMapM (f . fromNamed . importModule) $ moduleImports y
     return $ Right y:ys
     where
         f x | "HLint.Builtin." `isPrefixOf` x = return [Left $ drop 14 x]
-            | "HLint." `isPrefixOf` x = do
-                dat <- getDataDir
-                readHints $ dat </> drop 6 x <.> "hs"
-            | otherwise = readHints $ x <.> "hs"
+            | "HLint." `isPrefixOf` x = readHints dataDir $ dataDir </> drop 6 x <.> "hs"
+            | otherwise = readHints dataDir $ x <.> "hs"
 
 
 -- Eta bound variable lifted so the filter only happens once per classify
