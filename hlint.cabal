@@ -41,8 +41,6 @@ library
         uniplate == 1.3.*
 
     ghc-options:        -fno-warn-overlapping-patterns
-    if flag(threaded)
-        ghc-options:    -threaded
 
     hs-source-dirs:     src
     exposed-modules:
