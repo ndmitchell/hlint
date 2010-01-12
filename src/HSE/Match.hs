@@ -42,8 +42,8 @@ instance View Exp_ Var_ where
 (~=) = (==) . fromNamed
 
 
--- | fromNamed will return "" when it cannot be represented
---   toNamed may crash on ""
+-- | fromNamed will return \"\" when it cannot be represented
+--   toNamed may crash on \"\"
 class Named a where
     toNamed :: String -> a
     fromNamed :: a -> String
