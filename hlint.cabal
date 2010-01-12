@@ -44,10 +44,11 @@ library
 
     hs-source-dirs:     src
     exposed-modules:
-        HLint
+        Language.Haskell.Lint
     other-modules:
         CmdLine
         Hint
+        HLint
         Settings
         Report
         Type
