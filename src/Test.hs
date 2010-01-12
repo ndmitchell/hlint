@@ -28,7 +28,7 @@ import Hint.All
 data Test = Test SrcLoc String (Maybe String)
 
 
-test :: FilePath -> IO ()
+test :: FilePath -> IO Int
 test dataDir = do
     dataLs <- getDirectoryContents dataDir
 
@@ -40,6 +40,7 @@ test dataDir = do
     if fail == 0
         then putStrLn $ "Tests passed (" ++ show total ++ ")"
         else putStrLn $ "Tests failed (" ++ show fail ++ " of " ++ show total ++ ")"
+    return fail
 
 
 runTestDyn :: FilePath -> FilePath -> IO (Int,Int)

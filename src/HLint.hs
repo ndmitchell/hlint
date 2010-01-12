@@ -6,7 +6,6 @@ import Control.Arrow
 import Control.Monad
 import Data.List
 import Data.Maybe
-import System.Exit
 
 import CmdLine
 import Settings
@@ -20,7 +19,9 @@ import Hint.All
 import HSE.All
 
 
-hlint :: [String] -> IO ()
+-- | This function takes the command line arguments, and returns the number
+--   of errors reported.
+hlint :: [String] -> IO Int
 hlint args = do
     Cmd{..} <- getCmd args
     if cmdTest then test cmdDataDir else do
@@ -50,9 +51,7 @@ hlint args = do
                 putStrLn $ "Writing report to " ++ x ++ " ..."
                 writeReport cmdDataDir x visideas
             printMsg ("Found " ++ show shown ++ " suggestion" ++ ['s'|shown/=1]) (errors++ignored)
-
-        when (err > 0) $
-            exitWith $ ExitFailure 1
+        return err
 
 
 printMsg :: String -> [String] -> IO ()
