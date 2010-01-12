@@ -3,6 +3,7 @@
 module Test where
 
 import Control.Arrow
+import Control.Exception
 import Control.Monad
 import Data.Char
 import Data.List
@@ -10,6 +11,9 @@ import Data.Maybe
 import Data.Function
 import System.Directory
 import System.FilePath
+import System.IO
+import System.Cmd
+import System.Exit
 
 import Settings
 import Type
@@ -32,7 +36,7 @@ test = do
 
     src <- doesDirectoryExist "src/Hint"
     (fail,total) <- fmap ((sum *** sum) . unzip) $ sequence $
-        [runTestDyn (dat </> h) | h <- datDir, takeExtension h == ".hs"] ++
+        [runTestDyn (dat </> h) | h <- datDir, takeExtension h == ".hs", not $ "HLint" `isPrefixOf` takeBaseName h] ++
         [runTest h ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints, src]
     unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
     if fail == 0
@@ -43,7 +47,26 @@ test = do
 runTestDyn :: FilePath -> IO (Int,Int)
 runTestDyn file = do
     settings <- readSettings [file]
-    runTest (dynamicHints settings) file
+    let bad = [putStrLn $ "No name for the hint " ++ prettyPrint (lhs x) | x@MatchExp{} <- settings, hintS x == defaultName]
+    sequence_ bad
+
+    
+    (f1,t1) <- runTestTypes settings
+    (f2,t2) <- runTest (dynamicHints settings) file
+    return (length bad + f1 + f2, t1 + t2)
+
+
+runTestTypes :: [Setting] -> IO (Int,Int)
+runTestTypes settings = bracket
+    (openTempFile "." "hlinttmp.hs")
+    (\(file,h) -> removeFile file)
+    $ \(file,h) -> do
+        hPutStrLn h contents
+        hClose h
+        res <- system $ "runhaskell " ++ file
+        return (if res == ExitSuccess then 0 else 1, 1)
+    where
+        contents = "main = return ()"
 
 
 -- return the number of fails/total
