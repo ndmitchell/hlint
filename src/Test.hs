@@ -61,12 +61,32 @@ runTestTypes settings = bracket
     (openTempFile "." "hlinttmp.hs")
     (\(file,h) -> removeFile file)
     $ \(file,h) -> do
-        hPutStrLn h contents
+        hPutStrLn h $ unlines contents
         hClose h
         res <- system $ "runhaskell " ++ file
         return (if res == ExitSuccess then 0 else 1, 1)
     where
-        contents = "main = return ()"
+        contents =
+            ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules #-}"
+            ,"import System.IO"
+            ,"import Control.Arrow"
+            ,"import Data.Maybe"
+            ,"import Control.Monad"
+            ,"import Data.List"
+            ,"import Data.Int"
+            ,"import Data.Ord"
+            ,"import Data.Monoid"
+            ,"import Data.Function"
+            ,"main = return ()"
+            ,"(==>) :: a -> a -> a; (==>) = undefined"
+            ,"_noParen_ = id"
+            ,"_eval_ = id"
+            ,"bad = undefined"] ++
+            [prettyPrint $ PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing
+            | (i, MatchExp _ _ lhs rhs side) <- zip [1..] settings, "notTypeSafe" `notElem` vars side
+            , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
+            , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
+            , let bod = UnGuardedRhs an $ if null vs then inner else Lambda an vs inner]
 
 
 -- return the number of fails/total
