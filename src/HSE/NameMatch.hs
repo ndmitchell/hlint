@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns #-}
+
 module HSE.NameMatch(NameMatch, nameMatch) where
 
 import HSE.Util
