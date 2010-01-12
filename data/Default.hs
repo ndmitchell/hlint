@@ -195,7 +195,7 @@ error "Evaluate" = length [] ==> 0
 error "Evaluate" = foldl f z [] ==> z
 error "Evaluate" = foldr f z [] ==> z
 error "Evaluate" = foldr1 f [x] ==> x
-error "Evaluate" = scanr f q0 [] ==> [q0]
+error "Evaluate" = scanr f z [] ==> [z]
 error "Evaluate" = scanr1 f [] ==> []
 error "Evaluate" = scanr1 f [x] ==> [x]
 error "Evaluate" = take n [] ==> []
