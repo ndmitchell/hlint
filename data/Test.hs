@@ -7,7 +7,7 @@ module HLint.Test where
 error = Prelude.readFile ==> bad
 
 error = (x :: Int) ==> (x :: Int32)
-
+    where _ = notTypeSafe
 
 {-
 <TEST>

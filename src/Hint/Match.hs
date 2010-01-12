@@ -92,6 +92,7 @@ checkSide (Just x) bind = f x
             = if typ == "Atom" then isAtom e
               else head (words $ show e) == typ
         f (App _ (App _ nin xs) ys) | nin ~= "notIn" = and [notIn x y | x <- g xs, y <- g ys]
+        f x | x ~= "notTypeSafe" = True
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
 
         g :: Exp_ -> [Exp_]
