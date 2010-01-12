@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to uniplate 1.4.* (fixes performance bug)
     #192, make HLint into a fairly basic library
     Add --datadir to allow running with a different data directory
     #254, eliminate foldl/map fusion rules (which were untrue)
