@@ -20,8 +20,9 @@ import Hint.All
 import HSE.All
 
 
-main = do
-    Cmd{..} <- getCmd
+main :: [String] -> IO ()
+main args = do
+    Cmd{..} <- getCmd args
     if cmdTest then test cmdDataDir else do
         settings <- readSettings cmdDataDir cmdHintFiles
         let extra = [Classify Ignore x ("","") | x <- cmdIgnore]

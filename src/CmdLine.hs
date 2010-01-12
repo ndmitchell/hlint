@@ -6,7 +6,6 @@ import Data.List
 import Data.Maybe
 import System.Console.GetOpt
 import System.Directory
-import System.Environment
 import System.Exit
 import System.FilePath
 import Language.Preprocessor.Cpphs
@@ -57,9 +56,8 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
 
 
 -- | Exit out if you need to display help info
-getCmd :: IO Cmd
-getCmd = do
-    args <- getArgs
+getCmd :: [String] -> IO Cmd
+getCmd args = do
     let (opt,files,err) = getOpt Permute opts args
     let test = Test `elem` opt
     unless (null err) $
