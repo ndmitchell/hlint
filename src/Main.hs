@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 module Main where
 
-import Language.Haskell.Lint
+import Language.Haskell.HLint
 import Control.Monad
 import System.Environment
 import System.Exit

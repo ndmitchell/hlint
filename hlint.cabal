@@ -44,7 +44,7 @@ library
 
     hs-source-dirs:     src
     exposed-modules:
-        Language.Haskell.Lint
+        Language.Haskell.HLint
     other-modules:
         CmdLine
         Hint
