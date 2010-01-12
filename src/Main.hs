@@ -18,11 +18,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 module Main where
 
-import qualified HLint
+import HLint
 import System.Environment
 
 main :: IO ()
 main = do
     args <- getArgs
-    HLint.main args
-    
+    hlint args

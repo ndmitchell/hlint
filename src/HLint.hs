@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module HLint(main) where
+module HLint(hlint) where
 
 import Control.Arrow
 import Control.Monad
@@ -20,8 +20,8 @@ import Hint.All
 import HSE.All
 
 
-main :: [String] -> IO ()
-main args = do
+hlint :: [String] -> IO ()
+hlint args = do
     Cmd{..} <- getCmd args
     if cmdTest then test cmdDataDir else do
         settings <- readSettings cmdDataDir cmdHintFiles
