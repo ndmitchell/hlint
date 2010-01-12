@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
-module Settings(readSettings, classify) where
+module Settings(readSettings, classify, defaultName) where
 
 import HSE.All
 import Paths_hlint
@@ -52,10 +52,12 @@ classify xs = \i -> if isParseError i then i else i{rank = foldl'
 ---------------------------------------------------------------------
 -- READ A HINT
 
+defaultName = "Use alternative"
+
 readSetting :: Decl_ -> [Setting]
 readSetting (FunBind _ [Match _ (Ident _ (getRank -> rank)) pats (UnGuardedRhs _ bod) bind])
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
-        [MatchExp rank (head names) (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
+        [MatchExp rank (if null names then defaultName else head names) (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
     | otherwise = [Classify rank n func | n <- names2, func <- readFuncs bod]
     where
         names = getNames pats bod
@@ -86,14 +88,14 @@ readFuncs x = error $ "Failed to read classification rule\n" ++ prettyPrint x
 
 getNames :: [Pat_] -> Exp_ -> [String]
 getNames ps _ | ps /= [] && all isPString ps = map fromPString ps
-getNames [] (InfixApp _ lhs op rhs) | opExp op ~= "==>" = ["Use " ++ head (names ++ ["alternative"])]
+getNames [] (InfixApp _ lhs op rhs) | opExp op ~= "==>" = map ("Use "++) names
     where
         lnames = map f $ childrenS lhs
         rnames = map f $ childrenS rhs
         names = filter (not . isUnifyVar) $ (rnames \\ lnames) ++ rnames
         f (Ident _ x) = x
         f (Symbol _ x) = x
-getNames [] _ = [""]
+getNames _ _ = []
 
 
 getRank :: String -> Rank
