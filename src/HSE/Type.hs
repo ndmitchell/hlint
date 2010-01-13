@@ -1,14 +1,9 @@
 
-module HSE.Type(
-    module HSE.Type,
-    module Language.Haskell.Exts.Annotated,
-    module Data.Data,
-    module Data.Generics.Uniplate.Data
-    ) where
+module HSE.Type(module HSE.Type, module Export) where
 
-import Language.Haskell.Exts.Annotated hiding (parse, loc, parseFile, paren)
-import Data.Data hiding (Fixity)
-import Data.Generics.Uniplate.Data
+import Language.Haskell.Exts.Annotated as Export hiding (parse, loc, parseFile, paren)
+import Data.Data as Export hiding (Fixity)
+import Data.Generics.Uniplate.Data as Export
 
 type S = SrcSpanInfo
 type Module_ = Module S
