@@ -10,41 +10,41 @@ import HSE.Type
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER
 
-opExp :: QOp s -> Exp s
+opExp :: QOp S -> Exp_
 opExp (QVarOp s op) = Var s op
 opExp (QConOp s op) = Con s op
 
-moduleDecls :: Module s -> [Decl s]
+moduleDecls :: Module_ -> [Decl_]
 moduleDecls (Module _ _ _ _ xs) = xs
 
-moduleName :: Module s -> String
+moduleName :: Module_ -> String
 moduleName (Module _ Nothing _ _ _) = "Main"
 moduleName (Module _ (Just (ModuleHead _ (ModuleName _ x) _ _)) _ _ _) = x
 
-moduleImports :: Module s -> [ImportDecl s]
+moduleImports :: Module_ -> [ImportDecl S]
 moduleImports (Module _ _ _ x _) = x
 
-modulePragmas :: Module s -> [OptionPragma s]
+modulePragmas :: Module_ -> [OptionPragma S]
 modulePragmas (Module _ _ x _ _) = x
 
-isChar :: Exp s -> Bool
+isChar :: Exp_ -> Bool
 isChar (Lit _ Char{}) = True
 isChar _ = False
 
-fromChar :: Exp s -> Char
+fromChar :: Exp_ -> Char
 fromChar (Lit _ (Char _ x _)) = x
 
-isString :: Exp s -> Bool
+isString :: Exp_ -> Bool
 isString (Lit _ String{}) = True
 isString _ = False
 
-fromString :: Exp s -> String
+fromString :: Exp_ -> String
 fromString (Lit _ (String _ x _)) = x
 
 isPString (PLit _ String{}) = True; isPString _ = False
 fromPString (PLit _ (String _ x _)) = x
 
-fromParen :: Exp s -> Exp s
+fromParen :: Exp_ -> Exp_
 fromParen (Paren _ x) = fromParen x
 fromParen x = x
 
@@ -93,11 +93,11 @@ getEquations x = [x]
 -- VECTOR APPLICATION
 
 
-apps :: [Exp s] -> Exp s
-apps xs = foldl1 (App $ ann $ head xs) xs
+apps :: [Exp_] -> Exp_
+apps xs = foldl1 (App an) xs
 
 
-fromApps :: Exp s -> [Exp s]
+fromApps :: Exp_ -> [Exp_]
 fromApps (App _ x y) = fromApps x ++ [y]
 fromApps x = [x]
 
@@ -105,31 +105,31 @@ fromApps x = [x]
 -- Rule for the Uniplate Apps functions
 -- Given (f a) b, consider the children to be: children f ++ [a,b]
 
-childrenApps :: Data s => Exp s -> [Exp s]
+childrenApps :: Exp_ -> [Exp_]
 childrenApps (App _ x@App{} y) = childrenApps x ++ [y]
 childrenApps (App _ x y) = children x ++ [y]
 childrenApps x = children x
 
 
-descendApps :: Data s => (Exp s -> Exp s) -> Exp s -> Exp s
+descendApps :: (Exp_ -> Exp_) -> Exp_ -> Exp_
 descendApps f (App s x@App{} y) = App s (descendApps f x) (f y)
 descendApps f (App s x y) = App s (descend f x) (f y)
 descendApps f x = descend f x
 
 
-descendAppsM :: (Data s, Monad m) => (Exp s -> m (Exp s)) -> Exp s -> m (Exp s)
+descendAppsM :: Monad m => (Exp_ -> m (Exp_)) -> Exp_ -> m (Exp_)
 descendAppsM f (App s x@App{} y) = liftM2 (App s) (descendAppsM f x) (f y)
 descendAppsM f (App s x y) = liftM2 (App s) (descendM f x) (f y)
 descendAppsM f x = descendM f x
 
 
-universeApps :: Data s => Exp s -> [Exp s]
+universeApps :: Exp_ -> [Exp_]
 universeApps x = x : concatMap universeApps (childrenApps x)
 
-transformApps :: Data s => (Exp s -> Exp s) -> Exp s -> Exp s
+transformApps :: (Exp_ -> Exp_) -> Exp_ -> Exp_
 transformApps f = f . descendApps (transformApps f)
 
-transformAppsM :: (Data s, Monad m) => (Exp s -> m (Exp s)) -> Exp s -> m (Exp s)
+transformAppsM :: (Monad m) => (Exp_ -> m (Exp_)) -> Exp_ -> m (Exp_)
 transformAppsM f x = f =<< descendAppsM (transformAppsM f) x
 
 
