@@ -1,6 +1,7 @@
 
 module HSE.NameMatch(NameMatch, nameMatch) where
 
+import HSE.Type
 import HSE.Util
 import HSE.Match
 import qualified Data.Map as Map

@@ -6,6 +6,7 @@ module HSE.Evaluate(evaluate) where
 import Data.Generics.Uniplate.Data
 import HSE.Match
 import HSE.Util
+import HSE.Type
 import HSE.Bracket
 
 

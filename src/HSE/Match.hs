@@ -4,6 +4,7 @@ module HSE.Match where
 
 import Data.Char
 import Data.List
+import HSE.Type
 import HSE.Util
 
 

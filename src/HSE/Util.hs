@@ -1,20 +1,10 @@
 
-module HSE.Util(module Language.Haskell.Exts.Annotated, module HSE.Util) where
+module HSE.Util where
 
 import Control.Monad
-import Data.Generics
-import Data.Generics.Uniplate.Data
 import Data.List
 import Data.Maybe
-import Language.Haskell.Exts.Annotated hiding (parse, loc, parseFile, paren)
-
-
-type S = SrcSpanInfo
-type Module_ = Module S
-type Decl_ = Decl S
-type Exp_ = Exp S
-type Pat_ = Pat S
-type Type_ = Type S
+import HSE.Type
 
 
 ---------------------------------------------------------------------

@@ -58,10 +58,10 @@ library
         HSE.All
         HSE.Bracket
         HSE.Evaluate
-        HSE.Generics
         HSE.Match
-        HSE.Util
         HSE.NameMatch
+        HSE.Type
+        HSE.Util
         Hint.All
         Hint.Bracket
         Hint.Extensions

@@ -6,6 +6,7 @@ import Control.Monad.State
 import Data.Data
 import Data.Generics.Uniplate.Data
 import Data.Maybe
+import HSE.Type
 import HSE.Util
 
 

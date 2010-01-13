@@ -2,14 +2,14 @@
 module HSE.All(
     module HSE.Util, module HSE.Evaluate,
     module HSE.Bracket, module HSE.Match,
-    module HSE.Generics,
+    module HSE.Type,
     module HSE.NameMatch,
     ParseFlags(..), parseFlags, parseFile, parseString
     ) where
 
 import HSE.Util
 import HSE.Evaluate
-import HSE.Generics
+import HSE.Type
 import HSE.Bracket
 import HSE.Match
 import HSE.NameMatch
