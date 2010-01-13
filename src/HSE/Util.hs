@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 
 module HSE.Util where
 
@@ -136,17 +137,17 @@ transformAppsM f x = f =<< descendAppsM (transformAppsM f) x
 ---------------------------------------------------------------------
 -- UNIPLATE FUNCTIONS
 
-universeS :: (Functor f, Data (f S), Data x) => x -> [f S]
+universeS :: Biplate x (f S) => x -> [f S]
 universeS = universeBi
 
-childrenS :: (Functor f, Data (f S), Data x) => x -> [f S]
+childrenS :: Biplate x (f S) => x -> [f S]
 childrenS = childrenBi
 
 
-vars :: Data a => a -> [String]
+vars :: Biplate a Exp_ => a -> [String]
 vars xs = [prettyPrint x | Var _ (UnQual _ x) <- universeS xs]
 
-pvars :: Data a => a -> [String]
+pvars :: Biplate a Pat_ => a -> [String]
 pvars xs = [prettyPrint x | PVar _ x <- universeS xs]
 
 ---------------------------------------------------------------------
