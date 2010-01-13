@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-
     Suggest the use of camelCase
 
@@ -88,6 +89,6 @@ suggestName x = listToMaybe [f x | not $ isSym x || good || "prop_" `isPrefixOf`
         g [] = []
 
 
-replaceNames :: Data a => [(String,String)] -> a -> a
+replaceNames :: Biplate a String => [(String,String)] -> a -> a
 replaceNames rep = descendBi f
     where f x = fromMaybe x $ lookup x rep

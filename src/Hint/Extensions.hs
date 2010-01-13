@@ -99,7 +99,7 @@ un = undefined
 hasT t x = not $ null (universeBi x `asTypeOf` [t])
 hasT2 ~(t1,t2) = hasT t1 & hasT t2
 
-hasS :: (Data (f S), Data x, Functor f) => (f S -> Bool) -> x -> Bool
+hasS :: Biplate x (f S) => (f S -> Bool) -> x -> Bool
 hasS test = any test . universeBi
 
 has f = any f . universeBi
