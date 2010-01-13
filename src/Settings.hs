@@ -8,7 +8,6 @@ import Data.Char
 import Data.List
 import System.FilePath
 import Util
-import Data.Generics.Uniplate.Data
 
 
 -- Given a list of hint files to start from
