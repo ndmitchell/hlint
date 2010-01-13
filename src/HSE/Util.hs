@@ -95,7 +95,7 @@ getEquations x = [x]
 
 
 apps :: [Exp_] -> Exp_
-apps xs = foldl1 (App an) xs
+apps = foldl1 (App an)
 
 
 fromApps :: Exp_ -> [Exp_]
