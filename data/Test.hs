@@ -9,6 +9,14 @@ error = Prelude.readFile ==> bad
 error = (x :: Int) ==> (x :: Int32)
     where _ = notTypeSafe
 
+
+error "Test1" = map ==> map
+error "Test2" = filter ==> filter
+
+ignore "Test1" = ""
+ignore "Test2" = ignoreTest
+
+
 {-
 <TEST>
 main = readFile "foo" >>= putStr            \
@@ -23,5 +31,10 @@ yes = Prelude2.readFile "foo" >>= putStr    \
   -- bad
 
 yes = 32 :: Int -- 32 :: Int32
+
+ignoreTest = filter
+ignoreTest2 = filter -- filter
+ignoreAny = map
+
 </TEST>
 -}

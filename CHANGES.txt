@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #110, add tests for ignoring commands
 1.6.15
     Upgrade to uniplate 1.4.* (fixes performance bug)
     #192, make HLint into a fairly basic library
