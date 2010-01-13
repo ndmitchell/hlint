@@ -35,7 +35,7 @@ test dataDir = do
     src <- doesDirectoryExist "src/Hint"
     (fail,total) <- fmap ((sum *** sum) . unzip) $ sequence $
         [runTestDyn dataDir (dataDir </> h) | h <- dataLs, takeExtension h == ".hs", not $ "HLint" `isPrefixOf` takeBaseName h] ++
-        [runTest h ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints, src]
+        [runTest id h ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints, src]
     unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
     if fail == 0
         then putStrLn $ "Tests passed (" ++ show total ++ ")"
@@ -49,9 +49,8 @@ runTestDyn dataDir file = do
     let bad = [putStrLn $ "No name for the hint " ++ prettyPrint (lhs x) | x@MatchExp{} <- settings, hintS x == defaultName]
     sequence_ bad
 
-    
     (f1,t1) <- runTestTypes settings
-    (f2,t2) <- runTest (dynamicHints settings) file
+    (f2,t2) <- runTest (classify settings) (dynamicHints settings) file
     return (length bad + f1 + f2, t1 + t2)
 
 
@@ -89,8 +88,8 @@ runTestTypes settings = bracket
 
 
 -- return the number of fails/total
-runTest :: Hint -> FilePath -> IO (Int,Int)
-runTest hint file = do
+runTest :: (Idea -> Idea) -> Hint -> FilePath -> IO (Int,Int)
+runTest classify hint file = do
     tests <- parseTestFile file
     let failures = concatMap f tests
     putStr $ unlines failures
@@ -104,9 +103,9 @@ runTest hint file = do
                  "WANTED: " ++ fromMaybe "<failure>" out ++ "\n\n"
                 | not good]
             where
-                ideas = applyHintStr parseFlags [hint] file inp
+                ideas = map classify $ applyHintStr parseFlags [hint] file inp
                 good = case out of
-                    Nothing -> ideas == []
+                    Nothing -> all ((==) Ignore . rank) ideas
                     Just x -> length ideas == 1 &&
                               length (show ideas) >= 0 && -- force, mainly for hpc
                               not (isParseError (head ideas)) &&
