@@ -109,7 +109,10 @@ runTest classify hint file = do
                     Just x -> length ideas == 1 &&
                               length (show ideas) >= 0 && -- force, mainly for hpc
                               not (isParseError (head ideas)) &&
-                              (x == "???" || on (==) norm (to $ head ideas) x)
+                              match x (head ideas)
+
+        match "???" _ = True
+        match x y = on (==) norm (to y) x
 
         -- FIXME: Should use a better check for expected results
         norm = filter $ \x -> not (isSpace x) && x /= ';'
