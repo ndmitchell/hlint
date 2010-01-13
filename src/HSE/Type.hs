@@ -2,7 +2,6 @@
 module HSE.Type(module HSE.Type, module Export) where
 
 import Language.Haskell.Exts.Annotated as Export hiding (parse, loc, parseFile, paren)
-import Data.Data as Export hiding (Fixity)
 import Data.Generics.Uniplate.Data as Export
 
 type S = SrcSpanInfo
