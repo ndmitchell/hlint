@@ -260,12 +260,12 @@ error = concat (map f x) ==> concatMap f x
 	Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for supressing certain hints. Ignore directives are picked up from the hint files. Some example directives are:
 </p>
 <ul>
-	<li><tt>ignore "Eta reduce" = ""</tt> - supress all eta reduction suggestions.</li>
+	<li><tt>ignore "Eta reduce"</tt> - supress all eta reduction suggestions.</li>
 	<li><tt>ignore "Eta reduce" = Data.List Prelude</tt> - supress eta reduction hints in the Prelude and Data.List modules.</li>
 	<li><tt>ignore = Data.List.map</tt> - don't give any hints in the function Data.List.map.</li>
 	<li><tt>error = Data.List.map</tt> - any hint in the function is an error.</li>
-	<li><tt>error "Use concatMap" = ""</tt> - the hint to use concatMap is an error.</li>
-	<li><tt>warn "Use concatMap" = ""</tt> - the hint to use concatMap is a warning.</li>
+	<li><tt>error "Use concatMap"</tt> - the hint to use concatMap is an error.</li>
+	<li><tt>warn "Use concatMap"</tt> - the hint to use concatMap is a warning.</li>
 </ul>
 <p>
 	These directives are applied in the order they are given, with later hints overriding earlier ones.

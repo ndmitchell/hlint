@@ -12,8 +12,10 @@ error = (x :: Int) ==> (x :: Int32)
 
 error "Test1" = map ==> map
 error "Test2" = filter ==> filter
+error "Test3" = foldr ==> foldr
 
 ignore "Test1" = ""
+ignore "Test3"
 ignore "Test2" = ignoreTest
 warn = ignoreTest3
 
@@ -37,6 +39,7 @@ ignoreTest = filter -- @Ignore ???
 ignoreTest2 = filter -- @Error ???
 ignoreTest3 = filter -- @Warning ???
 ignoreAny = map -- @Ignore ???
+ignoreNew = foldr -- @Ignore ???
 
 </TEST>
 -}

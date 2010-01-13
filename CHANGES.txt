@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #234, allow TH top-level splices for ignore
     #110, add tests for ignoring commands
 1.6.15
     Upgrade to uniplate 1.4.* (fixes performance bug)
