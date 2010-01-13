@@ -32,9 +32,9 @@ yes = Prelude2.readFile "foo" >>= putStr    \
 
 yes = 32 :: Int -- 32 :: Int32
 
-ignoreTest = filter
-ignoreTest2 = filter -- filter
-ignoreAny = map
+ignoreTest = filter -- @Ignore ???
+ignoreTest2 = filter -- @Error ???
+ignoreAny = map -- @Ignore ???
 
 </TEST>
 -}

@@ -105,13 +105,15 @@ runTest classify hint file = do
             where
                 ideas = map classify $ applyHintStr parseFlags [hint] file inp
                 good = case out of
-                    Nothing -> all ((==) Ignore . rank) ideas
+                    Nothing -> null ideas
                     Just x -> length ideas == 1 &&
                               length (show ideas) >= 0 && -- force, mainly for hpc
                               not (isParseError (head ideas)) &&
                               match x (head ideas)
 
         match "???" _ = True
+        match x y | "@" `isPrefixOf` x = a == show (rank y) && match (dropWhile isSpace b) y
+            where (a,b) = break isSpace $ tail x
         match x y = on (==) norm (to y) x
 
         -- FIXME: Should use a better check for expected results
