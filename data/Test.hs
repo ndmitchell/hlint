@@ -15,6 +15,7 @@ error "Test2" = filter ==> filter
 
 ignore "Test1" = ""
 ignore "Test2" = ignoreTest
+warn = ignoreTest3
 
 
 {-
@@ -34,6 +35,7 @@ yes = 32 :: Int -- 32 :: Int32
 
 ignoreTest = filter -- @Ignore ???
 ignoreTest2 = filter -- @Error ???
+ignoreTest3 = filter -- @Warning ???
 ignoreAny = map -- @Ignore ???
 
 </TEST>
