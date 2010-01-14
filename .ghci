@@ -4,6 +4,7 @@
 
 :def test const $ return ":main --test"
 :def self const $ return ":main src --report --hint=data/HLint_Hints.hs"
+:def gen const $ return ":!runhaskell data\\HLint_Gen.hs"
 
 :{
 :def hpc const $ return $ unlines
