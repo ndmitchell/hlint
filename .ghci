@@ -20,3 +20,12 @@
     ,":!del hlint-test.tix"
     ,":!start .hpc\\hpc_index_fun.html"]
 :}
+
+:{
+:def prof const $ return $ unlines
+    [":!mkdir .hpc"
+    ,":!mkdir .hpc\\prof"
+    ,":!ghc --make -isrc -i. src/Main.hs -w -odir .hpc/prof -hidir .hpc/prof -o .hpc/prof/hlint -O -prof -auto-all"
+    ,":!.hpc\\prof\\hlint src +RTS -p"
+    ]
+:}
