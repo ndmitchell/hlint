@@ -89,6 +89,8 @@ suggestName x = listToMaybe [f x | not $ isSym x || good || "prop_" `isPrefixOf`
         g [] = []
 
 
-replaceNames :: Biplate a String => [(String,String)] -> a -> a
+replaceNames :: Biplate a (Name S) => [(String,String)] -> a -> a
 replaceNames rep = descendBi f
-    where f x = fromMaybe x $ lookup x rep
+    where f (Ident _ x) = Ident an $ fromMaybe x $ lookup x rep
+          f x = x
+

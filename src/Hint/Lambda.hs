@@ -52,7 +52,7 @@ lambdaHint _ _ x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (u
 
 
 lambdaExp :: Exp_ -> [Idea]
-lambdaExp o@(Lambda _ [v] y) | isAtom y, Just x <- f v, x `notElem` universeBi y =
+lambdaExp o@(Lambda _ [v] y) | isAtom y, Just x <- f v, x `notElem` vars y =
         [warn "Use const" o res]
     where
         f (view -> PVar_ x) = Just x
