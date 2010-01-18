@@ -1,0 +1,3 @@
+^dist$
+^.hpc$
+^darcs-ssh$
