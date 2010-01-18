@@ -22,10 +22,14 @@
 :}
 
 :{
-:def prof const $ return $ unlines
-    [":!mkdir .hpc"
-    ,":!mkdir .hpc\\prof"
-    ,":!ghc --make -isrc -i. src/Main.hs -w -odir .hpc/prof -hidir .hpc/prof -o .hpc/prof/hlint -O -prof -auto-all"
-    ,":!.hpc\\prof\\hlint src +RTS -p"
-    ]
+:def prof \x ->
+    let level = if x == "" then "1" else x ;
+        dir = ".hpc\\prof" ++ level
+    in if level `notElem` ["0","1","2"] then putStrLn "Error: argument to prof must be a number 0-2." >> return "" else
+    return $ unlines
+        [":!mkdir .hpc"
+        ,":!mkdir " ++ dir
+        ,":!ghc --make -isrc -i. src/Main.hs -w -odir "++dir++" -hidir "++dir++" -o "++dir++"/hlint -O"++level++" -prof -auto-all"
+        ,":!"++dir++"\\hlint src +RTS -p"
+        ]
 :}
