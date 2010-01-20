@@ -13,7 +13,7 @@ yes = (f x) ||| y -- @Warning f x ||| y
 yes = if (f x) then y else z -- @Warning if f x then y else z
 yes = if x then (f y) else z -- @Warning if x then f y else z
 yes = (a foo) :: Int -- @Warning a foo :: Int
-yes = [(foo bar)] -- @Error [foo bar]
+yes = [(foo bar)] -- @Warning [foo bar]
 
 -- dollar reduction tests
 no = groupFsts . sortFst $ mr
@@ -51,7 +51,6 @@ bracketExp x = bracket x ++ dollar x
 
 
 bracket :: Exp_ -> [Idea]
-bracket o@(List _ [Paren _ x]) = err msgBracket o (List an [x]) : bracket x
 bracket o@(Paren _ x) | isAtom x = err msgBracket o x : bracket x
 bracket o = concat $ zipWith f [0..] $ holes o
     where f i (o2@(Paren _ x),gen)

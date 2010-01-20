@@ -12,8 +12,6 @@ import HSE.Util
 class Brackets a where
     remParen :: a -> Maybe a -- remove one paren, or Nothing if there is no paren
     addParen :: a -> a -- write out a paren
-    remListParen :: a -> Maybe a -- remove one list inducing paren
-    addListParen :: a -> a -- write out a list inducing paren
 
     -- | Is this item lexically requiring no bracketing ever
     --   i.e. is totally atomic
@@ -28,10 +26,6 @@ instance Brackets Exp_ where
     remParen (Paren _ x) = Just x
     remParen _ = Nothing
     addParen = Paren an
-
-    remListParen (List _ [x]) = Just x
-    remListParen _ = Nothing
-    addListParen x = List an [x]
 
     isAtom x = case x of
         Paren{} -> True
