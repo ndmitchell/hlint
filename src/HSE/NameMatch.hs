@@ -38,6 +38,7 @@ nameMatch imps = f
 
         f (Qual _ xm x) (Qual _ ym y) = x =~= y && xm =~= resolve ym
         f (Qual _ xm x) (UnQual _ y) = x =~= y && importedFrom xm x
+        f (UnQual _ x) (Qual _ ym y) = x =~= y
         f x y = x =~= y
 
 

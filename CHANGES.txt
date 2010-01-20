@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Fix bug where qualified names did not match
     Remove dependency on SYB
     #234, allow TH top-level splices for ignore
     #110, add tests for ignoring commands

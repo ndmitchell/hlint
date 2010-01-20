@@ -226,7 +226,6 @@ yes = f x where f x = concat . map head -- concatMap head
 yes = concat . map f . g -- concatMap f . g
 yes = concat $ map f x -- concatMap f x
 yes = "test" ++ concatMap (' ':) ["of","this"] -- unwords ("test":["of","this"])
-yes = concat . intersperse " " -- unwords
 yes = if f a then True else b -- f a || b
 yes = not (a == b) -- a /= b
 yes = not (a /= b) -- a == b
@@ -258,6 +257,9 @@ no = flip f x $ \y -> y*y+y
 no = \x -> f x (g x)
 yes = \x -> f x (g y) -- flip f (g y)
 no = foo (\ v -> f v . g)
+yes = concat . intersperse " " -- unwords
+yes = Prelude.concat $ intersperse " " xs -- unwords xs
+yes = concat $ Data.List.intersperse " " xs -- unwords xs
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
