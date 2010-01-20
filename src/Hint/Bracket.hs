@@ -1,12 +1,12 @@
 {-
 <TEST>
-yes = (f x) x -- f x x
+yes = (f x) x -- @Warning f x x
 no = f (x x)
 yes = (foo) -- foo
-yes = (f x) ||| y -- f x ||| y
-yes = if (f x) then y else z -- if f x then y else z
-yes = if x then (f y) else z -- if x then f y else z
-yes = (a foo) :: Int -- a foo :: Int
+yes = (f x) ||| y -- @Warning f x ||| y
+yes = if (f x) then y else z -- @Warning if f x then y else z
+yes = if x then (f y) else z -- @Warning if x then f y else z
+yes = (a foo) :: Int -- @Warning a foo :: Int
 
 no = groupFsts . sortFst $ mr
 yes = split "to" $ names -- split "to" names
