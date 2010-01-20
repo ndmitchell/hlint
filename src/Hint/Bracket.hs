@@ -3,6 +3,7 @@
 yes = (f x) x -- @Warning f x x
 no = f (x x)
 yes = (foo) -- foo
+yes = (foo bar) -- foo bar
 yes = (f x) ||| y -- @Warning f x ||| y
 yes = if (f x) then y else z -- @Warning if f x then y else z
 yes = if x then (f y) else z -- @Warning if x then f y else z
