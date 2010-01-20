@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 {-
 Raise an error if you are bracketing an atom, or are enclosed be a list bracket
 
@@ -47,17 +48,18 @@ bracketExp :: Exp_ -> [Idea]
 bracketExp x = bracket True x ++ dollar x
 
 
-bracket :: Bool -> Exp_ -> [Idea]
+bracket :: (Annotated a, Uniplate (a S), Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
 bracket bad = f Nothing
     where
         msg = "Redundant bracket"
 
         -- f (Maybe (index, parent, gen)) child
-        f _ o@(Paren _ x) | isAtom x = err msg o x : g x
-        f Nothing o@(Paren _ x) | bad = warn msg o x : g x
-        f (Just (i,o,gen)) (Paren _ x) | not $ needBracket i o x = warn msg o (gen x) : g x
+        f _ o@(remParen -> Just x) | isAtom x = err msg o x : g x
+        f Nothing o@(remParen -> Just x) | bad = warn msg o x : g x
+        f (Just (i,o,gen)) (remParen -> Just x) | not $ needBracket i o x = warn msg o (gen x) : g x
         f _ x = g x
 
+        g :: (Annotated a, Uniplate (a S), Pretty (a S), Brackets (a S)) => a S -> [Idea]
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
 
 
