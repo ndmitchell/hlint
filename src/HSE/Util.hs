@@ -57,6 +57,7 @@ fromPParen x = x
 isVar Var{} = True; isVar _ = False
 isApp App{} = True; isApp _ = False
 isInfixApp InfixApp{} = True; isInfixApp _ = False
+isList List{} = True; isList _ = False
 isAnyApp x = isApp x || isInfixApp x
 isParen Paren{} = True; isParen _ = False
 isLambda Lambda{} = True; isLambda _ = False
