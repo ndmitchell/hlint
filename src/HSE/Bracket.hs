@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, TypeSynonymInstances #-}
 
 module HSE.Bracket where
 
@@ -8,42 +8,62 @@ import HSE.Type
 import HSE.Util
 
 
+
+class Brackets a where
+    remParen :: a -> Maybe a -- remove one paren, or Nothing if there is no paren
+    addParen :: a -> a -- write out a paren
+    remListParen :: a -> Maybe a -- remove one list inducing paren
+    addListParen :: a -> a -- write out a list inducing paren
+
+    -- | Is this item lexically requiring no bracketing ever
+    --   i.e. is totally atomic
+    isAtom :: a -> Bool
+
+    -- | Is the child safe free from brackets in the parent position.
+    --   Err on the side of caution, True = don't know
+    needBracket :: Int -> a -> a -> Bool
+
+
+instance Brackets Exp_ where
+    remParen (Paren _ x) = Just x
+    remParen _ = Nothing
+    addParen = Paren an
+
+    remListParen (List _ [x]) = Just x
+    remListParen _ = Nothing
+    addListParen x = List an [x]
+
+    isAtom x = case x of
+        Paren{} -> True
+        Var{} -> True
+        Con{} -> True
+        Lit{} -> True
+        Tuple{} -> True
+        List{} -> True
+        LeftSection{} -> True
+        RightSection{} -> True
+        RecConstr{} -> True
+        ListComp{} -> True
+        EnumFrom{} -> True
+        EnumFromTo{} -> True
+        EnumFromThen{} -> True
+        EnumFromThenTo{} -> True
+        _ -> False
+
+    needBracket i parent child 
+        | isAtom child = False
+        | InfixApp{} <- parent, isApp child = False
+        | ListComp{} <- parent = False
+        | List{} <- parent = False
+        | If{} <- parent, isAnyApp child = False
+        | App{} <- parent, i == 0, isApp child = False
+        | ExpTypeSig{} <- parent, i == 0 = False
+        | otherwise = True
+
+
+
 paren :: Exp_ -> Exp_
-paren x = if isAtom x then x else Paren (ann x) x
-
-
--- | Is this item lexically requiring no bracketing ever
---   i.e. is totally atomic
-isAtom :: Exp_ -> Bool
-isAtom x = case x of
-    Paren{} -> True
-    Var{} -> True
-    Con{} -> True
-    Lit{} -> True
-    Tuple{} -> True
-    List{} -> True
-    LeftSection{} -> True
-    RightSection{} -> True
-    RecConstr{} -> True
-    ListComp{} -> True
-    EnumFrom{} -> True
-    EnumFromTo{} -> True
-    EnumFromThen{} -> True
-    EnumFromThenTo{} -> True
-    _ -> False
-
-
--- Err on the side of caution, True = don't know
-needBracket :: Int -> Exp_ -> Exp_ -> Bool
-needBracket i parent child 
-    | isAtom child = False
-    | InfixApp{} <- parent, isApp child = False
-    | ListComp{} <- parent = False
-    | List{} <- parent = False
-    | If{} <- parent, isAnyApp child = False
-    | App{} <- parent, i == 0, isApp child = False
-    | ExpTypeSig{} <- parent, i == 0 = False
-    | otherwise = True
+paren x = if isAtom x then x else addParen x
 
 
 -- True implies I changed this level
