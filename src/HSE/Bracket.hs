@@ -56,6 +56,50 @@ instance Brackets Exp_ where
         | otherwise = True
 
 
+instance Brackets Type_ where
+    remParen (TyParen _ x) = Just x
+    remParen _ = Nothing
+    addParen = TyParen an
+
+    isAtom x = case x of
+        TyParen{} -> True
+        TyTuple{} -> True
+        TyList{} -> True
+        TyVar{} -> True
+        TyCon{} -> True
+        _ -> False
+
+    needBracket i parent child
+        | isAtom child = False
+        | TyFun{} <- parent, i == 1, TyFun{} <- child = False
+        | TyFun{} <- parent, TyApp{} <- child = False
+        | TyTuple{} <- parent = False
+        | TyList{} <- parent = False
+        | TyInfix{} <- parent, TyApp{} <- child = False
+        | otherwise = True
+
+
+instance Brackets Pat_ where
+    remParen (PParen _ x) = Just x
+    remParen _ = Nothing
+    addParen = PParen an
+
+    isAtom x = case x of
+        PParen{} -> True
+        PTuple{} -> True
+        PList{} -> True
+        PVar{} -> True
+        PApp _ _ [] -> True
+        PWildCard{} -> True
+        _ -> False
+
+    needBracket i parent child
+        | isAtom child = False
+        | PTuple{} <- parent = False
+        | PList{} <- parent = False
+        | PInfixApp{} <- parent, PApp{} <- child = False
+        | otherwise = True
+
 
 paren :: Exp_ -> Exp_
 paren x = if isAtom x then x else addParen x
