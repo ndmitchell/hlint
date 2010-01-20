@@ -6,7 +6,7 @@ Raise an error if you are bracketing an atom, or are enclosed be a list bracket
 yes = (f x) x -- @Warning f x x
 no = f (x x)
 yes = (foo) -- @Error foo
-yes = (foo bar) -- @Error foo bar
+yes = (foo bar) -- @Warning foo bar
 yes = foo (bar) -- @Error bar
 yes = foo ((x x)) -- @Error (x x)
 yes = (f x) ||| y -- @Warning f x ||| y
@@ -46,17 +46,19 @@ msgDollar = "Redundant $"
 
 
 bracketExp :: Exp_ -> [Idea]
-bracketExp o@(Paren _ x) = err msgBracket o x : bracketExp x
-bracketExp x = bracket x ++ dollar x
+bracketExp x = bracket True x ++ dollar x
 
 
-bracket :: Exp_ -> [Idea]
-bracket o@(Paren _ x) | isAtom x = err msgBracket o x : bracket x
-bracket o = concat $ zipWith f [0..] $ holes o
-    where f i (o2@(Paren _ x),gen)
-                | isAtom x = err msgBracket o2 x : bracket x
-                | not $ needBracket i o x = warn msgBracket o (gen x) : bracket x
-          f i (x,_) = bracket x
+bracket :: Bool -> Exp_ -> [Idea]
+bracket bad = f Nothing
+    where
+        -- f (Maybe (index, parent, gen)) child
+        f _ o@(Paren _ x) | isAtom x = err msgBracket o x : g x
+        f Nothing o@(Paren _ x) | bad = warn msgBracket o x : g x
+        f (Just (i,o,gen)) (Paren _ x) | not $ needBracket i o x = warn msgBracket o (gen x) : g x
+        f _ x = g x
+
+        g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
 
 
 dollar :: Exp_ -> [Idea]
