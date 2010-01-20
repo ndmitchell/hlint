@@ -41,8 +41,6 @@ bracketHint :: DeclHint
 bracketHint _ _ = concatMap bracketExp . childrenBi
 
 
-msgBracket = "Redundant bracket"
-msgDollar = "Redundant $"
 
 
 bracketExp :: Exp_ -> [Idea]
@@ -52,10 +50,12 @@ bracketExp x = bracket True x ++ dollar x
 bracket :: Bool -> Exp_ -> [Idea]
 bracket bad = f Nothing
     where
+        msg = "Redundant bracket"
+
         -- f (Maybe (index, parent, gen)) child
-        f _ o@(Paren _ x) | isAtom x = err msgBracket o x : g x
-        f Nothing o@(Paren _ x) | bad = warn msgBracket o x : g x
-        f (Just (i,o,gen)) (Paren _ x) | not $ needBracket i o x = warn msgBracket o (gen x) : g x
+        f _ o@(Paren _ x) | isAtom x = err msg o x : g x
+        f Nothing o@(Paren _ x) | bad = warn msg o x : g x
+        f (Just (i,o,gen)) (Paren _ x) | not $ needBracket i o x = warn msg o (gen x) : g x
         f _ x = g x
 
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
@@ -64,11 +64,11 @@ bracket bad = f Nothing
 dollar :: Exp_ -> [Idea]
 dollar = concatMap f . universe
     where
-        f x = [warn msgDollar x y | InfixApp _ a d b <- [x], opExp d ~= "$"
+        msg = warn "Redundant $"
+        f x = [msg x y | InfixApp _ a d b <- [x], opExp d ~= "$"
               ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b]
               ++
-              [warn msgDollar x (t y)
-              |(t, Paren _ (InfixApp _ a1 op1 a2)) <- infixes x
+              [msg x (t y) |(t, Paren _ (InfixApp _ a1 op1 a2)) <- infixes x
               ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
               ,let y = App an a1 (Paren an a2)]
 
