@@ -3,10 +3,10 @@
 Raise an error if you are bracketing an atom, or are enclosed be a list bracket
 
 <TEST>
--- bracket reduction
+-- expression bracket reduction
 yes = (f x) x -- @Warning f x x
 no = f (x x)
-yes = (foo) -- @Error foo
+yes = (foo) -- foo
 yes = (foo bar) -- @Warning foo bar
 yes = foo (bar) -- @Error bar
 yes = foo ((x x)) -- @Error (x x)
@@ -15,6 +15,17 @@ yes = if (f x) then y else z -- @Warning if f x then y else z
 yes = if x then (f y) else z -- @Warning if x then f y else z
 yes = (a foo) :: Int -- @Warning a foo :: Int
 yes = [(foo bar)] -- @Warning [foo bar]
+yes = foo ((x y), z) -- @Warning (x y, z)
+
+-- type bracket reduction
+foo :: (Int -> Int) -> Int
+foo :: Int -> (Int -> Int) -- @Warning Int -> Int -> Int
+foo :: (Maybe Int) -> a -- @Warning Maybe Int -> a
+instance Named (DeclHead S)
+
+-- pattern bracket reduction
+foo (True) = 1
+foo ((True)) = 1 -- @Error True
 
 -- dollar reduction tests
 no = groupFsts . sortFst $ mr
@@ -36,16 +47,14 @@ module Hint.Bracket where
 import Type
 import Hint
 import HSE.All
+import Data.Maybe
 
 
 bracketHint :: DeclHint
-bracketHint _ _ = concatMap bracketExp . childrenBi
-
-
-
-
-bracketExp :: Exp_ -> [Idea]
-bracketExp x = bracket True x ++ dollar x
+bracketHint _ _ x =
+    concatMap (\x -> bracket True x ++ dollar x) (childrenBi x :: [Exp_]) ++
+    concatMap (bracket False) (childrenBi x :: [Type_]) ++
+    concatMap (bracket False) (childrenBi x :: [Pat_])
 
 
 bracket :: (Annotated a, Uniplate (a S), Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
@@ -54,7 +63,7 @@ bracket bad = f Nothing
         msg = "Redundant bracket"
 
         -- f (Maybe (index, parent, gen)) child
-        f _ o@(remParen -> Just x) | isAtom x = err msg o x : g x
+        f Just{} o@(remParen -> Just x) | isAtom x = err msg o x : g x
         f Nothing o@(remParen -> Just x) | bad = warn msg o x : g x
         f (Just (i,o,gen)) (remParen -> Just x) | not $ needBracket i o x = warn msg o (gen x) : g x
         f _ x = g x

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #245, add hints for excess brackets in types and patterns
     Make 100% redundant brackets an error
     Fix bug where qualified names did not match
     Remove dependency on SYB
