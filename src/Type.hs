@@ -66,6 +66,7 @@ rawIdea = Idea ("","")
 idea rank hint from to = rawIdea rank hint (toSrcLoc $ ann from) (f from) (f to)
     where f = dropWhile isSpace . prettyPrint
 warn mr = idea Warning mr
+err mr = idea Error mr
 
 
 -- Any 1-letter variable names are assumed to be unification variables
