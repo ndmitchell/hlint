@@ -48,10 +48,10 @@ monadHint _ _ = concatMap monadExp . universeBi
 monadExp :: Exp_ -> [Idea]
 monadExp x = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
-        Do _ xs -> [idea Error "Redundant return" x y | Just y <- [monadReturn xs]] ++
-                   [idea Error "Use join" x (Do an y) | Just y <- [monadJoin xs]] ++
-                   [idea Error "Redundant do" x y | [Qualifier _ y] <- [xs]] ++
-                   [idea Error "Use let" x (Do an y) | Just y <- [monadLet xs]] ++
+        Do _ xs -> [err "Redundant return" x y | Just y <- [monadReturn xs]] ++
+                   [err "Use join" x (Do an y) | Just y <- [monadJoin xs]] ++
+                   [err "Redundant do" x y | [Qualifier _ y] <- [xs]] ++
+                   [err "Use let" x (Do an y) | Just y <- [monadLet xs]] ++
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where

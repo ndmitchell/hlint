@@ -65,7 +65,7 @@ lambdaExp o@(Lambda _ vs x) | length vs /= length vs2 =
 lambdaExp o@(Paren _ (App _ (Var _ x@(UnQual _ Symbol{})) y)) | isAtom y =
         [warn "Operator rotate" o $ LeftSection an y (QVarOp an x)]
 lambdaExp o@(App _ (App _ (App _ flp x) y) z) | flp ~= "flip" =
-        [idea Error "Redundant flip" o $ App an (App an x z) y]
+        [err "Redundant flip" o $ App an (App an x z) y]
 lambdaExp _ = []
 
 
