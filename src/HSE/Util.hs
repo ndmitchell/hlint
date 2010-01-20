@@ -119,7 +119,7 @@ descendApps f (App s x y) = App s (descend f x) (f y)
 descendApps f x = descend f x
 
 
-descendAppsM :: Monad m => (Exp_ -> m (Exp_)) -> Exp_ -> m (Exp_)
+descendAppsM :: Monad m => (Exp_ -> m Exp_) -> Exp_ -> m Exp_
 descendAppsM f (App s x@App{} y) = liftM2 (App s) (descendAppsM f x) (f y)
 descendAppsM f (App s x y) = liftM2 (App s) (descendM f x) (f y)
 descendAppsM f x = descendM f x
@@ -131,7 +131,7 @@ universeApps x = x : concatMap universeApps (childrenApps x)
 transformApps :: (Exp_ -> Exp_) -> Exp_ -> Exp_
 transformApps f = f . descendApps (transformApps f)
 
-transformAppsM :: (Monad m) => (Exp_ -> m (Exp_)) -> Exp_ -> m (Exp_)
+transformAppsM :: (Monad m) => (Exp_ -> m Exp_) -> Exp_ -> m Exp_
 transformAppsM f x = f =<< descendAppsM (transformAppsM f) x
 
 

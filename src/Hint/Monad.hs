@@ -55,8 +55,7 @@ monadExp x = case x of
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where
-        f x = [idea Error ("Use " ++ name) x y
-              |Just (name,y) <- [monadCall x]]
+        f x = [err ("Use " ++ name) x y | Just (name,y) <- [monadCall x]]
 
 
 -- see through Paren and down if/case etc
