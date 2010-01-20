@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Make 100% redundant brackets an error
     Fix bug where qualified names did not match
     Remove dependency on SYB
     #234, allow TH top-level splices for ignore
