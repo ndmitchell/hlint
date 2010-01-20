@@ -46,12 +46,12 @@ instance Brackets Exp_ where
 
     needBracket i parent child 
         | isAtom child = False
-        | InfixApp{} <- parent, isApp child = False
+        | InfixApp{} <- parent, App{} <- child = False
         | ListComp{} <- parent = False
         | List{} <- parent = False
         | Tuple{} <- parent = False
         | If{} <- parent, isAnyApp child = False
-        | App{} <- parent, i == 0, isApp child = False
+        | App{} <- parent, i == 0, App{} <- child = False
         | ExpTypeSig{} <- parent, i == 0 = False
         | otherwise = True
 
