@@ -57,6 +57,7 @@ library
         Parallel
         HSE.All
         HSE.Bracket
+        HSE.Eq
         HSE.Evaluate
         HSE.Match
         HSE.NameMatch

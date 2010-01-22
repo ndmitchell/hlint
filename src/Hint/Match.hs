@@ -52,7 +52,7 @@ unify nm (Lambda _ xs x) (Lambda _ ys y) | length xs == length ys = liftM2 (++) 
 unify nm x y | isParen x || isParen y = unify nm (fromParen x) (fromParen y)
 unify nm (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
 unify nm (Var _ x) (Var _ y) | nm x y = Just []
-unify nm x y | ((==) `on` descend (const $ toNamed "_")) x y = concatZipWithM (unify nm) (children x) (children y)
+unify nm x y | eqExpShell x y = concatZipWithM (unify nm) (children x) (children y)
 unify nm x o@(view -> App2 op y1 y2)
   | op ~= "$" = unify nm x $ App an y1 y2
   | op ~= "." = unify nm x $ dotExpand o
