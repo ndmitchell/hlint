@@ -46,18 +46,28 @@ matchIdea nm MatchExp{lhs=lhs,rhs=rhs,side=side} x = do
 
 
 -- unify a b = c, a[c] = b
+-- note: App is unrolled because it's really common
 unify :: NameMatch -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
 unify nm (Do _ xs) (Do _ ys) | length xs == length ys = concatZipWithM (unifyStmt nm) xs ys
 unify nm (Lambda _ xs x) (Lambda _ ys y) | length xs == length ys = liftM2 (++) (unify nm x y) (concatZipWithM unifyPat xs ys)
 unify nm x y | isParen x || isParen y = unify nm (fromParen x) (fromParen y)
 unify nm (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
 unify nm (Var _ x) (Var _ y) | nm x y = Just []
-unify nm x y | eqExpShell x y = concatZipWithM (unify nm) (children x) (children y)
+unify nm (App _ x1 x2) (App _ y1 y2) = liftM2 (++) (unify nm x1 y1) (unify nm x2 y2)
+unify nm x y | isOther x && isOther y && eqExpShell x y = concatZipWithM (unify nm) (children x) (children y)
 unify nm x o@(view -> App2 op y1 y2)
   | op ~= "$" = unify nm x $ App an y1 y2
   | op ~= "." = unify nm x $ dotExpand o
 unify nm x (InfixApp _ lhs op rhs) = unify nm x $ App an (App an (opExp op) lhs) rhs
 unify nm _ _ = Nothing
+
+-- types that are not already handled in unify
+{-# INLINE isOther #-}
+isOther Do{} = False
+isOther Lambda{} = False
+isOther Var{} = False
+isOther App{} = False
+isOther _ = True
 
 
 unifyStmt :: NameMatch -> Stmt S -> Stmt S -> Maybe [(String,Exp_)]
