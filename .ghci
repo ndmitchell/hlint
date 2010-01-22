@@ -33,3 +33,12 @@
         ,":!"++dir++"\\hlint src +RTS -p"
         ]
 :}
+
+:{
+:def bench \x -> return $ unlines
+    [":!mkdir .hpc"
+    ,":!mkdir .hpc\\bench"
+    ,":!ghc --make -isrc -i. src/Main.hs -w -odir .hpc/bench -hidir .hpc/bench -o .hpc/bench/hlint -O"
+    ,":!.hpc\\bench\\hlint src +RTS -s"
+    ]
+:}
