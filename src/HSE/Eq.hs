@@ -21,6 +21,12 @@ eqExpShellSlow = (==) `on` descend (const ex)
 
 
 {-
+-- The following eqExpShell method is based on the SYB functions.
+-- It performs roughly the same as eqExpShell above, but is more
+-- complex so is not used by default.
+-- It is possible some overhead could be removed by optimising the
+-- SYB calls.
+
 data Box = forall a . Data a => Box a
 
 eqExpShellSYB :: Exp_ -> Exp_ -> Bool
