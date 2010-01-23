@@ -38,7 +38,7 @@ library
         hscolour >= 1.15,
         cpphs >= 1.9,
         haskell-src-exts == 1.6.*,
-        uniplate == 1.4.*
+        uniplate == 1.5.*
 
     ghc-options:        -fno-warn-overlapping-patterns
 
