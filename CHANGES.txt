@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.6.16
     Further performance enhancements (for details see my blog)
     Update to uniplate 1.5.* (fixes performance bug)
     Improve speed based on profiling (roughly twice as fast)
