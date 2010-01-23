@@ -29,7 +29,7 @@
     return $ unlines
         [":!mkdir .hpc"
         ,":!mkdir " ++ dir
-        ,":!ghc --make -isrc -i. src/Main.hs -w -odir "++dir++" -hidir "++dir++" -o "++dir++"/hlint -O"++level++" -prof -auto-all"
+        ,":!ghc --make -isrc -i. src/Main.hs -w -odir "++dir++" -hidir "++dir++" -o "++dir++"/hlint -O"++level++" -prof -auto-all -caf-all"
         ,":!"++dir++"\\hlint src +RTS -p"
         ]
 :}
