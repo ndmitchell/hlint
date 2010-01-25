@@ -31,7 +31,6 @@ no = do x <- return y; x <- return y; foo x
 module Hint.Monad where
 
 import Control.Arrow
-import Control.Monad
 import Data.Maybe
 import Data.List
 import HSE.All

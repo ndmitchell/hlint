@@ -47,7 +47,6 @@ module Hint.Bracket where
 import Type
 import Hint
 import HSE.All
-import Data.Maybe
 
 
 bracketHint :: DeclHint

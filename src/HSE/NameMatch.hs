@@ -5,8 +5,6 @@ import HSE.Type
 import HSE.Util
 import HSE.Match
 import qualified Data.Map as Map
-import Data.List
-import Data.Function
 import Util
 
 

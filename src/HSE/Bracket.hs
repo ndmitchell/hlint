@@ -3,7 +3,6 @@
 module HSE.Bracket where
 
 import Control.Monad.State
-import Data.Maybe
 import HSE.Type
 import HSE.Util
 

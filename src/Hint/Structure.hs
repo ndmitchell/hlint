@@ -26,7 +26,6 @@ import Type
 import Hint
 import Util
 import Data.List
-import Data.Maybe
 
 
 structureHint :: DeclHint

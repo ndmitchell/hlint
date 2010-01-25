@@ -14,8 +14,6 @@ import HSE.Type
 import HSE.Bracket
 import HSE.Match
 import HSE.NameMatch
-import Data.Char
-import Data.List
 import Language.Preprocessor.Cpphs
 
 

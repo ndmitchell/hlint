@@ -4,7 +4,6 @@ module Settings(readSettings, classify, defaultName) where
 
 import HSE.All
 import Type
-import Data.Char
 import Data.List
 import System.FilePath
 import Util

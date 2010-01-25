@@ -4,7 +4,6 @@ module HSE.Util where
 
 import Control.Monad
 import Data.List
-import Data.Maybe
 import HSE.Type
 
 

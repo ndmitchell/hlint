@@ -9,7 +9,6 @@ _noParen_ - don't bracket this particular item
 
 module Hint.Match(readMatch) where
 
-import Data.Char
 import Data.List
 import Data.Maybe
 import Type
@@ -18,7 +17,6 @@ import HSE.All
 import Control.Monad
 import Data.Function
 import Util
-import HSE.Evaluate(evaluate)
 
 
 ---------------------------------------------------------------------

@@ -4,9 +4,6 @@ module Type where
 
 import HSE.All
 import Data.Char
-import Data.List
-import Data.Maybe
-import Data.Ord
 import Language.Haskell.HsColour.TTY
 import Language.Haskell.HsColour.Colourise
 

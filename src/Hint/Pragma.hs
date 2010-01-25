@@ -31,7 +31,6 @@ import Type
 import Hint
 import Data.List
 import Data.Maybe
-import Data.Function
 
 
 pragmaHint :: ModuHint
