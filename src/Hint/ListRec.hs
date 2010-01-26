@@ -18,6 +18,7 @@ f (x:xs) = x + 1 : f xs ; f [] = [] -- f xs = map (+ 1) xs
 f z (x:xs) = f (z*x) xs ; f z [] = z -- f z xs = foldl (*) z xs
 f a (x:xs) b = x + a + b : f a xs b ; f a [] b = [] -- f a xs b = map (\ x -> x + a + b) xs
 f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax -- f xs a = foldM (+) a xs
+foos [] x = x; foos (y:ys) x = foo y $ foos ys x -- foos ys x = foldr (foo $) x ys
 </TEST>
 -}
 
@@ -179,7 +180,8 @@ lambda xs (Lambda _ ((view -> PVar_ v):vs) x) = lambda (xs++[v]) (Lambda an vs x
 lambda xs (Lambda _ [] x) = lambda xs x
 lambda [x] (App _ a (view -> Var_ b)) | x == b = a
 lambda [x] (App _ a (Paren _ (App _ b (view -> Var_ c))))
-    | isAtom a && isAtom b && x == c = InfixApp an a (toNamed ".") b
+    | isAtom a && isAtom b && x == c
+    = if a ~= "$" then LeftSection an b (toNamed "$") else InfixApp an a (toNamed ".") b
 lambda [x] (InfixApp _ a op b)
     | view a == Var_ x = RightSection an op b
     | view b == Var_ x = LeftSection an a op
