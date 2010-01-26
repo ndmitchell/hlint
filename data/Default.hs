@@ -83,6 +83,7 @@ error = (\(x,_) -> x) ==> fst
 error = (\x y-> f (x,y)) ==> curry f where _ = notIn [x,y] f
 error = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f
 warn  = (\x -> f x y) ==> flip f y where _ = notIn x [f,y]
+error = (($) . f) ==> (f $)
 error "Redundant id" = id x ==> x
 error "Redundant const" = const x y ==> x
 

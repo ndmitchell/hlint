@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add the hint (($) . f) ==> (f $)
 1.6.16
     Further performance enhancements (for details see my blog)
     Update to uniplate 1.5.* (fixes performance bug)
