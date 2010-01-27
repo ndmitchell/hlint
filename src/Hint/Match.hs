@@ -25,7 +25,7 @@ import Util
 fmapAn = fmap (const an)
 
 readMatch :: [Setting] -> DeclHint
-readMatch settings = findIdeas [m{lhs = fmapAn $ lhs m} | m@MatchExp{} <- settings]
+readMatch settings = findIdeas [m{lhs = fmapAn $ lhs m, side = fmap fmapAn $ side m} | m@MatchExp{} <- settings]
 
 
 findIdeas :: [Setting] -> NameMatch -> Module S -> Decl_ -> [Idea]
@@ -39,8 +39,8 @@ matchIdea :: NameMatch -> Setting -> Exp_ -> Maybe Exp_
 matchIdea nm MatchExp{lhs=lhs,rhs=rhs,side=side} x = do
     u <- unify nm lhs x
     u <- check u
-    guard $ checkSide side u
     let rhs2 = subst u rhs
+    guard $ checkSide side $ ("original",x) : ("result",rhs2) : u
     guard $ checkDot lhs rhs2
     return $ unqualify nm $ dotContract $ performEval rhs2
 
@@ -90,31 +90,31 @@ check = mapM f . groupSortFst
 
 
 checkSide :: Maybe Exp_ -> [(String,Exp_)] -> Bool
-checkSide Nothing  bind = True
-checkSide (Just x) bind = f x
+checkSide x bind = maybe True f x
     where
         f (InfixApp _ x op y)
             | opExp op ~= "&&" = f x && f y
             | opExp op ~= "||" = f x || f y
+        f (App _ x y) | x ~= "not" = not $ f y
         f (Paren _ x) = f x
-        f (App _ x (Var _ y))
-            | 'i':'s':typ <- fromNamed x, Just e <- lookup (fromNamed y) bind
-            = if typ == "Atom" then isAtom e
-              else head (words $ show e) == typ
-        f (App _ (App _ cond xs) ys)
-            | cond ~= "notIn" = and [notIn x y | x <- g xs, y <- g ys]
-            | cond ~= "notEq" = maybe False (not . (=~=) ys) $ lookup (fromNamed xs) bind
+
+        f (App _ cond (sub -> y))
+            | 'i':'s':typ <- fromNamed cond
+            = if typ == "Atom" then isAtom y else head (words $ show y) == typ
+        f (App _ (App _ cond (sub -> x)) (sub -> y))
+            | cond ~= "notIn" = and [x `notElem` universe y | x <- list x, y <- list y]
+            | cond ~= "notEq" = x /= y
         f x | x ~= "notTypeSafe" = True
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
 
-        g :: Exp_ -> [Exp_]
-        g (List _ xs) = xs
-        g x = [x]
+        list :: Exp_ -> [Exp_]
+        list (List _ xs) = xs
+        list x = [x]
 
-        notIn x y = fromMaybe False $ do
-            x2 <- lookup (fromNamed x) bind
-            y2 <- lookup (fromNamed y) bind
-            return $ x2 `notElem` universe y2
+        sub :: Exp_ -> Exp_
+        sub = transform f
+            where f (view -> Var_ x) | Just y <- lookup x bind = y
+                  f x = x
 
 
 -- If they have have a lambda in the pattern
