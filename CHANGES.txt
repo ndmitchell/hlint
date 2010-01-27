@@ -1,6 +1,6 @@
 Changelog for HLint
 
-    #???, generate nicer lambdas for (($) . f)
+    #260, generate nicer lambdas for (($) . f)
     Add the hint (($) . f) ==> (f $)
 1.6.16
     Further performance enhancements (for details see my blog)
