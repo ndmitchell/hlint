@@ -220,7 +220,7 @@ warn  = (do a <- f; g a) ==> f >>= g
 {-
 <TEST>
 yes = concat . map f -- concatMap f
-yes = foo . bar . concat . map f . baz . bar -- concatMap f . baz . bar
+yes = foo . bar . concat . map f . baz . bar -- (concatMap f . baz . bar)
 yes = map f (map g x) -- map (f . g) x
 yes = concat.map (\x->if x==e then l' else [x]) -- concatMap (\x->if x==e then l' else [x])
 yes = f x where f x = concat . map head -- concatMap head

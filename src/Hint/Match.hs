@@ -31,18 +31,19 @@ readMatch settings = findIdeas [m{lhs = fmapAn $ lhs m, side = fmap fmapAn $ sid
 findIdeas :: [Setting] -> NameMatch -> Module S -> Decl_ -> [Idea]
 findIdeas matches nm _ decl =
   [ idea (rankS m) (hintS m) x y
-  | x <- universeBi decl, not $ isParen x, let x2 = fmapAn x
-  , m <- matches, Just y <- [matchIdea nm m x2]]
+  | (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
+  , m <- matches, Just y <- [matchIdea nm m parent x2]]
 
 
-matchIdea :: NameMatch -> Setting -> Exp_ -> Maybe Exp_
-matchIdea nm MatchExp{lhs=lhs,rhs=rhs,side=side} x = do
+matchIdea :: NameMatch -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe Exp_
+matchIdea nm MatchExp{lhs=lhs,rhs=rhs,side=side} parent x = do
     u <- unify nm lhs x
     u <- check u
-    let rhs2 = subst u rhs
-    guard $ checkSide side $ ("original",x) : ("result",rhs2) : u
-    guard $ checkDot lhs rhs2
-    return $ unqualify nm $ dotContract $ performEval rhs2
+    let sub = subst u rhs
+    guard $ checkDot lhs sub
+    let res = addBracket parent $ unqualify nm $ dotContract $ performEval sub
+    guard $ checkSide side $ ("original",x) : ("result",res) : u
+    return res
 
 
 -- unify a b = c, a[c] = b
@@ -161,3 +162,7 @@ unqualify nm = transformBi f
         f (Qual _ mod x) | nm (Qual an mod x) (UnQual an x) = UnQual an x
         f x = x
 
+
+addBracket :: Maybe (Int,Exp_) -> Exp_ -> Exp_
+addBracket (Just (i,p)) c | needBracket i p c = Paren an c
+addBracket _ x = x
