@@ -156,6 +156,17 @@ error = maybe False (const True) ==> Data.Maybe.isJust
 error = maybe True (const False) ==> Data.Maybe.isNothing
 error = catMaybes (map f x) ==> mapMaybe f x
 
+-- INFIX
+
+warn "Use infix" = elem x y ==> x `elem` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = notElem x y ==> x `notElem` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = isInfixOf x y ==> x `isInfixOf` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = isSuffixOf x y ==> x `isSuffixOf` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = isPrefixOf x y ==> x `isPrefixOf` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = union x y ==> x `union` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = intersect x y ==> x `intersect` y where _ = not (isInfixApp original) && not (isParen result)
+
+
 -- MATHS
 
 warn  = x + negate y ==> x - y
@@ -263,6 +274,10 @@ yes = Prelude.concat $ intersperse " " xs -- unwords xs
 yes = concat $ Data.List.intersperse " " xs -- unwords xs
 yes = if a then True else False -- a
 yes = if x then true else False -- x && true
+yes = elem x y -- x `elem` y
+yes = foo (elem x y) -- x `elem` y
+no  = x `elem` y
+no  = elem 1 [] : []
 
 
 import Prelude \
