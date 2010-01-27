@@ -95,8 +95,8 @@ error "Redundant if" = (if a then True else False) ==> a
 error "Redundant if" = (if a then False else True) ==> not a
 error "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then t else f
 error "Redundant if" = (if a then (if b then t else f) else f) ==> if a && b then t else f
-error "Redundant if" = (if x then True else y) ==> x || y
-error "Redundant if" = (if x then y else False) ==> x && y
+error "Redundant if" = (if x then True else y) ==> x || y where _ = notEq y False
+error "Redundant if" = (if x then y else False) ==> x && y where _ = notEq y True
 error "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
 error "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
 error "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
@@ -261,6 +261,9 @@ no = foo (\ v -> f v . g)
 yes = concat . intersperse " " -- unwords
 yes = Prelude.concat $ intersperse " " xs -- unwords xs
 yes = concat $ Data.List.intersperse " " xs -- unwords xs
+yes = if a then True else False -- a
+yes = if x then true else False -- x && true
+
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

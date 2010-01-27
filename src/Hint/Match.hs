@@ -101,7 +101,9 @@ checkSide (Just x) bind = f x
             | 'i':'s':typ <- fromNamed x, Just e <- lookup (fromNamed y) bind
             = if typ == "Atom" then isAtom e
               else head (words $ show e) == typ
-        f (App _ (App _ nin xs) ys) | nin ~= "notIn" = and [notIn x y | x <- g xs, y <- g ys]
+        f (App _ (App _ cond xs) ys)
+            | cond ~= "notIn" = and [notIn x y | x <- g xs, y <- g ys]
+            | cond ~= "notEq" = maybe False (not . (=~=) ys) $ lookup (fromNamed xs) bind
         f x | x ~= "notTypeSafe" = True
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
 

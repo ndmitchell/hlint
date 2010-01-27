@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #240, if a then True else False no longer suggests a || False
     Upgrade to haskell-src-exts-1.7.*
     #236, support changing the text encoding with --encoding/--utf8
     #260, generate nicer lambdas for (($) . f)
