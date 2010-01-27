@@ -7,6 +7,7 @@ module HSE.All(
     ParseFlags(..), parseFlags, parseFile, parseString
     ) where
 
+import Util
 import HSE.Util
 import HSE.Evaluate
 import HSE.Eq
@@ -20,10 +21,11 @@ import Language.Preprocessor.Cpphs
 data ParseFlags = ParseFlags
     {cpphs :: Maybe CpphsOptions
     ,implies :: Bool
+    ,encoding :: String
     }
 
 parseFlags :: ParseFlags
-parseFlags = ParseFlags Nothing False
+parseFlags = ParseFlags Nothing False ""
 
 
 -- | Parse a Haskell module
@@ -39,7 +41,7 @@ parseString flags file = parseFileContentsWithMode mode . maybe id (`runCpphs` f
 
 parseFile :: ParseFlags -> FilePath -> IO (ParseResult Module_)
 parseFile flags file = do
-    src <- readFile file
+    src <- readFileEncoding (encoding flags) file
     return $ parseString flags file src
 
 

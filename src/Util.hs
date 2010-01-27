@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 
 module Util where
 
@@ -8,6 +9,7 @@ import Data.List
 import Data.Ord
 import System.Directory
 import System.FilePath
+import System.IO
 
 
 getDirectoryContentsRecursive :: FilePath -> IO [FilePath]
@@ -68,3 +70,22 @@ groupSortFst = map (fst . head &&& map snd) . groupBy ((==) `on` fst) . sortBy (
 
 disjoint :: Eq a => [a] -> [a] -> Bool
 disjoint xs = null . intersect xs
+
+
+readFileEncoding :: String -> FilePath -> IO String
+#if __GLASGOW_HASKELL__ < 612
+readFileEncoding _ = readFile
+#else
+readFileEncoding "" = readFile
+readFileEncoding enc = \file -> do
+    h <- openFile file ReadMode
+    enc <- mkTextEncoding enc
+    hSetEncoding h enc
+    hGetContents h
+#endif
+
+warnEncoding :: String -> IO ()
+#if __GLASGOW_HASKELL__ < 612
+warnEncoding enc | enc /= "" = putStrLn "Warning: Text encodings are not supported with HLint compiled by GHC 6.10"
+#endif
+warnEncoding _ = return ()

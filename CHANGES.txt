@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #236, support changing the text encoding with --encoding/--utf8
     #260, generate nicer lambdas for (($) . f)
     Add the hint (($) . f) ==> (f $)
 1.6.16

@@ -6,6 +6,7 @@ import Data.Char
 import Data.List
 import Data.Ord
 import Type
+import Util
 
 
 type DeclHint = NameMatch -> Module_ -> Decl_ -> [Idea]
@@ -16,7 +17,7 @@ data Hint = DeclHint {declHint :: DeclHint} | ModuHint {moduHint :: ModuHint}
 
 applyHint :: ParseFlags -> [Hint] -> FilePath -> IO [Idea]
 applyHint flags h file = do
-    src <- readFile file
+    src <- readFileEncoding (encoding flags) file
     return $ applyHintStr flags h file src
 
 

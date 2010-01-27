@@ -25,6 +25,7 @@ data Cmd = Cmd
     ,cmdColor :: Bool                -- ^ color the result
     ,cmdCpphs :: CpphsOptions        -- ^ options for cpphs
     ,cmdDataDir :: FilePath          -- ^ the data directory
+    ,cmdEncoding :: String           -- ^ the text encoding
     }
 
 
@@ -37,6 +38,7 @@ data Opts = Help | Ver | Test
           | Include String
           | Ext String
           | DataDir String
+          | Encoding String
             deriving Eq
 
 
@@ -48,6 +50,8 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "i" ["ignore"] (ReqArg Skip "hint") "Ignore a particular hint"
        ,Option "s" ["show"] (NoArg ShowAll) "Show all ignored ideas"
        ,Option "e" ["extension"] (ReqArg Ext "ext") "File extensions to search (defaults to hs and lhs)"
+       ,Option "u" ["utf8"] (NoArg $ Encoding "UTF-8") "Use UTF-8 text encoding"
+       ,Option ""  ["encoding"] (ReqArg Encoding "encoding") "Choose the text encoding"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
        ,Option "d" ["datadir"] (ReqArg DataDir "dir") "Override the data directory"
        ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
@@ -85,6 +89,9 @@ getCmd args = do
             ,defines = [(a,drop 1 b) | Define x <- opt, let (a,b) = break (== '=') x]
             }
 
+    let encoding = last $ "" : [x | Encoding x <- opt]
+    when (encoding /= "") $ warnEncoding encoding
+
     return Cmd
         {cmdTest = test
         ,cmdFiles = files
@@ -95,6 +102,7 @@ getCmd args = do
         ,cmdColor = Color `elem` opt
         ,cmdCpphs = cpphs
         ,cmdDataDir = dataDir
+        ,cmdEncoding = encoding
         }
 
 

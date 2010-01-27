@@ -28,7 +28,8 @@ hlint args = do
         settings <- readSettings cmdDataDir cmdHintFiles
         let extra = [Classify Ignore x ("","") | x <- cmdIgnore]
         let apply :: FilePath -> IO [Idea]
-            apply = fmap (fmap $ classify $ settings ++ extra) . applyHint parseFlags{cpphs=Just cmdCpphs} (allHints settings)
+            apply = fmap (fmap $ classify $ settings ++ extra) . applyHint flags (allHints settings)
+            flags = parseFlags{cpphs=Just cmdCpphs, encoding=cmdEncoding} 
         ideas <- fmap concat $ parallel [listM' =<< apply x | x <- cmdFiles]
         let visideas = filter (\i -> cmdShowAll || rank i /= Ignore) ideas
         showItem <- if cmdColor then showANSI else return show
