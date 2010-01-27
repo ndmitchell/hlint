@@ -150,6 +150,13 @@ vars xs = [prettyPrint x | Var _ (UnQual _ x) <- universeS xs]
 pvars :: Biplate a Pat_ => a -> [String]
 pvars xs = [prettyPrint x | PVar _ x <- universeS xs]
 
+
+-- return the parent along with the child
+universeParentExp :: Biplate a Exp_ => a -> [(Maybe (Int, Exp_), Exp_)]
+universeParentExp xs = concat [(Nothing, x) : f x | x <- childrenBi xs]
+    where f p = concat [(Just (i,p), c) : f c | (i,c) <- zip [0..] $ children p]
+
+
 ---------------------------------------------------------------------
 -- SRCLOC FUNCTIONS
 
