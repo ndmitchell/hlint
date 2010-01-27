@@ -151,7 +151,7 @@ error "Redundant $!" = id $! x ==> x
 
 -- MAYBE
 
-error = maybe x id  ==> Data.Maybe.fromMaybe x
+error = maybe x id ==> Data.Maybe.fromMaybe x
 error = maybe False (const True) ==> Data.Maybe.isJust
 error = maybe True (const False) ==> Data.Maybe.isNothing
 error = catMaybes (map f x) ==> mapMaybe f x
