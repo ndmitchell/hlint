@@ -52,6 +52,7 @@ instance Brackets Exp_ where
         | If{} <- parent, isAnyApp child = False
         | App{} <- parent, i == 0, App{} <- child = False
         | ExpTypeSig{} <- parent, i == 0 = False
+        | Paren{} <- parent = False
         | otherwise = True
 
 
@@ -75,6 +76,7 @@ instance Brackets Type_ where
         | TyTuple{} <- parent = False
         | TyList{} <- parent = False
         | TyInfix{} <- parent, TyApp{} <- child = False
+        | TyParen{} <- parent = False
         | otherwise = True
 
 
@@ -97,6 +99,7 @@ instance Brackets Pat_ where
         | PTuple{} <- parent = False
         | PList{} <- parent = False
         | PInfixApp{} <- parent, PApp{} <- child = False
+        | PParen{} <- parent = False
         | otherwise = True
 
 
