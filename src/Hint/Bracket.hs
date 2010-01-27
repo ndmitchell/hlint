@@ -56,7 +56,7 @@ bracketHint _ _ x =
     concatMap (bracket False) (childrenBi x :: [Pat_])
 
 
-bracket :: (Annotated a, Uniplate (a S), Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
+bracket :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
 bracket bad = f Nothing
     where
         msg = "Redundant bracket"
@@ -67,7 +67,7 @@ bracket bad = f Nothing
         f (Just (i,o,gen)) (remParen -> Just x) | not $ needBracket i o x = warn msg o (gen x) : g x
         f _ x = g x
 
-        g :: (Annotated a, Uniplate (a S), Pretty (a S), Brackets (a S)) => a S -> [Idea]
+        g :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
 
 
