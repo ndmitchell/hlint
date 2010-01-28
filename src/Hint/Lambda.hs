@@ -81,7 +81,8 @@ lambdaDef o@(Match _ name pats (UnGuardedRhs _ bod) Nothing)
     | (p2,y) <- etaReduces pats bod, length p2 /= length pats = [warn "Eta reduce" o $ reform p2 y]
     | otherwise = []
         where reform pats2 bod2 = Match an name pats2 (UnGuardedRhs an bod2) Nothing
-lambdaDef (InfixMatch an p name ps rhs binds) = lambdaDef $ Match an name (p:ps) rhs binds
+-- FIXME: Should be (p:ps) once HSE 1.6 compat is dropped
+lambdaDef (InfixMatch an p name ps rhs binds) = lambdaDef $ Match an name (p : childrenBi ps) rhs binds
 lambdaDef _ = []
 
 
