@@ -53,7 +53,7 @@ classify xs = \i -> if isParseError i then i else i{rank = foldl' (rerank i) (ra
 defaultName = "Use alternative"
 
 readSetting :: Decl_ -> [Setting]
-readSetting (FunBind _ [Match _ (Ident _ (getRank -> rank)) pats (UnGuardedRhs _ bod) bind])
+readSetting (FunBind _ [Match _ (Ident _ (getRank -> Just rank)) pats (UnGuardedRhs _ bod) bind])
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
         [MatchExp rank (if null names then defaultName else head names) (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
     | otherwise = [Classify rank n func | n <- names2, func <- readFuncs bod]
@@ -97,8 +97,9 @@ getNames [] (InfixApp _ lhs op rhs) | opExp op ~= "==>" = map ("Use "++) names
 getNames _ _ = []
 
 
-getRank :: String -> Rank
-getRank "ignore" = Ignore
-getRank "warn" = Warning
-getRank "warning" = Warning
-getRank "error"  = Error
+getRank :: String -> Maybe Rank
+getRank "ignore" = Just Ignore
+getRank "warn" = Just Warning
+getRank "warning" = Just Warning
+getRank "error"  = Just Error
+getRank _ = Nothing
