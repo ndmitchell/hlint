@@ -46,7 +46,7 @@ test dataDir = do
 runTestDyn :: FilePath -> FilePath -> IO (Int,Int)
 runTestDyn dataDir file = do
     settings <- readSettings dataDir [file]
-    let bad = [putStrLn $ "No name for the hint " ++ prettyPrint (lhs x) | x@MatchExp{} <- settings, hintS x == defaultName]
+    let bad = [putStrLn $ "No name for the hint " ++ prettyPrint (lhs x) | x@MatchExp{} <- settings, hintS x == defaultHintName]
     sequence_ bad
 
     (f1,t1) <- runTestTypes settings

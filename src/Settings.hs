@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
-module Settings(readSettings, classify, defaultName) where
+module Settings(readSettings, classify, defaultHintName) where
 
 import HSE.All
 import Type
@@ -50,12 +50,12 @@ classify xs = \i -> if isParseError i then i else i{rank = foldl' (rerank i) (ra
 ---------------------------------------------------------------------
 -- READ A HINT
 
-defaultName = "Use alternative"
+defaultHintName = "Use alternative"
 
 readSetting :: Decl_ -> [Setting]
 readSetting (FunBind _ [Match _ (Ident _ (getRank -> Just rank)) pats (UnGuardedRhs _ bod) bind])
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
-        [MatchExp rank (if null names then defaultName else head names) (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
+        [MatchExp rank (if null names then defaultHintName else head names) (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
     | otherwise = [Classify rank n func | n <- names2, func <- readFuncs bod]
     where
         names = getNames pats bod
