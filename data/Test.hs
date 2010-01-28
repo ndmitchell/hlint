@@ -3,6 +3,8 @@
 
 module HLint.Test where
 
+import HLint.Builtin.Naming
+
 
 error = Prelude.readFile ==> bad
 
@@ -41,5 +43,6 @@ ignoreTest3 = filter -- @Warning ???
 ignoreAny = map -- @Ignore ???
 ignoreNew = foldr -- @Ignore ???
 
+type Naming_Test = Int -- type NamingTest = Int
 </TEST>
 -}
