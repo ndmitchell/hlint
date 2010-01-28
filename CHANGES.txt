@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Give better error messages on incorrect settings files
     Add temporary haskell-src-exts 1.5/1.6 compatibility
     #327, add hints to use expressions infix
     #240, if a then True else False no longer suggests a || False

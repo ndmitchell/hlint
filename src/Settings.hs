@@ -65,13 +65,13 @@ readSetting (FunBind _ [Match _ (Ident _ (getRank -> Just rank)) pats (UnGuarded
 readSetting (PatBind _ (PVar _ name) _ bod bind) = readSetting $ FunBind an [Match an name [PLit an (String an "" "")] bod bind]
 readSetting (FunBind _ xs) | length xs /= 1 = concatMap (readSetting . FunBind an . (:[])) xs
 readSetting (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
-readSetting x = error $ "Failed to read hint " ++ prettyPrint (getPointLoc $ ann x) ++ "\n" ++ prettyPrint x
+readSetting x = errorOn x "bad hint"
 
 
 readSide :: [Decl_] -> Maybe Exp_
 readSide [] = Nothing
 readSide [PatBind _ PWildCard{} Nothing (UnGuardedRhs _ bod) Nothing] = Just bod
-readSide (x:_) = error $ "Failed to read side condition " ++ prettyPrint (getPointLoc $ ann x) ++ "\n" ++ prettyPrint x
+readSide (x:_) = errorOn x "bad side condition"
 
 
 readFuncs :: Exp_ -> [FuncName]
@@ -81,8 +81,14 @@ readFuncs (Var _ (UnQual _ name)) = [("",fromNamed name)]
 readFuncs (Var _ (Qual _ (ModuleName _ mod) name)) = [(mod, fromNamed name)]
 readFuncs (Con _ (UnQual _ name)) = [(fromNamed name,"")]
 readFuncs (Con _ (Qual _ (ModuleName _ mod) name)) = [(mod ++ "." ++ fromNamed name,"")]
-readFuncs x = error $ "Failed to read classification rule\n" ++ prettyPrint x
+readFuncs x = errorOn x "bad classification rule"
 
+
+-- errorOn :: Pretty x => x -> String -> a
+errorOn val msg = exitMessage $
+    showSrcLoc (getPointLoc $ ann val)  ++
+    " Error while reading hint file, " ++ msg ++ "\n" ++
+    prettyPrint val
 
 
 getNames :: [Pat_] -> Exp_ -> [String]
