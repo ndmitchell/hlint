@@ -244,21 +244,6 @@ import HLint.Default
 import HLint.Dollar
 </pre>
 
-<h3>Adding hints</h3>
-
-<p>
-	The hint suggesting <tt>concatMap</tt> is defined as:
-</p>
-<pre>
-error = concat (map f x) ==> concatMap f x
-</pre>
-<p>
-	The line can be read as replace <tt>concat (map <i>f</i> <i>x</i>)</tt> with <tt>concatMap <i>f</i> <i>x</i></tt>. Anything with a 1-letter variable is treated as a substitution parameter. For examples of more complex hints see the supplied hints file. In general, hints should <i>not</i> be given in point free style, as this reduces the power of the matching. Hints may start with <tt>error</tt> or <tt>warn</tt> to denote how severe they are by default.
-</p><p>
-	If you come up with interesting hints, please submit them. For example, some of the hints about <tt>last</tt> were supplied by Henning Thielemann.
-</p>
-
-
 <h3>Ignoring hints</h3>
 
 <p>
@@ -274,6 +259,20 @@ error = concat (map f x) ==> concatMap f x
 </ul>
 <p>
 	These directives are applied in the order they are given, with later hints overriding earlier ones.
+</p>
+
+<h3>Adding hints</h3>
+
+<p>
+	The hint suggesting <tt>concatMap</tt> is defined as:
+</p>
+<pre>
+error = concat (map f x) ==> concatMap f x
+</pre>
+<p>
+	The line can be read as replace <tt>concat (map <i>f</i> <i>x</i>)</tt> with <tt>concatMap <i>f</i> <i>x</i></tt>. Anything with a 1-letter variable is treated as a substitution parameter. For examples of more complex hints see the supplied hints file. In general, hints should <i>not</i> be given in point free style, as this reduces the power of the matching. Hints may start with <tt>error</tt> or <tt>warn</tt> to denote how severe they are by default.
+</p><p>
+	If you come up with interesting hints, please submit them. For example, some of the hints about <tt>last</tt> were supplied by Henning Thielemann.
 </p>
 
     </body>
