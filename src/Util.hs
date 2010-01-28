@@ -8,8 +8,10 @@ import Data.Function
 import Data.List
 import Data.Ord
 import System.Directory
+import System.Exit
 import System.FilePath
 import System.IO
+import System.IO.Unsafe
 
 
 getDirectoryContentsRecursive :: FilePath -> IO [FilePath]
@@ -89,3 +91,9 @@ warnEncoding :: String -> IO ()
 warnEncoding enc | enc /= "" = putStrLn "Warning: Text encodings are not supported with HLint compiled by GHC 6.10"
 #endif
 warnEncoding _ = return ()
+
+
+exitMessage :: String -> a
+exitMessage msg = unsafePerformIO $ do
+    putStrLn msg
+    exitWith $ ExitFailure 1
