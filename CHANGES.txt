@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Support ignoring hints on types
     Give better error messages on incorrect settings files
     Add temporary haskell-src-exts 1.5/1.6 compatibility
     #327, add hints to use expressions infix

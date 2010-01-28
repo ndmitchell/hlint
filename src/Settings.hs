@@ -74,13 +74,14 @@ readSide [PatBind _ PWildCard{} Nothing (UnGuardedRhs _ bod) Nothing] = Just bod
 readSide (x:_) = errorOn x "bad side condition"
 
 
+-- Note: Foo may be ("","Foo") or ("Foo",""), return both
 readFuncs :: Exp_ -> [FuncName]
 readFuncs (App _ x y) = readFuncs x ++ readFuncs y
 readFuncs (Lit _ (String _ "" _)) = [("","")]
 readFuncs (Var _ (UnQual _ name)) = [("",fromNamed name)]
 readFuncs (Var _ (Qual _ (ModuleName _ mod) name)) = [(mod, fromNamed name)]
-readFuncs (Con _ (UnQual _ name)) = [(fromNamed name,"")]
-readFuncs (Con _ (Qual _ (ModuleName _ mod) name)) = [(mod ++ "." ++ fromNamed name,"")]
+readFuncs (Con _ (UnQual _ name)) = [(fromNamed name,""),("",fromNamed name)]
+readFuncs (Con _ (Qual _ (ModuleName _ mod) name)) = [(mod ++ "." ++ fromNamed name,""),(mod,fromNamed name)]
 readFuncs x = errorOn x "bad classification rule"
 
 

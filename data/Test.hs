@@ -20,6 +20,7 @@ ignore "Test1" = ""
 ignore "Test3"
 ignore "Test2" = ignoreTest
 warn = ignoreTest3
+ignore = Naming_Test
 
 
 {-
@@ -43,6 +44,6 @@ ignoreTest3 = filter -- @Warning ???
 ignoreAny = map -- @Ignore ???
 ignoreNew = foldr -- @Ignore ???
 
-type Naming_Test = Int -- type NamingTest = Int
+type Naming_Test = Int -- @Ignore ???
 </TEST>
 -}
