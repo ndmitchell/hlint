@@ -62,8 +62,8 @@ readSetting (FunBind _ [Match _ (Ident _ (getRank -> Just rank)) pats (UnGuarded
         names2 = ["" | null names] ++ names
 
 
-readSetting (PatBind _ (PVar _ name) _ bod bind) = readSetting $ FunBind an [Match an name [PLit an (String an "" "")] bod bind]
-readSetting (FunBind _ xs) | length xs /= 1 = concatMap (readSetting . FunBind an . (:[])) xs
+readSetting (PatBind an (PVar _ name) _ bod bind) = readSetting $ FunBind an [Match an name [PLit an (String an "" "")] bod bind]
+readSetting (FunBind an xs) | length xs /= 1 = concatMap (readSetting . FunBind an . (:[])) xs
 readSetting (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
 readSetting x = errorOn x "bad hint"
 
