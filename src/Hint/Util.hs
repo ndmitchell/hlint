@@ -20,4 +20,5 @@ niceLambda [x] (InfixApp _ a op b)
 niceLambda [x,y] (view -> App2 op (view -> Var_ x1) (view -> Var_ y1))
     | x1 == x && y1 == y = op
     | x1 == y && y1 == x = App an (toNamed "flip") op
+niceLambda [] x = x
 niceLambda ps x = Lambda an (map toNamed ps) x
