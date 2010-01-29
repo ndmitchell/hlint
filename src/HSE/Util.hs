@@ -188,7 +188,7 @@ dropAnn = fmap (const ())
 x /=~= y = not $ x =~= y
 
 elem_ :: (Annotated f, Eq (f ())) => f S -> [f S] -> Bool
-elem_ x y = any (x =~=) y
+elem_ x = any (x =~=)
 
 nub_ :: (Annotated f, Eq (f ())) => [f S] -> [f S]
 nub_ = nubBy (=~=)
