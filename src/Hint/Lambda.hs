@@ -23,8 +23,6 @@ f x y = f (g x) (g y)
 f x y = g x == g y -- f = (==) `on` g
 a + b = foo a b -- (+) = foo
 h a = f ((++) a) a -- (a ++)
-h a = flip f x (y z) -- f (y z) x
-h a = flip f x $ y z
 yes = foo (\x -> sum x) -- sum
 yes = foo (\x l -> sum x x l) -- \x -> sum x x
 test = foo (\x -> y == x) -- (y ==)
@@ -54,8 +52,6 @@ lambdaExp o@(Lambda _ vs x) | length vs /= length vs2 =
     where (vs2,x2) = etaReduces vs x
 lambdaExp o@(Paren _ (App _ (Var _ x@(UnQual _ Symbol{})) y)) | isAtom y =
         [warn "Operator rotate" o $ LeftSection an y (QVarOp an x)]
-lambdaExp o@(App _ (App _ (App _ flp x) y) z) | flp ~= "flip" =
-        [err "Redundant flip" o $ App an (App an x z) y]
 lambdaExp _ = []
 
 

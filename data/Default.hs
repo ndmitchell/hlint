@@ -85,6 +85,7 @@ error = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f
 warn  = (\x -> f x y) ==> flip f y where _ = notIn x [f,y]
 error = (($) . f) ==> (f $)
 warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
+error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 error "Redundant id" = id x ==> x
 error "Redundant const" = const x y ==> x
 
@@ -281,6 +282,8 @@ yes = foo (elem x y) -- x `elem` y
 no  = x `elem` y
 no  = elem 1 [] : []
 test a = foo (\x -> True) -- const True
+h a = flip f x (y z) -- f (y z) x
+h a = flip f x $ y z
 
 
 import Prelude \
