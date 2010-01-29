@@ -127,3 +127,8 @@ transformBracket f = snd . g
 -- ensure that all the 1-level children are appropriately bracketed
 ensureBracket1 :: Exp_ -> Exp_
 ensureBracket1 = descendBracket ((,) True)
+
+
+-- a list of application, with any necessary brackets
+appsBracket :: [Exp_] -> Exp_
+appsBracket = foldl1 (\x -> ensureBracket1 . App an x)

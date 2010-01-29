@@ -29,6 +29,7 @@ import Type
 import Hint
 import Util
 import HSE.All
+import Hint.Util
 import Data.List
 import Data.Maybe
 import Data.Ord
@@ -74,25 +75,25 @@ matchListRec o@(ListCase vs nil (x,xs,cons))
     | [] <- vs, nil ~= "[]", InfixApp _ lhs c rhs <- cons, opExp c ~= ":"
     , fromParen rhs =~= recursive, xs `notElem` vars lhs
     = Just $ (,,) "map" Error $ appsBracket
-        [toNamed "map", lambda [x] lhs, toNamed xs]
+        [toNamed "map", niceLambda [x] lhs, toNamed xs]
 
     | [] <- vs, App2 op lhs rhs <- view cons
     , null $ vars op `intersect` [x,xs]
     , fromParen rhs == recursive, xs `notElem` vars lhs
     = Just $ (,,) "foldr" Warning $ appsBracket
-        [toNamed "foldr", lambda [x] $ appsBracket [op,lhs], nil, toNamed xs]
+        [toNamed "foldr", niceLambda [x] $ appsBracket [op,lhs], nil, toNamed xs]
 
     | [v] <- vs, view nil == Var_ v, App _ r lhs <- cons, r =~= recursive
     , xs `notElem` vars lhs
     = Just $ (,,) "foldl" Warning $ appsBracket
-        [toNamed "foldl", lambda [v,x] lhs, toNamed v, toNamed xs]
+        [toNamed "foldl", niceLambda [v,x] lhs, toNamed v, toNamed xs]
 
     | [v] <- vs, App _ ret res <- nil, ret ~= "return", res ~= "()" || view res == Var_ v
     , [Generator _ (view -> PVar_ b1) e, Qualifier _ (fromParen -> App _ r (view -> Var_ b2))] <- asDo cons
     , b1 == b2, r == recursive, xs `notElem` vars e
     , name <- "foldM" ++ ['_'|res ~= "()"]
     = Just $ (,,) name Warning $ appsBracket
-        [toNamed name, lambda [v,x] e, toNamed v, toNamed xs]
+        [toNamed name, niceLambda [v,x] e, toNamed v, toNamed xs]
 
     | otherwise = Nothing
 
@@ -163,29 +164,3 @@ readPat (view -> PVar_ x) = Just $ Left x
 readPat (PParen _ (PInfixApp _ (view -> PVar_ x) (Special _ Cons{}) (view -> PVar_ xs))) = Just $ Right $ BCons x xs
 readPat (PList _ []) = Just $ Right BNil
 readPat _ = Nothing
-
-
----------------------------------------------------------------------
--- UTILITY FUNCTIONS
-
--- a list of application, with any necessary brackets
-appsBracket :: [Exp_] -> Exp_
-appsBracket = foldl1 (\x -> ensureBracket1 . App an x)
-
-
--- generate a lambda, but prettier (if possible)
-lambda :: [String] -> Exp_ -> Exp_
-lambda xs (Paren _ x) = lambda xs x
-lambda xs (Lambda _ ((view -> PVar_ v):vs) x) = lambda (xs++[v]) (Lambda an vs x)
-lambda xs (Lambda _ [] x) = lambda xs x
-lambda [x] (App _ a (view -> Var_ b)) | x == b = a
-lambda [x] (App _ a (Paren _ (App _ b (view -> Var_ c))))
-    | isAtom a && isAtom b && x == c
-    = if a ~= "$" then LeftSection an b (toNamed "$") else InfixApp an a (toNamed ".") b
-lambda [x] (InfixApp _ a op b)
-    | view a == Var_ x = RightSection an op b
-    | view b == Var_ x = LeftSection an a op
-lambda [x,y] (view -> App2 op (view -> Var_ x1) (view -> Var_ y1))
-    | x1 == x && y1 == y = op
-    | x1 == y && y1 == x = App an (toNamed "flip") op
-lambda ps x = Lambda an (map toNamed ps) x
