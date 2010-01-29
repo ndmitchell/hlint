@@ -35,7 +35,7 @@ test dataDir = do
     src <- doesDirectoryExist "src/Hint"
     (fail,total) <- fmap ((sum *** sum) . unzip) $ sequence $
         [runTestDyn dataDir (dataDir </> h) | h <- dataLs, takeExtension h == ".hs", not $ "HLint" `isPrefixOf` takeBaseName h] ++
-        [runTest id [h] ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints, src]
+        [runTest [] [h] ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints, src]
     unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
     if fail == 0
         then putStrLn $ "Tests passed (" ++ show total ++ ")"
@@ -50,7 +50,7 @@ runTestDyn dataDir file = do
     sequence_ bad
 
     (f1,t1) <- runTestTypes settings
-    (f2,t2) <- runTest (classify settings) (allHints settings) file
+    (f2,t2) <- runTest (filter isClassify settings) (allHints settings) file
     return (length bad + f1 + f2, t1 + t2)
 
 
@@ -88,8 +88,8 @@ runTestTypes settings = bracket
 
 
 -- return the number of fails/total
-runTest :: (Idea -> Idea) -> [Hint] -> FilePath -> IO (Int,Int)
-runTest classify hint file = do
+runTest :: [Setting] -> [Hint] -> FilePath -> IO (Int,Int)
+runTest setting hint file = do
     tests <- parseTestFile file
     let failures = concatMap f tests
     putStr $ unlines failures
@@ -103,7 +103,7 @@ runTest classify hint file = do
                  "WANTED: " ++ fromMaybe "<failure>" out ++ "\n\n"
                 | not good]
             where
-                ideas = map classify $ applyHintStr parseFlags hint file inp
+                ideas = applyHintStr parseFlags hint setting file inp
                 good = case out of
                     Nothing -> null ideas
                     Just x -> length ideas == 1 &&

@@ -32,12 +32,10 @@ readHints dataDir file = do
             | otherwise = readHints dataDir $ x <.> "hs"
 
 
--- Eta bound variable lifted so the filter only happens once per classify
+-- precondition: all isClassify xs
 classify :: [Setting] -> Idea -> Idea
-classify xs = \i -> if isParseError i then i else i{rank = foldl' (rerank i) (rank i) xs2}
+classify xs i = if isParseError i then i else i{rank = foldl' (rerank i) (rank i) xs}
     where
-        xs2 = filter isClassify xs
-
         -- figure out if we need to change the rank
         rerank :: Idea -> Rank -> Setting -> Rank
         rerank i r c | matchHint (hintS c) (hint i) && matchFunc (funcS c) (func i) = rankS c

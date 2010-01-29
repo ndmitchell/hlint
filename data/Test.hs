@@ -15,12 +15,19 @@ error = (x :: Int) ==> (x :: Int32)
 error "Test1" = map ==> map
 error "Test2" = filter ==> filter
 error "Test3" = foldr ==> foldr
+error "Test4" = foldl ==> foldl
 
 ignore "Test1" = ""
 ignore "Test3"
 ignore "Test2" = ignoreTest
 warn = ignoreTest3
-ignore = Naming_Test
+ignore = Ignore_Test
+
+
+{-# WARNING module_ "HLint: ignore Test4" #-}
+{-# WARNING annTest2 "HLint: error" #-}
+{-# WARNING annTest3 "HLint: warn" #-}
+{-# WARNING Ann_Test "HLint: ignore" #-}
 
 
 {-
@@ -43,7 +50,12 @@ ignoreTest2 = filter -- @Error ???
 ignoreTest3 = filter -- @Warning ???
 ignoreAny = map -- @Ignore ???
 ignoreNew = foldr -- @Ignore ???
+type Ignore_Test = Int -- @Ignore ???
 
-type Naming_Test = Int -- @Ignore ???
+annTest = foldl -- @Ignore ???
+annTest2 = foldl -- @Error ???
+annTest3 = map -- @Warning ???
+type Ann_Test = Int -- @Ignore ???
+
 </TEST>
 -}
