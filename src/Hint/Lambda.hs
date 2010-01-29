@@ -14,7 +14,6 @@
 <TEST>
 f a = \x -> x + x -- f a x = x + x
 h a = f (g a ==) -- h = f . (==) . g
-test a = foo (\x -> True) -- const True
 test = foo (\x -> map f [])
 test = 0 where f x = y x -- f = y
 test mr = y mr
@@ -50,13 +49,6 @@ lambdaHint _ _ x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (u
 
 
 lambdaExp :: Exp_ -> [Idea]
-lambdaExp o@(Lambda _ [v] y) | isAtom y, Just x <- f v, x `notElem` vars y =
-        [warn "Use const" o res]
-    where
-        f (view -> PVar_ x) = Just x
-        f PWildCard{} = Just "_"
-        f _ = Nothing
-        res = App an (toNamed "const") y
 lambdaExp o@(Lambda _ vs x) | length vs /= length vs2 =
         [warn "Eta reduce" o $ if null vs2 then x2 else Lambda an vs2 x2]
     where (vs2,x2) = etaReduces vs x
