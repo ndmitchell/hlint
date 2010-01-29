@@ -80,6 +80,10 @@ declBind (FunBind _ (Match _ x _ _ _ : _)) = [prettyPrint x]
 declBind (PatBind _ x _ _ _) = pvars x
 declBind _ = []
 
+
+allowRightSection x = x `notElem` ["-","#"]
+allowLeftSection x = x /= "#"
+
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
 
