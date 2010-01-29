@@ -1,9 +1,10 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
-module Settings(readSettings, classify, defaultHintName) where
+module Settings(readSettings, readPragma, classify, defaultHintName) where
 
 import HSE.All
 import Type
+import Data.Char
 import Data.List
 import System.FilePath
 import Util
@@ -61,11 +62,26 @@ readSetting (FunBind _ [Match _ (Ident _ (getRank -> Just rank)) pats (UnGuarded
         names = getNames pats bod
         names2 = ["" | null names] ++ names
 
-
+readSetting x@WarnPragmaDecl{} | Just y <- readPragma x = y
 readSetting (PatBind an (PVar _ name) _ bod bind) = readSetting $ FunBind an [Match an name [PLit an (String an "" "")] bod bind]
 readSetting (FunBind an xs) | length xs /= 1 = concatMap (readSetting . FunBind an . return) xs
 readSetting (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
 readSetting x = errorOn x "bad hint"
+
+
+-- FIXME: Want to use ANN rather than WARNING, but need HSE support
+-- return Nothing if it is not an HLint pragma, otherwise all the settings
+readPragma :: Decl_ -> Maybe [Setting]
+readPragma x@(WarnPragmaDecl _ [(names,warn)])
+    | not $ "HLint:" `isPrefixOf` warn = Nothing
+    | Just rank <- getRank a = Just $ map (Classify rank (dropWhile isSpace b)) ns2
+    | otherwise = errorOn x "bad classify pragma"
+        where ns = if null names then [""] else map fromNamed names
+              ns2 = [if n == "module_" then ("","") else ("",n) | n <- ns]
+              (a,b) = break isSpace $ dropWhile isSpace $ drop 6 warn
+
+readPragma (WarnPragmaDecl an xs) = concatMapM (readPragma . WarnPragmaDecl an . return) xs
+readPragma _ = Nothing
 
 
 readSide :: [Decl_] -> Maybe Exp_
