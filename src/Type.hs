@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, NoMonomorphismRestriction #-}
 
 module Type where
 
@@ -62,8 +62,8 @@ showEx tt ParseError{..} = unlines $
 rawIdea = Idea ("","")
 idea rank hint from to = rawIdea rank hint (toSrcLoc $ ann from) (f from) (f to)
     where f = dropWhile isSpace . prettyPrint
-warn mr = idea Warning mr
-err mr = idea Error mr
+warn = idea Warning
+err = idea Error
 
 
 -- Any 1-letter variable names are assumed to be unification variables
