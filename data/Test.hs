@@ -12,7 +12,7 @@ error = (x :: Int) ==> (x :: Int32)
     where _ = notTypeSafe
 
 
-error "Test1" = map ==> map
+error "Test1" = scanr ==> scanr
 error "Test2" = filter ==> filter
 error "Test3" = foldr ==> foldr
 error "Test4" = foldl ==> foldl
@@ -48,13 +48,13 @@ yes = 32 :: Int -- 32 :: Int32
 ignoreTest = filter -- @Ignore ???
 ignoreTest2 = filter -- @Error ???
 ignoreTest3 = filter -- @Warning ???
-ignoreAny = map -- @Ignore ???
+ignoreAny = scanr -- @Ignore ???
 ignoreNew = foldr -- @Ignore ???
 type Ignore_Test = Int -- @Ignore ???
 
 annTest = foldl -- @Ignore ???
 annTest2 = foldl -- @Error ???
-annTest3 = map -- @Warning ???
+annTest3 = scanr -- @Warning ???
 type Ann_Test = Int -- @Ignore ???
 
 </TEST>
