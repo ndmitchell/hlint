@@ -84,6 +84,11 @@ declBind _ = []
 allowRightSection x = x `notElem` ["-","#"]
 allowLeftSection x = x /= "#"
 
+
+unqual :: QName S -> QName S
+unqual (Qual an _ x) = UnQual an x
+unqual x = x
+
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
 
