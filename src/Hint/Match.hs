@@ -32,17 +32,18 @@ findIdeas :: [Setting] -> NameMatch -> Module S -> Decl_ -> [Idea]
 findIdeas matches nm _ decl =
   [ idea (rankS m) (hintS m) x y
   | (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
-  , m <- matches, Just y <- [matchIdea nm m parent x2]]
+  , m <- matches, Just y <- [matchIdea nm decl m parent x2]]
 
 
-matchIdea :: NameMatch -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe Exp_
-matchIdea nm MatchExp{lhs=lhs,rhs=rhs,side=side} parent x = do
+matchIdea :: NameMatch -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe Exp_
+matchIdea nm decl MatchExp{lhs=lhs,rhs=rhs,side=side} parent x = do
     u <- unify nm lhs x
     u <- check u
     let sub = subst u rhs
     guard $ checkDot lhs sub
     let res = addBracket parent $ unqualify nm $ dotContract $ performEval sub
     guard $ checkSide side $ ("original",x) : ("result",res) : u
+    guard $ checkDefine decl parent res
     return res
 
 
@@ -122,6 +123,12 @@ checkSide x bind = maybe True f x
 -- don't allow dot contraction to happen, as it's usually wrong
 checkDot :: Exp_ -> Exp_ -> Bool
 checkDot lhs rhs2 = not $ any isLambda (universeS lhs) && toNamed "?" `elem` universe rhs2
+
+
+-- does the result look very much like the declaration
+checkDefine :: Decl_ -> Maybe (Int, Exp_) -> Exp_ -> Bool
+checkDefine x Nothing y = fromNamed x /= fromNamed (transformBi unqual $ head $ fromApps y)
+checkDefine _ _ _ = True
 
 
 -- perform a substitution
