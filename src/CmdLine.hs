@@ -84,7 +84,7 @@ getCmd args = do
     hints <- mapM (getHintFile dataDir) $ hintFiles ++ ["HLint" | null hintFiles]
 
     let cpphs = defaultCpphsOptions
-            {boolopts=defaultBoolOptions{locations=False}
+            {boolopts=defaultBoolOptions{hashline=False}
             ,includes = [x | Include x <- opt]
             ,defines = [(a,drop 1 b) | Define x <- opt, let (a,b) = break (== '=') x]
             }

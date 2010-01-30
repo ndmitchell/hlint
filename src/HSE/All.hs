@@ -36,6 +36,7 @@ parseString flags file = parseFileContentsWithMode mode . maybe id (`runCpphs` f
             {parseFilename = file
             ,extensions = extension
             ,fixities = concat [infix_ (-1) ["==>"] | implies flags] ++ baseFixities
+            ,ignoreLinePragmas = False
             }
 
 
