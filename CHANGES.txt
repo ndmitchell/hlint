@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to cpphs 1.10
     #266, don't match hints that appear to be the definitions
     #248, tone down the eta reduction hints
     Add support for WARNING pragma's to reclassify hints
