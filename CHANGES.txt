@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #262, add support for the TupleSections extension
     #264, upgrade to haskell-src-exts-1.8.*, fixes QuasiQuote pos
     Upgrade to cpphs 1.10
     #266, don't match hints that appear to be the definitions
