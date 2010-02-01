@@ -13,7 +13,6 @@ error = hPutStr stdout ==> putStr
 error = hPutStrLn stdout ==> putStrLn
 error = hPrint stdout ==> print
 
-
 -- ORD
 
 error = not (a == b) ==> a /= b
@@ -28,7 +27,6 @@ error = compare x y /= LT ==> x >= y
 error = compare x y == GT ==> x > y
 error = compare (f x) (f y) ==> Data.Ord.comparing f x y
 error = on compare f ==> Data.Ord.comparing f
-
 
 -- READ/SHOW
 
@@ -61,7 +59,6 @@ warn  "Use null" = length x /= 0 ==> not (null x)
 error "Use :" = (\x -> [x]) ==> (:[])
 error = map (uncurry f) (zip x y) ==> zipWith f x y
 error = not (elem x y) ==> notElem x y
-
 warn  = foldr f z (map g x) ==> foldr (f . g) z x
 warn  = foldr1 f (map g x) ==> foldr1 (f . g) x
 
