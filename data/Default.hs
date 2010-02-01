@@ -73,7 +73,7 @@ error = foldr (||) False ==> or
 error = foldl (||) False ==> or
 error = foldr (>>) (return ()) ==> sequence_
 error = foldl (+) 0 ==> sum
-warn  = foldl (*) 1 ==> product
+error = foldl (*) 1 ==> product
 
 -- FUNCTION
 
