@@ -158,6 +158,7 @@ error = maybe x id ==> Data.Maybe.fromMaybe x
 error = maybe False (const True) ==> Data.Maybe.isJust
 error = maybe True (const False) ==> Data.Maybe.isNothing
 error = catMaybes (map f x) ==> mapMaybe f x
+error = concatMap (maybeToList . f) ==> Data.Maybe.mapMaybe f
 
 -- INFIX
 
@@ -168,7 +169,6 @@ warn "Use infix" = isSuffixOf x y ==> x `isSuffixOf` y where _ = not (isInfixApp
 warn "Use infix" = isPrefixOf x y ==> x `isPrefixOf` y where _ = not (isInfixApp original) && not (isParen result)
 warn "Use infix" = union x y ==> x `union` y where _ = not (isInfixApp original) && not (isParen result)
 warn "Use infix" = intersect x y ==> x `intersect` y where _ = not (isInfixApp original) && not (isParen result)
-
 
 -- MATHS
 
