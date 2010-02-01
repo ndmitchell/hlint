@@ -48,7 +48,7 @@ error = head (reverse x) ==> last x
 error = head (drop n x) ==> x !! n
 error = reverse (tail (reverse x)) ==> init x
 error = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
-error = foldr (++) [] x ==> concat x
+error = foldr (++) [] ==> concat
 error = span (not . p) ==> break p
 error = break (not . p) ==> span p
 error = concatMap (++ "\n") ==> unlines
