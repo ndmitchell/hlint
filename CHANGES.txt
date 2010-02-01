@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Force cpphs-1.10, since 1.11 breaks the interface
     More hints from the Data.Maybe module
     #262, add support for the TupleSections extension
     #264, upgrade to haskell-src-exts-1.8.*, fixes QuasiQuote pos
