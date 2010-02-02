@@ -45,7 +45,7 @@ parseFailed flags sl msg src = do
 
 context :: Int -> String -> String
 context lineNo src =
-    unlines $ reverse $ dropWhile (all isSpace) $ reverse $ dropWhile (all isSpace) $
+    unlines $ trimBy (all isSpace) $
     zipWith (++) ticks $ take 5 $ drop (lineNo - 3) $ lines src ++ [""]
     where ticks = ["  ","  ","> ","  ","  "]
 

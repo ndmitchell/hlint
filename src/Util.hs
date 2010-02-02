@@ -102,3 +102,7 @@ exitMessage msg = unsafePerformIO $ do
 
 ltrim :: String -> String
 ltrim = dropWhile isSpace
+
+
+trimBy :: (a -> Bool) -> [a] -> [a]
+trimBy f = reverse . dropWhile f . reverse . dropWhile f
