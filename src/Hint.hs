@@ -20,12 +20,13 @@ data Hint = DeclHint {declHint :: DeclHint} | ModuHint {moduHint :: ModuHint}
 applyHint :: ParseFlags -> [Hint] -> [Setting] -> FilePath -> IO [Idea]
 applyHint flags h s file = do
     src <- readFileEncoding (encoding flags) file
-    return $ applyHintStr flags h s file src
+    applyHintStr flags h s file src
 
 
-applyHintStr :: ParseFlags -> [Hint] -> [Setting] -> FilePath -> String -> [Idea]
-applyHintStr flags h s file src =
-    case parseString flags file src of
+applyHintStr :: ParseFlags -> [Hint] -> [Setting] -> FilePath -> String -> IO [Idea]
+applyHintStr flags h s file src = do
+    res <- parseString flags file src
+    return $ case res of
         ParseFailed sl msg ->
             let ticks = ["  ","  ","> ","  ","  "]
                 bad = zipWith (++) ticks $ take 5 $ drop (srcLine sl - 3) $ lines src ++ [""]

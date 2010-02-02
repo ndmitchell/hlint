@@ -17,6 +17,7 @@ import System.Exit
 
 import Settings
 import Type
+import Util
 import Hint
 import HSE.All
 import Hint.All
@@ -91,25 +92,25 @@ runTestTypes settings = bracket
 runTest :: [Setting] -> [Hint] -> FilePath -> IO (Int,Int)
 runTest setting hint file = do
     tests <- parseTestFile file
-    let failures = concatMap f tests
+    failures <- concatMapM f tests
     putStr $ unlines failures
     return (length failures, length tests)
     where
-        f (Test loc inp out) =
+        f (Test loc inp out) = do
+            ideas <- applyHintStr parseFlags hint setting file inp
+            let good = case out of
+                    Nothing -> null ideas
+                    Just x -> length ideas == 1 &&
+                              length (show ideas) >= 0 && -- force, mainly for hpc
+                              not (isParseError (head ideas)) &&
+                              match x (head ideas)
+            return
                 ["TEST FAILURE (" ++ show (length ideas) ++ " hints generated)\n" ++
                  "SRC: " ++ showSrcLoc loc ++ "\n" ++
                  "INPUT: " ++ inp ++ "\n" ++
                  concatMap ((++) "OUTPUT: " . show) ideas ++
                  "WANTED: " ++ fromMaybe "<failure>" out ++ "\n\n"
                 | not good]
-            where
-                ideas = applyHintStr parseFlags hint setting file inp
-                good = case out of
-                    Nothing -> null ideas
-                    Just x -> length ideas == 1 &&
-                              length (show ideas) >= 0 && -- force, mainly for hpc
-                              not (isParseError (head ideas)) &&
-                              match x (head ideas)
 
         match "???" _ = True
         match x y | "@" `isPrefixOf` x = a == show (rank y) && match (dropWhile isSpace b) y

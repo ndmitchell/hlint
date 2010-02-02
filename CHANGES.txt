@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to cpphs-1.11
 1.6.17
     Force cpphs-1.10, since 1.11 breaks the interface
     More hints from the Data.Maybe module

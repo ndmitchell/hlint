@@ -30,8 +30,10 @@ parseFlags = ParseFlags Nothing False ""
 
 
 -- | Parse a Haskell module
-parseString :: ParseFlags -> FilePath -> String -> ParseResult Module_
-parseString flags file = parseFileContentsWithMode mode . maybe id (`runCpphs` file) (cpphs flags)
+parseString :: ParseFlags -> FilePath -> String -> IO (ParseResult Module_)
+parseString flags file str = do
+        ppstr <- maybe return (`runCpphs` file) (cpphs flags) str
+        return $ parseFileContentsWithMode mode ppstr
     where
         mode = defaultParseMode
             {parseFilename = file
@@ -44,7 +46,7 @@ parseString flags file = parseFileContentsWithMode mode . maybe id (`runCpphs` f
 parseFile :: ParseFlags -> FilePath -> IO (ParseResult Module_)
 parseFile flags file = do
     src <- readFileEncoding (encoding flags) file
-    return $ parseString flags file src
+    parseString flags file src
 
 
 extension = knownExtensions \\ badExtensions
