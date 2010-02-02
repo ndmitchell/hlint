@@ -23,10 +23,10 @@ ignore "Test2" = ignoreTest
 warn = ignoreTest3
 ignore = Ignore_Test
 
-{-# WARNING module_ "HLint: ignore Test4" #-}
-{-# WARNING annTest2 "HLint: error" #-}
-{-# WARNING annTest3 "HLint: warn" #-}
-{-# WARNING Ann_Test "HLint: ignore" #-}
+{-# ANN module "HLint: ignore Test4" #-}
+{-# ANN annTest2 "HLint: error" #-}
+{-# ANN annTest3 "HLint: warn" #-}
+{-# ANN type Ann_Test "HLint: ignore" #-}
 
 
 error = concat (map f x) ==> Data.List.concatMap f x

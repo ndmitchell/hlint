@@ -35,7 +35,7 @@ applyHintStr flags h s file src =
             let name = moduleName m
                 nm = nameMatch $ moduleImports m
                 order n = map (\i -> i{func = (name,n)}) . sortBy (comparing loc)
-                settings = concatMap(fromMaybe [] . readPragma) $ moduleDecls m
+                settings = mapMaybe readPragma $ moduleDecls m
             in map (classify $ s ++ settings) $
                order "" [i | ModuHint h <- h, i <- h nm m] ++
                concat [order (fromNamed d) [i | DeclHint h <- h, i <- h nm m d] | d <- moduleDecls m]
