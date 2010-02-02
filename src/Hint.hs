@@ -26,17 +26,25 @@ applyHint flags h s file = do
 applyHintStr :: ParseFlags -> [Hint] -> [Setting] -> FilePath -> String -> IO [Idea]
 applyHintStr flags h s file src = do
     res <- parseString flags file src
-    return $ case res of
-        ParseFailed sl msg ->
-            let ticks = ["  ","  ","> ","  ","  "]
-                bad = zipWith (++) ticks $ take 5 $ drop (srcLine sl - 3) $ lines src ++ [""]
-                bad2 = reverse $ dropWhile (all isSpace) $ reverse $ dropWhile (all isSpace) bad
-            in [classify s $ ParseError Warning "Parse error" sl msg (unlines bad2)]
-        ParseOk m ->
-            let name = moduleName m
-                nm = nameMatch $ moduleImports m
-                order n = map (\i -> i{func = (name,n)}) . sortBy (comparing loc)
-                settings = mapMaybe readPragma $ moduleDecls m
-            in map (classify $ s ++ settings) $
-               order "" [i | ModuHint h <- h, i <- h nm m] ++
-               concat [order (fromNamed d) [i | DeclHint h <- h, i <- h nm m d] | d <- moduleDecls m]
+    case res of
+        ParseFailed sl msg -> return $ map (classify s) $ parseFailed sl msg src
+        ParseOk m -> return $
+            let settings = mapMaybe readPragma $ moduleDecls m
+            in map (classify $ s ++ settings) $ parseOk h m
+
+
+parseFailed :: SrcLoc -> String -> String -> [Idea]
+parseFailed sl msg src =
+    let ticks = ["  ","  ","> ","  ","  "]
+        bad = zipWith (++) ticks $ take 5 $ drop (srcLine sl - 3) $ lines src ++ [""]
+        bad2 = reverse $ dropWhile (all isSpace) $ reverse $ dropWhile (all isSpace) bad
+    in [ParseError Warning "Parse error" sl msg (unlines bad2)]
+
+
+parseOk :: [Hint] -> Module_ -> [Idea]
+parseOk h m =
+        order "" [i | ModuHint h <- h, i <- h nm m] ++
+        concat [order (fromNamed d) [i | DeclHint h <- h, i <- h nm m d] | d <- moduleDecls m]
+    where
+        order n = map (\i -> i{func = (moduleName m,n)}) . sortBy (comparing loc)
+        nm = nameMatch $ moduleImports m
