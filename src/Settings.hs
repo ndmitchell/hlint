@@ -78,8 +78,8 @@ readPragma o@(AnnPragma _ p) = f p
         g name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
                 case getRank a of
                     Nothing -> errorOn o "bad classify pragma"
-                    Just rank -> Just $ Classify rank (dropWhile isSpace b) ("",name)
-            where (a,b) = break isSpace $ dropWhile isSpace $ drop 6 s
+                    Just rank -> Just $ Classify rank (ltrim b) ("",name)
+            where (a,b) = break isSpace $ ltrim $ drop 6 s
 readPragma _ = Nothing
 
 

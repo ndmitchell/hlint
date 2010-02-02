@@ -4,6 +4,7 @@ module Util where
 
 import Control.Arrow
 import Control.Monad
+import Data.Char
 import Data.Function
 import Data.List
 import Data.Ord
@@ -97,3 +98,7 @@ exitMessage :: String -> a
 exitMessage msg = unsafePerformIO $ do
     putStrLn msg
     exitWith $ ExitFailure 1
+
+
+ltrim :: String -> String
+ltrim = dropWhile isSpace

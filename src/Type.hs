@@ -6,6 +6,7 @@ import HSE.All
 import Data.Char
 import Language.Haskell.HsColour.TTY
 import Language.Haskell.HsColour.Colourise
+import Util
 
 
 ---------------------------------------------------------------------
@@ -61,7 +62,7 @@ showEx tt ParseError{..} = unlines $
 
 rawIdea = Idea ("","")
 idea rank hint from to = rawIdea rank hint (toSrcLoc $ ann from) (f from) (f to)
-    where f = dropWhile isSpace . prettyPrint
+    where f = ltrim . prettyPrint
 warn = idea Warning
 err = idea Error
 
