@@ -227,9 +227,11 @@ error "Evaluate" = id x ==> x
 error "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i == length t) && (t `Data.List.isPrefixOf` s))
     where _ = (isList t || isLit t) && isLit i
 
+{-
+-- clever hint, but not actually a good idea
 warn  = (do a <- f; g a) ==> f >>= g
     where _ = (isAtom f || isApp f) && notIn a g
-
+-}
 
 
 {-
@@ -255,7 +257,6 @@ no  = take n (foo xs) == "hello"
 yes = head (reverse xs) -- last xs
 yes = reverse xs `isPrefixOf` reverse ys -- isSuffixOf xs ys
 no = putStrLn $ show (length xs) ++ "Test"
-yes = do line <- getLine; putStrLn line -- getLine >>= putStrLn 
 yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable -- toUpper Control.Arrow.*** urlEncode
 yes = map (\(a,b) -> a) xs -- fst
 yes = map (\(a,_) -> a) xs -- fst
