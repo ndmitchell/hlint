@@ -69,7 +69,7 @@ readSetting x = errorOn x "bad hint"
 
 -- return Nothing if it is not an HLint pragma, otherwise all the settings
 readPragma :: Decl_ -> Maybe Setting
-readPragma o@(AnnPragma _ p) = error $ show "here" -- f p
+readPragma o@(AnnPragma _ p) = f p
     where
         f (Ann _ name x) = g (fromNamed name) x
         f (TypeAnn _ name x) = g (fromNamed name) x
