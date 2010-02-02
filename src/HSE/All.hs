@@ -4,7 +4,8 @@ module HSE.All(
     module HSE.Bracket, module HSE.Match,
     module HSE.Type, module HSE.Eq,
     module HSE.NameMatch,
-    ParseFlags(..), parseFlags, parseFile, parseString
+    ParseFlags(..), parseFlags, parseFlagsNoLocations,
+    parseFile, parseString
     ) where
 
 import Util
@@ -28,12 +29,16 @@ data ParseFlags = ParseFlags
 parseFlags :: ParseFlags
 parseFlags = ParseFlags Nothing False ""
 
+parseFlagsNoLocations :: ParseFlags -> ParseFlags
+parseFlagsNoLocations x = x{cpphs = fmap f $ cpphs x}
+    where f x = x{boolopts = (boolopts x){locations=False}}
+
 
 -- | Parse a Haskell module
-parseString :: ParseFlags -> FilePath -> String -> IO (ParseResult Module_)
+parseString :: ParseFlags -> FilePath -> String -> IO (String, ParseResult Module_)
 parseString flags file str = do
         ppstr <- maybe return (`runCpphs` file) (cpphs flags) str
-        return $ parseFileContentsWithMode mode ppstr
+        return (ppstr, parseFileContentsWithMode mode ppstr)
     where
         mode = defaultParseMode
             {parseFilename = file
@@ -43,7 +48,7 @@ parseString flags file str = do
             }
 
 
-parseFile :: ParseFlags -> FilePath -> IO (ParseResult Module_)
+parseFile :: ParseFlags -> FilePath -> IO (String, ParseResult Module_)
 parseFile flags file = do
     src <- readFileEncoding (encoding flags) file
     parseString flags file src

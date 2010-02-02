@@ -26,19 +26,28 @@ applyHint flags h s file = do
 applyHintStr :: ParseFlags -> [Hint] -> [Setting] -> FilePath -> String -> IO [Idea]
 applyHintStr flags h s file src = do
     res <- parseString flags file src
-    case res of
-        ParseFailed sl msg -> return $ map (classify s) $ parseFailed sl msg src
+    case snd res of
+        ParseFailed sl msg -> map (classify s) `fmap` parseFailed flags sl msg src
         ParseOk m -> return $
             let settings = mapMaybe readPragma $ moduleDecls m
             in map (classify $ s ++ settings) $ parseOk h m
 
 
-parseFailed :: SrcLoc -> String -> String -> [Idea]
-parseFailed sl msg src =
-    let ticks = ["  ","  ","> ","  ","  "]
-        bad = zipWith (++) ticks $ take 5 $ drop (srcLine sl - 3) $ lines src ++ [""]
-        bad2 = reverse $ dropWhile (all isSpace) $ reverse $ dropWhile (all isSpace) bad
-    in [ParseError Warning "Parse error" sl msg (unlines bad2)]
+parseFailed :: ParseFlags -> SrcLoc -> String -> String -> IO [Idea]
+parseFailed flags sl msg src = do
+    -- figure out the best line number to grab context from, by reparsing
+    (str2,pr2) <- parseString (parseFlagsNoLocations flags) "" src
+    let ctxt = case pr2 of
+            ParseFailed sl2 _ -> context (srcLine sl2) str2
+            _ -> context (srcLine sl) src
+    return [ParseError Warning "Parse error" sl msg ctxt]
+
+
+context :: Int -> String -> String
+context lineNo src =
+    unlines $ reverse $ dropWhile (all isSpace) $ reverse $ dropWhile (all isSpace) $
+    zipWith (++) ticks $ take 5 $ drop (lineNo - 3) $ lines src ++ [""]
+    where ticks = ["  ","  ","> ","  ","  "]
 
 
 parseOk :: [Hint] -> Module_ -> [Idea]
