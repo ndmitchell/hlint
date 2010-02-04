@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #269, replacing a case with an if should generate one hint
     Document the ANN pragmas
     Require haskell-src-exts-1.8.1
 1.6.18

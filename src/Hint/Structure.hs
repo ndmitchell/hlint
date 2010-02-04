@@ -6,8 +6,6 @@
 <TEST>
 yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
 no x y = if a then b else c
-yes x = case x of {True -> a ; False -> b} -- if x then a else b
-yes x = case x of {False -> a ; _ -> b} -- if x then b else a
 foo b | c <- f b = c -- foo (f -> c) = c
 foo x y b z | c:cs <- f g b = c -- foo x y (f g -> c:cs) z = c
 foo b | c <- f b = c + b
@@ -29,8 +27,7 @@ import Data.List
 
 
 structureHint :: DeclHint
-structureHint _ _ x = concat [concatMap useGuards xs | FunBind _ xs <- [x]] ++
-                      concatMap useIf (universeBi x)
+structureHint _ _ x = concat [concatMap useGuards xs | FunBind _ xs <- [x]]
 
 
 useGuards :: Match S -> [Idea]
@@ -56,16 +53,3 @@ asGuards :: Exp_ -> [GuardedRhs S]
 asGuards (Paren _ x) = asGuards x
 asGuards (If _ a b c) = GuardedRhs an [Qualifier an a] b : asGuards c
 asGuards x = [GuardedRhs an [Qualifier an $ toNamed "otherwise"] x]
-
-
-useIf :: Exp_ -> [Idea]
-useIf x@(Case _ on [simpAlt -> Just (as,av), simpAlt -> Just (bs,bv)])
-    | as == "True"  && bs `elem` ["False","_"] = iff av bv
-    | as == "False" && bs `elem` ["True" ,"_"] = iff bv av
-    where
-        iff t f = [warn "Use if" x (If an on t f)]
-useIf _ = []
-
-simpAlt (Alt _ p (UnGuardedAlt _ x) Nothing) = Just (prettyPrint p, x)
-simpAlt _ = Nothing
-

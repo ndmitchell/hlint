@@ -286,6 +286,8 @@ no  = elem 1 [] : []
 test a = foo (\x -> True) -- const True
 h a = flip f x (y z) -- f (y z) x
 h a = flip f x $ y z
+yes x = case x of {True -> a ; False -> b} -- if x then a else b
+yes x = case x of {False -> a ; _ -> b} -- if x then b else a
 
 
 import Prelude \
