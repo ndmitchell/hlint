@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.6.18
     Remove a hint replacing do x <- foo; bar x with foo >>= bar
     #263, support CPP files more fully
     Upgrade to hscolour-1.16
