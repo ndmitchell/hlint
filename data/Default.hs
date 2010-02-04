@@ -96,10 +96,10 @@ error "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b the
 error "Redundant if" = (if a then (if b then t else f) else f) ==> if a && b then t else f
 error "Redundant if" = (if x then True else y) ==> x || y where _ = notEq y False
 error "Redundant if" = (if x then y else False) ==> x && y where _ = notEq y True
-error "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
-error "Use if" = case a of {False -> f; True -> t} ==> if a then t else f
-error "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
-error "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
+warn  "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
+warn  "Use if" = case a of {False -> f; True -> t} ==> if a then t else f
+warn  "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
+warn  "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
 
 -- ARROW
 
