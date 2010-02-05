@@ -21,7 +21,14 @@ notTypeSafe - no semantics, a hint for testing only
 ($) AND (.)
 We see through ($) simply by expanding it if nothing else matches.
 We see through (.) by translating rules that have (.) equivalents
-to separate rules.
+to separate rules. For example:
+
+concat (map f x) ==> concatMap f x
+-- we spot both these rules can eta reduce with respect to x
+concat . map f ==> concatMap f
+-- we use the associativity of (.) to add
+concat . map f . x ==> concatMap f . x
+-- currently 36 of 169 rules have (.) equivalents
 -}
 
 module Hint.Match(readMatch) where
@@ -32,6 +39,7 @@ import Type
 import Hint
 import HSE.All
 import Control.Monad
+import Control.Arrow
 import Data.Function
 import Util
 
@@ -47,29 +55,21 @@ readMatch settings = findIdeas (concatMap readRule settings)
 
 
 readRule :: Setting -> [Setting]
-readRule m@MatchExp{lhs=lhs,rhs=rhs,side=side} = [m{lhs = fmapAn lhs, side = fmap fmapAn side}]
+readRule m@MatchExp{lhs=(fmapAn -> lhs), rhs=(fmapAn -> rhs), side=(fmap fmapAn -> side)} =
+    (:) m{lhs=lhs,side=side,rhs=rhs} $ fromMaybe [] $ do
+        (l,v1) <- dotVersion lhs
+        (r,v2) <- dotVersion rhs
+        guard $ v1 == v2 && l /= [] && r /= [] && v1 `notElem` vars side
+        return [m{lhs=dotApps l, rhs=dotApps r, side=side}
+               ,m{lhs=dotApps (l++[toNamed v1]), rhs=dotApps (r++[toNamed v1]), side=side}]
 readRule _ = []
 
 
--- If they have have a lambda in the pattern
--- don't allow dot contraction to happen, as it's usually wrong
-checkDot :: Exp_ -> Exp_ -> Bool
-checkDot lhs rhs2 = not $ any isLambda (universeS lhs) && toNamed "?" `elem` universe rhs2
-
-
-dotExpand :: Exp_ -> Exp_
-dotExpand (view -> App2 op x1 x2) | op ~= "." = ensureBracket1 $ App an x1 (dotExpand x2)
-dotExpand x = ensureBracket1 $ App an x (toNamed "?")
-
-
--- simplify, removing any introduced ? vars, from expanding (.)
-dotContract :: Exp_ -> Exp_
-dotContract x = fromMaybe x (f x)
-    where
-        f x | isParen x = f $ fromParen x
-        f (App _ x y) | "?" <- fromNamed y = Just x
-                      | Just z <- f y = Just $ InfixApp an x (toNamed ".") z
-        f _ = Nothing
+-- find a dot version of this rule, return the sequence of app prefixes, and the var
+dotVersion :: Exp_ -> Maybe ([Exp_], String)
+dotVersion (view -> Var_ v) | isUnifyVar v = Just ([], v)
+dotVersion (fromApps -> xs) | length xs > 1 = fmap (first (apps (init xs) :)) $ dotVersion (fromParen $ last xs)
+dotVersion _ = Nothing
 
 
 ---------------------------------------------------------------------
@@ -86,9 +86,7 @@ matchIdea :: NameMatch -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe
 matchIdea nm decl MatchExp{lhs=lhs,rhs=rhs,side=side} parent x = do
     u <- unify nm lhs x
     u <- check u
-    let sub = subst u rhs
-    guard $ checkDot lhs sub
-    let res = addBracket parent $ unqualify nm $ dotContract $ performEval sub
+    let res = addBracket parent $ unqualify nm $ performEval $ subst u rhs
     guard $ checkSide side $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
     return res
@@ -107,10 +105,9 @@ unify nm (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
 unify nm (Var _ x) (Var _ y) | nm x y = Just []
 unify nm (App _ x1 x2) (App _ y1 y2) = liftM2 (++) (unify nm x1 y1) (unify nm x2 y2)
 unify nm x y | isOther x && isOther y && eqExpShell x y = concatZipWithM (unify nm) (children x) (children y)
-unify nm x o@(view -> App2 op y1 y2)
-  | op ~= "$" = unify nm x $ App an y1 y2
-  | op ~= "." = unify nm x $ dotExpand o
-unify nm x (InfixApp _ lhs op rhs) = unify nm x $ App an (App an (opExp op) lhs) rhs
+unify nm x (InfixApp _ lhs (opExp -> op) rhs)
+    | op ~= "$" = unify nm x $ App an lhs rhs
+    | otherwise = unify nm x $ App an (App an op lhs) rhs
 unify nm _ _ = Nothing
 
 -- types that are not already handled in unify
