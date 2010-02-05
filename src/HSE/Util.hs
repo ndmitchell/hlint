@@ -89,6 +89,19 @@ unqual :: QName S -> QName S
 unqual (Qual an _ x) = UnQual an x
 unqual x = x
 
+
+isDotApp :: Exp_ -> Bool
+isDotApp (InfixApp _ _ (QVarOp _ (UnQual _ (Symbol _ "."))) _) = True
+isDotApp _ = False
+
+dotApp :: Exp_ -> Exp_ -> Exp_
+dotApp x y = InfixApp an x (QVarOp an $ UnQual an $ Symbol an ".") y
+
+dotApps :: [Exp_] -> Exp_
+dotApps [x] = x
+dotApps (x:xs) = dotApp x (dotApps xs)
+
+
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
 
