@@ -17,6 +17,11 @@ isFoo x - is the root constructor of x a "Foo"
 notEq x y - are x and y not equal
 notIn xs ys - are all x variables not in ys expressions
 notTypeSafe - no semantics, a hint for testing only
+
+($) AND (.)
+We see through ($) simply by expanding it if nothing else matches.
+We see through (.) by translating rules that have (.) equivalents
+to separate rules.
 -}
 
 module Hint.Match(readMatch) where
@@ -31,14 +36,44 @@ import Data.Function
 import Util
 
 
----------------------------------------------------------------------
--- PERFORM MATCHING
-
 fmapAn = fmap (const an)
 
-readMatch :: [Setting] -> DeclHint
-readMatch settings = findIdeas [m{lhs = fmapAn $ lhs m, side = fmap fmapAn $ side m} | m@MatchExp{} <- settings]
 
+---------------------------------------------------------------------
+-- READ THE RULE
+
+readMatch :: [Setting] -> DeclHint
+readMatch settings = findIdeas (concatMap readRule settings)
+
+
+readRule :: Setting -> [Setting]
+readRule m@MatchExp{lhs=lhs,rhs=rhs,side=side} = [m{lhs = fmapAn lhs, side = fmap fmapAn side}]
+readRule _ = []
+
+
+-- If they have have a lambda in the pattern
+-- don't allow dot contraction to happen, as it's usually wrong
+checkDot :: Exp_ -> Exp_ -> Bool
+checkDot lhs rhs2 = not $ any isLambda (universeS lhs) && toNamed "?" `elem` universe rhs2
+
+
+dotExpand :: Exp_ -> Exp_
+dotExpand (view -> App2 op x1 x2) | op ~= "." = ensureBracket1 $ App an x1 (dotExpand x2)
+dotExpand x = ensureBracket1 $ App an x (toNamed "?")
+
+
+-- simplify, removing any introduced ? vars, from expanding (.)
+dotContract :: Exp_ -> Exp_
+dotContract x = fromMaybe x (f x)
+    where
+        f x | isParen x = f $ fromParen x
+        f (App _ x y) | "?" <- fromNamed y = Just x
+                      | Just z <- f y = Just $ InfixApp an x (toNamed ".") z
+        f _ = Nothing
+
+
+---------------------------------------------------------------------
+-- PERFORM THE MATCHING
 
 findIdeas :: [Setting] -> NameMatch -> Module S -> Decl_ -> [Idea]
 findIdeas matches nm _ decl =
@@ -59,8 +94,11 @@ matchIdea nm decl MatchExp{lhs=lhs,rhs=rhs,side=side} parent x = do
     return res
 
 
+---------------------------------------------------------------------
+-- UNIFICATION
+
 -- unify a b = c, a[c] = b
--- note: App is unrolled because it's really common
+-- note: App is unrolled because it's really common (performance reasons)
 unify :: NameMatch -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
 unify nm (Do _ xs) (Do _ ys) | length xs == length ys = concatZipWithM (unifyStmt nm) xs ys
 unify nm (Lambda _ xs x) (Lambda _ ys y) | length xs == length ys = liftM2 (++) (unify nm x y) (concatZipWithM unifyPat xs ys)
@@ -97,11 +135,28 @@ unifyPat x y | ((==) `on` descend (const $ PWildCard an)) x y = concatZipWithM u
 unifyPat _ _ = Nothing
 
 
+---------------------------------------------------------------------
+-- SUBSTITUTION UTILITIES
+
 -- check the unification is valid
 check :: [(String,Exp_)] -> Maybe [(String,Exp_)]
 check = mapM f . groupSortFst
     where f (x,ys) = if length (nub ys) == 1 then Just (x,head ys) else Nothing
 
+
+-- perform a substitution
+subst :: [(String,Exp_)] -> Exp_ -> Exp_
+subst bind = transform g . transformBracket f
+    where
+        f (Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
+        f _ = Nothing
+
+        g (App _ np (Paren _ x)) | np ~= "_noParen_" = x
+        g x = x
+
+
+---------------------------------------------------------------------
+-- SIDE CONDITIONS
 
 checkSide :: Maybe Exp_ -> [(String,Exp_)] -> Bool
 checkSide x bind = maybe True f x
@@ -131,42 +186,14 @@ checkSide x bind = maybe True f x
                   f x = x
 
 
--- If they have have a lambda in the pattern
--- don't allow dot contraction to happen, as it's usually wrong
-checkDot :: Exp_ -> Exp_ -> Bool
-checkDot lhs rhs2 = not $ any isLambda (universeS lhs) && toNamed "?" `elem` universe rhs2
-
-
 -- does the result look very much like the declaration
 checkDefine :: Decl_ -> Maybe (Int, Exp_) -> Exp_ -> Bool
 checkDefine x Nothing y = fromNamed x /= fromNamed (transformBi unqual $ head $ fromApps y)
 checkDefine _ _ _ = True
 
 
--- perform a substitution
-subst :: [(String,Exp_)] -> Exp_ -> Exp_
-subst bind = transform g . transformBracket f
-    where
-        f (Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
-        f _ = Nothing
-
-        g (App _ np (Paren _ x)) | np ~= "_noParen_" = x
-        g x = x
-
-
-dotExpand :: Exp_ -> Exp_
-dotExpand (view -> App2 op x1 x2) | op ~= "." = ensureBracket1 $ App an x1 (dotExpand x2)
-dotExpand x = ensureBracket1 $ App an x (toNamed "?")
-
-
--- simplify, removing any introduced ? vars, from expanding (.)
-dotContract :: Exp_ -> Exp_
-dotContract x = fromMaybe x (f x)
-    where
-        f x | isParen x = f $ fromParen x
-        f (App _ x y) | "?" <- fromNamed y = Just x
-                      | Just z <- f y = Just $ InfixApp an x (toNamed ".") z
-        f _ = Nothing
+---------------------------------------------------------------------
+-- TRANSFORMATION
 
 -- if it has _eval_ do evaluation on it
 performEval :: Exp_ -> Exp_
