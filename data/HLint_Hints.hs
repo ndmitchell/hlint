@@ -14,3 +14,5 @@ error = dropWhile isSpace ==> ltrim
 
 -- deliberately creates an Ident with "...", which should be a symbol
 ignore "Use toNamed" = Hint.Naming.shorten
+-- would require module cycles
+ignore "Use toNamed" = HSE.Util
