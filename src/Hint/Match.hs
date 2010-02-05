@@ -1,10 +1,22 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
 {-
-Supported meta-hints:
+The matching does a fairly simple unification between the two terms, treating
+any single letter variable on the left as a free variable. After the matching
+we substitute, transform and check the side conditions. We also "see through"
+both ($) and (.) functions on the right.
 
+TRANSFORM PATTERNS
 _eval_ - perform deep evaluation, must be used at the top of a RHS
 _noParen_ - don't bracket this particular item
+
+SIDE CONDITIONS
+(&&), (||), not - boolean connectives
+isAtom x - does x never need brackets
+isFoo x - is the root constructor of x a "Foo"
+notEq x y - are x and y not equal
+notIn xs ys - are all x variables not in ys expressions
+notTypeSafe - no semantics, a hint for testing only
 -}
 
 module Hint.Match(readMatch) where
