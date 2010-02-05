@@ -47,6 +47,7 @@ library
         Language.Haskell.HLint
     other-modules:
         CmdLine
+        FindHints
         Hint
         HLint
         Settings

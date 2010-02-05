@@ -26,6 +26,7 @@ data Cmd = Cmd
     ,cmdCpphs :: CpphsOptions        -- ^ options for cpphs
     ,cmdDataDir :: FilePath          -- ^ the data directory
     ,cmdEncoding :: String           -- ^ the text encoding
+    ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
     }
 
 
@@ -39,6 +40,7 @@ data Opts = Help | Ver | Test
           | Ext String
           | DataDir String
           | Encoding String
+          | FindHints FilePath
             deriving Eq
 
 
@@ -52,6 +54,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "e" ["extension"] (ReqArg Ext "ext") "File extensions to search (defaults to hs and lhs)"
        ,Option "u" ["utf8"] (NoArg $ Encoding "UTF-8") "Use UTF-8 text encoding"
        ,Option ""  ["encoding"] (ReqArg Encoding "encoding") "Choose the text encoding"
+       ,Option "f" ["find"] (ReqArg FindHints "file") "Find hints in a Haskell file"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
        ,Option "d" ["datadir"] (ReqArg DataDir "dir") "Override the data directory"
        ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
@@ -77,8 +80,10 @@ getCmd args = do
     dataDir <- last $ getDataDir : [return x | DataDir x <- opt]
 
     let exts = [x | Ext x <- opt]
-    files <- concatMapM (getFile $ if null exts then ["hs","lhs"] else exts) files
-    
+        exts2 = if null exts then ["hs","lhs"] else exts
+    files <- concatMapM (getFile exts2) files
+    findHints <- concatMapM (getFile exts2) [x | FindHints x <- opt]
+
     let hintFiles = [x | Hints x <- opt]
     hints <- mapM (getHintFile dataDir) $ hintFiles ++ ["HLint" | null hintFiles]
 
@@ -102,6 +107,7 @@ getCmd args = do
         ,cmdCpphs = cpphs
         ,cmdDataDir = dataDir
         ,cmdEncoding = encoding
+        ,cmdFindHints = findHints
         }
 
 

@@ -13,6 +13,7 @@ import Report
 import Type
 import Hint
 import Test
+import FindHints
 import Util
 import Parallel
 import Hint.All
@@ -27,6 +28,8 @@ hlint args = do
     let flags = parseFlags{cpphs=Just cmdCpphs, encoding=cmdEncoding} 
     if cmdTest then
         test cmdDataDir
+     else if not $ null cmdFindHints then
+        mapM_ (findHints flags) cmdFindHints >> return 0
      else if null cmdFiles then
         exitWithHelp
      else
