@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards #-}
 
-module Test where
+module Test(test) where
 
 import Control.Arrow
 import Control.Exception
