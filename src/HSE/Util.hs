@@ -90,8 +90,16 @@ unqual (Qual an _ x) = UnQual an x
 unqual x = x
 
 
+isDol :: QOp S -> Bool
+isDol (QVarOp _ (UnQual _ (Symbol _ "$"))) = True
+isDol _ = False
+
+isDot :: QOp S -> Bool
+isDot (QVarOp _ (UnQual _ (Symbol _ "."))) = True
+isDot _ = False
+
 isDotApp :: Exp_ -> Bool
-isDotApp (InfixApp _ _ (QVarOp _ (UnQual _ (Symbol _ "."))) _) = True
+isDotApp (InfixApp _ _ dot _) | isDot dot = True
 isDotApp _ = False
 
 dotApp :: Exp_ -> Exp_ -> Exp_
