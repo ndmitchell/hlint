@@ -78,7 +78,7 @@ matchListRec o@(ListCase vs nil (x,xs,cons))
         [toNamed "map", niceLambda [x] lhs, toNamed xs]
 
     | [] <- vs, App2 op lhs rhs <- view cons
-    , null $ vars op `intersect` [x,xs]
+    , vars op `disjoint` [x,xs]
     , fromParen rhs == recursive, xs `notElem` vars lhs
     = Just $ (,,) "foldr" Warning $ appsBracket
         [toNamed "foldr", niceLambda [x] $ appsBracket [op,lhs], nil, toNamed xs]
