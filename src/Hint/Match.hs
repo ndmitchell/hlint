@@ -105,9 +105,9 @@ unify nm (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
 unify nm (Var _ x) (Var _ y) | nm x y = Just []
 unify nm (App _ x1 x2) (App _ y1 y2) = liftM2 (++) (unify nm x1 y1) (unify nm x2 y2)
 unify nm x y | isOther x && isOther y && eqExpShell x y = concatZipWithM (unify nm) (children x) (children y)
-unify nm x (InfixApp _ lhs (opExp -> op) rhs)
-    | op ~= "$" = unify nm x $ App an lhs rhs
-    | otherwise = unify nm x $ App an (App an op lhs) rhs
+unify nm x (InfixApp _ lhs op rhs)
+    | isDol op = unify nm x $ App an lhs rhs
+    | otherwise = unify nm x $ App an (App an (opExp op) lhs) rhs
 unify nm _ _ = Nothing
 
 -- types that are not already handled in unify
