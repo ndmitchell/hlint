@@ -43,6 +43,7 @@ instance Brackets Exp_ where
         EnumFromThenTo{} -> True
         _ -> False
 
+    -- note: i is the index in children, not in the AST
     needBracket i parent child 
         | isAtom child = False
         | InfixApp{} <- parent, App{} <- child = False
@@ -53,6 +54,7 @@ instance Brackets Exp_ where
         | App{} <- parent, i == 0, App{} <- child = False
         | ExpTypeSig{} <- parent, i == 0 = False
         | Paren{} <- parent = False
+        | isDotApp parent, isDotApp child, i == 1 = False
         | otherwise = True
 
 
