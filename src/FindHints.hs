@@ -27,6 +27,7 @@ findHint _ _ = []
 -- given a result function name, a list of variables, a body expression, give some hints
 findExp :: QName S -> [String] -> Exp_ -> [String]
 findExp name vs (Lambda _ ps bod) | length ps2 == length ps = findExp name (vs++ps2) bod
+                                  | otherwise = []
     where ps2 = [x | PVar_ x <- map view ps]
 findExp name vs Var{} = []
 findExp name vs (InfixApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $ App an x $ Paren an $ App an y (toNamed "_hlint")
