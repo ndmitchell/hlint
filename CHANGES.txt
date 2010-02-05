@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #251, add automatic definition hunting with --find
     #268, rewrite the (.) expansion in hints to fix various bugs
     #269, replacing a case with an if should generate one hint
     Document the ANN pragmas
