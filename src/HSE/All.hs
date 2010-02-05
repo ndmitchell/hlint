@@ -5,7 +5,7 @@ module HSE.All(
     module HSE.Type, module HSE.Eq,
     module HSE.NameMatch,
     ParseFlags(..), parseFlags, parseFlagsNoLocations,
-    parseFile, parseString
+    parseFile, parseFile_, parseString
     ) where
 
 import Util
@@ -52,6 +52,13 @@ parseFile :: ParseFlags -> FilePath -> IO (String, ParseResult Module_)
 parseFile flags file = do
     src <- readFileEncoding (encoding flags) file
     parseString flags file src
+
+
+-- throw an error if the parse is invalid
+parseFile_ :: ParseFlags -> FilePath -> IO Module_
+parseFile_ flags file = do
+    (_, res) <- parseFile flags file
+    return $! fromParseResult res
 
 
 extension = knownExtensions \\ badExtensions
