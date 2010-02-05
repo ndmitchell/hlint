@@ -1,5 +1,5 @@
 
-module CmdLine(Cmd(..), getCmd) where
+module CmdLine(Cmd(..), getCmd, exitWithHelp) where
 
 import Control.Monad
 import Data.List
@@ -63,7 +63,6 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
 getCmd :: [String] -> IO Cmd
 getCmd args = do
     let (opt,files,err) = getOpt Permute opts args
-    let test = Test `elem` opt
     unless (null err) $
         error $ unlines $ "Unrecognised arguments:" : err
 
@@ -71,9 +70,9 @@ getCmd args = do
         putStr versionText
         exitWith ExitSuccess
 
-    when (Help `elem` opt || (null files && not test)) $ do
-        putStr helpText
-        exitWith ExitSuccess
+    when (Help `elem` opt) exitWithHelp
+
+    let test = Test `elem` opt
 
     dataDir <- last $ getDataDir : [return x | DataDir x <- opt]
 
@@ -106,8 +105,15 @@ getCmd args = do
         }
 
 
+exitWithHelp :: IO a
+exitWithHelp = do
+    putStr helpText
+    exitWith ExitSuccess
+
+
 versionText :: String
 versionText = "HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2010\n"
+
 
 helpText :: String
 helpText = unlines
