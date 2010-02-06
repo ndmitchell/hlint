@@ -32,9 +32,17 @@ findExp name vs (Lambda _ ps bod) | length ps2 == length ps = findExp name (vs++
 findExp name vs Var{} = []
 findExp name vs (InfixApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $ App an x $ Paren an $ App an y (toNamed "_hlint")
 
-findExp name vs bod = ["warn = " ++ prettyPrint (paren $ transform f bod) ++ " ==> " ++ prettyPrint (apps $ Var an name : vs2)]
-    where vs2 = map toNamed $ take (length vs) $ map return ['a'..]
-          rep = zip vs vs2
-          f (view -> Var_ x) | Just y <- lookup x rep = y
-          f (InfixApp _ x dol y) | isDol dol = App an x (paren y)
-          f x = x
+findExp name vs bod = ["warn = " ++ prettyPrint lhs ++ " ==> " ++ prettyPrint rhs]
+    where
+        lhs = hintParen $ transform f bod
+        rhs = apps $ Var an name : map snd rep
+
+        rep = zip vs $ map toNamed $ map return ['a'..]
+        f (view -> Var_ x) | Just y <- lookup x rep = y
+        f (InfixApp _ x dol y) | isDol dol = App an x (paren y)
+        f x = x
+
+
+hintParen o@(InfixApp _ _ _ x) | isAnyApp x || isAtom x = o
+hintParen o@App{} = o
+hintParen o = paren o
