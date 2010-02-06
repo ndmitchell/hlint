@@ -103,7 +103,7 @@ isDotApp (InfixApp _ _ dot _) | isDot dot = True
 isDotApp _ = False
 
 dotApp :: Exp_ -> Exp_ -> Exp_
-dotApp x y = InfixApp an x (QVarOp an $ UnQual an $ Symbol an ".") y
+dotApp x = InfixApp an x (QVarOp an $ UnQual an $ Symbol an ".")
 
 dotApps :: [Exp_] -> Exp_
 dotApps [x] = x
