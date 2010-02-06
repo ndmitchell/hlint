@@ -3,8 +3,14 @@
 :load Main
 
 :def test const $ return ":main --test"
-:def self const $ return ":main src --report --hint=data/HLint_Hints.hs"
 :def gen const $ return ":!runhaskell data\\HLint_Gen.hs"
+
+
+:{
+:def self const $ return $ unlines
+    [":main --find=src/Util.hs --find=src/HSE/Util.hs"
+    ,":main src --report --hint=data/HLint_Hints.hs"]
+:}
 
 :{
 :def hpc const $ return $ unlines
