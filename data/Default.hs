@@ -160,6 +160,8 @@ error = maybe [] (:[]) ==> maybeToList
 error = catMaybes (map f x) ==> mapMaybe f x
 error = concatMap (maybeToList . f) ==> Data.Maybe.mapMaybe f
 error = concatMap maybeToList ==> catMaybes
+warn  = (case x of Nothing -> y; Just a -> a)  ==> fromMaybe y x
+warn  = (case x of Just a -> a; Nothing -> y)  ==> fromMaybe y x
 
 -- INFIX
 
@@ -289,6 +291,7 @@ h a = flip f x $ y z
 yes x = case x of {True -> a ; False -> b} -- if x then a else b
 yes x = case x of {False -> a ; _ -> b} -- if x then b else a
 no = const . ok . toResponse $ "saved"
+yes = case x z of Nothing -> y z; Just pattern -> pattern -- fromMaybe (y z) (x z)
 
 
 import Prelude \

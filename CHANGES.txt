@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #271, rewrite the match engine in terms of SYB
 1.6.19
     #251, add automatic definition hunting with --find
     #268, rewrite the (.) expansion in hints to fix various bugs
