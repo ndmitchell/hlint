@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, ExistentialQuantification, Rank2Types #-}
 
 module Util where
 
@@ -13,6 +13,8 @@ import System.Exit
 import System.FilePath
 import System.IO
 import System.IO.Unsafe
+import Unsafe.Coerce
+import Data.Data
 
 
 getDirectoryContentsRecursive :: FilePath -> IO [FilePath]
@@ -106,3 +108,11 @@ ltrim = dropWhile isSpace
 
 trimBy :: (a -> Bool) -> [a] -> [a]
 trimBy f = reverse . dropWhile f . reverse . dropWhile f
+
+
+data Box = forall a . Data a => Box a
+
+gzip :: Data a => (forall b . Data b => b -> b -> c) -> a -> a -> Maybe [c]
+gzip f x y | toConstr x /= toConstr y = Nothing
+           | otherwise = Just $ zipWith op (gmapQ Box x) (gmapQ Box y)
+    where op (Box x) (Box y) = f x (unsafeCoerce y)
