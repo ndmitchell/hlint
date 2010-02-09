@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec #-}
 
 {-
 The matching does a fairly simple unification between the two terms, treating
@@ -35,12 +35,13 @@ module Hint.Match(readMatch) where
 
 import Data.List
 import Data.Maybe
+import Data.Data
+import Unsafe.Coerce
 import Type
 import Hint
 import HSE.All
 import Control.Monad
 import Control.Arrow
-import Data.Function
 import Util
 
 
@@ -84,7 +85,7 @@ findIdeas matches nm _ decl =
 
 matchIdea :: NameMatch -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe Exp_
 matchIdea nm decl MatchExp{lhs=lhs,rhs=rhs,side=side} parent x = do
-    u <- unify nm lhs x
+    u <- unifyExp nm lhs x
     u <- check u
     let res = addBracket parent $ unqualify nm $ performEval $ subst u rhs
     guard $ checkSide side $ ("original",x) : ("result",res) : u
@@ -96,40 +97,42 @@ matchIdea nm decl MatchExp{lhs=lhs,rhs=rhs,side=side} parent x = do
 -- UNIFICATION
 
 -- unify a b = c, a[c] = b
--- note: App is unrolled because it's really common (performance reasons)
-unify :: NameMatch -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
-unify nm (Do _ xs) (Do _ ys) | length xs == length ys = concatZipWithM (unifyStmt nm) xs ys
-unify nm (Lambda _ xs x) (Lambda _ ys y) | length xs == length ys = liftM2 (++) (unify nm x y) (concatZipWithM unifyPat xs ys)
-unify nm x y | isParen x || isParen y = unify nm (fromParen x) (fromParen y)
-unify nm (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
-unify nm (Var _ x) (Var _ y) | nm x y = Just []
-unify nm (App _ x1 x2) (App _ y1 y2) = liftM2 (++) (unify nm x1 y1) (unify nm x2 y2)
-unify nm x y | isOther x && isOther y && eqExpShell x y = concatZipWithM (unify nm) (children x) (children y)
-unify nm x (InfixApp _ lhs op rhs)
-    | isDol op = unify nm x $ App an lhs rhs
-    | otherwise = unify nm x $ App an (App an (opExp op) lhs) rhs
-unify nm _ _ = Nothing
+unify :: Data a => NameMatch -> a -> a -> Maybe [(String,Exp_)]
+unify nm x y | Just x <- cast x = unifyExp nm x (unsafeCoerce y)
+             | Just x <- cast x = unifyPat nm x (unsafeCoerce y)
+             | otherwise = unifyDef nm x y
+
+
+unifyDef :: Data a => NameMatch -> a -> a -> Maybe [(String,Exp_)]
+unifyDef nm x y = fmap concat . sequence =<< gzip (unify nm) x y
+
+
+-- App/InfixApp are analysed specially for performance reasons
+unifyExp :: NameMatch -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
+unifyExp nm x y | isParen x || isParen y = unifyExp nm (fromParen x) (fromParen y)
+unifyExp nm (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
+unifyExp nm (Var _ x) (Var _ y) | nm x y = Just []
+unifyExp nm (App _ x1 x2) (App _ y1 y2) = liftM2 (++) (unifyExp nm x1 y1) (unifyExp nm x2 y2)
+unifyExp nm x (InfixApp _ lhs2 op2 rhs2)
+    | InfixApp _ lhs1 op1 rhs1 <- x = guard (op1 == op2) >> liftM2 (++) (unifyExp nm lhs1 lhs2) (unifyExp nm rhs1 rhs2)
+    | isDol op2 = unifyExp nm x $ App an lhs2 rhs2
+    | otherwise = unifyExp nm x $ App an (App an (opExp op2) lhs2) rhs2
+unifyExp nm x y | isOther x, isOther y = unifyDef nm x y
+unifyExp nm _ _ = Nothing
+
+
+unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe [(String,Exp_)]
+unifyPat nm (PVar _ x) (PVar _ y) = Just [(fromNamed x, toNamed $ fromNamed y)]
+unifyPat nm PWildCard{} PVar{} = Just []
+unifyPat nm x y = unifyDef nm x y 
+
 
 -- types that are not already handled in unify
 {-# INLINE isOther #-}
-isOther Do{} = False
-isOther Lambda{} = False
 isOther Var{} = False
 isOther App{} = False
+isOther InfixApp{} = False
 isOther _ = True
-
-
-unifyStmt :: NameMatch -> Stmt S -> Stmt S -> Maybe [(String,Exp_)]
-unifyStmt nm (Generator _ p1 x1) (Generator _ p2 x2) = liftM2 (++) (unifyPat p1 p2) (unify nm x1 x2)
-unifyStmt nm x y | ((==) `on` descendBi (const (toNamed "_" :: Exp_))) x y = concatZipWithM (unify nm) (childrenBi x) (childrenBi y)
-unifyStmt nm _ _ = Nothing
-
-
-unifyPat :: Pat_ -> Pat_ -> Maybe [(String,Exp_)]
-unifyPat (PVar _ x) (PVar _ y) = Just [(fromNamed x, toNamed $ fromNamed y)]
-unifyPat PWildCard{} PVar{} = Just []
-unifyPat x y | ((==) `on` descend (const $ PWildCard an)) x y = concatZipWithM unifyPat (children x) (children y)
-unifyPat _ _ = Nothing
 
 
 ---------------------------------------------------------------------
