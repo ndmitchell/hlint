@@ -46,6 +46,7 @@ library
     exposed-modules:
         Language.Haskell.HLint
     other-modules:
+        Paths_hlint
         CmdLine
         FindHints
         Hint
