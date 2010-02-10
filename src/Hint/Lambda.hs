@@ -15,7 +15,8 @@
     \x y -> op y x ==> flip op
     \x -> x + y ==> (+ y)  -- insert section, 
     \x -> op x y ==> (`op` y)  -- insert section 
-    \x -> y + x ==> (y +)  -- insert section 
+    \x -> y + x ==> (y +)  -- insert section
+    \x -> \y -> ... ==> \x y -- lambda compression
 
 <TEST>
 f a = \x -> x + x -- f a x = x + x
@@ -34,6 +35,7 @@ f = foo (\x y -> fun x y) -- fun
 f = foo (\x y -> x + y) -- (+)
 f = foo (\x -> x * y) -- (* y)
 f = foo (\x -> x # y)
+f = foo (\x -> \y -> x x y y) -- \x y -> x x y y
 f = foo (\x -> \x -> foo x x)
 x ! y = fromJust $ lookup x y
 f = foo (\i -> writeIdea (getClass i) i)
@@ -48,6 +50,7 @@ import HSE.All
 import Hint.Util
 import Type
 import Hint
+import Util
 
 
 lambdaHint :: DeclHint
@@ -76,4 +79,6 @@ lambdaExp o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowR
     [warn "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp o@Lambda{} | res <- niceLambda [] o, not $ isLambda res =
     [warn "Avoid lambda" o res]
+lambdaExp o@(Lambda _ ps1 (fromParen -> Lambda _ ps2 bod)) | pvars ps1 `disjoint` pvars ps2 =
+    [warn "Collapse lambdas" o $ Lambda an (ps1++ps2) bod]
 lambdaExp _ = []
