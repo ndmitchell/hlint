@@ -2,7 +2,7 @@
 module HSE.All(
     module HSE.Util, module HSE.Evaluate,
     module HSE.Bracket, module HSE.Match,
-    module HSE.Type, module HSE.Eq,
+    module HSE.Type,
     module HSE.NameMatch,
     ParseFlags(..), parseFlags, parseFlagsNoLocations,
     parseFile, parseFile_, parseString
@@ -12,7 +12,6 @@ import Util
 import Data.List
 import HSE.Util
 import HSE.Evaluate
-import HSE.Eq
 import HSE.Type
 import HSE.Bracket
 import HSE.Match
