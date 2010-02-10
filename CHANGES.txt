@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add some hints to suggest elem
     Add Paths_hlint to the .cabal file, or the library doesn't link
     #271, rewrite the match engine in terms of SYB
 1.6.19
