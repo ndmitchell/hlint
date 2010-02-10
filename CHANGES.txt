@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Fix minor bug on \x -> \x -> foo x x
     #274, add redundant bracket inside record update/construct
     #272, don't mess up creating sections from qualified names
     Add some hints to suggest elem

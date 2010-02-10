@@ -34,6 +34,7 @@ f = foo (\x y -> fun x y) -- fun
 f = foo (\x y -> x + y) -- (+)
 f = foo (\x -> x * y) -- (* y)
 f = foo (\x -> x # y)
+f = foo (\x -> \x -> foo x x)
 x ! y = fromJust $ lookup x y
 f = foo (\i -> writeIdea (getClass i) i)
 f = bar (flip Foo.bar x) -- (`Foo.bar` x)

@@ -8,7 +8,7 @@ import HSE.All
 -- generate a lambda, but prettier (if possible)
 niceLambda :: [String] -> Exp_ -> Exp_
 niceLambda xs (Paren _ x) = niceLambda xs x
-niceLambda xs (Lambda _ ((view -> PVar_ v):vs) x) = niceLambda (xs++[v]) (Lambda an vs x)
+niceLambda xs (Lambda _ ((view -> PVar_ v):vs) x) | v `notElem` xs = niceLambda (xs++[v]) (Lambda an vs x)
 niceLambda xs (Lambda _ [] x) = niceLambda xs x
 niceLambda [x] (App _ a (view -> Var_ b)) | x == b, x `notElem` vars a = a
 niceLambda [x] (App _ a (Paren _ (App _ b (view -> Var_ c))))
