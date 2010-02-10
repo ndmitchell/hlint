@@ -34,6 +34,7 @@ yes = split "to" $ names -- split "to" names
 yes = white $ keysymbol -- white keysymbol
 yes = operator foo $ operator -- operator foo operator
 no = operator foo $ operator bar
+yes = return $ Record{a=b} -- return Record{a=b}
 
 -- $/bracket rotation tests
 yes = (b $ c d) ++ e -- b (c d) ++ e
