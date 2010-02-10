@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #274, add redundant bracket inside record update/construct
     #272, don't mess up creating sections from qualified names
     Add some hints to suggest elem
     Add Paths_hlint to the .cabal file, or the library doesn't link

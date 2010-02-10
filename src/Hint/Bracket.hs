@@ -16,6 +16,7 @@ yes = if x then (f y) else z -- @Warning if x then f y else z
 yes = (a foo) :: Int -- @Warning a foo :: Int
 yes = [(foo bar)] -- @Warning [foo bar]
 yes = foo ((x y), z) -- @Warning (x y, z)
+yes = C { f = (e h) } -- @Warning C {f = e h}
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int

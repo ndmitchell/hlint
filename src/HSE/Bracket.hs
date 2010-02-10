@@ -55,6 +55,8 @@ instance Brackets Exp_ where
         | ExpTypeSig{} <- parent, i == 0 = False
         | Paren{} <- parent = False
         | isDotApp parent, isDotApp child, i == 1 = False
+        | RecConstr{} <- parent = False
+        | RecUpdate{} <- parent, i /= 0 = False
         | otherwise = True
 
 
