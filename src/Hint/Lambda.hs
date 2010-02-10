@@ -36,6 +36,7 @@ f = foo (\x -> x * y) -- (* y)
 f = foo (\x -> x # y)
 x ! y = fromJust $ lookup x y
 f = foo (\i -> writeIdea (getClass i) i)
+f = bar (flip Foo.bar x) -- (`Foo.bar` x)
 </TEST>
 -}
 
@@ -70,8 +71,8 @@ etaReduce ps x = (ps,x)
 lambdaExp :: Exp_ -> [Idea]
 lambdaExp o@(Paren _ (App _ (Var _ (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
     [warn "Use section" o $ LeftSection an y (toNamed x)]
-lambdaExp o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ (fromNamed -> x))) y)) | allowRightSection x =
-    [warn "Use section" o $ RightSection an (toNamed x) y]
+lambdaExp o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
+    [warn "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp o@Lambda{} | res <- niceLambda [] o, not $ isLambda res =
     [warn "Avoid lambda" o res]
 lambdaExp _ = []

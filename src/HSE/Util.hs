@@ -14,6 +14,7 @@ opExp :: QOp S -> Exp_
 opExp (QVarOp s op) = Var s op
 opExp (QConOp s op) = Con s op
 
+
 moduleDecls :: Module_ -> [Decl_]
 moduleDecls (Module _ _ _ _ xs) = xs
 
