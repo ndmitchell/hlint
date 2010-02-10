@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.6.20
     #275, add more acknowledgements (still very incomplete)
     #254, remove the foldr1/map hint
     Compress nested lambdas, \x -> \y -> ... ==> \x y -> ...
