@@ -62,7 +62,6 @@ error "Use :" = (\x -> [x]) ==> (:[])
 error = map (uncurry f) (zip x y) ==> zipWith f x y
 error = not (elem x y) ==> notElem x y
 warn  = foldr f z (map g x) ==> foldr (f . g) z x
-warn  = foldr1 f (map g x) ==> foldr1 (f . g) x
 
 -- FOLDS
 
