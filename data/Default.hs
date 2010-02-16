@@ -39,13 +39,10 @@ error = showsPrec 0 ==> shows
 -- LIST
 
 error = concat (map f x) ==> concatMap f x
-warn = concat [a,b,c] ==> a ++ b ++ c
 warn = concat [a,b] ==> a ++ b
-warn = concat [a] ==> a
-warn = a++b++c++d++e++f++g = concat [a, b, c, d, e, f, g]
-warn = a++b++c++d++e++f = concat [a, b, c, d, e, f]
-warn = a++b++c++d++e = concat [a, b, c, d, e]
-warn = a++b++c++d = concat [a, b, c, d]
+warn = a++b++c++d++e++f++g ==> concat [a, b, c, d, e, f, g]
+warn = a++b++c++d++e++f ==> concat [a, b, c, d, e, f]
+warn = a++b++c++d++e ==> concat [a, b, c, d, e]
 error "Use map once" = map f (map g x) ==> map (f . g) x
 warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
@@ -231,6 +228,8 @@ error "Evaluate" = x - 0 ==> x
 error "Evaluate" = x * 1 ==> x
 error "Evaluate" = x / 1 ==> x
 error "Evaluate" = id x ==> x
+error "Evaluate" = concat [a] ==> a
+error "Evaluate" = concat [] ==> []
 
 -- COMPLEX
 
