@@ -40,9 +40,10 @@ error = showsPrec 0 ==> shows
 
 error = concat (map f x) ==> concatMap f x
 warn = concat [a,b] ==> a ++ b
-warn = a++b++c++d++e++f++g ==> concat [a, b, c, d, e, f, g]
-warn = a++b++c++d++e++f ==> concat [a, b, c, d, e, f]
-warn = a++b++c++d++e ==> concat [a, b, c, d, e]
+-- these hints pick up way too much
+--warn = a++b++c++d++e++f++g ==> concat [a, b, c, d, e, f, g]
+--warn = a++b++c++d++e++f ==> concat [a, b, c, d, e, f]
+--warn = a++b++c++d++e ==> concat [a, b, c, d, e]
 error "Use map once" = map f (map g x) ==> map (f . g) x
 warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
