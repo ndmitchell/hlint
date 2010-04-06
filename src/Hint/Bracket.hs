@@ -17,6 +17,8 @@ yes = (a foo) :: Int -- @Warning a foo :: Int
 yes = [(foo bar)] -- @Warning [foo bar]
 yes = foo ((x y), z) -- @Warning (x y, z)
 yes = C { f = (e h) } -- @Warning C {f = e h}
+yes = \ x -> (x && x) -- @Warning \x -> x && x
+no = \(x -> y) -> z
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
