@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #297, add a hint to use mplus
     #288, detect redundant brackets under a lambda
     #302, remove error about ambiguous fixities
     #281, enhance the redundant monad return warnings

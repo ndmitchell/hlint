@@ -166,6 +166,7 @@ error = maybe [] (:[]) ==> maybeToList
 error = catMaybes (map f x) ==> mapMaybe f x
 error = concatMap (maybeToList . f) ==> Data.Maybe.mapMaybe f
 error = concatMap maybeToList ==> catMaybes
+error = maybe n Just x ==> Control.Monad.mplus x n
 warn  = (case x of Nothing -> y; Just a -> a)  ==> fromMaybe y x
 warn  = (case x of Just a -> a; Nothing -> y)  ==> fromMaybe y x
 
