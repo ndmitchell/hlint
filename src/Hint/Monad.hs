@@ -24,6 +24,7 @@ yes = do x <- return y; foo x -- do let x = y; foo x
 yes = do x <- return $ y + z; foo x -- do let x = y + z; foo x
 no = do x <- return x; foo x
 no = do x <- return y; x <- return y; foo x
+yes = do forM files $ \x -> return (); return () -- forM_ files $ \x -> return ()
 </TEST>
 -}
 
@@ -61,6 +62,7 @@ monadExp x = case x of
 monadCall :: Exp_ -> Maybe (String,Exp_)
 monadCall (Paren _ x) = fmap (second $ Paren an) $ monadCall x
 monadCall (App _ x y) = fmap (second $ \x -> App an x y) $ monadCall x
+monadCall (InfixApp _ x dol y) | isDol dol = fmap (second $ \x -> InfixApp an x dol y) $ monadCall x
 monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, toNamed x2)
 monadCall _ = Nothing
 
