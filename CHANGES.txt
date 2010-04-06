@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #302, remove error about ambiguous fixities
     #281, enhance the redundant monad return warnings
     #293, eliminate _noParen_ from the result
     #284, eliminate ViewPatterns from FindHints, hits compiler bug

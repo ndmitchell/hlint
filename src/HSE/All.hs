@@ -10,6 +10,7 @@ module HSE.All(
 
 import Util
 import Data.List
+import Data.Maybe
 import HSE.Util
 import HSE.Evaluate
 import HSE.Type
@@ -17,6 +18,7 @@ import HSE.Bracket
 import HSE.Match
 import HSE.NameMatch
 import Language.Preprocessor.Cpphs
+import Language.Haskell.Exts.Annotated.Simplify(sOp, sAssoc)
 
 
 data ParseFlags = ParseFlags
@@ -37,14 +39,26 @@ parseFlagsNoLocations x = x{cpphs = fmap f $ cpphs x}
 parseString :: ParseFlags -> FilePath -> String -> IO (String, ParseResult Module_)
 parseString flags file str = do
         ppstr <- maybe return (`runCpphs` file) (cpphs flags) str
-        return (ppstr, parseFileContentsWithMode mode ppstr)
+        return (ppstr, fmap (applyFixity fixity) $ parseFileContentsWithMode mode ppstr)
     where
+        fixity = concat [infix_ (-1) ["==>"] | implies flags] ++ baseFixities
         mode = defaultParseMode
             {parseFilename = file
             ,extensions = extension
-            ,fixities = concat [infix_ (-1) ["==>"] | implies flags] ++ baseFixities
+            ,fixities = []
             ,ignoreLinePragmas = False
             }
+
+
+-- resolve fixities later, so we don't ever get uncatchable ambiguity errors
+-- if there are fixity errors, just ignore them
+applyFixity :: [Fixity] -> Module_ -> Module_
+applyFixity fixity modu = descendBi f modu
+    where
+        f x = fromMaybe x $ applyFixities (fixity ++ extra) x :: Decl_
+
+        -- taken from HSE, Fixity.hs
+        extra = [Fixity (sAssoc a) p (sOp op) | InfixDecl _ a mp ops <- moduleDecls modu, let p = maybe 9 id mp, op <- ops]
 
 
 parseFile :: ParseFlags -> FilePath -> IO (String, ParseResult Module_)
