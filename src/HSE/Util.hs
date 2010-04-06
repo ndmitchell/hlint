@@ -123,6 +123,21 @@ getEquations (PatBind s (PVar _ name) _ bod bind) = [FunBind s [Match s name [] 
 getEquations x = [x]
 
 
+-- case and if both have branches, nothing else does
+replaceBranches :: Exp s -> ([Exp s], [Exp s] -> Exp s)
+replaceBranches (If s a b c) = ([b,c], \[b,c] -> If s a b c)
+replaceBranches (Case s a bs) = (concatMap f bs, \bs2 -> Case s a (g bs bs2))
+    where
+        f (Alt _ _ (UnGuardedAlt _ x) _) = [x]
+        f (Alt _ _ (GuardedAlts _ xs) _) = [x | GuardedAlt _ _ x <- xs]
+        g (Alt s1 a (UnGuardedAlt s2 _) b:rest) (x:xs) = Alt s1 a (UnGuardedAlt s2 x) b : g rest xs
+        g (Alt s1 a (GuardedAlts s2 ns) b:rest) xs =
+                Alt s1 a (GuardedAlts s2 [GuardedAlt a b x | (GuardedAlt a b _,x) <- zip ns as]) b : g rest bs
+            where (as,bs) = splitAt (length ns) xs
+        g [] [] = []
+replaceBranches x = ([], \[] -> x)
+
+
 ---------------------------------------------------------------------
 -- VECTOR APPLICATION
 
