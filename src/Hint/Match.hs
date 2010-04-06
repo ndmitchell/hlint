@@ -151,7 +151,7 @@ subst bind = transform g . transformBracket f
         f (Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
         f _ = Nothing
 
-        g (App _ np (Paren _ x)) | np ~= "_noParen_" = x
+        g (App _ np x) | np ~= "_noParen_" = fromParen x
         g x = x
 
 
