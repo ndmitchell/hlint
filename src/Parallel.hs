@@ -23,7 +23,7 @@ parallelN :: [IO a] -> IO [a]
 parallelN xs = do
     ms <- mapM (const newEmptyMVar) xs
     chan <- newChan
-    mapM (writeChan chan . Just) $ zip ms xs
+    mapM_ (writeChan chan . Just) $ zip ms xs
     replicateM_ numCapabilities (writeChan chan Nothing >> forkIO (f chan))
     parallel1 $ map takeMVar ms
     where
