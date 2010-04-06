@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns #-}
+{-# LANGUAGE PatternGuards #-}
 
 module FindHints(findHints) where
 
@@ -38,7 +38,7 @@ findExp name vs bod = ["warn = " ++ prettyPrint lhs ++ " ==> " ++ prettyPrint rh
         rhs = apps $ Var an name : map snd rep
 
         rep = zip vs $ map (toNamed . return) ['a'..]
-        f (view -> Var_ x) | Just y <- lookup x rep = y
+        f xx | Var_ x <- view xx, Just y <- lookup x rep = y
         f (InfixApp _ x dol y) | isDol dol = App an x (paren y)
         f x = x
 
