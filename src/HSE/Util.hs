@@ -68,7 +68,9 @@ isFunDep FunDep{} = True; isFunDep _ = False
 isPBangPat PBangPat{} = True; isPBangPat _ = False
 isPExplTypeArg PExplTypeArg{} = True; isPExplTypeArg _ = False
 isPFieldPun PFieldPun{} = True; isPFieldPun _ = False
+isFieldPun FieldPun{} = True; isFieldPun _ = False
 isPFieldWildcard PFieldWildcard{} = True; isPFieldWildcard _ = False
+isFieldWildcard FieldWildcard{} = True; isFieldWildcard _ = False
 isPViewPat PViewPat{} = True; isPViewPat _ = False
 isParComp ParComp{} = True; isParComp _ = False
 isPatTypeSig PatTypeSig{} = True; isPatTypeSig _ = False

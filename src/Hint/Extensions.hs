@@ -23,6 +23,8 @@ sort :: (?cmp :: a -> a -> Bool) => [a] -> [a] \
 sort !f = undefined
 {-# LANGUAGE KindSignatures #-} \
 data Set (cxt :: * -> *) a = Set [a]
+{-# LANGUAGE RecordWildCards #-} \
+record field = Record{..}
 </TEST>
 -}
 
@@ -69,8 +71,8 @@ used PatternGuards = hasS f1 & hasS f2
           g _ = True
 used StandaloneDeriving = hasS isDerivDecl
 used PatternSignatures = hasS isPatTypeSig
-used RecordWildCards = hasS isPFieldWildcard
-used RecordPuns = hasS isPFieldPun
+used RecordWildCards = hasS isPFieldWildcard & hasS isFieldWildcard
+used RecordPuns = hasS isPFieldPun & hasS isFieldPun
 used UnboxedTuples = has isBoxed
 used PackageImports = hasS (isJust . importPkg)
 used QuasiQuotes = hasS isQuasiQuote

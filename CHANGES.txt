@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #283, don't suggest removal of RecordWildCards
     Add some hints about concat and (++)
     #273, require haskell-src-exts >= 1.8.2
 1.6.20
