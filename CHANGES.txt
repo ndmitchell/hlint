@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.6.21
     #287, warn about Haskell 98 imports
     #297, add a hint to use mplus
     #288, detect redundant brackets under a lambda
