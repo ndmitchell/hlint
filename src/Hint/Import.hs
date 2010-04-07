@@ -25,6 +25,8 @@ import A; import B; import A -- import A
 import qualified A; import A
 import B; import A; import A -- import A
 import A hiding(Foo); import A hiding(Bar)
+import List -- import Data.List
+import Locale(foo) -- import System.Locale(foo)
 </TEST>
 -}
 
@@ -39,8 +41,9 @@ import Data.Maybe
 
 
 importHint :: ModuHint
-importHint _ x = concatMap (wrap . snd) $ groupSortFst
-                 [((fromNamed $ importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]
+importHint _ x = concatMap (wrap . snd) (groupSortFst
+                 [((fromNamed $ importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]) ++
+                 concatMap hierarchy (universeBi x)
 
 
 wrap :: [ImportDecl S] -> [Idea]
@@ -84,3 +87,22 @@ reduce x y | qual, as, specs = Just x
         specs = importSpecs x `eqMaybe` importSpecs y
 
 reduce _ _ = Nothing
+
+
+
+newNames = let (*) = flip (,) in
+    ["Control" * "Monad"
+    ,"Data" * "Char"
+    ,"Data" * "List"
+    ,"Data" * "Maybe"
+    ,"Data" * "Ratio"
+    ,"System" * "Directory"
+    ,"System" * "IO"
+    ,"System" * "Locale"
+    ,"System" * "Time"
+    ]
+
+hierarchy :: ImportDecl S -> [Idea]
+hierarchy i@ImportDecl{importModule=ModuleName _ x} | Just y <- lookup x newNames
+    = [warn "Use hierarchical imports" i i{importModule=ModuleName an $ y ++ "." ++ x}]
+hierarchy _ = []
