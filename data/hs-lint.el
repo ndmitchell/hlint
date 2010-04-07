@@ -119,7 +119,7 @@
   "Run HLint for current buffer with haskell source"
   (interactive)
   (save-some-buffers hs-lint-save-files)
-  (compilation-start (concat hs-lint-command " " buffer-file-name)
+  (compilation-start (concat hs-lint-command " \"" buffer-file-name "\"")
                      'hs-lint-mode))
 
 (provide 'hs-lint)
