@@ -4,6 +4,7 @@ module HSE.Util where
 
 import Control.Monad
 import Data.List
+import Data.Maybe
 import HSE.Type
 import Language.Haskell.Exts.Annotated.Simplify(sOp, sAssoc)
 
@@ -257,6 +258,5 @@ eqMaybe _ _ = False
 -- FIXITIES
 
 getFixity :: Decl a -> [Fixity]
-getFixity (InfixDecl _ a mp ops) = [Fixity (sAssoc a) p (sOp op) | op <- ops]
-    where p = maybe 9 id mp
+getFixity (InfixDecl _ a mp ops) = [Fixity (sAssoc a) (fromMaybe 9 mp) (sOp op) | op <- ops]
 getFixity _ = []

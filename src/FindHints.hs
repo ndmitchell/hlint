@@ -3,7 +3,7 @@
 module FindHints(findHints) where
 
 import Control.Monad
-import Data.Char
+import Util
 import HSE.All
 
 
@@ -22,7 +22,7 @@ findHint qual (InstDecl _ _ _ (Just xs)) = concatMap (findHint qual) [x | InsDec
 findHint qual (PatBind _ (PVar _ name) Nothing (UnGuardedRhs _ bod) Nothing) = findExp (qual name) [] bod
 findHint qual (FunBind _ [InfixMatch _ p1 name ps rhs bind]) = findHint qual $ FunBind an [Match an name (p1:ps) rhs bind]
 findHint qual (FunBind _ [Match _ name ps (UnGuardedRhs _ bod) Nothing]) = findExp (qual name) [] $ Lambda an ps bod
-findHint _ x@InfixDecl{} = [dropWhile isSpace $ prettyPrint x]
+findHint _ x@InfixDecl{} = [ltrim $ prettyPrint x]
 findHint _ _ = []
 
 
