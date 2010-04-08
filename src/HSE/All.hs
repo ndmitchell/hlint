@@ -18,7 +18,6 @@ import HSE.Bracket
 import HSE.Match
 import HSE.NameMatch
 import Language.Preprocessor.Cpphs
-import Language.Haskell.Exts.Annotated.Simplify(sOp, sAssoc)
 
 
 data ParseFlags = ParseFlags
@@ -55,10 +54,8 @@ parseString flags file str = do
 applyFixity :: [Fixity] -> Module_ -> Module_
 applyFixity fixity modu = descendBi f modu
     where
-        f x = fromMaybe x $ applyFixities (fixity ++ extra) x :: Decl_
-
-        -- taken from HSE, Fixity.hs
-        extra = [Fixity (sAssoc a) p (sOp op) | InfixDecl _ a mp ops <- moduleDecls modu, let p = maybe 9 id mp, op <- ops]
+        f x = fromMaybe x $ applyFixities (extra ++ fixity) x :: Decl_
+        extra = concatMap getFixity $ moduleDecls modu
 
 
 parseFile :: ParseFlags -> FilePath -> IO (String, ParseResult Module_)
