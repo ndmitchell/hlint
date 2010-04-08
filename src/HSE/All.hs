@@ -22,13 +22,12 @@ import Language.Preprocessor.Cpphs
 
 data ParseFlags = ParseFlags
     {cpphs :: Maybe CpphsOptions
-    ,implies :: Bool
     ,encoding :: String
     ,infixes :: [Fixity]
     }
 
 parseFlags :: ParseFlags
-parseFlags = ParseFlags Nothing False "" []
+parseFlags = ParseFlags Nothing "" []
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cpphs = fmap f $ cpphs x}
@@ -41,7 +40,7 @@ parseString flags file str = do
         ppstr <- maybe return (`runCpphs` file) (cpphs flags) str
         return (ppstr, fmap (applyFixity fixity) $ parseFileContentsWithMode mode ppstr)
     where
-        fixity = infixes flags ++ concat [infix_ (-1) ["==>"] | implies flags] ++ baseFixities
+        fixity = infixes flags ++ baseFixities
         mode = defaultParseMode
             {parseFilename = file
             ,extensions = extension

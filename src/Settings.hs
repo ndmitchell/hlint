@@ -23,7 +23,7 @@ readSettings dataDir xs = do
 -- currently it doesn't
 readHints :: FilePath -> FilePath -> IO [Either String Module_]
 readHints dataDir file = do
-    y <- parseFile_ parseFlags{implies=True} file
+    y <- parseFile_ parseFlags{infixes=infix_ (-1) ["==>"]} file
     ys <- concatMapM (f . fromNamed . importModule) $ moduleImports y
     return $ Right y:ys
     where
