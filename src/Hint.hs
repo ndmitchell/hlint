@@ -58,3 +58,16 @@ allHints :: [Setting] -> [Hint]
 allHints xs = dynamicHints xs : map f builtin
     where builtin = nub [x | Builtin x <- xs]
           f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x staticHints
+
+
+classify :: [Setting] -> Idea -> Idea
+classify xs i = if isParseError i then i else i{rank = foldl' (rerank i) (rank i) $ filter isClassify xs}
+    where
+        -- figure out if we need to change the rank
+        rerank :: Idea -> Rank -> Setting -> Rank
+        rerank i r c | matchHint (hintS c) (hint i) && matchFunc (funcS c) (func i) = rankS c
+                     | otherwise = r
+
+        matchHint = (~=)
+        matchFunc (x1,x2) (y1,y2) = (x1~=y1) && (x2~=y2)
+        x ~= y = null x || x == y

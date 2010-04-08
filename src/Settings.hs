@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
-module Settings(readSettings, readPragma, classify, defaultHintName) where
+module Settings(readSettings, readPragma, defaultHintName) where
 
 import HSE.All
 import Type
@@ -30,19 +30,6 @@ readHints dataDir file = do
         f x | "HLint.Builtin." `isPrefixOf` x = return [Left $ drop 14 x]
             | "HLint." `isPrefixOf` x = readHints dataDir $ dataDir </> drop 6 x <.> "hs"
             | otherwise = readHints dataDir $ x <.> "hs"
-
-
-classify :: [Setting] -> Idea -> Idea
-classify xs i = if isParseError i then i else i{rank = foldl' (rerank i) (rank i) $ filter isClassify xs}
-    where
-        -- figure out if we need to change the rank
-        rerank :: Idea -> Rank -> Setting -> Rank
-        rerank i r c | matchHint (hintS c) (hint i) && matchFunc (funcS c) (func i) = rankS c
-                     | otherwise = r
-
-        matchHint = (~=)
-        matchFunc (x1,x2) (y1,y2) = (x1~=y1) && (x2~=y2)
-        x ~= y = null x || x == y
 
 
 ---------------------------------------------------------------------
