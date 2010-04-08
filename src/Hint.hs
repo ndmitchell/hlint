@@ -12,7 +12,6 @@ import Type
 import Util
 
 
-
 applyHint :: ParseFlags -> [Setting] -> FilePath -> IO [Idea]
 applyHint flags s file = do
     src <- readFileEncoding (encoding flags) file
