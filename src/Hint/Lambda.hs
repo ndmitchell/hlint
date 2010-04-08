@@ -49,7 +49,7 @@ module Hint.Lambda where
 import HSE.All
 import Hint.Util
 import Type
-import Hint
+import Hint.Type
 import Util
 
 

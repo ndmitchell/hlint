@@ -1,7 +1,8 @@
 
-module Hint where
+module Hint(applyHint, applyHintStr) where
 
 import HSE.All
+import Hint.All
 import Data.Char
 import Data.List
 import Data.Maybe
@@ -11,26 +12,21 @@ import Type
 import Util
 
 
-type DeclHint = NameMatch -> Module_ -> Decl_ -> [Idea]
-type ModuHint = NameMatch -> Module_          -> [Idea]
 
-data Hint = DeclHint {declHint :: DeclHint} | ModuHint {moduHint :: ModuHint}
-
-
-applyHint :: ParseFlags -> [Hint] -> [Setting] -> FilePath -> IO [Idea]
-applyHint flags h s file = do
+applyHint :: ParseFlags -> [Setting] -> FilePath -> IO [Idea]
+applyHint flags s file = do
     src <- readFileEncoding (encoding flags) file
-    applyHintStr flags h s file src
+    applyHintStr flags s file src
 
 
-applyHintStr :: ParseFlags -> [Hint] -> [Setting] -> FilePath -> String -> IO [Idea]
-applyHintStr flags h s file src = do
-    res <- parseString flags file src
+applyHintStr :: ParseFlags -> [Setting] -> FilePath -> String -> IO [Idea]
+applyHintStr flags s file src = do
+    res <- parseString flags{infixes=[x | Infix x <- s]} file src
     case snd res of
         ParseFailed sl msg -> map (classify s) `fmap` parseFailed flags sl msg src
         ParseOk m -> return $
             let settings = mapMaybe readPragma $ moduleDecls m
-            in map (classify $ s ++ settings) $ parseOk h m
+            in map (classify $ s ++ settings) $ parseOk (allHints s) m
 
 
 parseFailed :: ParseFlags -> SrcLoc -> String -> String -> IO [Idea]
@@ -57,3 +53,9 @@ parseOk h m =
     where
         order n = map (\i -> i{func = (moduleName m,n)}) . sortBy (comparing loc)
         nm = nameMatch $ moduleImports m
+
+
+allHints :: [Setting] -> [Hint]
+allHints xs = dynamicHints xs : map f builtin
+    where builtin = nub [x | Builtin x <- xs]
+          f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x staticHints

@@ -38,7 +38,7 @@ import Data.Maybe
 import Data.Data
 import Unsafe.Coerce
 import Type
-import Hint
+import Hint.Type
 import HSE.All
 import Control.Monad
 import Control.Arrow

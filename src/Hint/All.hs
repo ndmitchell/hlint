@@ -1,10 +1,8 @@
 
-module Hint.All where
+module Hint.All(module Hint.Type, module Hint.All) where
 
 import Type
-import Hint
-import Data.List
-import Data.Maybe
+import Hint.Type
 
 import Hint.Match
 import Hint.List
@@ -36,9 +34,3 @@ staticHints =
 
 dynamicHints :: [Setting] -> Hint
 dynamicHints = DeclHint . readMatch
-
-
-allHints :: [Setting] -> [Hint]
-allHints xs = dynamicHints xs : map f builtin
-    where builtin = nub [x | Builtin x <- xs]
-          f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x staticHints

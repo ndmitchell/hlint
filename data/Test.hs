@@ -31,6 +31,9 @@ ignore = Ignore_Test
 
 error = concat (map f x) ==> Data.List.concatMap f x
 
+infix 9 +
+error = a * (b+c) ==> undefined
+
 
 {-
 <TEST>
@@ -61,6 +64,8 @@ type Ann_Test = Int -- @Ignore ???
 
 concatMap f x = concat (map f x)
 concatMop f x = concat (map f x) -- Data.List.concatMap f x
+
+yes = 1 * 2+3 -- undefined
 </TEST>
 -}
 

@@ -76,6 +76,7 @@ library
         Hint.Naming
         Hint.Pragma
         Hint.Structure
+        Hint.Type
         Hint.Util
 
 

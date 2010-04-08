@@ -16,7 +16,6 @@ import Test
 import FindHints
 import Util
 import Parallel
-import Hint.All
 import HSE.All
 
 
@@ -41,7 +40,7 @@ runHints Cmd{..} flags = do
     settings <- readSettings cmdDataDir cmdHintFiles
     let extra = [Classify Ignore x ("","") | x <- cmdIgnore]
     let apply :: FilePath -> IO [Idea]
-        apply = applyHint flags (allHints settings) (filter isClassify settings ++ extra)
+        apply = applyHint flags (settings ++ extra)
     ideas <- fmap concat $ parallel [listM' =<< apply x | x <- cmdFiles]
     let visideas = filter (\i -> cmdShowAll || rank i /= Ignore) ideas
     showItem <- if cmdColor then showANSI else return show

@@ -32,9 +32,8 @@ readHints dataDir file = do
             | otherwise = readHints dataDir $ x <.> "hs"
 
 
--- precondition: all isClassify xs
 classify :: [Setting] -> Idea -> Idea
-classify xs i = if isParseError i then i else i{rank = foldl' (rerank i) (rank i) xs}
+classify xs i = if isParseError i then i else i{rank = foldl' (rerank i) (rank i) $ filter isClassify xs}
     where
         -- figure out if we need to change the rank
         rerank :: Idea -> Rank -> Setting -> Rank
@@ -64,6 +63,7 @@ readSetting x@AnnPragma{} | Just y <- readPragma x = [y]
 readSetting (PatBind an (PVar _ name) _ bod bind) = readSetting $ FunBind an [Match an name [PLit an (String an "" "")] bod bind]
 readSetting (FunBind an xs) | length xs /= 1 = concatMap (readSetting . FunBind an . return) xs
 readSetting (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
+readSetting x@InfixDecl{} = map Infix $ getFixity x
 readSetting x = errorOn x "bad hint"
 
 

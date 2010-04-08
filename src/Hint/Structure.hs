@@ -21,7 +21,7 @@ module Hint.Structure where
 
 import HSE.All
 import Type
-import Hint
+import Hint.Type
 import Util
 import Data.List
 

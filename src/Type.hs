@@ -29,6 +29,7 @@ data Setting
     = Classify {rankS :: Rank, hintS :: String, funcS :: FuncName}
     | MatchExp {rankS :: Rank, hintS :: String, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_}
     | Builtin String -- use a builtin hint set
+    | Infix Fixity
       deriving Show
 
 data Idea

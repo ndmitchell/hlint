@@ -33,7 +33,7 @@ module Hint.Extensions where
 
 import HSE.All
 import Type
-import Hint
+import Hint.Type
 import Data.Maybe
 
 
