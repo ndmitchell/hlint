@@ -87,7 +87,7 @@ readFuncs (Con _ (Qual _ (ModuleName _ mod) name)) = [(mod ++ "." ++ fromNamed n
 readFuncs x = errorOn x "bad classification rule"
 
 
--- errorOn :: Pretty x => x -> String -> a
+errorOn :: (Annotated ast, Pretty (ast S)) => ast S -> String -> b
 errorOn val msg = exitMessage $
     showSrcLoc (getPointLoc $ ann val)  ++
     " Error while reading hint file, " ++ msg ++ "\n" ++
