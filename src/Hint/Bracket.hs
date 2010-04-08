@@ -82,12 +82,12 @@ dollar = concatMap f . universe
         f x = [msg x y | InfixApp _ a d b <- [x], opExp d ~= "$"
               ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b]
               ++
-              [msg x (t y) |(t, Paren _ (InfixApp _ a1 op1 a2)) <- infixes x
+              [msg x (t y) |(t, Paren _ (InfixApp _ a1 op1 a2)) <- splitInfix x
               ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
               ,let y = App an a1 (Paren an a2)]
 
 
 -- return both sides, and a way to put them together again
-infixes :: Exp_ -> [(Exp_ -> Exp_, Exp_)]
-infixes (InfixApp s a b c) = [(InfixApp s a b, c), (\a -> InfixApp s a b c, a)]
-infixes _ = []
+splitInfix :: Exp_ -> [(Exp_ -> Exp_, Exp_)]
+splitInfix (InfixApp s a b c) = [(InfixApp s a b, c), (\a -> InfixApp s a b c, a)]
+splitInfix _ = []
