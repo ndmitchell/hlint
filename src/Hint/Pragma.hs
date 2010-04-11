@@ -41,12 +41,12 @@ pragmaHint _ x = languageDupes lang ++ [pragmaIdea old $ [LanguagePragma an (map
         ns2 = nub (concat ns) \\ concat [map fromNamed n | LanguagePragma _ n <- lang]
 
 
-pragmaIdea :: [OptionPragma S] -> [OptionPragma S] -> Idea
+pragmaIdea :: [ModulePragma S] -> [ModulePragma S] -> Idea
 pragmaIdea xs ys = rawIdea Error "Use better pragmas" (toSrcLoc $ ann $ head xs) (f xs) (f ys)
     where f = unlines . map prettyPrint
 
 
-languageDupes :: [OptionPragma S] -> [Idea]
+languageDupes :: [ModulePragma S] -> [Idea]
 languageDupes [] = []
 languageDupes (a@(LanguagePragma _ x):xs) =
     (if nub_ x `neqList` x
@@ -63,7 +63,7 @@ strToLanguage "-fglasgow-exts" = Just $ map show glasgowExts
 strToLanguage _ = Nothing
 
 
-optToLanguage :: OptionPragma S -> Maybe (Maybe (OptionPragma S), [String])
+optToLanguage :: ModulePragma S -> Maybe (Maybe (ModulePragma S), [String])
 optToLanguage (OptionsPragma sl tool val)
     | maybe True (== GHC) tool && any isJust vs = Just (res, concat $ catMaybes vs)
     where

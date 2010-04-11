@@ -27,7 +27,7 @@ moduleName (Module _ (Just (ModuleHead _ (ModuleName _ x) _ _)) _ _ _) = x
 moduleImports :: Module_ -> [ImportDecl S]
 moduleImports (Module _ _ _ x _) = x
 
-modulePragmas :: Module_ -> [OptionPragma S]
+modulePragmas :: Module_ -> [ModulePragma S]
 modulePragmas (Module _ _ x _ _) = x
 
 isChar :: Exp_ -> Bool
