@@ -7,7 +7,6 @@ module Settings(
     ) where
 
 import HSE.All
-import Control.Monad
 import Data.Char
 import Data.List
 import System.FilePath
@@ -149,13 +148,11 @@ errorOn val msg = exitMessage $
 -- FIND SETTINGS IN A SOURCE FILE
 
 -- find definitions in a source file, and write them to std out
-findSettings :: ParseFlags -> FilePath -> IO ()
+findSettings :: ParseFlags -> FilePath -> IO String
 findSettings flags file = do
     x <- parseFile_ flags file
     let xs = concatMap (findSetting $ UnQual an) $ moduleDecls x
-    putStrLn $ "-- hints found in " ++ file
-    when (null xs) $ putStrLn "-- no hints found"
-    putStrLn $ unlines xs
+    return $ unlines $ ["-- hints found in " ++ file] ++ xs ++ ["-- no hints found" | null xs]
 
 
 findSetting :: (Name S -> QName S) -> Decl_ -> [String]
