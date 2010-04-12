@@ -18,9 +18,7 @@ readSettings dataDir xs = do
     return $ map Builtin builtin ++ concatMap (concatMap readSetting . concatMap getEquations . moduleDecls) mods
 
 
--- read all the files
--- in future this should also do import chasing, but
--- currently it doesn't
+-- Read a hint file, and all hint files it imports
 readHints :: FilePath -> FilePath -> IO [Either String Module_]
 readHints dataDir file = do
     y <- parseFile_ parseFlags{infixes=infix_ (-1) ["==>"]} file
