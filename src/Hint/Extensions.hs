@@ -33,6 +33,7 @@ module Hint.Extensions where
 
 import Hint.Type
 import Data.Maybe
+import Util
 
 
 extensionsHint :: ModuHint
@@ -94,7 +95,7 @@ un = undefined
 
 (&) f g x = f x || g x
 
-hasT t x = not $ null (universeBi x `asTypeOf` [t])
+hasT t x = notNull (universeBi x `asTypeOf` [t])
 hasT2 ~(t1,t2) = hasT t1 & hasT t2
 
 hasS :: Biplate x (f S) => (f S -> Bool) -> x -> Bool

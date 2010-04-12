@@ -29,6 +29,7 @@ module Hint.Pragma where
 import Hint.Type
 import Data.List
 import Data.Maybe
+import Util
 
 
 pragmaHint :: ModuHint
@@ -49,7 +50,7 @@ languageDupes [] = []
 languageDupes (a@(LanguagePragma _ x):xs) =
     (if nub_ x `neqList` x
         then [pragmaIdea [a] [LanguagePragma an $ nub_ x]]
-        else [pragmaIdea [a,b] [LanguagePragma an (nub_ $ x ++ y)] | b@(LanguagePragma _ y) <- xs, not $ null $ intersect_ x y]) ++
+        else [pragmaIdea [a,b] [LanguagePragma an (nub_ $ x ++ y)] | b@(LanguagePragma _ y) <- xs, notNull $ intersect_ x y]) ++
     languageDupes xs
 
 

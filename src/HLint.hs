@@ -26,7 +26,7 @@ hlint args = do
     let flags = parseFlags{cpphs=Just cmdCpphs, encoding=cmdEncoding} 
     if cmdTest then
         test cmdDataDir
-     else if not $ null cmdFindHints then
+     else if notNull cmdFindHints then
         mapM_ (\x -> putStrLn =<< findSettings flags x) cmdFindHints >> return 0
      else if null cmdFiles then
         exitWithHelp
