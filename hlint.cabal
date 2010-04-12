@@ -47,8 +47,8 @@ library
         Language.Haskell.HLint
     other-modules:
         Paths_hlint
+        Apply
         CmdLine
-        Hint
         HLint
         Settings
         Report

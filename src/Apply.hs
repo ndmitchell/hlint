@@ -1,5 +1,5 @@
 
-module Hint(applyHint, applyHintStr) where
+module Apply(applyHint, applyHintStr) where
 
 import HSE.All
 import Hint.All

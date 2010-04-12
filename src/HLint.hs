@@ -11,7 +11,7 @@ import CmdLine
 import Settings
 import Report
 import Type
-import Hint
+import Apply
 import Test
 import Util
 import Parallel

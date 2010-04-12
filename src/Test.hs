@@ -18,7 +18,7 @@ import System.Exit
 import Settings
 import Type
 import Util
-import Hint
+import Apply
 import HSE.All
 import Hint.All
 
