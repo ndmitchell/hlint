@@ -1,14 +1,36 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
-module Settings(readSettings, readPragma, defaultHintName) where
+module Settings(defaultHintName, readSettings, readPragma, findSettings) where
 
 import HSE.All
 import Type
+import Control.Monad
 import Data.Char
 import Data.List
 import System.FilePath
 import Util
 
+
+defaultHintName = "Use alternative"
+
+
+getRank :: String -> Maybe Rank
+getRank "ignore" = Just Ignore
+getRank "warn" = Just Warning
+getRank "warning" = Just Warning
+getRank "error"  = Just Error
+getRank _ = Nothing
+
+
+errorOn :: (Annotated ast, Pretty (ast S)) => ast S -> String -> b
+errorOn val msg = exitMessage $
+    showSrcLoc (getPointLoc $ ann val)  ++
+    " Error while reading hint file, " ++ msg ++ "\n" ++
+    prettyPrint val
+
+
+---------------------------------------------------------------------
+-- READ A SETTINGS FILE
 
 -- Given a list of hint files to start from
 -- Return the list of settings commands
@@ -29,11 +51,6 @@ readHints dataDir file = do
             | "HLint." `isPrefixOf` x = readHints dataDir $ dataDir </> drop 6 x <.> "hs"
             | otherwise = readHints dataDir $ x <.> "hs"
 
-
----------------------------------------------------------------------
--- READ A HINT
-
-defaultHintName = "Use alternative"
 
 readSetting :: Decl_ -> [Setting]
 readSetting (FunBind _ [Match _ (Ident _ (getRank -> Just rank)) pats (UnGuardedRhs _ bod) bind])
@@ -85,13 +102,6 @@ readFuncs (Con _ (Qual _ (ModuleName _ mod) name)) = [(mod ++ "." ++ fromNamed n
 readFuncs x = errorOn x "bad classification rule"
 
 
-errorOn :: (Annotated ast, Pretty (ast S)) => ast S -> String -> b
-errorOn val msg = exitMessage $
-    showSrcLoc (getPointLoc $ ann val)  ++
-    " Error while reading hint file, " ++ msg ++ "\n" ++
-    prettyPrint val
-
-
 getNames :: [Pat_] -> Exp_ -> [String]
 getNames ps _ | ps /= [] && all isPString ps = map fromPString ps
 getNames [] (InfixApp _ lhs op rhs) | opExp op ~= "==>" = map ("Use "++) names
@@ -104,9 +114,46 @@ getNames [] (InfixApp _ lhs op rhs) | opExp op ~= "==>" = map ("Use "++) names
 getNames _ _ = []
 
 
-getRank :: String -> Maybe Rank
-getRank "ignore" = Just Ignore
-getRank "warn" = Just Warning
-getRank "warning" = Just Warning
-getRank "error"  = Just Error
-getRank _ = Nothing
+---------------------------------------------------------------------
+-- FIND SETTINGS IN A SOURCE FILE
+
+-- find definitions in a source file, and write them to std out
+findSettings :: ParseFlags -> FilePath -> IO ()
+findSettings flags file = do
+    x <- parseFile_ flags file
+    let xs = concatMap (findSetting $ UnQual an) $ moduleDecls x
+    putStrLn $ "-- hints found in " ++ file
+    when (null xs) $ putStrLn "-- no hints found"
+    putStrLn $ unlines xs
+
+
+findSetting :: (Name S -> QName S) -> Decl_ -> [String]
+findSetting qual (InstDecl _ _ _ (Just xs)) = concatMap (findSetting qual) [x | InsDecl _ x <- xs]
+findSetting qual (PatBind _ (PVar _ name) Nothing (UnGuardedRhs _ bod) Nothing) = findExp (qual name) [] bod
+findSetting qual (FunBind _ [InfixMatch _ p1 name ps rhs bind]) = findSetting qual $ FunBind an [Match an name (p1:ps) rhs bind]
+findSetting qual (FunBind _ [Match _ name ps (UnGuardedRhs _ bod) Nothing]) = findExp (qual name) [] $ Lambda an ps bod
+findSetting _ x@InfixDecl{} = [ltrim $ prettyPrint x]
+findSetting _ _ = []
+
+
+-- given a result function name, a list of variables, a body expression, give some hints
+findExp :: QName S -> [String] -> Exp_ -> [String]
+findExp name vs (Lambda _ ps bod) | length ps2 == length ps = findExp name (vs++ps2) bod
+                                  | otherwise = []
+    where ps2 = [x | PVar_ x <- map view ps]
+findExp name vs Var{} = []
+findExp name vs (InfixApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $ App an x $ Paren an $ App an y (toNamed "_hlint")
+
+findExp name vs bod = ["warn = " ++ prettyPrint lhs ++ " ==> " ++ prettyPrint rhs]
+    where
+        lhs = g $ transform f bod
+        rhs = apps $ Var an name : map snd rep
+
+        rep = zip vs $ map (toNamed . return) ['a'..]
+        f xx | Var_ x <- view xx, Just y <- lookup x rep = y
+        f (InfixApp _ x dol y) | isDol dol = App an x (paren y)
+        f x = x
+
+        g o@(InfixApp _ _ _ x) | isAnyApp x || isAtom x = o
+        g o@App{} = o
+        g o = paren o

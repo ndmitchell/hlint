@@ -13,7 +13,6 @@ import Report
 import Type
 import Hint
 import Test
-import FindHints
 import Util
 import Parallel
 import HSE.All
@@ -28,7 +27,7 @@ hlint args = do
     if cmdTest then
         test cmdDataDir
      else if not $ null cmdFindHints then
-        mapM_ (findHints flags) cmdFindHints >> return 0
+        mapM_ (findSettings flags) cmdFindHints >> return 0
      else if null cmdFiles then
         exitWithHelp
      else

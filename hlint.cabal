@@ -48,7 +48,6 @@ library
     other-modules:
         Paths_hlint
         CmdLine
-        FindHints
         Hint
         HLint
         Settings
