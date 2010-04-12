@@ -1,9 +1,12 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
-module Settings(defaultHintName, readSettings, readPragma, findSettings) where
+module Settings(
+    Rank(..), FuncName, Setting(..), isClassify, isMatchExp,
+    defaultHintName, isUnifyVar,
+    readSettings, readPragma, findSettings
+    ) where
 
 import HSE.All
-import Type
 import Control.Monad
 import Data.Char
 import Data.List
@@ -14,6 +17,9 @@ import Util
 defaultHintName = "Use alternative"
 
 
+data Rank = Ignore | Warning | Error
+            deriving (Eq,Ord,Show)
+
 getRank :: String -> Maybe Rank
 getRank "ignore" = Just Ignore
 getRank "warn" = Just Warning
@@ -22,11 +28,29 @@ getRank "error"  = Just Error
 getRank _ = Nothing
 
 
-errorOn :: (Annotated ast, Pretty (ast S)) => ast S -> String -> b
-errorOn val msg = exitMessage $
-    showSrcLoc (getPointLoc $ ann val)  ++
-    " Error while reading hint file, " ++ msg ++ "\n" ++
-    prettyPrint val
+-- (modulename,functionname)
+-- either being blank implies universal matching
+type FuncName = (String,String)
+
+
+-- Any 1-letter variable names are assumed to be unification variables
+isUnifyVar :: String -> Bool
+isUnifyVar [x] = x == '?' || isAlpha x
+isUnifyVar _ = False
+
+
+---------------------------------------------------------------------
+-- TYPE
+
+data Setting
+    = Classify {rankS :: Rank, hintS :: String, funcS :: FuncName}
+    | MatchExp {rankS :: Rank, hintS :: String, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_}
+    | Builtin String -- use a builtin hint set
+    | Infix Fixity
+      deriving Show
+
+isClassify Classify{} = True; isClassify _ = False
+isMatchExp MatchExp{} = True; isMatchExp _ = False
 
 
 ---------------------------------------------------------------------
@@ -112,6 +136,13 @@ getNames [] (InfixApp _ lhs op rhs) | opExp op ~= "==>" = map ("Use "++) names
         f (Ident _ x) = x
         f (Symbol _ x) = x
 getNames _ _ = []
+
+
+errorOn :: (Annotated ast, Pretty (ast S)) => ast S -> String -> b
+errorOn val msg = exitMessage $
+    showSrcLoc (getPointLoc $ ann val)  ++
+    " Error while reading hint file, " ++ msg ++ "\n" ++
+    prettyPrint val
 
 
 ---------------------------------------------------------------------

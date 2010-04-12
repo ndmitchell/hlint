@@ -38,6 +38,7 @@ import Data.Maybe
 import Data.Data
 import Unsafe.Coerce
 import Type
+import Settings
 import Hint.Type
 import HSE.All
 import Control.Monad

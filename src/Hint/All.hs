@@ -1,7 +1,7 @@
 
 module Hint.All(module Hint.Type, module Hint.All) where
 
-import Type
+import Settings
 import Hint.Type
 
 import Hint.Match
