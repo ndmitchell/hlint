@@ -16,8 +16,8 @@ import System.Cmd
 import System.Exit
 
 import Settings
-import Type
 import Util
+import Idea
 import Apply
 import HSE.All
 import Hint.All

@@ -46,9 +46,7 @@ f = bar (flip Foo.bar x) -- (`Foo.bar` x)
 
 module Hint.Lambda where
 
-import HSE.All
 import Hint.Util
-import Type
 import Hint.Type
 import Util
 

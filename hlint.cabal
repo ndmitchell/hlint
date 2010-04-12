@@ -50,9 +50,9 @@ library
         Apply
         CmdLine
         HLint
+        Idea
         Settings
         Report
-        Type
         Test
         Util
         Parallel

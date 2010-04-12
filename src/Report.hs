@@ -2,7 +2,7 @@
 
 module Report(writeReport) where
 
-import Type
+import Idea
 import Control.Arrow
 import Data.List
 import Data.Maybe

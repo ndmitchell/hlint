@@ -19,8 +19,6 @@ foo b | c <- f b = c \
 
 module Hint.Structure where
 
-import HSE.All
-import Type
 import Hint.Type
 import Util
 import Data.List

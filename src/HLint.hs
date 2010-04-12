@@ -10,7 +10,7 @@ import Data.Maybe
 import CmdLine
 import Settings
 import Report
-import Type
+import Idea
 import Apply
 import Test
 import Util

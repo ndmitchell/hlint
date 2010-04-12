@@ -8,7 +8,7 @@ import Data.List
 import Data.Maybe
 import Data.Ord
 import Settings
-import Type
+import Idea
 import Util
 
 

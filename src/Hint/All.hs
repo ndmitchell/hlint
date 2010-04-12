@@ -1,5 +1,8 @@
 
-module Hint.All(module Hint.Type, module Hint.All) where
+module Hint.All(
+    Hint(..), DeclHint, ModuHint,
+    staticHints, dynamicHints
+    ) where
 
 import Settings
 import Hint.Type

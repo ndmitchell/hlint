@@ -33,8 +33,6 @@ import Locale(foo) -- import System.Locale(foo)
 
 module Hint.Import where
 
-import HSE.All
-import Type
 import Hint.Type
 import Util
 import Data.Maybe

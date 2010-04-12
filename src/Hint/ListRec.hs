@@ -25,10 +25,8 @@ foos [] x = x; foos (y:ys) x = foo y $ foos ys x -- foos ys x = foldr (foo $) x 
 
 module Hint.ListRec(listRecHint) where
 
-import Type
 import Hint.Type
 import Util
-import HSE.All
 import Hint.Util
 import Data.List
 import Data.Maybe

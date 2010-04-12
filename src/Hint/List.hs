@@ -23,8 +23,6 @@ yes = y :: [Char] -> a -- String -> a
 
 module Hint.List where
 
-import HSE.All
-import Type
 import Hint.Type
 
 

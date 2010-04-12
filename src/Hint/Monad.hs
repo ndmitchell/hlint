@@ -36,8 +36,6 @@ module Hint.Monad where
 import Control.Arrow
 import Data.Maybe
 import Data.List
-import HSE.All
-import Type
 import Hint.Type
 
 

@@ -48,9 +48,7 @@ no = (f . g $ a) ++ e
 
 module Hint.Bracket where
 
-import Type
 import Hint.Type
-import HSE.All
 
 
 bracketHint :: DeclHint

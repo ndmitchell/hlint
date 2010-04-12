@@ -25,8 +25,6 @@ myTest = 1; my_test = 1
 
 module Hint.Naming(namingHint) where
 
-import HSE.All
-import Type
 import Hint.Type
 import Data.List
 import Data.Char

@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards, NoMonomorphismRestriction #-}
 
-module Type(module Type, Rank(..)) where
+module Idea(module Idea, Rank(..)) where
 
 import HSE.All
 import Settings

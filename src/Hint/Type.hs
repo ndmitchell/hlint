@@ -1,8 +1,8 @@
 
-module Hint.Type where
+module Hint.Type(module Hint.Type, module Idea, module HSE.All) where
 
 import HSE.All
-import Type
+import Idea
 
 
 type DeclHint = NameMatch -> Module_ -> Decl_ -> [Idea]
