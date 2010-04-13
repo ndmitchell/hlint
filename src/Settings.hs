@@ -84,11 +84,11 @@ readSetting (FunBind _ [Match _ (Ident _ (getRank -> Just rank)) pats (UnGuarded
         [MatchExp rank (if null names then defaultHintName else head names) (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
     | otherwise = [Classify rank n func | n <- names2, func <- readFuncs bod]
     where
-        names = getNames pats bod
+        names = filter notNull $ getNames pats bod
         names2 = ["" | null names] ++ names
 
 readSetting x@AnnPragma{} | Just y <- readPragma x = [y]
-readSetting (PatBind an (PVar _ name) _ bod bind) = readSetting $ FunBind an [Match an name [PLit an (String an "" "")] bod bind]
+readSetting (PatBind an (PVar _ name) _ bod bind) = readSetting $ FunBind an [Match an name [] bod bind]
 readSetting (FunBind an xs) | length xs /= 1 = concatMap (readSetting . FunBind an . return) xs
 readSetting (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
 readSetting x@InfixDecl{} = map Infix $ getFixity x
