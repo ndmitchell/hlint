@@ -7,10 +7,8 @@
 
 
 :{
-:def self const $ return $ unlines
-    [":_redirOut newhints :main --find=src/Util.hs --find=src/HSE/Util.hs"
-    ,"writeFile \"Hints.tmp\" $ unlines $ filter (not . Data.List.isPrefixOf \"Loading \") $ lines newhints"
-    ,":main src --report --hint=data/HLint_Hints.hs --hint=Hints.tmp"]
+:def self const $ return
+    ":main src --report --hint=data/HLint_Hints.hs --find=src/Util.hs --find=src/HSE/Util.hs"
 :}
 
 :{
@@ -49,9 +47,3 @@
     ,":!.hpc\\bench\\hlint src +RTS -s"
     ]
 :}
-
-
--- Begin copied material.
--- <http://www.cs.kent.ac.uk/people/staff/cr3/toolbox/haskell/dot-squashed.ghci641>
-let redirOut varcmd = case break Data.Char.isSpace varcmd of { (var,_:cmd) -> return $ unlines ["-- :set -fno-print-bind-result" ,"tmp <- System.Directory.getTemporaryDirectory" ,"(f,h) <- System.IO.openTempFile tmp \"ghci\"" ,"sto <- GHC.Handle.hDuplicate System.IO.stdout" ,"GHC.Handle.hDuplicateTo h System.IO.stdout" ,"System.IO.hClose h" ,cmd ,"GHC.Handle.hDuplicateTo sto System.IO.stdout" ,"let readFileNow f = readFile f >>= \\t->length t `seq` return t" ,var++" <- readFileNow f" ,"System.Directory.removeFile f"] ; _ -> return "putStrLn \"usage: :redirOut <var> <cmd>\"" }
-:def _redirOut redirOut
