@@ -5,7 +5,7 @@ module HSE.All(
     module HSE.Type,
     module HSE.NameMatch,
     ParseFlags(..), parseFlags, parseFlagsNoLocations,
-    parseFile, parseFile_, parseString
+    parseFile, parseString, parseResult
     ) where
 
 import Util
@@ -65,9 +65,9 @@ parseFile flags file = do
 
 
 -- throw an error if the parse is invalid
-parseFile_ :: ParseFlags -> FilePath -> IO Module_
-parseFile_ flags file = do
-    (_, res) <- parseFile flags file
+parseResult :: IO (String, ParseResult Module_) -> IO Module_
+parseResult x = do
+    (_, res) <- x
     return $! fromParseResult res
 
 

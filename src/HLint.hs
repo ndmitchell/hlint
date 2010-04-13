@@ -26,8 +26,8 @@ hlint args = do
     let flags = parseFlags{cpphs=Just cmdCpphs, encoding=cmdEncoding} 
     if cmdTest then
         test cmdDataDir
-     else if notNull cmdFindHints then
-        mapM_ (\x -> putStrLn =<< findSettings flags x) cmdFindHints >> return 0
+     else if null cmdFiles && notNull cmdFindHints then
+        mapM_ (\x -> putStrLn . fst =<< findSettings flags x) cmdFindHints >> return 0
      else if null cmdFiles then
         exitWithHelp
      else
@@ -36,10 +36,13 @@ hlint args = do
 
 runHints :: Cmd -> ParseFlags -> IO Int
 runHints Cmd{..} flags = do
-    settings <- readSettings cmdDataDir cmdHintFiles
-    let extra = [Classify Ignore x ("","") | x <- cmdIgnore]
+    settings1 <- readSettings cmdDataDir cmdHintFiles
+    settings2 <- concatMapM (fmap snd . findSettings flags) cmdFindHints
+    settings3 <- return [Classify Ignore x ("","") | x <- cmdIgnore]
+    let settings = settings1 ++ settings2 ++ settings3
+
     let apply :: FilePath -> IO [Idea]
-        apply = applyHint flags (settings ++ extra)
+        apply = applyHint flags settings
     ideas <- fmap concat $ parallel [listM' =<< apply x | x <- cmdFiles]
     let visideas = filter (\i -> cmdShowAll || rank i /= Ignore) ideas
     showItem <- if cmdColor then showANSI else return show

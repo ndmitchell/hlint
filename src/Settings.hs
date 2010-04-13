@@ -38,6 +38,9 @@ isUnifyVar [x] = x == '?' || isAlpha x
 isUnifyVar _ = False
 
 
+addInfix x = x{infixes = infix_ (-1) ["==>"] ++ infixes x}
+
+
 ---------------------------------------------------------------------
 -- TYPE
 
@@ -66,7 +69,7 @@ readSettings dataDir xs = do
 -- Read a hint file, and all hint files it imports
 readHints :: FilePath -> FilePath -> IO [Either String Module_]
 readHints dataDir file = do
-    y <- parseFile_ parseFlags{infixes=infix_ (-1) ["==>"]} file
+    y <- parseResult $ parseFile (addInfix parseFlags) file
     ys <- concatMapM (f . fromNamed . importModule) $ moduleImports y
     return $ Right y:ys
     where
@@ -147,12 +150,16 @@ errorOn val msg = exitMessage $
 ---------------------------------------------------------------------
 -- FIND SETTINGS IN A SOURCE FILE
 
--- find definitions in a source file, and write them to std out
-findSettings :: ParseFlags -> FilePath -> IO String
+-- find definitions in a source file
+findSettings :: ParseFlags -> FilePath -> IO (String, [Setting])
 findSettings flags file = do
-    x <- parseFile_ flags file
-    let xs = concatMap (findSetting $ UnQual an) $ moduleDecls x
-    return $ unlines $ ["-- hints found in " ++ file] ++ xs ++ ["-- no hints found" | null xs]
+    x <- parseResult $ parseFile flags file
+    let xs = concatMap (findSetting $ UnQual an) (moduleDecls x)
+        s = unlines $ ["-- hints found in " ++ file] ++ xs ++ ["-- no hints found" | null xs]
+    r <- do
+        m <- parseResult $ parseString (addInfix flags) "INTERNAL ERROR (please report)" $ unlines xs
+        return $ concatMap readSetting $ moduleDecls m
+    return (s,r)
 
 
 findSetting :: (Name S -> QName S) -> Decl_ -> [String]
