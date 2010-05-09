@@ -5,7 +5,6 @@
 :def test const $ return ":main --test"
 :def gen const $ return ":!runhaskell data\\HLint_Gen.hs"
 
-
 :{
 :def self const $ return
     ":main src --report --hint=data/HLint_Hints.hs --find=src/Util.hs --find=src/HSE/Util.hs"
@@ -18,8 +17,8 @@
     ,":!del hlint-test.tix"
     ,":!.hpc\\hlint-test --help"
     ,":!.hpc\\hlint-test --test"
-    ,":!.hpc\\hlint-test src --report=.hpc\\hlint-test-report.html +RTS -N3"
-    ,":!.hpc\\hlint-test data --report=.hpc\\hlint-test-report.html +RTS -N3"
+    ,":!.hpc\\hlint-test src --report=.hpc\\hlint-test-report.html +RTS -N2"
+    ,":!.hpc\\hlint-test data --report=.hpc\\hlint-test-report.html +RTS -N2"
     ,":!hpc.exe markup hlint-test.tix --destdir=.hpc"
     ,":!hpc.exe report hlint-test.tix"
     ,":!del hlint-test.tix"
@@ -46,4 +45,14 @@
     ,":!ghc --make -isrc -i. src/Main.hs -w -odir .hpc/bench -hidir .hpc/bench -o .hpc/bench/hlint -O"
     ,":!.hpc\\bench\\hlint src +RTS -s"
     ]
+:}
+
+:{
+:def extra const $
+    let msg = [":test - run the test suit"
+              ,":self - run HLint on itself"
+              ,":hpc - run and produce a program coverage report"
+              ,":prof - run and produce a profiling report"
+              ,":bench - run the benchmark (should take about 1 second)"]
+    in putStr (unlines msg) >> return []
 :}
