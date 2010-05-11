@@ -16,6 +16,10 @@ opExp :: QOp S -> Exp_
 opExp (QVarOp s op) = Var s op
 opExp (QConOp s op) = Con s op
 
+expOp :: Exp_ -> Maybe (QOp S)
+expOp (Var s op) = Just $ QVarOp s op
+expOp (Con s op) = Just $ QConOp s op
+expOp _ = Nothing
 
 moduleDecls :: Module_ -> [Decl_]
 moduleDecls (Module _ _ _ _ xs) = xs

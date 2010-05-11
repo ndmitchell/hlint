@@ -14,7 +14,7 @@ niceLambda [x] (App _ a (view -> Var_ b)) | x == b, x `notElem` vars a = a
 niceLambda [x] (App _ a (Paren _ (App _ b (view -> Var_ c))))
     | isAtom a && isAtom b && x == c && x `notElem` (vars a ++ vars b)
     = if a ~= "$" then LeftSection an b (toNamed "$") else InfixApp an a (toNamed ".") b
-niceLambda [x] (InfixApp _ a op b)
+niceLambda [x] (view -> App2 (expOp -> Just op) a b)
     | view a == Var_ x, x `notElem` vars b, allowRightSection (fromNamed op) = RightSection an op b
     | view b == Var_ x, x `notElem` vars a, allowLeftSection  (fromNamed op) = LeftSection an a op
 niceLambda [x,y] (view -> App2 op (view -> Var_ x1) (view -> Var_ y1))

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #299, Rework hints to use flip (suggest infix in some cases)
     Add some fromMaybe hints
     Fix bug where hints didn't always get names
     #306, make --find use the hints if there are files specified

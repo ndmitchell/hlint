@@ -85,7 +85,6 @@ error = (\(_,y) -> y) ==> snd
 error = (\(x,_) -> x) ==> fst
 error = (\x y-> f (x,y)) ==> curry f where _ = notIn [x,y] f
 error = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f
-warn  = (\x -> f x y) ==> flip f y where _ = notIn x [f,y] && isAtom f
 error = (($) . f) ==> (f $)
 warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
@@ -285,7 +284,6 @@ yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 1
 no = do iter <- textBufferGetTextIter tb ; textBufferSelectRange tb iter iter
 no = flip f x $ \y -> y*y+y
 no = \x -> f x (g x)
-yes = \x -> f x (g y) -- flip f (g y)
 no = foo (\ v -> f v . g)
 yes = concat . intersperse " " -- unwords
 yes = Prelude.concat $ intersperse " " xs -- unwords xs
