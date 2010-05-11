@@ -82,6 +82,9 @@ isParComp ParComp{} = True; isParComp _ = False
 isPatTypeSig PatTypeSig{} = True; isPatTypeSig _ = False
 isQuasiQuote QuasiQuote{} = True; isQuasiQuote _ = False
 
+isSection LeftSection{} = True
+isSection RightSection{} = True
+isSection _ = False
 
 -- which names are bound by a declaration
 declBind :: Decl_ -> [String]

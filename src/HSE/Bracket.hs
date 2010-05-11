@@ -47,6 +47,7 @@ instance Brackets Exp_ where
     needBracket i parent child 
         | isAtom child = False
         | InfixApp{} <- parent, App{} <- child = False
+        | isSection parent, App{} <- child = False
         | ListComp{} <- parent = False
         | List{} <- parent = False
         | Tuple{} <- parent = False
