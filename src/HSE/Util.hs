@@ -59,6 +59,10 @@ fromPParen :: Pat s -> Pat s
 fromPParen (PParen _ x) = fromPParen x
 fromPParen x = x
 
+fromTyParen :: Type s -> Type s
+fromTyParen (TyParen _ x) = fromTyParen x
+fromTyParen x = x
+
 -- is* :: Exp -> Bool
 isVar Var{} = True; isVar _ = False
 isApp App{} = True; isApp _ = False

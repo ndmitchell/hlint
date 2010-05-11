@@ -15,7 +15,7 @@ no = xs ++ [x] ++ ys
 yes = [if a then b else c] ++ xs -- (if a then b else c) : xs
 yes = [1] : [2] : [3] : [4] : [5] : [] -- [[1], [2], [3], [4], [5]]
 yes = if x == e then l2 ++ xs else [x] ++ check_elem xs -- x : check_elem xs
-data Yes = Yes (Maybe [Char]) -- (Maybe String)
+data Yes = Yes (Maybe [Char]) -- Maybe String
 yes = y :: [Char] -> a -- String -> a
 </TEST>
 -}
@@ -77,5 +77,5 @@ typeString = TyCon an (toNamed "String")
 
 
 stringType :: Type_ -> [Idea]
-stringType x = [warn "Use String" x (transform f x) | any (=~= typeListChar) $ universe x]
+stringType (fromTyParen -> x) = [warn "Use String" x (transform f x) | any (=~= typeListChar) $ universe x]
     where f x = if x =~= typeListChar then typeString else x
