@@ -35,7 +35,7 @@ listDecl x = concatMap (listExp False) (childrenBi x) ++
 
 -- boolean = are you in a ++ chain
 listExp :: Bool -> Exp_ -> [Idea]
-listExp b x =
+listExp b (fromParen -> x) =
         if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
     where
         res = [warn name x x2 | (name,f) <- checks, Just x2 <- [f b x]]
