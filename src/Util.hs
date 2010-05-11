@@ -3,7 +3,7 @@
 module Util where
 
 import Control.Arrow
-import Control.Monad
+import Control.Monad.State
 import Data.Char
 import Data.Function
 import Data.List
@@ -15,6 +15,7 @@ import System.IO
 import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
+import Data.Generics.Uniplate.Operations
 
 
 getDirectoryContentsRecursive :: FilePath -> IO [FilePath]
@@ -119,3 +120,10 @@ gzip :: Data a => (forall b . Data b => b -> b -> c) -> a -> a -> Maybe [c]
 gzip f x y | toConstr x /= toConstr y = Nothing
            | otherwise = Just $ zipWith op (gmapQ Box x) (gmapQ Box y)
     where op (Box x) (Box y) = f x (unsafeCoerce y)
+
+
+descendIndex :: Uniplate a => (Int -> a -> a) -> a -> a
+descendIndex f x = flip evalState 0 $ flip descendM x $ \y -> do
+    i <- get
+    modify (+1)
+    return $ f i y

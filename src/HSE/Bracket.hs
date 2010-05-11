@@ -2,10 +2,9 @@
 
 module HSE.Bracket where
 
-import Control.Monad.State
 import HSE.Type
 import HSE.Util
-
+import Util
 
 
 class Brackets a where
@@ -109,32 +108,35 @@ instance Brackets Pat_ where
         | otherwise = True
 
 
+-- | Add a Paren around something if it is not atomic
 paren :: Exp_ -> Exp_
 paren x = if isAtom x then x else addParen x
 
 
--- True implies I changed this level
+-- | Descend, and if something changes then add/remove brackets appropriately
 descendBracket :: (Exp_ -> (Bool, Exp_)) -> Exp_ -> Exp_
-descendBracket f x = flip evalState 0 $ flip descendM x $ \y -> do
-    i <- get
-    modify (+1)
-    (b,y) <- return $ f y
-    let p = if b && needBracket i x y then (\x -> Paren (ann x) x) else id
-    return $ p y
+descendBracket op x = descendIndex g x
+    where
+        g i y = if a then f i b else b
+            where (a,b) = op y
+
+        f i (Paren _ y) | not $ needBracket i x y = y
+        f i y | needBracket i x y = addParen y
+        f i y = y
 
 
 transformBracket :: (Exp_ -> Maybe Exp_) -> Exp_ -> Exp_
-transformBracket f = snd . g
+transformBracket op = snd . g
     where
-        g = f2 . descendBracket g
-        f2 x = maybe (False,x) ((,) True) (f x)
+        g = f . descendBracket g
+        f x = maybe (False,x) ((,) True) (op x)
 
 
--- ensure that all the 1-level children are appropriately bracketed
-ensureBracket1 :: Exp_ -> Exp_
-ensureBracket1 = descendBracket ((,) True)
+-- | Add/remove brackets as suggested needBracket at 1-level of depth
+rebracket1 :: Exp_ -> Exp_
+rebracket1 = descendBracket (\x -> (True,x))
 
 
 -- a list of application, with any necessary brackets
 appsBracket :: [Exp_] -> Exp_
-appsBracket = foldl1 (\x -> ensureBracket1 . App an x)
+appsBracket = foldl1 (\x -> rebracket1 . App an x)
