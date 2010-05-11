@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add some fromMaybe hints
     Fix bug where hints didn't always get names
     #306, make --find use the hints if there are files specified
     Upgrade to haskell-src-exts-1.9
