@@ -19,6 +19,9 @@ import Data.Generics.Uniplate.Operations
 import Language.Haskell.Exts.Extension
 
 
+---------------------------------------------------------------------
+-- SYSTEM.DIRECTORY
+
 getDirectoryContentsRecursive :: FilePath -> IO [FilePath]
 getDirectoryContentsRecursive dir = do
     xs <- getDirectoryContents dir
@@ -29,6 +32,9 @@ getDirectoryContentsRecursive dir = do
         isBadDir x = "." `isPrefixOf` x || "_" `isPrefixOf` x
 
 
+---------------------------------------------------------------------
+-- CONTROL.MONAD
+
 partitionM :: Monad m => (a -> m Bool) -> [a] -> m ([a], [a])
 partitionM f [] = return ([], [])
 partitionM f (x:xs) = do
@@ -36,31 +42,27 @@ partitionM f (x:xs) = do
     (as,bs) <- partitionM f xs
     return ([x|res]++as, [x|not res]++bs)
 
-
 concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
 concatMapM f = liftM concat . mapM f
-
 
 concatZipWithM :: Monad m => (a -> b -> m [c]) -> [a] -> [b] -> m [c]
 concatZipWithM f xs ys = liftM concat $ zipWithM f xs ys
 
+listM' :: Monad m => [a] -> m [a]
+listM' x = length x `seq` return x
+
+
+---------------------------------------------------------------------
+-- PRELUDE
+
+notNull = not . null
 
 headDef :: a -> [a] -> a
 headDef x [] = x
 headDef x (y:ys) = y
 
-
-notNull = not . null
-
-
-limit :: Int -> String -> String
-limit n s = if null post then s else pre ++ "..."
-    where (pre,post) = splitAt n s
-
-
 isLeft Left{} = True; isLeft _ = False
 isRight = not . isLeft
-
 
 unzipEither :: [Either a b] -> ([a], [b])
 unzipEither (x:xs) = case x of
@@ -70,17 +72,32 @@ unzipEither (x:xs) = case x of
 unzipEither [] = ([], [])
 
 
-listM' :: Monad m => [a] -> m [a]
-listM' x = length x `seq` return x
+---------------------------------------------------------------------
+-- DATA.STRING
 
+limit :: Int -> String -> String
+limit n s = if null post then s else pre ++ "..."
+    where (pre,post) = splitAt n s
+
+ltrim :: String -> String
+ltrim = dropWhile isSpace
+
+trimBy :: (a -> Bool) -> [a] -> [a]
+trimBy f = reverse . dropWhile f . reverse . dropWhile f
+
+
+---------------------------------------------------------------------
+-- DATA.LIST
 
 groupSortFst :: Ord a => [(a,b)] -> [(a,[b])]
 groupSortFst = map (fst . head &&& map snd) . groupBy ((==) `on` fst) . sortBy (comparing fst)
 
-
 disjoint :: Eq a => [a] -> [a] -> Bool
 disjoint xs = null . intersect xs
 
+
+---------------------------------------------------------------------
+-- SYSTEM.IO
 
 readFileEncoding :: String -> FilePath -> IO String
 #if __GLASGOW_HASKELL__ < 612
@@ -107,13 +124,8 @@ exitMessage msg = unsafePerformIO $ do
     exitWith $ ExitFailure 1
 
 
-ltrim :: String -> String
-ltrim = dropWhile isSpace
-
-
-trimBy :: (a -> Bool) -> [a] -> [a]
-trimBy f = reverse . dropWhile f . reverse . dropWhile f
-
+---------------------------------------------------------------------
+-- DATA.GENERICS
 
 data Box = forall a . Data a => Box a
 
@@ -123,12 +135,18 @@ gzip f x y | toConstr x /= toConstr y = Nothing
     where op (Box x) (Box y) = f x (unsafeCoerce y)
 
 
+---------------------------------------------------------------------
+-- DATA.GENERICS.UNIPLATE.OPERATIONS
+
 descendIndex :: Uniplate a => (Int -> a -> a) -> a -> a
 descendIndex f x = flip evalState 0 $ flip descendM x $ \y -> do
     i <- get
     modify (+1)
     return $ f i y
 
+
+---------------------------------------------------------------------
+-- LANGUAGE.HASKELL.EXTS.EXTENSION
 
 defaultExtensions :: [Extension]
 defaultExtensions = knownExtensions \\ badExtensions
