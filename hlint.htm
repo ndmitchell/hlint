@@ -285,7 +285,7 @@ import HLint.Dollar
 error = concat (map f x) ==> concatMap f x
 </pre>
 <p>
-	The line can be read as replace <tt>concat (map <i>f</i> <i>x</i>)</tt> with <tt>concatMap <i>f</i> <i>x</i></tt>. Anything with a 1-letter variable is treated as a substitution parameter. For examples of more complex hints see the supplied hints file. In general, hints should <i>not</i> be given in point free style, as this reduces the power of the matching. Hints may start with <tt>error</tt> or <tt>warn</tt> to denote how severe they are by default. If you come up with interesting hints, please submit them for inclusion.
+	The line can be read as replace <tt>concat (map <i>f</i> <i>x</i>)</tt> with <tt>concatMap <i>f</i> <i>x</i></tt>. All single-letter variables are treated as substitution parameters. For examples of more complex hints see the supplied hints file. In general, hints should <i>not</i> be given in point free style, as this reduces the power of the matching. Hints may start with <tt>error</tt> or <tt>warn</tt> to denote how severe they are by default. If you come up with interesting hints, please submit them for inclusion.
 </p>
 <p>
 	You can search for possible hints to add from a source file with the <tt>--find</tt> flag, for example:
