@@ -23,7 +23,7 @@ import HSE.All
 hlint :: [String] -> IO Int
 hlint args = do
     cmd@Cmd{..} <- getCmd args
-    let flags = parseFlags{cpphs=Just cmdCpphs, encoding=cmdEncoding} 
+    let flags = parseFlags{cpphs=cmdCpphs, encoding=cmdEncoding, language=cmdLanguage}
     if cmdTest then
         test cmdDataDir
      else if null cmdFiles && notNull cmdFindHints then

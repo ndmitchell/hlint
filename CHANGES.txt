@@ -1,5 +1,7 @@
 Changelog for HLint
 
+    #278, add -XNoCpp to disable the C preprocessor
+    #279, add -XExt/-XNoExt to choose extensions
     Remove some redundant brackets in type replacements
     #286, remove redundant brackets in match
     Additional bracket removal, application under sections

@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 
 module CmdLine(Cmd(..), getCmd, exitWithHelp) where
 
@@ -9,6 +10,7 @@ import System.Directory
 import System.Exit
 import System.FilePath
 import Language.Preprocessor.Cpphs
+import Language.Haskell.Exts.Extension
 
 import Util
 import Paths_hlint
@@ -23,10 +25,11 @@ data Cmd = Cmd
     ,cmdIgnore :: [String]           -- ^ the hints to ignore
     ,cmdShowAll :: Bool              -- ^ display all skipped items
     ,cmdColor :: Bool                -- ^ color the result
-    ,cmdCpphs :: CpphsOptions        -- ^ options for cpphs
+    ,cmdCpphs :: Maybe CpphsOptions  -- ^ options for cpphs
     ,cmdDataDir :: FilePath          -- ^ the data directory
     ,cmdEncoding :: String           -- ^ the text encoding
     ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
+    ,cmdLanguage :: [Extension]      -- ^ the extensions (may be prefixed by "No")
     }
 
 
@@ -41,6 +44,7 @@ data Opts = Help | Ver | Test
           | DataDir String
           | Encoding String
           | FindHints FilePath
+          | Language String
             deriving Eq
 
 
@@ -52,6 +56,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "i" ["ignore"] (ReqArg Skip "hint") "Ignore a particular hint"
        ,Option "s" ["show"] (NoArg ShowAll) "Show all ignored ideas"
        ,Option "e" ["extension"] (ReqArg Ext "ext") "File extensions to search (defaults to hs and lhs)"
+       ,Option "X" ["language"] (ReqArg Language "lang") "Language extensions (Arrows, NoCPP)"
        ,Option "u" ["utf8"] (NoArg $ Encoding "UTF-8") "Use UTF-8 text encoding"
        ,Option ""  ["encoding"] (ReqArg Encoding "encoding") "Choose the text encoding"
        ,Option "f" ["find"] (ReqArg FindHints "file") "Find hints in a Haskell file"
@@ -96,6 +101,8 @@ getCmd args = do
     let encoding = last $ "" : [x | Encoding x <- opt]
     when (encoding /= "") $ warnEncoding encoding
 
+    let languages = getExtensions [x | Language x <- opt]
+
     return Cmd
         {cmdTest = test
         ,cmdFiles = files
@@ -104,10 +111,11 @@ getCmd args = do
         ,cmdIgnore = [x | Skip x <- opt]
         ,cmdShowAll = ShowAll `elem` opt
         ,cmdColor = Color `elem` opt
-        ,cmdCpphs = cpphs
+        ,cmdCpphs = if CPP `elem` languages then Just cpphs else Nothing
         ,cmdDataDir = dataDir
         ,cmdEncoding = encoding
         ,cmdFindHints = findHints
+        ,cmdLanguage = languages
         }
 
 
@@ -156,3 +164,18 @@ getHintFile dataDir x = do
         f o (x:xs) = do
             b <- doesFileExist x
             if b then return x else f o xs
+
+
+getExtensions :: [String] -> [Extension]
+getExtensions = foldl f defaultExtensions
+    where
+        f a "Haskell98" = []
+        f a ('N':'o':x) | Just x <- readExtension x = delete x a
+        f a x | Just x <- readExtension x = x : delete x a
+        f a x = error $ "Unknown extension: " ++ x
+
+
+readExtension :: String -> Maybe Extension
+readExtension x = case classifyExtension x of
+    UnknownExtension _ -> Nothing
+    x -> Just x

@@ -134,6 +134,12 @@ Why not:
 	HLint can generate a lot of information, and often searching for either the errors specific to a file, or a specific class of errors, is difficult. Using the <tt>--report</tt> flag HLint will produce a report file in HTML, which can be viewed interactively. Reports are recommended when there are more than a handlful of hints.
 </p>
 
+<h3>Language Extensions</h3>
+
+<p>
+	HLint enables most Haskell extensions, disabling only those which steal too much syntax (currently Arrows, TransformListComp, XmlSyntax and RegularPatterns). Extensions can be enabled with <tt>-XArrows</tt>, and disabled with <tt>-XNoMagicHash</tt>. The flag <tt>-XHaskell98</tt> selects Haskell 98 compatibility.
+</p>
+
 <h3>Emacs Integration</h3>
 
 <p>
@@ -163,7 +169,7 @@ Why not:
 <h3>C preprocesor support</h3>
 
 <p>
-	HLint always runs the <a href="http://hackage.haskell.org/package/cpphs">cpphs C preprocessor</a> over all input files, by default using the current directory as the include path with no defined macros. These settings can be modified using the flags <tt>--cpp-include</tt> and <tt>--cpp-define</tt>. There are a number of limitations to the C preprocessor support:
+	HLint runs the <a href="http://hackage.haskell.org/package/cpphs">cpphs C preprocessor</a> over all input files, by default using the current directory as the include path with no defined macros. These settings can be modified using the flags <tt>--cpp-include</tt> and <tt>--cpp-define</tt>. To disable the C preprocessor use the flag <tt>-XNoCPP</tt>. There are a number of limitations to the C preprocessor support:
 </p>
 <ul>
 	<li>HLint will only check one branch of an <tt>#if</tt>, based on which macros have been defined.</li>

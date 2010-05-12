@@ -22,12 +22,13 @@ import Language.Preprocessor.Cpphs
 
 data ParseFlags = ParseFlags
     {cpphs :: Maybe CpphsOptions
+    ,language :: [Extension]
     ,encoding :: String
     ,infixes :: [Fixity]
     }
 
 parseFlags :: ParseFlags
-parseFlags = ParseFlags Nothing "" []
+parseFlags = ParseFlags Nothing defaultExtensions "" []
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cpphs = fmap f $ cpphs x}
@@ -43,7 +44,7 @@ parseString flags file str = do
         fixity = infixes flags ++ baseFixities
         mode = defaultParseMode
             {parseFilename = file
-            ,extensions = extension
+            ,extensions = language flags
             ,fixities = []
             ,ignoreLinePragmas = False
             }
@@ -69,13 +70,3 @@ parseResult :: IO (String, ParseResult Module_) -> IO Module_
 parseResult x = do
     (_, res) <- x
     return $! fromParseResult res
-
-
-extension = knownExtensions \\ badExtensions
-
-badExtensions =
-    [CPP
-    ,Arrows -- steals proc
-    ,TransformListComp -- steals the group keyword
-    ,XmlSyntax, RegularPatterns -- steals a-b
-    ]

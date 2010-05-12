@@ -16,6 +16,7 @@ import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.Operations
+import Language.Haskell.Exts.Extension
 
 
 getDirectoryContentsRecursive :: FilePath -> IO [FilePath]
@@ -127,3 +128,13 @@ descendIndex f x = flip evalState 0 $ flip descendM x $ \y -> do
     i <- get
     modify (+1)
     return $ f i y
+
+
+defaultExtensions :: [Extension]
+defaultExtensions = knownExtensions \\ badExtensions
+
+badExtensions =
+    [Arrows -- steals proc
+    ,TransformListComp -- steals the group keyword
+    ,XmlSyntax, RegularPatterns -- steals a-b
+    ]
