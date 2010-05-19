@@ -9,7 +9,6 @@ module HSE.All(
     ) where
 
 import Util
-import Data.List
 import Data.Maybe
 import HSE.Util
 import HSE.Evaluate
