@@ -12,7 +12,7 @@ import Util
 data Idea
     = Idea {func :: FuncName, rank :: Rank, hint :: String, loc :: SrcLoc, from :: String, to :: String}
     | ParseError {rank :: Rank, hint :: String, loc :: SrcLoc, msg :: String, from :: String}
-      deriving Eq
+      deriving (Eq,Ord)
 
 
 isParseError ParseError{} = True; isParseError _ = False
