@@ -42,8 +42,9 @@
 :def bench \x -> return $ unlines
     [":!mkdir .hpc"
     ,":!mkdir .hpc\\bench"
-    ,":!ghc --make -isrc -i. src/Main.hs -w -odir .hpc/bench -hidir .hpc/bench -o .hpc/bench/hlint -O"
-    ,":!.hpc\\bench\\hlint src +RTS -s"
+    ,":!ghc --make -isrc -i. src/Main.hs -w -odir .hpc/bench -hidir .hpc/bench -o .hpc/bench/hlint -O -threaded"
+    ,":!timer .hpc\\bench\\hlint src +RTS -N" ++ (if null x then "1" else x)
+    ,":!echo."
     ]
 :}
 
@@ -53,6 +54,6 @@
               ,":self - run HLint on itself"
               ,":hpc - run and produce a program coverage report"
               ,":prof - run and produce a profiling report"
-              ,":bench - run the benchmark (should take about 1 second)"]
+              ,":bench <N> - run the benchmark (should take about 1 second) (N=threads)"]
     in putStr (unlines msg) >> return []
 :}
