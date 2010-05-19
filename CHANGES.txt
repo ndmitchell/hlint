@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Make the API return the suggestions, rather than just the count
     #278, add -XNoCpp to disable the C preprocessor
     #279, add -XExt/-XNoExt to choose extensions
     Remove some redundant brackets in type replacements

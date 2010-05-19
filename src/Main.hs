@@ -27,6 +27,6 @@ main :: IO ()
 main = do
     args <- getArgs
     errs <- hlint args
-    when (errs > 0) $
+    when (length errs > 0) $
         exitWith $ ExitFailure 1
 
