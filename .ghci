@@ -9,9 +9,12 @@
 let _ghci_make dir flags = ":!" ++
         "(if not exist .hpc mkdir .hpc) && " ++
         "(if not exist .hpc\\" ++ dir ++ " mkdir .hpc\\" ++ dir ++ ") && " ++
-        "ghc --make -isrc -i. src/Main.hs -w -odir .hpc/"++dir++" -hidir .hpc/"++dir++" -o .hpc/"++dir++"/hlint "++flags
+        "ghc -threaded --make -isrc -i. src/Main.hs -w -odir .hpc/"++dir++" -hidir .hpc/"++dir++" -o .hpc/"++dir++"/hlint "++flags
 :}
 let _ghci_number def val = show $ case val of "" -> def; x -> read x
+let _ghci_make_profile x = let level = _ghci_number 1 x in _ghci_make ("prof" ++ level) ("-O" ++ level ++ " -prof -auto-all -caf-all")
+let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " ++ args
+
 
 :{
 :def self const $ return
@@ -20,7 +23,7 @@ let _ghci_number def val = show $ case val of "" -> def; x -> read x
 
 :{
 :def hpc const $ return $ unlines
-    [_ghci_make "hpc" "-threaded -fhpc"
+    [_ghci_make "hpc" "-fhpc"
     ,":!del hlint.tix"
     ,":!.hpc\\hpc\\hlint --help"
     ,":!.hpc\\hpc\\hlint --test"
@@ -33,36 +36,42 @@ let _ghci_number def val = show $ case val of "" -> def; x -> read x
 :}
 
 :{
-:def prof \x ->
-    let level = _ghci_number 1 x;
-        dir = "prof" ++ level
-    in return $ unlines
-        [_ghci_make dir $ "-O"++level++" -prof -auto-all -caf-all -threaded"
-        ,":!.hpc\\"++dir++"\\hlint src +RTS -p"
-        ,":!start hlint.prof"]
+:def prof \x -> return $ unlines
+    [_ghci_make_profile x
+    ,_ghci_run_profile x "src +RTS -p"
+    ,":!start hlint.prof"]
+:}
+
+:{
+:def memory \x -> return $ unlines
+    [_ghci_make_profile x
+    ,_ghci_run_profile x "src src src src src src +RTS -hm"
+    ,":!hp2ps hlint"
+    ,":!start /b hlint.ps"]
 :}
 
 :{
 :def bench \x -> return $ unlines
-    [_ghci_make "bench" "-O -threaded"
+    [_ghci_make "bench" "-O"
     ,":!timer .hpc\\bench\\hlint src +RTS -N" ++ _ghci_number 1 x
     ,":!echo."]
 :}
 
 :{
 :def scope \x -> return $ unlines
-    [_ghci_make "scope" "-O -threaded -eventlog"
+    [_ghci_make "scope" "-O -eventlog"
     ,":!.hpc\\scope\\hlint.exe src +RTS -ls -N" ++ _ghci_number 2 x
     ,":!start /b threadscope hlint.exe.eventlog"]
 :}
 
 :{
 :def extra const $
-    let msg = [":test - run the test suit"
-              ,":self - run HLint on itself"
-              ,":hpc - run and produce a program coverage report"
-              ,":prof <N> - run and produce a profiling report (N=-O level [1])"
-              ,":bench <N> - run the benchmark (should take about 1 second) (N=threads [1])"
-              ,":scope <N> - run with threadscope (N=threads [2])"]
+    let msg = [":test       - run the test suit"
+              ,":self       - run HLint on itself"
+              ,":hpc        - run and produce a program coverage report"
+              ,":prof <N>   - produce a time profile (N=-O level [1])"
+              ,":memory <N> - produce a memory profile (N=-O level [1])"
+              ,":bench <N>  - run the benchmark (should take about 1 second) (N=threads [1])"
+              ,":scope <N>  - run with threadscope (N=threads [2])"]
     in putStr (unlines msg) >> return []
 :}
