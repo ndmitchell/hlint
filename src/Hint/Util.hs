@@ -16,7 +16,6 @@ niceLambda [x] (App _ a (Paren _ (App _ b (view -> Var_ c))))
     = if a ~= "$" then LeftSection an b (toNamed "$") else InfixApp an a (toNamed ".") b
 niceLambda [x] (view -> App2 (expOp -> Just op) a b)
     | view a == Var_ x, x `notElem` vars b, allowRightSection (fromNamed op) = rebracket1 $ RightSection an op b
-    | view b == Var_ x, x `notElem` vars a, allowLeftSection  (fromNamed op) = rebracket1 $ LeftSection an a op
 niceLambda [x,y] (view -> App2 op (view -> Var_ x1) (view -> Var_ y1))
     | x1 == x && y1 == y = op
     | x1 == y && y1 == x = App an (toNamed "flip") op

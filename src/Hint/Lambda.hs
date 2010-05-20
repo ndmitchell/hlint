@@ -42,6 +42,8 @@ f = foo (\i -> writeIdea (getClass i) i)
 f = bar (flip Foo.bar x) -- (`Foo.bar` x)
 f = a b (\x -> c x d)  -- (`c` d)
 yes = \x -> f x (g y) -- (`f` g y)
+yes = \x -> a x -- a
+yes = \x y -> op y x -- flip op
 </TEST>
 -}
 
