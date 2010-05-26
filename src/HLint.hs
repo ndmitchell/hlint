@@ -49,9 +49,7 @@ runHints Cmd{..} flags = do
     settings3 <- return [Classify Ignore x ("","") | x <- cmdIgnore]
     let settings = settings1 ++ settings2 ++ settings3
 
-    let apply :: FilePath -> IO [Idea]
-        apply = applyHint flags settings
-    ideas <- fmap concat $ parallel [listM' =<< apply x | x <- cmdFiles]
+    ideas <- fmap concat $ parallel [listM' =<< applyHint flags settings x | x <- cmdFiles]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || rank i /= Ignore) ideas
     showItem <- if cmdColor then showANSI else return show
     mapM_ (putStrLn . showItem) showideas
