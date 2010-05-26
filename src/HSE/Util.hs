@@ -126,6 +126,12 @@ dotApps [x] = x
 dotApps (x:xs) = dotApp x (dotApps xs)
 
 
+isLexeme Var{} = True
+isLexeme Con{} = True
+isLexeme Lit{} = True
+isLexeme _ = False
+
+
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
 
