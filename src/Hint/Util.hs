@@ -3,21 +3,58 @@
 module Hint.Util where
 
 import HSE.All
+import Util
 
 
--- generate a lambda, but prettier (if possible)
+-- | Generate a lambda, but prettier (if possible).
+--   Generally no lambda is good, but removing just some arguments isn't so useful.
 niceLambda :: [String] -> Exp_ -> Exp_
+
+-- \xs -> (e) ==> \xs -> e
 niceLambda xs (Paren _ x) = niceLambda xs x
+
+-- \xs -> \v vs -> e ==> \xs v -> \vs -> e
+-- \xs -> \ -> e ==> \xs -> e
 niceLambda xs (Lambda _ ((view -> PVar_ v):vs) x) | v `notElem` xs = niceLambda (xs++[v]) (Lambda an vs x)
 niceLambda xs (Lambda _ [] x) = niceLambda xs x
-niceLambda [x] (App _ a (view -> Var_ b)) | x == b, x `notElem` vars a = a
-niceLambda [x] (App _ a (Paren _ (App _ b (view -> Var_ c))))
-    | isAtom a && isAtom b && x == c && x `notElem` (vars a ++ vars b)
-    = if a ~= "$" then LeftSection an b (toNamed "$") else InfixApp an a (toNamed ".") b
-niceLambda [x] (view -> App2 (expOp -> Just op) a b)
-    | view a == Var_ x, x `notElem` vars b, allowRightSection (fromNamed op) = rebracket1 $ RightSection an op b
-niceLambda [x,y] (view -> App2 op (view -> Var_ x1) (view -> Var_ y1))
-    | x1 == x && y1 == y = op
-    | x1 == y && y1 == x = App an (toNamed "flip") op
+
+-- \ -> e ==> e
 niceLambda [] x = x
+
+-- \xs -> e xs ==> e
+niceLambda xs (fromApps -> e) | map view xs2 == map Var_ xs, vars e2 `disjoint` xs = apps e2
+    where (e2,xs2) = splitAt (length e - length xs) e
+
+-- \x y -> x + y ==> (+)
+niceLambda [x,y] (InfixApp _ (view -> Var_ x1) (opExp -> op) (view -> Var_ y1))
+    | x == x1, y == y1, vars op `disjoint` [x,y] = op
+
+-- \x -> x + b ==> (+ b) [heuristic, b must be a single lexeme, or gets too complex]
+niceLambda [x] (view -> App2 (expOp -> Just op) a b)
+    | isLexeme b, view a == Var_ x, x `notElem` vars b, allowRightSection (fromNamed op) = rebracket1 $ RightSection an op b
+
+-- \x y -> f y x = flip f
+niceLambda [x,y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
+    | x == x1 && y == y1 = App an (toNamed "flip") op
+
+-- \x -> f (b x) ==> f . b
+-- \x -> f $ b x ==> f . b
+niceLambda [x] y | Just z <- factor y, x `notElem` vars z = z
+    where
+        -- factor the expression with respect to x
+        factor y@App{} | (ini,lst) <- unsnoc $ fromApps y, view lst == Var_ x = Just $ apps ini
+        factor y@App{} | (ini,lst) <- unsnoc $ fromApps y, Just z <- factor lst = Just $ niceDotApp (apps ini) z
+        factor (InfixApp _ y op (factor -> Just z)) | isDol op = Just $ niceDotApp y z
+        factor (Paren _ y@App{}) = factor y
+        factor _ = Nothing
+
+-- base case
 niceLambda ps x = Lambda an (map toNamed ps) x
+
+
+
+-- ($) . b ==> (b $)
+niceDotApp :: Exp_ -> Exp_ -> Exp_
+niceDotApp a b | a ~= "$" = LeftSection an b (toNamed "$")
+               | otherwise = dotApp a b
+

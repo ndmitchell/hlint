@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Changes to the lambda suggestions, now gives a few more hints
     Don't suggest importing modules in old-locale/old-time
     Make the API return the suggestions, rather than just the count
     #278, add -XNoCpp to disable the C preprocessor

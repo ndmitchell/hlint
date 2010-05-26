@@ -41,9 +41,14 @@ x ! y = fromJust $ lookup x y
 f = foo (\i -> writeIdea (getClass i) i)
 f = bar (flip Foo.bar x) -- (`Foo.bar` x)
 f = a b (\x -> c x d)  -- (`c` d)
-yes = \x -> f x (g y) -- (`f` g y)
 yes = \x -> a x -- a
 yes = \x y -> op y x -- flip op
+f = \y -> nub $ reverse y -- nub . reverse
+f = \z -> foo $ bar $ baz z -- foo . bar . baz
+f = \z -> foo $ bar x $ baz z -- foo . bar x . baz
+f = \z -> foo $ z $ baz z
+f = \x -> bar map (filter x) -- bar map . filter
+foo = [\column -> set column [treeViewColumnTitle := printf "%s (match %d)" name (length candidnates)]]
 </TEST>
 -}
 
