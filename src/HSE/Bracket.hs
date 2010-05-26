@@ -27,9 +27,6 @@ instance Brackets Exp_ where
 
     isAtom x = case x of
         Paren{} -> True
-        Var{} -> True
-        Con{} -> True
-        Lit{} -> True
         Tuple{} -> True
         List{} -> True
         LeftSection{} -> True
@@ -40,7 +37,7 @@ instance Brackets Exp_ where
         EnumFromTo{} -> True
         EnumFromThen{} -> True
         EnumFromThenTo{} -> True
-        _ -> False
+        _ -> isLexeme x
 
     -- note: i is the index in children, not in the AST
     needBracket i parent child 
