@@ -18,7 +18,10 @@ import HSE.All
 
 -- | The type of a HLint suggestion. Note the instances available.
 newtype Suggestion = Suggestion {fromSuggestion :: Idea}
-                     deriving (Show,Eq,Ord)
+                     deriving (Eq,Ord)
+
+instance Show Suggestion where
+    show = show . fromSuggestion
 
 -- | The location of a suggestion in a file.
 suggestionLocation :: Suggestion -> SrcLoc
