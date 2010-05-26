@@ -95,6 +95,10 @@ groupSortFst = map (fst . head &&& map snd) . groupBy ((==) `on` fst) . sortBy (
 disjoint :: Eq a => [a] -> [a] -> Bool
 disjoint xs = null . intersect xs
 
+unsnoc :: [a] -> ([a],a)
+unsnoc [] = error "Unsnoc on empty list"
+unsnoc xs = (init xs, last xs)
+
 
 ---------------------------------------------------------------------
 -- SYSTEM.IO
