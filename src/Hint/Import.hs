@@ -26,7 +26,7 @@ import qualified A; import A
 import B; import A; import A -- import A
 import A hiding(Foo); import A hiding(Bar)
 import List -- import Data.List
-import Locale(foo) -- import System.Locale(foo)
+import IO(foo) -- import System.IO(foo)
 </TEST>
 -}
 
@@ -96,8 +96,9 @@ newNames = let (*) = flip (,) in
     ,"Data" * "Ratio"
     ,"System" * "Directory"
     ,"System" * "IO"
-    ,"System" * "Locale"
-    ,"System" * "Time"
+    -- Do not encourage use of old-locale/old-time over haskell98
+    -- ,"System" * "Locale"
+    -- ,"System" * "Time"
     ]
 
 hierarchy :: ImportDecl S -> [Idea]

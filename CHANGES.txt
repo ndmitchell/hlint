@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Don't suggest importing modules in old-locale/old-time
     Make the API return the suggestions, rather than just the count
     #278, add -XNoCpp to disable the C preprocessor
     #279, add -XExt/-XNoExt to choose extensions
