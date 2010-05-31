@@ -20,6 +20,7 @@ f a (x:xs) b = x + a + b : f a xs b ; f a [] b = [] -- f a xs b = map (\ x -> x 
 f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax -- f xs a = foldM (+) a xs
 foos [] x = x; foos (y:ys) x = foo y $ foos ys x -- foos ys x = foldr foo x ys
 f [] y = y; f (x:xs) y = f xs $ g x y -- f xs y = foldl (flip g) y xs
+f [] y = y; f (x : xs) y = let z = g x y in f xs z -- f xs y = foldl (flip g) y xs
 </TEST>
 -}
 
@@ -147,7 +148,7 @@ findBranch :: Match S -> Maybe Branch
 findBranch x = do
     Match _ name ps (UnGuardedRhs _ bod) Nothing <- return x
     (a,b,c) <- findPat ps
-    return $ Branch (fromNamed name) a b c bod
+    return $ Branch (fromNamed name) a b c $ simplifyExp bod
 
 
 findPat :: [Pat_] -> Maybe ([String], Int, BList)

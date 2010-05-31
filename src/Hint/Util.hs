@@ -58,3 +58,14 @@ niceDotApp :: Exp_ -> Exp_ -> Exp_
 niceDotApp a b | a ~= "$" = b
                | otherwise = dotApp a b
 
+
+
+-- | Convert expressions which have redundant junk in them away.
+--   Mainly so that later stages can match on fewer alternatives.
+simplifyExp :: Exp_ -> Exp_
+simplifyExp (InfixApp _ x dol y) | isDol dol = App an x (paren y)
+simplifyExp (Let _ (BDecls _ [PatBind _ (view -> PVar_ x) Nothing (UnGuardedRhs _ y) Nothing]) z)
+    | x `notElem` vars y && x `notElem` pvars z && length (filter (== x) (vars z)) <= 1 = transform f z
+    where f (view -> Var_ x') | x == x' = paren y
+          f x = x
+simplifyExp x = x
