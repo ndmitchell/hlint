@@ -53,8 +53,8 @@ niceLambda ps x = Lambda an (map toNamed ps) x
 
 
 
--- ($) . b ==> (b $)
+-- ($) . b ==> b
 niceDotApp :: Exp_ -> Exp_ -> Exp_
-niceDotApp a b | a ~= "$" = LeftSection an b (toNamed "$")
+niceDotApp a b | a ~= "$" = b
                | otherwise = dotApp a b
 

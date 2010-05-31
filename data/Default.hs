@@ -85,7 +85,8 @@ error = (\(_,y) -> y) ==> snd
 error = (\(x,_) -> x) ==> fst
 error = (\x y-> f (x,y)) ==> curry f where _ = notIn [x,y] f
 error = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f
-error = (($) . f) ==> (f $)
+error "Redundant $" = (($) . f) ==> f
+error "Redundant $" = (f $) ==> f
 warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 error "Redundant id" = id x ==> x

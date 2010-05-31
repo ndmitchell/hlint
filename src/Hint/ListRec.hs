@@ -18,7 +18,8 @@ f (x:xs) = x + 1 : f xs ; f [] = [] -- f xs = map (+ 1) xs
 f z (x:xs) = f (z*x) xs ; f z [] = z -- f z xs = foldl (*) z xs
 f a (x:xs) b = x + a + b : f a xs b ; f a [] b = [] -- f a xs b = map (\ x -> x + a + b) xs
 f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax -- f xs a = foldM (+) a xs
-foos [] x = x; foos (y:ys) x = foo y $ foos ys x -- foos ys x = foldr (foo $) x ys
+foos [] x = x; foos (y:ys) x = foo y $ foos ys x -- foos ys x = foldr foo x ys
+f [] y = y; f (x:xs) y = f xs $ g x y -- f xs y = foldl (flip g) y xs
 </TEST>
 -}
 
