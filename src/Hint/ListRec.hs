@@ -21,6 +21,7 @@ f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax -- f xs a = foldM (+
 foos [] x = x; foos (y:ys) x = foo y $ foos ys x -- foos ys x = foldr foo x ys
 f [] y = y; f (x:xs) y = f xs $ g x y -- f xs y = foldl (flip g) y xs
 f [] y = y; f (x : xs) y = let z = g x y in f xs z -- f xs y = foldl (flip g) y xs
+f [] y = y; f (x:xs) y = f xs (f xs z)
 </TEST>
 -}
 
@@ -44,10 +45,13 @@ listRecHint _ _ = concatMap f . universe
             let x = o
             (x, addCase) <- findCase x
             (use,rank,x) <- matchListRec x
-            return $ idea rank ("Use " ++ use) o $ addCase x
+            let y = addCase x
+            guard $ recursiveStr `notElem` vars y
+            return $ idea rank ("Use " ++ use) o y
 
 
-recursive = toNamed "_recursive_"
+recursiveStr = "_recursive_"
+recursive = toNamed recursiveStr
 
 -- recursion parameters, nil-case, (x,xs,cons-case)
 -- for cons-case delete any recursive calls with xs from them

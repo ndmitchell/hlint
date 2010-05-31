@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Fix a bug in ListRec, could have _recursive_ in the result
     #315, spot list rec hints through $ and let
     Add hints based on (f $) ==> f, and change in ListRec hints
     Changes to the lambda suggestions, now gives a few more hints
