@@ -16,21 +16,27 @@ import Parallel
 import HSE.All
 
 
--- | The type of a HLint suggestion. Note the instances available.
+-- | A suggestion - the @Show@ instance is of particular use.
 newtype Suggestion = Suggestion {fromSuggestion :: Idea}
                      deriving (Eq,Ord)
 
 instance Show Suggestion where
     show = show . fromSuggestion
 
--- | The location of a suggestion in a file.
+-- | From a suggestion, extract the file location it refers to.
 suggestionLocation :: Suggestion -> SrcLoc
 suggestionLocation = loc . fromSuggestion
 
 
 
--- | This function takes the command line arguments, and returns the suggestions
---   reported.
+-- | This function takes a list of command line arguments, and returns the given suggestions.
+--   To see a list of arguments type @hlint --help@ at the console.
+--   This function usually writes to the stdout/stderr streams.
+--
+--   As an example:
+--
+-- > do hints <- hlint ["src", "--ignore=Use map"]
+-- >    when (length hints > 3) $ error "Too many hints!"
 hlint :: [String] -> IO [Suggestion]
 hlint args = do
     cmd@Cmd{..} <- getCmd args
