@@ -145,7 +145,7 @@ getEquations x = [x]
 -- case and if both have branches, nothing else does
 replaceBranches :: Exp s -> ([Exp s], [Exp s] -> Exp s)
 replaceBranches (If s a b c) = ([b,c], \[b,c] -> If s a b c)
-replaceBranches (Case s a bs) = (concatMap f bs, \bs2 -> Case s a (g bs bs2))
+replaceBranches (Case s a bs) = (concatMap f bs, Case s a . g bs)
     where
         f (Alt _ _ (UnGuardedAlt _ x) _) = [x]
         f (Alt _ _ (GuardedAlts _ xs) _) = [x | GuardedAlt _ _ x <- xs]
