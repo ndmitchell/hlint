@@ -66,34 +66,33 @@ p.rule {
 	<a href="http://community.haskell.org/~ndm/hlint/">HLint</a> is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
 </p>
 <ol>
-    <li>Installing and running HLint</li>
-    <li>FAQ</li>
-    <li>Customizing the hints</li>
+    <li><a href="#installation">Installing and running HLint</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#customization">Customizing the hints</a></li>
 </ol>
 
 <h3>Acknowledgements</h3>
 
 <p>
-	This program has only been made possible by the presence of the <a href="http://www.cs.chalmers.se/~d00nibro/haskell-src-exts/">haskell-src-exts</a> package, and many useful improvements have been made by <a href="http://www.cs.chalmers.se/~d00nibro/">Niklas Broberg</a> in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott and others.
+	This program has only been made possible by the presence of the <a href="http://www.cs.chalmers.se/~d00nibro/haskell-src-exts/">haskell-src-exts</a> package, and many improvements have been made by <a href="http://www.cs.chalmers.se/~d00nibro/">Niklas Broberg</a> in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott and others.
 </p>
 
-<h3>Bugs and limitations</h3>
+<h3 id="limitations">Bugs and limitations</h3>
 
 <p>
-	A complete bug list is kept at <a href="http://code.google.com/p/ndmitchell/issues/list?q=proj:HLint">my bug tracker</a>.
-	Some common issues that I do not intend to fix include:
+	To report a bug either <a href="http://community.haskell.org/~ndm/contact/">email me</a>, or add the issue directly to <a href="http://code.google.com/p/ndmitchell/issues/list?q=proj:HLint">the bug tracker</a>. There are two common issues that I do not intend to fix:
 </p>
 <ul>
-	<li>The presence of <tt>seq</tt> may cause some hints (i.e. eta-reduction) to change the semantics of the program.</li>
-	<li>The monomorphism restriction or uses of rank-2 types may sometimes cause transformed programs to become ill-typed.</li>
+	<li>The presence of <tt>seq</tt> may cause some hints (i.e. eta-reduction) to change the semantics of a program.</li>
+	<li>Either the monomorphism restriction, or rank-2 types, may cause transformed programs to require type signatures to be manually inserted.</li>
 </ul>
 
-<h2>Installing and running HLint</h2>
+<h2 id="installation">Installing and running HLint</h2>
 
 <p>
-	Installation follows the standard pattern of any Haskell library or program, simply type <tt>cabal update</tt> to update your local hackage database, then <tt>cabal install hlint</tt> to install HLint.
+	Installation follows the standard pattern of any Haskell library or program, type <tt>cabal update</tt> to update your local hackage database, then <tt>cabal install hlint</tt> to install HLint.
 </p><p>
-	Once HLint is installed, simply run <tt>hlint <i>source</i></tt> where <i>source</i> is either a Haskell file or a directory containing some Haskell files. Any directory will be searched recursively for any files ending with <tt>.hs</tt> or <tt>.lhs</tt>. For example, running HLint over darcs would give:
+	Once HLint is installed, run <tt>hlint <i>source</i></tt> where <i>source</i> is either a Haskell file, or a directory containing Haskell files. A directory will be searched recursively for any files ending with <tt>.hs</tt> or <tt>.lhs</tt>. For example, running HLint over darcs would give:
 </p>
 <pre>
 
@@ -125,13 +124,13 @@ Why not:
 	The first suggestion is marked as an error, because using <tt>concatMap</tt> in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always. Reasons that a hint might be a warning include requiring an additional import, something not everyone agrees on, and functions only available in more recent versions of the base library.
 </p>
 <p class="rule">
-	<b>Disclaimer:</b> While these hints are meant to be correct, they aren't guaranteed to be. Please report any non equivalent hints not listed above in the limitations.
+	<b>Bug reports:</b> The suggested replacement should be equivalent - please report all incorrect suggestions not mentioned as <a href="#limitations">known limitations</a>.
 </p>
 
 <h3>Reports</h3>
 
 <p>
-	HLint can generate a lot of information, and often searching for either the errors specific to a file, or a specific class of errors, is difficult. Using the <tt>--report</tt> flag HLint will produce a report file in HTML, which can be viewed interactively. Reports are recommended when there are more than a handlful of hints.
+	HLint can generate a lot of information, making it difficult to search for particular types of errors. The <tt>--report</tt> flag will cause HLint to generate a report file in HTML, which can be viewed interactively. Reports are recommended when there are more than a handlful of hints.
 </p>
 
 <h3>Language Extensions</h3>
@@ -140,10 +139,10 @@ Why not:
 	HLint enables most Haskell extensions, disabling only those which steal too much syntax (currently Arrows, TransformListComp, XmlSyntax and RegularPatterns). Extensions can be enabled with <tt>-XArrows</tt>, and disabled with <tt>-XNoMagicHash</tt>. The flag <tt>-XHaskell98</tt> selects Haskell 98 compatibility.
 </p>
 
-<h3>Emacs Integration</h3>
+<h3 id="emacs">Emacs Integration</h3>
 
 <p>
-	Emacs integration of HLint has been provided by <a href="http://xtalk.msk.su/~ott/">Alex Ott</a>. The integration is similar to compilation-mode, allowing navigation between errors, etc. The script is at <a href="http://community.haskell.org/~ndm/darcs/hlint/data/hs-lint.el">hs-lint.el</a>, and a copy is installed locally in the data directory. To use, just add the following code to the Emacs init file:
+	Emacs integration has been provided by <a href="http://xtalk.msk.su/~ott/">Alex Ott</a>. The integration is similar to compilation-mode, allowing navigation between errors. The script is at <a href="http://community.haskell.org/~ndm/darcs/hlint/data/hs-lint.el">hs-lint.el</a>, and a copy is installed locally in the data directory. To use, add the following code to the Emacs init file:
 </p>
 <pre>
 (require 'hs-lint)
@@ -155,7 +154,7 @@ Why not:
 <h3>GHCi Integration</h3>
 
 <p>
-	GHCi integration of HLint has been provided by Gwern Branwen. The integration allows running <tt>:hlint</tt> from the GHCi prompt. The script is at <a href="http://community.haskell.org/~ndm/darcs/hlint/data/hlint.ghci">hlint.ghci</a>, and a copy is installed locally in the data directory. To use, add the contents to your <a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/ghci-dot-files.html">GHCi startup file</a>.
+	GHCi integration has been provided by Gwern Branwen. The integration allows running <tt>:hlint</tt> from the GHCi prompt. The script is at <a href="http://community.haskell.org/~ndm/darcs/hlint/data/hlint.ghci">hlint.ghci</a>, and a copy is installed locally in the data directory. To use, add the contents to your <a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/ghci-dot-files.html">GHCi startup file</a>.
 </p>
 
 <h3>Parallel Operation</h3>
@@ -179,10 +178,10 @@ Why not:
 <h3>Unicode support</h3>
 
 <p>
-	When compiled with GHC 6.10, HLint only supports ASCII. When compiled with GHC 6.12 or above HLint uses the current locale encoding. The encoding can be overriden with either <tt>--utf8</tt> or <tt>--encoding=<i>value</i></tt>. For descriptions of some valid encodings see <a href="http://haskell.org/ghc/docs/latest/html/libraries/base-4.2.0.0/System-IO.html#v%3AmkTextEncoding">the mkTextEncoding documentation</a>.
+	When compiled with GHC 6.10, HLint only supports ASCII. When compiled with GHC 6.12 or above, HLint uses the current locale encoding. The encoding can be overriden with either <tt>--utf8</tt> or <tt>--encoding=<i>value</i></tt>. For descriptions of some valid encodings see <a href="http://haskell.org/ghc/docs/latest/html/libraries/base-4.2.0.0/System-IO.html#v%3AmkTextEncoding">the mkTextEncoding documentation</a>.
 </p>
 
-<h2>FAQ</h2>
+<h2 id="faq">FAQ</h2>
 
 <h3>Why are suggestions not applied recursively?</h3>
 
@@ -207,11 +206,10 @@ foo xs = concat (map op xs)
 <h3>Why aren't the suggestions automatically applied?</h3>
 
 <p>
-	If you want to automatically apply suggestions, the Emacs integration offers such a feature. However, there are a number of reasons that HLint itself doesn't have an option to automatically apply suggestions:
+	If you want to automatically apply suggestions, the <a href="#emacs">Emacs integration</a> offers such a feature. However, there are a number of reasons that HLint itself doesn't have an option to automatically apply suggestions:
 </p>
 <ul>
-	<li>The underlying Haskell parser library doesn't maintain sufficient position information to figure out exactly where the code came from.</li>
-	<li>The underlying parser doesn't preserve comments.</li>
+	<li>The underlying Haskell parser library makes it hard to modify the code, then print it similarly to the original.</li>
 	<li>Sometimes multiple transformations may apply.</li>
 	<li>After applying one transformation, others that were otherwise suggested may become inappropriate.</li>
 </ul>
@@ -225,7 +223,7 @@ foo xs = concat (map op xs)
 	HLint doesn't suggest optimisations, it suggests code improvements - the intention is to make the code simpler, rather than making the code perform faster. The <a href="http://haskell.org/ghc/">GHC compiler</a> automatically applies many of the rules suggested by HLint, so HLint suggestions will rarely improve performance.
 </p>
 
-<h2>Customizing the hints</h2>
+<h2 id="customization">Customizing the hints</h2>
 
 <p>
 	Many of the hints that are applied by HLint are contained in Haskell source files which are installed in the data directory by Cabal. These files may be edited, to add library specific knowledge, to include hints that may have been missed, or to ignore unwanted hints.

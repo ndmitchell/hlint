@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Improve the manual, mainly language changes and hyperlinking
     Fix a bug in ListRec, could have _recursive_ in the result
     #315, spot list rec hints through $ and let
     Add hints based on (f $) ==> f, and change in ListRec hints
