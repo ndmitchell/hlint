@@ -17,8 +17,8 @@ let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " 
 
 
 :{
-:def self const $ return
-    ":main src --report --hint=data/HLint_Hints.hs --find=src/Util.hs --find=src/HSE/Util.hs"
+:def self \x -> return $ unlines
+    [":main src --report --hint=data/HLint_Hints.hs --find=src/Util.hs --find=src/HSE/Util.hs " ++ x]
 :}
 
 :{
