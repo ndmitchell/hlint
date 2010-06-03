@@ -65,6 +65,12 @@ let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " 
 :}
 
 :{
+:def docs const $ return $ unlines
+    [":!cabal haddock"
+    ,":!start dist\\doc\\html\\hlint\\Language-Haskell-HLint.html"]
+:}
+
+:{
 :def extra const $
     let msg = [":test       - run the test suit"
               ,":self       - run HLint on itself"
@@ -72,6 +78,7 @@ let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " 
               ,":prof <N>   - produce a time profile (N=-O level [1])"
               ,":memory <N> - produce a memory profile (N=-O level [1])"
               ,":bench <N>  - run the benchmark (should take about 1 second) (N=threads [1])"
-              ,":scope <N>  - run with threadscope (N=threads [2])"]
+              ,":scope <N>  - run with threadscope (N=threads [2])"
+              ,":docs       - generate documentation"]
     in putStr (unlines msg) >> return []
 :}
