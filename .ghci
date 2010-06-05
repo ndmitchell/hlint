@@ -66,7 +66,8 @@ let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " 
 
 :{
 :def docs const $ return $ unlines
-    [":!cabal haddock"
+    [":!cabal configure"
+    ,":!cabal haddock"
     ,":!start dist\\doc\\html\\hlint\\Language-Haskell-HLint.html"]
 :}
 
