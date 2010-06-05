@@ -2,14 +2,15 @@
 The parallel function (specialised to lists) is equivalent to:
 
 import Control.Parallel.Strategies
-parallel = return $ withStrategy (parList $ seqList r0) $ map unsafePerformIO
+parallel :: [IO [a]] -> IO [[a]]
+parallel = return . withStrategy (parList $ seqList r0) . map unsafePerformIO
 
 However, this version performs about 10% slower with 2 processors in GHC 6.12.1
 -}
 
 module Parallel(parallel) where
 
-import System.IO.Unsafe(unsafeInterleaveIO)
+import System.IO.Unsafe
 import GHC.Conc(numCapabilities)
 import Control.Concurrent
 import Control.Monad
