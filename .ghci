@@ -1,6 +1,6 @@
 :set -fno-warn-overlapping-patterns -fwarn-unused-binds -fwarn-unused-imports
 :set -isrc;.
-:load Main
+:load src\Main.hs src\Paths.hs
 
 :def test const $ return ":main --test"
 :def gen const $ return ":!runhaskell data\\HLint_Gen.hs"
@@ -9,7 +9,7 @@
 let _ghci_make dir flags = ":!" ++
         "(if not exist .hpc mkdir .hpc) && " ++
         "(if not exist .hpc\\" ++ dir ++ " mkdir .hpc\\" ++ dir ++ ") && " ++
-        "ghc -threaded --make -isrc -i. src/Main.hs -w -odir .hpc/"++dir++" -hidir .hpc/"++dir++" -o .hpc/"++dir++"/hlint "++flags
+        "ghc -threaded --make -isrc -i. src/Paths.hs src/Main.hs -w -odir .hpc/"++dir++" -hidir .hpc/"++dir++" -o .hpc/"++dir++"/hlint "++flags
 :}
 let _ghci_number def val = show $ case val of "" -> def; x -> read x
 let _ghci_make_profile x = let level = _ghci_number 1 x in _ghci_make ("prof" ++ level) ("-O" ++ level ++ " -prof -auto-all -caf-all")

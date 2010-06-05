@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Make the library correctly honour the data directory
     Improve the manual, mainly language changes and hyperlinking
     Fix a bug in ListRec, could have _recursive_ in the result
     #315, spot list rec hints through $ and let
