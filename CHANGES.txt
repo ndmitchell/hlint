@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.7
     Add support for HLint.Builtin.All
     Fix crash on (\x -> x)
     Make the library correctly honour the data directory
