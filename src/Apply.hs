@@ -56,7 +56,7 @@ parseOk h m =
 
 allHints :: [Setting] -> [Hint]
 allHints xs = dynamicHints xs : map f builtin
-    where builtin = nub [x | Builtin x <- xs]
+    where builtin = nub $ concat [if x == "All" then map fst staticHints else [x] | Builtin x <- xs]
           f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x staticHints
 
 
