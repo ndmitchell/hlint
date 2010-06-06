@@ -49,6 +49,7 @@ f = \z -> foo $ bar x $ baz z -- foo . bar x . baz
 f = \z -> foo $ z $ baz z
 f = \x -> bar map (filter x) -- bar map . filter
 foo = [\column -> set column [treeViewColumnTitle := printf "%s (match %d)" name (length candidnates)]]
+foo = [\x -> x]
 </TEST>
 -}
 

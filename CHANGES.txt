@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Fix crash on (\x -> x)
     Make the library correctly honour the data directory
     Improve the manual, mainly language changes and hyperlinking
     Fix a bug in ListRec, could have _recursive_ in the result
