@@ -33,10 +33,13 @@ data Cmd = Cmd
     }
 
 
-data Opts = Help | Ver | Test
+data Opts = Help
+          | Ver
+          | Test
           | Hints FilePath
           | Report FilePath
-          | Skip String | ShowAll
+          | Skip String
+          | ShowAll
           | Color
           | Define String
           | Include String
