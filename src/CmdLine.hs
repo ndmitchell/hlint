@@ -30,6 +30,7 @@ data Cmd = Cmd
     ,cmdEncoding :: String           -- ^ the text encoding
     ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
     ,cmdLanguage :: [Extension]      -- ^ the extensions (may be prefixed by "No")
+    ,cmdQuiet :: Bool                -- ^ supress all console output
     }
 
 
@@ -48,6 +49,7 @@ data Opts = Help
           | Encoding String
           | FindHints FilePath
           | Language String
+          | Quiet
             deriving Eq
 
 
@@ -65,6 +67,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "f" ["find"] (ReqArg FindHints "file") "Find hints in a Haskell file"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
        ,Option "d" ["datadir"] (ReqArg DataDir "dir") "Override the data directory"
+       ,Option "q" ["quiet"] (NoArg Quiet) "Supress most console output"
        ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
        ,Option ""  ["cpp-include"] (ReqArg Include "dir") "CPP include path"
        ]
@@ -119,6 +122,7 @@ getCmd args = do
         ,cmdEncoding = encoding
         ,cmdFindHints = findHints
         ,cmdLanguage = languages
+        ,cmdQuiet = Quiet `elem` opt
         }
 
 

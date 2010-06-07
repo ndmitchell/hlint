@@ -31,11 +31,11 @@ suggestionLocation = loc . fromSuggestion
 
 -- | This function takes a list of command line arguments, and returns the given suggestions.
 --   To see a list of arguments type @hlint --help@ at the console.
---   This function usually writes to the stdout/stderr streams.
+--   This function writes to the stdout/stderr streams, unless @--quiet@ is specified.
 --
 --   As an example:
 --
--- > do hints <- hlint ["src", "--ignore=Use map"]
+-- > do hints <- hlint ["src", "--ignore=Use map","--quiet"]
 -- >    when (length hints > 3) $ error "Too many hints!"
 hlint :: [String] -> IO [Suggestion]
 hlint args = do
@@ -53,6 +53,7 @@ hlint args = do
 
 runHints :: Cmd -> ParseFlags -> IO [Suggestion]
 runHints Cmd{..} flags = do
+    let outStrLn x = unless cmdQuiet $ putStrLn x
     settings1 <- readSettings cmdDataDir cmdHintFiles
     settings2 <- concatMapM (fmap snd . findSettings flags) cmdFindHints
     settings3 <- return [Classify Ignore x ("","") | x <- cmdIgnore]
@@ -61,15 +62,15 @@ runHints Cmd{..} flags = do
     ideas <- fmap concat $ parallel [listM' =<< applyHint flags settings x | x <- cmdFiles]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || rank i /= Ignore) ideas
     showItem <- if cmdColor then showANSI else return show
-    mapM_ (putStrLn . showItem) showideas
+    mapM_ (outStrLn . showItem) showideas
 
     if null showideas then
-        when (cmdReports /= []) $ putStrLn "Skipping writing reports"
+        when (cmdReports /= []) $ outStrLn "Skipping writing reports"
      else
         forM_ cmdReports $ \x -> do
-            putStrLn $ "Writing report to " ++ x ++ " ..."
+            outStrLn $ "Writing report to " ++ x ++ " ..."
             writeReport cmdDataDir x showideas
-    putStrLn $
+    outStrLn $
         (let i = length showideas in if i == 0 then "No suggestions" else show i ++ " suggestion" ++ ['s'|i/=1]) ++
         (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
     return $ map Suggestion showideas

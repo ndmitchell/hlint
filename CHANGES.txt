@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add a --quiet flag, to supress stdout (mainly for API users)
 1.7
     Add support for HLint.Builtin.All
     Fix crash on (\x -> x)
