@@ -48,6 +48,7 @@ f = \z -> foo $ bar $ baz z -- foo . bar . baz
 f = \z -> foo $ bar x $ baz z -- foo . bar x . baz
 f = \z -> foo $ z $ baz z
 f = \x -> bar map (filter x) -- bar map . filter
+f = bar &+& \x -> f (g x)
 foo = [\column -> set column [treeViewColumnTitle := printf "%s (match %d)" name (length candidnates)]]
 foo = [\x -> x]
 </TEST>
@@ -62,7 +63,7 @@ import Util
 
 
 lambdaHint :: DeclHint
-lambdaHint _ _ x = concatMap lambdaExp (universeBi x) ++ concatMap lambdaDecl (universe x)
+lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatMap lambdaDecl (universe x)
 
 
 lambdaDecl :: Decl_ -> [Idea]
@@ -80,13 +81,13 @@ etaReduce ps (App _ x (Var _ (UnQual _ (Ident _ y))))
 etaReduce ps x = (ps,x)
 
 
-lambdaExp :: Exp_ -> [Idea]
-lambdaExp o@(Paren _ (App _ (Var _ (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
+lambdaExp :: Maybe Exp_ -> Exp_ -> [Idea]
+lambdaExp p o@(Paren _ (App _ (Var _ (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
     [warn "Use section" o $ LeftSection an y (toNamed x)]
-lambdaExp o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
+lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
     [warn "Use section" o $ RightSection an (QVarOp an x) y]
-lambdaExp o@Lambda{} | res <- niceLambda [] o, not $ isLambda res =
+lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, res <- niceLambda [] o, not $ isLambda res =
     [warn "Avoid lambda" o res]
-lambdaExp o@(Lambda _ ps1 (fromParen -> Lambda _ ps2 bod)) | pvars ps1 `disjoint` pvars ps2 =
+lambdaExp p o@(Lambda _ ps1 (fromParen -> Lambda _ ps2 bod)) | pvars ps1 `disjoint` pvars ps2 =
     [warn "Collapse lambdas" o $ Lambda an (ps1++ps2) bod]
-lambdaExp _ = []
+lambdaExp _ _ = []

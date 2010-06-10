@@ -148,6 +148,15 @@ descendIndex f x = flip evalState 0 $ flip descendM x $ \y -> do
     modify (+1)
     return $ f i y
 
+universeParent :: Uniplate a => a -> [(Maybe a, a)]
+universeParent x = (Nothing,x) : f x
+    where
+        f :: Uniplate a => a -> [(Maybe a, a)]
+        f x = concat [(Just x, y) : f y | y <- children x]
+
+universeParentBi :: Biplate a b => a -> [(Maybe b, b)]
+universeParentBi = concatMap universeParent . childrenBi
+
 
 ---------------------------------------------------------------------
 -- LANGUAGE.HASKELL.EXTS.EXTENSION

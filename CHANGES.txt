@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #319, don't remove lambdas on the right of infix operators
 1.7.1
     Add a --quiet flag, to supress stdout (mainly for API users)
 1.7
