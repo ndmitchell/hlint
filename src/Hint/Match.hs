@@ -19,8 +19,8 @@ notIn xs ys - are all x variables not in ys expressions
 notTypeSafe - no semantics, a hint for testing only
 
 ($) AND (.)
-We see through ($) simply by expanding it if nothing else matches.
-We see through (.) by translating rules that have (.) equivalents
+We see through ($)/(.) by expanding it if nothing else matches.
+We also see through (.) by translating rules that have (.) equivalents
 to separate rules. For example:
 
 concat (map f x) ==> concatMap f x
@@ -111,7 +111,9 @@ unifyExp :: NameMatch -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
 unifyExp nm x y | isParen x || isParen y = unifyExp nm (fromParen x) (fromParen y)
 unifyExp nm (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
 unifyExp nm (Var _ x) (Var _ y) | nm x y = Just []
-unifyExp nm (App _ x1 x2) (App _ y1 y2) = liftM2 (++) (unifyExp nm x1 y1) (unifyExp nm x2 y2)
+unifyExp nm x@(App _ x1 x2) (App _ y1 y2) =
+    liftM2 (++) (unifyExp nm x1 y1) (unifyExp nm x2 y2) `mplus`
+    (do InfixApp _ y11 dot y12 <- return $ fromParen y1; guard $ isDot dot; unifyExp nm x (App an y11 (App an y12 y2)))
 unifyExp nm x (InfixApp _ lhs2 op2 rhs2)
     | InfixApp _ lhs1 op1 rhs1 <- x = guard (op1 == op2) >> liftM2 (++) (unifyExp nm lhs1 lhs2) (unifyExp nm rhs1 rhs2)
     | isDol op2 = unifyExp nm x $ App an lhs2 rhs2

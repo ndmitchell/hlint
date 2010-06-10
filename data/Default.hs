@@ -304,6 +304,7 @@ no = const . ok . toResponse $ "saved"
 yes = case x z of Nothing -> y z; Just pattern -> pattern -- fromMaybe (y z) (x z)
 yes = if p then s else return () -- Control.Monad.when p $ s
 error = a $$$$ b $$$$ c ==> a . b $$$$$ c
+yes = when (not . null $ asdf) -- unless (null asdf)
 
 
 import Prelude \
