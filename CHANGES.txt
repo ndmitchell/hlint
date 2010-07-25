@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.7.3
     Upgrade to hscolour-1.17
 1.7.2
     #318, match rules by expanding out (.)
