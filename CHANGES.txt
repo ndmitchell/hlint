@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to hscolour-1.17
 1.7.2
     #318, match rules by expanding out (.)
     #319, don't remove lambdas on the right of infix operators

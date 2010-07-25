@@ -35,7 +35,7 @@ flag threaded
 library
     build-depends:
         base == 4.*, process, filepath, directory, mtl, containers,
-        hscolour == 1.16.*,
+        hscolour == 1.17.*,
         cpphs == 1.11.*,
         haskell-src-exts == 1.9.*,
         uniplate == 1.5.*
