@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
 
 module Test(test) where
 
@@ -33,11 +33,11 @@ instance Monoid Result where
     mappend (Result f1 t1) (Result f2 t2) = Result (f1+f2) (t1+t2)
 
 
-test :: FilePath -> IO Int
-test dataDir = do
+test :: ([String] -> IO ()) -> FilePath -> IO Int
+test main dataDir = do
     src <- doesFileExist "hlint.cabal"
     Result failures total <- results $ sequence $ (if src then id else take 1)
-        [testHintFiles dataDir, testSourceFiles]
+        [testHintFiles dataDir, testSourceFiles, testInputOutput main]
     unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
     if failures == 0
         then putStrLn $ "Tests passed (" ++ show total ++ ")"
@@ -57,6 +57,12 @@ testHintFiles dataDir = do
 testSourceFiles :: IO Result
 testSourceFiles = fmap mconcat $ sequence
     [checkAnnotations [Builtin name] ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints]
+
+
+testInputOutput :: ([String] -> IO ()) -> IO Result
+testInputOutput main = do
+    xs <- getDirectoryContents "tests"
+    results $ mapM (checkInputOutput main) $ groupBy ((==) `on` takeWhile isDigit) $ sort $ filter (not . isPrefixOf ".") xs
 
 
 ---------------------------------------------------------------------
@@ -164,3 +170,33 @@ parseTest file i x = Test (SrcLoc file i 0) x $
     case dropWhile (/= "--") $ words x of
         [] -> Nothing
         _:xs -> Just $ unwords xs
+
+
+---------------------------------------------------------------------
+-- CHECK INPUT/OUTPUT PAIRS
+
+checkInputOutput :: ([String] -> IO ()) -> [FilePath] -> IO Result
+checkInputOutput main xs = do
+    let n = takeWhile isDigit $ head xs
+        has x = (n++x) `elem` xs
+        reader x = readFile' $ "tests/" ++ n++x
+
+    flags <-
+        if has "flags.txt" then fmap (takeWhile (/= '\n')) $ reader "flags.txt"
+        else if has "source.hs" then return $ "tests/" ++ n ++ "source.hs"
+        else if has "source.lhs" then return $ "tests/" ++ n ++ "source.lhs"
+        else error "checkInputOutput, couldn't find or figure out flags"
+
+    got <- captureOutput $ handle (\(e::ExitCode) -> return ()) $ main $ words flags
+    want <- reader "output.txt"
+
+    if got == want then return pass else do
+        (got,want) <- return (lines got, lines want)
+        let trail = replicate (max (length got) (length want)) ""
+        let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), g /= w]
+        putStrLn $ unlines
+            ["TEST FAILURE IN tests/" ++ n
+            ,"DIFFER ON LINE: " ++ show i
+            ,"GOT : " ++ g
+            ,"WANT: " ++ w]
+        return failure
