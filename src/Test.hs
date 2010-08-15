@@ -32,12 +32,16 @@ instance Monoid Result where
     mempty = Result 0 0
     mappend (Result f1 t1) (Result f2 t2) = Result (f1+f2) (t1+t2)
 
+progress = putChar '.'
+failed xs = putStrLn $ unlines $ "" : xs
+
 
 test :: ([String] -> IO ()) -> FilePath -> IO Int
 test main dataDir = do
     src <- doesFileExist "hlint.cabal"
     Result failures total <- results $ sequence $ (if src then id else take 1)
         [testHintFiles dataDir, testSourceFiles, testInputOutput main]
+    putStrLn ""
     unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
     if failures == 0
         then putStrLn $ "Tests passed (" ++ show total ++ ")"
@@ -51,7 +55,9 @@ testHintFiles dataDir = do
     let files = [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint" `isPrefixOf` takeBaseName x]
     results $ forM files $ \file -> do
         hints <- readSettings dataDir [file]
-        results $ sequence [nameCheckHints hints, typeCheckHints hints, checkAnnotations hints file]
+        res <- results $ sequence [nameCheckHints hints, typeCheckHints hints, checkAnnotations hints file]
+        progress
+        return res
 
 
 testSourceFiles :: IO Result
@@ -70,7 +76,7 @@ testInputOutput main = do
 
 nameCheckHints :: [Setting] -> IO Result
 nameCheckHints hints = do
-    let bad = [putStrLn $ "No name for the hint " ++ prettyPrint (lhs x) | x@MatchExp{} <- hints, hintS x == defaultHintName]
+    let bad = [failed ["No name for the hint " ++ prettyPrint (lhs x)] | x@MatchExp{} <- hints, hintS x == defaultHintName]
     sequence_ bad
     return $ Result (length bad) 0
 
@@ -84,6 +90,7 @@ typeCheckHints hints = bracket
         hPutStrLn h $ unlines contents
         hClose h
         res <- system $ "runhaskell " ++ file
+        progress
         return $ result $ res == ExitSuccess
     where
         contents =
@@ -121,7 +128,7 @@ checkAnnotations :: [Setting] -> FilePath -> IO Result
 checkAnnotations setting file = do
     tests <- parseTestFile file
     failures <- concatMapM f tests
-    putStr $ unlines failures
+    sequence_ failures
     return $ Result (length failures) (length tests)
     where
         f (Test loc inp out) = do
@@ -132,12 +139,12 @@ checkAnnotations setting file = do
                               length (show ideas) >= 0 && -- force, mainly for hpc
                               not (isParseError (head ideas)) &&
                               match x (head ideas)
-            return
-                ["TEST FAILURE (" ++ show (length ideas) ++ " hints generated)\n" ++
-                 "SRC: " ++ showSrcLoc loc ++ "\n" ++
-                 "INPUT: " ++ inp ++ "\n" ++
-                 concatMap ((++) "OUTPUT: " . show) ideas ++
-                 "WANTED: " ++ fromMaybe "<failure>" out ++ "\n\n"
+            return [failed $
+                ["TEST FAILURE (" ++ show (length ideas) ++ " hints generated)"
+                ,"SRC: " ++ showSrcLoc loc
+                ,"INPUT: " ++ inp] ++
+                map ((++) "OUTPUT: " . show) ideas ++
+                ["WANTED: " ++ fromMaybe "<failure>" out]
                 | not good]
 
         match "???" _ = True
