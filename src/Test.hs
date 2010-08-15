@@ -2,12 +2,12 @@
 
 module Test(test) where
 
-import Control.Arrow
 import Control.Exception
 import Control.Monad
 import Data.Char
 import Data.List
 import Data.Maybe
+import Data.Monoid
 import Data.Function
 import System.Directory
 import System.FilePath
@@ -22,48 +22,63 @@ import Apply
 import HSE.All
 import Hint.All
 
+data Result = Result {_failures :: Int, _total :: Int}
+pass = Result 0 1
+failure = Result 1 1
+result x = if x then pass else failure
+results = fmap mconcat
 
--- Input, Output
--- Output = Nothing, should not match
--- Output = Just xs, should match xs
-data Test = Test SrcLoc String (Maybe String)
+instance Monoid Result where
+    mempty = Result 0 0
+    mappend (Result f1 t1) (Result f2 t2) = Result (f1+f2) (t1+t2)
 
 
 test :: FilePath -> IO Int
 test dataDir = do
-    dataLs <- getDirectoryContents dataDir
-
-    src <- doesDirectoryExist "src/Hint"
-    (fail,total) <- fmap ((sum *** sum) . unzip) $ sequence $
-        [runTestDyn dataDir (dataDir </> h) | h <- dataLs, takeExtension h == ".hs", not $ "HLint" `isPrefixOf` takeBaseName h] ++
-        [runTest [Builtin name] ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints, src]
+    src <- doesFileExist "hlint.cabal"
+    Result failures total <- results $ sequence $ (if src then id else take 1)
+        [testHintFiles dataDir, testSourceFiles]
     unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
-    if fail == 0
+    if failures == 0
         then putStrLn $ "Tests passed (" ++ show total ++ ")"
-        else putStrLn $ "Tests failed (" ++ show fail ++ " of " ++ show total ++ ")"
-    return fail
+        else putStrLn $ "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
+    return failures
 
 
-runTestDyn :: FilePath -> FilePath -> IO (Int,Int)
-runTestDyn dataDir file = do
-    settings <- readSettings dataDir [file]
-    let bad = [putStrLn $ "No name for the hint " ++ prettyPrint (lhs x) | x@MatchExp{} <- settings, hintS x == defaultHintName]
+testHintFiles :: FilePath -> IO Result
+testHintFiles dataDir = do
+    xs <- getDirectoryContents dataDir
+    let files = [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint" `isPrefixOf` takeBaseName x]
+    results $ forM files $ \file -> do
+        hints <- readSettings dataDir [file]
+        results $ sequence [nameCheckHints hints, typeCheckHints hints, checkAnnotations hints file]
+
+
+testSourceFiles :: IO Result
+testSourceFiles = fmap mconcat $ sequence
+    [checkAnnotations [Builtin name] ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints]
+
+
+---------------------------------------------------------------------
+-- VARIOUS SMALL TESTS
+
+nameCheckHints :: [Setting] -> IO Result
+nameCheckHints hints = do
+    let bad = [putStrLn $ "No name for the hint " ++ prettyPrint (lhs x) | x@MatchExp{} <- hints, hintS x == defaultHintName]
     sequence_ bad
-
-    (f1,t1) <- runTestTypes settings
-    (f2,t2) <- runTest settings file
-    return (length bad + f1 + f2, t1 + t2)
+    return $ Result (length bad) 0
 
 
-runTestTypes :: [Setting] -> IO (Int,Int)
-runTestTypes settings = bracket
+-- | Given a set of hints, do all the MatchExp hints type check
+typeCheckHints :: [Setting] -> IO Result
+typeCheckHints hints = bracket
     (openTempFile "." "hlinttmp.hs")
     (\(file,h) -> removeFile file)
     $ \(file,h) -> do
         hPutStrLn h $ unlines contents
         hClose h
         res <- system $ "runhaskell " ++ file
-        return (if res == ExitSuccess then 0 else 1, 1)
+        return $ result $ res == ExitSuccess
     where
         contents =
             ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules #-}"
@@ -82,19 +97,26 @@ runTestTypes settings = bracket
             ,"_eval_ = id"
             ,"bad = undefined"] ++
             [prettyPrint $ PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing
-            | (i, MatchExp _ _ lhs rhs side) <- zip [1..] settings, "notTypeSafe" `notElem` vars side
+            | (i, MatchExp _ _ lhs rhs side) <- zip [1..] hints, "notTypeSafe" `notElem` vars side
             , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
             , let bod = UnGuardedRhs an $ if null vs then inner else Lambda an vs inner]
 
 
--- return the number of fails/total
-runTest :: [Setting] -> FilePath -> IO (Int,Int)
-runTest setting file = do
+---------------------------------------------------------------------
+-- CHECK ANNOTATIONS
+
+-- Input, Output
+-- Output = Nothing, should not match
+-- Output = Just xs, should match xs
+data Test = Test SrcLoc String (Maybe String)
+
+checkAnnotations :: [Setting] -> FilePath -> IO Result
+checkAnnotations setting file = do
     tests <- parseTestFile file
     failures <- concatMapM f tests
     putStr $ unlines failures
-    return (length failures, length tests)
+    return $ Result (length failures) (length tests)
     where
         f (Test loc inp out) = do
             ideas <- applyHintStr parseFlags setting file inp
