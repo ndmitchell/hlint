@@ -19,6 +19,7 @@ yes_foo = yes_foo + yes_foo -- yesFoo = ...
 no = 1 where yes_foo = 2
 a -== b = 1
 myTest = 1; my_test = 1
+semiring'laws = 1 -- semiringLaws = ...
 </TEST>
 -}
 
@@ -82,7 +83,7 @@ suggestName x = listToMaybe [f x | not $ isSym x || good || "prop_" `isPrefixOf`
             where (us,ys) = span (== '_') xs
 
         g x | x `elem` ["_","'","_'"] = x
-        g ('_':x:xs) | isAlphaNum x = toUpper x : g xs
+        g (a:x:xs) | a `elem` "_'" && isAlphaNum x = toUpper x : g xs
         g (x:xs) | isAlphaNum x = x : g xs
                  | otherwise = g xs
         g [] = []
