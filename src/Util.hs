@@ -147,9 +147,7 @@ captureOutput act = do
 
 -- FIXME: Should use strict ByteString
 readFile' :: FilePath -> IO String
-readFile' x = do
-    src <- readFile x
-    length src `seq` return src
+readFile' x = listM' =<< readFile x
 
 
 ---------------------------------------------------------------------
