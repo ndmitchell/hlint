@@ -1,0 +1,10 @@
+tests/3source.lhs:11:1: Parse error
+Error message:
+  Parse error: EOF
+Code:
+    BUG 331
+    %  Blah1
+  > %  Blah2
+    %  Blah3
+
+1 suggestion

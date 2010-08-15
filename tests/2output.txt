@@ -1,0 +1,7 @@
+tests/2source.lhs:4:17: Warning: Use :
+Found:
+  "a" ++ "bc"
+Why not:
+  'a' : "bc"
+
+1 suggestion

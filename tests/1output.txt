@@ -1,0 +1,26 @@
+HLint v0.0, (C) Neil Mitchell 2006-2010
+
+  hlint [files/directories] [options]
+
+  -?        --help                     Display help message
+  -v        --version                  Display version information
+  -r[file]  --report[=file]            Generate a report in HTML
+  -h file   --hint=file                Hint/ignore file to use
+  -c        --color, --colour          Color output (requires ANSI terminal)
+  -i hint   --ignore=hint              Ignore a particular hint
+  -s        --show                     Show all ignored ideas
+  -e ext    --extension=ext            File extensions to search (defaults to hs and lhs)
+  -X lang   --language=lang            Language extensions (Arrows, NoCPP)
+  -u        --utf8                     Use UTF-8 text encoding
+            --encoding=encoding        Choose the text encoding
+  -f file   --find=file                Find hints in a Haskell file
+  -t        --test                     Run in test mode
+  -d dir    --datadir=dir              Override the data directory
+  -q        --quiet                    Supress most console output
+            --cpp-define=name[=value]  CPP #define
+            --cpp-include=dir          CPP include path
+
+HLint gives hints on how to improve Haskell code.
+
+To check all Haskell files in 'src' and generate a report type:
+  hlint src --report
