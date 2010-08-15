@@ -18,6 +18,8 @@ import Data.Data
 import Data.Generics.Uniplate.Operations
 import Language.Haskell.Exts.Extension
 
+import GHC.IO.Handle(hDuplicate,hDuplicateTo)
+
 
 ---------------------------------------------------------------------
 -- SYSTEM.DIRECTORY
@@ -126,6 +128,28 @@ exitMessage :: String -> a
 exitMessage msg = unsafePerformIO $ do
     putStrLn msg
     exitWith $ ExitFailure 1
+
+
+-- FIXME: This could use a lot more bracket calls!
+captureOutput :: IO () -> IO String
+captureOutput act = do
+    tmp <- getTemporaryDirectory
+    (f,h) <- openTempFile tmp "hlint"
+    sto <- hDuplicate stdout
+    hDuplicateTo h stdout
+    hClose h
+    act
+    hDuplicateTo sto stdout
+    res <- readFile' f
+    removeFile f
+    return res
+
+
+-- FIXME: Should use strict ByteString
+readFile' :: FilePath -> IO String
+readFile' x = do
+    src <- readFile x
+    length src `seq` return src
 
 
 ---------------------------------------------------------------------
