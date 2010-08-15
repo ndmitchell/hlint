@@ -26,6 +26,7 @@ foo :: (Int -> Int) -> Int
 foo :: Int -> (Int -> Int) -- @Warning Int -> Int -> Int
 foo :: (Maybe Int) -> a -- @Warning Maybe Int -> a
 instance Named (DeclHead S)
+data Foo = Foo {foo :: (Maybe Foo)} -- @Warning foo :: Maybe Foo
 
 -- pattern bracket reduction
 foo (True) = 1
@@ -56,7 +57,8 @@ bracketHint :: DeclHint
 bracketHint _ _ x =
     concatMap (\x -> bracket True x ++ dollar x) (childrenBi x :: [Exp_]) ++
     concatMap (bracket False) (childrenBi x :: [Type_]) ++
-    concatMap (bracket False) (childrenBi x :: [Pat_])
+    concatMap (bracket False) (childrenBi x :: [Pat_]) ++
+    concatMap fieldDecl (childrenBi x)
 
 
 bracket :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
@@ -72,6 +74,12 @@ bracket bad = f Nothing
 
         g :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
+
+
+fieldDecl :: FieldDecl S -> [Idea]
+fieldDecl o@(FieldDecl a b (UnBangedTy c (TyParen _ d)))
+    = [warn "Redundant bracket" o (FieldDecl a b (UnBangedTy c d))]
+fieldDecl _ = []
 
 
 dollar :: Exp_ -> [Idea]
