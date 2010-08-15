@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Make --find more robust, fixes a potential parse error
 1.7.3
     Upgrade to hscolour-1.17
 1.7.2
