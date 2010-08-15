@@ -22,7 +22,7 @@ applyHintStr :: ParseFlags -> [Setting] -> FilePath -> String -> IO [Idea]
 applyHintStr flags s file src = do
     res <- parseString flags{infixes=[x | Infix x <- s]} file src
     case snd res of
-        ParseFailed sl msg -> map (classify s) `fmap` parseFailed flags sl msg src
+        ParseFailed sl msg | length src `seq` True -> map (classify s) `fmap` parseFailed flags sl msg src
         ParseOk m -> return $
             let settings = mapMaybe readPragma $ moduleDecls m
             in map (classify $ s ++ settings) $ parseOk (allHints s) m
