@@ -232,7 +232,6 @@ error "Evaluate" = unwords [] ==> ""
 error "Evaluate" = x - 0 ==> x
 error "Evaluate" = x * 1 ==> x
 error "Evaluate" = x / 1 ==> x
-error "Evaluate" = id x ==> x
 error "Evaluate" = concat [a] ==> a
 error "Evaluate" = concat [] ==> []
 
@@ -306,6 +305,7 @@ yes = case x z of Nothing -> y z; Just pattern -> pattern -- fromMaybe (y z) (x 
 yes = if p then s else return () -- Control.Monad.when p $ s
 error = a $$$$ b $$$$ c ==> a . b $$$$$ c
 yes = when (not . null $ asdf) -- unless (null asdf)
+yes = id 1 -- 1
 
 
 import Prelude \

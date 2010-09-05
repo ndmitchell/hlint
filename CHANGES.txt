@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #335, redundant id should only generate one warning
     Add a hint for using map (f &&& g)
     #328, for foo'bar suggest the naming fooBar
     #323, detect redundant brackets in field declarations
