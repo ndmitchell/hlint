@@ -111,6 +111,7 @@ warn  "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
 
 error = id *** g ==> second g
 error = f *** id ==> first f
+error = zip (map f x) (map g x) ==> map (f Control.Arrow.&&& g) x
 warn  = (\(x,y) -> (f x, g y)) ==> f Control.Arrow.*** g where _ = notIn [x,y] [f,g]
 warn  = (\x -> (f x, g x)) ==> f Control.Arrow.&&& g where _ = notIn x [f,g]
 warn  = (\(x,y) -> (f x,y)) ==> Control.Arrow.first f where _ = notIn [x,y] f
