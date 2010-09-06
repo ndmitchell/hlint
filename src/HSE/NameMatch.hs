@@ -1,5 +1,5 @@
 
-module HSE.NameMatch(Scope, moduleScope, emptyScope, NameMatch, nameMatch) where
+module HSE.NameMatch(Scope, moduleScope, emptyScope, nameMatch) where
 
 import HSE.Type
 import HSE.Util
@@ -62,15 +62,12 @@ possModules = undefined
 -- OLD STUFF
 
 
-type NameMatch = QName S -> QName S -> Bool
-
-
 -- Given a list of import statements, are the names equal
 -- The import statements are only in scope on the second name
 --
 -- If the left is unqualified, then the right is dequalified and checked for match
 -- If the left is qualified, then the right is wrapped and name resolved
-nameMatch :: Scope -> NameMatch
+nameMatch :: Scope -> QName S -> QName S -> Bool
 nameMatch (Scope imps) = f
     where
         -- deal with "as" imports

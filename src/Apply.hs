@@ -51,7 +51,7 @@ parseOk h m =
         concat [order (fromNamed d) [i | DeclHint h <- h, i <- h nm m d] | d <- moduleDecls m]
     where
         order n = map (\i -> i{func = (moduleName m,n)}) . sortBy (comparing loc)
-        nm = nameMatch $ moduleScope m
+        nm = moduleScope m
 
 
 allHints :: [Setting] -> [Hint]

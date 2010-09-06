@@ -5,7 +5,7 @@ import HSE.All
 import Idea
 
 
-type DeclHint = NameMatch -> Module_ -> Decl_ -> [Idea]
-type ModuHint = NameMatch -> Module_          -> [Idea]
+type DeclHint = Scope -> Module_ -> Decl_ -> [Idea]
+type ModuHint = Scope -> Module_          -> [Idea]
 
 data Hint = DeclHint {declHint :: DeclHint} | ModuHint {moduHint :: ModuHint}

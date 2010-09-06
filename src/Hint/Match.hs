@@ -75,14 +75,14 @@ dotVersion _ = Nothing
 ---------------------------------------------------------------------
 -- PERFORM THE MATCHING
 
-findIdeas :: [Setting] -> NameMatch -> Module S -> Decl_ -> [Idea]
+findIdeas :: [Setting] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches nm _ decl =
   [ idea (rankS m) (hintS m) x y
   | (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
   , m <- matches, Just y <- [matchIdea nm decl m parent x2]]
 
 
-matchIdea :: NameMatch -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe Exp_
+matchIdea :: Scope -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe Exp_
 matchIdea nm decl MatchExp{lhs=lhs,rhs=rhs,side=side} parent x = do
     u <- unifyExp nm lhs x
     u <- check u
@@ -96,21 +96,21 @@ matchIdea nm decl MatchExp{lhs=lhs,rhs=rhs,side=side} parent x = do
 -- UNIFICATION
 
 -- unify a b = c, a[c] = b
-unify :: Data a => NameMatch -> a -> a -> Maybe [(String,Exp_)]
+unify :: Data a => Scope -> a -> a -> Maybe [(String,Exp_)]
 unify nm x y | Just x <- cast x = unifyExp nm x (unsafeCoerce y)
              | Just x <- cast x = unifyPat nm x (unsafeCoerce y)
              | otherwise = unifyDef nm x y
 
 
-unifyDef :: Data a => NameMatch -> a -> a -> Maybe [(String,Exp_)]
+unifyDef :: Data a => Scope -> a -> a -> Maybe [(String,Exp_)]
 unifyDef nm x y = fmap concat . sequence =<< gzip (unify nm) x y
 
 
 -- App/InfixApp are analysed specially for performance reasons
-unifyExp :: NameMatch -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
+unifyExp :: Scope -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
 unifyExp nm x y | isParen x || isParen y = unifyExp nm (fromParen x) (fromParen y)
 unifyExp nm (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
-unifyExp nm (Var _ x) (Var _ y) | nm x y = Just []
+unifyExp nm (Var _ x) (Var _ y) | nameMatch nm x y = Just []
 unifyExp nm x@(App _ x1 x2) (App _ y1 y2) =
     liftM2 (++) (unifyExp nm x1 y1) (unifyExp nm x2 y2) `mplus`
     (do InfixApp _ y11 dot y12 <- return $ fromParen y1; guard $ isDot dot; unifyExp nm x (App an y11 (App an y12 y2)))
@@ -122,7 +122,7 @@ unifyExp nm x y | isOther x, isOther y = unifyDef nm x y
 unifyExp nm _ _ = Nothing
 
 
-unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe [(String,Exp_)]
+unifyPat :: Scope -> Pat_ -> Pat_ -> Maybe [(String,Exp_)]
 unifyPat nm (PVar _ x) (PVar _ y) = Just [(fromNamed x, toNamed $ fromNamed y)]
 unifyPat nm PWildCard{} PVar{} = Just []
 unifyPat nm x y = unifyDef nm x y 
@@ -203,10 +203,10 @@ performEval x = x
 
 
 -- contract Data.List.foo ==> foo, if Data.List is loaded
-unqualify :: NameMatch -> Exp_ -> Exp_
+unqualify :: Scope -> Exp_ -> Exp_
 unqualify nm = transformBi f
     where
-        f (Qual _ mod x) | nm (Qual an mod x) (UnQual an x) = UnQual an x
+        f (Qual _ mod x) | nameMatch nm (Qual an mod x) (UnQual an x) = UnQual an x
         f x = x
 
 
