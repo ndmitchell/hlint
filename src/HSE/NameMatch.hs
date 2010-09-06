@@ -7,6 +7,22 @@ import HSE.Match
 import qualified Data.Map as Map
 import Util
 
+{-
+the hint file can do:
+
+import Prelude (filter)
+import Data.List (filter)
+import List (filter)
+
+then filter on it's own will get expanded to all of them
+
+import Data.List
+import List as Data.List
+
+
+if Data.List.head x ==> x, then that might match List too
+-}
+
 
 data Scope = Scope [ImportDecl S]
              deriving Show
@@ -16,6 +32,34 @@ moduleScope = Scope . moduleImports
 
 emptyScope :: Scope
 emptyScope = Scope []
+
+
+
+-- given A B x y, does A{x} possibly refer to the same name as B{y}
+-- this property is reflexive
+nameMatch2 :: Scope -> Scope -> QName S -> QName S -> Bool
+nameMatch2 a b x y = undefined -- unqual x == unqual y && not (null $ possModules a x `intersect` possModules b y)
+
+
+-- given A B x, pick y such that A{x} == B{y}, if you can
+nameQualify :: Scope -> Scope -> QName S -> QName S
+nameQualify a x b = undefined {- 
+    all those where the import allows it,
+    then what qualification would be required (if none pick that)
+    else go for the full name of the module
+    possModules a x -}
+
+
+-- which modules could a name possibly lie in
+-- if it's qualified but not matching any import, assume the user
+-- just lacks an import
+possModules :: Scope -> QName S -> [String]
+possModules = undefined
+
+
+
+--------------------------------------------------------
+-- OLD STUFF
 
 
 type NameMatch = QName S -> QName S -> Bool
