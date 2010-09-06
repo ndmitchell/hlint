@@ -1,11 +1,21 @@
 
-module HSE.NameMatch(NameMatch, nameMatch) where
+module HSE.NameMatch(Scope, moduleScope, emptyScope, NameMatch, nameMatch) where
 
 import HSE.Type
 import HSE.Util
 import HSE.Match
 import qualified Data.Map as Map
 import Util
+
+
+data Scope = Scope [ImportDecl S]
+             deriving Show
+
+moduleScope :: Module S -> Scope
+moduleScope = Scope . moduleImports
+
+emptyScope :: Scope
+emptyScope = Scope []
 
 
 type NameMatch = QName S -> QName S -> Bool

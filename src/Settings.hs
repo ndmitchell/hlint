@@ -46,7 +46,7 @@ addInfix x = x{infixes = infix_ (-1) ["==>"] ++ infixes x}
 
 data Setting
     = Classify {rankS :: Rank, hintS :: String, funcS :: FuncName}
-    | MatchExp {rankS :: Rank, hintS :: String, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_}
+    | MatchExp {rankS :: Rank, hintS :: String, scope :: Scope, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_}
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show
@@ -63,7 +63,8 @@ isMatchExp MatchExp{} = True; isMatchExp _ = False
 readSettings :: FilePath -> [FilePath] -> IO [Setting]
 readSettings dataDir xs = do
     (builtin,mods) <- fmap unzipEither $ concatMapM (readHints dataDir) xs
-    return $ map Builtin builtin ++ concatMap (concatMap readSetting . concatMap getEquations . moduleDecls) mods
+    let f m = concatMap (readSetting $ moduleScope m) $ concatMap getEquations $ moduleDecls m
+    return $ map Builtin builtin ++ concatMap f mods
 
 
 -- Read a hint file, and all hint files it imports
@@ -78,21 +79,21 @@ readHints dataDir file = do
             | otherwise = readHints dataDir $ x <.> "hs"
 
 
-readSetting :: Decl_ -> [Setting]
-readSetting (FunBind _ [Match _ (Ident _ (getRank -> Just rank)) pats (UnGuardedRhs _ bod) bind])
+readSetting :: Scope -> Decl_ -> [Setting]
+readSetting s (FunBind _ [Match _ (Ident _ (getRank -> Just rank)) pats (UnGuardedRhs _ bod) bind])
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
-        [MatchExp rank (if null names then defaultHintName else head names) (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
+        [MatchExp rank (if null names then defaultHintName else head names) s (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
     | otherwise = [Classify rank n func | n <- names2, func <- readFuncs bod]
     where
         names = filter notNull $ getNames pats bod
         names2 = ["" | null names] ++ names
 
-readSetting x@AnnPragma{} | Just y <- readPragma x = [y]
-readSetting (PatBind an (PVar _ name) _ bod bind) = readSetting $ FunBind an [Match an name [] bod bind]
-readSetting (FunBind an xs) | length xs /= 1 = concatMap (readSetting . FunBind an . return) xs
-readSetting (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
-readSetting x@InfixDecl{} = map Infix $ getFixity x
-readSetting x = errorOn x "bad hint"
+readSetting s x@AnnPragma{} | Just y <- readPragma x = [y]
+readSetting s (PatBind an (PVar _ name) _ bod bind) = readSetting s $ FunBind an [Match an name [] bod bind]
+readSetting s (FunBind an xs) | length xs /= 1 = concatMap (readSetting s . FunBind an . return) xs
+readSetting s (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting s $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
+readSetting s x@InfixDecl{} = map Infix $ getFixity x
+readSetting s x = errorOn x "bad hint"
 
 
 -- return Nothing if it is not an HLint pragma, otherwise all the settings
@@ -156,7 +157,7 @@ findSettings flags file = do
     x <- parseResult $ parseFile flags file
     let xs = concatMap (findSetting $ UnQual an) (moduleDecls x)
         s = unlines $ ["-- hints found in " ++ file] ++ map prettyPrint xs ++ ["-- no hints found" | null xs]
-        r = concatMap readSetting xs
+        r = concatMap (readSetting emptyScope) xs
     return (s,r)
 
 
