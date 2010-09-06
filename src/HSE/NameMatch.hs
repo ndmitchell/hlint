@@ -70,8 +70,8 @@ type NameMatch = QName S -> QName S -> Bool
 --
 -- If the left is unqualified, then the right is dequalified and checked for match
 -- If the left is qualified, then the right is wrapped and name resolved
-nameMatch :: [ImportDecl S] -> NameMatch
-nameMatch imps = f
+nameMatch :: Scope -> NameMatch
+nameMatch (Scope imps) = f
     where
         -- deal with "as" imports
         resolve :: ModuleName S -> ModuleName S
