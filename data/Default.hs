@@ -1,6 +1,21 @@
 
 module HLint.Default where
 
+import Control.Arrow
+import Control.Monad
+import Data.Function
+import Data.Int
+import Data.List
+import Data.Maybe
+import Data.Monoid
+import Data.Ord
+import System.IO
+
+import IO as System.IO
+import List as Data.List
+import Maybe as Data.Maybe
+import Monad as Control.Monad
+
 -- I/O
 
 error = putStrLn (show x) ==> print x
