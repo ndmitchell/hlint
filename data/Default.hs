@@ -335,5 +335,9 @@ import qualified Control.Monad \
 yes = flip mapM -- Control.Monad.forM
 import qualified Control.Monad as CM \
 yes = flip mapM -- CM.forM
+import qualified Data.Text.Lazy as DTL \
+main = DTL.concat $ map (`DTL.snoc` '-') [DTL.pack "one", DTL.pack "two", DTL.pack "three"]
+import Text.Blaze.Html5.Attributes as A \
+main = A.id (stringValue id')
 </TEST>
 -}
