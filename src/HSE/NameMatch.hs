@@ -62,7 +62,7 @@ nameQualify a (Scope b) x
     | isSpecial x = x
     | null imps = head $ real ++ [x]
     | any (not . importQualified) imps = unqual x
-    | otherwise = Qual an (importModule $ head imps) $ fromQual x
+    | otherwise = Qual an (head $ mapMaybe importAs imps ++ map importModule imps) $ fromQual x
     where
         real = [Qual an (ModuleName an m) $ fromQual x | m <- possModules a x]
         imps = [i | r <- real, i <- b, possImport i r]

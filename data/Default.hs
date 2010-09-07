@@ -333,5 +333,7 @@ import Control.Monad(forM_) \
 yes = flip mapM -- Control.Monad.forM
 import qualified Control.Monad \
 yes = flip mapM -- Control.Monad.forM
+import qualified Control.Monad as CM \
+yes = flip mapM -- CM.forM
 </TEST>
 -}
