@@ -1,7 +1,7 @@
 
 module HSE.NameMatch(
     Scope, emptyScope, moduleScope, scopeImports,
-    NameMatch, nameMatch
+    NameMatch, nameMatch, nameQualify
     ) where
 
 import HSE.Type
@@ -48,9 +48,13 @@ nameMatch2 :: Scope -> Scope -> QName S -> QName S -> Bool
 nameMatch2 a b x y = undefined -- unqual x == unqual y && not (null $ possModules a x `intersect` possModules b y)
 
 
--- given A B x, pick y such that A{x} == B{y}, if you can
+-- given A B x, return y such that A{x} == B{y}, if you can
 nameQualify :: Scope -> Scope -> QName S -> QName S
-nameQualify a x b = undefined {- 
+nameQualify a b x = f x
+    where
+        f (Qual _ mod x) | nameMatch a b (Qual an mod x) (UnQual an x) = UnQual an x
+        f x = x
+{-
     all those where the import allows it,
     then what qualification would be required (if none pick that)
     else go for the full name of the module

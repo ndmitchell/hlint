@@ -38,6 +38,7 @@ import Data.Maybe
 import Data.Data
 import Unsafe.Coerce
 import Settings
+import HSE.NameMatch
 import Hint.Type
 import Control.Monad
 import Control.Arrow
@@ -87,7 +88,7 @@ matchIdea s decl MatchExp{lhs=lhs,rhs=rhs,side=side,scope=scope} parent x = do
     let nm = nameMatch scope s
     u <- unifyExp nm lhs x
     u <- check u
-    let res = addBracket parent $ unqualify nm $ performEval $ subst u rhs
+    let res = addBracket parent $ unqualify scope s $ performEval $ subst u rhs
     guard $ checkSide side $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
     return res
@@ -204,11 +205,8 @@ performEval x = x
 
 
 -- contract Data.List.foo ==> foo, if Data.List is loaded
-unqualify :: NameMatch -> Exp_ -> Exp_
-unqualify nm = transformBi f
-    where
-        f (Qual _ mod x) | nm (Qual an mod x) (UnQual an x) = UnQual an x
-        f x = x
+unqualify :: Scope -> Scope -> Exp_ -> Exp_
+unqualify from to = transformBi (nameQualify from to)
 
 
 addBracket :: Maybe (Int,Exp_) -> Exp_ -> Exp_
