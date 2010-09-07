@@ -108,6 +108,10 @@ unqual :: QName S -> QName S
 unqual (Qual an _ x) = UnQual an x
 unqual x = x
 
+fromQual :: QName S -> Name S
+fromQual (Qual _ _ x) = x
+fromQual (UnQual _ x) = x
+
 isSpecial :: QName S -> Bool
 isSpecial Special{} = True; isSpecial _ = False
 
