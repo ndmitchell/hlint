@@ -58,15 +58,14 @@ nameMatch a b x y = unqual x =~= unqual y && not (null $ possModules a x `inters
 
 -- given A B x, return y such that A{x} == B{y}, if you can
 nameQualify :: Scope -> Scope -> QName S -> QName S
-nameQualify a b x = f x
+nameQualify a (Scope b) x
+    | isSpecial x = x
+    | null imps = head $ real ++ [x]
+    | any (not . importQualified) imps = unqual x
+    | otherwise = Qual an (importModule $ head imps) $ fromQual x
     where
-        f (Qual _ mod x) | nameMatch a b (Qual an mod x) (UnQual an x) = UnQual an x
-        f x = x
-{-
-    all those where the import allows it,
-    then what qualification would be required (if none pick that)
-    else go for the full name of the module
-    possModules a x -}
+        real = [Qual an (ModuleName an m) $ fromQual x | m <- possModules a x]
+        imps = [i | r <- real, i <- b, possImport i r]
 
 
 -- which modules could a name possibly lie in
