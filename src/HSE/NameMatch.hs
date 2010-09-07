@@ -8,6 +8,7 @@ import HSE.Type
 import HSE.Util
 import HSE.Match
 import qualified Data.Map as Map
+import Data.Maybe
 import Util
 
 {-
@@ -35,7 +36,7 @@ moduleScope xs = Scope $ [prelude | not $ any isPrelude res] ++ res
     where
         res = [x | x <- moduleImports xs, importPkg x /= Just "hint"]
         prelude = ImportDecl an (ModuleName an "Prelude") False False Nothing Nothing Nothing
-        isPrelude ImportDecl{importModule=ModuleName _ x} = x == "Prelude"
+        isPrelude x = fromModuleName (importModule x) == "Prelude"
 
 
 emptyScope :: Scope
@@ -70,8 +71,33 @@ nameQualify a b x = f x
 -- if it's qualified but not matching any import, assume the user
 -- just lacks an import
 possModules :: Scope -> QName S -> [String]
-possModules = undefined
+possModules (Scope is) x = f x
+    where
+        res = [fromModuleName $ importModule i | i <- is, possImport i x]
 
+        f Special{} = [""]
+        f x@(Qual _ mod _) = [fromModuleName mod | null res] ++ res
+        f _ = res
+
+
+possImport :: ImportDecl S -> QName S -> Bool
+possImport i Special{} = False
+possImport i (Qual _ mod x) = fromModuleName mod `elem` map fromModuleName ms && possImport i (UnQual an x)
+    where ms = [importModule i | not $ importQualified i] ++ maybeToList (importAs i)
+possImport i (UnQual _ x) = maybe True f $ importSpecs i
+    where
+        f (ImportSpecList _ hide xs) = if hide then Just True `notElem` ms else Nothing `elem` ms || Just True `elem` ms
+            where ms = map g xs
+        
+        g :: ImportSpec S -> Maybe Bool -- does this import cover the name x
+        g (IVar _ y) = Just $ x =~= y
+        g (IAbs _ y) = Just $ x =~= y
+        g (IThingAll _ y) = if x =~= y then Just True else Nothing
+        g (IThingWith _ y ys) = Just $ x `elem_` (y : map fromCName ys)
+        
+        fromCName :: CName S -> Name S
+        fromCName (VarName _ x) = x
+        fromCName (ConName _ x) = x
 
 
 --------------------------------------------------------
