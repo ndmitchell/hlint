@@ -243,8 +243,8 @@ foo xs = concat (map op xs)
 	As an example, to check the file <tt>Example.hs</tt> with both the default hints and the dollar hint, I could type: <tt>hlint Example.hs --hint=Default --hint=Dollar</tt>. Alternatively, I could create the file <tt>HLint.hs</tt> in the working directory and give it the contents:
 </p>
 <pre>
-import HLint.Default
-import HLint.Dollar
+import "hint" HLint.Default
+import "hint" HLint.Dollar
 </pre>
 
 <h3>Ignoring hints</h3>

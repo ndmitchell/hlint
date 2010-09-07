@@ -3,7 +3,7 @@
 
 module HLint.Test where
 
-import HLint.Builtin.Naming
+import "hint" HLint.Builtin.Naming
 
 
 error = Prelude.readFile ==> bad

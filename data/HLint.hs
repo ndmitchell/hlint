@@ -1,5 +1,5 @@
 
 module HLint.HLint where
 
-import HLint.Default
-import HLint.Builtin.All
+import "hint" HLint.Default
+import "hint" HLint.Builtin.All
