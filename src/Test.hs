@@ -55,7 +55,8 @@ testHintFiles dataDir = do
     let files = [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint" `isPrefixOf` takeBaseName x]
     results $ forM files $ \file -> do
         hints <- readSettings dataDir [file]
-        res <- results $ sequence [nameCheckHints hints, typeCheckHints hints, checkAnnotations hints file]
+        res <- results $ sequence $ nameCheckHints hints : checkAnnotations hints file :
+                                    [typeCheckHints hints | takeFileName file /= "Test.hs"]
         progress
         return res
 
@@ -107,8 +108,7 @@ typeCheckHints hints = bracket
             ,"main = return ()"
             ,"(==>) :: a -> a -> a; (==>) = undefined"
             ,"_noParen_ = id"
-            ,"_eval_ = id"
-            ,"bad = undefined"] ++
+            ,"_eval_ = id"] ++
             [prettyPrint $ PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing
             | (i, MatchExp _ _ _ lhs rhs side) <- zip [1..] hints, "notTypeSafe" `notElem` vars side
             , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
