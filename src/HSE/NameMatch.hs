@@ -6,10 +6,8 @@ module HSE.NameMatch(
 
 import HSE.Type
 import HSE.Util
-import HSE.Match
-import qualified Data.Map as Map
+import Data.List
 import Data.Maybe
-import Util
 
 {-
 the hint file can do:
@@ -26,6 +24,8 @@ import List as Data.List
 
 if Data.List.head x ==> x, then that might match List too
 -}
+
+type NameMatch = QName S -> QName S -> Bool
 
 
 data Scope = Scope [ImportDecl S]
@@ -50,8 +50,10 @@ scopeImports (Scope x) = x
 
 -- given A B x y, does A{x} possibly refer to the same name as B{y}
 -- this property is reflexive
-nameMatch2 :: Scope -> Scope -> QName S -> QName S -> Bool
-nameMatch2 a b x y = undefined -- unqual x == unqual y && not (null $ possModules a x `intersect` possModules b y)
+nameMatch :: Scope -> Scope -> NameMatch
+nameMatch a b x@Special{} y@Special{} = x =~= y
+nameMatch a b x y | isSpecial x || isSpecial y = False
+nameMatch a b x y = unqual x =~= unqual y && not (null $ possModules a x `intersect` possModules b y)
 
 
 -- given A B x, return y such that A{x} == B{y}, if you can
@@ -98,53 +100,3 @@ possImport i (UnQual _ x) = not (importQualified i) && maybe True f (importSpecs
         fromCName :: CName S -> Name S
         fromCName (VarName _ x) = x
         fromCName (ConName _ x) = x
-
-
---------------------------------------------------------
--- OLD STUFF
-
-
-type NameMatch = QName S -> QName S -> Bool
-
--- given A B x y, does B{y} perhaps refer to x
---
--- Given a list of import statements, are the names equal
--- The import statements are only in scope on the second name
---
--- If the left is unqualified, then the right is dequalified and checked for match
--- If the left is qualified, then the right is wrapped and name resolved
-nameMatch :: Scope -> Scope -> NameMatch
-nameMatch _ (Scope imps) = f
-    where
-        -- deal with "as" imports
-        resolve :: ModuleName S -> ModuleName S
-        resolve = \x -> Map.findWithDefault x (fromNamed x) mp
-            where mp = Map.fromList [(fromNamed as, importModule i) | i <- imps, Just as <- [importAs i]]
-        
-        -- return True if x is potentially imported by B
-        importedFrom :: ModuleName S -> Name S -> Bool
-        importedFrom = \modu x ->
-                any (g x) $ Map.findWithDefault [(True,[]) | fromNamed modu == "Prelude"] (fromNamed modu) mp
-            where mp = Map.fromList $ groupSortFst
-                       [(fromNamed $ importModule i, importSpecNames i) | i <- imps, not $ importQualified i]
-
-                  g x (hide,y) = hide /= (x `elem_` y)
-
-        f (Qual _ xm x) (Qual _ ym y) = x =~= y && xm =~= resolve ym
-        f (Qual _ xm x) (UnQual _ y) = x =~= y && importedFrom xm x
-        f (UnQual _ x) (Qual _ ym y) = x =~= y
-        f x y = x =~= y
-
-
-importSpecNames :: ImportDecl S -> (Bool, [Name S])
-importSpecNames x = case importSpecs x of
-    Nothing -> (True, [])
-    Just (ImportSpecList _ b x) -> (b, concatMap f x)
-    where
-        f (IVar _ x) = [x]
-        f (IAbs _ x) = [x]
-        f (IThingAll _ x) = [x]
-        f (IThingWith _ x ys) = x : map g ys
-        g (VarName _ x) = x
-        g (ConName _ x) = x
-
