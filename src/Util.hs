@@ -47,6 +47,9 @@ partitionM f (x:xs) = do
 concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
 concatMapM f = liftM concat . mapM f
 
+concatM :: Monad m => [m [a]] -> m [a]
+concatM = liftM concat . sequence
+
 concatZipWithM :: Monad m => (a -> b -> m [c]) -> [a] -> [b] -> m [c]
 concatZipWithM f xs ys = liftM concat $ zipWithM f xs ys
 
