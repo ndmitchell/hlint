@@ -82,9 +82,9 @@ possModules (Scope is) x = f x
 
 possImport :: ImportDecl S -> QName S -> Bool
 possImport i Special{} = False
-possImport i (Qual _ mod x) = fromModuleName mod `elem` map fromModuleName ms && possImport i (UnQual an x)
+possImport i (Qual _ mod x) = fromModuleName mod `elem` map fromModuleName ms && possImport i{importQualified=False} (UnQual an x)
     where ms = [importModule i | not $ importQualified i] ++ maybeToList (importAs i)
-possImport i (UnQual _ x) = maybe True f $ importSpecs i
+possImport i (UnQual _ x) = not (importQualified i) && maybe True f (importSpecs i)
     where
         f (ImportSpecList _ hide xs) = if hide then Just True `notElem` ms else Nothing `elem` ms || Just True `elem` ms
             where ms = map g xs
