@@ -1,6 +1,8 @@
 -- These hints are for test purposes, and are not intended to
 -- be used for real.
 
+-- FIXME: Should make this module modules in one file, so can easily test lots of
+--        things without them overlapping
 module HLint.Test where
 
 import "hint" HLint.Builtin.Naming
@@ -34,6 +36,9 @@ error = concat (map f x) ==> Data.List.concatMap f x
 infix 9 +
 error = a * (b+c) ==> undefined
 
+error = Array.head ==> head
+error = tail ==> Array.tail
+
 
 {-
 <TEST>
@@ -66,7 +71,18 @@ concatMap f x = concat (map f x)
 concatMop f x = concat (map f x) -- Data.List.concatMap f x
 
 yes = 1 * 2+3 -- undefined
+
+import Foo; test = Foo.id 1
+
+test = head
+import Array; test = Array.head -- head
+test = Array.head -- head
+test = head
+import qualified Array; test = head
+import Array(tail); test = head
+import Array(head); test = head -- head
+import Array as A; test = A.head -- head
+test = tail -- Array.tail
+import qualified Array as B; test = tail -- B.tail
 </TEST>
 -}
-
-
