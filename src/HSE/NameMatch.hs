@@ -31,7 +31,12 @@ data Scope = Scope [ImportDecl S]
              deriving Show
 
 moduleScope :: Module S -> Scope
-moduleScope = Scope . moduleImports
+moduleScope xs = Scope $ [prelude | not $ any isPrelude res] ++ res
+    where
+        res = [x | x <- moduleImports xs, importPkg x /= Just "hint"]
+        prelude = ImportDecl an (ModuleName an "Prelude") False False Nothing Nothing Nothing
+        isPrelude ImportDecl{importModule=ModuleName _ x} = x == "Prelude"
+
 
 emptyScope :: Scope
 emptyScope = Scope []
