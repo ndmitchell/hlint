@@ -108,6 +108,8 @@ unqual :: QName S -> QName S
 unqual (Qual an _ x) = UnQual an x
 unqual x = x
 
+isSpecial :: QName S -> Bool
+isSpecial Special{} = True; isSpecial _ = False
 
 isDol :: QOp S -> Bool
 isDol (QVarOp _ (UnQual _ (Symbol _ "$"))) = True
