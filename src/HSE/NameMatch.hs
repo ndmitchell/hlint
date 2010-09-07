@@ -1,7 +1,7 @@
 
 module HSE.NameMatch(
     Scope, emptyScope, moduleScope, scopeImports,
-    nameMatch
+    NameMatch, nameMatch
     ) where
 
 import HSE.Type
@@ -69,6 +69,8 @@ possModules = undefined
 -- OLD STUFF
 
 
+type NameMatch = QName S -> QName S -> Bool
+
 -- given A x y, does A{y} perhaps refer to x
 --
 -- Given a list of import statements, are the names equal
@@ -76,7 +78,7 @@ possModules = undefined
 --
 -- If the left is unqualified, then the right is dequalified and checked for match
 -- If the left is qualified, then the right is wrapped and name resolved
-nameMatch :: Scope -> QName S -> QName S -> Bool
+nameMatch :: Scope -> NameMatch
 nameMatch (Scope imps) = f
     where
         -- deal with "as" imports
@@ -92,7 +94,6 @@ nameMatch (Scope imps) = f
                        [(fromNamed $ importModule i, importSpecNames i) | i <- imps, not $ importQualified i]
 
                   g x (hide,y) = hide /= (x `elem_` y)
-        
 
         f (Qual _ xm x) (Qual _ ym y) = x =~= y && xm =~= resolve ym
         f (Qual _ xm x) (UnQual _ y) = x =~= y && importedFrom xm x
