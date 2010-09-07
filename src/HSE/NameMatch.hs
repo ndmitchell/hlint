@@ -71,15 +71,15 @@ possModules = undefined
 
 type NameMatch = QName S -> QName S -> Bool
 
--- given A x y, does A{y} perhaps refer to x
+-- given A B x y, does B{y} perhaps refer to x
 --
 -- Given a list of import statements, are the names equal
 -- The import statements are only in scope on the second name
 --
 -- If the left is unqualified, then the right is dequalified and checked for match
 -- If the left is qualified, then the right is wrapped and name resolved
-nameMatch :: Scope -> NameMatch
-nameMatch (Scope imps) = f
+nameMatch :: Scope -> Scope -> NameMatch
+nameMatch _ (Scope imps) = f
     where
         -- deal with "as" imports
         resolve :: ModuleName S -> ModuleName S

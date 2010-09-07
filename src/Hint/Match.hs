@@ -83,8 +83,8 @@ findIdeas matches s _ decl =
 
 
 matchIdea :: Scope -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe Exp_
-matchIdea s decl MatchExp{lhs=lhs,rhs=rhs,side=side} parent x = do
-    let nm = nameMatch s
+matchIdea s decl MatchExp{lhs=lhs,rhs=rhs,side=side,scope=scope} parent x = do
+    let nm = nameMatch scope s
     u <- unifyExp nm lhs x
     u <- check u
     let res = addBracket parent $ unqualify nm $ performEval $ subst u rhs
