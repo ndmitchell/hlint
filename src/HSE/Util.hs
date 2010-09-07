@@ -34,6 +34,9 @@ moduleImports (Module _ _ _ x _) = x
 modulePragmas :: Module_ -> [ModulePragma S]
 modulePragmas (Module _ _ x _ _) = x
 
+fromModuleName :: ModuleName S -> String
+fromModuleName (ModuleName _ x) = x
+
 isChar :: Exp_ -> Bool
 isChar (Lit _ Char{}) = True
 isChar _ = False
