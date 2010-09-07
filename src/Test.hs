@@ -94,23 +94,17 @@ typeCheckHints hints = bracket
         progress
         return $ result $ res == ExitSuccess
     where
+        matches = filter isMatchExp hints
+
         contents =
-            ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules #-}"
-            ,"import System.IO"
-            ,"import Control.Arrow"
-            ,"import Data.Maybe"
-            ,"import Control.Monad"
-            ,"import Data.List"
-            ,"import Data.Int"
-            ,"import Data.Ord"
-            ,"import Data.Monoid"
-            ,"import Data.Function"
-            ,"main = return ()"
+            ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules #-}"] ++
+            concat (take 1 [map prettyPrint $ scopeImports $ scope x | x <- matches]) ++
+            ["main = return ()"
             ,"(==>) :: a -> a -> a; (==>) = undefined"
             ,"_noParen_ = id"
             ,"_eval_ = id"] ++
             [prettyPrint $ PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing
-            | (i, MatchExp _ _ _ lhs rhs side) <- zip [1..] hints, "notTypeSafe" `notElem` vars side
+            | (i, MatchExp _ _ _ lhs rhs side) <- zip [1..] matches, "notTypeSafe" `notElem` vars side
             , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
             , let bod = UnGuardedRhs an $ if null vs then inner else Lambda an vs inner]

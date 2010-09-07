@@ -1,5 +1,8 @@
 
-module HSE.NameMatch(Scope, moduleScope, emptyScope, nameMatch) where
+module HSE.NameMatch(
+    Scope, emptyScope, moduleScope, scopeImports,
+    nameMatch
+    ) where
 
 import HSE.Type
 import HSE.Util
@@ -34,6 +37,10 @@ emptyScope :: Scope
 emptyScope = Scope []
 
 
+scopeImports :: Scope -> [ImportDecl S]
+scopeImports (Scope x) = x
+
+
 
 -- given A B x y, does A{x} possibly refer to the same name as B{y}
 -- this property is reflexive
@@ -62,6 +69,8 @@ possModules = undefined
 -- OLD STUFF
 
 
+-- given A x y, does A{y} perhaps refer to x
+--
 -- Given a list of import statements, are the names equal
 -- The import statements are only in scope on the second name
 --
