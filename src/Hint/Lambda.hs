@@ -21,6 +21,7 @@
 <TEST>
 f a = \x -> x + x -- f a x = x + x
 f a = \x -> x + x where _ = test
+f = \x -> x + x -- f x = x + x
 fun x y z = f x y z -- fun = f
 fun x y z = f x x y z -- fun x = f x x
 fun x y z = f g z -- fun x y = f g
@@ -43,13 +44,13 @@ x ! y = fromJust $ lookup x y
 f = foo (\i -> writeIdea (getClass i) i)
 f = bar (flip Foo.bar x) -- (`Foo.bar` x)
 f = a b (\x -> c x d)  -- (`c` d)
-yes = \x -> a x -- a
-yes = \x y -> op y x -- flip op
-f = \y -> nub $ reverse y -- nub . reverse
-f = \z -> foo $ bar $ baz z -- foo . bar . baz
-f = \z -> foo $ bar x $ baz z -- foo . bar x . baz
-f = \z -> foo $ z $ baz z
-f = \x -> bar map (filter x) -- bar map . filter
+yes = \x -> a x where -- a
+yes = \x y -> op y x where -- flip op
+f = \y -> nub $ reverse y where -- nub . reverse
+f = \z -> foo $ bar $ baz z where -- foo . bar . baz
+f = \z -> foo $ bar x $ baz z where -- foo . bar x . baz
+f = \z -> foo $ z $ baz z where
+f = \x -> bar map (filter x) where -- bar map . filter
 f = bar &+& \x -> f (g x)
 foo = [\column -> set column [treeViewColumnTitle := printf "%s (match %d)" name (length candidnates)]]
 foo = [\x -> x]
@@ -69,7 +70,7 @@ lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatM
 
 
 lambdaDecl :: Decl_ -> [Idea]
-lambdaDecl o@(FunBind _ [Match _ name pats (UnGuardedRhs _ bod) Nothing])
+lambdaDecl (toFunBind -> o@(FunBind _ [Match _ name pats (UnGuardedRhs _ bod) Nothing]))
     | Lambda _ vs y <- bod = [err "Redundant lambda" o $ reform (pats++vs) y]
     | (pats2,bod2) <- etaReduce pats bod, length pats2 < length pats = [err "Eta reduce" o $ reform pats2 bod2]
         where reform p b = FunBind an [Match an name p (UnGuardedRhs an b) Nothing]

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Suggest promoting patterns bound to lambdas to functions
     Allow collapsing lambdas sharing pattern variables correctly
     #344, only give one warning for multiple collapsable lambdas
     #300, substantially improve module name resolution with imports

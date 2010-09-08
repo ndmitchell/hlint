@@ -147,8 +147,13 @@ isLexeme _ = False
 
 getEquations :: Decl s -> [Decl s]
 getEquations (FunBind s xs) = map (FunBind s . (:[])) xs
-getEquations (PatBind s (PVar _ name) _ bod bind) = [FunBind s [Match s name [] bod bind]]
+getEquations x@PatBind{} = [toFunBind x]
 getEquations x = [x]
+
+
+toFunBind :: Decl s -> Decl s
+toFunBind (PatBind s (PVar _ name) _ bod bind) = FunBind s [Match s name [] bod bind]
+toFunBind x = x
 
 
 -- case and if both have branches, nothing else does
