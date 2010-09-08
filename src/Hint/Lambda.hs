@@ -36,7 +36,9 @@ f = foo (\x y -> x + y) -- (+)
 f = foo (\x -> x * y) -- (* y)
 f = foo (\x -> x # y)
 f = foo (\x -> \y -> x x y y) -- \x y -> x x y y
-f = foo (\x -> \x -> foo x x)
+f = foo (\x -> \x -> foo x x) -- \_ x -> foo x x
+f = foo (\(x:xs) -> \x -> foo x x) -- \(_:xs) x -> foo x x
+f = foo (\x -> \y -> \z -> x x y y z z) -- \x y z -> x x y y z z
 x ! y = fromJust $ lookup x y
 f = foo (\i -> writeIdea (getClass i) i)
 f = bar (flip Foo.bar x) -- (`Foo.bar` x)
@@ -88,6 +90,14 @@ lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allo
     [warn "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, res <- niceLambda [] o, not $ isLambda res =
     [warn "Avoid lambda" o res]
-lambdaExp p o@(Lambda _ ps1 (fromParen -> Lambda _ ps2 bod)) | pvars ps1 `disjoint` pvars ps2 =
-    [warn "Collapse lambdas" o $ Lambda an (ps1++ps2) bod]
+lambdaExp p o@(Lambda _ _ x) | isLambda (fromParen x) && maybe True (not . isLambda) p =
+    [warn "Collapse lambdas" o $ uncurry (Lambda an) $ fromLambda o]
 lambdaExp _ _ = []
+
+
+-- replace any repeated pattern variable with _
+fromLambda :: Exp_ -> ([Pat_], Exp_)
+fromLambda (Lambda _ ps1 (fromLambda . fromParen -> (ps2,x))) = (transformBi (f $ pvars ps2) ps1 ++ ps2, x)
+    where f bad x@PVar{} | prettyPrint x `elem` bad = PWildCard an
+          f bad x = x
+fromLambda x = ([], x)

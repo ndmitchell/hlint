@@ -1,5 +1,7 @@
 Changelog for HLint
 
+    Allow collapsing lambdas sharing pattern variables correctly
+    #344, only give one warning for multiple collapsable lambdas
     #300, substantially improve module name resolution with imports
     BREAKING: imports in hint files require import "hint" HintFile
     #335, redundant id should only generate one warning
