@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Correctly collapse functions and lambdas using the same patterns
     Suggest promoting patterns bound to lambdas to functions
     Allow collapsing lambdas sharing pattern variables correctly
     #344, only give one warning for multiple collapsable lambdas

@@ -20,6 +20,7 @@
 
 <TEST>
 f a = \x -> x + x -- f a x = x + x
+f a = \a -> a + a -- f _ a = a + a
 f a = \x -> x + x where _ = test
 f = \x -> x + x -- f x = x + x
 fun x y z = f x y z -- fun = f
@@ -71,7 +72,7 @@ lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatM
 
 lambdaDecl :: Decl_ -> [Idea]
 lambdaDecl (toFunBind -> o@(FunBind _ [Match _ name pats (UnGuardedRhs _ bod) Nothing]))
-    | Lambda _ vs y <- bod = [err "Redundant lambda" o $ reform (pats++vs) y]
+    | isLambda $ fromParen bod = [err "Redundant lambda" o $ uncurry reform $ fromLambda $ Lambda an pats bod]
     | (pats2,bod2) <- etaReduce pats bod, length pats2 < length pats = [err "Eta reduce" o $ reform pats2 bod2]
         where reform p b = FunBind an [Match an name p (UnGuardedRhs an b) Nothing]
 lambdaDecl _ = []
