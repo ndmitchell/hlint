@@ -26,17 +26,17 @@ import Data.List
 
 
 structureHint :: DeclHint
-structureHint _ _ x = concatMap useGuards (universeBi x)
+structureHint _ _ x = concatMap match (universeBi x)
 
 
-useGuards :: Match S -> [Idea]
-useGuards x@(Match a b c (UnGuardedRhs d bod) e) 
+match :: Match S -> [Idea]
+match x@(Match a b c (UnGuardedRhs d bod) e) 
     | length guards > 2 = [warn "Use guards" x x2]
     where
         guards = asGuards bod
         x2 = Match a b c (GuardedRhss d guards) e
 
-useGuards o@(Match sl b pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op (view -> Var_ p))] bod]) decs)
+match o@(Match sl b pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op (view -> Var_ p))] bod]) decs)
     | Just i <- findIndex (=~= (toNamed p :: Pat_)) pats
     , p `notElem` (vars bod ++ vars decs)
     , vars op `disjoint` decsBind, pvars pats `disjoint` vars op, pvars pat `disjoint` pvars pats
@@ -45,7 +45,7 @@ useGuards o@(Match sl b pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App 
     where
         decsBind = nub $ concatMap declBind $ childrenBi decs
 
-useGuards _ = []
+match _ = []
 
 
 asGuards :: Exp_ -> [GuardedRhs S]
