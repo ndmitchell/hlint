@@ -15,6 +15,7 @@ foo b | c <- f b = c where foo = b
 foo b | c <- f b = c \
       | c <- f b = c
 foo x = yes x x where yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
+foo x | otherwise = y -- foo x = y
 </TEST>
 -}
 
@@ -43,6 +44,10 @@ hints gen (Pattern pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op 
        Pattern (take i pats ++ [PParen an $ PViewPat an op pat] ++ drop (i+1) pats) (UnGuardedRhs an bod) bind]
     where
         decsBind = nub $ concatMap declBind $ childrenBi bind
+
+hints gen (Pattern pats (GuardedRhss _ [GuardedRhs _ [test] bod]) bind)
+    | prettyPrint test `elem` ["otherwise","True"]
+    = [gen "Redundant guard" $ Pattern pats (UnGuardedRhs an bod) bind]
 
 hints _ _ = []
 

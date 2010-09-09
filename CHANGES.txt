@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Suggest removal of redundant guards
     Make hints about guards work on patterns/infix matches/case alts
     Make finding guards look a child functions
     Correctly collapse functions and lambdas using the same patterns
