@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #347, Suggest use of otherwise, instead of True, in pattern guards
     Add hints about redundant where statements
     Suggest removal of redundant guards
     Make hints about guards work on patterns/infix matches/case alts

@@ -17,6 +17,7 @@ foo b | c <- f b = c \
 foo x = yes x x where yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
 foo x | otherwise = y -- foo x = y
 foo x = x + x where -- foo x = x + x
+foo x | a = b | True = d -- foo x | a = b ; | otherwise = d
 </TEST>
 -}
 
@@ -55,6 +56,10 @@ hints gen (Pattern pats bod (Just bind)) | f bind
     where
         f (BDecls _ x) = null x
         f (IPBinds _ x) = null x
+
+hints gen (Pattern pats (GuardedRhss _ (unsnoc -> (gs, GuardedRhs _ [test] bod))) bind)
+    | prettyPrint test == "True"
+    = [gen "Use otherwise" $ Pattern pats (GuardedRhss an $ gs ++ [GuardedRhs an [Qualifier an $ toNamed "otherwise"] bod]) bind]
 
 hints _ _ = []
 
