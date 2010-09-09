@@ -106,6 +106,13 @@ unsnoc xs = (init xs, last xs)
 
 
 ---------------------------------------------------------------------
+-- DATA.TUPLE
+
+swap :: (a,b) -> (b,a)
+swap (a,b) = (b,a)
+
+
+---------------------------------------------------------------------
 -- SYSTEM.IO
 
 readFileEncoding :: String -> FilePath -> IO String
