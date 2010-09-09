@@ -13,6 +13,7 @@ foo b | c <- f b = c where f = here
 foo b | c <- f b = c where foo = b
 foo b | c <- f b = c \
       | c <- f b = c
+foo x = yes x x where yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
 </TEST>
 -}
 
@@ -25,7 +26,7 @@ import Data.List
 
 
 structureHint :: DeclHint
-structureHint _ _ x = concat [concatMap useGuards xs | FunBind _ xs <- [x]]
+structureHint _ _ x = concatMap useGuards (universeBi x)
 
 
 useGuards :: Match S -> [Idea]
