@@ -156,6 +156,15 @@ toFunBind (PatBind s (PVar _ name) _ bod bind) = FunBind s [Match s name [] bod 
 toFunBind x = x
 
 
+fromGuardedAlts :: GuardedAlts s -> Rhs s
+fromGuardedAlts (UnGuardedAlt s x) = UnGuardedRhs s x
+fromGuardedAlts (GuardedAlts s xs) = GuardedRhss s [GuardedRhs a b c | GuardedAlt a b c <- xs]
+
+toGuardedAlts :: Rhs s -> GuardedAlts s
+toGuardedAlts (UnGuardedRhs s x) = UnGuardedAlt s x
+toGuardedAlts (GuardedRhss s xs) = GuardedAlts s [GuardedAlt a b c | GuardedRhs a b c <- xs]
+
+
 -- case and if both have branches, nothing else does
 replaceBranches :: Exp s -> ([Exp s], [Exp s] -> Exp s)
 replaceBranches (If s a b c) = ([b,c], \[b,c] -> If s a b c)
