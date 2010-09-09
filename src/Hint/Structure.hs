@@ -5,6 +5,7 @@
 
 <TEST>
 yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
+x `yes` y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
 no x y = if a then b else c
 foo b | c <- f b = c -- foo (f -> c) = c
 foo x y b z | c:cs <- f g b = c -- foo x y (f g -> c:cs) z = c
@@ -26,29 +27,40 @@ import Data.List
 
 
 structureHint :: DeclHint
-structureHint _ _ x = concatMap match (universeBi x)
+structureHint _ _ x = concatMap (uncurry hints . swap) $ asPattern x
 
 
-match :: Match S -> [Idea]
-match x@(Match a b c (UnGuardedRhs d bod) e) 
-    | length guards > 2 = [warn "Use guards" x x2]
-    where
-        guards = asGuards bod
-        x2 = Match a b c (GuardedRhss d guards) e
+hints :: (String -> Pattern -> Idea) -> Pattern -> [Idea]
+hints gen (Pattern pat (UnGuardedRhs d bod) bind)
+    | length guards > 2 = [gen "Use guards" $ Pattern pat (GuardedRhss d guards) bind]
+    where guards = asGuards bod
 
-match o@(Match sl b pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op (view -> Var_ p))] bod]) decs)
+hints gen (Pattern pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op (view -> Var_ p))] bod]) bind)
     | Just i <- findIndex (=~= (toNamed p :: Pat_)) pats
-    , p `notElem` (vars bod ++ vars decs)
+    , p `notElem` (vars bod ++ vars bind)
     , vars op `disjoint` decsBind, pvars pats `disjoint` vars op, pvars pat `disjoint` pvars pats
-    = [warn "Use view patterns" o $
-       Match sl b (take i pats ++ [PParen an $ PViewPat an op pat] ++ drop (i+1) pats) (UnGuardedRhs an bod) decs]
+    = [gen "Use view patterns" $
+       Pattern (take i pats ++ [PParen an $ PViewPat an op pat] ++ drop (i+1) pats) (UnGuardedRhs an bod) bind]
     where
-        decsBind = nub $ concatMap declBind $ childrenBi decs
+        decsBind = nub $ concatMap declBind $ childrenBi bind
 
-match _ = []
+hints _ _ = []
 
 
 asGuards :: Exp_ -> [GuardedRhs S]
 asGuards (Paren _ x) = asGuards x
 asGuards (If _ a b c) = GuardedRhs an [Qualifier an a] b : asGuards c
 asGuards x = [GuardedRhs an [Qualifier an $ toNamed "otherwise"] x]
+
+
+data Pattern = Pattern [Pat_] (Rhs S) (Maybe (Binds S))
+
+-- Invariant: Number of patterns may not change
+asPattern :: Decl_ -> [(Pattern, String -> Pattern -> Idea)]
+asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
+    where
+        decl o@(PatBind a pat b rhs bind) = [(Pattern [pat] rhs bind, \msg (Pattern [pat] rhs bind) -> warn msg o $ PatBind a pat b rhs bind)]
+        decl (FunBind _ xs) = map match xs
+        match o@(Match a b pat rhs bind) = (Pattern pat rhs bind, \msg (Pattern pat rhs bind) -> warn msg o $ Match a b pat rhs bind)
+        match o@(InfixMatch a p b ps rhs bind) = (Pattern (p:ps) rhs bind, \msg (Pattern (p:ps) rhs bind) -> warn msg o $ InfixMatch a p b ps rhs bind)
+        alt o@(Alt a pat rhs bind) = [(Pattern [pat] (fromGuardedAlts rhs) bind, \msg (Pattern [pat] rhs bind) -> warn msg o $ Alt a pat (toGuardedAlts rhs) bind)]
