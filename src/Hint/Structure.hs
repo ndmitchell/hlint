@@ -16,6 +16,7 @@ foo b | c <- f b = c \
       | c <- f b = c
 foo x = yes x x where yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
 foo x | otherwise = y -- foo x = y
+foo x = x + x where -- foo x = x + x
 </TEST>
 -}
 
@@ -48,6 +49,12 @@ hints gen (Pattern pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op 
 hints gen (Pattern pats (GuardedRhss _ [GuardedRhs _ [test] bod]) bind)
     | prettyPrint test `elem` ["otherwise","True"]
     = [gen "Redundant guard" $ Pattern pats (UnGuardedRhs an bod) bind]
+
+hints gen (Pattern pats bod (Just bind)) | f bind
+    = [gen "Redundant where" $ Pattern pats bod Nothing]
+    where
+        f (BDecls _ x) = null x
+        f (IPBinds _ x) = null x
 
 hints _ _ = []
 

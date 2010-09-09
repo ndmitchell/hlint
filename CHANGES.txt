@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add hints about redundant where statements
     Suggest removal of redundant guards
     Make hints about guards work on patterns/infix matches/case alts
     Make finding guards look a child functions
