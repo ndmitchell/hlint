@@ -78,6 +78,7 @@ asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
     where
         decl o@(PatBind a pat b rhs bind) = [(Pattern [pat] rhs bind, \msg (Pattern [pat] rhs bind) -> warn msg o $ PatBind a pat b rhs bind)]
         decl (FunBind _ xs) = map match xs
+        decl _ = []
         match o@(Match a b pat rhs bind) = (Pattern pat rhs bind, \msg (Pattern pat rhs bind) -> warn msg o $ Match a b pat rhs bind)
         match o@(InfixMatch a p b ps rhs bind) = (Pattern (p:ps) rhs bind, \msg (Pattern (p:ps) rhs bind) -> warn msg o $ InfixMatch a p b ps rhs bind)
         alt o@(Alt a pat rhs bind) = [(Pattern [pat] (fromGuardedAlts rhs) bind, \msg (Pattern [pat] rhs bind) -> warn msg o $ Alt a pat (toGuardedAlts rhs) bind)]
