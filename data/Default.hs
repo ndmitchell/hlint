@@ -335,6 +335,14 @@ import qualified Control.Monad \
 yes = flip mapM -- Control.Monad.forM
 import qualified Control.Monad as CM \
 yes = flip mapM -- CM.forM
+import qualified Control.Monad as CM(forM,filterM) \
+yes = flip mapM -- CM.forM
+import Control.Monad as CM(forM,filterM) \
+yes = flip mapM -- forM
+import Control.Monad hiding (forM) \
+yes = flip mapM -- Control.Monad.forM
+import Control.Monad hiding (filterM) \
+yes = flip mapM -- forM
 import qualified Data.Text.Lazy as DTL \
 main = DTL.concat $ map (`DTL.snoc` '-') [DTL.pack "one", DTL.pack "two", DTL.pack "three"]
 import Text.Blaze.Html5.Attributes as A \
