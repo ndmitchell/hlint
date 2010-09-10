@@ -188,12 +188,13 @@ checkInputOutput main xs = do
         else if has "lhs" then return $ "tests/" ++ pre <.> "lhs"
         else error "checkInputOutput, couldn't find or figure out flags"
 
+    -- Note: if main crashes (argument error etc) then it won't trap the ExitCode
     got <- captureOutput $ handle (\(e::ExitCode) -> return ()) $ main $ words flags
     want <- reader "output"
 
     if got == want then return pass else do
         (got,want) <- return (lines got, lines want)
-        let trail = replicate (max (length got) (length want)) ""
+        let trail = replicate (max (length got) (length want)) "<EOF>"
         let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), g /= w]
         putStrLn $ unlines
             ["TEST FAILURE IN tests/" ++ pre
