@@ -1,4 +1,4 @@
-tests/3source.lhs:11:1: Parse error
+tests/lhs-line-numbers2.lhs:11:1: Parse error
 Error message:
   Parse error: EOF
 Code:

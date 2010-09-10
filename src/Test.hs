@@ -69,7 +69,7 @@ testSourceFiles = fmap mconcat $ sequence
 testInputOutput :: ([String] -> IO ()) -> IO Result
 testInputOutput main = do
     xs <- getDirectoryContents "tests"
-    results $ mapM (checkInputOutput main) $ groupBy ((==) `on` takeWhile isDigit) $ sort $ filter (not . isPrefixOf ".") xs
+    results $ mapM (checkInputOutput main) $ groupBy ((==) `on` takeBaseName) $ sort $ filter (not . isPrefixOf ".") xs
 
 
 ---------------------------------------------------------------------
@@ -178,25 +178,25 @@ parseTest file i x = Test (SrcLoc file i 0) x $
 
 checkInputOutput :: ([String] -> IO ()) -> [FilePath] -> IO Result
 checkInputOutput main xs = do
-    let n = takeWhile isDigit $ head xs
-        has x = (n++x) `elem` xs
-        reader x = readFile' $ "tests/" ++ n++x
+    let pre = takeBaseName $ head xs
+        has x = (pre <.> x) `elem` xs
+        reader x = readFile' $ "tests" </> pre <.> x
 
     flags <-
-        if has "flags.txt" then fmap (takeWhile (/= '\n')) $ reader "flags.txt"
-        else if has "source.hs" then return $ "tests/" ++ n ++ "source.hs"
-        else if has "source.lhs" then return $ "tests/" ++ n ++ "source.lhs"
+        if has "flags" then fmap (takeWhile (/= '\n')) $ reader "flags"
+        else if has "hs" then return $ "tests/" ++ pre <.> "hs"
+        else if has "lhs" then return $ "tests/" ++ pre <.> "lhs"
         else error "checkInputOutput, couldn't find or figure out flags"
 
     got <- captureOutput $ handle (\(e::ExitCode) -> return ()) $ main $ words flags
-    want <- reader "output.txt"
+    want <- reader "output"
 
     if got == want then return pass else do
         (got,want) <- return (lines got, lines want)
         let trail = replicate (max (length got) (length want)) ""
         let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), g /= w]
         putStrLn $ unlines
-            ["TEST FAILURE IN tests/" ++ n
+            ["TEST FAILURE IN tests/" ++ pre
             ,"DIFFER ON LINE: " ++ show i
             ,"GOT : " ++ g
             ,"WANT: " ++ w]

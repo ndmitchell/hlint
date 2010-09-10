@@ -1,4 +1,4 @@
-tests/2source.lhs:4:17: Warning: Use :
+tests/lhs-line-numbers.lhs:4:17: Warning: Use :
 Found:
   "a" ++ "bc"
 Why not:
