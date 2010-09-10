@@ -1,0 +1,11 @@
+-- hints found in tests/find.hs
+warn = length a `seq` return a ==> listM' a
+warn = not (null a) ==> notNull a
+warn = not (isLeft a) ==> isRight a
+warn
+  = unsafePerformIO
+      (do putStrLn a
+          exitWith (ExitFailure 1))
+      ==> exitMessage a
+warn = knownExtensions \\ badExtensions ==> defaultExtensions
+
