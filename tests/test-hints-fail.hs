@@ -1,0 +1,2 @@
+import Control.Arrow
+error = (&&&) ==> (***)

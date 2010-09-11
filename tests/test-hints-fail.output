@@ -1,0 +1,9 @@
+
+tests\test-hints-fail.hs:2:21:
+    Occurs check: cannot construct the infinite type: b = (b, b)
+      Expected type: a b (c, c')
+      Inferred type: a (b, b) (c, c')
+    In the second argument of `(==>)', namely `((***))'
+    In the expression: ((&&&)) ==> ((***))
+..
+Tests failed (1 of 1)
