@@ -36,13 +36,20 @@ progress = putChar '.'
 failed xs = putStrLn $ unlines $ "" : xs
 
 
-test :: ([String] -> IO ()) -> FilePath -> IO Int
-test main dataDir = do
-    src <- doesFileExist "hlint.cabal"
-    Result failures total <- results $ sequence $ (if src then id else take 1)
-        [testHintFiles dataDir, testSourceFiles, testInputOutput main]
-    putStrLn ""
-    unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
+test :: ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
+test main dataDir files = do
+    Result failures total <-
+        if null files then do
+            src <- doesFileExist "hlint.cabal"
+            res <- results $ sequence $ (if src then id else take 1)
+                [testHintFiles dataDir, testSourceFiles, testInputOutput main]
+            putStrLn ""
+            unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
+            return res
+        else do
+            res <- results $ mapM (testHintFile dataDir) files
+            putStrLn ""
+            return res
     if failures == 0
         then putStrLn $ "Tests passed (" ++ show total ++ ")"
         else putStrLn $ "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
@@ -52,13 +59,17 @@ test main dataDir = do
 testHintFiles :: FilePath -> IO Result
 testHintFiles dataDir = do
     xs <- getDirectoryContents dataDir
-    let files = [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint" `isPrefixOf` takeBaseName x]
-    results $ forM files $ \file -> do
-        hints <- readSettings dataDir [file]
-        res <- results $ sequence $ nameCheckHints hints : checkAnnotations hints file :
-                                    [typeCheckHints hints | takeFileName file /= "Test.hs"]
-        progress
-        return res
+    results $ mapM (testHintFile dataDir)
+        [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint" `isPrefixOf` takeBaseName x]
+
+
+testHintFile :: FilePath -> FilePath -> IO Result
+testHintFile dataDir file = do
+    hints <- readSettings dataDir [file]
+    res <- results $ sequence $ nameCheckHints hints : checkAnnotations hints file :
+                                [typeCheckHints hints | takeFileName file /= "Test.hs"]
+    progress
+    return res
 
 
 testSourceFiles :: IO Result

@@ -17,10 +17,12 @@ import Paths_hlint
 import Data.Version
 
 
+-- FIXME: Hints vs GivenHints is horrible
 data Cmd = Cmd
     {cmdTest :: Bool                 -- ^ run in test mode?
     ,cmdFiles :: [FilePath]          -- ^ which files to run it on
     ,cmdHintFiles :: [FilePath]      -- ^ which settingsfiles to use
+    ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
     ,cmdReports :: [FilePath]        -- ^ where to generate reports
     ,cmdIgnore :: [String]           -- ^ the hints to ignore
     ,cmdShowAll :: Bool              -- ^ display all skipped items
@@ -97,6 +99,7 @@ getCmd args = do
 
     let hintFiles = [x | Hints x <- opt]
     hints <- mapM (getHintFile dataDir) $ hintFiles ++ ["HLint" | null hintFiles]
+    let givenHints = if null hintFiles then [] else hints
 
     let cpphs = defaultCpphsOptions
             {boolopts=defaultBoolOptions{hashline=False}
@@ -113,6 +116,7 @@ getCmd args = do
         {cmdTest = test
         ,cmdFiles = files
         ,cmdHintFiles = hints
+        ,cmdGivenHints = givenHints
         ,cmdReports = [x | Report x <- opt]
         ,cmdIgnore = [x | Skip x <- opt]
         ,cmdShowAll = ShowAll `elem` opt

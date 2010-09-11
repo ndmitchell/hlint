@@ -42,7 +42,7 @@ hlint args = do
     cmd@Cmd{..} <- getCmd args
     let flags = parseFlags{cpphs=cmdCpphs, encoding=cmdEncoding, language=cmdLanguage}
     if cmdTest then
-        test  (\x -> hlint x >> return ()) cmdDataDir >> return []
+        test (\x -> hlint x >> return ()) cmdDataDir cmdGivenHints >> return []
      else if null cmdFiles && notNull cmdFindHints then
         mapM_ (\x -> putStrLn . fst =<< findSettings flags x) cmdFindHints >> return []
      else if null cmdFiles then
