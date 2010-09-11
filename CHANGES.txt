@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8
     Make --test --hint=file typecheck a file for valid hints
     #347, Suggest use of otherwise, instead of True, in pattern guards
     Add hints about redundant where statements
