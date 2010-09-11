@@ -146,10 +146,13 @@ captureOutput act = do
     tmp <- getTemporaryDirectory
     (f,h) <- openTempFile tmp "hlint"
     sto <- hDuplicate stdout
+    ste <- hDuplicate stderr
     hDuplicateTo h stdout
+    hDuplicateTo h stderr
     hClose h
     act
     hDuplicateTo sto stdout
+    hDuplicateTo ste stderr
     res <- readFile' f
     removeFile f
     return res
