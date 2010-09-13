@@ -1,6 +1,6 @@
 :set -package=haskell-src-exts-1.9.0
 :set -fno-warn-overlapping-patterns -fwarn-unused-binds -fwarn-unused-imports
-:set -isrc;.
+:set -isrc
 :load src\Main.hs src\Paths.hs
 
 :def test const $ return ":main --test"
