@@ -62,8 +62,6 @@ warn = concat [a,b] ==> a ++ b
 error "Use map once" = map f (map g x) ==> map (f . g) x
 warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
-error = x ++ concatMap (' ':) y ==> unwords (x:y)
-error = concat (intersperse " " x) ==> unwords x
 error = head (reverse x) ==> last x
 error = head (drop n x) ==> x !! n
 error = reverse (tail (reverse x)) ==> init x
@@ -82,6 +80,10 @@ error "Use :" = (\x -> [x]) ==> (:[])
 error = map (uncurry f) (zip x y) ==> zipWith f x y
 error = not (elem x y) ==> notElem x y
 warn  = foldr f z (map g x) ==> foldr (f . g) z x
+error = x ++ concatMap (' ':) y ==> unwords (x:y)
+error = intercalate " " ==> unwords
+warn  = concat (intersperse x y) ==> intercalate x y where _ = notEq x " "
+warn  = concat (intersperse " " x) ==> unwords x
 
 -- FOLDS
 

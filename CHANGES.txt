@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Suggest intercalate
 1.8
     Make --test --hint=file typecheck a file for valid hints
     #347, Suggest use of otherwise, instead of True, in pattern guards
