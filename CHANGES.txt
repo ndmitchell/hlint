@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add bracketing information if the parent is a case
     Suggest intercalate
 1.8
     Make --test --hint=file typecheck a file for valid hints

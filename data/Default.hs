@@ -323,6 +323,7 @@ yes = if p then s else return () -- Control.Monad.when p $ s
 error = a $$$$ b $$$$ c ==> a . b $$$$$ c
 yes = when (not . null $ asdf) -- unless (null asdf)
 yes = id 1 -- 1
+yes = case concat (map f x) of [] -> [] -- concatMap f x
 
 
 import Prelude \
