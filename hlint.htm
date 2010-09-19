@@ -254,19 +254,19 @@ import "hint" HLint.Dollar
 </p>
 <ul>
 	<li><tt>{-# ANN module "HLint: ignore Eta reduce" #-}</tt> - ignore all eta reduction suggestions in this module.</li>
-	<li><tt>{-# ANN map "HLint: ignore" #-}</tt> - don't give any hints in the function map.</li>
-	<li><tt>{-# ANN map "HLint: error" #-}</tt> - any hint in the function is an error.</li>
+	<li><tt>{-# ANN myFunction "HLint: ignore" #-}</tt> - don't give any hints in the function <tt>myFunction</tt>.</li>
+	<li><tt>{-# ANN myFunction "HLint: error" #-}</tt> - any hint in the function <tt>myFunction</tt> is an error.</li>
 	<li><tt>{-# ANN module "HLint: error Use concatMap" #-}</tt> - the hint to use concatMap is an error.</li>
-	<li><tt>{-# ANN warn "HLint: Use concatMap" #-}</tt> - the hint to use concatMap is a warning.</li>
+	<li><tt>{-# ANN module "HLint: warn Use concatMap" #-}</tt> - the hint to use concatMap is a warning.</li>
 </ul>
 <p>
 	Ignore directives can also be written in the hint files:
 </p>
 <ul>
 	<li><tt>ignore "Eta reduce"</tt> - supress all eta reduction suggestions.</li>
-	<li><tt>ignore "Eta reduce" = Data.List Prelude</tt> - supress eta reduction hints in the Prelude and Data.List modules.</li>
-	<li><tt>ignore = Data.List.map</tt> - don't give any hints in the function Data.List.map.</li>
-	<li><tt>error = Data.List.map</tt> - any hint in the function is an error.</li>
+	<li><tt>ignore "Eta reduce" = MyModule1 MyModule2</tt> - supress eta reduction hints in the <tt>MyModule1</tt> and <tt>MyModule2</tt> modules.</li>
+	<li><tt>ignore = MyModule.myFunction</tt> - don't give any hints in the function <tt>MyModule.myFunction</tt>.</li>
+	<li><tt>error = MyModule.myFunction</tt> - any hint in the function <tt>MyModule.myFunction</tt> is an error.</li>
 	<li><tt>error "Use concatMap"</tt> - the hint to use concatMap is an error.</li>
 	<li><tt>warn "Use concatMap"</tt> - the hint to use concatMap is a warning.</li>
 </ul>
