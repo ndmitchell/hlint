@@ -200,8 +200,10 @@ checkInputOutput main xs = do
         else if has "lhs" then return $ "tests/" ++ pre <.> "lhs"
         else error "checkInputOutput, couldn't find or figure out flags"
 
-    -- Note: if main crashes (argument error etc) then it won't trap the ExitCode
-    got <- captureOutput $ handle (\(e::ExitCode) -> return ()) $ main $ words flags
+    got <- captureOutput $
+        handle (\(e::SomeException) -> print $ e) $
+        handle (\(e::ExitCode) -> return ()) $
+        main $ words flags
     want <- reader "output"
 
     if got == want then return pass else do
