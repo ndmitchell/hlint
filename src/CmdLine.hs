@@ -19,6 +19,7 @@ import Data.Version
 
 data CppFlags
     = NoCpp
+    | CppSimple
     | Cpphs CpphsOptions
 
 
@@ -32,7 +33,7 @@ data Cmd = Cmd
     ,cmdIgnore :: [String]           -- ^ the hints to ignore
     ,cmdShowAll :: Bool              -- ^ display all skipped items
     ,cmdColor :: Bool                -- ^ color the result
-    ,cmdCpphs :: CppFlags            -- ^ options for cpphs
+    ,cmdCpp :: CppFlags              -- ^ options for CPP
     ,cmdDataDir :: FilePath          -- ^ the data directory
     ,cmdEncoding :: String           -- ^ the text encoding
     ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
@@ -51,6 +52,7 @@ data Opts = Help
           | Color
           | Define String
           | Include String
+          | SimpleCpp
           | Ext String
           | DataDir String
           | Encoding String
@@ -77,6 +79,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "q" ["quiet"] (NoArg Quiet) "Supress most console output"
        ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
        ,Option ""  ["cpp-include"] (ReqArg Include "dir") "CPP include path"
+       ,Option ""  ["cpp-simple"] (NoArg SimpleCpp) "Use a simple CPP (strip # lines)"
        ]
 
 
@@ -106,16 +109,19 @@ getCmd args = do
     hints <- mapM (getHintFile dataDir) $ hintFiles ++ ["HLint" | null hintFiles]
     let givenHints = if null hintFiles then [] else hints
 
+    let languages = getExtensions [x | Language x <- opt]
+
     let cpphs = defaultCpphsOptions
             {boolopts=defaultBoolOptions{hashline=False}
             ,includes = [x | Include x <- opt]
             ,defines = [(a,drop 1 b) | Define x <- opt, let (a,b) = break (== '=') x]
             }
+    let cpp | SimpleCpp `elem` opt = CppSimple -- must be first, so can disable CPP
+            | CPP `elem` languages = Cpphs cpphs
+            | otherwise = NoCpp
 
     let encoding = last $ "" : [x | Encoding x <- opt]
     when (encoding /= "") $ warnEncoding encoding
-
-    let languages = getExtensions [x | Language x <- opt]
 
     return Cmd
         {cmdTest = test
@@ -126,7 +132,7 @@ getCmd args = do
         ,cmdIgnore = [x | Skip x <- opt]
         ,cmdShowAll = ShowAll `elem` opt
         ,cmdColor = Color `elem` opt
-        ,cmdCpphs = if CPP `elem` languages then Cpphs cpphs else NoCpp
+        ,cmdCpp = cpp
         ,cmdDataDir = dataDir
         ,cmdEncoding = encoding
         ,cmdFindHints = findHints

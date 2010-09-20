@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add --cpp-simple to run a simple CPP to strip lines begining #
     Add bracketing information if the parent is a case
     Suggest intercalate
 1.8
