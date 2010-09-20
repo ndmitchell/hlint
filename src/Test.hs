@@ -195,15 +195,15 @@ checkInputOutput main xs = do
         reader x = readFile' $ "tests" </> pre <.> x
 
     flags <-
-        if has "flags" then fmap (takeWhile (/= '\n')) $ reader "flags"
-        else if has "hs" then return $ "tests/" ++ pre <.> "hs"
-        else if has "lhs" then return $ "tests/" ++ pre <.> "lhs"
+        if has "flags" then fmap lines $ reader "flags"
+        else if has "hs" then return ["tests/" ++ pre <.> "hs"]
+        else if has "lhs" then return ["tests/" ++ pre <.> "lhs"]
         else error "checkInputOutput, couldn't find or figure out flags"
 
     got <- captureOutput $
         handle (\(e::SomeException) -> print $ e) $
         handle (\(e::ExitCode) -> return ()) $
-        main $ words flags
+        main flags
     want <- reader "output"
 
     if got == want then return pass else do

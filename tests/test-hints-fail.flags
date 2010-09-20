@@ -1,1 +1,2 @@
---test --hint=tests/test-hints-fail.hs
+--test
+--hint=tests/test-hints-fail.hs
