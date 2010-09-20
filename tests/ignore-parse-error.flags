@@ -1,0 +1,2 @@
+--ignore=Parse error
+tests/ignore-parse-error.hs
