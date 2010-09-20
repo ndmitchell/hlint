@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards #-}
 
-module CmdLine(Cmd(..), getCmd, exitWithHelp) where
+module CmdLine(Cmd(..), CppFlags(..), getCmd, exitWithHelp) where
 
 import Control.Monad
 import Data.List
@@ -17,6 +17,11 @@ import Paths_hlint
 import Data.Version
 
 
+data CppFlags
+    = NoCpp
+    | Cpphs CpphsOptions
+
+
 -- FIXME: Hints vs GivenHints is horrible
 data Cmd = Cmd
     {cmdTest :: Bool                 -- ^ run in test mode?
@@ -27,7 +32,7 @@ data Cmd = Cmd
     ,cmdIgnore :: [String]           -- ^ the hints to ignore
     ,cmdShowAll :: Bool              -- ^ display all skipped items
     ,cmdColor :: Bool                -- ^ color the result
-    ,cmdCpphs :: Maybe CpphsOptions  -- ^ options for cpphs
+    ,cmdCpphs :: CppFlags            -- ^ options for cpphs
     ,cmdDataDir :: FilePath          -- ^ the data directory
     ,cmdEncoding :: String           -- ^ the text encoding
     ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
@@ -121,7 +126,7 @@ getCmd args = do
         ,cmdIgnore = [x | Skip x <- opt]
         ,cmdShowAll = ShowAll `elem` opt
         ,cmdColor = Color `elem` opt
-        ,cmdCpphs = if CPP `elem` languages then Just cpphs else Nothing
+        ,cmdCpphs = if CPP `elem` languages then Cpphs cpphs else NoCpp
         ,cmdDataDir = dataDir
         ,cmdEncoding = encoding
         ,cmdFindHints = findHints

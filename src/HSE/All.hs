@@ -9,6 +9,7 @@ module HSE.All(
     ) where
 
 import Util
+import CmdLine
 import Data.Maybe
 import HSE.Util
 import HSE.Evaluate
@@ -20,24 +21,29 @@ import Language.Preprocessor.Cpphs
 
 
 data ParseFlags = ParseFlags
-    {cpphs :: Maybe CpphsOptions
+    {cppFlags :: CppFlags
     ,language :: [Extension]
     ,encoding :: String
     ,infixes :: [Fixity]
     }
 
 parseFlags :: ParseFlags
-parseFlags = ParseFlags Nothing defaultExtensions "" []
+parseFlags = ParseFlags NoCpp defaultExtensions "" []
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
-parseFlagsNoLocations x = x{cpphs = fmap f $ cpphs x}
+parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
     where f x = x{boolopts = (boolopts x){locations=False}}
+
+
+runCpp :: CppFlags -> FilePath -> String -> IO String
+runCpp NoCpp _ x = return x
+runCpp (Cpphs o) file x = runCpphs o file x
 
 
 -- | Parse a Haskell module
 parseString :: ParseFlags -> FilePath -> String -> IO (String, ParseResult Module_)
 parseString flags file str = do
-        ppstr <- maybe return (`runCpphs` file) (cpphs flags) str
+        ppstr <- runCpp (cppFlags flags) file str
         return (ppstr, fmap (applyFixity fixity) $ parseFileContentsWithMode mode ppstr)
     where
         fixity = infixes flags ++ baseFixities

@@ -40,7 +40,7 @@ suggestionLocation = loc . fromSuggestion
 hlint :: [String] -> IO [Suggestion]
 hlint args = do
     cmd@Cmd{..} <- getCmd args
-    let flags = parseFlags{cpphs=cmdCpphs, encoding=cmdEncoding, language=cmdLanguage}
+    let flags = parseFlags{cppFlags=cmdCpphs, encoding=cmdEncoding, language=cmdLanguage}
     if cmdTest then
         test (\x -> hlint x >> return ()) cmdDataDir cmdGivenHints >> return []
      else if null cmdFiles && notNull cmdFindHints then
