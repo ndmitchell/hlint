@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Workaround for #358, disable empty where hints
     #355, make "--ignore=Parse error" work
     Add --cpp-simple to run a simple CPP to strip lines begining #
     Add bracketing information if the parent is a case
