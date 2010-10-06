@@ -48,7 +48,7 @@ extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" (toSrcLoc sl)
 used :: Extension -> Module_ -> Bool
 used RecursiveDo = hasS isMDo
 used ParallelListComp = hasS isParComp
-used FunctionalDependencies = hasS isFunDep
+used FunctionalDependencies = hasT (un :: FunDep S)
 used ImplicitParams = hasT (un :: IPName S)
 used EmptyDataDecls = hasS f
     where f (DataDecl _ _ _ _ [] _) = True

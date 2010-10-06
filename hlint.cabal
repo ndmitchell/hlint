@@ -40,8 +40,6 @@ library
         haskell-src-exts == 1.9.*,
         uniplate == 1.5.*
 
-    ghc-options:        -fno-warn-overlapping-patterns
-
     hs-source-dirs:     src
     exposed-modules:
         Language.Haskell.HLint

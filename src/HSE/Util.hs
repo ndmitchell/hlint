@@ -77,7 +77,6 @@ isLambda Lambda{} = True; isLambda _ = False
 isMDo MDo{} = True; isMDo _ = False
 isBoxed Boxed{} = True; isBoxed _ = False
 isDerivDecl DerivDecl{} = True; isDerivDecl _ = False
-isFunDep FunDep{} = True; isFunDep _ = False
 isPBangPat PBangPat{} = True; isPBangPat _ = False
 isPExplTypeArg PExplTypeArg{} = True; isPExplTypeArg _ = False
 isPFieldPun PFieldPun{} = True; isPFieldPun _ = False
