@@ -1,0 +1,7 @@
+tests/brackets.hs:1:8: Error: Use fromMaybe
+Found:
+  if isNothing x then (-1.0) else fromJust x
+Why not:
+  fromMaybe (-1.0) x
+
+1 suggestion

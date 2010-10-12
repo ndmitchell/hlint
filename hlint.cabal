@@ -37,7 +37,7 @@ library
         base == 4.*, process, filepath, directory, mtl, containers,
         hscolour == 1.17.*,
         cpphs == 1.11.*,
-        haskell-src-exts == 1.9.*,
+        haskell-src-exts == 1.9.* && >= 1.9.4,
         uniplate == 1.5.*
 
     hs-source-dirs:     src
