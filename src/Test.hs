@@ -206,13 +206,16 @@ checkInputOutput main xs = do
         main flags
     want <- reader "output"
 
-    if got == want then return pass else do
-        (got,want) <- return (lines got, lines want)
-        let trail = replicate (max (length got) (length want)) "<EOF>"
-        let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), g /= w]
-        putStrLn $ unlines
-            ["TEST FAILURE IN tests/" ++ pre
-            ,"DIFFER ON LINE: " ++ show i
-            ,"GOT : " ++ g
-            ,"WANT: " ++ w]
-        return failure
+    case got of
+        Nothing -> putStrLn "Warning: failed to capture output (GHC too old?)" >> return pass
+        Just got | got == want -> return pass
+                 | otherwise -> do
+            (got,want) <- return (lines got, lines want)
+            let trail = replicate (max (length got) (length want)) "<EOF>"
+            let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), g /= w]
+            putStrLn $ unlines
+                ["TEST FAILURE IN tests/" ++ pre
+                ,"DIFFER ON LINE: " ++ show i
+                ,"GOT : " ++ g
+                ,"WANT: " ++ w]
+            return failure

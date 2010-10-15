@@ -18,7 +18,9 @@ import Data.Data
 import Data.Generics.Uniplate.Operations
 import Language.Haskell.Exts.Extension
 
+#if __GLASGOW_HASKELL__ >= 612
 import GHC.IO.Handle(hDuplicate,hDuplicateTo)
+#endif
 
 
 ---------------------------------------------------------------------
@@ -141,7 +143,10 @@ exitMessage msg = unsafePerformIO $ do
 
 
 -- FIXME: This could use a lot more bracket calls!
-captureOutput :: IO () -> IO String
+captureOutput :: IO () -> IO (Maybe String)
+#if __GLASGOW_HASKELL__ < 612
+captureOutput act = act >> return Nothing
+#else
 captureOutput act = do
     tmp <- getTemporaryDirectory
     (f,h) <- openTempFile tmp "hlint"
@@ -155,7 +160,8 @@ captureOutput act = do
     hDuplicateTo ste stderr
     res <- readFile' f
     removeFile f
-    return res
+    return $ Just res
+#endif
 
 
 -- FIXME: Should use strict ByteString

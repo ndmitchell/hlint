@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #370, fix building with GHC 6.10.4
     #313, upgrade to haskell-src-exts-1.9.4
     Workaround for #358, disable empty where hints
     #355, make "--ignore=Parse error" work

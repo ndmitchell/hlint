@@ -38,7 +38,6 @@ import Data.Maybe
 import Data.Data
 import Unsafe.Coerce
 import Settings
-import HSE.NameMatch
 import Hint.Type
 import Control.Monad
 import Control.Arrow
