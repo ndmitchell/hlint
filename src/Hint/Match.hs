@@ -87,7 +87,7 @@ matchIdea s decl MatchExp{lhs=lhs,rhs=rhs,side=side,scope=scope} parent x = do
     let nm = nameMatch scope s
     u <- unifyExp nm lhs x
     u <- check u
-    let res = addBracket parent $ unqualify scope s $ performEval $ subst u rhs
+    let res = addBracket parent $ unqualify scope s u $ performEval $ subst u rhs
     guard $ checkSide side $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
     return res
@@ -111,6 +111,9 @@ unifyDef nm x y = fmap concat . sequence =<< gzip (unify nm) x y
 unifyExp :: NameMatch -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
 unifyExp nm x y | isParen x || isParen y = unifyExp nm (fromParen x) (fromParen y)
 unifyExp nm (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
+unifyExp nm (Var _ (Qual _ (ModuleName _ [m]) x)) (Var _ y)
+    | Qual _ (ModuleName _ m2) y <- y, y == x = Just [([m], Var an $ UnQual an $ Ident an m2)]
+    | UnQual _ y <- y, y == x = Just [([m], Var an $ UnQual an $ Ident an "")]
 unifyExp nm (Var _ x) (Var _ y) | nm x y = Just []
 unifyExp nm x@(App _ x1 x2) (App _ y1 y2) =
     liftM2 (++) (unifyExp nm x1 y1) (unifyExp nm x2 y2) `mplus`
@@ -204,8 +207,13 @@ performEval x = x
 
 
 -- contract Data.List.foo ==> foo, if Data.List is loaded
-unqualify :: Scope -> Scope -> Exp_ -> Exp_
-unqualify from to = transformBi (nameQualify from to)
+-- change X.foo => Module.foo, where X is looked up in the subst
+unqualify :: Scope -> Scope -> [(String,Exp_)] -> Exp_ -> Exp_
+unqualify from to subs = transformBi f
+    where
+        f (Qual _ (ModuleName _ [m]) x) | Just y <- fmap fromNamed $ lookup [m] subs
+            = if null y then UnQual an x else Qual an (ModuleName an y) x
+        f x = nameQualify from to x
 
 
 addBracket :: Maybe (Int,Exp_) -> Exp_ -> Exp_

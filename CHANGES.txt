@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add support for wildcard matching on module names
     #357, don't camel case suggest on FOO_A
     #370, fix building with GHC 6.10.4
     #313, upgrade to haskell-src-exts-1.9.4
