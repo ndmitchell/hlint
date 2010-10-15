@@ -5,7 +5,7 @@ import Control.Arrow
 import Control.Monad
 import Data.Function
 import Data.Int
-import Data.List
+import Data.List as X
 import Data.Maybe
 import Data.Monoid
 import Data.Ord
@@ -192,13 +192,13 @@ error = (if isJust x then fromJust x else y) ==> fromMaybe y x
 
 -- INFIX
 
-warn "Use infix" = elem x y ==> x `elem` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = notElem x y ==> x `notElem` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = isInfixOf x y ==> x `isInfixOf` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = isSuffixOf x y ==> x `isSuffixOf` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = isPrefixOf x y ==> x `isPrefixOf` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = union x y ==> x `union` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = intersect x y ==> x `intersect` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = X.elem x y ==> x `X.elem` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = X.notElem x y ==> x `X.notElem` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = X.isInfixOf x y ==> x `X.isInfixOf` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = X.isSuffixOf x y ==> x `X.isSuffixOf` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = X.isPrefixOf x y ==> x `X.isPrefixOf` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = X.union x y ==> x `X.union` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = X.intersect x y ==> x `X.intersect` y where _ = not (isInfixApp original) && not (isParen result)
 
 -- MATHS
 
@@ -324,7 +324,7 @@ error = a $$$$ b $$$$ c ==> a . b $$$$$ c
 yes = when (not . null $ asdf) -- unless (null asdf)
 yes = id 1 -- 1
 yes = case concat (map f x) of [] -> [] -- concatMap f x
-
+yes = Map.union a b -- a `Map.union` b
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

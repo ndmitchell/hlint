@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #361, keep module names when suggesting infix
     Add support for wildcard matching on module names
     #357, don't camel case suggest on FOO_A
     #370, fix building with GHC 6.10.4
