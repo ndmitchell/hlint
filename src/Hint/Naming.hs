@@ -20,6 +20,7 @@ no = 1 where yes_foo = 2
 a -== b = 1
 myTest = 1; my_test = 1
 semiring'laws = 1 -- semiringLaws = ...
+data Yes = FOO_A | Foo_B -- data Yes = FOO_A | FooB
 </TEST>
 -}
 
@@ -74,7 +75,7 @@ getNames x = case x of
 
 
 suggestName :: String -> Maybe String
-suggestName x = listToMaybe [f x | not $ isSym x || good || "prop_" `isPrefixOf` x]
+suggestName x = listToMaybe [f x | not $ isSym x || good || not (any isLower x) || "prop_" `isPrefixOf` x]
     where
         good = all isAlphaNum $ drp '_' $ drp '\'' $ reverse $ dropWhile (== '_') x
         drp x ys = if [x] `isPrefixOf` ys then tail ys else ys
