@@ -145,7 +145,7 @@ exitMessage msg = unsafePerformIO $ do
 -- FIXME: This could use a lot more bracket calls!
 captureOutput :: IO () -> IO (Maybe String)
 #if __GLASGOW_HASKELL__ < 612
-captureOutput act = act >> return Nothing
+captureOutput act = return Nothing
 #else
 captureOutput act = do
     tmp <- getTemporaryDirectory
