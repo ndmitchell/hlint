@@ -48,8 +48,9 @@ context lineNo src =
 parseOk :: [Hint] -> Module_ -> [Idea]
 parseOk h m =
         order "" [i | ModuHint h <- h, i <- h nm m] ++
-        concat [order (fromNamed d) [i | DeclHint h <- h, i <- h nm m d] | d <- moduleDecls m]
+        concat [order (fromNamed d) [i | h <- decHints, i <- h d] | d <- moduleDecls m]
     where
+        decHints = [h nm m | DeclHint h <- h] -- partially apply
         order n = map (\i -> i{func = (moduleName m,n)}) . sortBy (comparing loc)
         nm = moduleScope m
 
