@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.1
     Massive speed up for files with many naming hints
     #361, keep module names when suggesting infix
     Add support for wildcard matching on module names
