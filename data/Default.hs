@@ -189,6 +189,7 @@ warn  = (case x of Nothing -> y; Just a -> a)  ==> fromMaybe y x
 warn  = (case x of Just a -> a; Nothing -> y)  ==> fromMaybe y x
 error = (if isNothing x then y else fromJust x) ==> fromMaybe y x
 error = (if isJust x then fromJust x else y) ==> fromMaybe y x
+error = isJust x && (fromJust x == y) ==> x == Just y
 
 -- INFIX
 

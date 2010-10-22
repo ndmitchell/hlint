@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add a hint to use just equality rather than isJust/fromJust
 1.8.1
     Massive speed up for files with many naming hints
     #361, keep module names when suggesting infix
