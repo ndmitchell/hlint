@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #371, foo (\x -> y :: Int -> Int) is not a redundant bracket
     Add a hint to use just equality rather than isJust/fromJust
 1.8.1
     Massive speed up for files with many naming hints

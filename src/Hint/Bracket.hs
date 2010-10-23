@@ -44,6 +44,7 @@ yes = return $ Record{a=b} -- return Record{a=b}
 yes = (b $ c d) ++ e -- b (c d) ++ e
 yes = (a b $ c d) ++ e -- a b (c d) ++ e
 no = (f . g $ a) ++ e
+no = quickCheck ((\h -> cySucc h == succ h) :: Hygiene -> Bool)
 </TEST>
 -}
 
