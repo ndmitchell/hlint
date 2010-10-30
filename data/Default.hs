@@ -167,6 +167,7 @@ error = mapM_ f (map g x) ==> mapM_ (f . g) x
 -- LIST COMP
 
 warn  "Use list comprehension" = (if b then [x] else []) ==> [x | b]
+warn  "Redundant list comprehension" = [x | x <- y] ==> y where _ = isVar x
 
 -- SEQ
 
@@ -325,6 +326,9 @@ error = a $$$$ b $$$$ c ==> a . b $$$$$ c
 yes = when (not . null $ asdf) -- unless (null asdf)
 yes = id 1 -- 1
 yes = case concat (map f x) of [] -> [] -- concatMap f x
+yes = Map.union a b -- a `Map.union` b
+yes = [v | v <- xs] -- xs
+no  = [Left x | Left x <- xs]
 yes = Map.union a b -- a `Map.union` b
 
 import Prelude \
