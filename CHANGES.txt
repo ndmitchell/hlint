@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add a type signature for GHC 7
     Suggest [x | x <- xs] ==> xs, if x is a variable
 1.8.2
     #371, foo (\x -> y :: Int -> Int) is not a redundant bracket
