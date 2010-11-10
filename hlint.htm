@@ -85,6 +85,7 @@ p.rule {
 <ul>
 	<li>The presence of <tt>seq</tt> may cause some hints (i.e. eta-reduction) to change the semantics of a program.</li>
 	<li>Either the monomorphism restriction, or rank-2 types, may cause transformed programs to require type signatures to be manually inserted.</li>
+	<li>HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope.</li>
 </ul>
 
 <h2 id="installation">Installing and running HLint</h2>
