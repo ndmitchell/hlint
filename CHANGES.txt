@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Allow uniplate-1.6
     Switch from mtl to transformers
     #373, require haskell-src-exts-1.9.6
     Add a type signature for GHC 7

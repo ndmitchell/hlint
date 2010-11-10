@@ -39,7 +39,7 @@ library
         hscolour == 1.17.*,
         cpphs == 1.11.*,
         haskell-src-exts == 1.9.* && >= 1.9.6,
-        uniplate == 1.5.*
+        uniplate >= 1.5 && < 1.7
 
     hs-source-dirs:     src
     exposed-modules:
