@@ -68,6 +68,7 @@ bracket bad = f Nothing
         msg = "Redundant bracket"
 
         -- f (Maybe (index, parent, gen)) child
+        f :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
         f Just{} o@(remParen -> Just x) | isAtom x = err msg o x : g x
         f Nothing o@(remParen -> Just x) | bad = warn msg o x : g x
         f (Just (i,o,gen)) (remParen -> Just x) | not $ needBracket i o x = warn msg o (gen x) : g x
