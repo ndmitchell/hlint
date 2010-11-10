@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.3
     Allow uniplate-1.6
     Switch from mtl to transformers
     #373, require haskell-src-exts-1.9.6
