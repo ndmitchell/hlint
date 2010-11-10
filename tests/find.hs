@@ -3,7 +3,7 @@
 module Util where
 
 import Control.Arrow
-import Control.Monad.State
+import Control.Monad.Trans.State
 import Data.Char
 import Data.Function
 
