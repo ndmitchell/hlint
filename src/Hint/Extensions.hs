@@ -25,6 +25,8 @@ sort !f = undefined
 data Set (cxt :: * -> *) a = Set [a]
 {-# LANGUAGE RecordWildCards #-} \
 record field = Record{..}
+{-# LANGUAGE RecordWildCards #-} \
+record = 1 -- {-# LANGUAGE DisambiguateRecordFields #-}
 </TEST>
 -}
 
@@ -33,17 +35,32 @@ module Hint.Extensions where
 
 import Hint.Type
 import Data.Maybe
+import Data.List
 import Util
 
 
 extensionsHint :: ModuHint
 extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" (toSrcLoc sl)
-          (prettyPrint o) (if null new then "" else prettyPrint $ LanguagePragma sl new)
+          (prettyPrint o) (if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . showExt) new)
     | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
-    , o@(LanguagePragma sl old) <- modulePragmas x
-    , let new = filter (flip used x . classifyExtension . prettyPrint) old
-    , length new /= length old]
+    , o@(LanguagePragma sl exts) <- modulePragmas x
+    , let old = map (classifyExtension . prettyPrint) exts
+    , let new = minimalExtensions x old
+    , sort new /= sort old]
+    where
+        showExt (UnknownExtension x) = x
+        showExt x = show x
 
+
+minimalExtensions :: Module_ -> [Extension] -> [Extension]
+minimalExtensions x es = nub $ concatMap f es
+    where f e = if used e x then [e] else concatMap f $ implies e
+
+
+-- sometimes one extension implies others, this captures that
+implies :: Extension -> [Extension]
+implies RecordWildCards = [DisambiguateRecordFields]
+implies _ = []
 
 used :: Extension -> Module_ -> Bool
 used RecursiveDo = hasS isMDo

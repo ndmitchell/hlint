@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #376, note that RecordWildCards implies DisambiguateRecordFields
 1.8.3
     Allow uniplate-1.6
     Switch from mtl to transformers
