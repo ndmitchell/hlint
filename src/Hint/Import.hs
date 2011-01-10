@@ -26,6 +26,7 @@ import qualified A; import A
 import B; import A; import A -- import A
 import A hiding(Foo); import A hiding(Bar)
 import List -- import Data.List
+import qualified List -- import qualified Data.List as List
 import Char(foo) -- import Data.Char(foo)
 import IO(foo)
 import IO as X -- import System.IO as X; import System.IO.Error as X; import Control.Exception  as X (bracket,bracket_)
@@ -101,15 +102,21 @@ newNames = let (*) = flip (,) in
 
 hierarchy :: ImportDecl S -> [Idea]
 hierarchy i@ImportDecl{importModule=ModuleName _ x,importPkg=Nothing} | Just y <- lookup x newNames
-    = [warn "Use hierarchical imports" i i{importModule=ModuleName an $ y ++ "." ++ x}]
+    = [warn "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an $ y ++ "." ++ x}]
 
 -- import IO is equivalent to
 -- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)
-hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing}
+hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing,importPkg=Nothing}
     = [rawIdea Warning "Use hierarchical imports" (toSrcLoc $ ann i) (ltrim $ prettyPrint i) $
           unlines $ map (ltrim . prettyPrint)
           [f "System.IO" Nothing, f "System.IO.Error" Nothing
           ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an $ toNamed x | x <- ["bracket","bracket_"]]]]
-    where f a b = i{importModule=ModuleName an a, importSpecs=b}
+    where f a b = (desugarQual i){importModule=ModuleName an a, importSpecs=b}
 
 hierarchy _ = []
+
+
+-- import qualified X ==> import qualified X as X
+desugarQual :: ImportDecl S -> ImportDecl S
+desugarQual x | importQualified x && isNothing (importAs x) = x{importAs=Just (importModule x)}
+              | otherwise = x
