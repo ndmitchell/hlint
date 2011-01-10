@@ -66,14 +66,6 @@ simplifyHead x (y:ys) = case reduce x y of
     Just xy -> Just $ xy : ys
 
 
--- Useful fields in import are:
--- importModule :: ModuleName [same]
--- importPkg :: Maybe String [same]
--- importQualified :: Bool
--- importSrc :: Bool [False]
--- importAs :: Maybe ModuleName
--- importSpecs :: Maybe (Bool, [ImportSpec])
-
 reduce :: ImportDecl S -> ImportDecl S -> Maybe (ImportDecl S)
 reduce x y | qual, as, specs = Just x
            | qual, as, Just (ImportSpecList _ False xs) <- importSpecs x, Just (ImportSpecList _ False ys) <- importSpecs y =
