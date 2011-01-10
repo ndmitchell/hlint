@@ -26,7 +26,9 @@ import qualified A; import A
 import B; import A; import A -- import A
 import A hiding(Foo); import A hiding(Bar)
 import List -- import Data.List
-import IO(foo) -- import System.IO(foo)
+import Char(foo) -- import Data.Char(foo)
+import IO(foo)
+import IO as X -- import System.IO as X; import System.IO.Error as X; import Control.Exception  as X (bracket,bracket_)
 </TEST>
 -}
 
@@ -95,13 +97,27 @@ newNames = let (*) = flip (,) in
     ,"Data" * "Maybe"
     ,"Data" * "Ratio"
     ,"System" * "Directory"
-    ,"System" * "IO"
+
+    -- Special, see bug #393
+    -- ,"System" * "IO"
+
     -- Do not encourage use of old-locale/old-time over haskell98
     -- ,"System" * "Locale"
     -- ,"System" * "Time"
     ]
 
+
 hierarchy :: ImportDecl S -> [Idea]
-hierarchy i@ImportDecl{importModule=ModuleName _ x} | Just y <- lookup x newNames
+hierarchy i@ImportDecl{importModule=ModuleName _ x,importPkg=Nothing} | Just y <- lookup x newNames
     = [warn "Use hierarchical imports" i i{importModule=ModuleName an $ y ++ "." ++ x}]
+
+-- import IO is equivalent to
+-- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)
+hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing}
+    = [rawIdea Warning "Use hierarchical imports" (toSrcLoc $ ann i) (ltrim $ prettyPrint i) $
+          unlines $ map (ltrim . prettyPrint)
+          [f "System.IO" Nothing, f "System.IO.Error" Nothing
+          ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an $ toNamed x | x <- ["bracket","bracket_"]]]]
+    where f a b = i{importModule=ModuleName an a, importSpecs=b}
+
 hierarchy _ = []
