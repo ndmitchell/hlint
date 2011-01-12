@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.4
     #308, allow haskell-src-exts-1.10.1, which parses Unicode better
     import qualified Char ==> import qualified Data.Char as Char
     #393, fix suggestion for import IO, requires more than System.IO
