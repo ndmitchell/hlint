@@ -84,6 +84,9 @@ error = x ++ concatMap (' ':) y ==> unwords (x:y)
 error = intercalate " " ==> unwords
 warn  = concat (intersperse x y) ==> intercalate x y where _ = notEq x " "
 warn  = concat (intersperse " " x) ==> unwords x
+error "Use any" = null (filter f x) ==> not (any f x)
+error "Use any" = filter f x == [] ==> not (any f x)
+error = filter f x /= [] ==> any f x
 
 -- FOLDS
 
