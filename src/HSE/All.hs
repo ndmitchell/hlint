@@ -24,12 +24,12 @@ import Language.Preprocessor.Cpphs
 data ParseFlags = ParseFlags
     {cppFlags :: CppFlags
     ,language :: [Extension]
-    ,encoding :: String
+    ,encoding :: Encoding
     ,infixes :: [Fixity]
     }
 
 parseFlags :: ParseFlags
-parseFlags = ParseFlags NoCpp defaultExtensions "" []
+parseFlags = ParseFlags NoCpp defaultExtensions defaultEncoding []
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}

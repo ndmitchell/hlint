@@ -35,7 +35,7 @@ data Cmd = Cmd
     ,cmdColor :: Bool                -- ^ color the result
     ,cmdCpp :: CppFlags              -- ^ options for CPP
     ,cmdDataDir :: FilePath          -- ^ the data directory
-    ,cmdEncoding :: String           -- ^ the text encoding
+    ,cmdEncoding :: Encoding           -- ^ the text encoding
     ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
     ,cmdLanguage :: [Extension]      -- ^ the extensions (may be prefixed by "No")
     ,cmdQuiet :: Bool                -- ^ supress all console output
@@ -120,8 +120,7 @@ getCmd args = do
             | CPP `elem` languages = Cpphs cpphs
             | otherwise = NoCpp
 
-    let encoding = last $ "" : [x | Encoding x <- opt]
-    when (encoding /= "") $ warnEncoding encoding
+    encoding <- newEncoding $ last $ "" : [x | Encoding x <- opt]
 
     return Cmd
         {cmdTest = test

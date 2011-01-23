@@ -1,10 +1,11 @@
-{-# LANGUAGE CPP, ExistentialQuantification, Rank2Types #-}
+{-# LANGUAGE CPP, ExistentialQuantification, Rank2Types, PatternGuards #-}
 
 module Util where
 
 import Control.Arrow
 import Control.Monad
 import Control.Monad.Trans.State
+import Control.Exception
 import Data.Char
 import Data.Function
 import Data.List
@@ -118,23 +119,62 @@ swap (a,b) = (b,a)
 ---------------------------------------------------------------------
 -- SYSTEM.IO
 
-readFileEncoding :: String -> FilePath -> IO String
-#if __GLASGOW_HASKELL__ < 612
-readFileEncoding _ = readFile
-#else
-readFileEncoding "" = readFile
-readFileEncoding enc = \file -> do
-    h <- openFile file ReadMode
-    enc <- mkTextEncoding enc
-    hSetEncoding h enc
-    hGetContents h
-#endif
+-- | An encoding is a function to change a handle to a particular encoding
+data Encoding = Encoding_Internal (Maybe (Handle -> IO ()))
 
-warnEncoding :: String -> IO ()
-#if __GLASGOW_HASKELL__ < 612
-warnEncoding enc | enc /= "" = putStrLn "Warning: Text encodings are not supported with HLint compiled by GHC 6.10"
+defaultEncoding :: Encoding
+defaultEncoding = Encoding_Internal Nothing
+
+
+readFileEncoding :: Encoding -> FilePath -> IO String
+readFileEncoding (Encoding_Internal x) = case x of
+    Nothing -> readFile
+    Just set -> \file -> do
+        h <- openFile file ReadMode
+        set h
+        hGetContents h
+
+
+-- GHC's mkTextEncoding function is fairly poor - it doesn't support lots of fun things,
+-- so we fake them up, and then try mkTextEncoding last
+newEncoding :: String -> IO Encoding
+newEncoding "" = return defaultEncoding
+#if __GLASGOW_HASKELL__ >= 612
+newEncoding enc
+        | Just e <- lookup (f enc) [(f a, b) | (as,b) <- encs, a <- as] = return $ wrap e
+        | otherwise = do
+            res <- try $ mkTextEncoding enc :: IO (Either SomeException TextEncoding)
+            case res of
+                Right e -> return $ wrap e
+                Left _ -> do
+                    let (a,b) = splitAt 2 $ map (head . fst) encs
+                    putStr $ unlines
+                        ["Error: Unknown text encoding argument, " ++ enc
+                        ,"Possible values:"
+                        ,"  " ++ unwords a
+                        ,"  " ++ unwords b
+                        ,"  and anything accepted by System.IO.mkTextEncoding"]
+                    exitWith $ ExitFailure 1
+    where
+        f = map toLower . filter (`notElem` "-_ ")
+        wrap = Encoding_Internal . Just . flip hSetEncoding 
+
+        encs = let a*b = (words a, b)
+               in ["ISO8859-1 8859-1 ISO8859 8859 LATIN LATIN1" * latin1
+                  ,"LOCALE" * localeEncoding
+                  ,"UTF-8" * utf8
+                  ,"UTF-8BOM" * utf8_bom
+                  ,"UTF-16" * utf16
+                  ,"UTF-16LE" * utf16le
+                  ,"UTF-16BE" * utf16be
+                  ,"UTF-32" * utf16
+                  ,"UTF-32LE" * utf16le
+                  ,"UTF-32BE" * utf16be]
+#else
+newEncoding enc = do
+    putStrLn "Warning: Text encodings are not supported with HLint compiled by GHC 6.10"
+    return defaultEncoding
 #endif
-warnEncoding _ = return ()
 
 
 exitMessage :: String -> a
