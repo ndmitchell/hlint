@@ -21,7 +21,7 @@ data-files:
     Dollar.hs
     HLint.hs
     Test.hs
-    report.html
+    report_template.html
     hs-lint.el
     hlint.1
     hlint.ghci

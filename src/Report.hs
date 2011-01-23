@@ -15,7 +15,7 @@ import Language.Haskell.HsColour.CSS
 
 writeTemplate :: FilePath -> [(String,[String])] -> FilePath -> IO ()
 writeTemplate dataDir content to = do
-    src <- readFile $ dataDir </> "report.html"
+    src <- readFile $ dataDir </> "report_template.html"
     writeFile to $ unlines $ concatMap f $ lines src
     where
         f ('$':xs) = fromMaybe ['$':xs] $ lookup xs content
