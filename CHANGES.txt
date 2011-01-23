@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.5
     Update the copyright year to 2011
     #400, support more encoding strings, give useful errors
     #401, rename the report template to report_template.html
