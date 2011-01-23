@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Update the copyright year to 2011
     #400, support more encoding strings, give useful errors
     #401, rename the report template to report_template.html
     Replace filter f x /= [] with any f x, and 2 more similar
