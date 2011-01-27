@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module HLint(hlint, Suggestion, suggestionLocation) where
+module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity(..)) where
 
 import Control.Monad
 import Data.List
@@ -26,6 +26,11 @@ instance Show Suggestion where
 -- | From a suggestion, extract the file location it refers to.
 suggestionLocation :: Suggestion -> SrcLoc
 suggestionLocation = loc . fromSuggestion
+
+
+-- | From a suggestion, determine how severe it is.
+suggestionSeverity :: Suggestion -> Severity
+suggestionSeverity = severity . fromSuggestion
 
 
 
