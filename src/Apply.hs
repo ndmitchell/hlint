@@ -62,12 +62,12 @@ allHints xs = dynamicHints xs : map f builtin
 
 
 classify :: [Setting] -> Idea -> Idea
-classify xs i = i{rank = foldl' (rerank i) (rank i) $ filter isClassify xs}
+classify xs i = i{severity = foldl' (f i) (severity i) $ filter isClassify xs}
     where
-        -- figure out if we need to change the rank
-        rerank :: Idea -> Rank -> Setting -> Rank
-        rerank i r c | matchHint (hintS c) (hint i) && matchFunc (funcS c) (func_ i) = rankS c
-                     | otherwise = r
+        -- figure out if we need to change the severity
+        f :: Idea -> Severity -> Setting -> Severity
+        f i r c | matchHint (hintS c) (hint i) && matchFunc (funcS c) (func_ i) = severityS c
+                | otherwise = r
 
         func_ x = if isParseError x then ("","") else func x
         matchHint = (~=)

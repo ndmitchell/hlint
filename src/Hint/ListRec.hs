@@ -44,10 +44,10 @@ listRecHint _ _ = concatMap f . universe
         f o = maybeToList $ do
             let x = o
             (x, addCase) <- findCase x
-            (use,rank,x) <- matchListRec x
+            (use,severity,x) <- matchListRec x
             let y = addCase x
             guard $ recursiveStr `notElem` vars y
-            return $ idea rank ("Use " ++ use) o y
+            return $ idea severity ("Use " ++ use) o y
 
 
 recursiveStr = "_recursive_"
@@ -73,7 +73,7 @@ data Branch = Branch String [String] Int BList Exp_
 -- MATCH THE RECURSION
 
 
-matchListRec :: ListCase -> Maybe (String,Rank,Exp_)
+matchListRec :: ListCase -> Maybe (String,Severity,Exp_)
 matchListRec o@(ListCase vs nil (x,xs,cons))
     
     | [] <- vs, nil ~= "[]", InfixApp _ lhs c rhs <- cons, opExp c ~= ":"

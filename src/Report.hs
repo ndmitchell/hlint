@@ -29,7 +29,7 @@ writeReport dataDir file ideas = writeTemplate dataDir inner file
         generateIds = map (head &&& length) . group . sort
         files = generateIds $ map (srcFilename . loc) ideas
         hints = generateIds $ map hintName ideas
-        hintName x = show (rank x) ++ ": " ++ hint x
+        hintName x = show (severity x) ++ ": " ++ hint x
 
         inner = [("VERSION",['v' : showVersion version]),("CONTENT",content),
                  ("HINTS",list "hint" hints),("FILES",list "file" files)]
@@ -51,7 +51,7 @@ code = hscolour False
 writeIdea :: String -> Idea -> [String]
 writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
-    ,escapeHTML (showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint) ++ "<br/>"
+    ,escapeHTML (showSrcLoc loc ++ " " ++ show severity ++ ": " ++ hint) ++ "<br/>"
     ,"Found<br/>"
     ,code from
     ,"Why not<br/>"
@@ -62,7 +62,7 @@ writeIdea cls Idea{..} =
 
 writeIdea cls ParseError{..} =
     ["<div class=" ++ show cls ++ ">"
-    ,escapeHTML (showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint) ++ "<br/>"
+    ,escapeHTML (showSrcLoc loc ++ " " ++ show severity ++ ": " ++ hint) ++ "<br/>"
     ,"Error message<br/>"
     ,"<pre>" ++ escapeHTML msg ++ "</pre>"
     ,"Code<br/>"

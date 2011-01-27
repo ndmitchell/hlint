@@ -154,7 +154,7 @@ checkAnnotations setting file = do
                 | not good]
 
         match "???" _ = True
-        match x y | "@" `isPrefixOf` x = a == show (rank y) && match (ltrim b) y
+        match x y | "@" `isPrefixOf` x = a == show (severity y) && match (ltrim b) y
             where (a,b) = break isSpace $ tail x
         match x y = on (==) norm (to y) x
 

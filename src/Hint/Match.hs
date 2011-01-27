@@ -77,7 +77,7 @@ dotVersion _ = Nothing
 
 findIdeas :: [Setting] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
-  [ idea (rankS m) (hintS m) x y
+  [ idea (severityS m) (hintS m) x y
   | (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
   , m <- matches, Just y <- [matchIdea s decl m parent x2]]
 

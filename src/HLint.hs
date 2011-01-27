@@ -60,7 +60,7 @@ runHints Cmd{..} flags = do
     let settings = settings1 ++ settings2 ++ settings3
 
     ideas <- fmap concat $ parallel [listM' =<< applyHint flags settings x | x <- cmdFiles]
-    let (showideas,hideideas) = partition (\i -> cmdShowAll || rank i /= Ignore) ideas
+    let (showideas,hideideas) = partition (\i -> cmdShowAll || severity i /= Ignore) ideas
     showItem <- if cmdColor then showANSI else return show
     mapM_ (outStrLn . showItem) showideas
 

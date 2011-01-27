@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
 module Settings(
-    Rank(..), FuncName, Setting(..), isClassify, isMatchExp,
+    Severity(..), FuncName, Setting(..), isClassify, isMatchExp,
     defaultHintName, isUnifyVar,
     readSettings, readPragma, findSettings
     ) where
@@ -16,15 +16,19 @@ import Util
 defaultHintName = "Use alternative"
 
 
-data Rank = Ignore | Warning | Error
-            deriving (Eq,Ord,Show)
+-- | How severe an error is.
+data Severity
+    = Ignore -- ^ Ignored errors are only returned when @--show@ is passed.
+    | Warning -- ^ Warnings are things that some people may consider improvements, but some may not.
+    | Error -- ^ Errors are suggestions that should nearly always be a good idea to apply.
+      deriving (Eq,Ord,Show,Read,Bounded,Enum)
 
-getRank :: String -> Maybe Rank
-getRank "ignore" = Just Ignore
-getRank "warn" = Just Warning
-getRank "warning" = Just Warning
-getRank "error"  = Just Error
-getRank _ = Nothing
+getSeverity :: String -> Maybe Severity
+getSeverity "ignore" = Just Ignore
+getSeverity "warn" = Just Warning
+getSeverity "warning" = Just Warning
+getSeverity "error"  = Just Error
+getSeverity _ = Nothing
 
 
 -- (modulename,functionname)
@@ -45,8 +49,8 @@ addInfix x = x{infixes = infix_ (-1) ["==>"] ++ infixes x}
 -- TYPE
 
 data Setting
-    = Classify {rankS :: Rank, hintS :: String, funcS :: FuncName}
-    | MatchExp {rankS :: Rank, hintS :: String, scope :: Scope, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_}
+    = Classify {severityS :: Severity, hintS :: String, funcS :: FuncName}
+    | MatchExp {severityS :: Severity, hintS :: String, scope :: Scope, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_}
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show
@@ -80,10 +84,10 @@ readHints dataDir file = do
 
 
 readSetting :: Scope -> Decl_ -> [Setting]
-readSetting s (FunBind _ [Match _ (Ident _ (getRank -> Just rank)) pats (UnGuardedRhs _ bod) bind])
+readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats (UnGuardedRhs _ bod) bind])
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
-        [MatchExp rank (if null names then defaultHintName else head names) s (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
-    | otherwise = [Classify rank n func | n <- names2, func <- readFuncs bod]
+        [MatchExp severity (if null names then defaultHintName else head names) s (fromParen lhs) (fromParen rhs) (readSide $ childrenBi bind)]
+    | otherwise = [Classify severity n func | n <- names2, func <- readFuncs bod]
     where
         names = filter notNull $ getNames pats bod
         names2 = ["" | null names] ++ names
@@ -105,9 +109,9 @@ readPragma o@(AnnPragma _ p) = f p
         f (ModuleAnn _ x) = g "" x
 
         g name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
-                case getRank a of
+                case getSeverity a of
                     Nothing -> errorOn o "bad classify pragma"
-                    Just rank -> Just $ Classify rank (ltrim b) ("",name)
+                    Just severity -> Just $ Classify severity (ltrim b) ("",name)
             where (a,b) = break isSpace $ ltrim $ drop 6 s
 readPragma _ = Nothing
 

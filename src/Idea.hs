@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards, NoMonomorphismRestriction #-}
 
-module Idea(module Idea, Rank(..)) where
+module Idea(module Idea, Severity(..)) where
 
 import HSE.All
 import Settings
@@ -10,8 +10,8 @@ import Util
 
 
 data Idea
-    = Idea {func :: FuncName, rank :: Rank, hint :: String, loc :: SrcLoc, from :: String, to :: String}
-    | ParseError {rank :: Rank, hint :: String, loc :: SrcLoc, msg :: String, from :: String}
+    = Idea {func :: FuncName, severity :: Severity, hint :: String, loc :: SrcLoc, from :: String, to :: String}
+    | ParseError {severity :: Severity, hint :: String, loc :: SrcLoc, msg :: String, from :: String}
       deriving (Eq,Ord)
 
 
@@ -29,7 +29,7 @@ showANSI = do
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
-    [showSrcLoc loc ++ " " ++ show rank ++ ": " ++ hint] ++ f "Found" from ++ f "Why not" to
+    [showSrcLoc loc ++ " " ++ show severity ++ ": " ++ hint] ++ f "Found" from ++ f "Why not" to
     where f msg x = (msg ++ ":") : map ("  "++) (lines $ tt x)
 
 showEx tt ParseError{..} = unlines $
@@ -37,7 +37,7 @@ showEx tt ParseError{..} = unlines $
 
 
 rawIdea = Idea ("","")
-idea rank hint from to = rawIdea rank hint (toSrcLoc $ ann from) (f from) (f to)
+idea severity hint from to = rawIdea severity hint (toSrcLoc $ ann from) (f from) (f to)
     where f = ltrim . prettyPrint
 warn = idea Warning
 err = idea Error
