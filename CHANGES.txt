@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.6
     Export suggestionSeverity/Severity from the API
     Allow hint imports with "hlint", as well as the existing "hint"
 1.8.5
