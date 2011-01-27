@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Allow hint imports with "hlint", as well as the existing "hint"
 1.8.5
     Update the copyright year to 2011
     #400, support more encoding strings, give useful errors

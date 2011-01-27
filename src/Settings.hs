@@ -71,7 +71,7 @@ readSettings dataDir xs = do
 readHints :: FilePath -> FilePath -> IO [Either String Module_]
 readHints dataDir file = do
     y <- parseResult $ parseFile (addInfix parseFlags) file
-    ys <- concatM [f $ fromNamed $ importModule i | i <- moduleImports y, importPkg i == Just "hint"]
+    ys <- concatM [f $ fromNamed $ importModule i | i <- moduleImports y, importPkg i == `elem` [Just "hint", Just "hlint"]]
     return $ Right y:ys
     where
         f x | "HLint.Builtin." `isPrefixOf` x = return [Left $ drop 14 x]
