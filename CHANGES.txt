@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Relax the transformers dependency, works with 0.0.* and 0.1.*
 1.8.6
     Export suggestionSeverity/Severity from the API
     Allow hint imports with "hlint", as well as the existing "hint"
