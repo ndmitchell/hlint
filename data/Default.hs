@@ -103,8 +103,8 @@ error = foldl (*) 1 ==> product
 error = (\x -> x) ==> id
 error = (\(_,y) -> y) ==> snd
 error = (\(x,_) -> x) ==> fst
-error = (\x y-> f (x,y)) ==> curry f where _ = notIn [x,y] f
-error = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f
+warn "Use curry" = (\x y-> f (x,y)) ==> curry f where _ = notIn [x,y] f
+warn "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f
 error "Redundant $" = (($) . f) ==> f
 error "Redundant $" = (f $) ==> f
 warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
