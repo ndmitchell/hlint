@@ -80,7 +80,7 @@ p.rule {
 <h3 id="limitations">Bugs and limitations</h3>
 
 <p>
-	To report a bug either <a href="http://community.haskell.org/~ndm/contact/">email me</a>, or add the issue directly to <a href="http://code.google.com/p/ndmitchell/issues/list?q=proj:HLint">the bug tracker</a>. There are two common issues that I do not intend to fix:
+	To report a bug either <a href="http://community.haskell.org/~ndm/contact/">email me</a>, or add the issue directly to <a href="http://code.google.com/p/ndmitchell/issues/list?q=proj:HLint">the bug tracker</a>. There are three common issues that I do not intend to fix:
 </p>
 <ul>
 	<li>The presence of <tt>seq</tt> may cause some hints (i.e. eta-reduction) to change the semantics of a program.</li>
@@ -137,7 +137,7 @@ Why not:
 <h3>Language Extensions</h3>
 
 <p>
-	HLint enables most Haskell extensions, disabling only those which steal too much syntax (currently Arrows, TransformListComp, XmlSyntax and RegularPatterns). Extensions can be enabled with <tt>-XArrows</tt>, and disabled with <tt>-XNoMagicHash</tt>. The flag <tt>-XHaskell98</tt> selects Haskell 98 compatibility.
+	HLint enables most Haskell extensions, disabling only those which steal too much syntax (currently Arrows, TransformListComp, XmlSyntax and RegularPatterns). Individual extensions can be enabled or disabled with, for instance, <tt>-XArrows</tt>, or <tt>-XNoMagicHash</tt>. The flag <tt>-XHaskell98</tt> selects Haskell 98 compatibility.
 </p>
 
 <h3 id="emacs">Emacs Integration</h3>
@@ -166,7 +166,7 @@ Why not:
 	If your version of GHC does not support the GHC threaded runtime then install with the command: <tt>cabal install --flags="-threaded"</tt>
 </p>
 
-<h3>C preprocesor support</h3>
+<h3>C preprocessor support</h3>
 
 <p>
 	HLint runs the <a href="http://hackage.haskell.org/package/cpphs">cpphs C preprocessor</a> over all input files, by default using the current directory as the include path with no defined macros. These settings can be modified using the flags <tt>--cpp-include</tt> and <tt>--cpp-define</tt>. To disable the C preprocessor use the flag <tt>-XNoCPP</tt>. There are a number of limitations to the C preprocessor support:
