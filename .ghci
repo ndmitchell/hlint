@@ -18,67 +18,67 @@ let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " 
 
 :{
 :def self \x -> return $ unlines
-    [":main src --report --hint=data/HLint_Hints.hs --find=src/Util.hs --find=src/HSE/Util.hs " ++ x]
+        [":main src --report --hint=data/HLint_Hints.hs --find=src/Util.hs --find=src/HSE/Util.hs " ++ x]
 :}
 
 :{
 :def hpc const $ return $ unlines
-    [_ghci_make "hpc" "-fhpc"
-    ,":!del hlint.tix"
-    ,":!.hpc\\hpc\\hlint --test"
-    ,":!.hpc\\hpc\\hlint src --report=.hpc\\hlint-report.html +RTS -N2"
-    ,":!.hpc\\hpc\\hlint data --report=.hpc\\hlint-report.html +RTS -N2"
-    ,":!hpc.exe markup hlint.tix --destdir=.hpc"
-    ,":!hpc.exe report hlint.tix"
-    ,":!del hlint.tix"
-    ,":!start .hpc\\hpc_index_fun.html"]
+        [_ghci_make "hpc" "-fhpc"
+        ,":!del hlint.tix"
+        ,":!.hpc\\hpc\\hlint --test"
+        ,":!.hpc\\hpc\\hlint src --report=.hpc\\hlint-report.html +RTS -N2"
+        ,":!.hpc\\hpc\\hlint data --report=.hpc\\hlint-report.html +RTS -N2"
+        ,":!hpc.exe markup hlint.tix --destdir=.hpc"
+        ,":!hpc.exe report hlint.tix"
+        ,":!del hlint.tix"
+        ,":!start .hpc\\hpc_index_fun.html"]
 :}
 
 :{
 :def prof \x -> return $ unlines
-    [_ghci_make_profile x
-    ,_ghci_run_profile x "src +RTS -p"
-    ,":!start hlint.prof"]
+        [_ghci_make_profile x
+        ,_ghci_run_profile x "src +RTS -p"
+        ,":!start hlint.prof"]
 :}
 
 :{
 :def memory \x -> return $ unlines
-    [_ghci_make_profile x
-    ,_ghci_run_profile x "src src src src src src +RTS -hm"
-    ,":!hp2ps hlint"
-    ,":!start /b hlint.ps"]
+        [_ghci_make_profile x
+        ,_ghci_run_profile x "src src src src src src +RTS -hm"
+        ,":!hp2ps hlint"
+        ,":!start /b hlint.ps"]
 :}
 
 :{
 :def bench \x -> return $ unlines
-    [_ghci_make "bench" "-O"
-    ,":!timer .hpc\\bench\\hlint src +RTS -N" ++ _ghci_number 1 x
-    ,":!echo."]
+        [_ghci_make "bench" "-O"
+        ,":!timer .hpc\\bench\\hlint src +RTS -N" ++ _ghci_number 1 x
+        ,":!echo."]
 :}
 
 :{
 :def scope \x -> return $ unlines
-    [_ghci_make "scope" "-O -eventlog"
-    ,":!.hpc\\scope\\hlint.exe src +RTS -ls -N" ++ _ghci_number 2 x
-    ,":!start /b threadscope hlint.exe.eventlog"]
+        [_ghci_make "scope" "-O -eventlog"
+        ,":!.hpc\\scope\\hlint.exe src +RTS -ls -N" ++ _ghci_number 2 x
+        ,":!start /b threadscope hlint.exe.eventlog"]
 :}
 
 :{
 :def docs const $ return $ unlines
-    [":!cabal configure"
-    ,":!cabal haddock"
-    ,":!start dist\\doc\\html\\hlint\\Language-Haskell-HLint.html"]
+        [":!cabal configure"
+        ,":!cabal haddock"
+        ,":!start dist\\doc\\html\\hlint\\Language-Haskell-HLint.html"]
 :}
 
 :{
 :def extra const $
-    let msg = [":test       - run the test suit"
-              ,":self       - run HLint on itself"
-              ,":hpc        - run and produce a program coverage report"
-              ,":prof <N>   - produce a time profile (N=-O level [1])"
-              ,":memory <N> - produce a memory profile (N=-O level [1])"
-              ,":bench <N>  - run the benchmark (should take about 1 second) (N=threads [1])"
-              ,":scope <N>  - run with threadscope (N=threads [2])"
-              ,":docs       - generate documentation"]
-    in putStr (unlines msg) >> return []
+        let msg = [":test       - run the test suit"
+                  ,":self       - run HLint on itself"
+                  ,":hpc        - run and produce a program coverage report"
+                  ,":prof <N>   - produce a time profile (N=-O level [1])"
+                  ,":memory <N> - produce a memory profile (N=-O level [1])"
+                  ,":bench <N>  - run the benchmark (should take about 1 second) (N=threads [1])"
+                  ,":scope <N>  - run with threadscope (N=threads [2])"
+                  ,":docs       - generate documentation"]
+        in putStr (unlines msg) >> return []
 :}
