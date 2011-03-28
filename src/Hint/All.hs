@@ -18,6 +18,7 @@ import Hint.Structure
 import Hint.Import
 import Hint.Pragma
 import Hint.Extensions
+import Hint.Duplicate
 
 
 staticHints :: [(String,Hint)]
@@ -33,6 +34,7 @@ staticHints =
     ,"Import"     + importHint
     ,"Pragma"     + pragmaHint
     ,"Extensions" + extensionsHint
+    ,"Duplicate"  + duplicateHint
     ]
 
 dynamicHints :: [Setting] -> Hint

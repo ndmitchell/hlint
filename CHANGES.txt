@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add duplicate detector, for copy/pasted code
     #???, don't show duplicate filepath separators
     If the user enters directories containing no files then say
     Make suggesting curry/uncurry a warning instead of an error
