@@ -200,19 +200,19 @@ checkInputOutput main xs = do
         else if has "lhs" then return ["tests/" ++ pre <.> "lhs"]
         else error "checkInputOutput, couldn't find or figure out flags"
 
-    got <- captureOutput $
+    got <- fmap (fmap lines) $ captureOutput $
         handle (\(e::SomeException) -> print $ e) $
         handle (\(e::ExitCode) -> return ()) $
         main flags
-    want <- reader "output"
+    want <- fmap lines $ reader "output"
 
+    let eq w g = w == g || ("*" `isSuffixOf` w && init w `isPrefixOf` g)
     case got of
         Nothing -> putStrLn "Warning: failed to capture output (GHC too old?)" >> return pass
-        Just got | got == want -> return pass
+        Just got | length got == length want && and (zipWith eq want got) -> return pass
                  | otherwise -> do
-            (got,want) <- return (lines got, lines want)
             let trail = replicate (max (length got) (length want)) "<EOF>"
-            let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), g /= w]
+            let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), not $ eq g w]
             putStrLn $ unlines
                 ["TEST FAILURE IN tests/" ++ pre
                 ,"DIFFER ON LINE: " ++ show i
