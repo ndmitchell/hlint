@@ -251,7 +251,7 @@ universeParentExp xs = concat [(Nothing, x) : f x | x <- childrenBi xs]
 -- SRCLOC FUNCTIONS
 
 showSrcLoc :: SrcLoc -> String
-showSrcLoc (SrcLoc file line col) = take 1 file ++ f (drop 1 file) ++ ":" ++ show line ++ ":" ++ show col ++ ":"
+showSrcLoc (SrcLoc file line col) = take 1 file ++ f (drop 1 file) ++ ":" ++ show line ++ ":" ++ show col
     where f (x:y:zs) | isPathSeparator x && isPathSeparator y = f $ x:zs
           f (x:xs) = x : f xs
           f [] = []

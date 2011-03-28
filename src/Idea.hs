@@ -29,11 +29,11 @@ showANSI = do
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
-    [showSrcLoc loc ++ " " ++ show severity ++ ": " ++ hint] ++ f "Found" from ++ f "Why not" to
+    [showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint] ++ f "Found" from ++ f "Why not" to
     where f msg x = (msg ++ ":") : map ("  "++) (lines $ tt x)
 
 showEx tt ParseError{..} = unlines $
-    [showSrcLoc loc ++ " Parse error","Error message:","  " ++ msg,"Code:"] ++ map ("  "++) (lines $ tt from)
+    [showSrcLoc loc ++ ": Parse error","Error message:","  " ++ msg,"Code:"] ++ map ("  "++) (lines $ tt from)
 
 
 rawIdea = Idea ("","")

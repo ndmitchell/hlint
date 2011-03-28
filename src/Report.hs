@@ -51,7 +51,7 @@ code = hscolour False
 writeIdea :: String -> Idea -> [String]
 writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
-    ,escapeHTML (showSrcLoc loc ++ " " ++ show severity ++ ": " ++ hint) ++ "<br/>"
+    ,escapeHTML (showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint) ++ "<br/>"
     ,"Found<br/>"
     ,code from
     ,"Why not<br/>"
@@ -62,7 +62,7 @@ writeIdea cls Idea{..} =
 
 writeIdea cls ParseError{..} =
     ["<div class=" ++ show cls ++ ">"
-    ,escapeHTML (showSrcLoc loc ++ " " ++ show severity ++ ": " ++ hint) ++ "<br/>"
+    ,escapeHTML (showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint) ++ "<br/>"
     ,"Error message<br/>"
     ,"<pre>" ++ escapeHTML msg ++ "</pre>"
     ,"Code<br/>"
