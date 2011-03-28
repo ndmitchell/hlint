@@ -20,7 +20,7 @@ no = do bar; a <- foo; return b
 yes = do x <- bar; x -- do join bar
 no = do x <- bar; x; x
 no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
-yes = do x <- return y; foo x -- do let x = y; foo x
+yes = do x <- return y; foo x -- @Warning do let x = y; foo x
 yes = do x <- return $ y + z; foo x -- do let x = y + z; foo x
 no = do x <- return x; foo x
 no = do x <- return y; x <- return y; foo x
@@ -51,7 +51,7 @@ monadExp x = case x of
         Do _ xs -> [err "Redundant return" x y | Just y <- [monadReturn xs]] ++
                    [err "Use join" x (Do an y) | Just y <- [monadJoin xs]] ++
                    [err "Redundant do" x y | [Qualifier _ y] <- [xs]] ++
-                   [err "Use let" x (Do an y) | Just y <- [monadLet xs]] ++
+                   [warn "Use let" x (Do an y) | Just y <- [monadLet xs]] ++
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #420, make the suggestion to use let a warning
     #408, rework the when/unless hints, don't suggest on itself
     Add duplicate detector, for copy/pasted code
     #285, don't show duplicate filepath separators
