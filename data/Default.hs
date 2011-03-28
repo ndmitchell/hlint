@@ -147,8 +147,10 @@ error "Functor law" = fmap id ==> id
 error "Monad law, left identity" = return a >>= f ==> f a
 error "Monad law, right identity" = m >>= return ==> m
 warn  = m >>= return . f ==> fmap f m
-error = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y
-error = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y
+error = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y where _ = not (isAtom y)
+error = (if x then y else return ()) ==> Control.Monad.when x y where _ = isAtom y
+error = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y where _ = not (isAtom y)
+error = (if x then return () else y) ==> Control.Monad.unless x y where _ = isAtom y
 error = sequence (map f x) ==> mapM f x
 error = sequence_ (map f x) ==> mapM_ f x
 warn  = flip mapM ==> Control.Monad.forM
@@ -301,6 +303,7 @@ yes = if nullPS s then return False else if headPS s /= '\n' then return False e
     -- if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
 yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff
+yes = if foo then stuff else return () -- Control.Monad.when foo stuff
 yes = foo $ \(a, b) -> (a, y + b) -- Control.Arrow.second ((+) y)
 no  = foo $ \(a, b) -> (a, a + b)
 yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 10]
@@ -324,7 +327,7 @@ yes x = case x of {True -> a ; False -> b} -- if x then a else b
 yes x = case x of {False -> a ; _ -> b} -- if x then b else a
 no = const . ok . toResponse $ "saved"
 yes = case x z of Nothing -> y z; Just pattern -> pattern -- fromMaybe (y z) (x z)
-yes = if p then s else return () -- Control.Monad.when p $ s
+yes = if p then s else return () -- Control.Monad.when p s
 error = a $$$$ b $$$$ c ==> a . b $$$$$ c
 yes = when (not . null $ asdf) -- unless (null asdf)
 yes = id 1 -- 1
@@ -333,6 +336,7 @@ yes = Map.union a b -- a `Map.union` b
 yes = [v | v <- xs] -- xs
 no  = [Left x | Left x <- xs]
 yes = Map.union a b -- a `Map.union` b
+when p s = if p then s else return ()
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
