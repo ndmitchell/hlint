@@ -1,8 +1,8 @@
 Changelog for HLint
 
-    #???, rework the when/unless hints, don't suggest on itself
+    #408, rework the when/unless hints, don't suggest on itself
     Add duplicate detector, for copy/pasted code
-    #???, don't show duplicate filepath separators
+    #285, don't show duplicate filepath separators
     If the user enters directories containing no files then say
     Make suggesting curry/uncurry a warning instead of an error
 1.8.7
