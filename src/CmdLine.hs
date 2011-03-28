@@ -26,7 +26,7 @@ data CppFlags
 -- FIXME: Hints vs GivenHints is horrible
 data Cmd = Cmd
     {cmdTest :: Bool                 -- ^ run in test mode?
-    ,cmdFiles :: [FilePath]          -- ^ which files to run it on
+    ,cmdFiles :: Maybe [FilePath]    -- ^ which files to run it on, nothing = none given
     ,cmdHintFiles :: [FilePath]      -- ^ which settingsfiles to use
     ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
     ,cmdReports :: [FilePath]        -- ^ where to generate reports
@@ -102,7 +102,7 @@ getCmd args = do
 
     let exts = [x | Ext x <- opt]
         exts2 = if null exts then ["hs","lhs"] else exts
-    files <- concatMapM (getFile exts2) files
+    files <- if null files then return Nothing else fmap Just $ concatMapM (getFile exts2) files
     findHints <- concatMapM (getFile exts2) [x | FindHints x <- opt]
 
     let hintFiles = [x | Hints x <- opt]

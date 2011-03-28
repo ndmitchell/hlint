@@ -4,6 +4,7 @@ module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity
 
 import Control.Monad
 import Data.List
+import Data.Maybe
 
 import CmdLine
 import Settings
@@ -48,10 +49,12 @@ hlint args = do
     let flags = parseFlags{cppFlags=cmdCpp, encoding=cmdEncoding, language=cmdLanguage}
     if cmdTest then
         test (\x -> hlint x >> return ()) cmdDataDir cmdGivenHints >> return []
-     else if null cmdFiles && notNull cmdFindHints then
+     else if isNothing cmdFiles && notNull cmdFindHints then
         mapM_ (\x -> putStrLn . fst =<< findSettings flags x) cmdFindHints >> return []
-     else if null cmdFiles then
+     else if isNothing cmdFiles then
         exitWithHelp
+     else if cmdFiles == Just [] then
+        error "No files found"
      else
         runHints cmd flags
 
@@ -64,7 +67,7 @@ runHints Cmd{..} flags = do
     settings3 <- return [Classify Ignore x ("","") | x <- cmdIgnore]
     let settings = settings1 ++ settings2 ++ settings3
 
-    ideas <- fmap concat $ parallel [listM' =<< applyHint flags settings x | x <- cmdFiles]
+    ideas <- fmap concat $ parallel [listM' =<< applyHint flags settings x | x <- fromMaybe [] cmdFiles]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || severity i /= Ignore) ideas
     showItem <- if cmdColor then showANSI else return show
     mapM_ (outStrLn . showItem) showideas
