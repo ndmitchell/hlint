@@ -5,6 +5,7 @@ module HSE.Util where
 import Control.Monad
 import Data.List
 import Data.Maybe
+import System.FilePath
 import HSE.Type
 import Language.Haskell.Exts.Annotated.Simplify(sOp, sAssoc)
 
@@ -250,7 +251,10 @@ universeParentExp xs = concat [(Nothing, x) : f x | x <- childrenBi xs]
 -- SRCLOC FUNCTIONS
 
 showSrcLoc :: SrcLoc -> String
-showSrcLoc (SrcLoc file line col) = file ++ ":" ++ show line ++ ":" ++ show col ++ ":"
+showSrcLoc (SrcLoc file line col) = take 1 file ++ f (drop 1 file) ++ ":" ++ show line ++ ":" ++ show col ++ ":"
+    where f (x:y:zs) | isPathSeparator x && isPathSeparator y = f $ x:zs
+          f (x:xs) = x : f xs
+          f [] = []
 
 toSrcLoc :: SrcInfo si => si -> SrcLoc
 toSrcLoc = getPointLoc
