@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
 {-
     Reduce the number of import declarations.
     Two import declarations can be combined if:
@@ -30,6 +30,10 @@ import qualified List -- import qualified Data.List as List
 import Char(foo) -- import Data.Char(foo)
 import IO(foo)
 import IO as X -- import System.IO as X; import System.IO.Error as X; import Control.Exception  as X (bracket,bracket_)
+module Foo(module A, baz, module B, module C) where; import A; import D; import B(map,filter); import C \
+    -- module Foo(baz, module X) where; import A as X; import B as X(map, filter); import C as X
+module Foo(module A, baz, module B, module X) where; import A; import B; import X \
+    -- module Foo(baz, module Y) where; import A as Y; import B as Y; import X as Y
 </TEST>
 -}
 
@@ -38,13 +42,15 @@ module Hint.Import where
 
 import Hint.Type
 import Util
+import Data.List
 import Data.Maybe
 
 
 importHint :: ModuHint
 importHint _ x = concatMap (wrap . snd) (groupSortFst
                  [((fromNamed $ importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]) ++
-                 concatMap hierarchy (universeBi x)
+                 concatMap hierarchy (universeBi x) ++
+                 multiExport x
 
 
 wrap :: [ImportDecl S] -> [Idea]
@@ -120,3 +126,24 @@ hierarchy _ = []
 desugarQual :: ImportDecl S -> ImportDecl S
 desugarQual x | importQualified x && isNothing (importAs x) = x{importAs=Just (importModule x)}
               | otherwise = x
+
+
+multiExport :: Module S -> [Idea]
+multiExport x =
+    [ rawIdea Warning "Use import/export shortcut" (toSrcLoc $ ann hd)
+        (unlines $ prettyPrint hd : map prettyPrint imps)
+        (unlines $ prettyPrint newhd : map prettyPrint newimps)
+        ""
+    | Module l (Just hd) _ imp _ <- [x]
+    , let asNames = mapMaybe importAs imp
+    , let expNames = [x | EModuleContents _ x <- childrenBi hd]
+    , let imps = [i | i@ImportDecl{importAs=Nothing,importQualified=False,importModule=name} <- imp
+                 ,name `notElem_` asNames, name `elem_` expNames]
+    , length imps >= 3
+    , let newname = ModuleName an $ head $ map return ("XYZ" ++ ['A'..]) \\
+                                           [x | ModuleName (_ :: S) x <- universeBi hd ++ universeBi imp]
+    , let reexport (EModuleContents _ x) = x `notElem_` map importModule imps
+          reexport x = True
+    , let newhd = descendBi (\xs -> filter reexport xs ++ [EModuleContents an newname]) hd
+    , let newimps = [i{importAs=Just newname} | i <- imps]
+    ]
