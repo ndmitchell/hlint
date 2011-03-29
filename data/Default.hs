@@ -228,6 +228,7 @@ warn  "Use 1" = x ^ 0 ==> 1
 
 -- EXCEPTION
 
+error "Use Control.Exception.catch" = Prelude.catch ==> Control.Exception.catch where note = "Prelude.catch does not catch most exceptions"
 warn = flip Control.Exception.catch ==> handle
 warn = flip (catchJust p) ==> handleJust p
 warn = Control.Exception.bracket b (const a) (const t) ==> Control.Exception.bracket_ b a t
@@ -357,6 +358,9 @@ yes = x ^^ 18 -- x ** 18
 no = x ^^ 18.5
 instance Arrow (->) where first f = f *** id
 yes = fromInteger 12 -- 12
+yes = catch -- Control.Exception.catch
+import Prelude hiding (catch); no = catch
+import Control.Exception as E; no = E.catch
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
