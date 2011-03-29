@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #374, don't suggest the removal of necessary brackets
     #337, suggest Control.Exception.catch instead of Prelude.catch
     #412, add hints based on Control.Exception
     #378, suggest removing fromInteger/fromIntegral on literals

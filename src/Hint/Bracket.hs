@@ -21,6 +21,7 @@ yes = \ x -> (x && x) -- @Warning \x -> x && x
 no = \(x -> y) -> z
 yes = (`foo` (bar baz)) -- @Warning (`foo` bar baz)
 
+
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
 foo :: Int -> (Int -> Int) -- @Warning Int -> Int -> Int
@@ -45,6 +46,7 @@ yes = (b $ c d) ++ e -- b (c d) ++ e
 yes = (a b $ c d) ++ e -- a b (c d) ++ e
 no = (f . g $ a) ++ e
 no = quickCheck ((\h -> cySucc h == succ h) :: Hygiene -> Bool)
+foo = (case x of y -> z; q -> w) :: Int
 </TEST>
 -}
 

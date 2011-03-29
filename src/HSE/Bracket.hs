@@ -49,7 +49,7 @@ instance Brackets Exp_ where
         | Tuple{} <- parent = False
         | If{} <- parent, isAnyApp child = False
         | App{} <- parent, i == 0, App{} <- child = False
-        | ExpTypeSig{} <- parent, i == 0, not $ isLambda child = False
+        | ExpTypeSig{} <- parent, i == 0, isApp child = False
         | Paren{} <- parent = False
         | isDotApp parent, isDotApp child, i == 1 = False
         | RecConstr{} <- parent = False
