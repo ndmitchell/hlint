@@ -92,6 +92,7 @@ readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats 
         names = filter notNull $ getNames pats bod
         names2 = ["" | null names] ++ names
 
+readSetting s x | "test" `isPrefixOf` map toLower (fromNamed x) = []
 readSetting s x@AnnPragma{} | Just y <- readPragma x = [y]
 readSetting s (PatBind an (PVar _ name) _ bod bind) = readSetting s $ FunBind an [Match an name [] bod bind]
 readSetting s (FunBind an xs) | length xs /= 1 = concatMap (readSetting s . FunBind an . return) xs

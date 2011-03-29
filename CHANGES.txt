@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #410, Support test* as ignored items in settings files
     #414, add isLit* pattern, and hint about ^^ ==> **
     #420, make the suggestion to use let a warning
     #408, rework the when/unless hints, don't suggest on itself

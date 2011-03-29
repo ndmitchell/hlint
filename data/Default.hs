@@ -272,6 +272,9 @@ warn  = (do a <- f; g a) ==> f >>= g
     where _ = (isAtom f || isApp f) && notIn a g
 -}
 
+test = hints named test are to allow people to put test code within hint files
+testPrefix = and any prefix also works
+
 
 {-
 <TEST>
