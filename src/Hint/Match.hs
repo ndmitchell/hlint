@@ -174,12 +174,16 @@ checkSide x bind = maybe True f x
 
         f (App _ cond (sub -> y))
             | 'i':'s':typ <- fromNamed cond
-            = if typ == "Atom" then isAtom y else head (words $ show y) == typ
+            = isType typ y
         f (App _ (App _ cond (sub -> x)) (sub -> y))
             | cond ~= "notIn" = and [x `notElem` universe y | x <- list x, y <- list y]
             | cond ~= "notEq" = x /= y
         f x | x ~= "notTypeSafe" = True
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
+
+        isType "Atom" x = isAtom x
+        isType ('L':'i':'t':typ@(_:_)) (Lit _ x) = head (words $ show x) == typ
+        isType typ x = head (words $ show x) == typ
 
         list :: Exp_ -> [Exp_]
         list (List _ xs) = xs
