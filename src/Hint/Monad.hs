@@ -27,6 +27,8 @@ no = do x <- return y; x <- return y; foo x
 yes = do forM files $ \x -> return (); return () -- forM_ files $ \x -> return ()
 yes = do if a then forM x y else sequence z q; return () -- if a then forM_ x y else sequence_ z q
 yes = do case a of {_ -> forM x y; x:xs -> forM x xs}; return () -- case a of _ -> forM_ x y ; x:xs -> forM_ x xs
+foldM_ f a xs = foldM f a xs >> return ()
+folder f a xs = foldM f a xs >> return () -- foldM_ f a xs
 </TEST>
 -}
 
@@ -43,10 +45,10 @@ badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM"]
 
 
 monadHint :: DeclHint
-monadHint _ _ = concatMap monadExp . universeBi
+monadHint _ _ d = concatMap (monadExp d) $ universeBi d
 
-monadExp :: Exp_ -> [Idea]
-monadExp x = case x of
+monadExp :: Decl_ -> Exp_ -> [Idea]
+monadExp decl x = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         Do _ xs -> [err "Redundant return" x y | Just y <- [monadReturn xs]] ++
                    [err "Use join" x (Do an y) | Just y <- [monadJoin xs]] ++
@@ -55,7 +57,7 @@ monadExp x = case x of
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where
-        f x = [err ("Use " ++ name) x y | Just (name,y) <- [monadCall x]]
+        f x = [err ("Use " ++ name) x y | Just (name,y) <- [monadCall x], fromNamed decl /= name]
 
 
 -- see through Paren and down if/case etc

@@ -344,6 +344,7 @@ yes = Map.union a b -- a `Map.union` b
 when p s = if p then s else return ()
 yes = x ^^ 18 -- x ** 18
 no = x ^^ 18.5
+instance Arrow (->) where first f = f *** id
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
