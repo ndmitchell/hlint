@@ -209,6 +209,8 @@ warn "Use infix" = X.intersect x y ==> x `X.intersect` y where _ = not (isInfixA
 
 -- MATHS
 
+error "Redundant fromIntegral" = fromIntegral x ==> x where _ = isLitInt x
+error "Redundant fromInteger" = fromInteger x ==> x where _ = isLitInt x
 warn  = x + negate y ==> x - y
 warn  = 0 - x ==> negate x
 warn  = log y / log x ==> logBase x y
@@ -345,6 +347,7 @@ when p s = if p then s else return ()
 yes = x ^^ 18 -- x ** 18
 no = x ^^ 18.5
 instance Arrow (->) where first f = f *** id
+yes = fromInteger 12 -- 12
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
