@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #412, add hints based on Control.Exception
     #378, suggest removing fromInteger/fromIntegral on literals
     #369, add notes to a few hints about possible pitfalls
     #409, fix a few cases where definitions suggested themselves

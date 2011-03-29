@@ -2,6 +2,7 @@
 module HLint.Default where
 
 import Control.Arrow
+import Control.Exception
 import Control.Monad
 import Data.Function
 import Data.Int
@@ -224,6 +225,14 @@ warn  = not (odd x) ==> even x
 warn  = x ** 0.5 ==> sqrt x
 warn  = x ^^ y ==> x ** y where _ = isLitInt y
 warn  "Use 1" = x ^ 0 ==> 1
+
+-- EXCEPTION
+
+warn = flip Control.Exception.catch ==> handle
+warn = flip (catchJust p) ==> handleJust p
+warn = Control.Exception.bracket b (const a) (const t) ==> Control.Exception.bracket_ b a t
+warn = Control.Exception.bracket (openFile x y) hClose ==> withFile x y
+warn = Control.Exception.bracket (openBinaryFile x y) hClose ==> withBinaryFile x y
 
 -- EVALUATE
 
