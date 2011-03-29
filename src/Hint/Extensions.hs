@@ -26,7 +26,7 @@ data Set (cxt :: * -> *) a = Set [a]
 {-# LANGUAGE RecordWildCards #-} \
 record field = Record{..}
 {-# LANGUAGE RecordWildCards #-} \
-record = 1 -- {-# LANGUAGE DisambiguateRecordFields #-}
+record = 1 --
 </TEST>
 -}
 
@@ -42,6 +42,7 @@ import Util
 extensionsHint :: ModuHint
 extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" (toSrcLoc sl)
           (prettyPrint o) (if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . showExt) new)
+          (warnings old new)
     | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
     , o@(LanguagePragma sl exts) <- modulePragmas x
     , let old = map (classifyExtension . prettyPrint) exts
@@ -54,13 +55,13 @@ extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" (toSrcLoc sl)
 
 minimalExtensions :: Module_ -> [Extension] -> [Extension]
 minimalExtensions x es = nub $ concatMap f es
-    where f e = if used e x then [e] else concatMap f $ implies e
+    where f e = if used e x then [e] else []
 
 
--- sometimes one extension implies others, this captures that
-implies :: Extension -> [Extension]
-implies RecordWildCards = [DisambiguateRecordFields]
-implies _ = []
+-- RecordWildCards implies DisambiguateRecordFields, but most people probably don't want it
+warnings old new | RecordWildCards `elem` old && RecordWildCards `notElem` new = "you may need to add DisambiguateRecordFields"
+warnings _ _ = ""
+
 
 used :: Extension -> Module_ -> Bool
 used RecursiveDo = hasS isMDo

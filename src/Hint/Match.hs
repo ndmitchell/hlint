@@ -77,21 +77,21 @@ dotVersion _ = Nothing
 
 findIdeas :: [Setting] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
-  [ idea (severityS m) (hintS m) x y
+  [ (idea (severityS m) (hintS m) x y){note=notes}
   | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
   , (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
-  , m <- matches, Just y <- [matchIdea s decl m parent x2]]
+  , m <- matches, Just (y,notes) <- [matchIdea s decl m parent x2]]
 
 
-matchIdea :: Scope -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe Exp_
-matchIdea s decl MatchExp{lhs=lhs,rhs=rhs,side=side,scope=scope} parent x = do
+matchIdea :: Scope -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,String)
+matchIdea s decl MatchExp{lhs=lhs,rhs=rhs,side=side,scope=scope,notes=notes} parent x = do
     let nm = nameMatch scope s
     u <- unifyExp nm lhs x
     u <- check u
     let res = addBracket parent $ unqualify scope s u $ performEval $ subst u rhs
     guard $ checkSide side $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
-    return res
+    return (res,notes)
 
 
 ---------------------------------------------------------------------

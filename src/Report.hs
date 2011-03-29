@@ -54,8 +54,9 @@ writeIdea cls Idea{..} =
     ,escapeHTML (showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint) ++ "<br/>"
     ,"Found<br/>"
     ,code from
-    ,"Why not<br/>"
+    ,"Why not" ++ (if to == "" then " remove it." else "") ++ "<br/>"
     ,code to
+    ,if note /= "" then "<span class='note'>Note: " ++ note ++ "</span>" else ""
     ,"</div>"
     ,""]
 

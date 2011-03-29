@@ -116,7 +116,7 @@ typeCheckHints hints = bracket
             ,"_eval_ = id"] ++
             ["{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
              prettyPrint (PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing)
-            | (i, MatchExp _ _ _ lhs rhs side) <- zip [1..] matches, "notTypeSafe" `notElem` vars side
+            | (i, MatchExp _ _ _ lhs rhs side _) <- zip [1..] matches, "notTypeSafe" `notElem` vars side
             , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
             , let bod = UnGuardedRhs an $ if null vs then inner else Lambda an vs inner]

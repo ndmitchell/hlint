@@ -10,7 +10,7 @@ import Util
 
 
 data Idea
-    = Idea {func :: FuncName, severity :: Severity, hint :: String, loc :: SrcLoc, from :: String, to :: String}
+    = Idea {func :: FuncName, severity :: Severity, hint :: String, loc :: SrcLoc, from :: String, to :: String, note :: String}
     | ParseError {severity :: Severity, hint :: String, loc :: SrcLoc, msg :: String, from :: String}
       deriving (Eq,Ord)
 
@@ -29,15 +29,20 @@ showANSI = do
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
-    [showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint] ++ f "Found" from ++ f "Why not" to
-    where f msg x = (msg ++ ":") : map ("  "++) (lines $ tt x)
+    [showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint] ++
+    f "Found" from ++ f "Why not" to ++
+    ["Note: " ++ note | note /= ""]
+    where
+        f msg x | null xs = [msg ++ " remove it."]
+                | otherwise = (msg ++ ":") : map ("  "++) xs
+            where xs = lines $ tt x
 
 showEx tt ParseError{..} = unlines $
     [showSrcLoc loc ++ ": Parse error","Error message:","  " ++ msg,"Code:"] ++ map ("  "++) (lines $ tt from)
 
 
 rawIdea = Idea ("","")
-idea severity hint from to = rawIdea severity hint (toSrcLoc $ ann from) (f from) (f to)
+idea severity hint from to = rawIdea severity hint (toSrcLoc $ ann from) (f from) (f to) ""
     where f = ltrim . prettyPrint
 warn = idea Warning
 err = idea Error

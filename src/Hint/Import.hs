@@ -48,7 +48,7 @@ importHint _ x = concatMap (wrap . snd) (groupSortFst
 
 
 wrap :: [ImportDecl S] -> [Idea]
-wrap o = [ rawIdea Error "Use fewer imports" (toSrcLoc $ ann $ head o) (f o) (f x)
+wrap o = [ rawIdea Error "Use fewer imports" (toSrcLoc $ ann $ head o) (f o) (f x) ""
          | Just x <- [simplify o]]
     where f = unlines . map prettyPrint
 
@@ -107,10 +107,10 @@ hierarchy i@ImportDecl{importModule=ModuleName _ x,importPkg=Nothing} | Just y <
 -- import IO is equivalent to
 -- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)
 hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing,importPkg=Nothing}
-    = [rawIdea Warning "Use hierarchical imports" (toSrcLoc $ ann i) (ltrim $ prettyPrint i) $
+    = [rawIdea Warning "Use hierarchical imports" (toSrcLoc $ ann i) (ltrim $ prettyPrint i) (
           unlines $ map (ltrim . prettyPrint)
           [f "System.IO" Nothing, f "System.IO.Error" Nothing
-          ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an $ toNamed x | x <- ["bracket","bracket_"]]]]
+          ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an $ toNamed x | x <- ["bracket","bracket_"]]]) ""]
     where f a b = (desugarQual i){importModule=ModuleName an a, importSpecs=b}
 
 hierarchy _ = []

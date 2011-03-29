@@ -30,12 +30,12 @@ error = hPrint stdout ==> print
 
 -- ORD
 
-error = not (a == b) ==> a /= b
-error = not (a /= b) ==> a == b
-error = not (a >  b) ==> a <= b
-error = not (a >= b) ==> a <  b
-error = not (a <  b) ==> a >= b
-error = not (a <= b) ==> a >  b
+error = not (a == b) ==> a /= b where note = "incorrect if either value is NaN"
+error = not (a /= b) ==> a == b where note = "incorrect if either value is NaN"
+error = not (a >  b) ==> a <= b where note = "incorrect if either value is NaN"
+error = not (a >= b) ==> a <  b where note = "incorrect if either value is NaN"
+error = not (a <  b) ==> a >= b where note = "incorrect if either value is NaN"
+error = not (a <= b) ==> a >  b where note = "incorrect if either value is NaN"
 error = compare x y /= GT ==> x <= y
 error = compare x y == LT ==> x < y
 error = compare x y /= LT ==> x >= y
@@ -74,7 +74,7 @@ error = or (map p x) ==> any p x
 error = and (map p x) ==> all p x
 error = zipWith (,) ==> zip
 error = zipWith3 (,,) ==> zip3
-warn  = length x == 0 ==> null x
+warn  = length x == 0 ==> null x where note = "increases laziness"
 warn  "Use null" = length x /= 0 ==> not (null x)
 error "Use :" = (\x -> [x]) ==> (:[])
 error = map (uncurry f) (zip x y) ==> zipWith f x y

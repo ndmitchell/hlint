@@ -1,0 +1,14 @@
+tests/note.hs:1:1: Error: Unused LANGUAGE pragma
+Found:
+  {-# LANGUAGE RecordWildCards #-}
+Why not remove it.
+Note: you may need to add DisambiguateRecordFields
+
+tests/note.hs:5:11: Warning: Use null
+Found:
+  length xs == 0
+Why not:
+  null xs
+Note: increases laziness
+
+2 suggestions

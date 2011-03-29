@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #369, add notes to a few hints about possible pitfalls
     #409, fix a few cases where definitions suggested themselves
     #410, Support test* as ignored items in settings files
     #414, add isLit* pattern, and hint about ^^ ==> **
