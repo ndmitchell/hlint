@@ -64,6 +64,7 @@ library
         HSE.Util
         Hint.All
         Hint.Bracket
+        Hint.Duplicate
         Hint.Extensions
         Hint.Import
         Hint.Lambda
