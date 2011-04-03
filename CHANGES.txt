@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.8
     #384, suggest collapsing multiple imports/exports
     #374, don't suggest the removal of necessary brackets
     #337, suggest Control.Exception.catch instead of Prelude.catch
