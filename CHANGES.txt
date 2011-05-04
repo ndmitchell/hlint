@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #428, don't suggest using String in an instance head
 1.8.8
     #384, suggest collapsing multiple imports/exports
     #374, don't suggest the removal of necessary brackets

@@ -17,6 +17,7 @@ yes = [1] : [2] : [3] : [4] : [5] : [] -- [[1], [2], [3], [4], [5]]
 yes = if x == e then l2 ++ xs else [x] ++ check_elem xs -- x : check_elem xs
 data Yes = Yes (Maybe [Char]) -- Maybe String
 yes = y :: [Char] -> a -- String -> a
+instance C [Char]
 </TEST>
 -}
 
@@ -30,8 +31,7 @@ listHint :: DeclHint
 listHint _ _ = listDecl
 
 listDecl :: Decl_ -> [Idea]
-listDecl x = concatMap (listExp False) (childrenBi x) ++
-             concatMap stringType (childrenBi x)
+listDecl x = concatMap (listExp False) (childrenBi x) ++ stringType x
 
 -- boolean = are you in a ++ chain
 listExp :: Bool -> Exp_ -> [Idea]
@@ -76,6 +76,13 @@ typeListChar = TyList an (TyCon an (toNamed "Char"))
 typeString = TyCon an (toNamed "String")
 
 
-stringType :: Type_ -> [Idea]
-stringType (fromTyParen -> x) = [warn "Use String" x (transform f x) | any (=~= typeListChar) $ universe x]
-    where f x = if x =~= typeListChar then typeString else x
+stringType :: Decl_ -> [Idea]
+stringType x = case x of
+    InstDecl _ _ _ x -> f x
+    _ -> f x
+    where
+        f x = concatMap g $ childrenBi x
+
+        g :: Type_ -> [Idea]
+        g (fromTyParen -> x) = [warn "Use String" x (transform f x) | any (=~= typeListChar) $ universe x]
+            where f x = if x =~= typeListChar then typeString else x
