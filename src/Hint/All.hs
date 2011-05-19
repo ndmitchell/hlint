@@ -23,14 +23,14 @@ import Hint.Duplicate
 
 staticHints :: [(String,Hint)]
 staticHints =
-    let x*y = (x,DeclHint y) ; x+y = (x,ModuHint y) in
-    ["List"       * listHint
-    ,"ListRec"    * listRecHint
-    ,"Monad"      * monadHint
-    ,"Lambda"     * lambdaHint
-    ,"Bracket"    * bracketHint
-    ,"Naming"     * namingHint
-    ,"Structure"  * structureHint
+    let x!y = (x,DeclHint y) ; x+y = (x,ModuHint y) in
+    ["List"       ! listHint
+    ,"ListRec"    ! listRecHint
+    ,"Monad"      ! monadHint
+    ,"Lambda"     ! lambdaHint
+    ,"Bracket"    ! bracketHint
+    ,"Naming"     ! namingHint
+    ,"Structure"  ! structureHint
     ,"Import"     + importHint
     ,"Pragma"     + pragmaHint
     ,"Extensions" + extensionsHint
