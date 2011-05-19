@@ -24,10 +24,11 @@ import Data.List hiding (find)
 import qualified Data.Map as Map
 
 
-duplicateHint :: ModuHint
-duplicateHint _ modu =
+duplicateHint :: CrossHint
+duplicateHint ms =
     dupes [y | Do _ y :: Exp S <- universeBi modu] ++
     dupes [y | BDecls l y :: Binds S <- universeBi modu]
+    where modu = map snd ms
 
 
 dupes ys =

@@ -7,5 +7,8 @@ import Idea
 
 type DeclHint = Scope -> Module_ -> Decl_ -> [Idea]
 type ModuHint = Scope -> Module_          -> [Idea]
+type CrossHint = [(Scope, Module_)] -> [Idea]
 
-data Hint = DeclHint {declHint :: DeclHint} | ModuHint {moduHint :: ModuHint}
+data Hint = DeclHint {declHint :: DeclHint}
+          | ModuHint {moduHint :: ModuHint}
+          | CrossHint {crossHint :: CrossHint}

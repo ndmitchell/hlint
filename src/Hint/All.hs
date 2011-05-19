@@ -23,7 +23,6 @@ import Hint.Duplicate
 
 staticHints :: [(String,Hint)]
 staticHints =
-    let x!y = (x,DeclHint y) ; x+y = (x,ModuHint y) in
     ["List"       ! listHint
     ,"ListRec"    ! listRecHint
     ,"Monad"      ! monadHint
@@ -34,8 +33,12 @@ staticHints =
     ,"Import"     + importHint
     ,"Pragma"     + pragmaHint
     ,"Extensions" + extensionsHint
-    ,"Duplicate"  + duplicateHint
+    ,"Duplicate"  * duplicateHint
     ]
+    where
+        x!y = (x,DeclHint y)
+        x+y = (x,ModuHint y)
+        x*y = (x,CrossHint y)
 
 dynamicHints :: [Setting] -> Hint
 dynamicHints = DeclHint . readMatch
