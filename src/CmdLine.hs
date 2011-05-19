@@ -35,7 +35,7 @@ data Cmd = Cmd
     ,cmdColor :: Bool                -- ^ color the result
     ,cmdCpp :: CppFlags              -- ^ options for CPP
     ,cmdDataDir :: FilePath          -- ^ the data directory
-    ,cmdEncoding :: Encoding           -- ^ the text encoding
+    ,cmdEncoding :: Encoding         -- ^ the text encoding
     ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
     ,cmdLanguage :: [Extension]      -- ^ the extensions (may be prefixed by "No")
     ,cmdQuiet :: Bool                -- ^ supress all console output
