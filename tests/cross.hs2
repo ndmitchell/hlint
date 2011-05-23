@@ -1,0 +1,8 @@
+
+module A where
+
+foo = 1
+    where
+        a = 1
+        b = 2
+        c = 3

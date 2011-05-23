@@ -81,6 +81,8 @@ unzipEither (x:xs) = case x of
 unzipEither [] = ([], [])
 
 
+for = flip map
+
 ---------------------------------------------------------------------
 -- DATA.STRING
 

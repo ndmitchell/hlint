@@ -13,6 +13,7 @@ HLint v0.0, (C) Neil Mitchell 2006-2011
   -X lang   --language=lang            Language extensions (Arrows, NoCPP)
   -u        --utf8                     Use UTF-8 text encoding
             --encoding=encoding        Choose the text encoding
+  -x        --cross                    Work between modules
   -f file   --find=file                Find hints in a Haskell file
   -t        --test                     Run in test mode
   -d dir    --datadir=dir              Override the data directory

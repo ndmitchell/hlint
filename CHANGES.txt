@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add a --cross flag, to detect hints between multiple modules
     #428, don't suggest using String in an instance head
 1.8.8
     #384, suggest collapsing multiple imports/exports

@@ -1,0 +1,9 @@
+tests/cross.hs1:7:9: Warning: Reduce duplication
+Found:
+  a = 1
+  b = 2
+  c = 3
+Why not:
+  Combine with tests/cross.hs2:6:9
+
+1 suggestion
