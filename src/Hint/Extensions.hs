@@ -55,7 +55,7 @@ extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" (toSrcLoc sl)
 
 minimalExtensions :: Module_ -> [Extension] -> [Extension]
 minimalExtensions x es = nub $ concatMap f es
-    where f e = if used e x then [e] else []
+    where f e = [e | used e x]
 
 
 -- RecordWildCards implies DisambiguateRecordFields, but most people probably don't want it

@@ -1,23 +1,20 @@
 
 module HSE.All(
-    module HSE.Util, module HSE.Evaluate,
-    module HSE.Bracket, module HSE.Match,
-    module HSE.Type,
-    module HSE.NameMatch,
+    module X,
     ParseFlags(..), parseFlags, parseFlagsNoLocations,
     parseFile, parseString, parseResult
     ) where
 
+import HSE.Util as X
+import HSE.Evaluate as X
+import HSE.Type as X
+import HSE.Bracket as X
+import HSE.Match as X
+import HSE.NameMatch as X
 import Util
 import CmdLine
 import Data.List
 import Data.Maybe
-import HSE.Util
-import HSE.Evaluate
-import HSE.Type
-import HSE.Bracket
-import HSE.Match
-import HSE.NameMatch
 import Language.Preprocessor.Cpphs
 
 

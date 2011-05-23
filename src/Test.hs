@@ -201,7 +201,7 @@ checkInputOutput main xs = do
         else error "checkInputOutput, couldn't find or figure out flags"
 
     got <- fmap (fmap lines) $ captureOutput $
-        handle (\(e::SomeException) -> print $ e) $
+        handle (\(e::SomeException) -> print e) $
         handle (\(e::ExitCode) -> return ()) $
         main flags
     want <- fmap lines $ reader "output"
