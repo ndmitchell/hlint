@@ -27,6 +27,8 @@ data Set (cxt :: * -> *) a = Set [a]
 record field = Record{..}
 {-# LANGUAGE RecordWildCards #-} \
 record = 1 --
+{-# LANGUAGE UnboxedTuples #-} \
+record = 1 --
 </TEST>
 -}
 
