@@ -1,5 +1,5 @@
 
-module Apply(applyHint, applyHintStr) where
+module Apply(applyHintFile, applyHintString) where
 
 import HSE.All
 import Hint.All
@@ -12,14 +12,14 @@ import Idea
 import Util
 
 
-applyHint :: ParseFlags -> [Setting] -> FilePath -> IO [Idea]
-applyHint flags s file = do
+applyHintFile :: ParseFlags -> [Setting] -> FilePath -> IO [Idea]
+applyHintFile flags s file = do
     src <- readFileEncoding (encoding flags) file
-    applyHintStr flags s file src
+    applyHintString flags s file src
 
 
-applyHintStr :: ParseFlags -> [Setting] -> FilePath -> String -> IO [Idea]
-applyHintStr flags s file src = do
+applyHintString :: ParseFlags -> [Setting] -> FilePath -> String -> IO [Idea]
+applyHintString flags s file src = do
     res <- parseString flags{infixes=[x | Infix x <- s]} file src
     case snd res of
         ParseFailed sl msg | length src `seq` True -> map (classify s) `fmap` parseFailed flags sl msg src

@@ -138,7 +138,7 @@ checkAnnotations setting file = do
     return $ Result (length failures) (length tests)
     where
         f (Test loc inp out) = do
-            ideas <- applyHintStr parseFlags setting file inp
+            ideas <- applyHintString parseFlags setting file inp
             let good = case out of
                     Nothing -> null ideas
                     Just x -> length ideas == 1 &&
