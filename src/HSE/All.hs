@@ -49,7 +49,7 @@ parseString flags file str = do
         mode = defaultParseMode
             {parseFilename = file
             ,extensions = language flags
-            ,fixities = []
+            ,fixities = Nothing
             ,ignoreLinePragmas = False
             }
 

@@ -7,7 +7,7 @@ import Data.List
 import Data.Maybe
 import System.FilePath
 import HSE.Type
-import Language.Haskell.Exts.Annotated.Simplify(sOp, sAssoc)
+import Language.Haskell.Exts.Annotated.Simplify(sQName, sAssoc)
 
 
 ---------------------------------------------------------------------
@@ -302,5 +302,7 @@ eqMaybe _ _ = False
 -- FIXITIES
 
 getFixity :: Decl a -> [Fixity]
-getFixity (InfixDecl _ a mp ops) = [Fixity (sAssoc a) (fromMaybe 9 mp) (sOp op) | op <- ops]
+getFixity (InfixDecl sl a mp ops) = [Fixity (sAssoc a) (fromMaybe 9 mp) (sQName $ UnQual sl $ f op) | op <- ops]
+    where f (VarOp _ x) = x
+          f (ConOp _ x) = x
 getFixity _ = []
