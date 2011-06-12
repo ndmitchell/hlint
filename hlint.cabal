@@ -28,6 +28,10 @@ data-files:
 extra-source-files:
     hlint.htm
 
+source-repository head
+    type:     darcs
+    location: http://community.haskell.org/~ndm/darcs/hlint/
+
 flag threaded
     default: True
     description: Build with support for multithreaded execution
