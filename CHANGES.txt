@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.10
     Upgrade to hscolour-1.19
 1.8.9
     #436, add a hint about mapMaybe/map
