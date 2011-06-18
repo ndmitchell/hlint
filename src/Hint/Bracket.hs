@@ -20,7 +20,7 @@ yes = C { f = (e h) } -- @Warning C {f = e h}
 yes = \ x -> (x && x) -- @Warning \x -> x && x
 no = \(x -> y) -> z
 yes = (`foo` (bar baz)) -- @Warning (`foo` bar baz)
-
+main = do f; (print x) -- @Warning do f print x
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int

@@ -56,6 +56,7 @@ instance Brackets Exp_ where
         | RecUpdate{} <- parent, i /= 0 = False
         | Case{} <- parent, i /= 0 || isAnyApp child = False
         | Lambda{} <- parent, i == length (universeBi parent :: [Pat_]) - 1 = False -- watch out for PViewPat
+        | Do{} <- parent = False
         | otherwise = True
 
 

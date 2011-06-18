@@ -362,6 +362,7 @@ yes = fromInteger 12 -- 12
 yes = catch -- Control.Exception.catch
 import Prelude hiding (catch); no = catch
 import Control.Exception as E; no = E.catch
+main = do f; putStrLn $ show x -- print x
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

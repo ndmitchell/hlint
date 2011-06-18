@@ -1,5 +1,7 @@
 Changelog for HLint
 
+    #440, suggest removing redundant brackets under do
+    #439, don't add redundant brackets under do
 1.8.10
     Upgrade to hscolour-1.19
 1.8.9
