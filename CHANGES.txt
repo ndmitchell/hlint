@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.11
     #440, suggest removing redundant brackets under do
     #439, don't add redundant brackets under do
 1.8.10
