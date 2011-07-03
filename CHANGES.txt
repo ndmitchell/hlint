@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Allow cpphs-1.12
 1.8.11
     #440, suggest removing redundant brackets under do
     #439, don't add redundant brackets under do
