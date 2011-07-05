@@ -5,6 +5,7 @@ module HSE.Match where
 import Data.Char
 import HSE.Type
 import HSE.Util
+import qualified Language.Haskell.Exts as HSE_
 
 
 class View a b where
@@ -75,12 +76,28 @@ instance Named (QName S) where
     toNamed ":" = Special an $ Cons an
     toNamed x = UnQual an $ toNamed x
 
+instance Named HSE_.QName where
+    fromNamed (HSE_.Special HSE_.Cons) = ":"
+    fromNamed (HSE_.Special HSE_.UnitCon) = "()"
+    fromNamed (HSE_.UnQual x) = fromNamed x
+    fromNamed _ = ""
+
+    toNamed ":" = HSE_.Special HSE_.Cons
+    toNamed x = HSE_.UnQual $ toNamed x
+
 instance Named (Name S) where
     fromNamed (Ident _ x) = x
     fromNamed (Symbol _ x) = x
 
     toNamed x | isSym x = Symbol an x
               | otherwise = Ident an x
+
+instance Named HSE_.Name where
+    fromNamed (HSE_.Ident x) = x
+    fromNamed (HSE_.Symbol x) = x
+
+    toNamed x | isSym x = HSE_.Symbol x
+              | otherwise = HSE_.Ident x
 
 instance Named (ModuleName S) where
     fromNamed (ModuleName _ x) = x

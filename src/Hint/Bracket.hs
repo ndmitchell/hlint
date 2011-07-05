@@ -47,6 +47,9 @@ yes = (a b $ c d) ++ e -- a b (c d) ++ e
 no = (f . g $ a) ++ e
 no = quickCheck ((\h -> cySucc h == succ h) :: Hygiene -> Bool)
 foo = (case x of y -> z; q -> w) :: Int
+
+-- backup fixity resolution
+main = do a += b . c; return $ a . b
 </TEST>
 -}
 
