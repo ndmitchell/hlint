@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.13
     #302, add a backup fixity analysis, if the HSE one fails
     Fix x /= y || x /= z ==> x `notElem` [y,z], should be &&
 1.8.12
