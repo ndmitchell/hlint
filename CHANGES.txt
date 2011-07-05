@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Fix x /= y || x /= z ==> x `notElem` [y,z], should be &&
 1.8.12
     Allow cpphs-1.12
 1.8.11
