@@ -127,6 +127,8 @@ warn  "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
 warn  "Use if" = case a of {False -> f; True -> t} ==> if a then t else f
 warn  "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
 warn  "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
+warn  "Redundant if" = (if c then (True, x) else (False, x)) ==> (c, x) where note = "reduces strictness"
+warn  "Redundant if" = (if c then (False, x) else (True, x)) ==> (not c, x) where note = "reduces strictness"
 
 -- ARROW
 
