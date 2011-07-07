@@ -66,6 +66,7 @@ error = take n (repeat x) ==> replicate n x
 error = head (reverse x) ==> last x
 error = head (drop n x) ==> x !! n
 error = reverse (tail (reverse x)) ==> init x
+error = take (length x - 1) x ==> init x
 error = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
 error = foldr (++) [] ==> concat
 error = span (not . p) ==> break p
@@ -79,6 +80,7 @@ warn  = length x == 0 ==> null x where note = "increases laziness"
 warn  "Use null" = length x /= 0 ==> not (null x)
 error "Use :" = (\x -> [x]) ==> (:[])
 error = map (uncurry f) (zip x y) ==> zipWith f x y
+warn  = map f (zip x y) ==> zipWith (curry f) x y where _ = isVar f
 error = not (elem x y) ==> notElem x y
 warn  = foldr f z (map g x) ==> foldr (f . g) z x
 error = x ++ concatMap (' ':) y ==> unwords (x:y)
@@ -91,17 +93,32 @@ error = filter f x /= [] ==> any f x
 
 -- FOLDS
 
-error = foldr (&&) True ==> and
-error = foldl (&&) True ==> and
-error = foldr (||) False ==> or
-error = foldl (||) False ==> or
-error = foldr (>>) (return ()) ==> sequence_
-error = foldl (+) 0 ==> sum
-error = foldl (*) 1 ==> product
+error = foldr  (>>) (return ()) ==> sequence_
+error = foldr  (&&) True ==> and
+error = foldl  (&&) True ==> and
+error = foldr1 (&&)  ==> and
+error = foldl1 (&&)  ==> and
+error = foldr  (||) False ==> or
+error = foldl  (||) False ==> or
+error = foldr1 (||)  ==> or
+error = foldl1 (||)  ==> or
+error = foldl  (+) 0 ==> sum
+error = foldr  (+) 0 ==> sum
+error = foldl1 (+)   ==> sum
+error = foldr1 (+)   ==> sum
+error = foldl  (*) 1 ==> product
+error = foldr  (*) 1 ==> product
+error = foldl1 (*)   ==> product
+error = foldr1 (*)   ==> product
+error = foldl1 max   ==> maximum
+error = foldr1 max   ==> maximum
+error = foldl1 min   ==> minimum
+error = foldr1 min   ==> minimum
 
 -- FUNCTION
 
 error = (\x -> x) ==> id
+error = (\x y -> x) ==> const
 error = (\(_,y) -> y) ==> snd
 error = (\(x,_) -> x) ==> fst
 warn "Use curry" = (\x y-> f (x,y)) ==> curry f where _ = notIn [x,y] f
@@ -112,11 +129,13 @@ warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 error "Redundant id" = id x ==> x
 error "Redundant const" = const x y ==> x
+warn  = (\a b -> o (f a) (f b)) ==> o `Data.Function.on` f
 
 -- BOOL
 
 error "Redundant ==" = a == True ==> a
 warn  "Redundant ==" = a == False ==> not a
+error "Redundant if" = (if a then x else x) ==> x where note = "reduces strictness"
 error "Redundant if" = (if a then True else False) ==> a
 error "Redundant if" = (if a then False else True) ==> not a
 error "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then t else f

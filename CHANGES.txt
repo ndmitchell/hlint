@@ -1,6 +1,6 @@
 Changelog for HLint
 
-    Add hints: if c then (True,x) else (False,x) ==> (c,x)
+    Add lots of hints from Lennart Augustsson
 1.8.13
     #302, add a backup fixity analysis, if the HSE one fails
     Fix x /= y || x /= z ==> x `notElem` [y,z], should be &&
