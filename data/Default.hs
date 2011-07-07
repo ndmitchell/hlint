@@ -56,11 +56,7 @@ error = showsPrec 0 ==> shows
 
 error = concat (map f x) ==> concatMap f x
 warn = concat [a,b] ==> a ++ b
--- these hints pick up way too much
---warn = a++b++c++d++e++f++g ==> concat [a, b, c, d, e, f, g]
---warn = a++b++c++d++e++f ==> concat [a, b, c, d, e, f]
---warn = a++b++c++d++e ==> concat [a, b, c, d, e]
-error "Use map once" = map f (map g x) ==> map (f . g) x
+warn "Use map once" = map f (map g x) ==> map (f . g) x
 warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
 error = head (reverse x) ==> last x
@@ -127,8 +123,6 @@ error "Redundant $" = (($) . f) ==> f
 error "Redundant $" = (f $) ==> f
 warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
-error "Redundant id" = id x ==> x
-error "Redundant const" = const x y ==> x
 warn  = (\a b -> o (f a) (f b)) ==> o `Data.Function.on` f
 
 -- BOOL
@@ -148,6 +142,10 @@ warn  "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
 warn  "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
 warn  "Redundant if" = (if c then (True, x) else (False, x)) ==> (c, x) where note = "reduces strictness"
 warn  "Redundant if" = (if c then (False, x) else (True, x)) ==> (not c, x) where note = "reduces strictness"
+warn = or [x,y]  ==> x || y
+warn = or [x,y,z]  ==> x || y || z
+warn = and [x,y]  ==> x && y
+warn = and [x,y,z]  ==> x && y && z
 
 -- ARROW
 
@@ -158,6 +156,8 @@ warn  = (\(x,y) -> (f x, g y)) ==> f Control.Arrow.*** g where _ = notIn [x,y] [
 warn  = (\x -> (f x, g x)) ==> f Control.Arrow.&&& g where _ = notIn x [f,g]
 warn  = (\(x,y) -> (f x,y)) ==> Control.Arrow.first f where _ = notIn [x,y] f
 warn  = (\(x,y) -> (x,f y)) ==> Control.Arrow.second f where _ = notIn [x,y] f
+warn  = (f (fst x), g (snd x)) ==> (f Control.Arrow.*** g) x
+warn "Redundant pair" = (fst x, snd x) ==>  x
 
 -- FUNCTOR
 
@@ -210,10 +210,18 @@ error = not (isNothing x) ==> isJust x
 error = not (isJust x) ==> isNothing x
 error = maybe [] (:[]) ==> maybeToList
 error = catMaybes (map f x) ==> mapMaybe f x
+warn  = (case x of Nothing -> y; Just a -> a)  ==> fromMaybe y x
+error = (if isNothing x then y else f (fromJust x)) ==> maybe y f x
+error = (if isJust x then f (fromJust x) else y) ==> maybe y f x
+error = maybe Nothing (Just . f) ==> fmap f
+warn  = map fromJust . filter isJust  ==>  Data.Maybe.catMaybes
+error  = x == Nothing  ==>  isNothing x
+error  = Nothing == x  ==>  isNothing x
+error  = x /= Nothing  ==>  Data.Maybe.isJust x
+error  = Nothing /= x  ==>  Data.Maybe.isJust x
 error = concatMap (maybeToList . f) ==> Data.Maybe.mapMaybe f
 error = concatMap maybeToList ==> catMaybes
 error = maybe n Just x ==> Control.Monad.mplus x n
-warn  = (case x of Nothing -> y; Just a -> a)  ==> fromMaybe y x
 warn  = (case x of Just a -> a; Nothing -> y)  ==> fromMaybe y x
 error = (if isNothing x then y else fromJust x) ==> fromMaybe y x
 error = (if isJust x then fromJust x else y) ==> fromMaybe y x
@@ -247,6 +255,7 @@ warn  = not (odd x) ==> even x
 warn  = x ** 0.5 ==> sqrt x
 warn  = x ^^ y ==> x ** y where _ = isLitInt y
 warn  "Use 1" = x ^ 0 ==> 1
+warn  = round (x - 0.5) ==> floor x
 
 -- EXCEPTION
 
@@ -294,6 +303,9 @@ error "Evaluate" = x * 1 ==> x
 error "Evaluate" = x / 1 ==> x
 error "Evaluate" = concat [a] ==> a
 error "Evaluate" = concat [] ==> []
+error "Evaluate" = zip [] [] ==> []
+error "Evaluate" = id x ==> x
+error "Evaluate" = const x y ==> x
 
 -- COMPLEX
 
