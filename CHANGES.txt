@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    GHC 7.2 compatibility
     Add lots of hints from Lennart Augustsson
 1.8.13
     #302, add a backup fixity analysis, if the HSE one fails
