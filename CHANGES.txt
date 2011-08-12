@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.14
     #455, GHC 7.2 compatibility
     Add lots of hints from Lennart Augustsson
 1.8.13

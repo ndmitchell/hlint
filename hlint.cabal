@@ -1,7 +1,7 @@
 cabal-version:      >= 1.6
 build-type:         Simple
 name:               hlint
-version:            1.8.13
+version:            1.8.14
 -- license is GPL v2 only
 license:            GPL
 license-file:       LICENSE
