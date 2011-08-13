@@ -84,7 +84,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
        ,Option ""  ["cpp-include"] (ReqArg Include "dir") "CPP include path"
        ,Option ""  ["cpp-simple"] (NoArg SimpleCpp) "Use a simple CPP (strip # lines)"
-       ,Option ""  ["cpp-ansi"] (NoArg Ansi) "Use CPP in -ansi mode"
+       ,Option ""  ["cpp-ansi"] (NoArg Ansi) "Use CPP in ANSI compatibility mode"
        ]
 
 

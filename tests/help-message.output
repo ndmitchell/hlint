@@ -21,6 +21,7 @@ HLint v0.0, (C) Neil Mitchell 2006-2011
             --cpp-define=name[=value]  CPP #define
             --cpp-include=dir          CPP include path
             --cpp-simple               Use a simple CPP (strip # lines)
+            --cpp-ansi                 Use CPP in ANSI compatibility mode
 
 HLint gives hints on how to improve Haskell code.
 
