@@ -7,8 +7,8 @@
 yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
 x `yes` y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
 no x y = if a then b else c
-foo b | c <- f b = c -- foo (f -> c) = c
-foo x y b z | c:cs <- f g b = c -- foo x y (f g -> c:cs) z = c
+-- foo b | c <- f b = c -- foo (f -> c) = c
+-- foo x y b z | c:cs <- f g b = c -- foo x y (f g -> c:cs) z = c
 foo b | c <- f b = c + b
 foo b | c <- f b = c where f = here
 foo b | c <- f b = c where foo = b
@@ -38,6 +38,8 @@ hints gen (Pattern pat (UnGuardedRhs d bod) bind)
     | length guards > 2 = [gen "Use guards" $ Pattern pat (GuardedRhss d guards) bind]
     where guards = asGuards bod
 
+{-
+-- Do not suggest view patterns, they aren't something everyone likes sufficiently
 hints gen (Pattern pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op (view -> Var_ p))] bod]) bind)
     | Just i <- findIndex (=~= (toNamed p :: Pat_)) pats
     , p `notElem` (vars bod ++ vars bind)
@@ -46,6 +48,7 @@ hints gen (Pattern pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op 
        Pattern (take i pats ++ [PParen an $ PViewPat an op pat] ++ drop (i+1) pats) (UnGuardedRhs an bod) bind]
     where
         decsBind = nub $ concatMap declBind $ childrenBi bind
+-}
 
 hints gen (Pattern pats (GuardedRhss _ [GuardedRhs _ [test] bod]) bind)
     | prettyPrint test `elem` ["otherwise","True"]

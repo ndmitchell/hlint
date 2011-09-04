@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Never suggest view patterns (they aren't sufficiently better)
     Don't suggest use of Data.Ord.comparing, using `on` is better
     Only suggest elem/notElem on 3 or more items
 1.8.15
