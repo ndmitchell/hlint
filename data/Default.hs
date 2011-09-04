@@ -9,7 +9,6 @@ import Data.Int
 import Data.List as X
 import Data.Maybe
 import Data.Monoid
-import Data.Ord
 import System.IO
 
 import IO as System.IO
@@ -41,10 +40,10 @@ error = compare x y /= GT ==> x <= y
 error = compare x y == LT ==> x < y
 error = compare x y /= LT ==> x >= y
 error = compare x y == GT ==> x > y
-error = compare (f x) (f y) ==> Data.Ord.comparing f x y
-error = on compare f ==> Data.Ord.comparing f
 error = x == a || x == b || x == c ==> x `elem` [a,b,c]
 error = x /= a && x /= b && x /= c ==> x `notElem` [a,b,c]
+--error = compare (f x) (f y) ==> Data.Ord.comparing f x y -- not that great
+--error = on compare f ==> Data.Ord.comparing f -- not that great
 
 -- READ/SHOW
 
