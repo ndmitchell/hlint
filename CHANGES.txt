@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Only suggest elem/notElem on 3 or more items
 1.8.15
     Add --cpp-ansi to turn on ANSI compat in cpphs
 1.8.14

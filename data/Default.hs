@@ -43,8 +43,8 @@ error = compare x y /= LT ==> x >= y
 error = compare x y == GT ==> x > y
 error = compare (f x) (f y) ==> Data.Ord.comparing f x y
 error = on compare f ==> Data.Ord.comparing f
-error = x == y || x == z ==> x `elem` [y,z]
-error = x /= y && x /= z ==> x `notElem` [y,z]
+error = x == a || x == b || x == c ==> x `elem` [a,b,c]
+error = x /= a && x /= b && x /= c ==> x `notElem` [a,b,c]
 
 -- READ/SHOW
 
