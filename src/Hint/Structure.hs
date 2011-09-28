@@ -26,7 +26,6 @@ module Hint.Structure where
 
 import Hint.Type
 import Util
-import Data.List
 
 
 structureHint :: DeclHint
