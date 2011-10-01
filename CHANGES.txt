@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.17
     #479, allow - as the file to specify using stdin
 1.8.16
     #478, allow cpphs-1.13.1
