@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #479, allow - as the file to specify using stdin
 1.8.16
     #478, allow cpphs-1.13.1
     Never suggest view patterns (they aren't sufficiently better)

@@ -129,10 +129,10 @@ defaultEncoding = Encoding_Internal Nothing
 
 
 readFileEncoding :: Encoding -> FilePath -> IO String
-readFileEncoding (Encoding_Internal x) = case x of
-    Nothing -> readFile
-    Just set -> \file -> do
-        h <- openFile file ReadMode
+readFileEncoding (Encoding_Internal x) file = case x of
+    Nothing -> if file == "-" then getContents else readFile file
+    Just set -> do
+        h <- if file == "-" then return stdin else openFile file ReadMode
         set h
         hGetContents h
 

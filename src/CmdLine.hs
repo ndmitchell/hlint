@@ -169,6 +169,7 @@ helpText = unlines
 
 
 getFile :: [String] -> FilePath -> IO [FilePath]
+getFile _ "-" = return ["-"]
 getFile exts file = do
     b <- doesDirectoryExist file
     if b then do
@@ -181,6 +182,7 @@ getFile exts file = do
 
 
 getHintFile :: FilePath -> FilePath -> IO FilePath
+getHintFile _ "-" = return "-"
 getHintFile dataDir x = do
         let poss = nub $ concat [x : [x <.> "hs" | takeExtension x /= ".hs"] | x <- [x,dataDir </> x]]
         f poss poss
