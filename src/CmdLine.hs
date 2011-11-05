@@ -39,7 +39,7 @@ data Cmd = Cmd
     ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
     ,cmdLanguage :: [Extension]      -- ^ the extensions (may be prefixed by "No")
     ,cmdQuiet :: Bool                -- ^ supress all console output
-    ,cmdCross :: Bool                -- ^ work between source files
+    ,cmdCross :: Bool                -- ^ work between source files, applies to hints such as duplicate code between modules
     }
 
 
