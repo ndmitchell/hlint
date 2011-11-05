@@ -59,7 +59,7 @@ readRule m@MatchExp{lhs=(fmapAn -> lhs), rhs=(fmapAn -> rhs), side=(fmap fmapAn 
     (:) m{lhs=lhs,side=side,rhs=rhs} $ fromMaybe [] $ do
         (l,v1) <- dotVersion lhs
         (r,v2) <- dotVersion rhs
-        guard $ v1 == v2 && l /= [] && r /= [] && v1 `notElem` vars side
+        guard $ v1 == v2 && l /= [] && r /= [] && v1 `notElem` (vars side ++ vars l ++ vars r)
         return [m{lhs=dotApps l, rhs=dotApps r, side=side}
                ,m{lhs=dotApps (l++[toNamed v1]), rhs=dotApps (r++[toNamed v1]), side=side}]
 readRule _ = []

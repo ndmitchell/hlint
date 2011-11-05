@@ -39,6 +39,8 @@ error = a * (b+c) ==> undefined
 error = Array.head ==> head
 error = tail ==> Array.tail
 
+error = zip [1..length x] x ==> zipFrom 1 x
+
 
 {-
 <TEST>
@@ -84,5 +86,7 @@ import Array(head); test = head -- head
 import Array as A; test = A.head -- head
 test = tail -- Array.tail
 import qualified Array as B; test = tail -- B.tail
+zip [1..length x]
+zip [1..length x] x -- zipFrom 1 x
 </TEST>
 -}
