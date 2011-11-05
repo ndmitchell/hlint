@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards #-}
 {-
     Reduce the number of import declarations.
     Two import declarations can be combined if:
