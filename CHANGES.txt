@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add a --path command line option to say where files live
     #441, avoid bad matches due to automatically eta reducing rules
     #489, import Foo as Foo is redundant
     #481, suggest liftM instead of fmap when using the Monad laws

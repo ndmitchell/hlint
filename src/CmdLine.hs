@@ -47,6 +47,7 @@ data Opts = Help
           | Ver
           | Test
           | Hints FilePath
+          | Path FilePath
           | Report FilePath
           | Skip String
           | ShowAll
@@ -80,6 +81,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "f" ["find"] (ReqArg FindHints "file") "Find hints in a Haskell file"
        ,Option "t" ["test"] (NoArg Test) "Run in test mode"
        ,Option "d" ["datadir"] (ReqArg DataDir "dir") "Override the data directory"
+       ,Option "p" ["path"] (ReqArg Path "dir") "Directory in which to search for files"
        ,Option "q" ["quiet"] (NoArg Quiet) "Supress most console output"
        ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
        ,Option ""  ["cpp-include"] (ReqArg Include "dir") "CPP include path"
@@ -107,8 +109,9 @@ getCmd args = do
 
     let exts = [x | Ext x <- opt]
         exts2 = if null exts then ["hs","lhs"] else exts
-    files <- if null files then return Nothing else fmap Just $ concatMapM (getFile exts2) files
-    findHints <- concatMapM (getFile exts2) [x | FindHints x <- opt]
+    let path = [x | Path x <- opt] ++ ["."]
+    files <- if null files then return Nothing else fmap Just $ concatMapM (getFile path exts2) files
+    findHints <- concatMapM (getFile path exts2) [x | FindHints x <- opt]
 
     let hintFiles = [x | Hints x <- opt]
     hints <- mapM (getHintFile dataDir) $ hintFiles ++ ["HLint" | null hintFiles]
@@ -168,17 +171,17 @@ helpText = unlines
     ]
 
 
-getFile :: [String] -> FilePath -> IO [FilePath]
-getFile _ "-" = return ["-"]
-getFile exts file = do
-    b <- doesDirectoryExist file
-    if b then do
-        xs <- getDirectoryContentsRecursive file
+getFile :: [FilePath] -> [String] -> FilePath -> IO [FilePath]
+getFile path _ "-" = return ["-"]
+getFile [] exts file = error $ "Couldn't find file: " ++ file
+getFile (p:ath) exts file = do
+    isDir <- doesDirectoryExist $ p </> file
+    isFil <- doesFileExist $ p </> file
+    if isDir then do
+        xs <- getDirectoryContentsRecursive $ p </> file
         return [x | x <- xs, drop 1 (takeExtension x) `elem` exts]
-     else do
-        b <- doesFileExist file
-        unless b $ error $ "Couldn't find file: " ++ file
-        return [file]
+     else if isFil then return [p </> file]
+     else getFile ath exts file
 
 
 getHintFile :: FilePath -> FilePath -> IO FilePath
