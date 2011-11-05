@@ -3,6 +3,7 @@
 module CmdLine(Cmd(..), CppFlags(..), getCmd, exitWithHelp) where
 
 import Control.Monad
+import Data.Char
 import Data.List
 import Data.Maybe
 import System.Console.GetOpt
@@ -170,20 +171,42 @@ helpText = unlines
     ,"  hlint src --report"
     ]
 
+"." <\> x = x
+x <\> y = x </> y
+
 
 getFile :: [FilePath] -> [String] -> FilePath -> IO [FilePath]
 getFile path _ "-" = return ["-"]
 getFile [] exts file = error $ "Couldn't find file: " ++ file
 getFile (p:ath) exts file = do
-    let s = if p == "." then file else p </> file
-    isDir <- doesDirectoryExist s
+    isDir <- doesDirectoryExist $ p <\> file
     if isDir then do
-        xs <- getDirectoryContentsRecursive s
+        xs <- getDirectoryContentsRecursive $ p <\> file
         return [x | x <- xs, drop 1 (takeExtension x) `elem` exts]
      else do
-        isFil <- doesFileExist s
-        if isFil then return [s]
-         else getFile ath exts file
+        isFil <- doesFileExist $ p <\> file
+        if isFil then return [p <\> file]
+         else do
+            res <- getModule p exts file
+            case res of
+                Just x -> return [x]
+                Nothing -> getFile ath exts file
+
+
+getModule :: FilePath -> [String] -> FilePath -> IO (Maybe FilePath)
+getModule path exts x | not (any isSpace x) && all isMod xs = f exts
+    where
+        xs = words $ map (\x -> if x == '.' then ' ' else x) x
+        isMod (x:xs) = isUpper x && all (\x -> isAlphaNum x || x == '_') xs
+        isMod _ = False
+        pre = path <\> joinPath xs
+
+        f [] = return Nothing
+        f (x:xs) = do
+            let s = pre <.> x
+            b <- doesFileExist s
+            if b then return $ Just s else f xs
+getModule _ _ _ = return Nothing
 
 
 getHintFile :: FilePath -> FilePath -> IO FilePath
