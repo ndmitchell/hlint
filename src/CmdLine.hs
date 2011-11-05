@@ -177,12 +177,13 @@ getFile [] exts file = error $ "Couldn't find file: " ++ file
 getFile (p:ath) exts file = do
     let s = if p == "." then file else p </> file
     isDir <- doesDirectoryExist s
-    isFil <- doesFileExist s
     if isDir then do
         xs <- getDirectoryContentsRecursive s
         return [x | x <- xs, drop 1 (takeExtension x) `elem` exts]
-     else if isFil then return [s]
-     else getFile ath exts file
+     else do
+        isFil <- doesFileExist s
+        if isFil then return [s]
+         else getFile ath exts file
 
 
 getHintFile :: FilePath -> FilePath -> IO FilePath
