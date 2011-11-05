@@ -167,7 +167,7 @@ error "Functor law" = fmap id ==> id
 
 error "Monad law, left identity" = return a >>= f ==> f a
 error "Monad law, right identity" = m >>= return ==> m
-warn  = m >>= return . f ==> fmap f m
+warn  = m >>= return . f ==> Control.Monad.liftM f m -- cannot be fmap, because is in Functor not Monad
 error = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y where _ = not (isAtom y)
 error = (if x then y else return ()) ==> Control.Monad.when x y where _ = isAtom y
 error = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y where _ = not (isAtom y)
@@ -336,7 +336,7 @@ yes = not (a == b) -- a /= b
 yes = not (a /= b) -- a == b
 yes = if a then 1 else if b then 1 else 2 -- if a || b then 1 else 2
 no  = if a then 1 else if b then 3 else 2
-yes = a >>= return . id -- fmap id a
+yes = a >>= return . id -- Control.Monad.liftM id a
 yes = (x !! 0) + (x !! 2) -- head x
 yes = if b < 42 then [a] else [] -- [a | b < 42]
 yes = take 5 (foo xs) == "hello" -- "hello" `Data.List.isPrefixOf` foo xs
