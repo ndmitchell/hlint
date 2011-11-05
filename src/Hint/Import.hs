@@ -21,6 +21,8 @@ import A; import A hiding (C) -- import A
 import A; import A as Y -- import A as Y
 import A; import qualified A as Y
 import A as B; import A as C
+import A as A -- import A
+import qualified A as A -- import qualified A
 import A; import B; import A -- import A
 import qualified A; import A
 import B; import A; import A -- import A
@@ -49,7 +51,7 @@ import Data.Maybe
 importHint :: ModuHint
 importHint _ x = concatMap (wrap . snd) (groupSortFst
                  [((fromNamed $ importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]) ++
-                 concatMap hierarchy (universeBi x) ++
+                 concatMap (\x -> hierarchy x ++ reduce1 x) (universeBi x) ++
                  multiExport x
 
 
@@ -87,6 +89,12 @@ reduce x y | qual, as, specs = Just x
 
 reduce _ _ = Nothing
 
+
+reduce1 :: ImportDecl S -> [Idea]
+reduce1 i@ImportDecl{..}
+    | Just (dropAnn importModule) == fmap dropAnn importAs
+    = [warn "Redundant as" i i{importAs=Nothing}]
+reduce1 _ = []
 
 
 newNames = let (*) = flip (,) in

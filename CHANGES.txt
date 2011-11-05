@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #489, import Foo as Foo is redundant
     #481, suggest liftM instead of fmap when using the Monad laws
 1.8.17
     #479, allow - as the file to specify using stdin
