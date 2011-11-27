@@ -55,6 +55,7 @@ f = \x -> bar map (filter x) where -- bar map . filter
 f = bar &+& \x -> f (g x)
 foo = [\column -> set column [treeViewColumnTitle := printf "%s (match %d)" name (length candidnates)]]
 foo = [\x -> x]
+foo = [\m x -> insert x x m]
 </TEST>
 -}
 

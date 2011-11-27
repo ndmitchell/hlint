@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #497, don't produce an incorrect lambda when suggesting flip
 1.8.18
     #438, use Foo.Bar to mean Foo/Bar.hs
     Add a --path command line option to say where files live

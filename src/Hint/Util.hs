@@ -35,7 +35,7 @@ niceLambda [x] (view -> App2 (expOp -> Just op) a b)
 
 -- \x y -> f y x = flip f
 niceLambda [x,y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
-    | x == x1 && y == y1 = App an (toNamed "flip") op
+    | x == x1, y == y1, vars op `disjoint` [x,y] = App an (toNamed "flip") op
 
 -- \x -> f (b x) ==> f . b
 -- \x -> f $ b x ==> f . b
