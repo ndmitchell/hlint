@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #500, make sure eta reduction has position information
 1.8.19
     #498, eta reduce even if there is a where block
     #497, don't produce an incorrect lambda when suggesting flip
