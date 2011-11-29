@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards #-}
 
 module Test(test) where
 
@@ -145,13 +145,20 @@ checkAnnotations setting file = do
                               length (show ideas) >= 0 && -- force, mainly for hpc
                               not (isParseError (head ideas)) &&
                               match x (head ideas)
-            return [failed $
-                ["TEST FAILURE (" ++ show (length ideas) ++ " hints generated)"
-                ,"SRC: " ++ showSrcLoc loc
-                ,"INPUT: " ++ inp] ++
-                map ((++) "OUTPUT: " . show) ideas ++
-                ["WANTED: " ++ fromMaybe "<failure>" out]
-                | not good]
+            return $
+                [failed $
+                    ["TEST FAILURE (" ++ show (length ideas) ++ " hints generated)"
+                    ,"SRC: " ++ showSrcLoc loc
+                    ,"INPUT: " ++ inp] ++
+                    map ((++) "OUTPUT: " . show) ideas ++
+                    ["WANTED: " ++ fromMaybe "<failure>" out]
+                    | not good] ++
+                [failed $
+                    ["TEST FAILURE (BAD LOCATION)"
+                    ,"SRC: " ++ showSrcLoc loc
+                    ,"INPUT: " ++ inp
+                    ,"OUTPUT: " ++ show i]
+                    | i@Idea{loc=SrcLoc{..}} <- ideas, srcFilename == "" || srcLine == 0 || srcColumn == 0]
 
         match "???" _ = True
         match x y | "@" `isPrefixOf` x = a == show (severity y) && match (ltrim b) y
