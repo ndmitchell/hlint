@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #505, suggest record patterns
 1.8.20
     #500, make sure eta reduction has position information
 1.8.19
