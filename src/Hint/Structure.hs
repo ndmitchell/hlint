@@ -18,6 +18,9 @@ foo x = yes x x where yes x y = if a then b else if c then d else e -- yes x y ;
 foo x | otherwise = y -- foo x = y
 -- FIXME: #358 foo x = x + x where -- foo x = x + x
 foo x | a = b | True = d -- foo x | a = b ; | otherwise = d
+foo (Bar _ _ _ _) = x -- Bar{}
+foo (Bar _ x _ _) = x
+foo (Bar _ _) = x
 </TEST>
 -}
 
@@ -29,7 +32,9 @@ import Util
 
 
 structureHint :: DeclHint
-structureHint _ _ x = concatMap (uncurry hints . swap) $ asPattern x
+structureHint _ _ x =
+    concatMap (uncurry hints . swap) (asPattern x) ++
+    concatMap patHint (universeBi x)
 
 
 hints :: (String -> Pattern -> Idea) -> Pattern -> [Idea]
@@ -84,3 +89,11 @@ asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
         match o@(Match a b pat rhs bind) = (Pattern pat rhs bind, \msg (Pattern pat rhs bind) -> warn msg o $ Match a b pat rhs bind)
         match o@(InfixMatch a p b ps rhs bind) = (Pattern (p:ps) rhs bind, \msg (Pattern (p:ps) rhs bind) -> warn msg o $ InfixMatch a p b ps rhs bind)
         alt o@(Alt a pat rhs bind) = [(Pattern [pat] (fromGuardedAlts rhs) bind, \msg (Pattern [pat] rhs bind) -> warn msg o $ Alt a pat (toGuardedAlts rhs) bind)]
+
+
+
+-- Should these hints be in the same module? They are less structure, and more about pattern matching
+-- Or perhaps the entire module should be renamed Pattern, since it's all about patterns
+patHint :: Pat_ -> [Idea]
+patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args = [warn "Use record patterns" o $ PRec an name []]
+patHint _ = []
