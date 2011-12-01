@@ -28,6 +28,10 @@ error = hPutStr stdout ==> putStr
 error = hPutStrLn stdout ==> putStrLn
 error = hPrint stdout ==> print
 
+-- EXIT
+
+error = exitWith ExitSuccess ==> exitSuccess
+
 -- ORD
 
 error = not (a == b) ==> a /= b where note = "incorrect if either value is NaN"
