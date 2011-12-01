@@ -161,11 +161,15 @@ errorOn val msg = exitMessage $
 -- find definitions in a source file
 findSettings :: ParseFlags -> FilePath -> IO (String, [Setting])
 findSettings flags file = do
-    x <- parseResult $ parseFile flags file
-    let xs = concatMap (findSetting $ UnQual an) (moduleDecls x)
-        s = unlines $ ["-- hints found in " ++ file] ++ map prettyPrint xs ++ ["-- no hints found" | null xs]
-        r = concatMap (readSetting emptyScope) xs
-    return (s,r)
+    x <- parseFile flags file
+    case snd x of
+        ParseFailed sl msg ->
+            return ("-- Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
+        ParseOk m -> do
+            let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
+                s = unlines $ ["-- hints found in " ++ file] ++ map prettyPrint xs ++ ["-- no hints found" | null xs]
+                r = concatMap (readSetting emptyScope) xs
+            return (s,r)
 
 
 findSetting :: (Name S -> QName S) -> Decl_ -> [Decl_]

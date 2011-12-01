@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    When finding hints, don't abort on a parse error
     #507, add exitSuccess hint
     #505, suggest record patterns
 1.8.20
