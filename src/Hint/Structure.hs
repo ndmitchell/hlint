@@ -21,6 +21,10 @@ foo x | a = b | True = d -- foo x | a = b ; | otherwise = d
 foo (Bar _ _ _ _) = x -- Bar{}
 foo (Bar _ x _ _) = x
 foo (Bar _ _) = x
+foo = case f v of _ -> x -- x
+foo = case v of v -> x -- x
+foo = case v of z -> z
+foo = case v of _ | False -> x
 </TEST>
 -}
 
@@ -34,7 +38,8 @@ import Util
 structureHint :: DeclHint
 structureHint _ _ x =
     concatMap (uncurry hints . swap) (asPattern x) ++
-    concatMap patHint (universeBi x)
+    concatMap patHint (universeBi x) ++
+    concatMap expHint (universeBi x)
 
 
 hints :: (String -> Pattern -> Idea) -> Pattern -> [Idea]
@@ -97,3 +102,10 @@ asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
 patHint :: Pat_ -> [Idea]
 patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args = [warn "Use record patterns" o $ PRec an name []]
 patHint _ = []
+
+
+expHint :: Exp_ -> [Idea]
+expHint o@(Case _ _ [Alt _ PWildCard{} (UnGuardedAlt _ e) Nothing]) = [warn "Redundant case" o e]
+expHint o@(Case _ (Var _ x) [Alt _ (PVar _ y) (UnGuardedAlt _ e) Nothing])
+    | x =~= UnQual an y = [warn "Redundant case" o e]
+expHint _ = []

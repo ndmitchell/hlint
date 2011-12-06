@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #512, detect unnecessary case construct
     When finding hints, don't abort on a parse error
     #507, add exitSuccess hint
     #505, suggest record patterns
