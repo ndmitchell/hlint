@@ -68,6 +68,7 @@ error = reverse (tail (reverse x)) ==> init x
 error = take (length x - 1) x ==> init x
 error = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
 error = foldr (++) [] ==> concat
+error = foldl (++) [] ==> concat
 error = span (not . p) ==> break p
 error = break (not . p) ==> span p
 error = concatMap (++ "\n") ==> unlines
