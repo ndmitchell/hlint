@@ -27,6 +27,9 @@ error = hPutChar stdout ==> putChar
 error = hPutStr stdout ==> putStr
 error = hPutStrLn stdout ==> putStrLn
 error = hPrint stdout ==> print
+error = hWaitForInput a 0 ==> hReady a
+error = hPutStrLn a (show b) ==> hPrint a b
+error = hIsEOF stdin ==> isEOF
 
 -- EXIT
 
@@ -54,6 +57,8 @@ error = x /= a && x /= b && x /= c ==> x `notElem` [a,b,c]
 error = showsPrec 0 x "" ==> show x
 error = readsPrec 0 ==> reads
 error = showsPrec 0 ==> shows
+warn = showIntAtBase 16 intToDigit ==> showHex
+warn = showIntAtBase 8 intToDigit ==> showOct
 
 -- LIST
 
@@ -90,6 +95,12 @@ warn  = concat (intersperse " " x) ==> unwords x
 error "Use any" = null (filter f x) ==> not (any f x)
 error "Use any" = filter f x == [] ==> not (any f x)
 error = filter f x /= [] ==> any f x
+error = any ((==) a) ==> elem a
+error = any (== a) ==> elem a
+error = any (a ==) ==> elem a
+error = all ((/=) a) ==> notElem a
+error = all (/= a) ==> notElem a
+error = all (a /=) ==> notElem a
 
 -- FOLDS
 
@@ -114,6 +125,7 @@ error = foldl1 max   ==> maximum
 error = foldr1 max   ==> maximum
 error = foldl1 min   ==> minimum
 error = foldr1 min   ==> minimum
+error = foldr mplus mzero ==> msum
 
 -- FUNCTION
 
@@ -128,6 +140,16 @@ error "Redundant $" = (f $) ==> f
 warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 warn  = (\a b -> o (f a) (f b)) ==> o `Data.Function.on` f
+
+-- CHAR
+
+error = a >= 'a' && a <= 'z' ==> isAsciiLower a
+error = a >= 'A' && a <= 'Z' ==> isAsciiUpper a
+error = a >= '0' && a <= '9' ==> isDigit a
+error = a >= '0' && a <= '7' ==> isOctDigit a
+error = not (isControl a) ==> isPrint a
+error = isLower a || isUpper a ==> isAlpha a
+error = isAlpha a || isDigit a ==> isAlphaNum a
 
 -- BOOL
 
@@ -181,9 +203,17 @@ error = sequence (map f x) ==> mapM f x
 error = sequence_ (map f x) ==> mapM_ f x
 warn  = flip mapM ==> Control.Monad.forM
 warn  = flip mapM_ ==> Control.Monad.forM_
+warn  = flip forM ==> mapM
+warn  = flip forM_ ==> mapM_
 error = when (not x) ==> unless x
 error = x >>= id ==> Control.Monad.join x
 error = liftM f (liftM g x) ==> liftM (f . g) x
+warn = a >> return () ==> void a
+warn = fmap (const ()) ==> void
+error = flip (>=>) ==> (<=<)
+error = flip (<=<) ==> (>=>)
+error = a >> forever a ==> forever a
+warn = liftM2 id ==> ap
 
 -- MONAD LIST
 
@@ -194,6 +224,17 @@ error = sequence (replicate n x) ==> Control.Monad.replicateM n x
 error = sequence_ (replicate n x) ==> Control.Monad.replicateM_ n x
 error = mapM f (map g x) ==> mapM (f . g) x
 error = mapM_ f (map g x) ==> mapM_ (f . g) x
+
+-- APPLICATIVE / TRAVERSABLE
+
+error = flip traverse ==> for
+error = flip for ==> traverse
+error = flip traverse_ ==> for_
+error = flip for_ ==> traverse_
+error = foldr (*>) (pure ()) ==> sequenceA_
+error = foldr (<|>) empty ==> asum
+error = liftA2 (flip ($)) ==> (<**>)
+error = Just <$> a <|> pure Nothing ==> optional a
 
 -- LIST COMP
 
@@ -232,6 +273,12 @@ error = (if isJust x then fromJust x else y) ==> fromMaybe y x
 error = isJust x && (fromJust x == y) ==> x == Just y
 error = mapMaybe f (map g x) ==> mapMaybe (f . g) x
 error = fromMaybe a (fmap f x) ==> maybe a f x
+warn = [x | Just x <- a] ==> Data.Maybe.catMaybes a
+
+-- EITHER
+
+error = [a | Left a <- a] ==> lefts a
+error = [a | Right a <- a] ==> rights a
 
 -- INFIX
 
@@ -262,14 +309,30 @@ warn  = x ^^ y ==> x ** y where _ = isLitInt y
 warn  "Use 1" = x ^ 0 ==> 1
 warn  = round (x - 0.5) ==> floor x
 
+-- CONCURRENT
+
+warn = mapM_ (writeChan a) ==> writeList2Chan a
+
 -- EXCEPTION
 
 error "Use Control.Exception.catch" = Prelude.catch ==> Control.Exception.catch where note = "Prelude.catch does not catch most exceptions"
 warn = flip Control.Exception.catch ==> handle
+warn = flip handle ==> Control.Exception.catch
 warn = flip (catchJust p) ==> handleJust p
+warn = flip (handleJust p) ==> catchJust p
 warn = Control.Exception.bracket b (const a) (const t) ==> Control.Exception.bracket_ b a t
 warn = Control.Exception.bracket (openFile x y) hClose ==> withFile x y
 warn = Control.Exception.bracket (openBinaryFile x y) hClose ==> withBinaryFile x y
+warn = throw (ErrorCall a) ==> error a
+error = a `seq` return a ==> Control.Exception.evaluate a
+error = toException NonTermination ==> nonTermination
+error = toException NestedAtomically ==> nestedAtomically
+
+
+-- WEAK POINTERS
+
+error = mkWeak a a b ==> mkWeakPtr a b
+error = mkWeak a (a, b) c ==> mkWeakPair a b c
 
 -- EVALUATE
 

@@ -1,5 +1,7 @@
 Changelog for HLint
 
+    #508, add lots of hints from the base library
+    #317, add hints for a >> return () to void
     Add a fromMaybe/fmap ==> maybe hint
     #304, don't backet tuple sections
     Add foldl (++) [] ==> concat
