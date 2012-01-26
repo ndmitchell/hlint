@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #304, don't backet tuple sections
     Add foldl (++) [] ==> concat
     #512, detect unnecessary case construct
     When finding hints, don't abort on a parse error

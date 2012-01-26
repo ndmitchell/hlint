@@ -400,6 +400,7 @@ yes = catch -- Control.Exception.catch
 import Prelude hiding (catch); no = catch
 import Control.Exception as E; no = E.catch
 main = do f; putStrLn $ show x -- print x
+main = map (writer,) $ map arcObj $ filter (rdfPredEq (Res dctreferences)) ts -- map ((writer,) . arcObj) (filter (rdfPredEq (Res dctreferences)) ts)
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

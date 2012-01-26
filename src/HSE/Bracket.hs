@@ -31,6 +31,7 @@ instance Brackets Exp_ where
         List{} -> True
         LeftSection{} -> True
         RightSection{} -> True
+        TupleSection{} -> True
         RecConstr{} -> True
         ListComp{} -> True
         EnumFrom{} -> True
