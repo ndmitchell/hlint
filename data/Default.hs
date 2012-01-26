@@ -231,6 +231,7 @@ error = (if isNothing x then y else fromJust x) ==> fromMaybe y x
 error = (if isJust x then fromJust x else y) ==> fromMaybe y x
 error = isJust x && (fromJust x == y) ==> x == Just y
 error = mapMaybe f (map g x) ==> mapMaybe (f . g) x
+error = fromMaybe a (fmap f x) ==> maybe a f x
 
 -- INFIX
 

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add a fromMaybe/fmap ==> maybe hint
     #304, don't backet tuple sections
     Add foldl (++) [] ==> concat
     #512, detect unnecessary case construct
