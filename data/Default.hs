@@ -245,6 +245,7 @@ warn  "Redundant list comprehension" = [x | x <- y] ==> y where _ = isVar x
 
 error "Redundant seq" = x `seq` x ==> x
 error "Redundant $!" = id $! x ==> x
+error "Redundant $!" = f $! x ==> f x where _ = not (isVar x)
 
 -- MAYBE
 
@@ -465,6 +466,7 @@ import Prelude hiding (catch); no = catch
 import Control.Exception as E; no = E.catch
 main = do f; putStrLn $ show x -- print x
 main = map (writer,) $ map arcObj $ filter (rdfPredEq (Res dctreferences)) ts -- map ((writer,) . arcObj) (filter (rdfPredEq (Res dctreferences)) ts)
+h x y = return $! (x, y) -- return (x, y)
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
