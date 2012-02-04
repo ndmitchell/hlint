@@ -467,6 +467,7 @@ import Control.Exception as E; no = E.catch
 main = do f; putStrLn $ show x -- print x
 main = map (writer,) $ map arcObj $ filter (rdfPredEq (Res dctreferences)) ts -- map ((writer,) . arcObj) (filter (rdfPredEq (Res dctreferences)) ts)
 h x y = return $! (x, y) -- return (x, y)
+h x y = return $! x
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
