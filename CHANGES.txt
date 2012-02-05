@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add hints for redundant seq/evaluate using isWHNF
     #526, don't hint for return $! (x :: Int)
 1.8.22
     Add hint for $! where the RHS is not a variable

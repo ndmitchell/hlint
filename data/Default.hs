@@ -245,7 +245,9 @@ warn  "Redundant list comprehension" = [x | x <- y] ==> y where _ = isVar x
 
 error "Redundant seq" = x `seq` x ==> x
 error "Redundant $!" = id $! x ==> x
+error "Redundant seq" = x `seq` y ==> y where _ = isWHNF x
 error "Redundant $!" = f $! x ==> f x where _ = isWHNF x
+error "Redundant evaluate" = evaluate x ==> return x where _ = isWHNF x
 
 -- MAYBE
 
@@ -469,6 +471,7 @@ main = map (writer,) $ map arcObj $ filter (rdfPredEq (Res dctreferences)) ts --
 h x y = return $! (x, y) -- return (x, y)
 h x y = return $! x
 getInt = do { x <- readIO "0"; return $! (x :: Int) }
+foo = evaluate [12] -- return [12]
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
