@@ -183,6 +183,7 @@ checkSide x bind = maybe True f x
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
 
         isType "Atom" x = isAtom x
+        isType "WHNF" x = isWHNF x
         isType ('L':'i':'t':typ@(_:_)) (Lit _ x) = head (words $ show x) == typ
         isType typ x = head (words $ show x) == typ
 
