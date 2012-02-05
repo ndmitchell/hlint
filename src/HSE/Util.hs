@@ -142,6 +142,18 @@ isLexeme Lit{} = True
 isLexeme _ = False
 
 
+isWHNF :: Exp_ -> Bool
+isWHNF Con{} = True
+isWHNF Lit{} = True
+isWHNF Lambda{} = True
+isWHNF Tuple{} = True
+isWHNF List{} = True
+isWHNF (Paren _ x) = isWHNF x
+isWHNF RecConstr{} = True
+isWHNF (ExpTypeSig _ x _) = isWHNF x
+isWHNF _ = False
+
+
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
 
