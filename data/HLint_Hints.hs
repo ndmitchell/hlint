@@ -1,5 +1,5 @@
 
-import HLint.HLint
+import "hint" HLint.HLint
 
 -- Hints that apply only to the HLint source code
 
