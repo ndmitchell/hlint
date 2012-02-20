@@ -2,30 +2,31 @@
 -- Begin copied material.
 -- <http://www.cs.kent.ac.uk/people/staff/cr3/toolbox/haskell/dot-squashed.ghci641>
 :{
-let redir varcmd = case break Data.Char.isSpace varcmd of
-                       (var,_:cmd) -> return $ unlines [":set -fno-print-bind-result",
-                                                       "tmp <- System.Directory.getTemporaryDirectory",
-                                                       "(f,h) <- System.IO.openTempFile tmp \"ghci\"",
-                                                       "sto <- GHC.Handle.hDuplicate System.IO.stdout",
-                                                       "GHC.Handle.hDuplicateTo h System.IO.stdout",
-                                                       "System.IO.hClose h",
-                                                       cmd,
-                                                       "GHC.Handle.hDuplicateTo sto System.IO.stdout",
-                                                       "let readFileNow f = readFile f >>=
-                                                          \\t->Data.List.length t `seq` return t",
-                                                       var++" <- readFileNow f",
-                                                       "System.Directory.removeFile f"]
-                       _ -> return "putStrLn \"usage: :redir <var> <cmd>\""
-:def redir cmdHelp redir ":redir <var> <cmd>\t-- execute <cmd>, redirecting stdout to <var>"
+:def redir \varcmd -> return $
+        case break Data.Char.isSpace varcmd of
+            (var,_:cmd) -> unlines
+                [":set -fno-print-bind-result"
+                ,"tmp <- System.Directory.getTemporaryDirectory"
+                ,"(f,h) <- System.IO.openTempFile tmp \"ghci\""
+                ,"sto <- GHC.Handle.hDuplicate System.IO.stdout"
+                ,"GHC.Handle.hDuplicateTo h System.IO.stdout"
+                ,"System.IO.hClose h"
+                ,cmd
+                ,"GHC.Handle.hDuplicateTo sto System.IO.stdout"
+                ,"let readFileNow f = readFile f >>= \\t->Data.List.length t `seq` return t"
+                ,var++" <- readFileNow f"
+                ,"System.Directory.removeFile f"
+                ]
+            _ -> "putStrLn \"usage: :redir <var> <cmd>\""
 :}
 
 --- Integration with the hlint code style tool
 :{
-:def hlint const $ return $ unlines [":unset +t +s",
-                                    ":set -w",
-                                    ":redir hlintvar1 :show modules",
-                                    ":cmd return (\":! hlint \" ++ (concat $ Data.List.intersperse \" \"
-                                      (map (fst . break (==',') . Data.List.drop 2 . snd .
-                                      break (== '(')) $ lines hlintvar1)))",
-                                    ":set +t +s -Wall"]
+:def hlint \extra -> return $ unlines
+        [":unset +t +s"
+        ,":set -w"
+        ,":redir hlintvar1 :show modules"
+        ,":cmd return $ \":! hlint \" ++ unwords (map (takeWhile (/=',') . drop 2 . dropWhile (/= '(')) $ lines hlintvar1) ++ \" \" ++ " ++ show extra
+        ,":set +t +s -Wall"
+        ]
 :}
