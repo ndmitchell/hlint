@@ -100,7 +100,7 @@ getCmd args = do
 
     when (Ver `elem` opt) $ do
         putStr versionText
-        exitWith ExitSuccess
+        exitSuccess
 
     when (Help `elem` opt) exitWithHelp
 
@@ -153,7 +153,7 @@ getCmd args = do
 exitWithHelp :: IO a
 exitWithHelp = do
     putStr helpText
-    exitWith ExitSuccess
+    exitSuccess
 
 
 versionText :: String

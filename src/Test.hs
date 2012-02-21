@@ -153,7 +153,7 @@ checkAnnotations setting file = do
                     map ((++) "OUTPUT: " . show) ideas ++
                     ["WANTED: " ++ fromMaybe "<failure>" out]
                     | not good] ++
-                [failed $
+                [failed
                     ["TEST FAILURE (BAD LOCATION)"
                     ,"SRC: " ++ showSrcLoc loc
                     ,"INPUT: " ++ inp

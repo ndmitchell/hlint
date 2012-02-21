@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, ExistentialQuantification, Rank2Types, PatternGuards #-}
+{-# LANGUAGE CPP, ExistentialQuantification, Rank2Types #-}
 
 module Util where
 
