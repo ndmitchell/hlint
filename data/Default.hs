@@ -212,6 +212,8 @@ warn = a >> return () ==> void a
 warn = fmap (const ()) ==> void
 error = flip (>=>) ==> (<=<)
 error = flip (<=<) ==> (>=>)
+error = (\x -> f x >>= g) ==> f Control.Monad.>=> g
+error = (\x -> f =<< g x) ==> f Control.Monad.<=< g
 error = a >> forever a ==> forever a
 warn = liftM2 id ==> ap
 
