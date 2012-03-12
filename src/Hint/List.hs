@@ -18,6 +18,7 @@ yes = if x == e then l2 ++ xs else [x] ++ check_elem xs -- x : check_elem xs
 data Yes = Yes (Maybe [Char]) -- Maybe String
 yes = y :: [Char] -> a -- String -> a
 instance C [Char]
+foo = [a b] ++ xs -- a b : xs
 </TEST>
 -}
 
@@ -66,7 +67,7 @@ useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend
         Just $ InfixApp an x2 (QConOp an $ list_cons_name an) y
     where
         f (Lit _ (String _ [x] _)) = Just $ Lit an $ Char an x (show x)
-        f (List _ [x]) = Just $ paren x
+        f (List _ [x]) = Just $ if isApp x then x else paren x
         f _ = Nothing
 useCons _ _ = Nothing
 
