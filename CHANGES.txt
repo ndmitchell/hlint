@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Update the copyright year in the Cabal file
     Allow transformers-0.3.*
 1.8.24
     #531, Make hlint.ghci well formed again
