@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Allow transformers-0.3.*
 1.8.24
     #531, Make hlint.ghci well formed again
 1.8.23
