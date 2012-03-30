@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Allow haskell-src-exts-1.13.*
 1.8.26
     Allow haskell-src-exts-1.12.*
     Don't suggest redundant brackets when turning ++ into :
