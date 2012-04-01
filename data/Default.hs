@@ -212,8 +212,8 @@ warn = a >> return () ==> void a
 warn = fmap (const ()) ==> void
 error = flip (>=>) ==> (<=<)
 error = flip (<=<) ==> (>=>)
-error = (\x -> f x >>= g) ==> f Control.Monad.>=> g
-error = (\x -> f =<< g x) ==> f Control.Monad.<=< g
+error = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = notIn x [f,g]
+error = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = notIn x [f,g]
 error = a >> forever a ==> forever a
 warn = liftM2 id ==> ap
 
@@ -474,6 +474,7 @@ h x y = return $! (x, y) -- return (x, y)
 h x y = return $! x
 getInt = do { x <- readIO "0"; return $! (x :: Int) }
 foo = evaluate [12] -- return [12]
+test = \ a -> f a >>= \ b -> return (a, b)
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Fix a bug, >=> hint was missing check about removal of free var
 1.8.27
     Allow haskell-src-exts-1.13.*
 1.8.26
