@@ -216,6 +216,7 @@ error = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = notIn x [f,g]
 error = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = notIn x [f,g]
 error = a >> forever a ==> forever a
 warn = liftM2 id ==> ap
+error = mapM (uncurry f) (zip l m) ==> zipWithM f l m
 
 -- MONAD LIST
 

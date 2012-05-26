@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #574, add a hint to for mapM/zip ==> zipWithM
 1.8.28
     Fix a bug, >=> hint was missing check about removal of free var
 1.8.27
