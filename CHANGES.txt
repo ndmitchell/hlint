@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.29
     Allow hscolor-1.20.*
     #574, add a hint to for mapM/zip ==> zipWithM
 1.8.28
