@@ -7,6 +7,7 @@
 
     Apply this to things that would get exported by default only
     Also allow prop_ as it's a standard QuickCheck idiom
+    Also allow case_ as it's a standard test-framework-th idiom
     Also don't suggest anything mentioned elsewhere in the module
 
 <TEST>
@@ -21,6 +22,8 @@ a -== b = 1
 myTest = 1; my_test = 1
 semiring'laws = 1 -- semiringLaws = ...
 data Yes = FOO_A | Foo_B -- data Yes = FOO_A | FooB
+case_foo = 1
+cast_foo = 1 -- castFoo = ...
 </TEST>
 -}
 
@@ -75,7 +78,7 @@ getNames x = case x of
 
 
 suggestName :: String -> Maybe String
-suggestName x = listToMaybe [f x | not $ isSym x || good || not (any isLower x) || "prop_" `isPrefixOf` x]
+suggestName x = listToMaybe [f x | not $ isSym x || good || not (any isLower x) || "prop_" `isPrefixOf` x || "case_" `isPrefixOf` x]
     where
         good = all isAlphaNum $ drp '_' $ drp '\'' $ reverse $ drp '_' x
         drp x = dropWhile (== x)

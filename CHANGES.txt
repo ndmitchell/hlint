@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #551, allow case_ as a name with an underscore
 1.8.29
     Allow hscolor-1.20.*
     #574, add a hint to for mapM/zip ==> zipWithM
