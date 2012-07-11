@@ -101,6 +101,12 @@ error = any (a ==) ==> elem a
 error = all ((/=) a) ==> notElem a
 error = all (/= a) ==> notElem a
 error = all (a /=) ==> notElem a
+error = findIndex ((==) a) ==> elemIndex a
+error = findIndex (a ==) ==> elemIndex a
+error = findIndex (== a) ==> elemIndex a
+error = findIndices ((==) a) ==> elemIndices a
+error = findIndices (a ==) ==> elemIndices a
+error = findIndices (== a) ==> elemIndices a
 
 -- FOLDS
 

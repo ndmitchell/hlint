@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add elemIndex/elemIndices hints
     Allow cpphs-1.14
     #551, allow case_ as a name with an underscore
 1.8.29
