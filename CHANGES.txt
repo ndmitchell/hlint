@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Allow cpphs-1.14
     #551, allow case_ as a name with an underscore
 1.8.29
     Allow hscolor-1.20.*
