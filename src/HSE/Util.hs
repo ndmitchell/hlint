@@ -90,6 +90,7 @@ isPViewPat PViewPat{} = True; isPViewPat _ = False
 isParComp ParComp{} = True; isParComp _ = False
 isPatTypeSig PatTypeSig{} = True; isPatTypeSig _ = False
 isQuasiQuote QuasiQuote{} = True; isQuasiQuote _ = False
+isSpliceDecl SpliceDecl{} = True; isSpliceDecl _ = False
 
 isSection LeftSection{} = True
 isSection RightSection{} = True
