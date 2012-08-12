@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #555, top-level expressions require TemplateHaskell
 1.8.30
     Add elemIndex/elemIndices hints
     Allow cpphs-1.14

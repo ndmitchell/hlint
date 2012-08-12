@@ -29,6 +29,8 @@ record field = Record{..}
 record = 1 --
 {-# LANGUAGE UnboxedTuples #-} \
 record = 1 --
+{-# LANGUAGE TemplateHaskell #-} \
+foo
 </TEST>
 -}
 
@@ -76,7 +78,7 @@ used EmptyDataDecls = hasS f
           f _ = False
 used KindSignatures = hasT (un :: Kind S)
 used BangPatterns = hasS isPBangPat
-used TemplateHaskell = hasT2 (un :: (Bracket S, Splice S)) & hasS f
+used TemplateHaskell = hasT2 (un :: (Bracket S, Splice S)) & hasS f & hasS isSpliceDecl
     where f VarQuote{} = True
           f TypQuote{} = True
           f _ = False
