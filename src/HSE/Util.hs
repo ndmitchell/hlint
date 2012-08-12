@@ -67,7 +67,8 @@ fromTyParen :: Type s -> Type s
 fromTyParen (TyParen _ x) = fromTyParen x
 fromTyParen x = x
 
--- is* :: Exp -> Bool
+-- is* :: Exp_ -> Bool
+-- is* :: Decl_ -> Bool
 isVar Var{} = True; isVar _ = False
 isApp App{} = True; isApp _ = False
 isInfixApp InfixApp{} = True; isInfixApp _ = False
