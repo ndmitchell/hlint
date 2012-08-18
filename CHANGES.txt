@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.31
     Avoid incomplete patterns when reading ANN pragmas
     #555, top-level expressions require TemplateHaskell
 1.8.30
