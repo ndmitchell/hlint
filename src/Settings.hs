@@ -109,12 +109,14 @@ readPragma o@(AnnPragma _ p) = f p
         f (Ann _ name x) = g (fromNamed name) x
         f (TypeAnn _ name x) = g (fromNamed name) x
         f (ModuleAnn _ x) = g "" x
+        f _ = Nothing
 
         g name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
                 case getSeverity a of
                     Nothing -> errorOn o "bad classify pragma"
                     Just severity -> Just $ Classify severity (ltrim b) ("",name)
             where (a,b) = break isSpace $ ltrim $ drop 6 s
+        g _ _ = Nothing
 readPragma _ = Nothing
 
 
