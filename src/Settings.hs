@@ -109,7 +109,6 @@ readPragma o@(AnnPragma _ p) = f p
         f (Ann _ name x) = g (fromNamed name) x
         f (TypeAnn _ name x) = g (fromNamed name) x
         f (ModuleAnn _ x) = g "" x
-        f _ = Nothing
 
         g name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
                 case getSeverity a of
