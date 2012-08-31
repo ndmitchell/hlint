@@ -107,6 +107,7 @@ error = findIndex (== a) ==> elemIndex a
 error = findIndices ((==) a) ==> elemIndices a
 error = findIndices (a ==) ==> elemIndices a
 error = findIndices (== a) ==> elemIndices a
+error = lookup b (zip l [0..]) ==> elemIndex b l
 
 -- FOLDS
 
