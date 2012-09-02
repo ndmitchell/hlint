@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add a note that about using !! if the index is negative
 1.8.31
     Avoid incomplete patterns when reading ANN pragmas
     #555, top-level expressions require TemplateHaskell

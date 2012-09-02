@@ -68,7 +68,7 @@ warn "Use map once" = map f (map g x) ==> map (f . g) x
 warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
 error = head (reverse x) ==> last x
-error = head (drop n x) ==> x !! n
+error = head (drop n x) ==> x !! n where note = "if the index is non-negative"
 error = reverse (tail (reverse x)) ==> init x
 error = take (length x - 1) x ==> init x
 error = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
