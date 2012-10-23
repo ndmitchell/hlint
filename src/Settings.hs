@@ -115,6 +115,8 @@ readPragma o@(AnnPragma _ p) = f p
                     Nothing -> errorOn o "bad classify pragma"
                     Just severity -> Just $ Classify severity (ltrim b) ("",name)
             where (a,b) = break isSpace $ ltrim $ drop 6 s
+        g name (Paren _ x) = g name x
+        g name (ExpTypeSig _ x _) = g name x
         g _ _ = Nothing
 readPragma _ = Nothing
 

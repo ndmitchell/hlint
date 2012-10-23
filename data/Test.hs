@@ -27,8 +27,8 @@ ignore = Ignore_Test
 
 {-# ANN module "HLint: ignore Test4" #-}
 {-# ANN annTest2 "HLint: error" #-}
-{-# ANN annTest3 "HLint: warn" #-}
-{-# ANN type Ann_Test "HLint: ignore" #-}
+{-# ANN annTest3 ("HLint: warn" :: String) #-}
+{-# ANN type Ann_Test ("HLint: ignore") #-}
 
 
 error = concat (map f x) ==> Data.List.concatMap f x
