@@ -1,0 +1,2 @@
+--with=infixr 5 !:
+tests/fixity-flag.hs
