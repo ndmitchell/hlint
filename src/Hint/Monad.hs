@@ -29,6 +29,7 @@ yes = do if a then forM x y else sequence z q; return () -- if a then forM_ x y 
 yes = do case a of {_ -> forM x y; x:xs -> forM x xs}; return () -- case a of _ -> forM_ x y ; x:xs -> forM_ x xs
 foldM_ f a xs = foldM f a xs >> return ()
 folder f a xs = foldM f a xs >> return () -- foldM_ f a xs
+yes = mapM async ds >>= mapM wait >> return () -- mapM async ds >>= mapM_ wait
 </TEST>
 -}
 
@@ -65,8 +66,11 @@ monadExp decl x = case x of
 monadCall :: Exp_ -> Maybe (String,Exp_)
 monadCall (Paren _ x) = fmap (second $ Paren an) $ monadCall x
 monadCall (App _ x y) = fmap (second $ \x -> App an x y) $ monadCall x
-monadCall (InfixApp _ x dol y) | isDol dol = fmap (second $ \x -> InfixApp an x dol y) $ monadCall x
-monadCall (replaceBranches -> (bs@(_:_), gen)) | all isJust res = Just (fst $ fromJust $ head res, gen $ map (snd . fromJust) res)
+monadCall (InfixApp _ x op y)
+    | isDol op = fmap (second $ \x -> InfixApp an x op y) $ monadCall x
+    | op ~= ">>=" = fmap (second $ \y -> InfixApp an x op y) $ monadCall y
+monadCall (replaceBranches -> (bs@(_:_), gen)) | all isJust res
+    = Just (fst $ fromJust $ head res, gen $ map (snd . fromJust) res)
     where res = map monadCall bs
 monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, toNamed x2)
 monadCall _ = Nothing
