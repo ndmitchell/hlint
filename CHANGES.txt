@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add notes about how to deal with imported fixites
     Add a --with flag for passing settings on the command line
     #563, make sure TypeSig hints get the right function name
     Update the copyright year to 2012
