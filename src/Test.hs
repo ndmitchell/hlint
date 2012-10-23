@@ -225,4 +225,5 @@ checkInputOutput main xs = do
                 ,"DIFFER ON LINE: " ++ show i
                 ,"GOT : " ++ g
                 ,"WANT: " ++ w]
+            when (null want) $ putStrLn $ unlines $ "FULL OUTPUT FOR GOT:" : got
             return failure
