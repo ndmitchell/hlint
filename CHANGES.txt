@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Lots more hints on laziness, foldable and a few others
     Use mapM_ etc in more situations, when using explicit >>=
 1.8.32
     Add notes about how to deal with imported fixites

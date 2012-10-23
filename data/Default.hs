@@ -4,6 +4,7 @@ module HLint.Default where
 import Control.Arrow
 import Control.Exception
 import Control.Monad
+import Data.Foldable
 import Data.Function
 import Data.Int
 import Data.List as X
@@ -51,6 +52,10 @@ error = x == a || x == b || x == c ==> x `elem` [a,b,c]
 error = x /= a && x /= b && x /= c ==> x `notElem` [a,b,c]
 --error = compare (f x) (f y) ==> Data.Ord.comparing f x y -- not that great
 --error = on compare f ==> Data.Ord.comparing f -- not that great
+error = head (sort x) ==> minimum x
+error = last (sort x) ==> maximum x
+error = head (sortBy f x) ==> minimumBy f x
+error = last (sortBy f x) ==> maximumBy f x
 
 -- READ/SHOW
 
@@ -82,7 +87,8 @@ error = and (map p x) ==> all p x
 error = zipWith (,) ==> zip
 error = zipWith3 (,,) ==> zip3
 warn  = length x == 0 ==> null x where note = "increases laziness"
-warn  "Use null" = length x /= 0 ==> not (null x)
+warn  = x == [] ==> null x
+warn  "Use null" = length x /= 0 ==> not (null x) where note = "increases laziness"
 error "Use :" = (\x -> [x]) ==> (:[])
 error = map (uncurry f) (zip x y) ==> zipWith f x y
 warn  = map f (zip x y) ==> zipWith (curry f) x y where _ = isVar f
@@ -108,6 +114,9 @@ error = findIndices ((==) a) ==> elemIndices a
 error = findIndices (a ==) ==> elemIndices a
 error = findIndices (== a) ==> elemIndices a
 error = lookup b (zip l [0..]) ==> elemIndex b l
+warn "length always non-negative" = length x >= 0 ==> True
+warn "Use null" = length x > 0 ==> not (null x) where note = "increases laziness"
+warn "Use null" = length x >= 1 ==> not (null x) where note = "increases laziness"
 
 -- FOLDS
 
@@ -179,6 +188,10 @@ warn = or [x,y]  ==> x || y
 warn = or [x,y,z]  ==> x || y || z
 warn = and [x,y]  ==> x && y
 warn = and [x,y,z]  ==> x && y && z
+error "Redundant if" = (if x then False else y) ==> not x && y where _ = notEq y True
+error "Redundant if" = (if x then y else True) ==> not x || y where _ = notEq y False
+error "Redundant not" = not (not x) ==> x
+error "Too strict if" = (if c then f x else f y) ==> f (if c then x else y) where note = "reduces strictness"
 
 -- ARROW
 
@@ -215,6 +228,7 @@ warn  = flip forM_ ==> mapM_
 error = when (not x) ==> unless x
 error = x >>= id ==> Control.Monad.join x
 error = liftM f (liftM g x) ==> liftM (f . g) x
+error = fmap f (fmap g x) ==> fmap (f . g) x
 warn = a >> return () ==> void a
 warn = fmap (const ()) ==> void
 error = flip (>=>) ==> (<=<)
@@ -224,6 +238,7 @@ error = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = notIn x [f,g]
 error = a >> forever a ==> forever a
 warn = liftM2 id ==> ap
 error = mapM (uncurry f) (zip l m) ==> zipWithM f l m
+
 
 -- MONAD LIST
 
@@ -287,6 +302,9 @@ error = isJust x && (fromJust x == y) ==> x == Just y
 error = mapMaybe f (map g x) ==> mapMaybe (f . g) x
 error = fromMaybe a (fmap f x) ==> maybe a f x
 warn = [x | Just x <- a] ==> Data.Maybe.catMaybes a
+warn = (case m of Nothing -> Nothing; Just x -> x) ==> Control.Monad.join m
+warn = maybe Nothing id ==> join
+warn "Too strict maybe" = maybe (f x) (f . g) ==> f . maybe x g where note = "increases laziness"
 
 -- EITHER
 
@@ -341,11 +359,15 @@ error = a `seq` return a ==> Control.Exception.evaluate a
 error = toException NonTermination ==> nonTermination
 error = toException NestedAtomically ==> nestedAtomically
 
-
 -- WEAK POINTERS
 
 error = mkWeak a a b ==> mkWeakPtr a b
 error = mkWeak a (a, b) c ==> mkWeakPair a b c
+
+-- FOLDABLE
+
+error "Use Foldable.forM_" = (case m of Nothing -> return (); Just x -> f x) ==> Data.Foldable.forM_ m f
+error "Use Foldable.forM_" = when (isJust m) (f (fromJust m)) ==> Data.Foldable.forM_ m f
 
 -- EVALUATE
 
