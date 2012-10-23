@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.32
     Add notes about how to deal with imported fixites
     Add a --with flag for passing settings on the command line
     #563, make sure TypeSig hints get the right function name
