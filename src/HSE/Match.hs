@@ -39,7 +39,7 @@ instance View Exp_ Var_ where
     view _ = NoVar_
 
 
-(~=) :: Exp_ -> String -> Bool
+(~=) :: Named a => a -> String -> Bool
 (~=) = (==) . fromNamed
 
 
