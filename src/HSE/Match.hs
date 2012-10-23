@@ -147,6 +147,7 @@ instance Named (Decl S) where
     fromNamed (FunBind _ (name:_)) = fromNamed name
     fromNamed (ForImp _ _ _ _ name _) = fromNamed name
     fromNamed (ForExp _ _ _ name _) = fromNamed name
+    fromNamed (TypeSig _ (name:_) _) = fromNamed name
     fromNamed _ = ""
 
     toNamed = error "No toNamed for Decl"

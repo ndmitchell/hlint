@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #563, make sure TypeSig hints get the right function name
     Update the copyright year to 2012
     #564, allow brackets and type signatures on annotations
     Add a note that about using !! if the index is negative
