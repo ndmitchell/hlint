@@ -1,6 +1,6 @@
 Changelog for HLint
 
-    Add a --with flag for passing settings inline
+    Add a --with flag for passing settings on the command line
     #563, make sure TypeSig hints get the right function name
     Update the copyright year to 2012
     #564, allow brackets and type signatures on annotations
