@@ -219,7 +219,7 @@ checkInputOutput main xs = do
         Just got | length got == length want && and (zipWith eq want got) -> return pass
                  | otherwise -> do
             let trail = replicate (max (length got) (length want)) "<EOF>"
-            let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), not $ eq g w]
+            let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), not $ eq w g]
             putStrLn $ unlines
                 ["TEST FAILURE IN tests/" ++ pre
                 ,"DIFFER ON LINE: " ++ show i
