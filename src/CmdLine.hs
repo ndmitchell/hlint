@@ -157,7 +157,7 @@ exitWithHelp = do
 
 
 versionText :: String
-versionText = "HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2011\n"
+versionText = "HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2012\n"
 
 
 helpText :: String
