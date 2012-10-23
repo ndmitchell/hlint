@@ -5,5 +5,6 @@ tests\test-hints-fail.hs:2:*
 *
     In the second argument of `(==>)', namely `((***))'
     In the expression: ((&&&)) ==> ((***))
+*
 ..
 Tests failed (1 of 1)
