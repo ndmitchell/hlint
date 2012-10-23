@@ -30,6 +30,7 @@ data Cmd = Cmd
     ,cmdFiles :: Maybe [FilePath]    -- ^ which files to run it on, nothing = none given
     ,cmdHintFiles :: [FilePath]      -- ^ which settingsfiles to use
     ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
+    ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
     ,cmdReports :: [FilePath]        -- ^ where to generate reports
     ,cmdIgnore :: [String]           -- ^ the hints to ignore
     ,cmdShowAll :: Bool              -- ^ display all skipped items
@@ -48,6 +49,7 @@ data Opts = Help
           | Ver
           | Test
           | Hints FilePath
+          | WithHint String
           | Path FilePath
           | Report FilePath
           | Skip String
@@ -71,6 +73,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "v" ["version"] (NoArg Ver) "Display version information"
        ,Option "r" ["report"] (OptArg (Report . fromMaybe "report.html") "file") "Generate a report in HTML"
        ,Option "h" ["hint"] (ReqArg Hints "file") "Hint/ignore file to use"
+       ,Option "w" ["with"] (ReqArg WithHint "hint") "Extra hints to use"
        ,Option "c" ["color","colour"] (NoArg Color) "Color output (requires ANSI terminal)"
        ,Option "i" ["ignore"] (ReqArg Skip "hint") "Ignore a particular hint"
        ,Option "s" ["show"] (NoArg ShowAll) "Show all ignored ideas"
@@ -136,6 +139,7 @@ getCmd args = do
         ,cmdFiles = files
         ,cmdHintFiles = hints
         ,cmdGivenHints = givenHints
+        ,cmdWithHints = [x | WithHint x <- opt]
         ,cmdReports = [x | Report x <- opt]
         ,cmdIgnore = [x | Skip x <- opt]
         ,cmdShowAll = ShowAll `elem` opt

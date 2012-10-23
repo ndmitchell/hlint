@@ -64,23 +64,24 @@ isMatchExp MatchExp{} = True; isMatchExp _ = False
 
 -- Given a list of hint files to start from
 -- Return the list of settings commands
-readSettings :: FilePath -> [FilePath] -> IO [Setting]
-readSettings dataDir xs = do
-    (builtin,mods) <- fmap unzipEither $ concatMapM (readHints dataDir) xs
+readSettings :: FilePath -> [FilePath] -> [String] -> IO [Setting]
+readSettings dataDir files hints = do
+    (builtin,mods) <- fmap unzipEither $ concatMapM (readHints dataDir) $ map Right files ++ map Left hints
     let f m = concatMap (readSetting $ moduleScope m) $ concatMap getEquations $ moduleDecls m
     return $ map Builtin builtin ++ concatMap f mods
 
 
 -- Read a hint file, and all hint files it imports
-readHints :: FilePath -> FilePath -> IO [Either String Module_]
+readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
 readHints dataDir file = do
-    y <- parseResult $ parseFile (addInfix parseFlags) file
+    let flags = addInfix parseFlags
+    y <- parseResult $ either (parseString flags "CommandLine") (parseFile flags) file
     ys <- concatM [f $ fromNamed $ importModule i | i <- moduleImports y, importPkg i `elem` [Just "hint", Just "hlint"]]
     return $ Right y:ys
     where
         f x | "HLint.Builtin." `isPrefixOf` x = return [Left $ drop 14 x]
-            | "HLint." `isPrefixOf` x = readHints dataDir $ dataDir </> drop 6 x <.> "hs"
-            | otherwise = readHints dataDir $ x <.> "hs"
+            | "HLint." `isPrefixOf` x = readHints dataDir $ Right $ dataDir </> drop 6 x <.> "hs"
+            | otherwise = readHints dataDir $ Right $ x <.> "hs"
 
 
 readSetting :: Scope -> Decl_ -> [Setting]

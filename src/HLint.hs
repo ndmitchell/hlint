@@ -62,7 +62,7 @@ hlint args = do
 runHints :: Cmd -> ParseFlags -> IO [Suggestion]
 runHints Cmd{..} flags = do
     let outStrLn x = unless cmdQuiet $ putStrLn x
-    settings1 <- readSettings cmdDataDir cmdHintFiles
+    settings1 <- readSettings cmdDataDir cmdHintFiles cmdWithHints
     settings2 <- concatMapM (fmap snd . findSettings flags) cmdFindHints
     settings3 <- return [Classify Ignore x ("","") | x <- cmdIgnore]
     let settings = settings1 ++ settings2 ++ settings3
