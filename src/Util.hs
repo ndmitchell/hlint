@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, ExistentialQuantification, Rank2Types, PatternGuards #-}
+{-# LANGUAGE CPP, ExistentialQuantification, Rank2Types #-}
 
 module Util where
 
@@ -46,7 +46,7 @@ partitionM f [] = return ([], [])
 partitionM f (x:xs) = do
     res <- f x
     (as,bs) <- partitionM f xs
-    return ([x|res]++as, [x|not res]++bs)
+    return ([x | res]++as, [x | not res]++bs)
 
 concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
 concatMapM f = liftM concat . mapM f

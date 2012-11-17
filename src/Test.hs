@@ -50,9 +50,9 @@ test main dataDir files = do
             res <- results $ mapM (testHintFile dataDir) files
             putStrLn ""
             return res
-    if failures == 0
-        then putStrLn $ "Tests passed (" ++ show total ++ ")"
-        else putStrLn $ "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
+    putStrLn $ if failures == 0
+        then "Tests passed (" ++ show total ++ ")"
+        else "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
     return failures
 
 
@@ -142,7 +142,7 @@ checkAnnotations setting file = do
             let good = case out of
                     Nothing -> null ideas
                     Just x -> length ideas == 1 &&
-                              length (show ideas) >= 0 && -- force, mainly for hpc
+                              seq (length (show ideas)) True && -- force, mainly for hpc
                               not (isParseError (head ideas)) &&
                               match x (head ideas)
             return $
