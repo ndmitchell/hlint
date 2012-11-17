@@ -505,6 +505,7 @@ h x y = return $! x
 getInt = do { x <- readIO "0"; return $! (x :: Int) }
 foo = evaluate [12] -- return [12]
 test = \ a -> f a >>= \ b -> return (a, b)
+fooer input = catMaybes . map Just $ input -- mapMaybe Just
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

@@ -86,7 +86,7 @@ findIdeas matches s _ decl =
 matchIdea :: Scope -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,String)
 matchIdea s decl MatchExp{lhs=lhs,rhs=rhs,side=side,scope=scope,notes=notes} parent x = do
     let nm = nameMatch scope s
-    u <- unifyExp nm lhs x
+    u <- unifyExp nm True lhs x
     u <- check u
     let res = addBracket parent $ unqualify scope s u $ performEval $ subst u rhs
     guard $ checkSide side $ ("original",x) : ("result",res) : u
@@ -98,33 +98,35 @@ matchIdea s decl MatchExp{lhs=lhs,rhs=rhs,side=side,scope=scope,notes=notes} par
 -- UNIFICATION
 
 -- unify a b = c, a[c] = b
-unify :: Data a => NameMatch -> a -> a -> Maybe [(String,Exp_)]
-unify nm x y | Just x <- cast x = unifyExp nm x (unsafeCoerce y)
-             | Just x <- cast x = unifyPat nm x (unsafeCoerce y)
-             | otherwise = unifyDef nm x y
+unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe [(String,Exp_)]
+unify nm root x y | Just x <- cast x = unifyExp nm root x (unsafeCoerce y)
+                  | Just x <- cast x = unifyPat nm x (unsafeCoerce y)
+                  | otherwise = unifyDef nm x y
 
 
 unifyDef :: Data a => NameMatch -> a -> a -> Maybe [(String,Exp_)]
-unifyDef nm x y = fmap concat . sequence =<< gzip (unify nm) x y
+unifyDef nm x y = fmap concat . sequence =<< gzip (unify nm False) x y
 
 
 -- App/InfixApp are analysed specially for performance reasons
-unifyExp :: NameMatch -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
-unifyExp nm x y | isParen x || isParen y = unifyExp nm (fromParen x) (fromParen y)
-unifyExp nm (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
-unifyExp nm (Var _ (Qual _ (ModuleName _ [m]) x)) (Var _ y)
+-- root = True, this is the outside of the expr
+-- do not expand out a dot at the root, since otherwise you get two matches because of readRule (Bug #570)
+unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
+unifyExp nm root x y | isParen x || isParen y = unifyExp nm root (fromParen x) (fromParen y)
+unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
+unifyExp nm root (Var _ (Qual _ (ModuleName _ [m]) x)) (Var _ y)
     | Qual _ (ModuleName _ m2) y <- y, y == x = Just [([m], Var an $ UnQual an $ Ident an m2)]
     | UnQual _ y <- y, y == x = Just [([m], Var an $ UnQual an $ Ident an "")]
-unifyExp nm (Var _ x) (Var _ y) | nm x y = Just []
-unifyExp nm x@(App _ x1 x2) (App _ y1 y2) =
-    liftM2 (++) (unifyExp nm x1 y1) (unifyExp nm x2 y2) `mplus`
-    (do InfixApp _ y11 dot y12 <- return $ fromParen y1; guard $ isDot dot; unifyExp nm x (App an y11 (App an y12 y2)))
-unifyExp nm x (InfixApp _ lhs2 op2 rhs2)
-    | InfixApp _ lhs1 op1 rhs1 <- x = guard (op1 == op2) >> liftM2 (++) (unifyExp nm lhs1 lhs2) (unifyExp nm rhs1 rhs2)
-    | isDol op2 = unifyExp nm x $ App an lhs2 rhs2
-    | otherwise = unifyExp nm x $ App an (App an (opExp op2) lhs2) rhs2
-unifyExp nm x y | isOther x, isOther y = unifyDef nm x y
-unifyExp nm _ _ = Nothing
+unifyExp nm root (Var _ x) (Var _ y) | nm x y = Just []
+unifyExp nm root x@(App _ x1 x2) (App _ y1 y2) =
+    liftM2 (++) (unifyExp nm False x1 y1) (unifyExp nm False x2 y2) `mplus`
+    (do guard $ not root; InfixApp _ y11 dot y12 <- return $ fromParen y1; guard $ isDot dot; unifyExp nm root x (App an y11 (App an y12 y2)))
+unifyExp nm root x (InfixApp _ lhs2 op2 rhs2)
+    | InfixApp _ lhs1 op1 rhs1 <- x = guard (op1 == op2) >> liftM2 (++) (unifyExp nm False lhs1 lhs2) (unifyExp nm False rhs1 rhs2)
+    | isDol op2 = unifyExp nm root x $ App an lhs2 rhs2
+    | otherwise = unifyExp nm root x $ App an (App an (opExp op2) lhs2) rhs2
+unifyExp nm root x y | isOther x, isOther y = unifyDef nm x y
+unifyExp nm root _ _ = Nothing
 
 
 unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe [(String,Exp_)]

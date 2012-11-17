@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #567, avoid duplicate hints around (.) hints
 1.8.34
     Switch license from GPL to BSD3
 1.8.33
