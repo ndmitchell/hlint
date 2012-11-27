@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Make --with imply no default Hint files
 1.8.35
     #567, avoid duplicate hints around (.) hints
 1.8.34

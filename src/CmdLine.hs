@@ -118,7 +118,8 @@ getCmd args = do
     findHints <- concatMapM (getFile path exts2) [x | FindHints x <- opt]
 
     let hintFiles = [x | Hints x <- opt]
-    hints <- mapM (getHintFile dataDir) $ hintFiles ++ ["HLint" | null hintFiles]
+    let withHints = [x | WithHint x <- opt]
+    hints <- mapM (getHintFile dataDir) $ hintFiles ++ ["HLint" | null hintFiles && null withHints]
     let givenHints = if null hintFiles then [] else hints
 
     let languages = getExtensions [x | Language x <- opt]
@@ -139,7 +140,7 @@ getCmd args = do
         ,cmdFiles = files
         ,cmdHintFiles = hints
         ,cmdGivenHints = givenHints
-        ,cmdWithHints = [x | WithHint x <- opt]
+        ,cmdWithHints = withHints
         ,cmdReports = [x | Report x <- opt]
         ,cmdIgnore = [x | Skip x <- opt]
         ,cmdShowAll = ShowAll `elem` opt
