@@ -88,7 +88,7 @@ readSetting :: Scope -> Decl_ -> [Setting]
 readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats (UnGuardedRhs _ bod) bind])
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
         let (a,b) = readSide $ childrenBi bind in
-        [MatchExp severity (if null names then defaultHintName else head names) s (fromParen lhs) (fromParen rhs) a b]
+        [MatchExp severity (headDef defaultHintName names) s (fromParen lhs) (fromParen rhs) a b]
     | otherwise = [Classify severity n func | n <- names2, func <- readFuncs bod]
     where
         names = filter notNull $ getNames pats bod
