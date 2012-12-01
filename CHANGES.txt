@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Allow cpphs-1.15
 1.8.36
     Make --with imply no default Hint files
 1.8.35
