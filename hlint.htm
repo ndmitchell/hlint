@@ -230,6 +230,12 @@ foo xs = concat (map op xs)
 	HLint knows the fixities for all the operators in the base library, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file, or passing them on the command line. For example, pass <tt>"--with=infixr 5 !@%$"</tt>, or put all the fixity declarations in a file and pass <tt>--hint=fixities.hs</tt>. You can also use <tt><a href="#find">--find</a></tt> to automatically produce a list of fixity declarations in a file.
 </p>
 
+<h3>How can I use <tt>--with</tt> or <tt>--hint</tt> with the default hints?</h3>
+
+<p>
+	HLint does not use the default set of hints if custom hints are specified on the command line using <tt>--with</tt> or <tt>--hint</tt>. To include the default hints either pass <tt>--hint=HLint</tt> on the command line, or add <tt>import "hint" HLint.HLint</tt> in one of the hint files you specify with <tt>--hint</tt>.
+</p>
+
 <h2 id="customization">Customizing the hints</h2>
 
 <p>
