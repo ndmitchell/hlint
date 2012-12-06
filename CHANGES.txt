@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #578, treat _ bindings differently in lambdas
 1.8.37
     #575, allow cpphs-1.15
 1.8.36

@@ -147,8 +147,8 @@ error = foldr mplus mzero ==> msum
 
 error = (\x -> x) ==> id
 error = (\x y -> x) ==> const
-error = (\(_,y) -> y) ==> snd
-error = (\(x,_) -> x) ==> fst
+error = (\(x,y) -> y) ==> snd where _ = notIn x y
+error = (\(x,y) -> x) ==> fst where _ = notIn y x
 warn "Use curry" = (\x y-> f (x,y)) ==> curry f where _ = notIn [x,y] f
 warn "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f
 error "Redundant $" = (($) . f) ==> f
@@ -506,6 +506,7 @@ getInt = do { x <- readIO "0"; return $! (x :: Int) }
 foo = evaluate [12] -- return [12]
 test = \ a -> f a >>= \ b -> return (a, b)
 fooer input = catMaybes . map Just $ input -- mapMaybe Just
+main = print $ map (\_->5) [2,3,5] -- const 5
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
