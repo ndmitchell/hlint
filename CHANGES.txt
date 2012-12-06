@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #582, don't suggest renaming with trailingHashes#
 1.8.38
     #578, treat _ bindings differently in lambdas
 1.8.37

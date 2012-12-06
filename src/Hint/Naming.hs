@@ -3,7 +3,7 @@
     Suggest the use of camelCase
 
     Only permit:
-    _*[A-Za-z]*_*'*
+    _*[A-Za-z]*_*#*'*
 
     Apply this to things that would get exported by default only
     Also allow prop_ as it's a standard QuickCheck idiom
@@ -24,6 +24,7 @@ semiring'laws = 1 -- semiringLaws = ...
 data Yes = FOO_A | Foo_B -- data Yes = FOO_A | FooB
 case_foo = 1
 cast_foo = 1 -- castFoo = ...
+runMutator# = 1
 </TEST>
 -}
 
@@ -80,7 +81,7 @@ getNames x = case x of
 suggestName :: String -> Maybe String
 suggestName x = listToMaybe [f x | not $ isSym x || good || not (any isLower x) || "prop_" `isPrefixOf` x || "case_" `isPrefixOf` x]
     where
-        good = all isAlphaNum $ drp '_' $ drp '\'' $ reverse $ drp '_' x
+        good = all isAlphaNum $ drp '_' $ drp '#' $ drp '\'' $ reverse $ drp '_' x
         drp x = dropWhile (== x)
 
         f xs = us ++ g ys
