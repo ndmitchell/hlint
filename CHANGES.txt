@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.40
     #585, lots of additional list based hints
 1.8.39
     #582, don't suggest renaming with trailingHashes#
