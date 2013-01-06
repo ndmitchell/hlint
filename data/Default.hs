@@ -82,6 +82,7 @@ error = foldl (++) [] ==> concat
 error = span (not . p) ==> break p
 error = break (not . p) ==> span p
 error = concatMap (++ "\n") ==> unlines
+error = map id ==> id
 error = or (map p x) ==> any p x
 error = and (map p x) ==> all p x
 error = zipWith (,) ==> zip
@@ -101,12 +102,16 @@ warn  = concat (intersperse " " x) ==> unwords x
 error "Use any" = null (filter f x) ==> not (any f x)
 error "Use any" = filter f x == [] ==> not (any f x)
 error = filter f x /= [] ==> any f x
+error = any id ==> or
+error = all id ==> and
 error = any ((==) a) ==> elem a
 error = any (== a) ==> elem a
 error = any (a ==) ==> elem a
 error = all ((/=) a) ==> notElem a
 error = all (/= a) ==> notElem a
 error = all (a /=) ==> notElem a
+error = elem True ==> or
+error = notElem False ==> and
 error = findIndex ((==) a) ==> elemIndex a
 error = findIndex (a ==) ==> elemIndex a
 error = findIndex (== a) ==> elemIndex a
@@ -249,6 +254,8 @@ error = sequence (replicate n x) ==> Control.Monad.replicateM n x
 error = sequence_ (replicate n x) ==> Control.Monad.replicateM_ n x
 error = mapM f (map g x) ==> mapM (f . g) x
 error = mapM_ f (map g x) ==> mapM_ (f . g) x
+error = mapM id ==> sequence
+error = mapM_ id ==> sequence_
 
 -- APPLICATIVE / TRAVERSABLE
 
