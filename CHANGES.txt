@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Retire the Prelude.catch hint
     Additional boolean equality hints
 1.8.40
     #585, lots of additional list based hints

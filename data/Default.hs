@@ -359,7 +359,6 @@ warn = mapM_ (writeChan a) ==> writeList2Chan a
 
 -- EXCEPTION
 
-error "Use Control.Exception.catch" = Prelude.catch ==> Control.Exception.catch where note = "Prelude.catch does not catch most exceptions"
 warn = flip Control.Exception.catch ==> handle
 warn = flip handle ==> Control.Exception.catch
 warn = flip (catchJust p) ==> handleJust p
@@ -508,7 +507,6 @@ yes = x ^^ 18 -- x ** 18
 no = x ^^ 18.5
 instance Arrow (->) where first f = f *** id
 yes = fromInteger 12 -- 12
-yes = catch -- Control.Exception.catch
 import Prelude hiding (catch); no = catch
 import Control.Exception as E; no = E.catch
 main = do f; putStrLn $ show x -- print x
