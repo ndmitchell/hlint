@@ -4,18 +4,30 @@ module HLint.Default where
 import Control.Arrow
 import Control.Exception
 import Control.Monad
-import Data.Foldable
+import qualified Data.Foldable
+import Data.Foldable(asum, sequenceA_, traverse_, for_)
+import Data.Traversable(traverse, for)
+import Control.Applicative
 import Data.Function
 import Data.Int
+import Data.Char
+import Data.List as Data.List
 import Data.List as X
 import Data.Maybe
 import Data.Monoid
 import System.IO
+import Control.Concurrent.Chan
+import System.Mem.Weak
+import Control.Exception.Base
+import System.Exit
+import Data.Either
+import Numeric
 
 import IO as System.IO
 import List as Data.List
 import Maybe as Data.Maybe
 import Monad as Control.Monad
+import Char as Data.Char
 
 -- I/O
 
