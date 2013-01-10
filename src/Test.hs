@@ -107,9 +107,14 @@ typeCheckHints hints = bracket
     where
         matches = filter isMatchExp hints
 
+        -- Hack around haskell98 not being compatible with base anymore
+        hackImport i@ImportDecl{importAs=Just a,importModule=b}
+            | prettyPrint b `elem` words "Maybe List Monad IO Char" = i{importAs=Just b,importModule=a}
+        hackImport i = i
+
         contents =
             ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules #-}"] ++
-            concat [map prettyPrint $ scopeImports $ scope x | x <- take 1 matches] ++
+            concat [map (prettyPrint . hackImport) $ scopeImports $ scope x | x <- take 1 matches] ++
             ["main = return ()"
             ,"(==>) :: a -> a -> a; (==>) = undefined"
             ,"_noParen_ = id"
