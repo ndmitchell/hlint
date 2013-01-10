@@ -109,7 +109,7 @@ typeCheckHints hints = bracket
 
         contents =
             ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules #-}"] ++
-            concat (take 1 [map prettyPrint $ scopeImports $ scope x | x <- matches]) ++
+            concat [map prettyPrint $ scopeImports $ scope x | x <- take 1 matches] ++
             ["main = return ()"
             ,"(==>) :: a -> a -> a; (==>) = undefined"
             ,"_noParen_ = id"
