@@ -59,13 +59,18 @@ hlint args = do
         runHints cmd flags
 
 
-runHints :: Cmd -> ParseFlags -> IO [Suggestion]
-runHints Cmd{..} flags = do
-    let outStrLn x = unless cmdQuiet $ putStrLn x
+readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
+readAllSettings Cmd{..} flags = do
     settings1 <- readSettings cmdDataDir cmdHintFiles cmdWithHints
     settings2 <- concatMapM (fmap snd . findSettings flags) cmdFindHints
     settings3 <- return [Classify Ignore x ("","") | x <- cmdIgnore]
-    let settings = settings1 ++ settings2 ++ settings3
+    return $ settings1 ++ settings2 ++ settings3
+
+
+runHints :: Cmd -> ParseFlags -> IO [Suggestion]
+runHints cmd@Cmd{..} flags = do
+    let outStrLn x = unless cmdQuiet $ putStrLn x
+    settings <- readAllSettings cmd flags
 
     let files = fromMaybe [] cmdFiles
     ideas <- if cmdCross
