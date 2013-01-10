@@ -176,6 +176,12 @@ error = isAlpha a || isDigit a ==> isAlphaNum a
 
 error "Redundant ==" = a == True ==> a
 warn  "Redundant ==" = a == False ==> not a
+error "Redundant ==" = True == a ==> a
+warn  "Redundant ==" = False == a ==> not a
+error "Redundant /=" = a /= True ==> not a
+warn  "Redundant /=" = a /= False ==> a
+error "Redundant /=" = True /= a ==> not a
+warn  "Redundant /=" = False /= a ==> a
 error "Redundant if" = (if a then x else x) ==> x where note = "reduces strictness"
 error "Redundant if" = (if a then True else False) ==> a
 error "Redundant if" = (if a then False else True) ==> not a
