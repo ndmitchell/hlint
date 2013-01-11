@@ -42,6 +42,7 @@ data Cmd = Cmd
     ,cmdLanguage :: [Extension]      -- ^ the extensions (may be prefixed by "No")
     ,cmdQuiet :: Bool                -- ^ supress all console output
     ,cmdCross :: Bool                -- ^ work between source files, applies to hints such as duplicate code between modules
+    ,cmdProof :: [FilePath]          -- ^ a proof script to check against
     }
 
 
@@ -63,6 +64,7 @@ data Opts = Help
           | Encoding String
           | FindHints FilePath
           | Language String
+          | Proof FilePath
           | Quiet
           | Cross
           | Ansi
@@ -87,6 +89,7 @@ opts = [Option "?" ["help"] (NoArg Help) "Display help message"
        ,Option "d" ["datadir"] (ReqArg DataDir "dir") "Override the data directory"
        ,Option "p" ["path"] (ReqArg Path "dir") "Directory in which to search for files"
        ,Option "q" ["quiet"] (NoArg Quiet) "Supress most console output"
+       ,Option ""  ["proof"] (ReqArg Proof "proof.thy") "Proof script"
        ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
        ,Option ""  ["cpp-include"] (ReqArg Include "dir") "CPP include path"
        ,Option ""  ["cpp-simple"] (NoArg SimpleCpp) "Use a simple CPP (strip # lines)"
@@ -152,6 +155,7 @@ getCmd args = do
         ,cmdLanguage = languages
         ,cmdQuiet = Quiet `elem` opt
         ,cmdCross = Cross `elem` opt
+        ,cmdProof = [x | Proof x <- opt]
         }
 
 

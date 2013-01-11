@@ -12,6 +12,7 @@ import Report
 import Idea
 import Apply
 import Test
+import Proof
 import Util
 import Parallel
 import HSE.All
@@ -49,6 +50,11 @@ hlint args = do
     let flags = parseFlags{cppFlags=cmdCpp, encoding=cmdEncoding, language=cmdLanguage}
     if cmdTest then
         test (\x -> hlint x >> return ()) cmdDataDir cmdGivenHints >> return []
+     else if notNull cmdProof then do
+        s <- readAllSettings cmd flags
+        let reps = if cmdReports == ["report.html"] then ["report.txt"] else cmdReports
+        mapM_ (proof reps s) cmdProof
+        return []
      else if isNothing cmdFiles && notNull cmdFindHints then
         mapM_ (\x -> putStrLn . fst =<< findSettings flags x) cmdFindHints >> return []
      else if isNothing cmdFiles then
@@ -57,7 +63,6 @@ hlint args = do
         error "No files found"
      else
         runHints cmd flags
-
 
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
 readAllSettings Cmd{..} flags = do
