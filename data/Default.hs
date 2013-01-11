@@ -80,17 +80,17 @@ warn = showIntAtBase 8 intToDigit ==> showOct
 -- LIST
 
 error = concat (map f x) ==> concatMap f x
-warn = concat [a,b] ==> a ++ b
+warn = concat [a, b] ==> a ++ b
 warn "Use map once" = map f (map g x) ==> map (f . g) x
 warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
 error = head (reverse x) ==> last x
-error = head (drop n x) ==> x !! n where note = "if the index is non-negative"
-error = reverse (tail (reverse x)) ==> init x
-error = take (length x - 1) x ==> init x
+-- error = head (drop n x) ==> x !! n where -- not true for n < 0
+error = reverse (tail (reverse x)) ==> init x where note = "increases laziness"
+-- error = take (length x - 1) x ==> init x -- not true for x == []
 error = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
 error = foldr (++) [] ==> concat
-error = foldl (++) [] ==> concat
+error = foldl (++) [] ==> concat where note = "increases laziness"
 error = span (not . p) ==> break p
 error = break (not . p) ==> span p
 error = concatMap (++ "\n") ==> unlines
@@ -139,21 +139,21 @@ warn "Use null" = length x >= 1 ==> not (null x) where note = "increases lazines
 
 error = foldr  (>>) (return ()) ==> sequence_
 error = foldr  (&&) True ==> and
-error = foldl  (&&) True ==> and
-error = foldr1 (&&)  ==> and
-error = foldl1 (&&)  ==> and
+error = foldl  (&&) True ==> and where note = "increases laziness"
+error = foldr1 (&&)  ==> and where note = "removes error on []"
+error = foldl1 (&&)  ==> and where note = "removes error on []"
 error = foldr  (||) False ==> or
-error = foldl  (||) False ==> or
-error = foldr1 (||)  ==> or
-error = foldl1 (||)  ==> or
+error = foldl  (||) False ==> or where note = "increases laziness"
+error = foldr1 (||)  ==> or where note = "removes error on []"
+error = foldl1 (||)  ==> or where note = "removes error on []"
 error = foldl  (+) 0 ==> sum
 error = foldr  (+) 0 ==> sum
-error = foldl1 (+)   ==> sum
-error = foldr1 (+)   ==> sum
+error = foldl1 (+)   ==> sum where note = "removes error on []"
+error = foldr1 (+)   ==> sum where note = "removes error on []"
 error = foldl  (*) 1 ==> product
 error = foldr  (*) 1 ==> product
-error = foldl1 (*)   ==> product
-error = foldr1 (*)   ==> product
+error = foldl1 (*)   ==> product where note = "removes error []"
+error = foldr1 (*)   ==> product where note = "removes error []"
 error = foldl1 max   ==> maximum
 error = foldr1 max   ==> maximum
 error = foldl1 min   ==> minimum
@@ -166,8 +166,8 @@ error = (\x -> x) ==> id
 error = (\x y -> x) ==> const
 error = (\(x,y) -> y) ==> snd where _ = notIn x y
 error = (\(x,y) -> x) ==> fst where _ = notIn y x
-warn "Use curry" = (\x y-> f (x,y)) ==> curry f where _ = notIn [x,y] f
-warn "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f
+warn "Use curry" = (\x y -> f (x,y)) ==> curry f where _ = notIn [x,y] f
+warn "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f; note = "increases laziness"
 error "Redundant $" = (($) . f) ==> f
 error "Redundant $" = (f $) ==> f
 warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
@@ -186,15 +186,15 @@ error = isAlpha a || isDigit a ==> isAlphaNum a
 
 -- BOOL
 
-error "Redundant ==" = a == True ==> a
-warn  "Redundant ==" = a == False ==> not a
+error "Redundant ==" = x == True ==> x
+warn  "Redundant ==" = x == False ==> not x
 error "Redundant ==" = True == a ==> a
 warn  "Redundant ==" = False == a ==> not a
 error "Redundant /=" = a /= True ==> not a
 warn  "Redundant /=" = a /= False ==> a
 error "Redundant /=" = True /= a ==> not a
 warn  "Redundant /=" = False /= a ==> a
-error "Redundant if" = (if a then x else x) ==> x where note = "reduces strictness"
+error "Redundant if" = (if a then x else x) ==> x where note = "increases laziness"
 error "Redundant if" = (if a then True else False) ==> a
 error "Redundant if" = (if a then False else True) ==> not a
 error "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then t else f
@@ -205,16 +205,16 @@ warn  "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
 warn  "Use if" = case a of {False -> f; True -> t} ==> if a then t else f
 warn  "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
 warn  "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
-warn  "Redundant if" = (if c then (True, x) else (False, x)) ==> (c, x) where note = "reduces strictness"
-warn  "Redundant if" = (if c then (False, x) else (True, x)) ==> (not c, x) where note = "reduces strictness"
-warn = or [x,y]  ==> x || y
-warn = or [x,y,z]  ==> x || y || z
-warn = and [x,y]  ==> x && y
-warn = and [x,y,z]  ==> x && y && z
+warn  "Redundant if" = (if c then (True, x) else (False, x)) ==> (c, x) where note = "increases laziness"
+warn  "Redundant if" = (if c then (False, x) else (True, x)) ==> (not c, x) where note = "increases laziness"
+warn = or [x, y] ==> x || y
+warn = or [x, y, z] ==> x || y || z
+warn = and [x, y] ==> x && y
+warn = and [x, y, z] ==> x && y && z
 error "Redundant if" = (if x then False else y) ==> not x && y where _ = notEq y True
 error "Redundant if" = (if x then y else True) ==> not x || y where _ = notEq y False
 error "Redundant not" = not (not x) ==> x
-error "Too strict if" = (if c then f x else f y) ==> f (if c then x else y) where note = "reduces strictness"
+error "Too strict if" = (if c then f x else f y) ==> f (if c then x else y) where note = "increases laziness"
 
 -- ARROW
 
@@ -226,7 +226,7 @@ warn  = (\x -> (f x, g x)) ==> f Control.Arrow.&&& g where _ = notIn x [f,g]
 warn  = (\(x,y) -> (f x,y)) ==> Control.Arrow.first f where _ = notIn [x,y] f
 warn  = (\(x,y) -> (x,f y)) ==> Control.Arrow.second f where _ = notIn [x,y] f
 warn  = (f (fst x), g (snd x)) ==> (f Control.Arrow.*** g) x
-warn "Redundant pair" = (fst x, snd x) ==>  x
+warn "Redundant pair" = (fst x, snd x) ==>  x where note = "decreases laziness"
 
 -- FUNCTOR
 
@@ -418,8 +418,8 @@ error "Evaluate" = foldr1 f [x] ==> x
 error "Evaluate" = scanr f z [] ==> [z]
 error "Evaluate" = scanr1 f [] ==> []
 error "Evaluate" = scanr1 f [x] ==> [x]
-error "Evaluate" = take n [] ==> []
-error "Evaluate" = drop n [] ==> []
+error "Evaluate" = take n [] ==> [] where note = "increases laziness"
+error "Evaluate" = drop n [] ==> [] where note = "increases laziness"
 error "Evaluate" = takeWhile p [] ==> []
 error "Evaluate" = dropWhile p [] ==> []
 error "Evaluate" = span p [] ==> ([],[])
