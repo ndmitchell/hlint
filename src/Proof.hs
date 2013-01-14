@@ -107,7 +107,9 @@ isabelleTheorems file = find . lexer 1
 
 reparen :: Setting -> Setting
 reparen m@MatchExp{..} = m{lhs = f False lhs, rhs = f True rhs}
-    where f right x = if isLambda x || isIf x then Paren (ann x) x else x
+    where f right x = if isLambda x || isIf x || badInfix x then Paren (ann x) x else x
+          badInfix (InfixApp _ _ op _) = prettyPrint op `elem` words "|| && ."
+          badInfix _ = False
 reparen x = x
 
 
