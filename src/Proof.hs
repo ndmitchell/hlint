@@ -35,20 +35,21 @@ proof reports hints thy = do
     let missing = want \\ got
     let reasons = map (\x -> (fst $ head x, map snd x)) $ groupBy ((==) `on` fst) $
                   sortBy (compare `on` fst) $ map (classifyMissing &&& id) missing
-    putStr $ table $ let (*) = (,) in
-        ["HLint hints" * want
-        ,"HOL proofs" * got
-        ,"Useful proofs" * (got `intersect` want)
-        ,"Unused proofs" * unused
-        ,"Unproved hints" * missing] ++
-        [("  " ++ name) * ps | (name,ps) <- reasons]
+    let summary = table $ let (*) = (,) in
+            ["HLint hints" * want
+            ,"HOL proofs" * got
+            ,"Useful proofs" * (got `intersect` want)
+            ,"Unused proofs" * unused
+            ,"Unproved hints" * missing] ++
+            [("  " ++ name) * ps | (name,ps) <- reasons]
+    putStr $ unlines summary
     forM_ reports $ \report -> do
         let out = ("Unused proofs",unused) : map (first ("Unproved hints - " ++)) reasons
-        writeFile report $ unlines $ concat
+        writeFile report $ unlines $ summary ++ "" : concat
             [("== " ++ a ++ " ==") : "" : map show b | (a,b) <- out]
         putStrLn $ "Report written to " ++ report
     where
-        table xs = unlines [a ++ replicate (n + 6 - length a - length bb) ' ' ++ bb | (a,b) <- xs, let bb = show $ length b]
+        table xs = [a ++ replicate (n + 6 - length a - length bb) ' ' ++ bb | (a,b) <- xs, let bb = show $ length b]
             where n = maximum $ map (length . fst) xs
 
 
