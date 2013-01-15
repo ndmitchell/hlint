@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec, RecordWildCards #-}
 
 {-
 The matching does a fairly simple unification between the two terms, treating
@@ -83,8 +83,8 @@ findIdeas matches s _ decl =
   , m <- matches, Just (y,notes) <- [matchIdea s decl m parent x2]]
 
 
-matchIdea :: Scope -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,String)
-matchIdea s decl MatchExp{lhs=lhs,rhs=rhs,side=side,scope=scope,notes=notes} parent x = do
+matchIdea :: Scope -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note])
+matchIdea s decl MatchExp{..} parent x = do
     let nm = nameMatch scope s
     u <- unifyExp nm True lhs x
     u <- check u
