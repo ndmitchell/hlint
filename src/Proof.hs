@@ -4,6 +4,7 @@ module Proof(proof) where
 
 import Control.Arrow
 import Control.Monad
+import Control.Monad.State
 import Data.Char
 import Data.List
 import Data.Maybe
@@ -119,7 +120,7 @@ reparen x = x
 -- Extract theorems out of the hints
 hintTheorems :: [Setting] -> [Theorem]
 hintTheorems xs =
-    [ Theorem (Just m) (loc $ ann lhs) $ relationship notes (exp lhs) (exp rhs)
+    [ Theorem (Just m) (loc $ ann lhs) $ relationship notes (exp $ typeclasses notes lhs) (exp rhs)
     | m@MatchExp{..} <- map reparen xs]
     where
         loc (SrcSpanInfo (SrcSpan file ln _ _ _) _) = takeFileName file ++ ":" ++ show ln
@@ -129,6 +130,15 @@ hintTheorems xs =
         ops = subs "||=orelse &&=andalso .=oo ===eq /==neq"
         pre = flip elem $ words "eq neq"
         cons = subs "True=TT False=FF"
+
+        typeclasses notes x = foldr f x notes
+            where
+                f (ValidInstance cls var) x = evalState (transformM g x) True
+                    where g v@Var{} | v ~= var = do
+                                b <- get; put False
+                                return $ if b then Paren an $ toNamed $ prettyPrint v ++ "::'a::" ++ cls ++ "_sym" else v
+                          g v = return v :: State Bool Exp_
+                f _  x = x
 
         relationship notes a b | any lazier notes = a ++ " \\<sqsubseteq> " ++ b
                                | DecreasesLaziness `elem` notes = b ++ " \\<sqsubseteq> " ++ b
