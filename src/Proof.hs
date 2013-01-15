@@ -147,6 +147,7 @@ hintTheorems xs =
                   lazier RemovesError{} = True
                   lazier _ = False
 
+        -- Syntax translations
         exp (App _ a b) = exp a ++ "\\<cdot>" ++ exp b
         exp (Paren _ x) = "(" ++ exp x ++ ")"
         exp (Var _ x) | Just x <- funs $ prettyPrint x = x
@@ -155,10 +156,16 @@ hintTheorems xs =
         exp (Tuple _ xs) = "\\<langle>" ++ intercalate ", " (map exp xs) ++ "\\<rangle>"
         exp (If _ a b c) = "If " ++ exp a ++ " then " ++ exp b ++ " else " ++ exp c
         exp (Lambda _ xs y) = "\\<Lambda> " ++ unwords (map pat xs) ++ ". " ++ exp y
-        exp (InfixApp l a (QVarOp _ (UnQual _ (Ident _ b))) c) = exp $ App l (App l (Var l (UnQual l (Ident l b))) a) c
         exp (InfixApp _ x op y) | Just op <- ops $ prettyPrint op =
             if pre op then op ++ "\\<cdot>" ++ exp (paren x) ++ "\\<cdot>" ++ exp (paren y) else exp x ++ " " ++ op ++ " " ++ exp y
+
+        -- Translations from the Haskell 2010 report
+        exp (InfixApp l a (QVarOp _ b) c) = exp $ App l (App l (Var l b) a) c -- S3.4
+        exp x@(LeftSection l e op) = let v = fresh x in exp $ Paren l $ Lambda l [toNamed v] $ InfixApp l (toNamed v) op e -- S3.5
+        exp x@(RightSection l op e) = let v = fresh x in exp $ Paren l $ Lambda l [toNamed v] $ InfixApp l e op (toNamed v) -- S3.5
         exp x = prettyPrint x
 
         pat (PTuple _ xs) = "\\<langle>" ++ intercalate ", " (map pat xs) ++ "\\<rangle>"
         pat x = prettyPrint x
+
+        fresh x = head $ ("z":["v" ++ show i | i <- [1..]]) \\ vars x
