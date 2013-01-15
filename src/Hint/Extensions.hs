@@ -63,8 +63,8 @@ minimalExtensions x es = nub $ concatMap f es
 
 
 -- RecordWildCards implies DisambiguateRecordFields, but most people probably don't want it
-warnings old new | RecordWildCards `elem` old && RecordWildCards `notElem` new = "you may need to add DisambiguateRecordFields"
-warnings _ _ = ""
+warnings old new | RecordWildCards `elem` old && RecordWildCards `notElem` new = [Note "you may need to add DisambiguateRecordFields"]
+warnings _ _ = []
 
 
 used :: Extension -> Module_ -> Bool

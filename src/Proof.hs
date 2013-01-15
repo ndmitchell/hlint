@@ -127,11 +127,12 @@ hintTheorems xs =
         pre = flip elem $ words "eq neq"
         cons = subs "True=TT False=FF"
 
-        relationship note a b
-            | "increases laziness" `isPrefixOf` note = a ++ " \\<sqsubseteq> " ++ b
-            | "decreases laziness" `isPrefixOf` note = b ++ " \\<sqsubseteq> " ++ a
-            | "removes error" `isPrefixOf` note = a ++ " \\<sqsubseteq> " ++ b
-            | otherwise = a ++ " = " ++ b
+        relationship notes a b | any lazier notes = a ++ " \\<sqsubseteq> " ++ b
+                               | DecreasesLaziness `elem` notes = b ++ " \\<sqsubseteq> " ++ b
+                               | otherwise = a ++ " = " ++ b
+            where lazier IncreasesLaziness = True
+                  lazier RemovesError{} = True
+                  lazier _ = False
 
         exp (App _ a b) = exp a ++ "\\<cdot>" ++ exp b
         exp (Paren _ x) = "(" ++ exp x ++ ")"

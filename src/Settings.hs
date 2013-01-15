@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
 module Settings(
-    Severity(..), FuncName, Setting(..), isClassify, isMatchExp,
+    Severity(..), Note(..), showNotes, FuncName, Setting(..), isClassify, isMatchExp,
     defaultHintName, isUnifyVar,
     readSettings, readPragma, findSettings
     ) where
@@ -48,9 +48,31 @@ addInfix x = x{infixes = infix_ (-1) ["==>"] ++ infixes x}
 ---------------------------------------------------------------------
 -- TYPE
 
+data Note
+    = IncreasesLaziness
+    | DecreasesLaziness
+    | RemovesError String -- RemovesError "on []", RemovesError "when x is negative"
+    | ValidInstance String String -- ValidInstance "Eq" "x"
+    | Note String
+      deriving (Eq,Ord)
+
+instance Show Note where
+    show IncreasesLaziness = "increases laziness"
+    show DecreasesLaziness = "decreases laziness"
+    show (RemovesError x) = "removes error " ++ x
+    show (ValidInstance x y) = "requires a valid " ++ x ++ " instance for " ++ y
+    show (Note x) = x
+
+
+showNotes :: [Note] -> String
+showNotes = intercalate ", " . map show . filter use
+    where use ValidInstance{} = False -- Not important enough to tell an end user
+          use _ = True
+
+
 data Setting
     = Classify {severityS :: Severity, hintS :: String, funcS :: FuncName}
-    | MatchExp {severityS :: Severity, hintS :: String, scope :: Scope, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_, notes :: String}
+    | MatchExp {severityS :: Severity, hintS :: String, scope :: Scope, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_, notes :: [Note]}
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show
@@ -122,11 +144,25 @@ readPragma o@(AnnPragma _ p) = f p
 readPragma _ = Nothing
 
 
-readSide :: [Decl_] -> (Maybe Exp_, String)
-readSide = foldl f (Nothing,"")
-    where f (Nothing,warn) (PatBind _ PWildCard{} Nothing (UnGuardedRhs _ side) Nothing) = (Just side, warn)
-          f (side,"") (PatBind _ (fromNamed -> "note") Nothing (UnGuardedRhs _ (Lit _ (String _ warn _))) Nothing) = (side,warn)
+readSide :: [Decl_] -> (Maybe Exp_, [Note])
+readSide = foldl f (Nothing,[])
+    where f (Nothing,notes) (PatBind _ PWildCard{} Nothing (UnGuardedRhs _ side) Nothing) = (Just side, notes)
+          f (side,[]) (PatBind _ (fromNamed -> "note") Nothing (UnGuardedRhs _ note) Nothing) = (side,g note)
           f _ x = errorOn x "bad side condition"
+
+          g (Lit _ (String _ x _)) = [Note x]
+          g (List _ xs) = concatMap g xs
+          g x = case fromApps x of
+              [con -> Just "IncreasesLaziness"] -> [IncreasesLaziness]
+              [con -> Just "DecreasesLaziness"] -> [DecreasesLaziness]
+              [con -> Just "RemovesError",str -> Just a] -> [RemovesError a]
+              [con -> Just "ValidInstance",str -> Just a,var -> Just b] -> [ValidInstance a b]
+              _ -> errorOn x "bad note"
+
+          con :: Exp_ -> Maybe String
+          con c@Con{} = Just $ prettyPrint c; con _ = Nothing
+          var c@Var{} = Just $ prettyPrint c; var _ = Nothing
+          str c = if isString c then Just $ fromString c else Nothing
 
 
 -- Note: Foo may be ("","Foo") or ("Foo",""), return both

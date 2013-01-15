@@ -56,7 +56,7 @@ writeIdea cls Idea{..} =
     ,code from
     ,"Why not" ++ (if to == "" then " remove it." else "") ++ "<br/>"
     ,code to
-    ,if note /= "" then "<span class='note'>Note: " ++ note ++ "</span>" else ""
+    ,let n = showNotes note in if n /= "" then "<span class='note'>Note: " ++ n ++ "</span>" else ""
     ,"</div>"
     ,""]
 
