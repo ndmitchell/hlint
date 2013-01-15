@@ -56,7 +56,7 @@ importHint _ x = concatMap (wrap . snd) (groupSortFst
 
 
 wrap :: [ImportDecl S] -> [Idea]
-wrap o = [ rawIdea Error "Use fewer imports" (toSrcLoc $ ann $ head o) (f o) (f x) ""
+wrap o = [ rawIdea Error "Use fewer imports" (toSrcLoc $ ann $ head o) (f o) (f x) []
          | Just x <- [simplify o]]
     where f = unlines . map prettyPrint
 
@@ -124,7 +124,7 @@ hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing,impor
     = [rawIdea Warning "Use hierarchical imports" (toSrcLoc $ ann i) (ltrim $ prettyPrint i) (
           unlines $ map (ltrim . prettyPrint)
           [f "System.IO" Nothing, f "System.IO.Error" Nothing
-          ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an $ toNamed x | x <- ["bracket","bracket_"]]]) ""]
+          ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an $ toNamed x | x <- ["bracket","bracket_"]]]) []]
     where f a b = (desugarQual i){importModule=ModuleName an a, importSpecs=b}
 
 hierarchy _ = []
@@ -141,7 +141,7 @@ multiExport x =
     [ rawIdea Warning "Use import/export shortcut" (toSrcLoc $ ann hd)
         (unlines $ prettyPrint hd : map prettyPrint imps)
         (unlines $ prettyPrint newhd : map prettyPrint newimps)
-        ""
+        []
     | Module l (Just hd) _ imp _ <- [x]
     , let asNames = mapMaybe importAs imp
     , let expNames = [x | EModuleContents _ x <- childrenBi hd]
