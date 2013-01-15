@@ -161,8 +161,8 @@ hintTheorems xs =
 
         -- Translations from the Haskell 2010 report
         exp (InfixApp l a (QVarOp _ b) c) = exp $ App l (App l (Var l b) a) c -- S3.4
-        exp x@(LeftSection l e op) = let v = fresh x in exp $ Paren l $ Lambda l [toNamed v] $ InfixApp l (toNamed v) op e -- S3.5
-        exp x@(RightSection l op e) = let v = fresh x in exp $ Paren l $ Lambda l [toNamed v] $ InfixApp l e op (toNamed v) -- S3.5
+        exp x@(LeftSection l e op) = let v = fresh x in exp $ Paren l $ Lambda l [toNamed v] $ InfixApp l e op (toNamed v) -- S3.5
+        exp x@(RightSection l op e) = let v = fresh x in exp $ Paren l $ Lambda l [toNamed v] $ InfixApp l (toNamed v) op e -- S3.5
         exp x = prettyPrint x
 
         pat (PTuple _ xs) = "\\<langle>" ++ intercalate ", " (map pat xs) ++ "\\<rangle>"
