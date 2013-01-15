@@ -29,7 +29,7 @@ instance Show Theorem where
 proof :: [FilePath] -> [Setting] -> FilePath -> IO ()
 proof reports hints thy = do
     got <- fmap (isabelleTheorems (takeFileName thy)) $ readFile thy
-    let want = hintTheorems hints
+    let want = nub $ hintTheorems hints
     let unused = got \\ want
     let missing = want \\ got
     let reasons = map (\x -> (fst $ head x, map snd x)) $ groupBy ((==) `on` fst) $
