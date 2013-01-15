@@ -530,6 +530,7 @@ foo = evaluate [12] -- return [12]
 test = \ a -> f a >>= \ b -> return (a, b)
 fooer input = catMaybes . map Just $ input -- mapMaybe Just
 main = print $ map (\_->5) [2,3,5] -- const 5
+main = x == a || x == b || x == c -- x `elem` [a,b,c]
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
