@@ -141,7 +141,7 @@ hintTheorems xs =
                 f _  x = x
 
         relationship notes a b | any lazier notes = a ++ " \\<sqsubseteq> " ++ b
-                               | DecreasesLaziness `elem` notes = b ++ " \\<sqsubseteq> " ++ b
+                               | DecreasesLaziness `elem` notes = b ++ " \\<sqsubseteq> " ++ a
                                | otherwise = a ++ " = " ++ b
             where lazier IncreasesLaziness = True
                   lazier RemovesError{} = True
