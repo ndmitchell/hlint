@@ -85,6 +85,9 @@ isabelleTheorems file = find . lexer 1
     where
         find ((i,"lemma"):(_,'\"':lemma):rest) = Theorem Nothing (file ++ ":" ++ show i) lemma : find rest
         find ((i,"lemma"):(_,name):(_,":"):(_,'\"':lemma):rest) = Theorem Nothing (file ++ ":" ++ show i) lemma : find rest
+        find ((i,"lemma"):(_,"assumes"):(_,'\"':assumes):(_,"shows"):(_,'\"':lemma):rest) =
+            Theorem Nothing (file ++ ":" ++ show i) (assumes ++ " \\<Longrightarrow> " ++ lemma) : find rest
+
         find ((i,"lemma"):rest) = Theorem Nothing (file ++ ":" ++ show i) "Unsupported lemma format" : find rest
         find (x:xs) = find xs
         find [] = []
