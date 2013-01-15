@@ -117,8 +117,8 @@ error = filter f x /= [] ==> any f x
 error = any id ==> or
 error = all id ==> and
 error = any ((==) a) ==> elem a where note = ValidInstance "Eq" a
-error = any (== a) ==> elem a where note = ValidInstance "Eq" a
-error = any (a ==) ==> elem a
+error = any (== a) ==> elem a
+error = any (a ==) ==> elem a where note = ValidInstance "Eq" a
 error = all ((/=) a) ==> notElem a where note = ValidInstance "Eq" a
 error = all (/= a) ==> notElem a where note = ValidInstance "Eq" a
 error = all (a /=) ==> notElem a where note = ValidInstance "Eq" a
