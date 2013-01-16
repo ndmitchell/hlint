@@ -85,7 +85,7 @@ warn "Use map once" = map f (map g x) ==> map (f . g) x
 warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
 error = head (reverse x) ==> last x
--- error = head (drop n x) ==> x !! n where -- not true for n < 0
+error = head (drop n x) ==> x !! n where _ = isNat n
 error = reverse (tail (reverse x)) ==> init x where note = IncreasesLaziness
 -- error = take (length x - 1) x ==> init x -- not true for x == []
 error = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
@@ -531,6 +531,9 @@ test = \ a -> f a >>= \ b -> return (a, b)
 fooer input = catMaybes . map Just $ input -- mapMaybe Just
 main = print $ map (\_->5) [2,3,5] -- const 5
 main = x == a || x == b || x == c -- x `elem` [a,b,c]
+main = head $ drop n x
+main = head $ drop (-3) x
+main = head $ drop 2 x -- x !! 2
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
