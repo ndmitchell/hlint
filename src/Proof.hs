@@ -148,6 +148,7 @@ hintTheorems xs =
                   lazier _ = False
 
         assumes (App _ op var) | op ~= "isNat" = "le\\<cdot>0\\<cdot>" ++ prettyPrint var ++ " \\<noteq> FF \\<Longrightarrow> "
+        assumes (App _ op var) | op ~= "isWHNF" = prettyPrint var ++ " \\<noteq> \\<bottom> \\<Longrightarrow> "
         assumes _ = ""
 
         exp1 = exp . transformBi unqual
