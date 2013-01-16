@@ -127,9 +127,9 @@ hintTheorems xs =
         loc (SrcSpanInfo (SrcSpan file ln _ _ _) _) = takeFileName file ++ ":" ++ show ln
 
         subs xs = flip lookup [(reverse b, reverse a) | x <- words xs, let (a,'=':b) = break (== '=') $ reverse x]
-        funs = subs "id=ID not=neg or=the_or and=the_and (||)=tror (&&)=trand (++)=append (==)=eq (/=)=neq"
-        ops = subs "||=orelse &&=andalso .=oo ===eq /==neq ++=++ !!=!!"
-        pre = flip elem $ words "eq neq"
+        funs = subs "id=ID not=neg or=the_or and=the_and (||)=tror (&&)=trand (++)=append (==)=eq (/=)=neq ($)=dollar"
+        ops = subs "||=orelse &&=andalso .=oo ===eq /==neq ++=++ !!=!! $=dollar $!=dollarBang"
+        pre = flip elem $ words "eq neq dollar dollarBang"
         cons = subs "True=TT False=FF"
 
         typeclasses notes x = foldr f x notes
