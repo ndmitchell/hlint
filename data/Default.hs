@@ -172,7 +172,7 @@ error "Redundant $" = (($) . f) ==> f
 error "Redundant $" = (f $) ==> f
 warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
-warn  = (\a b -> o (f a) (f b)) ==> o `Data.Function.on` f
+warn  = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
 
 -- CHAR
 
