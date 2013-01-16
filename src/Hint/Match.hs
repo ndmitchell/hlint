@@ -186,6 +186,8 @@ checkSide x bind = maybe True f x
 
         isType "Atom" x = isAtom x
         isType "WHNF" x = isWHNF x
+        isType "Nat" (Lit _ (Int _ x _)) | x >= 0 = True
+        isType "Pos" (Lit _ (Int _ x _)) | x >  0 = True
         isType ('L':'i':'t':typ@(_:_)) (Lit _ x) = head (words $ show x) == typ
         isType typ x = head (words $ show x) == typ
 
