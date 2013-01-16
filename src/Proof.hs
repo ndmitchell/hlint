@@ -121,7 +121,7 @@ reparen x = x
 -- Extract theorems out of the hints
 hintTheorems :: [Setting] -> [Theorem]
 hintTheorems xs =
-    [ Theorem (Just m) (loc $ ann lhs) $ relationship notes a b
+    [ Theorem (Just m) (loc $ ann lhs) $ maybe "" assumes side ++ relationship notes a b
     | m@MatchExp{..} <- map reparen xs, let a = exp1 $ typeclasses notes lhs, let b = exp1 rhs, a /= b]
     where
         loc (SrcSpanInfo (SrcSpan file ln _ _ _) _) = takeFileName file ++ ":" ++ show ln
@@ -147,6 +147,9 @@ hintTheorems xs =
             where lazier IncreasesLaziness = True
                   lazier RemovesError{} = True
                   lazier _ = False
+
+        assumes (App _ op var) | op ~= "isNat" = "le\\<cdot>0\\<cdot>" ++ prettyPrint var ++ " \\<noteq> FF \\<Longrightarrow> "
+        assumes _ = ""
 
         exp1 = exp . transformBi unqual
 
