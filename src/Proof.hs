@@ -121,8 +121,8 @@ reparen x = x
 -- Extract theorems out of the hints
 hintTheorems :: [Setting] -> [Theorem]
 hintTheorems xs =
-    [ Theorem (Just m) (loc $ ann lhs) $ relationship notes (exp $ typeclasses notes lhs) (exp rhs)
-    | m@MatchExp{..} <- map reparen xs]
+    [ Theorem (Just m) (loc $ ann lhs) $ relationship notes a b
+    | m@MatchExp{..} <- map reparen xs, let a = exp1 $ typeclasses notes lhs, let b = exp1 rhs, a /= b]
     where
         loc (SrcSpanInfo (SrcSpan file ln _ _ _) _) = takeFileName file ++ ":" ++ show ln
 
@@ -147,6 +147,8 @@ hintTheorems xs =
             where lazier IncreasesLaziness = True
                   lazier RemovesError{} = True
                   lazier _ = False
+
+        exp1 = exp . transformBi unqual
 
         -- Syntax translations
         exp (App _ a b) = exp a ++ "\\<cdot>" ++ exp b
