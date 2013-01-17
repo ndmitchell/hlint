@@ -236,6 +236,17 @@ foo xs = concat (map op xs)
 	HLint does not use the default set of hints if custom hints are specified on the command line using <tt>--with</tt> or <tt>--hint</tt>. To include the default hints either pass <tt>--hint=HLint</tt> on the command line, or add <tt>import "hint" HLint.HLint</tt> in one of the hint files you specify with <tt>--hint</tt>.
 </p>
 
+<h3>Why do I sometimes get a "Note" with my hint?</h3>
+
+<p>
+	Most hints are perfect substitutions, and these are displayed without any notes. However, some hints change the semantics of your program - typically in irrelevant ways - but HLint shows a warning note. HLint does not warn when assuming typeclass laws (such as <tt>==</tt> being symmetric). Some notes you may see include:
+</p>
+<ul>
+	<li><b>Increases laziness</b> - for example <tt>foldl (&&) True</tt> suggests <tt>and</tt> including this note. The new code will work on infinite lists, while the old code would not. Increasing laziness is usually a good idea.</li>
+	<li><b>Decreases laziness</b> - for example <tt>(fst a, snd a)</tt> suggests <tt>a</tt> including this note. On evaluation the new code will raise an error if <tt>a</tt> is an error, while the old code would produce a pair containing two error values. Only a small number of hints decrease laziness, and anyone relying on the laziness of the original code would be advised to include a comment.</li>
+	<li><b>Removes error</b> - for example <tt>foldr1 (&&)</tt> suggests <tt>and</tt> including the note "Removes error on []". The new code will produce <tt>True</tt> on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment.
+</ul>
+
 <h2 id="customization">Customizing the hints</h2>
 
 <p>
