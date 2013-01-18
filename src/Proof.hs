@@ -147,7 +147,9 @@ hintTheorems xs =
                   lazier RemovesError{} = True
                   lazier _ = False
 
-        assumes (App _ op var) | op ~= "isNat" = "le\\<cdot>0\\<cdot>" ++ prettyPrint var ++ " \\<noteq> FF \\<Longrightarrow> "
+        assumes (App _ op var)
+            | op ~= "isNat" = "le\\<cdot>0\\<cdot>" ++ prettyPrint var ++ " \\<noteq> FF \\<Longrightarrow> "
+            | op ~= "isNegZero" = "gt\\<cdot>0\\<cdot>" ++ prettyPrint var ++ " \\<noteq> FF \\<Longrightarrow> "
         assumes (App _ op var) | op ~= "isWHNF" = prettyPrint var ++ " \\<noteq> \\<bottom> \\<Longrightarrow> "
         assumes _ = ""
 
