@@ -134,6 +134,9 @@ error = lookup b (zip l [0..]) ==> elemIndex b l
 warn "Length always non-negative" = length x >= 0 ==> True
 warn "Use null" = length x > 0 ==> not (null x) where note = IncreasesLaziness
 warn "Use null" = length x >= 1 ==> not (null x) where note = IncreasesLaziness
+error "Take on a non-positive" = take i x ==> [] where _ = isNegZero i
+error "Drop on a non-positive" = drop i x ==> x where _ = isNegZero i
+
 
 -- FOLDS
 
@@ -533,8 +536,13 @@ fooer input = catMaybes . map Just $ input -- mapMaybe Just
 main = print $ map (\_->5) [2,3,5] -- const 5
 main = x == a || x == b || x == c -- x `elem` [a,b,c]
 main = head $ drop n x
-main = head $ drop (-3) x
+main = head $ drop (-3) x -- x
 main = head $ drop 2 x -- x !! 2
+main = drop 0 x -- x
+main = take 0 x -- []
+main = take (-5) x -- []
+main = take (-y) x
+main = take 4 x
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
