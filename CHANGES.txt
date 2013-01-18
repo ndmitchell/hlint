@@ -1,6 +1,6 @@
 Changelog for HLint
 
-    Add isNat/isPos as notes
+    Add isNat/isPos/isNeg/isNegPos as notes
     Make the notes a structured type
     Add --proof feature
     Retire the Prelude.catch hint

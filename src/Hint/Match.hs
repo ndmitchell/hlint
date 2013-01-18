@@ -186,10 +186,18 @@ checkSide x bind = maybe True f x
 
         isType "Atom" x = isAtom x
         isType "WHNF" x = isWHNF x
-        isType "Nat" (Lit _ (Int _ x _)) | x >= 0 = True
-        isType "Pos" (Lit _ (Int _ x _)) | x >  0 = True
+        isType "Nat" (asInt -> Just x) | x >= 0 = True
+        isType "Pos" (asInt -> Just x) | x >  0 = True
+        isType "Neg" (asInt -> Just x) | x <  0 = True
+        isType "NegZero" (asInt -> Just x) | x <= 0 = True
         isType ('L':'i':'t':typ@(_:_)) (Lit _ x) = head (words $ show x) == typ
         isType typ x = head (words $ show x) == typ
+
+        asInt :: Exp_ -> Maybe Integer
+        asInt (Paren _ x) = asInt x
+        asInt (NegApp _ x) = fmap negate $ asInt x
+        asInt (Lit _ (Int _ x _)) = Just x
+        asInt _ = Nothing
 
         list :: Exp_ -> [Exp_]
         list (List _ xs) = xs
