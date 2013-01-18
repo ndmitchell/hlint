@@ -131,7 +131,7 @@ error = findIndices ((==) a) ==> elemIndices a
 error = findIndices (a ==) ==> elemIndices a
 error = findIndices (== a) ==> elemIndices a
 error = lookup b (zip l [0..]) ==> elemIndex b l
-warn "length always non-negative" = length x >= 0 ==> True
+warn "Length always non-negative" = length x >= 0 ==> True
 warn "Use null" = length x > 0 ==> not (null x) where note = IncreasesLaziness
 warn "Use null" = length x >= 1 ==> not (null x) where note = IncreasesLaziness
 
