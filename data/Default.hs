@@ -440,8 +440,8 @@ error "Evaluate" = const x y ==> x
 -- COMPLEX
 
 error "Use isPrefixOf" = take (length t) s == t ==> t `Data.List.isPrefixOf` s
-error "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i == length t) && (t `Data.List.isPrefixOf` s))
-    where _ = (isList t || isLit t) && isLit i
+error "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i >= length t) && (t `Data.List.isPrefixOf` s))
+    where _ = (isList t || isLit t) && isPos i
 
 {-
 -- clever hint, but not actually a good idea
