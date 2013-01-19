@@ -4,6 +4,7 @@ module HLint.Default where
 import Control.Arrow
 import Control.Exception
 import Control.Monad
+import Control.Monad.State
 import qualified Data.Foldable
 import Data.Foldable(asum, sequenceA_, traverse_, for_)
 import Data.Traversable(traverse, for)
@@ -265,6 +266,10 @@ error = a >> forever a ==> forever a
 warn = liftM2 id ==> ap
 error = mapM (uncurry f) (zip l m) ==> zipWithM f l m
 
+-- STATE MONAD
+
+error = fst (runState x y) ==> evalState x y
+error = snd (runState x y) ==> execState x y
 
 -- MONAD LIST
 
