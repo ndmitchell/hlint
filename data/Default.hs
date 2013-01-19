@@ -137,6 +137,7 @@ warn "Use null" = length x > 0 ==> not (null x) where note = IncreasesLaziness
 warn "Use null" = length x >= 1 ==> not (null x) where note = IncreasesLaziness
 error "Take on a non-positive" = take i x ==> [] where _ = isNegZero i
 error "Drop on a non-positive" = drop i x ==> x where _ = isNegZero i
+error = (takeWhile p l, dropWhile p l) ==> span p l
 
 
 -- FOLDS
@@ -548,6 +549,7 @@ main = take 0 x -- []
 main = take (-5) x -- []
 main = take (-y) x
 main = take 4 x
+main = let (first, rest) = (takeWhile p l, dropWhile p l) in rest -- span p l
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
