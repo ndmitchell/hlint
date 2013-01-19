@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.41
     #586, add a rule for takeWhile/dropWhile ==> span
     #522, add hints for the state monad
     #499, fix up the test suite
