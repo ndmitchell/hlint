@@ -1,10 +1,10 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, PatternGuards #-}
 
 module Proof(proof) where
 
 import Control.Arrow
 import Control.Monad
-import Control.Monad.State
+import Control.Monad.Trans.State
 import Data.Char
 import Data.List
 import Data.Maybe
