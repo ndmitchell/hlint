@@ -55,6 +55,7 @@ library
         Idea
         Settings
         Report
+        Proof
         Test
         Util
         Parallel
