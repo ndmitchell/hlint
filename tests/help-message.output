@@ -20,7 +20,7 @@ HLint v0.0, (C) Neil Mitchell 2006-2012
   -d dir    --datadir=dir              Override the data directory
   -p dir    --path=dir                 Directory in which to search for files
   -q        --quiet                    Supress most console output
-            --proof=proof.thy          Proof script
+            --proof=file               Isabelle/HOLCF theory file
             --cpp-define=name[=value]  CPP #define
             --cpp-include=dir          CPP include path
             --cpp-simple               Use a simple CPP (strip # lines)
