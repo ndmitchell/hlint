@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #499, fix up the test suite
     Fix the side conditions for the `isPrefixOf` hint
     Add hints about take/drop on non positive numbers
     Add isNat/isPos/isNeg/isNegPos as notes
