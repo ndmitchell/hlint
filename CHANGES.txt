@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.42
     Allow cpphs-1.16
 1.8.41
     #586, add a rule for takeWhile/dropWhile ==> span
