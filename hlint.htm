@@ -247,6 +247,19 @@ foo xs = concat (map op xs)
 	<li><b>Removes error</b> - for example <tt>foldr1 (&&)</tt> suggests <tt>and</tt> including the note "Removes error on []". The new code will produce <tt>True</tt> on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment.
 </ul>
 
+<h3 id="error_vs_warning">What is the difference between error and warning?</h3>
+
+<p>
+	Every hint has a severity level:
+</p>
+<ul>
+	<li><b>Error</b> - for example <tt>concat (map f x)</tt> suggests <tt>concatMap f x</tt> as an "error" severity hint. From a style point of view, you should always replace a combination of <tt>concat</tt> and <tt>map</tt> with <tt>concatMap</tt>. Note that both expressions are equivalent - HLint is reporting an error in style, <i>not</i> an actual error in the code.</li>
+	<li><b>Warning</b> - for example <tt>x !! 0</tt> suggests <tt>head x</tt> as a "warning" severity hint. Typically <tt>head</tt> is a simpler way of expressing the first element of a list, especially if you are treating the list inductively. However, in the expression <tt>f (x !! 4) (x !! 0) (x !! 7)</tt>, replacing the middle argument with <tt>head</tt> makes it harder to follow the pattern, and is probably a bad idea. Warning hints are often worthwhile, but should not be applied blindly.</li>
+</ul>
+<p>
+	The difference between error and warning is one of personal taste, typically my personal taste. If you already have a well developed sense of Haskell style, you should ignore the difference. If you are a beginner Haskell programmer you may wish to focus on error hints before warning hints.
+</p>
+
 <h2 id="customization">Customizing the hints</h2>
 
 <p>
