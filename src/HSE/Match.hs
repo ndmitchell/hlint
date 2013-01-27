@@ -50,8 +50,8 @@ class Named a where
     fromNamed :: a -> String
 
 
-isCon (x:_) = isUpper x || x == ':'
-isCon _ = False
+isCtor (x:_) = isUpper x || x == ':'
+isCtor _ = False
 
 isSym (x:_) = not $ isAlpha x || x `elem` "_'"
 isSym _ = False
@@ -64,7 +64,7 @@ instance Named (Exp S) where
     fromNamed _ = ""
     
     toNamed "[]" = List an []
-    toNamed x | isCon x = Con an $ toNamed x
+    toNamed x | isCtor x = Con an $ toNamed x
               | otherwise = Var an $ toNamed x
 
 instance Named (QName S) where
@@ -109,7 +109,7 @@ instance Named (Pat S) where
     fromNamed (PApp _ x []) = fromNamed x
     fromNamed _ = ""
 
-    toNamed x | isCon x = PApp an (toNamed x) []
+    toNamed x | isCtor x = PApp an (toNamed x) []
               | otherwise = PVar an $ toNamed x
 
 
@@ -122,7 +122,7 @@ instance Named (TyVarBind S) where
 instance Named (QOp S) where
     fromNamed (QVarOp _ x) = fromNamed x
     fromNamed (QConOp _ x) = fromNamed x
-    toNamed x | isCon x = QConOp an $ toNamed x
+    toNamed x | isCtor x = QConOp an $ toNamed x
               | otherwise = QVarOp an $ toNamed x
 
 instance Named (Match S) where
