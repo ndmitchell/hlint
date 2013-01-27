@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Change some hint error/warning levels
 1.8.42
     Allow cpphs-1.16
 1.8.41

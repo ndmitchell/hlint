@@ -33,9 +33,9 @@ f = foo (flip op x) -- (`op` x)
 f = flip op x
 f = foo (flip (*) x) -- (* x)
 f = foo (flip (-) x)
-f = foo (\x y -> fun x y) -- fun
+f = foo (\x y -> fun x y) -- @Error fun
 f = foo (\x y -> x + y) -- (+)
-f = foo (\x -> x * y) -- (* y)
+f = foo (\x -> x * y) -- @Warning (* y)
 f = foo (\x -> x # y)
 f = foo (\x -> \y -> x x y y) -- \x y -> x x y y
 f = foo (\x -> \x -> foo x x) -- \_ x -> foo x x
@@ -58,6 +58,7 @@ foo = [\x -> x]
 foo = [\m x -> insert x x m]
 foo a b c = bar (flux ++ quux) c where flux = a -- foo a b = bar (flux ++ quux)
 foo a b c = bar (flux ++ quux) c where flux = c
+yes = foo (\x -> Just x) -- @Error Just
 </TEST>
 -}
 
@@ -96,7 +97,7 @@ lambdaExp p o@(Paren _ (App _ (Var _ (UnQual _ (Symbol _ x))) y)) | isAtom y, al
 lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
     [warn "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, res <- niceLambda [] o, not $ isLambda res =
-    [warn "Avoid lambda" o res]
+    [(if isVar res || isCon res then err else warn) "Avoid lambda" o res]
 lambdaExp p o@(Lambda _ _ x) | isLambda (fromParen x) && maybe True (not . isLambda) p =
     [warn "Collapse lambdas" o $ uncurry (Lambda an) $ fromLambda o]
 lambdaExp _ _ = []
