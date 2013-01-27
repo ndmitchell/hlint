@@ -103,7 +103,7 @@ error = zipWith3 (,,) ==> zip3
 warn  = length x == 0 ==> null x where note = IncreasesLaziness
 warn  = x == [] ==> null x
 warn  "Use null" = length x /= 0 ==> not (null x) where note = IncreasesLaziness
-error "Use :" = (\x -> [x]) ==> (:[])
+warn  "Use :" = (\x -> [x]) ==> (:[])
 error = map (uncurry f) (zip x y) ==> zipWith f x y
 warn  = map f (zip x y) ==> zipWith (curry f) x y where _ = isVar f
 error = not (elem x y) ==> notElem x y
