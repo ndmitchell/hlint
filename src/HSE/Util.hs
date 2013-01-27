@@ -70,6 +70,7 @@ fromTyParen x = x
 -- is* :: Exp_ -> Bool
 -- is* :: Decl_ -> Bool
 isVar Var{} = True; isVar _ = False
+isCon Con{} = True; isCon _ = False
 isApp App{} = True; isApp _ = False
 isInfixApp InfixApp{} = True; isInfixApp _ = False
 isList List{} = True; isList _ = False
