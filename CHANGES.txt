@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #598, warn on unnecessary bang patterns
 1.8.43
     Change some hint error/warning levels
 1.8.42

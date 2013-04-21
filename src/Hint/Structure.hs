@@ -25,6 +25,11 @@ foo = case f v of _ -> x -- x
 foo = case v of v -> x -- x
 foo = case v of z -> z
 foo = case v of _ | False -> x
+foo = case v of !True -> x -- True
+foo = case v of !(Just x) -> x -- (Just x)
+foo = case v of !(x : xs) -> x -- (x:xs)
+foo = case v of !1 -> x -- 1
+foo = case v of !x -> x
 </TEST>
 -}
 
@@ -101,6 +106,12 @@ asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
 -- Or perhaps the entire module should be renamed Pattern, since it's all about patterns
 patHint :: Pat_ -> [Idea]
 patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args = [warn "Use record patterns" o $ PRec an name []]
+patHint o@(PBangPat _ x) | f x = [err "Redundant bang pattern" o x]
+    where f (PParen _ x) = f x
+          f PLit{} = True
+          f PApp{} = True
+          f PInfixApp{} = True
+          f _ = False
 patHint _ = []
 
 
