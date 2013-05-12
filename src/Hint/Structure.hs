@@ -108,6 +108,7 @@ patHint :: Pat_ -> [Idea]
 patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args = [warn "Use record patterns" o $ PRec an name []]
 patHint o@(PBangPat _ x) | f x = [err "Redundant bang pattern" o x]
     where f (PParen _ x) = f x
+          f (PAsPat _ _ x) = f x
           f PLit{} = True
           f PApp{} = True
           f PInfixApp{} = True
