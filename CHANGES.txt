@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.45
     #600, hints for unnecessary lazy annotations
 1.8.44
     #598, warn on unnecessary bang patterns
