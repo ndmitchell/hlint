@@ -30,6 +30,8 @@ foo = case v of !(Just x) -> x -- (Just x)
 foo = case v of !(x : xs) -> x -- (x:xs)
 foo = case v of !1 -> x -- 1
 foo = case v of !x -> x
+foo = let ~x = 1 in y -- x
+foo = let ~(x:xs) = y in z
 </TEST>
 -}
 
@@ -112,6 +114,12 @@ patHint o@(PBangPat _ x) | f x = [err "Redundant bang pattern" o x]
           f PLit{} = True
           f PApp{} = True
           f PInfixApp{} = True
+          f _ = False
+patHint o@(PIrrPat _ x) | f x = [err "Redundant irrefutable pattern" o x]
+    where f (PParen _ x) = f x
+          f (PAsPat _ _ x) = f x
+          f PWildCard{} = True
+          f PVar{} = True
           f _ = False
 patHint _ = []
 
