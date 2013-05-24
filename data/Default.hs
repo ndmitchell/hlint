@@ -88,6 +88,7 @@ error = take n (repeat x) ==> replicate n x
 error = head (reverse x) ==> last x
 error = head (drop n x) ==> x !! n where _ = isNat n
 error = reverse (tail (reverse x)) ==> init x where note = IncreasesLaziness
+error "Avoid reverse" = reverse (reverse x) ==> x where note = IncreasesLaziness
 -- error = take (length x - 1) x ==> init x -- not true for x == []
 error = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
 error = foldr (++) [] ==> concat
