@@ -1,5 +1,7 @@
 Changelog for HLint
 
+    Add side as an alias for _
+    Add hint as an alias for error
 1.8.45
     #600, hints for unnecessary lazy annotations
 1.8.44
