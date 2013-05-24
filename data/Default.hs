@@ -85,6 +85,8 @@ warn = concat [a, b] ==> a ++ b
 warn "Use map once" = map f (map g x) ==> map (f . g) x
 warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
+error = map f (replicate n x) ==> replicate n (f x)
+error = map f (repeat x) ==> repeat (f x)
 error = head (reverse x) ==> last x
 error = head (drop n x) ==> x !! n where _ = isNat n
 error = reverse (tail (reverse x)) ==> init x where note = IncreasesLaziness
@@ -280,6 +282,8 @@ error = sequence (zipWith f x y) ==> Control.Monad.zipWithM f x y
 error = sequence_ (zipWith f x y) ==> Control.Monad.zipWithM_ f x y
 error = sequence (replicate n x) ==> Control.Monad.replicateM n x
 error = sequence_ (replicate n x) ==> Control.Monad.replicateM_ n x
+error = mapM f (replicate n x) ==> Control.Monad.replicateM n (f x)
+error = mapM_ f (replicate n x) ==> Control.Monad.replicateM_ n (f x)
 error = mapM f (map g x) ==> mapM (f . g) x
 error = mapM_ f (map g x) ==> mapM_ (f . g) x
 error = mapM id ==> sequence

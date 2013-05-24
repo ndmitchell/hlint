@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #601, add replicate/map/repeat hints
     Add a hint about reverse/reverse
     Add side as an alias for _
     Add hint as an alias for error
