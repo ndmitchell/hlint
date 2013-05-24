@@ -148,6 +148,7 @@ readPragma _ = Nothing
 readSide :: [Decl_] -> (Maybe Exp_, [Note])
 readSide = foldl f (Nothing,[])
     where f (Nothing,notes) (PatBind _ PWildCard{} Nothing (UnGuardedRhs _ side) Nothing) = (Just side, notes)
+          f (Nothing,notes) (PatBind _ (fromNamed -> "side") Nothing (UnGuardedRhs _ side) Nothing) = (Just side, notes)
           f (side,[]) (PatBind _ (fromNamed -> "note") Nothing (UnGuardedRhs _ note) Nothing) = (side,g note)
           f _ x = errorOn x "bad side condition"
 
