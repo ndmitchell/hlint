@@ -102,6 +102,11 @@ error = foldr (++) [] ==> concat
 error = foldl (++) [] ==> concat where note = IncreasesLaziness
 error = span (not . p) ==> break p
 error = break (not . p) ==> span p
+error = (takeWhile p x, dropWhile p x) ==> span p x
+error = fst (span p x) = takeWhile p x
+error = snd (span p x) = dropWhile p x
+error = fst (break p x) = takeWhile (not . p) x
+error = snd (break p x) = dropWhile (not . p) x
 error = concatMap (++ "\n") ==> unlines
 error = map id ==> id
 error = or (map p x) ==> any p x
