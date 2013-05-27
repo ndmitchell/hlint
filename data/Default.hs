@@ -69,6 +69,11 @@ error = head (sort x) ==> minimum x
 error = last (sort x) ==> maximum x
 error = head (sortBy f x) ==> minimumBy f x
 error = last (sortBy f x) ==> maximumBy f x
+error "Avoid reverse" = reverse (sort x) ==> sortBy (flip compare) x
+error "Avoid reverse" = reverse (sortBy f x) ==> sortBy (flip f) x
+warn  = flip (g `on` h) ==> flip g `on` h
+warn  = (f `on` g) `on` h ==> f `on` (g . h)
+
 
 -- READ/SHOW
 

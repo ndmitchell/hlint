@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #588, add sort/reverse hints
     #601, add replicate/map/repeat hints
     Add a hint about reverse/reverse
     Add side as an alias for _
