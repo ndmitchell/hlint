@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.46
     Remove incorrect isPrefixOf hints
     #586, add span/break/takeWhile/dropWhile hints
     #588, add sort/reverse hints
