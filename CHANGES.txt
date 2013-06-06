@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Remove incorrect isPrefixOf hints
     #586, add span/break/takeWhile/dropWhile hints
     #588, add sort/reverse hints
     #601, add replicate/map/repeat hints

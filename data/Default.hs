@@ -459,9 +459,12 @@ error "Evaluate" = const x y ==> x
 
 -- COMPLEX
 
+{-
+-- these would be a good idea, but we have not yet proven them and they seem to have side conditions
 error "Use isPrefixOf" = take (length t) s == t ==> t `Data.List.isPrefixOf` s
 error "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i >= length t) && (t `Data.List.isPrefixOf` s))
     where _ = (isList t || isLit t) && isPos i
+-}
 
 {-
 -- clever hint, but not actually a good idea
