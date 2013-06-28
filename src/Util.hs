@@ -70,8 +70,10 @@ headDef :: a -> [a] -> a
 headDef x [] = x
 headDef x (y:ys) = y
 
+#if !MIN_VERSION_base(4,7,0)
 isLeft Left{} = True; isLeft _ = False
 isRight = not . isLeft
+#endif
 
 unzipEither :: [Either a b] -> ([a], [b])
 unzipEither (x:xs) = case x of
