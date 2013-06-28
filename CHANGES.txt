@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.47
     #613, compatibility with base-4.7
 1.8.46
     Remove incorrect isPrefixOf hints
