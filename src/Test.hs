@@ -227,8 +227,8 @@ checkInputOutput main xs = do
             putStrLn $ unlines
                 ["TEST FAILURE IN tests/" ++ pre
                 ,"DIFFER ON LINE: " ++ show i
-                ,"GOT : " ++ show g
-                ,"WANT: " ++ show w]
+                ,"GOT : " ++ show got
+                ,"WANT: " ++ show want]
             when (null want) $ putStrLn $ unlines $ "FULL OUTPUT FOR GOT:" : got
             return failure
 
