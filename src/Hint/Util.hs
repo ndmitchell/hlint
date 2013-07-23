@@ -48,6 +48,9 @@ niceLambda [x] y | Just z <- factor y, x `notElem` vars z = z
         factor (Paren _ y@App{}) = factor y
         factor _ = Nothing
 
+-- \x -> (x +) ==> (+)
+niceLambda [x] (LeftSection _ (view -> Var_ x1) op) | x == x1 = opExp op
+
 -- base case
 niceLambda ps x = Lambda an (map toNamed ps) x
 

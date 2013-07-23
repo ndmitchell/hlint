@@ -17,6 +17,7 @@
     \x -> op x y ==> (`op` y)  -- insert section 
     \x -> y + x ==> (y +)  -- insert section
     \x -> \y -> ... ==> \x y -- lambda compression
+    \x -> (x +) ==> (+) -- operator reduction
 
 <TEST>
 f a = \x -> x + x -- f a x = x + x
@@ -59,6 +60,8 @@ foo = [\m x -> insert x x m]
 foo a b c = bar (flux ++ quux) c where flux = a -- foo a b = bar (flux ++ quux)
 foo a b c = bar (flux ++ quux) c where flux = c
 yes = foo (\x -> Just x) -- @Error Just
+foo = bar (\x -> (x `f`)) -- f
+baz = bar (\x -> (x +)) -- (+)
 </TEST>
 -}
 
