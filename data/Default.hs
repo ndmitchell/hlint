@@ -383,7 +383,6 @@ warn  = n `rem` 2 /= 0 ==> odd n
 warn  = not (even x) ==> odd x
 warn  = not (odd x) ==> even x
 warn  = x ** 0.5 ==> sqrt x
-warn  = x ^^ y ==> x ** y where _ = isLitInt y
 warn  "Use 1" = x ^ 0 ==> 1
 warn  = round (x - 0.5) ==> floor x
 

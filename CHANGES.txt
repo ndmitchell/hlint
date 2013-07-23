@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Remove ^^ ==> ** hint
     Remove a duplicate sqrt hint
     Ensure that --test failures throws an error
 1.8.48
