@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Ensure that --test failures throws an error
 1.8.48
     Brackets at the root of annotations are fine
     Reduce a few more lambda expressions

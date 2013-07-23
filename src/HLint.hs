@@ -48,8 +48,10 @@ hlint :: [String] -> IO [Suggestion]
 hlint args = do
     cmd@Cmd{..} <- getCmd args
     let flags = parseFlags{cppFlags=cmdCpp, encoding=cmdEncoding, language=cmdLanguage}
-    if cmdTest then
-        test (\x -> hlint x >> return ()) cmdDataDir cmdGivenHints >> return []
+    if cmdTest then do
+        failed <- test (\x -> hlint x >> return ()) cmdDataDir cmdGivenHints
+        when (failed > 0) $ error "Test failures!"
+        return []
      else if notNull cmdProof then do
         s <- readAllSettings cmd flags
         let reps = if cmdReports == ["report.html"] then ["report.txt"] else cmdReports
