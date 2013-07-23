@@ -5,6 +5,7 @@ module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity
 import Control.Monad
 import Data.List
 import Data.Maybe
+import System.Exit
 
 import CmdLine
 import Settings
@@ -50,7 +51,7 @@ hlint args = do
     let flags = parseFlags{cppFlags=cmdCpp, encoding=cmdEncoding, language=cmdLanguage}
     if cmdTest then do
         failed <- test (\x -> hlint x >> return ()) cmdDataDir cmdGivenHints
-        when (failed > 0) $ error "Test failures!"
+        when (failed > 0) exitFailure
         return []
      else if notNull cmdProof then do
         s <- readAllSettings cmd flags
