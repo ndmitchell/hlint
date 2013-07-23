@@ -216,26 +216,36 @@ checkInputOutput main xs = do
         handle (\(e::SomeException) -> print e) $
         handle (\(e::ExitCode) -> return ()) $
         main flags
+    let gotValid = isJust got
     want <- fmap lines $ reader "output"
+    (want,got) <- return $ matchStarStar want $ fromMaybe [] got
 
-    case got of
-        Nothing -> putStrLn "Warning: failed to capture output (GHC too old?)" >> return pass
-        Just got | length got == length want && and (zipWith matchStar want got) -> return pass
-                 | otherwise -> do
-            let trail = replicate (max (length got) (length want)) "<EOF>"
-            let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), not $ matchStar w g]
-            putStrLn $ unlines
-                ["TEST FAILURE IN tests/" ++ pre
-                ,"DIFFER ON LINE: " ++ show i
-                ,"GOT : " ++ show got
-                ,"WANT: " ++ show want]
-            when (null want) $ putStrLn $ unlines $ "FULL OUTPUT FOR GOT:" : got
-            return failure
+    if not gotValid then
+        putStrLn "Warning: failed to capture output (GHC too old?)" >> return pass
+     else if length got == length want && and (zipWith matchStar want got) then
+        return pass
+     else do
+        let trail = replicate (max (length got) (length want)) "<EOF>"
+        let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), not $ matchStar w g]
+        putStrLn $ unlines
+            ["TEST FAILURE IN tests/" ++ pre
+            ,"DIFFER ON LINE: " ++ show i
+            ,"GOT : " ++ g
+            ,"WANT: " ++ w]
+        when (null want) $ putStrLn $ unlines $ "FULL OUTPUT FOR GOT:" : got
+        return failure
 
 
--- | First string may have stars in it
+-- | First string may have stars in it (the want)
 matchStar :: String -> String -> Bool
 matchStar ('*':xs) ys = any (matchStar xs) $ tails ys
 matchStar (x:xs) (y:ys) = x == y && matchStar xs ys
 matchStar [] [] = True
 matchStar _ _ = False
+
+
+matchStarStar :: [String] -> [String] -> ([String], [String])
+matchStarStar want got = case break (== "**") want of
+    (_, []) -> (want, got)
+    (w1,_:w2) -> (w1++w2, g1 ++ revTake (length w2) g2)
+        where (g1,g2) = splitAt (length w1) got
