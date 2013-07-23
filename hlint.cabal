@@ -28,8 +28,8 @@ extra-source-files:
     hlint.htm
 
 source-repository head
-    type:     darcs
-    location: http://community.haskell.org/~ndm/darcs/hlint/
+    type:     git
+    location: git://github.com/ndmitchell/hlint.git
 
 flag threaded
     default: True
