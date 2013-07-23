@@ -3,6 +3,7 @@ Changelog for HLint
     Remove ^^ ==> ** hint
     Remove a duplicate sqrt hint
     Ensure that --test failures throws an error
+    Fix up the copyright year in --help
 1.8.48
     Brackets at the root of annotations are fine
     Reduce a few more lambda expressions
