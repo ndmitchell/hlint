@@ -11,4 +11,4 @@ mv hlint-* hlint # predictable name
 cd hlint
 cabal configure --ghc-options=-Werror
 cabal build
-hlint_datadir=. dist/build/hlint/hlint --test
+hlint_datadir=../../../data dist/build/hlint/hlint --test
