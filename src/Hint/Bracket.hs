@@ -50,6 +50,10 @@ foo = (case x of y -> z; q -> w) :: Int
 
 -- backup fixity resolution
 main = do a += b . c; return $ a . b
+
+-- annotations
+main = 1; {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
+main = 1; {-# ANN module (1 + (2)) #-} -- 2
 </TEST>
 -}
 
@@ -61,10 +65,16 @@ import Hint.Type
 
 bracketHint :: DeclHint
 bracketHint _ _ x =
-    concatMap (\x -> bracket True x ++ dollar x) (childrenBi x :: [Exp_]) ++
+    concatMap (\x -> bracket True x ++ dollar x) (childrenBi (descendBi annotations x) :: [Exp_]) ++
     concatMap (bracket False) (childrenBi x :: [Type_]) ++
     concatMap (bracket False) (childrenBi x :: [Pat_]) ++
     concatMap fieldDecl (childrenBi x)
+    where
+        -- Brackets at the roots of annotations are fine, so we strip them
+        annotations :: Annotation S -> Annotation S
+        annotations = descendBi $ \x -> case (x :: Exp_) of
+            Paren _ x -> x
+            x -> x
 
 
 bracket :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]

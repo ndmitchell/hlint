@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Brackets at the root of annotations are fine
     Reduce a few more lambda expressions
 1.8.47
     #613, compatibility with base-4.7
