@@ -218,13 +218,12 @@ checkInputOutput main xs = do
         main flags
     want <- fmap lines $ reader "output"
 
-    let eq w g = w == g || ("*" `isSuffixOf` w && init w `isPrefixOf` g)
     case got of
         Nothing -> putStrLn "Warning: failed to capture output (GHC too old?)" >> return pass
-        Just got | length got == length want && and (zipWith eq want got) -> return pass
+        Just got | length got == length want && and (zipWith matchStar want got) -> return pass
                  | otherwise -> do
             let trail = replicate (max (length got) (length want)) "<EOF>"
-            let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), not $ eq w g]
+            let (i,g,w):_ = [(i,g,w) | (i,g,w) <- zip3 [1..] (got++trail) (want++trail), not $ matchStar w g]
             putStrLn $ unlines
                 ["TEST FAILURE IN tests/" ++ pre
                 ,"DIFFER ON LINE: " ++ show i
@@ -232,3 +231,11 @@ checkInputOutput main xs = do
                 ,"WANT: " ++ w]
             when (null want) $ putStrLn $ unlines $ "FULL OUTPUT FOR GOT:" : got
             return failure
+
+
+-- | First string may have stars in it
+matchStar :: String -> String -> Bool
+matchStar ('*':xs) ys = any (matchStar xs) $ tails ys
+matchStar (x:xs) (y:ys) = x == y && matchStar xs ys
+matchStar [] [] = True
+matchStar _ _ = False
