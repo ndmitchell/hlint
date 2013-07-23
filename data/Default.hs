@@ -376,7 +376,6 @@ error "Redundant fromInteger" = fromInteger x ==> x where _ = isLitInt x
 warn  = x + negate y ==> x - y
 warn  = 0 - x ==> negate x
 warn  = log y / log x ==> logBase x y
-warn  = x ** 0.5 ==> sqrt x
 warn  = sin x / cos x ==> tan x
 warn  = sinh x / cosh x ==> tanh x
 warn  = n `rem` 2 == 0 ==> even n
