@@ -181,8 +181,8 @@ error = foldr mplus mzero ==> msum
 
 error = (\x -> x) ==> id
 error = (\x y -> x) ==> const
-error = (\(x,y) -> y) ==> snd where _ = notIn x y
-error = (\(x,y) -> x) ==> fst where _ = notIn y x
+error = (\(x,y) -> y) ==> snd
+error = (\(x,y) -> x) ==> fst
 warn "Use curry" = (\x y -> f (x,y)) ==> curry f where _ = notIn [x,y] f
 warn "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f; note = IncreasesLaziness
 error "Redundant $" = (($) . f) ==> f
