@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #617, fix up notIn to take account of Template Haskell variables
     #573, suggest removing various deriving language extensions
 1.8.49
     Remove ^^ ==> ** hint

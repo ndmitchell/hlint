@@ -563,6 +563,7 @@ main = take (-5) x -- []
 main = take (-y) x
 main = take 4 x
 main = let (first, rest) = (takeWhile p l, dropWhile p l) in rest -- span p l
+main = map $ \ d -> ([| $d |], [| $d |])
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

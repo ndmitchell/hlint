@@ -256,7 +256,10 @@ childrenS = childrenBi
 
 
 vars :: Biplate a Exp_ => a -> [String]
-vars xs = [prettyPrint x | Var _ (UnQual _ x) <- universeS xs]
+vars = concatMap f . universeS
+    where f (Var _ (UnQual _ x)) = [prettyPrint x]
+          f (SpliceExp _ (IdSplice _ x)) = [x]
+          f _ = []
 
 pvars :: Biplate a Pat_ => a -> [String]
 pvars xs = [prettyPrint x | PVar _ x <- universeS xs]
