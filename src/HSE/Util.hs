@@ -67,6 +67,9 @@ fromTyParen :: Type s -> Type s
 fromTyParen (TyParen _ x) = fromTyParen x
 fromTyParen x = x
 
+fromDeriving :: Deriving s -> [InstHead s]
+fromDeriving (Deriving _ x) = x
+
 -- is* :: Exp_ -> Bool
 -- is* :: Decl_ -> Bool
 isVar Var{} = True; isVar _ = False
