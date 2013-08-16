@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #573, suggest removing various deriving language extensions
 1.8.49
     Remove ^^ ==> ** hint
     Remove a duplicate sqrt hint

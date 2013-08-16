@@ -31,6 +31,24 @@ record = 1 --
 record = 1 --
 {-# LANGUAGE TemplateHaskell #-} \
 foo
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-} \
+record = 1 --
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-} \
+newtype Foo = Foo Int deriving Data -- {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-} \
+data Foo = Foo Int deriving Data -- {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-} \
+newtype Foo = Foo Int deriving Class -- {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-} \
+data Foo = Foo Int deriving Class --
+{-# LANGUAGE DeriveFunctor #-} \
+data Foo = Foo Int deriving Functor
+{-# LANGUAGE DeriveFunctor #-} \
+newtype Foo = Foo Int deriving Functor --
+{-# LANGUAGE DeriveFunctor, GeneralizedNewtypeDeriving, StandaloneDeriving #-} \
+deriving instance Functor Bar
+{-# LANGUAGE DeriveFunctor, GeneralizedNewtypeDeriving, StandaloneDeriving #-} \
+deriving instance Show Bar -- {-# LANGUAGE StandaloneDeriving #-}
 </TEST>
 -}
 
@@ -41,6 +59,7 @@ import Hint.Type
 import Data.Maybe
 import Data.List
 import Util
+import Control.Arrow
 
 
 extensionsHint :: ModuHint
@@ -98,6 +117,13 @@ used UnboxedTuples = has isBoxed
 used PackageImports = hasS (isJust . importPkg)
 used QuasiQuotes = hasS isQuasiQuote
 used ViewPatterns = hasS isPViewPat
+used DeriveDataTypeable = hasDerive True ["Data","Typeable"]
+used (UnknownExtension "DeriveGeneric") = hasDerive False ["Generic","Generic1"]
+used (UnknownExtension "DeriveFunctor") = hasDerive False ["Functor"]
+used (UnknownExtension "DeriveFoldable") = hasDerive False ["Foldable"]
+used (UnknownExtension "DeriveTraversable") = hasDerive False ["Traversable"]
+used GeneralizedNewtypeDeriving = not . null . filter (`notElem` special) . fst . derives
+    where special = ["Read","Show","Data","Typeable"] -- these classes cannot use generalised deriving
 used Arrows = hasS f
     where f Proc{} = True
           f LeftArrApp{} = True
@@ -113,6 +139,32 @@ used TransformListComp = hasS f
 used (UnknownExtension _) = const True
 used x = used $ UnknownExtension $ show x
 
+
+hasDerive :: Bool -> [String] -> Module_ -> Bool
+hasDerive nt want m = not $ null $ intersect want $ if nt then new ++ dat else dat
+    where (new,dat) = derives m
+
+
+-- | What is derived on newtype, and on data type
+--   'deriving' declarations may be on either, so we approximate
+derives :: Module_ -> ([String],[String])
+derives = (concat *** concat) . unzip . map f . childrenBi
+    where
+        f :: Decl_ -> ([String], [String])
+        f (DataDecl _ dn _ _ _ ds) = g dn ds
+        f (GDataDecl _ dn _ _ _ _ ds) = g dn ds
+        f (DataInsDecl _ dn _ _ ds) = g dn ds
+        f (GDataInsDecl _ dn _ _ _ ds) = g dn ds
+        f (DerivDecl _ _ hd) = (xs, xs) -- don't know whether this was on newtype or not
+            where xs = [h hd]
+        f _ = ([], [])
+
+        g dn ds = if isNewType dn then (xs,[]) else ([],xs)
+            where xs = maybe [] (map h . fromDeriving) ds
+
+        h (IHead _ a _) = prettyPrint $ unqual a
+        h (IHInfix _ _ a _) = prettyPrint $ unqual a
+        h (IHParen _ a) = h a
 
 
 un = undefined
