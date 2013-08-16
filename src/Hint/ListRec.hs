@@ -158,7 +158,7 @@ findBranch x = do
 findPat :: [Pat_] -> Maybe ([String], Int, BList)
 findPat ps = do
     ps <- mapM readPat ps
-    [i] <- return $ findIndices isRight ps
+    [i] <- return $ findIndices isRight_ ps
     let (left,[right]) = partitionEithers ps
     return (left, i, right)
 
