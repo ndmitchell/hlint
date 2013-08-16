@@ -109,7 +109,9 @@ used TransformListComp = hasS f
     where f QualStmt{} = False
           f _ = True
 
-used _ = const True
+-- for forwards compatibility, if things ever get added to the extension enumeration
+used (UnknownExtension _) = const True
+used x = used $ UnknownExtension $ show x
 
 
 
