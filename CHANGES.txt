@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.50
     Eliminate upper bounds on all dependencies
     #617, fix up notIn to take account of Template Haskell variables
     #573, suggest removing various deriving language extensions
