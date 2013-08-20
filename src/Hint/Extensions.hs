@@ -4,6 +4,8 @@
 <TEST>
 {-# LANGUAGE Arrows #-} \
 f = id --
+{-# LANGUAGE TotallyUnknown #-} \
+f = id
 {-# LANGUAGE Foo, Generics, ParallelListComp, ImplicitParams #-} \
 f = [(a,c) | a <- b | c <- d] -- {-# LANGUAGE Foo, ParallelListComp #-}
 {-# LANGUAGE EmptyDataDecls #-} \
