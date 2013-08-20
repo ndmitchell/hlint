@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to haskell-src-exts-1.14
 1.8.50
     Eliminate upper bounds on all dependencies
     #617, fix up notIn to take account of Template Haskell variables

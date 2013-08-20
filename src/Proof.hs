@@ -161,7 +161,7 @@ hintTheorems xs =
         exp (Var _ x) | Just x <- funs $ prettyPrint x = x
         exp (Con _ (Special _ (TupleCon _ _ i))) = "\\<langle>" ++ replicate (i-1) ',' ++ "\\<rangle>"
         exp (Con _ x) | Just x <- cons $ prettyPrint x = x
-        exp (Tuple _ xs) = "\\<langle>" ++ intercalate ", " (map exp xs) ++ "\\<rangle>"
+        exp (Tuple _ _ xs) = "\\<langle>" ++ intercalate ", " (map exp xs) ++ "\\<rangle>"
         exp (If _ a b c) = "If " ++ exp a ++ " then " ++ exp b ++ " else " ++ exp c
         exp (Lambda _ xs y) = "\\<Lambda> " ++ unwords (map pat xs) ++ ". " ++ exp y
         exp (InfixApp _ x op y) | Just op <- ops $ prettyPrint op =
@@ -173,7 +173,7 @@ hintTheorems xs =
         exp x@(RightSection l op e) = let v = fresh x in exp $ Paren l $ Lambda l [toNamed v] $ InfixApp l (toNamed v) op e -- S3.5
         exp x = prettyPrint x
 
-        pat (PTuple _ xs) = "\\<langle>" ++ intercalate ", " (map pat xs) ++ "\\<rangle>"
+        pat (PTuple _ _ xs) = "\\<langle>" ++ intercalate ", " (map pat xs) ++ "\\<rangle>"
         pat x = prettyPrint x
 
         fresh x = head $ ("z":["v" ++ show i | i <- [1..]]) \\ vars x

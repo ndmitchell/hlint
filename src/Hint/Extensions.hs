@@ -64,29 +64,33 @@ import Control.Arrow
 
 extensionsHint :: ModuHint
 extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" (toSrcLoc sl)
-          (prettyPrint o) (if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . showExt) new)
+          (prettyPrint o) (if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) new)
           (warnings old new)
     | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
     , o@(LanguagePragma sl exts) <- modulePragmas x
-    , let old = map (classifyExtension . prettyPrint) exts
+    , let old = map (parseExtension . prettyPrint) exts
     , let new = minimalExtensions x old
     , sort new /= sort old]
-    where
-        showExt (UnknownExtension x) = x
-        showExt x = show x
 
 
 minimalExtensions :: Module_ -> [Extension] -> [Extension]
 minimalExtensions x es = nub $ concatMap f es
-    where f e = [e | used e x]
+    where f e = [e | usedExt e x]
 
 
 -- RecordWildCards implies DisambiguateRecordFields, but most people probably don't want it
-warnings old new | RecordWildCards `elem` old && RecordWildCards `notElem` new = [Note "you may need to add DisambiguateRecordFields"]
+warnings old new | wildcards `elem` old && wildcards `notElem` new = [Note "you may need to add DisambiguateRecordFields"]
+    where wildcards = EnableExtension RecordWildCards
 warnings _ _ = []
 
 
-used :: Extension -> Module_ -> Bool
+usedExt :: Extension -> Module_ -> Bool
+usedExt (UnknownExtension "DeriveGeneric") = hasDerive False ["Generic","Generic1"]
+usedExt (EnableExtension x) = used x
+usedExt _ = const True
+
+
+used :: KnownExtension -> Module_ -> Bool
 used RecursiveDo = hasS isMDo
 used ParallelListComp = hasS isParComp
 used FunctionalDependencies = hasT (un :: FunDep S)
@@ -118,10 +122,9 @@ used PackageImports = hasS (isJust . importPkg)
 used QuasiQuotes = hasS isQuasiQuote
 used ViewPatterns = hasS isPViewPat
 used DeriveDataTypeable = hasDerive True ["Data","Typeable"]
-used (UnknownExtension "DeriveGeneric") = hasDerive False ["Generic","Generic1"]
-used (UnknownExtension "DeriveFunctor") = hasDerive False ["Functor"]
-used (UnknownExtension "DeriveFoldable") = hasDerive False ["Foldable"]
-used (UnknownExtension "DeriveTraversable") = hasDerive False ["Traversable"]
+used DeriveFunctor = hasDerive False ["Functor"]
+used DeriveFoldable = hasDerive False ["Foldable"]
+used DeriveTraversable = hasDerive False ["Traversable"]
 used GeneralizedNewtypeDeriving = not . null . filter (`notElem` special) . fst . derives
     where special = ["Read","Show","Data","Typeable"] -- these classes cannot use generalised deriving
 used Arrows = hasS f
@@ -136,8 +139,8 @@ used TransformListComp = hasS f
           f _ = True
 
 -- for forwards compatibility, if things ever get added to the extension enumeration
-used (UnknownExtension _) = const True
-used x = used $ UnknownExtension $ show x
+used x = usedExt $ UnknownExtension $ show x
+
 
 
 hasDerive :: Bool -> [String] -> Module_ -> Bool
