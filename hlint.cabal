@@ -41,7 +41,7 @@ library
         transformers >= 0.0,
         hscolour >= 1.17,
         cpphs >= 1.11,
-        haskell-src-exts >= 1.11,
+        haskell-src-exts >= 1.11 && < 1.14,
         uniplate >= 1.5
 
     hs-source-dirs:     src
