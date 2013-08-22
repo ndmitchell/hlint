@@ -148,7 +148,7 @@ hasDerive nt want m = not $ null $ intersect want $ if nt then new ++ dat else d
 -- | What is derived on newtype, and on data type
 --   'deriving' declarations may be on either, so we approximate
 derives :: Module_ -> ([String],[String])
-derives = (concat *** concat) . unzip . map f . childrenBi
+derives = concatUnzip . map f . childrenBi
     where
         f :: Decl_ -> ([String], [String])
         f (DataDecl _ dn _ _ _ ds) = g dn ds
