@@ -133,7 +133,7 @@ getCmd args = do
             ,defines = [(a,drop 1 b) | Define x <- opt, let (a,b) = break (== '=') x]
             }
     let cpp | SimpleCpp `elem` opt = CppSimple -- must be first, so can disable CPP
-            | CPP `elem` languages = Cpphs cpphs
+            | EnableExtension CPP `elem` languages = Cpphs cpphs
             | otherwise = NoCpp
 
     encoding <- newEncoding $ last $ "" : [x | Encoding x <- opt]

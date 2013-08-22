@@ -252,7 +252,7 @@ universeParentBi = concatMap universeParent . childrenBi
 -- LANGUAGE.HASKELL.EXTS.EXTENSION
 
 defaultExtensions :: [Extension]
-defaultExtensions = knownExtensions \\ badExtensions
+defaultExtensions = [e | e@EnableExtension{} <- knownExtensions] \\ map EnableExtension badExtensions
 
 badExtensions =
     [Arrows -- steals proc
