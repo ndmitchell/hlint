@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #517, don't introduce new free variables in a replacement
 1.8.51
     Upgrade to haskell-src-exts-1.14
 1.8.50
