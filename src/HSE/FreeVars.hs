@@ -19,11 +19,14 @@ varss x = Set.toList $ free $ allVars x
 pvars x = Set.toList $ bound $ allVars x
 
 
+(^+) = Set.union
+(^-) = Set.difference
+
 data Vars = Vars {bound :: Set String, free :: Set String}
 
 instance Monoid Vars where
     mempty = Vars Set.empty Set.empty
-    mappend (Vars x1 x2) (Vars y1 y2) = Vars (Set.union x1 y1) (Set.union x2 y2)
+    mappend (Vars x1 x2) (Vars y1 y2) = Vars (x1 ^+ y1) (x2 ^+ y2)
     mconcat fvs = Vars (Set.unions $ map bound fvs) (Set.unions $ map free fvs)
 
 
@@ -37,9 +40,6 @@ class FreeVars a where
 
 freeVars_ :: FreeVars a => a -> Vars
 freeVars_ = Vars Set.empty . freeVars
-
-(^+) = Set.union
-(^-) = Set.difference
 
 inFree :: (AllVars a, FreeVars b) => a -> b -> Set String
 inFree a b = free aa ^+ (freeVars b ^- bound aa)
