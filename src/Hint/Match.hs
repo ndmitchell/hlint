@@ -42,7 +42,6 @@ import Hint.Type
 import Control.Monad
 import Control.Arrow
 import Util
-import HSE.FreeVars
 import qualified Data.Set as Set
 
 

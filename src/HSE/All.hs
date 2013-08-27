@@ -11,6 +11,7 @@ import HSE.Type as X
 import HSE.Bracket as X
 import HSE.Match as X
 import HSE.NameMatch as X
+import HSE.FreeVars as X
 import Util
 import CmdLine
 import Data.List
