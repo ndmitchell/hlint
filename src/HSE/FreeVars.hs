@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module HSE.FreeVars(FreeVars(freeVars), Vars, AllVars(allVars)) where
+module HSE.FreeVars(FreeVars, freeVars) where
 
 import HSE.Type
 import Data.Monoid
