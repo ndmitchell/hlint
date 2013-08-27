@@ -128,11 +128,16 @@ instance AllVars (Maybe (Binds S)) where
     allVars = maybe mempty allVars
 
 instance AllVars (Binds S) where
-    allVars (BDecls _ decls) = mconcat $ map f decls
-        -- can rely on only seeing a subset of Decl here
-        where f (FunBind _ m) = allVars m
-              f (PatBind _ pat _ rhs bind) = allVars pat `mappend` freeVars_ (inFree bind rhs)
+    allVars (BDecls _ decls) = allVars decls
     allVars (IPBinds _ binds) = freeVars_ binds
+
+instance AllVars [Decl S] where
+    allVars = mconcat . map allVars
+
+instance AllVars (Decl S) where
+    allVars (FunBind _ m) = allVars m
+    allVars (PatBind _ pat _ rhs bind) = allVars pat `mappend` freeVars_ (inFree bind rhs)
+    allVars _ = mempty
 
 instance AllVars [Match S] where
     allVars = mconcat . map allVars
