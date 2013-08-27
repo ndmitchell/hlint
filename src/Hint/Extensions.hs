@@ -61,7 +61,6 @@ import Hint.Type
 import Data.Maybe
 import Data.List
 import Util
-import Control.Arrow
 
 
 extensionsHint :: ModuHint
