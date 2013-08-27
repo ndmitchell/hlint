@@ -183,10 +183,7 @@ checkSide x bind = maybe True f x
             | 'i':'s':typ <- fromNamed cond
             = isType typ y
         f (App _ (App _ cond (sub -> x)) (sub -> y))
-            | cond ~= "notIn" = and [ case x of
-                                          Var _ (UnQual _ x) -> prettyPrint x `notElem` vars y
-                                          _ -> x `notElem` universe y
-                                    | x <- list x, y <- list y]
+            | cond ~= "notIn" = and [x `notElem` universe y | x <- list x, y <- list y]
             | cond ~= "notEq" = x /= y
         f x | x ~= "notTypeSafe" = True
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
