@@ -254,6 +254,8 @@ universeS = universeBi
 childrenS :: Biplate x (f S) => x -> [f S]
 childrenS = childrenBi
 
+varss x = vars x
+
 
 vars :: Biplate a Exp_ => a -> [String]
 vars = concatMap f . universeS
