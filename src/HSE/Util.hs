@@ -102,12 +102,6 @@ isSection LeftSection{} = True
 isSection RightSection{} = True
 isSection _ = False
 
--- which names are bound by a declaration
-declBind :: Decl_ -> [String]
-declBind (FunBind _ (Match _ x _ _ _ : _)) = [prettyPrint x]
-declBind (PatBind _ x _ _ _) = pvars x
-declBind _ = []
-
 
 allowRightSection x = x `notElem` ["-","#"]
 allowLeftSection x = x /= "#"
@@ -253,18 +247,6 @@ universeS = universeBi
 
 childrenS :: Biplate x (f S) => x -> [f S]
 childrenS = childrenBi
-
-varss x = vars x
-
-
-vars :: Biplate a Exp_ => a -> [String]
-vars = concatMap f . universeS
-    where f (Var _ (UnQual _ x)) = [prettyPrint x]
-          f (SpliceExp _ (IdSplice _ x)) = [x]
-          f _ = []
-
-pvars :: Biplate a Pat_ => a -> [String]
-pvars xs = [prettyPrint x | PVar _ x <- universeS xs]
 
 
 -- return the parent along with the child

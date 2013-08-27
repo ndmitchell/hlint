@@ -1,11 +1,22 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module HSE.FreeVars(FreeVars, freeVars) where
+module HSE.FreeVars(FreeVars, freeVars, vars, varss, pvars, declBind) where
 
 import HSE.Type
 import Data.Monoid
 import qualified Data.Set as Set
 import Data.Set(Set)
+
+
+-- which names are bound by a declaration
+declBind :: Decl_ -> [String]
+declBind x = pvars x
+
+vars x = Set.toList $ freeVars x
+
+varss x = Set.toList $ free $ allVars x
+
+pvars x = Set.toList $ bound $ allVars x
 
 
 data Vars = Vars {bound :: Set String, free :: Set String}
