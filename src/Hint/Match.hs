@@ -42,6 +42,8 @@ import Hint.Type
 import Control.Monad
 import Control.Arrow
 import Util
+import HSE.FreeVars
+import qualified Data.Set as Set
 
 
 fmapAn = fmap (const an)
@@ -88,7 +90,9 @@ matchIdea s decl MatchExp{..} parent x = do
     let nm = nameMatch scope s
     u <- unifyExp nm True lhs x
     u <- check u
-    let res = addBracket parent $ unqualify scope s u $ performEval $ subst u rhs
+    let e = subst u rhs
+    let res = addBracket parent $ unqualify scope s u $ performEval e
+    guard $ (freeVars e Set.\\ freeVars rhs) `Set.isSubsetOf` freeVars x -- check no unexpected new free variables
     guard $ checkSide side $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
     return (res,notes)
