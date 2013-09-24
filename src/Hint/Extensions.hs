@@ -51,6 +51,8 @@ newtype Foo = Foo Int deriving Functor --
 deriving instance Functor Bar
 {-# LANGUAGE DeriveFunctor, GeneralizedNewtypeDeriving, StandaloneDeriving #-} \
 deriving instance Show Bar -- {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-} \
+newtype Micro = Micro Int deriving Generic -- {-# LANGUAGE DeriveGeneric #-}
 </TEST>
 -}
 
@@ -87,7 +89,7 @@ warnings _ _ = []
 
 
 usedExt :: Extension -> Module_ -> Bool
-usedExt (UnknownExtension "DeriveGeneric") = hasDerive False ["Generic","Generic1"]
+usedExt (UnknownExtension "DeriveGeneric") = hasDerive True ["Generic","Generic1"]
 usedExt (EnableExtension x) = used x
 usedExt _ = const True
 
@@ -128,7 +130,7 @@ used DeriveFunctor = hasDerive False ["Functor"]
 used DeriveFoldable = hasDerive False ["Foldable"]
 used DeriveTraversable = hasDerive False ["Traversable"]
 used GeneralizedNewtypeDeriving = not . null . filter (`notElem` special) . fst . derives
-    where special = ["Read","Show","Data","Typeable"] -- these classes cannot use generalised deriving
+    where special = ["Read","Show","Data","Typeable","Generic","Generic1"] -- these classes cannot use generalised deriving
 used Arrows = hasS f
     where f Proc{} = True
           f LeftArrApp{} = True
