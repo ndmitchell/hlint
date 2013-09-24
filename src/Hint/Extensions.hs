@@ -131,6 +131,7 @@ used DeriveFoldable = hasDerive False ["Foldable"]
 used DeriveTraversable = hasDerive False ["Traversable"]
 used GeneralizedNewtypeDeriving = not . null . filter (`notElem` special) . fst . derives
     where special = ["Read","Show","Data","Typeable","Generic","Generic1"] -- these classes cannot use generalised deriving
+    -- FIXME: This special list is duplicated here, and as booleans to hasDerive
 used Arrows = hasS f
     where f Proc{} = True
           f LeftArrApp{} = True
