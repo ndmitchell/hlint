@@ -83,7 +83,7 @@ monadReturn _ = Nothing
 
 
 monadJoin (Generator _ (view -> PVar_ p) x:Qualifier _ (view -> Var_ v):xs)
-    | p == v && v `notElem` vars xs
+    | p == v && v `notElem` varss xs
     = Just $ Qualifier an (rebracket1 $ App an (toNamed "join") x) : fromMaybe xs (monadJoin xs)
 monadJoin (x:xs) = fmap (x:) $ monadJoin xs
 monadJoin [] = Nothing

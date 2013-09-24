@@ -81,7 +81,7 @@ lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatM
 lambdaDecl :: Decl_ -> [Idea]
 lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) bind]))
     | isNothing bind, isLambda $ fromParen bod = [err "Redundant lambda" o $ uncurry reform $ fromLambda $ Lambda an pats bod]
-    | (pats2,bod2) <- etaReduce pats bod, length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` vars bind
+    | (pats2,bod2) <- etaReduce pats bod, length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
         = [err "Eta reduce" (reform pats bod) (reform pats2 bod2)]
         where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) Nothing]
 lambdaDecl _ = []

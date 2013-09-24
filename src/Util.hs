@@ -113,6 +113,9 @@ unsnoc xs = (init xs, last xs)
 revTake :: Int -> [a] -> [a]
 revTake i = reverse . take i . reverse
 
+concatUnzip :: [([a], [b])] -> ([a], [b])
+concatUnzip = (concat *** concat) . unzip
+
 
 ---------------------------------------------------------------------
 -- DATA.TUPLE

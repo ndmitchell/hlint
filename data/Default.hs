@@ -183,11 +183,11 @@ error = (\x -> x) ==> id
 error = (\x y -> x) ==> const
 error = (\(x,y) -> y) ==> snd
 error = (\(x,y) -> x) ==> fst
-warn "Use curry" = (\x y -> f (x,y)) ==> curry f where _ = notIn [x,y] f
-warn "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where _ = notIn [x,y] f; note = IncreasesLaziness
+warn "Use curry" = (\x y -> f (x,y)) ==> curry f
+warn "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where note = IncreasesLaziness
 error "Redundant $" = (($) . f) ==> f
 error "Redundant $" = (f $) ==> f
-warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
+warn  = (\x -> y) ==> const y where _ = isAtom y
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 warn  = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
 
@@ -238,10 +238,10 @@ error "Too strict if" = (if c then f x else f y) ==> f (if c then x else y) wher
 error = id *** g ==> second g
 error = f *** id ==> first f
 error = zip (map f x) (map g x) ==> map (f Control.Arrow.&&& g) x
-warn  = (\(x,y) -> (f x, g y)) ==> f Control.Arrow.*** g where _ = notIn [x,y] [f,g]
-warn  = (\x -> (f x, g x)) ==> f Control.Arrow.&&& g where _ = notIn x [f,g]
-warn  = (\(x,y) -> (f x,y)) ==> Control.Arrow.first f where _ = notIn [x,y] f
-warn  = (\(x,y) -> (x,f y)) ==> Control.Arrow.second f where _ = notIn [x,y] f
+warn  = (\(x,y) -> (f x, g y)) ==> f Control.Arrow.*** g
+warn  = (\x -> (f x, g x)) ==> f Control.Arrow.&&& g
+warn  = (\(x,y) -> (f x,y)) ==> Control.Arrow.first f
+warn  = (\(x,y) -> (x,f y)) ==> Control.Arrow.second f
 warn  = (f (fst x), g (snd x)) ==> (f Control.Arrow.*** g) x
 warn "Redundant pair" = (fst x, snd x) ==>  x where note = DecreasesLaziness
 
@@ -273,8 +273,8 @@ warn = a >> return () ==> void a
 warn = fmap (const ()) ==> void
 error = flip (>=>) ==> (<=<)
 error = flip (<=<) ==> (>=>)
-error = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = notIn x [f,g]
-error = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = notIn x [f,g]
+error = (\x -> f x >>= g) ==> f Control.Monad.>=> g
+error = (\x -> f =<< g x) ==> f Control.Monad.<=< g
 error = a >> forever a ==> forever a
 warn = liftM2 id ==> ap
 error = mapM (uncurry f) (zip l m) ==> zipWithM f l m
@@ -467,7 +467,7 @@ error "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i >= length t) && (t `Data
 {-
 -- clever hint, but not actually a good idea
 warn  = (do a <- f; g a) ==> f >>= g
-    where _ = (isAtom f || isApp f) && notIn a g
+    where _ = (isAtom f || isApp f)
 -}
 
 test = hints named test are to allow people to put test code within hint files

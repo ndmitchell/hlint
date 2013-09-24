@@ -42,6 +42,7 @@ import Hint.Type
 import Control.Monad
 import Control.Arrow
 import Util
+import qualified Data.Set as Set
 
 
 fmapAn = fmap (const an)
@@ -59,7 +60,7 @@ readRule m@MatchExp{lhs=(fmapAn -> lhs), rhs=(fmapAn -> rhs), side=(fmap fmapAn 
     (:) m{lhs=lhs,side=side,rhs=rhs} $ fromMaybe [] $ do
         (l,v1) <- dotVersion lhs
         (r,v2) <- dotVersion rhs
-        guard $ v1 == v2 && l /= [] && r /= [] && v1 `notElem` (vars side ++ vars l ++ vars r)
+        guard $ v1 == v2 && l /= [] && r /= [] && Set.notMember v1 (freeVars $ maybeToList side ++ l ++ r)
         return [m{lhs=dotApps l, rhs=dotApps r, side=side}
                ,m{lhs=dotApps (l++[toNamed v1]), rhs=dotApps (r++[toNamed v1]), side=side}]
 readRule _ = []
@@ -88,7 +89,9 @@ matchIdea s decl MatchExp{..} parent x = do
     let nm = nameMatch scope s
     u <- unifyExp nm True lhs x
     u <- check u
-    let res = addBracket parent $ unqualify scope s u $ performEval $ subst u rhs
+    let e = subst u rhs
+    let res = addBracket parent $ unqualify scope s u $ performEval e
+    guard $ (freeVars e Set.\\ freeVars rhs) `Set.isSubsetOf` freeVars x -- check no unexpected new free variables
     guard $ checkSide side $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
     return (res,notes)
@@ -179,10 +182,7 @@ checkSide x bind = maybe True f x
             | 'i':'s':typ <- fromNamed cond
             = isType typ y
         f (App _ (App _ cond (sub -> x)) (sub -> y))
-            | cond ~= "notIn" = and [ case x of
-                                          Var _ (UnQual _ x) -> prettyPrint x `notElem` vars y
-                                          _ -> x `notElem` universe y
-                                    | x <- list x, y <- list y]
+            | cond ~= "notIn" = and [x `notElem` universe y | x <- list x, y <- list y]
             | cond ~= "notEq" = x /= y
         f x | x ~= "notTypeSafe" = True
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x

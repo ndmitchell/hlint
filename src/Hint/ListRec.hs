@@ -46,7 +46,7 @@ listRecHint _ _ = concatMap f . universe
             (x, addCase) <- findCase x
             (use,severity,x) <- matchListRec x
             let y = addCase x
-            guard $ recursiveStr `notElem` vars y
+            guard $ recursiveStr `notElem` varss y
             return $ idea severity ("Use " ++ use) o y
 
 

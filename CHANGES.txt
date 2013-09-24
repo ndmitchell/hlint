@@ -1,5 +1,7 @@
 Changelog for HLint
 
+    Fix some corner cases when suggesting foldr etc.
+    #517, don't introduce new free variables in a replacement
 1.8.52
     #2, Generic is not newtype derivable
 1.8.51
