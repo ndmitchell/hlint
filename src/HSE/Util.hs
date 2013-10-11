@@ -212,20 +212,17 @@ fromApps x = [x]
 -- Given (f a) b, consider the children to be: children f ++ [a,b]
 
 childrenApps :: Exp_ -> [Exp_]
-childrenApps (App _ x@App{} y) = childrenApps x ++ [y]
-childrenApps (App _ x y) = children x ++ [y]
+childrenApps (App s x y) = childrenApps x ++ [y]
 childrenApps x = children x
 
 
 descendApps :: (Exp_ -> Exp_) -> Exp_ -> Exp_
-descendApps f (App s x@App{} y) = App s (descendApps f x) (f y)
-descendApps f (App s x y) = App s (descend f x) (f y)
+descendApps f (App s x y) = App s (descendApps f x) (f y)
 descendApps f x = descend f x
 
 
 descendAppsM :: Monad m => (Exp_ -> m Exp_) -> Exp_ -> m Exp_
-descendAppsM f (App s x@App{} y) = liftM2 (App s) (descendAppsM f x) (f y)
-descendAppsM f (App s x y) = liftM2 (App s) (descendM f x) (f y)
+descendAppsM f (App s x y) = liftM2 (App s) (descendAppsM f x) (f y)
 descendAppsM f x = descendM f x
 
 
