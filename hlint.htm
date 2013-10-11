@@ -290,9 +290,9 @@ import "hint" HLint.Dollar
 	Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for supressing certain hints. Ignore directives can either be written as pragmas in the file being analysed, or in the hint files. Examples of pragmas are:
 </p>
 <ul>
-	<li><tt>{-# ANN module "HLint: ignore Eta reduce" #-}</tt> - ignore all eta reduction suggestions in this module.</li>
-	<li><tt>{-# ANN myFunction "HLint: ignore" #-}</tt> - don't give any hints in the function <tt>myFunction</tt>.</li>
-	<li><tt>{-# ANN myFunction "HLint: error" #-}</tt> - any hint in the function <tt>myFunction</tt> is an error.</li>
+	<li><tt>{-# ANN module "HLint: ignore Eta reduce" #-}</tt> - ignore all eta reduction suggestions in this module (use <tt>module</tt> literally, not the name of the module).</li>
+	<li><tt>{-# ANN <i>myFunction</i> "HLint: ignore" #-}</tt> - don't give any hints in the function <tt><i>myFunction</i></tt>.</li>
+	<li><tt>{-# ANN <i>myFunction</i> "HLint: error" #-}</tt> - any hint in the function <tt><i>myFunction</i></tt> is an error.</li>
 	<li><tt>{-# ANN module "HLint: error Use concatMap" #-}</tt> - the hint to use concatMap is an error.</li>
 	<li><tt>{-# ANN module "HLint: warn Use concatMap" #-}</tt> - the hint to use concatMap is a warning.</li>
 </ul>
