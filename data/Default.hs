@@ -187,7 +187,7 @@ warn "Use curry" = (\x y -> f (x,y)) ==> curry f
 warn "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where note = IncreasesLaziness
 error "Redundant $" = (($) . f) ==> f
 error "Redundant $" = (f $) ==> f
-warn  = (\x -> y) ==> const y where _ = isAtom y
+warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 warn  = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
 
@@ -564,6 +564,7 @@ main = take (-y) x
 main = take 4 x
 main = let (first, rest) = (takeWhile p l, dropWhile p l) in rest -- span p l
 main = map $ \ d -> ([| $d |], [| $d |])
+pairs (x:xs) = map (\y -> (x,y)) xs ++ pairs xs
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

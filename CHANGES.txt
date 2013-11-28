@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Fix a bug when suggesting const
 1.8.53
     Fix some corner cases when suggesting foldr etc.
     #517, don't introduce new free variables in a replacement
