@@ -1,4 +1,4 @@
-HLint
-=====
+# HLint [![Build Status](https://travis-ci.org/ndmitchell/hlint.png)](https://travis-ci.org/ndmitchell/hlint)
 
-The manual is currently located at: https://rawgithub.com/ndmitchell/hlint/master/hlint.htm
+See the [User manual](https://rawgithub.com/ndmitchell/hlint/master/hlint.htm).
+
