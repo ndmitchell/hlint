@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.54
     Fix a bug when suggesting const
 1.8.53
     Fix some corner cases when suggesting foldr etc.
