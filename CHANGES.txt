@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.55
     #627, fix the UnboxedTuples extension warning
 1.8.54
     Fix a bug when suggesting const
