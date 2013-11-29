@@ -53,6 +53,10 @@ deriving instance Functor Bar
 deriving instance Show Bar -- {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-} \
 newtype Micro = Micro Int deriving Generic -- {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE UnboxedTuples #-} \
+f :: Int -> (# Int, Int #)
+{-# LANGUAGE UnboxedTuples #-} \
+f :: x -> (x, x); f x = (x, x) --
 </TEST>
 -}
 
@@ -120,7 +124,7 @@ used StandaloneDeriving = hasS isDerivDecl
 used PatternSignatures = hasS isPatTypeSig
 used RecordWildCards = hasS isPFieldWildcard & hasS isFieldWildcard
 used RecordPuns = hasS isPFieldPun & hasS isFieldPun
-used UnboxedTuples = has isBoxed
+used UnboxedTuples = has (not . isBoxed)
 used PackageImports = hasS (isJust . importPkg)
 used QuasiQuotes = hasS isQuasiQuote
 used ViewPatterns = hasS isPViewPat
