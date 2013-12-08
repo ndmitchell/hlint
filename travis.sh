@@ -12,4 +12,5 @@ cd hlint
 cabal configure --ghc-options=-Werror
 cabal build
 cd ../../..
+ghc-pkg expose transformers
 hlint_datadir=data dist/snapshot/hlint/dist/build/hlint/hlint --test
