@@ -1,2 +1,3 @@
 language: haskell
+before_install: cabal install haddock
 script: /bin/bash -e travis.sh
