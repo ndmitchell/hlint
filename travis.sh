@@ -12,5 +12,5 @@ cd hlint
 cabal configure --ghc-options=-Werror
 cabal build
 cd ../../..
-ghc-pkg expose transformers
+export PATH=/home/travis/.ghc-multi/7.6.3/bin:$PATH
 hlint_datadir=data dist/snapshot/hlint/dist/build/hlint/hlint --test
