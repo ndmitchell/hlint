@@ -4,7 +4,7 @@ module HLint.Default where
 import Control.Arrow
 import Control.Exception
 import Control.Monad
-import Control.Monad.State
+import Control.Monad.Trans.State
 import qualified Data.Foldable
 import Data.Foldable(asum, sequenceA_, traverse_, for_)
 import Data.Traversable(traverse, for)
