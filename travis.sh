@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -e -x
 rm -f dist/*.tar.gz
 rm -rf dist/snapshot
 cabal configure --ghc-options=-Werror
