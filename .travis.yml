@@ -1,3 +1,2 @@
 language: haskell
-before_install: cabal install happy
 script: /bin/bash -e -x travis.sh
