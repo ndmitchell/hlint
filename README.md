@@ -2,17 +2,11 @@
 
 by Neil Mitchell
 
-[HLint](http://community.haskell.org/~ndm/hlint/) is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
-
-TODO Links
-
-* Installing and running HLint
-* FAQ
-* Customizing the hints
+[HLint](http://community.haskell.org/~ndm/hlint/) is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. 
 
 ## Acknowledgements
 
-This program has only been made possible by the presence of the [haskell-src-exts](http://www.cs.chalmers.se/~d00nibro/haskell-src-exts/) package, and many improvements have been made by [Niklas Broberg](http://www.cs.chalmers.se/~d00nibro/) (TODO: Link is broken in Original) in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott, Andy Stewart, Roman Leshchinskiy and others.
+This program has only been made possible by the presence of the [haskell-src-exts](http://www.cs.chalmers.se/~d00nibro/haskell-src-exts/) package, and many improvements have been made by [Niklas Broberg](http://www.cs.chalmers.se/~d00nibro/) in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott, Andy Stewart, Roman Leshchinskiy and others.
 
 ## Bugs and limitations
 
@@ -140,9 +134,9 @@ Most hints are perfect substitutions, and these are displayed without any notes.
 
 TODO fett
 
-* Increases laziness - for example ```foldl (&&) True``` suggests ```and``` including this note. The new code will work on infinite lists, while the old code would not. Increasing laziness is usually a good idea.
-* Decreases laziness - for example ```(fst a, snd a)`` suggests a including this note. On evaluation the new code will raise an error if a is an error, while the old code would produce a pair containing two error values. Only a small number of hints decrease laziness, and anyone relying on the laziness of the original code would be advised to include a comment.
-* Removes error - for example foldr1 (&&) suggests and including the note "Removes error on []". The new code will produce ```True``` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment. 
+* __Increases laziness__ - for example ```foldl (&&) True``` suggests ```and``` including this note. The new code will work on infinite lists, while the old code would not. Increasing laziness is usually a good idea.
+* __Decreases laziness__ - for example ```(fst a, snd a)`` suggests a including this note. On evaluation the new code will raise an error if a is an error, while the old code would produce a pair containing two error values. Only a small number of hints decrease laziness, and anyone relying on the laziness of the original code would be advised to include a comment.
+* __Removes error__ - for example foldr1 (&&) suggests and including the note "Removes error on []". The new code will produce ```True``` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment. 
 
 ### What is the difference between error and warning?
 
