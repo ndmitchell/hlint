@@ -2,7 +2,11 @@
 
 by Neil Mitchell
 
-[HLint](http://community.haskell.org/~ndm/hlint/) is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. 
+[HLint](http://community.haskell.org/~ndm/hlint/) is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
+
+* Installing and running HLint
+* FAQ
+* Customizing the hints
 
 ## Acknowledgements
 
@@ -132,8 +136,6 @@ HLint does not use the default set of hints if custom hints are specified on the
 
 Most hints are perfect substitutions, and these are displayed without any notes. However, some hints change the semantics of your program - typically in irrelevant ways - but HLint shows a warning note. HLint does not warn when assuming typeclass laws (such as ```==``` being symmetric). Some notes you may see include:
 
-TODO fett
-
 * __Increases laziness__ - for example ```foldl (&&) True``` suggests ```and``` including this note. The new code will work on infinite lists, while the old code would not. Increasing laziness is usually a good idea.
 * __Decreases laziness__ - for example ```(fst a, snd a)`` suggests a including this note. On evaluation the new code will raise an error if a is an error, while the old code would produce a pair containing two error values. Only a small number of hints decrease laziness, and anyone relying on the laziness of the original code would be advised to include a comment.
 * __Removes error__ - for example foldr1 (&&) suggests and including the note "Removes error on []". The new code will produce ```True``` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment. 
@@ -142,10 +144,8 @@ TODO fett
 
 Every hint has a severity level:
 
-TODO: fett
-
-* Error - for example ```concat (map f x)``` suggests ```concatMap f x``` as an "error" severity hint. From a style point of view, you should always replace a combination of ```concat``` and ```map``` with ```concatMap```. Note that both expressions are equivalent - HLint is reporting an error in style, not an actual error in the code.
-* Warning - for example ```x !! 0``` suggests head x as a "warning" severity hint. Typically head is a simpler way of expressing the first element of a list, especially if you are treating the list inductively. However, in the expression ```f (x !! 4) (x !! 0) (x !! 7)```, replacing the middle argument with ```head``` makes it harder to follow the pattern, and is probably a bad idea. Warning hints are often worthwhile, but should not be applied blindly.
+* __Error__ - for example ```concat (map f x)``` suggests ```concatMap f x``` as an "error" severity hint. From a style point of view, you should always replace a combination of ```concat``` and ```map``` with ```concatMap```. Note that both expressions are equivalent - HLint is reporting an error in style, not an actual error in the code.
+* __Warning__ - for example ```x !! 0``` suggests head x as a "warning" severity hint. Typically head is a simpler way of expressing the first element of a list, especially if you are treating the list inductively. However, in the expression ```f (x !! 4) (x !! 0) (x !! 7)```, replacing the middle argument with ```head``` makes it harder to follow the pattern, and is probably a bad idea. Warning hints are often worthwhile, but should not be applied blindly.
 
 The difference between error and warning is one of personal taste, typically my personal taste. If you already have a well developed sense of Haskell style, you should ignore the difference. If you are a beginner Haskell programmer you may wish to focus on error hints before warning hints.
 
@@ -157,11 +157,9 @@ Many of the hints that are applied by HLint are contained in Haskell source file
 
 By default, HLint will use the ```HLint.hs``` file either from the current working directory, or from the data directory. Alternatively, hint files can be specified with the ```--hint``` flag. HLint comes with a number of hint packages:
 
-TODO: fett
-
-* Default - these are the hints that are used by default, covering most of the base libraries.
-* Dollar - suggests the replacement ```a $ b $ c``` with ```a . b $ c```. This hint is especially popular on the [\#haskell IRC channel](http://www.haskell.org/haskellwiki/IRC_channel).
-* Generalise - suggests replacing specific variants of functions (i.e. ```map```) with more generic functions (i.e. ```fmap```).
+* __Default__ - these are the hints that are used by default, covering most of the base libraries.
+* __Dollar__ - suggests the replacement ```a $ b $ c``` with ```a . b $ c```. This hint is especially popular on the [\#haskell IRC channel](http://www.haskell.org/haskellwiki/IRC_channel).
+* __Generalise__ - suggests replacing specific variants of functions (i.e. ```map```) with more generic functions (i.e. ```fmap```).
 
 As an example, to check the file ```Example.hs``` with both the default hints and the dollar hint, I could type: ```hlint Example.hs --hint=Default --hint=Dollar```. Alternatively, I could create the file ```HLint.hs``` in the working directory and give it the contents:
 
