@@ -53,7 +53,7 @@ Each suggestion says which file/line the suggestion relates to, how serious the 
 
 The first suggestion is marked as an error, because using ```concatMap`` in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always. Reasons that a hint might be a warning include requiring an additional import, something not everyone agrees on, and functions only available in more recent versions of the base library.
 
-<pre> Bug reports: The suggested replacement should be equivalent - please report all incorrect suggestions not mentioned as known limitations. </pre>
+**Bug reports:** The suggested replacement should be equivalent - please report all incorrect suggestions not mentioned as known limitations.
 
 ## Reports
 
