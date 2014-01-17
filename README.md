@@ -1,6 +1,6 @@
 # HLint [![Build Status](https://travis-ci.org/ndmitchell/hlint.png)](https://travis-ci.org/ndmitchell/hlint)
 
-by Neil Mitchell
+[Original User manual](https://rawgithub.com/ndmitchell/hlint/master/hlint.htm) by Neil Mitchell
 
 [HLint](http://community.haskell.org/~ndm/hlint/) is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
 
