@@ -9,7 +9,7 @@ yes = ['h','e','l','l','o'] -- "hello"
 
 -- [a]++b -> a : b, but only if not in a chain of ++'s
 yes = [x] ++ xs -- x : xs
-yes = "x" ++ xs -- 'x' : xs
+no = "x" ++ xs
 no = [x] ++ xs ++ ys
 no = xs ++ [x] ++ ys
 yes = [if a then b else c] ++ xs -- (if a then b else c) : xs
@@ -66,7 +66,6 @@ useList b = fmap (List an) . f True
 useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend y =
         Just $ InfixApp an x2 (QConOp an $ list_cons_name an) y
     where
-        f (Lit _ (String _ [x] _)) = Just $ Lit an $ Char an x (show x)
         f (List _ [x]) = Just $ if isApp x then x else paren x
         f _ = Nothing
 useCons _ _ = Nothing
