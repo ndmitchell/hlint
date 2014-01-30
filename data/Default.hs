@@ -194,18 +194,14 @@ warn  = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
 -- CHAR
 
 error = a >= 'a' && a <= 'z' ==> isAsciiLower a
-error = a <= 'z' && a >= 'a' ==> isAsciiLower a	-- symmetry
 error = a >= 'A' && a <= 'Z' ==> isAsciiUpper a
-error = a <= 'Z' && a >= 'A' ==> isAsciiUpper a	-- symmetry
 error = a >= '0' && a <= '9' ==> isDigit a
-error = a <= '9' && a >= '0' ==> isDigit a 		-- symmetry
 error = a >= '0' && a <= '7' ==> isOctDigit a
-error = a <= '7' && a >= '0' ==> isOctDigit a	-- symmetry
 error = not (isControl a) ==> isPrint a
 error = isLower a || isUpper a ==> isAlpha a
-error = isUpper a || isLower a ==> isAlpha a 	-- symmetry
+error = isUpper a || isLower a ==> isAlpha a
 error = isAlpha a || isDigit a ==> isAlphaNum a
-error = isDigit a || isAlpha a ==> isAlphaNum a	-- symmetry
+error = isDigit a || isAlpha a ==> isAlphaNum a
 
 -- BOOL
 
