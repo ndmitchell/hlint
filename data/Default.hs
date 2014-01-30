@@ -272,8 +272,8 @@ error = when (not x) ==> unless x
 error = x >>= id ==> Control.Monad.join x
 error = liftM f (liftM g x) ==> liftM (f . g) x
 error = fmap f (fmap g x) ==> fmap (f . g) x
-warn = a >> return () ==> void a
-warn = fmap (const ()) ==> void
+warn  = a >> return () ==> void a
+error = fmap (const ()) ==> void
 error = flip (>=>) ==> (<=<)
 error = flip (<=<) ==> (>=>)
 error = (\x -> f x >>= g) ==> f Control.Monad.>=> g
