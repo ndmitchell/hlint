@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #11, add a few hints about characters
     #8, add CHANGES.txt to the Cabal package
 1.8.55
     #627, fix the UnboxedTuples extension warning
