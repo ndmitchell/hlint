@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Remove support for GHC 6.12 and below
     #317, tone down the void hint
     #16, match not . not (and reverse . reverse etc)
     Suggest <$> instead of fmap f $ ...
