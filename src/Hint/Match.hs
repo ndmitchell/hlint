@@ -29,6 +29,12 @@ concat . map f ==> concatMap f
 -- we use the associativity of (.) to add
 concat . map f . x ==> concatMap f . x
 -- currently 36 of 169 rules have (.) equivalents
+
+We see through (.) if the RHS is dull using id, e.g.
+
+not (not x) ==> x
+not . not ==> id
+not . not . x ==> x
 -}
 
 module Hint.Match(readMatch) where
@@ -61,9 +67,15 @@ readRule m@MatchExp{lhs=(fmapAn -> lhs), rhs=(fmapAn -> rhs), side=(fmap fmapAn 
     (:) m{lhs=lhs,side=side,rhs=rhs} $ fromMaybe [] $ do
         (l,v1) <- dotVersion lhs
         (r,v2) <- dotVersion rhs
-        guard $ v1 == v2 && l /= [] && r /= [] && Set.notMember v1 (freeVars $ maybeToList side ++ l ++ r)
-        return [m{lhs=dotApps l, rhs=dotApps r, side=side}
-               ,m{lhs=dotApps (l++[toNamed v1]), rhs=dotApps (r++[toNamed v1]), side=side}]
+        guard $ v1 == v2 && l /= [] && Set.notMember v1 (freeVars $ maybeToList side ++ l ++ r)
+        if r /= [] then return
+            [m{lhs=dotApps l, rhs=dotApps r, side=side}
+            ,m{lhs=dotApps (l++[toNamed v1]), rhs=dotApps (r++[toNamed v1]), side=side}]
+         else if length l > 1 then return
+            [m{lhs=dotApps l, rhs=toNamed "id", side=side}
+            ,m{lhs=dotApps (l++[toNamed v1]), rhs=toNamed v1, side=side}]
+         else
+            Nothing
 readRule _ = []
 
 

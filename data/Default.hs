@@ -191,6 +191,9 @@ error "Redundant $" = (f $) ==> f
 warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 warn  = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
+error "Evaluate" = id x ==> x
+error "Redundant id" = id . x ==> x
+error "Redundant id" = x . id ==> x
 
 -- CHAR
 
@@ -457,7 +460,6 @@ error "Evaluate" = x / 1 ==> x
 error "Evaluate" = concat [a] ==> a
 error "Evaluate" = concat [] ==> []
 error "Evaluate" = zip [] [] ==> []
-error "Evaluate" = id x ==> x
 error "Evaluate" = const x y ==> x
 
 -- COMPLEX
@@ -573,6 +575,12 @@ pairs (x:xs) = map (\y -> (x,y)) xs ++ pairs xs
 {-# ANN foo "HLint: ignore" #-};foo = map f (map g x) -- @Ignore ???
 yes = fmap lines $ abc 123 -- lines Control.Applicative.<$> abc 123
 no = fmap lines $ abc $ def 123
+test = foo . not . not -- id
+test = map (not . not) xs -- id
+used = not . not . any (`notElem` special) . fst . derives -- any (`notElem` special) . fst . derives
+test = foo . id . map -- map
+test = food id xs
+
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

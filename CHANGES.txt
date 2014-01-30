@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #16, match not . not (and reverse . reverse etc)
     Suggest <$> instead of fmap f $ ...
     Tweak some priorities, make >=> a warn and void an error
     #3, make top of the file ANN pragmas work
