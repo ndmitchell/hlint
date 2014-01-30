@@ -50,7 +50,7 @@ hlint args = do
     cmd@Cmd{..} <- getCmd args
     let flags = parseFlags{cppFlags=cmdCpp, encoding=cmdEncoding, language=cmdLanguage}
     if cmdTest then do
-        failed <- test (\x -> hlint x >> return ()) cmdDataDir cmdGivenHints
+        failed <- test (void . hlint) cmdDataDir cmdGivenHints
         when (failed > 0) exitFailure
         return []
      else if notNull cmdProof then do

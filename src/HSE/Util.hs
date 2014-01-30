@@ -271,7 +271,7 @@ an :: SrcSpanInfo
 an = toSrcInfo nullSrcLoc [] nullSrcLoc
 
 dropAnn :: Functor f => f s -> f ()
-dropAnn = fmap (const ())
+dropAnn = void
 
 
 ---------------------------------------------------------------------
