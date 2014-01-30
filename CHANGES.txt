@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Suggest <$> instead of fmap f $ ...
     Tweak some priorities, make >=> a warn and void an error
     #3, make top of the file ANN pragmas work
     #10, add a suggestion to use unlines

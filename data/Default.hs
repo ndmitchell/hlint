@@ -252,6 +252,8 @@ warn "Redundant pair" = (fst x, snd x) ==>  x where note = DecreasesLaziness
 
 error "Functor law" = fmap f (fmap g x) ==> fmap (f . g) x
 error "Functor law" = fmap id ==> id
+warn = fmap f $ x ==> f Control.Applicative.<$> x
+    where _ = isApp x || isAtom x
 
 -- MONAD
 
@@ -569,6 +571,8 @@ main = let (first, rest) = (takeWhile p l, dropWhile p l) in rest -- span p l
 main = map $ \ d -> ([| $d |], [| $d |])
 pairs (x:xs) = map (\y -> (x,y)) xs ++ pairs xs
 {-# ANN foo "HLint: ignore" #-};foo = map f (map g x) -- @Ignore ???
+yes = fmap lines $ abc 123 -- lines Control.Applicative.<$> abc 123
+no = fmap lines $ abc $ def 123
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
