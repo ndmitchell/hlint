@@ -41,7 +41,7 @@ applyHintFiles flags s files = do
 -- | Given a list of settings (a way to classify) and a list of hints, run them over a list of modules.
 executeHints :: [Setting] -> [Module_] -> [Idea]
 executeHints s ms = concat $
-    [ map (classify $ s ++ mapMaybe readPragma (moduleDecls m)) $
+    [ map (classify $ s ++ mapMaybe readPragma (universeBi m)) $
         order "" [i | ModuHint h <- hints, i <- h nm m] ++
         concat [order (fromNamed d) [i | h <- decHints, i <- h d] | d <- moduleDecls m]
     | (nm,m) <- mns

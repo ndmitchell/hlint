@@ -90,7 +90,8 @@ isMatchExp MatchExp{} = True; isMatchExp _ = False
 readSettings :: FilePath -> [FilePath] -> [String] -> IO [Setting]
 readSettings dataDir files hints = do
     (builtin,mods) <- fmap unzipEither $ concatMapM (readHints dataDir) $ map Right files ++ map Left hints
-    let f m = concatMap (readSetting $ moduleScope m) $ concatMap getEquations $ moduleDecls m
+    let f m = concatMap (readSetting $ moduleScope m) $ concatMap getEquations $
+                    [AnnPragma l x | AnnModulePragma l x <- modulePragmas m] ++ moduleDecls m
     return $ map Builtin builtin ++ concatMap f mods
 
 
@@ -118,7 +119,7 @@ readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats 
         names2 = ["" | null names] ++ names
 
 readSetting s x | "test" `isPrefixOf` map toLower (fromNamed x) = []
-readSetting s x@AnnPragma{} | Just y <- readPragma x = [y]
+readSetting s (AnnPragma _ x) | Just y <- readPragma x = [y]
 readSetting s (PatBind an (PVar _ name) _ bod bind) = readSetting s $ FunBind an [Match an name [] bod bind]
 readSetting s (FunBind an xs) | length xs /= 1 = concatMap (readSetting s . FunBind an . return) xs
 readSetting s (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting s $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
@@ -127,22 +128,20 @@ readSetting s x = errorOn x "bad hint"
 
 
 -- return Nothing if it is not an HLint pragma, otherwise all the settings
-readPragma :: Decl_ -> Maybe Setting
-readPragma o@(AnnPragma _ p) = f p
+readPragma :: Annotation S -> Maybe Setting
+readPragma o = case o of
+    Ann _ name x -> f (fromNamed name) x
+    TypeAnn _ name x -> f (fromNamed name) x
+    ModuleAnn _ x -> f "" x
     where
-        f (Ann _ name x) = g (fromNamed name) x
-        f (TypeAnn _ name x) = g (fromNamed name) x
-        f (ModuleAnn _ x) = g "" x
-
-        g name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
+        f name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
                 case getSeverity a of
                     Nothing -> errorOn o "bad classify pragma"
                     Just severity -> Just $ Classify severity (ltrim b) ("",name)
             where (a,b) = break isSpace $ ltrim $ drop 6 s
-        g name (Paren _ x) = g name x
-        g name (ExpTypeSig _ x _) = g name x
-        g _ _ = Nothing
-readPragma _ = Nothing
+        f name (Paren _ x) = f name x
+        f name (ExpTypeSig _ x _) = f name x
+        f _ _ = Nothing
 
 
 readSide :: [Decl_] -> (Maybe Exp_, [Note])

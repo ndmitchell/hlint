@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #3, make top of the file ANN pragmas work
     #10, add a suggestion to use unlines
     #11, add a few hints about characters
     #8, add CHANGES.txt to the Cabal package
