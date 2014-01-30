@@ -212,17 +212,14 @@ checkInputOutput main xs = do
         else if has "lhs" then return ["tests/" ++ pre <.> "lhs"]
         else error "checkInputOutput, couldn't find or figure out flags"
 
-    got <- fmap (fmap lines) $ captureOutput $
+    got <- fmap lines $ captureOutput $
         handle (\(e::SomeException) -> print e) $
         handle (\(e::ExitCode) -> return ()) $
         main flags
-    let gotValid = isJust got
     want <- fmap lines $ reader "output"
-    (want,got) <- return $ matchStarStar want $ fromMaybe [] got
+    (want,got) <- return $ matchStarStar want got
 
-    if not gotValid then
-        putStrLn "Warning: failed to capture output (GHC too old?)" >> return pass
-     else if length got == length want && and (zipWith matchStar want got) then
+    if length got == length want && and (zipWith matchStar want got) then
         return pass
      else do
         let trail = replicate (max (length got) (length want)) "<EOF>"

@@ -183,7 +183,7 @@ exitMessage msg = unsafePerformIO $ do
 
 
 -- FIXME: This could use a lot more bracket calls!
-captureOutput :: IO () -> IO (Maybe String)
+captureOutput :: IO () -> IO String
 captureOutput act = do
     tmp <- getTemporaryDirectory
     (f,h) <- openTempFile tmp "hlint"
@@ -197,7 +197,7 @@ captureOutput act = do
     hDuplicateTo ste stderr
     res <- readFile' f
     removeFile f
-    return $ Just res
+    return res
 
 
 -- FIXME: Should use strict ByteString
