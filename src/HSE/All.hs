@@ -14,6 +14,7 @@ import HSE.NameMatch as X
 import HSE.FreeVars as X
 import Util
 import CmdLine
+import Control.Applicative
 import Data.List
 import Data.Maybe
 import Language.Preprocessor.Cpphs
@@ -48,7 +49,7 @@ runCpp (Cpphs o) file x = runCpphs o file x
 parseString :: ParseFlags -> FilePath -> String -> IO (String, ParseResult Module_)
 parseString flags file str = do
         ppstr <- runCpp (cppFlags flags) file str
-        return (ppstr, fmap (applyFixity fixity) $ parseFileContentsWithMode mode ppstr)
+        return (ppstr, applyFixity fixity <$> parseFileContentsWithMode mode ppstr)
     where
         fixity = infixes flags ++ baseFixities
         mode = defaultParseMode

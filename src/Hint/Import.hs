@@ -44,6 +44,7 @@ module Hint.Import where
 
 import Hint.Type
 import Util
+import Control.Applicative
 import Data.List
 import Data.Maybe
 
@@ -64,14 +65,14 @@ wrap o = [ rawIdea Error "Use fewer imports" (toSrcLoc $ ann $ head o) (f o) (f 
 simplify :: [ImportDecl S] -> Maybe [ImportDecl S]
 simplify [] = Nothing
 simplify (x:xs) = case simplifyHead x xs of
-    Nothing -> fmap (x:) $ simplify xs
+    Nothing -> (x:) <$> simplify xs
     Just xs -> Just $ fromMaybe xs $ simplify xs
 
 
 simplifyHead :: ImportDecl S -> [ImportDecl S] -> Maybe [ImportDecl S]
 simplifyHead x [] = Nothing
 simplifyHead x (y:ys) = case reduce x y of
-    Nothing -> fmap (y:) $ simplifyHead x ys
+    Nothing -> (y:) <$> simplifyHead x ys
     Just xy -> Just $ xy : ys
 
 

@@ -2,6 +2,7 @@
 
 module Proof(proof) where
 
+import Control.Applicative
 import Control.Arrow
 import Control.Monad
 import Control.Monad.Trans.State
@@ -29,7 +30,7 @@ instance Show Theorem where
 
 proof :: [FilePath] -> [Setting] -> FilePath -> IO ()
 proof reports hints thy = do
-    got <- fmap (isabelleTheorems (takeFileName thy)) $ readFile thy
+    got <- isabelleTheorems (takeFileName thy) <$> readFile thy
     let want = nub $ hintTheorems hints
     let unused = got \\ want
     let missing = want \\ got

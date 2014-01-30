@@ -2,6 +2,7 @@
 
 module Test(test) where
 
+import Control.Applicative
 import Control.Exception
 import Control.Monad
 import Data.Char
@@ -73,7 +74,7 @@ testHintFile dataDir file = do
 
 
 testSourceFiles :: IO Result
-testSourceFiles = fmap mconcat $ sequence
+testSourceFiles = mconcat <$> sequence
     [checkAnnotations [Builtin name] ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints]
 
 
@@ -207,7 +208,7 @@ checkInputOutput main xs = do
         reader x = readFile' $ "tests" </> pre <.> x
 
     flags <-
-        if has "flags" then fmap lines $ reader "flags"
+        if has "flags" then lines <$> reader "flags"
         else if has "hs" then return ["tests/" ++ pre <.> "hs"]
         else if has "lhs" then return ["tests/" ++ pre <.> "lhs"]
         else error "checkInputOutput, couldn't find or figure out flags"
@@ -216,7 +217,7 @@ checkInputOutput main xs = do
         handle (\(e::SomeException) -> print e) $
         handle (\(e::ExitCode) -> return ()) $
         main flags
-    want <- fmap lines $ reader "output"
+    want <- lines <$> reader "output"
     (want,got) <- return $ matchStarStar want got
 
     if length got == length want && and (zipWith matchStar want got) then

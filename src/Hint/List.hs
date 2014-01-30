@@ -25,6 +25,7 @@ foo = [a b] ++ xs -- a b : xs
 
 module Hint.List where
 
+import Control.Applicative
 import Hint.Type
 
 
@@ -60,7 +61,7 @@ useString b _ = Nothing
 useList b = fmap (List an) . f True
     where
         f first x | x ~= "[]" = if first then Nothing else Just []
-        f first (view -> App2 c a b) | c ~= ":" = fmap (a:) $ f False b
+        f first (view -> App2 c a b) | c ~= ":" = (a:) <$> f False b
         f first _ = Nothing
 
 useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend y =

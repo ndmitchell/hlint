@@ -40,6 +40,7 @@ import Unsafe.Coerce
 import Settings
 import Hint.Type
 import Control.Monad
+import Control.Applicative
 import Control.Arrow
 import Util
 import qualified Data.Set as Set
@@ -69,7 +70,7 @@ readRule _ = []
 -- find a dot version of this rule, return the sequence of app prefixes, and the var
 dotVersion :: Exp_ -> Maybe ([Exp_], String)
 dotVersion (view -> Var_ v) | isUnifyVar v = Just ([], v)
-dotVersion (fromApps -> xs) | length xs > 1 = fmap (first (apps (init xs) :)) $ dotVersion (fromParen $ last xs)
+dotVersion (fromApps -> xs) | length xs > 1 = first (apps (init xs) :) <$> dotVersion (fromParen $ last xs)
 dotVersion _ = Nothing
 
 
@@ -198,7 +199,7 @@ checkSide x bind = maybe True f x
 
         asInt :: Exp_ -> Maybe Integer
         asInt (Paren _ x) = asInt x
-        asInt (NegApp _ x) = fmap negate $ asInt x
+        asInt (NegApp _ x) = negate <$> asInt x
         asInt (Lit _ (Int _ x _)) = Just x
         asInt _ = Nothing
 
@@ -232,7 +233,7 @@ performEval x = x
 unqualify :: Scope -> Scope -> [(String,Exp_)] -> Exp_ -> Exp_
 unqualify from to subs = transformBi f
     where
-        f (Qual _ (ModuleName _ [m]) x) | Just y <- fmap fromNamed $ lookup [m] subs
+        f (Qual _ (ModuleName _ [m]) x) | Just y <- fromNamed <$> lookup [m] subs
             = if null y then UnQual an x else Qual an (ModuleName an y) x
         f x = nameQualify from to x
 

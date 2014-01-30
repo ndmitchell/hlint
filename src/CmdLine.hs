@@ -2,6 +2,7 @@
 
 module CmdLine(Cmd(..), CppFlags(..), getCmd, exitWithHelp) where
 
+import Control.Applicative
 import Control.Monad
 import Data.Char
 import Data.List
@@ -117,7 +118,7 @@ getCmd args = do
     let exts = [x | Ext x <- opt]
         exts2 = if null exts then ["hs","lhs"] else exts
     let path = [x | Path x <- opt] ++ ["."]
-    files <- if null files then return Nothing else fmap Just $ concatMapM (getFile path exts2) files
+    files <- if null files then return Nothing else Just <$> concatMapM (getFile path exts2) files
     findHints <- concatMapM (getFile path exts2) [x | FindHints x <- opt]
 
     let hintFiles = [x | Hints x <- opt]

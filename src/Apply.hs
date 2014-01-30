@@ -3,6 +3,7 @@ module Apply(applyHintFile, applyHintFiles, applyHintString) where
 
 import HSE.All
 import Hint.All
+import Control.Applicative
 import Control.Arrow
 import Data.Char
 import Data.List
@@ -34,7 +35,7 @@ applyHintString flags s file src = do
 -- | Apply hints to multiple files, allowing cross-file hints to fire.
 applyHintFiles :: ParseFlags -> [Setting] -> [FilePath] -> IO [Idea]
 applyHintFiles flags s files = do
-    (err, ms) <- fmap unzipEither $ mapM (parseModuleFile flags s) files
+    (err, ms) <- unzipEither <$> mapM (parseModuleFile flags s) files
     return $ err ++ executeHints s ms
 
 

@@ -37,6 +37,7 @@ yes = mapM async ds >>= mapM wait >> return () -- mapM async ds >>= mapM_ wait
 module Hint.Monad where
 
 import Control.Arrow
+import Control.Applicative
 import Data.Maybe
 import Data.List
 import Hint.Type
@@ -64,11 +65,11 @@ monadExp decl x = case x of
 -- see through Paren and down if/case etc
 -- return the name to use in the hint, and the revised expression
 monadCall :: Exp_ -> Maybe (String,Exp_)
-monadCall (Paren _ x) = fmap (second $ Paren an) $ monadCall x
-monadCall (App _ x y) = fmap (second $ \x -> App an x y) $ monadCall x
+monadCall (Paren _ x) = second (Paren an) <$> monadCall x
+monadCall (App _ x y) = second (\x -> App an x y) <$> monadCall x
 monadCall (InfixApp _ x op y)
-    | isDol op = fmap (second $ \x -> InfixApp an x op y) $ monadCall x
-    | op ~= ">>=" = fmap (second $ \y -> InfixApp an x op y) $ monadCall y
+    | isDol op = second (\x -> InfixApp an x op y) <$> monadCall x
+    | op ~= ">>=" = second (\y -> InfixApp an x op y) <$> monadCall y
 monadCall (replaceBranches -> (bs@(_:_), gen)) | all isJust res
     = Just (fst $ fromJust $ head res, gen $ map (snd . fromJust) res)
     where res = map monadCall bs
@@ -85,7 +86,7 @@ monadReturn _ = Nothing
 monadJoin (Generator _ (view -> PVar_ p) x:Qualifier _ (view -> Var_ v):xs)
     | p == v && v `notElem` varss xs
     = Just $ Qualifier an (rebracket1 $ App an (toNamed "join") x) : fromMaybe xs (monadJoin xs)
-monadJoin (x:xs) = fmap (x:) $ monadJoin xs
+monadJoin (x:xs) = (x:) <$> monadJoin xs
 monadJoin [] = Nothing
 
 
