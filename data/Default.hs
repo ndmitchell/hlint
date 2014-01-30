@@ -494,7 +494,7 @@ yes = not (a == b) -- a /= b
 yes = not (a /= b) -- a == b
 yes = if a then 1 else if b then 1 else 2 -- if a || b then 1 else 2
 no  = if a then 1 else if b then 3 else 2
-yes = a >>= return . id -- Control.Monad.liftM id a
+yes = a >>= return . bob -- Control.Monad.liftM bob a
 yes = (x !! 0) + (x !! 2) -- head x
 yes = if b < 42 then [a] else [] -- [a | b < 42]
 no  = take n (foo xs) == "hello"
