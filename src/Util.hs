@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, ExistentialQuantification, Rank2Types, PatternGuards #-}
+{-# LANGUAGE ExistentialQuantification, Rank2Types, PatternGuards #-}
 
 module Util where
 
@@ -19,10 +19,7 @@ import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.Operations
 import Language.Haskell.Exts.Extension
-
-#if __GLASGOW_HASKELL__ >= 612
 import GHC.IO.Handle(hDuplicate,hDuplicateTo)
-#endif
 
 
 ---------------------------------------------------------------------
@@ -147,7 +144,6 @@ readFileEncoding (Encoding_Internal x) file = case x of
 -- so we fake them up, and then try mkTextEncoding last
 newEncoding :: String -> IO Encoding
 newEncoding "" = return defaultEncoding
-#if __GLASGOW_HASKELL__ >= 612
 newEncoding enc
         | Just e <- lookup (f enc) [(f a, b) | (as,b) <- encs, a <- as] = return $ wrap e
         | otherwise = do
@@ -178,11 +174,6 @@ newEncoding enc
                   ,"UTF-32" * utf16
                   ,"UTF-32LE" * utf16le
                   ,"UTF-32BE" * utf16be]
-#else
-newEncoding enc = do
-    putStrLn "Warning: Text encodings are not supported with HLint compiled by GHC 6.10"
-    return defaultEncoding
-#endif
 
 
 exitMessage :: String -> a
@@ -193,9 +184,6 @@ exitMessage msg = unsafePerformIO $ do
 
 -- FIXME: This could use a lot more bracket calls!
 captureOutput :: IO () -> IO (Maybe String)
-#if __GLASGOW_HASKELL__ < 612
-captureOutput act = return Nothing
-#else
 captureOutput act = do
     tmp <- getTemporaryDirectory
     (f,h) <- openTempFile tmp "hlint"
@@ -210,7 +198,6 @@ captureOutput act = do
     res <- readFile' f
     removeFile f
     return $ Just res
-#endif
 
 
 -- FIXME: Should use strict ByteString
