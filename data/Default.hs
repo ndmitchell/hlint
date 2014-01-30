@@ -568,6 +568,7 @@ main = take 4 x
 main = let (first, rest) = (takeWhile p l, dropWhile p l) in rest -- span p l
 main = map $ \ d -> ([| $d |], [| $d |])
 pairs (x:xs) = map (\y -> (x,y)) xs ++ pairs xs
+{-# ANN foo "HLint: ignore" #-};foo = map f (map g x) -- @Ignore ???
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

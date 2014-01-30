@@ -5,7 +5,7 @@
 --        things without them overlapping
 module HLint.Test where
 
-import "hint" HLint.Builtin.Naming
+import "hint" HLint.Builtin.All
 
 
 error = Prelude.readFile ==> bad
@@ -88,5 +88,22 @@ test = tail -- Array.tail
 import qualified Array as B; test = tail -- B.tail
 zip [1..length x]
 zip [1..length x] x -- zipFrom 1 x
+
+{-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-} \
+{-# LANGUAGE RecordWildCards #-} -- @Ignore ???
+
+{-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-} \
+{-# LANGUAGE RecordWildCards #-} -- @Ignore ???
+
+{-# ANN module "HLint: ignore Use import/export shortcut" #-} \
+module ABCD(module A, module B, module C) where \
+import A; import B; import C -- @Ignore ???
+
+{-# ANN lam "HLint: ignore Redundant lambda" #-} \
+lam = \x -> x x x -- @Ignore ???
+
+{-# ANN module "HLint: ignore Reduce duplication" #-} \
+dup = do a; a; a; a; a; a -- @Ignore ???
+
 </TEST>
 -}
