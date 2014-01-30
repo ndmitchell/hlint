@@ -1,3 +1,3 @@
 BUG 331
 
-> main = print ("a" ++ "bc")
+> main = print ([1] ++ [2, 3])
