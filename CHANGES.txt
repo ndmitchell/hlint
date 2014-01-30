@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #317, tone down the void hint
     #16, match not . not (and reverse . reverse etc)
     Suggest <$> instead of fmap f $ ...
     Tweak some priorities, make >=> a warn and void an error

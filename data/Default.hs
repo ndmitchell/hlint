@@ -277,8 +277,9 @@ error = when (not x) ==> unless x
 error = x >>= id ==> Control.Monad.join x
 error = liftM f (liftM g x) ==> liftM (f . g) x
 error = fmap f (fmap g x) ==> fmap (f . g) x
-warn  = a >> return () ==> void a
-error = fmap (const ()) ==> void
+warn  = a >> return () ==> Control.Monad.void a
+    where _ = isAtom a || isApp a
+error = fmap (const ()) ==> Control.Monad.void
 error = flip (>=>) ==> (<=<)
 error = flip (<=<) ==> (>=>)
 warn  = (\x -> f x >>= g) ==> f Control.Monad.>=> g
@@ -580,6 +581,8 @@ test = map (not . not) xs -- id
 used = not . not . any (`notElem` special) . fst . derives -- any (`notElem` special) . fst . derives
 test = foo . id . map -- map
 test = food id xs
+yes = baz baz >> return () -- Control.Monad.void (baz baz)
+no = foo >>= bar >>= something >>= elsee >> return ()
 
 
 import Prelude \
