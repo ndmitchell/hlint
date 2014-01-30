@@ -24,7 +24,7 @@ data-files:
     hlint.1
     hlint.ghci
 extra-source-files:
-    hlint.htm
+    README.md
     CHANGES.txt
 tested-with:        GHC==7.6.3, GHC==7.4.2, GHC==7.2.2
 
