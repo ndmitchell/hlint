@@ -1,7 +1,7 @@
 
 module HSE.All(
     module X,
-    ParseFlags(..), defaultParseFlags, parseFlagsNoLocations,
+    ParseFlags(..), defaultParseFlags, parseFlagsNoLocations, parseFlagsAddFixities, parseFlagsSetExtensions,
     parseModuleEx, parseFile, parseString, parseResult
     ) where
 
@@ -22,18 +22,24 @@ import qualified Data.Map as Map
 
 
 data ParseFlags = ParseFlags
-    {cppFlags :: CppFlags
-    ,language :: [Extension]
-    ,encoding :: Encoding
-    ,infixes :: [Fixity]
+    {encoding :: Encoding
+    ,cppFlags :: CppFlags
+    ,hseFlags :: ParseMode
     }
 
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags NoCpp defaultExtensions defaultEncoding []
+defaultParseFlags = ParseFlags defaultEncoding NoCpp defaultParseMode{fixities=Just baseFixities, ignoreLinePragmas=False, extensions=defaultExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
     where f x = x{boolopts = (boolopts x){locations=False}}
+
+parseFlagsAddFixities :: [Fixity] -> ParseFlags -> ParseFlags
+parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = Just $ fx ++ fromMaybe [] (fixities hse)}}
+    where hse = hseFlags x
+
+parseFlagsSetExtensions :: [Extension] -> ParseFlags -> ParseFlags
+parseFlagsSetExtensions es x = x{hseFlags=(hseFlags x){extensions = es}}
 
 
 runCpp :: CppFlags -> FilePath -> String -> IO String
@@ -45,19 +51,17 @@ runCpp (Cpphs o) file x = runCpphs o file x
 ---------------------------------------------------------------------
 -- PARSING
 
--- | Parse a Haskell module
+-- | Parse a Haskell module. Applies CPP and ambiguous fixity resolution.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (String, ParseResult Module_)
 parseModuleEx flags file str = do
         str <- maybe (readFileEncoding (encoding flags) file) return str
         ppstr <- runCpp (cppFlags flags) file str
         return (ppstr, applyFixity fixity <$> parseFileContentsWithMode mode ppstr)
     where
-        fixity = infixes flags ++ baseFixities
-        mode = defaultParseMode
+        fixity = fromMaybe [] $ fixities $ hseFlags flags
+        mode = (hseFlags flags)
             {parseFilename = file
-            ,extensions = language flags
             ,fixities = Nothing
-            ,ignoreLinePragmas = False
             }
 
 parseString :: ParseFlags -> FilePath -> String -> IO (String, ParseResult Module_)

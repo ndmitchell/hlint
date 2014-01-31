@@ -45,7 +45,7 @@ isUnifyVar [x] = x == '?' || isAlpha x
 isUnifyVar _ = False
 
 
-addInfix x = x{infixes = infix_ (-1) ["==>"] ++ infixes x}
+addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
 
 
 ---------------------------------------------------------------------

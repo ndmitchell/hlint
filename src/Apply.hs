@@ -67,7 +67,7 @@ parseModuleFile flags s file = do
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
 parseModuleString :: ParseFlags -> [Setting] -> FilePath -> String -> IO (Either Idea Module_)
 parseModuleString flags s file src = do
-    res <- parseString flags{infixes=[x | Infix x <- s]} file src
+    res <- parseString (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case snd res of
         ParseOk m -> return $ Right m
         ParseFailed sl msg | length src `seq` True -> do
