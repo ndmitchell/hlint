@@ -8,6 +8,7 @@ module Settings(
     ) where
 
 import HSE.All
+import Control.Arrow
 import Data.Char
 import Data.List
 import Data.Monoid
@@ -106,7 +107,7 @@ readHints datadir (Right src) = findHintModules datadir "CommandLine" (Just src)
 findHintModules :: FilePath -> FilePath -> Maybe String -> IO [Either String Module_]
 findHintModules dataDir file contents = do
     let flags = addInfix defaultParseFlags
-    y <- parseResult $ parseModuleEx flags file contents
+    y <- parseResult $ fmap (second undoParseError) $ parseModuleEx flags file contents
     ys <- concatM [f $ fromNamed $ importModule i | i <- moduleImports y, importPkg i `elem` [Just "hint", Just "hlint"]]
     return $ Right y:ys
     where

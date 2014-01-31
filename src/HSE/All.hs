@@ -1,8 +1,9 @@
+{-# LANGUAGE RecordWildCards #-}
 
 module HSE.All(
     module X,
     ParseFlags(..), defaultParseFlags, parseFlagsNoLocations, parseFlagsAddFixities, parseFlagsSetExtensions,
-    parseModuleEx, parseFile, parseString, parseResult
+    parseModuleEx, parseFile, parseString, parseResult, undoParseError, ParseError(..)
     ) where
 
 import HSE.Util as X
@@ -15,6 +16,7 @@ import HSE.FreeVars as X
 import Util
 import CmdLine
 import Control.Applicative
+import Control.Arrow
 import Data.List
 import Data.Maybe
 import Language.Preprocessor.Cpphs
@@ -51,12 +53,20 @@ runCpp (Cpphs o) file x = runCpphs o file x
 ---------------------------------------------------------------------
 -- PARSING
 
+data ParseError = ParseError
+    {parseErrorLocation :: SrcLoc
+    ,parseErrorMessage :: String
+    ,parseErrorContents :: String
+    }
+
 -- | Parse a Haskell module. Applies CPP and ambiguous fixity resolution.
-parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (String, ParseResult (Module SrcSpanInfo))
+parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (String, Either ParseError (Module SrcSpanInfo))
 parseModuleEx flags file str = do
         str <- maybe (readFileEncoding (encoding flags) file) return str
         ppstr <- runCpp (cppFlags flags) file str
-        return (ppstr, applyFixity fixity <$> parseFileContentsWithMode mode ppstr)
+        case parseFileContentsWithMode mode ppstr of
+            ParseOk x -> return (ppstr, Right $ applyFixity fixity x)
+            ParseFailed loc msg -> return (ppstr, Left $ ParseError loc msg ppstr)
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
         mode = (hseFlags flags)
@@ -64,11 +74,15 @@ parseModuleEx flags file str = do
             ,fixities = Nothing
             }
 
+undoParseError :: Either ParseError a -> ParseResult a
+undoParseError (Left ParseError{..}) = ParseFailed parseErrorLocation parseErrorMessage
+undoParseError (Right a) = ParseOk a
+
 parseString :: ParseFlags -> FilePath -> String -> IO (String, ParseResult Module_)
-parseString flags file str = parseModuleEx flags file $ Just str
+parseString flags file str = second undoParseError <$> parseModuleEx flags file (Just str)
 
 parseFile :: ParseFlags -> FilePath -> IO (String, ParseResult Module_)
-parseFile flags file = parseModuleEx flags file Nothing
+parseFile flags file = second undoParseError <$> parseModuleEx flags file Nothing
 
 
 -- throw an error if the parse is invalid
