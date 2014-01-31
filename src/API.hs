@@ -14,7 +14,7 @@ module API(
     -- * HSE.Scope
     Scope, scopeCreate, scopeMatch, scopeMove,
     -- * HSE
-    Module_, Exp_, S
+    Module_, Decl_, Exp_, S
     ) where
 
 import Settings
