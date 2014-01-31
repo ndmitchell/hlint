@@ -11,7 +11,7 @@ module API(
     Hint(..),
     -- * Hint.All
     staticHints, dynamicHints,
-    -- * HSE.NameMatch
+    -- * HSE.Scope
     Scope, scopeCreate, scopeMatch, scopeMove,
     -- * HSE
     Module_, Exp_, S
