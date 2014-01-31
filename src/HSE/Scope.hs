@@ -37,7 +37,7 @@ instance Monoid Scope where
     mappend (Scope xs) (Scope ys) = Scope $ xs ++ ys
 
 -- | Create a 'Scope' value from a module, based on the modules imports.
-scopeCreate :: Module S -> Scope
+scopeCreate :: Module SrcSpanInfo -> Scope
 scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
     where
         res = [x | x <- moduleImports xs, importPkg x /= Just "hint"]
@@ -52,7 +52,7 @@ scopeImports (Scope x) = x
 
 -- | Given a two names in scopes, could they possibly refer to the same thing.
 --   This property is reflexive.
-scopeMatch :: (Scope, QName S) -> (Scope, QName S) -> Bool
+scopeMatch :: (Scope, QName SrcSpanInfo) -> (Scope, QName SrcSpanInfo) -> Bool
 scopeMatch (a, x@Special{}) (b, y@Special{}) = x =~= y
 scopeMatch (a, x) (b, y) | isSpecial x || isSpecial y = False
 scopeMatch (a, x) (b, y) = unqual x =~= unqual y && not (null $ possModules a x `intersect` possModules b y)
@@ -60,7 +60,7 @@ scopeMatch (a, x) (b, y) = unqual x =~= unqual y && not (null $ possModules a x 
 
 -- | Given a name in a scope, and a new scope, create a name for the new scope that will refer
 --   to the same thing. If the resulting name is ambiguous, it picks a plausible candidate.
-scopeMove :: (Scope, QName S) -> Scope -> QName S
+scopeMove :: (Scope, QName SrcSpanInfo) -> Scope -> QName SrcSpanInfo
 scopeMove (a, x) (Scope b)
     | isSpecial x = x
     | null imps = head $ real ++ [x]
