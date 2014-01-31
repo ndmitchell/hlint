@@ -16,7 +16,6 @@ import HSE.FreeVars as X
 import Util
 import CmdLine
 import Control.Applicative
-import Control.Arrow
 import Control.Exception
 import Data.Char
 import Data.List
@@ -62,12 +61,12 @@ data ParseError = ParseError
     }
 
 -- | Parse a Haskell module. Applies CPP and ambiguous fixity resolution.
-parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (String, Either ParseError (Module SrcSpanInfo))
+parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo))
 parseModuleEx flags file str = do
         str <- maybe (readFileEncoding (encoding flags) file) return str
         ppstr <- runCpp (cppFlags flags) file str
         case parseFileContentsWithMode (mode flags) ppstr of
-            ParseOk x -> return (ppstr, Right $ applyFixity fixity x)
+            ParseOk x -> return $ Right $ applyFixity fixity x
             ParseFailed sl msg -> do
                 -- figure out the best line number to grab context from, by reparsing
                 flags <- return $ parseFlagsNoLocations flags
@@ -76,7 +75,7 @@ parseModuleEx flags file str = do
                     ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
                     _ -> context (srcLine sl) ppstr
                 Control.Exception.evaluate $ length pe -- if we fail to parse, we may be keeping the file handle alive
-                return (ppstr, Left $ ParseError sl msg pe)
+                return $ Left $ ParseError sl msg pe
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
         mode flags = (hseFlags flags)
@@ -97,17 +96,17 @@ undoParseError :: Either ParseError a -> ParseResult a
 undoParseError (Left ParseError{..}) = ParseFailed parseErrorLocation parseErrorMessage
 undoParseError (Right a) = ParseOk a
 
-parseString :: ParseFlags -> FilePath -> String -> IO (String, ParseResult Module_)
-parseString flags file str = second undoParseError <$> parseModuleEx flags file (Just str)
+parseString :: ParseFlags -> FilePath -> String -> IO (ParseResult Module_)
+parseString flags file str = undoParseError <$> parseModuleEx flags file (Just str)
 
-parseFile :: ParseFlags -> FilePath -> IO (String, ParseResult Module_)
-parseFile flags file = second undoParseError <$> parseModuleEx flags file Nothing
+parseFile :: ParseFlags -> FilePath -> IO (ParseResult Module_)
+parseFile flags file = undoParseError <$> parseModuleEx flags file Nothing
 
 
 -- throw an error if the parse is invalid
-parseResult :: IO (String, ParseResult Module_) -> IO Module_
+parseResult :: IO (ParseResult Module_) -> IO Module_
 parseResult x = do
-    (_, res) <- x
+    res <- x
     return $! fromParseResult res
 
 

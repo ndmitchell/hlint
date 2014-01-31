@@ -67,7 +67,7 @@ parseModuleFile flags s file = do
 parseModuleString :: ParseFlags -> [Setting] -> FilePath -> String -> IO (Either Idea Module_)
 parseModuleString flags s file src = do
     res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file $ Just src
-    case snd res of
+    case res of
         Right m -> return $ Right m
         Left (ParseError sl msg ctxt) -> return $ Left $ classify s $ ParseFailure Warning "Parse error" sl msg ctxt
 

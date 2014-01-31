@@ -8,7 +8,6 @@ module Settings(
     ) where
 
 import HSE.All
-import Control.Arrow
 import Data.Char
 import Data.List
 import Data.Monoid
@@ -107,7 +106,7 @@ readHints datadir (Right file) = findHintModules datadir file Nothing
 findHintModules :: FilePath -> FilePath -> Maybe String -> IO [Either String Module_]
 findHintModules dataDir file contents = do
     let flags = addInfix defaultParseFlags
-    y <- parseResult $ fmap (second undoParseError) $ parseModuleEx flags file contents
+    y <- parseResult $ fmap undoParseError $ parseModuleEx flags file contents
     ys <- concatM [f $ fromNamed $ importModule i | i <- moduleImports y, importPkg i `elem` [Just "hint", Just "hlint"]]
     return $ Right y:ys
     where
@@ -211,7 +210,7 @@ errorOn val msg = exitMessage $
 findSettings :: ParseFlags -> FilePath -> IO (String, [Setting])
 findSettings flags file = do
     x <- parseFile flags file
-    case snd x of
+    case x of
         ParseFailed sl msg ->
             return ("-- Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
         ParseOk m -> do
