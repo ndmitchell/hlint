@@ -92,7 +92,7 @@ isMatchExp MatchExp{} = True; isMatchExp _ = False
 readSettings :: FilePath -> [FilePath] -> [String] -> IO [Setting]
 readSettings dataDir files hints = do
     (builtin,mods) <- fmap unzipEither $ concatMapM (readHints dataDir) $ map Right files ++ map Left hints
-    let f m = concatMap (readSetting $ moduleScope m) $ concatMap getEquations $
+    let f m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
                     [AnnPragma l x | AnnModulePragma l x <- modulePragmas m] ++ moduleDecls m
     return $ map Builtin builtin ++ concatMap f mods
 

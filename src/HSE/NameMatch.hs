@@ -1,7 +1,7 @@
 
 module HSE.NameMatch(
-    Scope, moduleScope, scopeImports,
-    nameMatch, nameQualify
+    Scope, scopeCreate, scopeImports,
+    scopeMatch, scopeMove
     ) where
 
 import HSE.Type
@@ -28,7 +28,7 @@ if Data.List.head x ==> x, then that might match List too
 
 
 -- | Data type representing the modules in scope within a module.
---   Created with 'moduleScope' and queried with 'nameMatch' and 'nameQualify'.
+--   Created with 'scopeCreate' and queried with 'nameMatch' and 'nameQualify'.
 newtype Scope = Scope [ImportDecl S]
              deriving Show
 
@@ -36,8 +36,8 @@ instance Monoid Scope where
     mempty = Scope []
     mappend (Scope xs) (Scope ys) = Scope $ xs ++ ys
 
-moduleScope :: Module S -> Scope
-moduleScope xs = Scope $ [prelude | not $ any isPrelude res] ++ res
+scopeCreate :: Module S -> Scope
+scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
     where
         res = [x | x <- moduleImports xs, importPkg x /= Just "hint"]
         prelude = ImportDecl an (ModuleName an "Prelude") False False Nothing Nothing Nothing
@@ -51,15 +51,15 @@ scopeImports (Scope x) = x
 
 -- given A B x y, does A{x} possibly refer to the same name as B{y}
 -- this property is reflexive
-nameMatch :: Scope -> Scope -> QName S -> QName S -> Bool
-nameMatch a b x@Special{} y@Special{} = x =~= y
-nameMatch a b x y | isSpecial x || isSpecial y = False
-nameMatch a b x y = unqual x =~= unqual y && not (null $ possModules a x `intersect` possModules b y)
+scopeMatch :: Scope -> Scope -> QName S -> QName S -> Bool
+scopeMatch a b x@Special{} y@Special{} = x =~= y
+scopeMatch a b x y | isSpecial x || isSpecial y = False
+scopeMatch a b x y = unqual x =~= unqual y && not (null $ possModules a x `intersect` possModules b y)
 
 
 -- given A B x, return y such that A{x} == B{y}, if you can
-nameQualify :: Scope -> Scope -> QName S -> QName S
-nameQualify a (Scope b) x
+scopeMove :: Scope -> Scope -> QName S -> QName S
+scopeMove a (Scope b) x
     | isSpecial x = x
     | null imps = head $ real ++ [x]
     | any (not . importQualified) imps = unqual x

@@ -51,7 +51,7 @@ executeHints s ms = concat $
     , let order n = map (\i -> i{func = (moduleName m,n)}) . sortBy (comparing loc)] ++
     [map (classify s) (hintModules hints mns)]
     where
-        mns = map (moduleScope &&& id) ms
+        mns = map (scopeCreate &&& id) ms
 
         hints = (if length ms <= 1 then noModules else id) $ mconcat $ allHints s
         noModules h = h{hintModules = \_ -> []} `mappend` mempty{hintModule = \a b -> hintModules h [(a,b)]}
