@@ -3,6 +3,7 @@
 module Settings(
     Severity(..), Note(..), showNotes, FuncName, Setting(..), isClassify, isMatchExp,
     defaultHintName, isUnifyVar,
+    findHintModules,
     readSettings, readPragma, findSettings
     ) where
 
@@ -97,11 +98,15 @@ readSettings dataDir files hints = do
     return $ map Builtin builtin ++ concatMap f mods
 
 
+readHints :: FilePath -> Either FilePath String -> IO [Either String Module_]
+readHints datadir (Left file) = findHintModules datadir file Nothing
+readHints datadir (Right src) = findHintModules datadir "CommandLine" (Just src)
+
 -- Read a hint file, and all hint files it imports
-readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
-readHints dataDir file = do
+findHintModules :: FilePath -> FilePath -> Maybe String -> IO [Either String Module_]
+findHintModules dataDir file contents = do
     let flags = addInfix defaultParseFlags
-    y <- parseResult $ either (parseString flags "CommandLine") (parseFile flags) file
+    y <- parseResult $ parseModuleEx flags file contents
     ys <- concatM [f $ fromNamed $ importModule i | i <- moduleImports y, importPkg i `elem` [Just "hint", Just "hlint"]]
     return $ Right y:ys
     where
