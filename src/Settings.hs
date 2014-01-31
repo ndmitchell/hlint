@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
 
 module Settings(
     Severity(..), Note(..), showNotes, FuncName, Setting(..), isClassify, isMatchExp,
@@ -113,6 +113,15 @@ findHintModules dataDir file contents = do
         f x | "HLint.Builtin." `isPrefixOf` x = return [Left $ drop 14 x]
             | "HLint." `isPrefixOf` x = readHints dataDir $ Right $ dataDir </> drop 6 x <.> "hs"
             | otherwise = readHints dataDir $ Right $ x <.> "hs"
+
+
+-- throw an error if the parse is invalid
+parseResult :: IO (Either ParseError Module_) -> IO Module_
+parseResult x = do
+    x <- x
+    case x of
+        Left (ParseError sl msg _) -> return $! fromParseResult $ ParseFailed sl msg
+        Right x -> return x
 
 
 readSetting :: Scope -> Decl_ -> [Setting]

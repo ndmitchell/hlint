@@ -3,7 +3,7 @@
 module HSE.All(
     module X,
     ParseFlags(..), defaultParseFlags, parseFlagsAddFixities, parseFlagsSetExtensions,
-    parseModuleEx, parseResult, ParseError(..)
+    parseModuleEx, ParseError(..)
     ) where
 
 import HSE.Util as X
@@ -89,18 +89,6 @@ context lineNo src =
     unlines $ trimBy (all isSpace) $
     zipWith (++) ticks $ take 5 $ drop (lineNo - 3) $ lines src ++ ["","","","",""]
     where ticks = ["  ","  ","> ","  ","  "]
-
-
-undoParseError :: Either ParseError a -> ParseResult a
-undoParseError (Left ParseError{..}) = ParseFailed parseErrorLocation parseErrorMessage
-undoParseError (Right a) = ParseOk a
-
-
--- throw an error if the parse is invalid
-parseResult :: IO (Either ParseError Module_) -> IO Module_
-parseResult x = do
-    res <- x
-    return $! fromParseResult $ undoParseError res
 
 
 ---------------------------------------------------------------------
