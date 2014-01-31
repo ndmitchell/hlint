@@ -9,6 +9,7 @@ module Settings(
 import HSE.All
 import Data.Char
 import Data.List
+import Data.Monoid
 import System.FilePath
 import Util
 
@@ -210,7 +211,7 @@ findSettings flags file = do
         ParseOk m -> do
             let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
                 s = unlines $ ["-- hints found in " ++ file] ++ map prettyPrint xs ++ ["-- no hints found" | null xs]
-                r = concatMap (readSetting emptyScope) xs
+                r = concatMap (readSetting mempty) xs
             return (s,r)
 
 

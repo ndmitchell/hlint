@@ -1,6 +1,6 @@
 
 module HSE.NameMatch(
-    Scope, emptyScope, moduleScope, scopeImports,
+    Scope, moduleScope, scopeImports,
     NameMatch, nameMatch, nameQualify
     ) where
 
@@ -8,6 +8,7 @@ import HSE.Type
 import HSE.Util
 import Data.List
 import Data.Maybe
+import Data.Monoid
 
 {-
 the hint file can do:
@@ -31,16 +32,16 @@ type NameMatch = QName S -> QName S -> Bool
 newtype Scope = Scope [ImportDecl S]
              deriving Show
 
+instance Monoid Scope where
+    mempty = Scope []
+    mappend (Scope xs) (Scope ys) = Scope $ xs ++ ys
+
 moduleScope :: Module S -> Scope
 moduleScope xs = Scope $ [prelude | not $ any isPrelude res] ++ res
     where
         res = [x | x <- moduleImports xs, importPkg x /= Just "hint"]
         prelude = ImportDecl an (ModuleName an "Prelude") False False Nothing Nothing Nothing
         isPrelude x = fromModuleName (importModule x) == "Prelude"
-
-
-emptyScope :: Scope
-emptyScope = Scope []
 
 
 scopeImports :: Scope -> [ImportDecl S]
