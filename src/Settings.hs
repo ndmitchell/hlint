@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
 
 module Settings(
-    Severity(..), Classify(..), MatchExp(..), Note(..), showNotes, FuncName, Setting(..), isClassify, isMatchExp,
+    Severity(..), Classify(..), MatchExp(..), Note(..), showNotes, FuncName, Setting(..),
     defaultHintName, isUnifyVar,
     findHintModules,
     readSettings, readPragma, findSettings
@@ -85,9 +85,6 @@ data Setting
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show
-
-isClassify Classify{} = True; isClassify _ = False
-isMatchExp MatchExp{} = True; isMatchExp _ = False
 
 
 ---------------------------------------------------------------------
