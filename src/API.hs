@@ -7,14 +7,14 @@ module API(
     module Idea,
     -- * Apply
     module Apply,
-    -- * Hint.Type
-    Hint(..),
     -- * Hint.All
-    builtinHints, dynamicHints,
-    -- * HSE.Scope
+    dynamicHints,
+    -- * Hints
+    builtinHints, Hint(..),
+    -- * Scopes
     Scope, scopeCreate, scopeMatch, scopeMove,
     -- * HSE
-    ParseFlags(..), defaultParseFlags, parseModuleEx,
+    ParseFlags(..), CppFlags(..), defaultParseFlags, parseModuleEx,
     -- * File encodings
     Encoding, defaultEncoding, newEncoding, readFileEncoding
     ) where
@@ -25,4 +25,5 @@ import Apply
 import Hint.Type
 import Hint.All
 import Util
+import CmdLine
 
