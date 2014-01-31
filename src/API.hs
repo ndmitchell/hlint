@@ -10,7 +10,7 @@ module API(
     -- * Hint.Type
     Hint(..),
     -- * Hint.All
-    staticHints, dynamicHints,
+    builtinHints, dynamicHints,
     -- * HSE.Scope
     Scope, scopeCreate, scopeMatch, scopeMove,
     -- * HSE

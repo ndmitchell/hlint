@@ -1,7 +1,7 @@
 
 module Hint.All(
     Hint(..), DeclHint, ModuHint,
-    staticHints, dynamicHints
+    builtinHints, dynamicHints
     ) where
 
 import Settings
@@ -22,8 +22,9 @@ import Hint.Extensions
 import Hint.Duplicate
 
 
-staticHints :: [(String,Hint)]
-staticHints =
+-- | A list of builtin hints, currently including entries such as @\"List\"@ and @\"Bracket\"@.
+builtinHints :: [(String,Hint)]
+builtinHints =
     ["List"       ! listHint
     ,"ListRec"    ! listRecHint
     ,"Monad"      ! monadHint

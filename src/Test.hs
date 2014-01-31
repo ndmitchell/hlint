@@ -75,7 +75,7 @@ testHintFile dataDir file = do
 
 testSourceFiles :: IO Result
 testSourceFiles = mconcat <$> sequence
-    [checkAnnotations [Builtin name] ("src/Hint" </> name <.> "hs") | (name,h) <- staticHints]
+    [checkAnnotations [Builtin name] ("src/Hint" </> name <.> "hs") | (name,h) <- builtinHints]
 
 
 testInputOutput :: ([String] -> IO ()) -> IO Result

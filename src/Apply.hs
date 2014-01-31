@@ -90,8 +90,8 @@ context lineNo src =
 -- | Find which hints a list of settings implies.
 allHints :: [Setting] -> [Hint]
 allHints xs = dynamicHints xs : map f builtin
-    where builtin = nub $ concat [if x == "All" then map fst staticHints else [x] | Builtin x <- xs]
-          f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x staticHints
+    where builtin = nub $ concat [if x == "All" then map fst builtinHints else [x] | Builtin x <- xs]
+          f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x builtinHints
 
 
 -- | Given some settings, make sure the severity field of the Idea is correct.
