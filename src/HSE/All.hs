@@ -59,7 +59,7 @@ data ParseError = ParseError
     ,parseErrorContents :: String
     }
 
--- | Parse a Haskell module. Applies CPP and ambiguous fixity resolution.
+-- | Parse a Haskell module. Applies CPP and ambiguous fixity resolution. @-@ as a file name is treated as Stdin
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo))
 parseModuleEx flags file str = do
         str <- maybe (readFileEncoding (encoding flags) file) return str
