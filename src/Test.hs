@@ -89,7 +89,7 @@ testInputOutput main = do
 
 nameCheckHints :: [Setting] -> IO Result
 nameCheckHints hints = do
-    let bad = [failed ["No name for the hint " ++ prettyPrint (lhs x)] | x@MatchExp{} <- hints, hintM x == defaultHintName]
+    let bad = [failed ["No name for the hint " ++ prettyPrint (lhs x)] | SettingMatchExp x@MatchExp{} <- hints, hintM x == defaultHintName]
     sequence_ bad
     return $ Result (length bad) 0
 
@@ -106,7 +106,7 @@ typeCheckHints hints = bracket
         progress
         return $ result $ res == ExitSuccess
     where
-        matches = filter isMatchExp hints
+        matches = [x | SettingMatchExp x <- hints]
 
         -- Hack around haskell98 not being compatible with base anymore
         hackImport i@ImportDecl{importAs=Just a,importModule=b}

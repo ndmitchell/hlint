@@ -62,8 +62,8 @@ readMatch :: [Setting] -> DeclHint
 readMatch settings = findIdeas (concatMap readRule settings)
 
 
-readRule :: Setting -> [Setting]
-readRule m@MatchExp{lhs=(fmapAn -> lhs), rhs=(fmapAn -> rhs), side=(fmap fmapAn -> side)} =
+readRule :: Setting -> [MatchExp]
+readRule (SettingMatchExp m@MatchExp{lhs=(fmapAn -> lhs), rhs=(fmapAn -> rhs), side=(fmap fmapAn -> side)}) =
     (:) m{lhs=lhs,side=side,rhs=rhs} $ fromMaybe [] $ do
         (l,v1) <- dotVersion lhs
         (r,v2) <- dotVersion rhs
@@ -89,7 +89,7 @@ dotVersion _ = Nothing
 ---------------------------------------------------------------------
 -- PERFORM THE MATCHING
 
-findIdeas :: [Setting] -> Scope -> Module S -> Decl_ -> [Idea]
+findIdeas :: [MatchExp] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
   [ (idea (severityM m) (hintM m) x y){note=notes}
   | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
@@ -97,7 +97,7 @@ findIdeas matches s _ decl =
   , m <- matches, Just (y,notes) <- [matchIdea s decl m parent x2]]
 
 
-matchIdea :: Scope -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note])
+matchIdea :: Scope -> Decl_ -> MatchExp -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note])
 matchIdea s decl MatchExp{..} parent x = do
     let nm a b = scopeMatch (scope,a) (s,b)
     u <- unifyExp nm True lhs x

@@ -16,7 +16,7 @@ import HSE.All
 
 
 data Theorem = Theorem
-    {original :: Maybe Setting
+    {original :: Maybe MatchExp
     ,location :: String
     ,lemma :: String
     }
@@ -111,7 +111,7 @@ isabelleTheorems file = find . lexer 1
 
 
 reparen :: Setting -> Setting
-reparen m@MatchExp{..} = m{lhs = f False lhs, rhs = f True rhs}
+reparen (SettingMatchExp m@MatchExp{..}) = SettingMatchExp m{lhs = f False lhs, rhs = f True rhs}
     where f right x = if isLambda x || isIf x || badInfix x then Paren (ann x) x else x
           badInfix (InfixApp _ _ op _) = prettyPrint op `elem` words "|| && ."
           badInfix _ = False
@@ -122,7 +122,7 @@ reparen x = x
 hintTheorems :: [Setting] -> [Theorem]
 hintTheorems xs =
     [ Theorem (Just m) (loc $ ann lhs) $ maybe "" assumes side ++ relationship notes a b
-    | m@MatchExp{..} <- map reparen xs, let a = exp1 $ typeclasses notes lhs, let b = exp1 rhs, a /= b]
+    | SettingMatchExp m@MatchExp{..} <- map reparen xs, let a = exp1 $ typeclasses notes lhs, let b = exp1 rhs, a /= b]
     where
         loc (SrcSpanInfo (SrcSpan file ln _ _ _) _) = takeFileName file ++ ":" ++ show ln
 
