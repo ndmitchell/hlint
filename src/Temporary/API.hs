@@ -17,7 +17,7 @@ module Temporary.API(
     -- * HSE
     ParseFlags(..), CppFlags(..), defaultParseFlags, parseModuleEx,
     -- * File encodings
-    Encoding, defaultEncoding, newEncoding, readFileEncoding
+    Encoding, defaultEncoding, newEncoding, useEncoding
     ) where
 
 import Settings
