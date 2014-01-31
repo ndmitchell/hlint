@@ -13,6 +13,7 @@ import System.FilePath
 import Util
 
 
+defaultHintName :: String
 defaultHintName = "Use alternative"
 
 
