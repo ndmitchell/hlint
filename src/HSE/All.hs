@@ -17,6 +17,8 @@ import Util
 import CmdLine
 import Control.Applicative
 import Control.Arrow
+import Control.Exception
+import Data.Char
 import Data.List
 import Data.Maybe
 import Language.Preprocessor.Cpphs
@@ -64,15 +66,32 @@ parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (String, Either Pa
 parseModuleEx flags file str = do
         str <- maybe (readFileEncoding (encoding flags) file) return str
         ppstr <- runCpp (cppFlags flags) file str
-        case parseFileContentsWithMode mode ppstr of
+        case parseFileContentsWithMode (mode flags) ppstr of
             ParseOk x -> return (ppstr, Right $ applyFixity fixity x)
-            ParseFailed loc msg -> return (ppstr, Left $ ParseError loc msg ppstr)
+            ParseFailed sl msg -> do
+                -- figure out the best line number to grab context from, by reparsing
+                flags <- return $ parseFlagsNoLocations flags
+                ppstr2 <- runCpp (cppFlags flags) file str
+                pe <- return $ case parseFileContentsWithMode (mode flags) ppstr2 of
+                    ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
+                    _ -> context (srcLine sl) ppstr
+                Control.Exception.evaluate $ length pe -- if we fail to parse, we may be keeping the file handle alive
+                return (ppstr, Left $ ParseError sl msg pe)
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
-        mode = (hseFlags flags)
+        mode flags = (hseFlags flags)
             {parseFilename = file
             ,fixities = Nothing
             }
+
+
+-- | Given a line number, and some source code, put bird ticks around the appropriate bit.
+context :: Int -> String -> String
+context lineNo src =
+    unlines $ trimBy (all isSpace) $
+    zipWith (++) ticks $ take 5 $ drop (lineNo - 3) $ lines src ++ [""]
+    where ticks = ["  ","  ","> ","  ","  "]
+
 
 undoParseError :: Either ParseError a -> ParseResult a
 undoParseError (Left ParseError{..}) = ParseFailed parseErrorLocation parseErrorMessage
