@@ -2,7 +2,7 @@
 
 module HSE.All(
     module X,
-    ParseFlags(..), defaultParseFlags, parseFlagsNoLocations, parseFlagsAddFixities, parseFlagsSetExtensions,
+    ParseFlags(..), defaultParseFlags, parseFlagsAddFixities, parseFlagsSetExtensions,
     parseModuleEx, parseFile, parseString, parseResult, undoParseError, ParseError(..)
     ) where
 
