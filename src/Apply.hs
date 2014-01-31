@@ -5,7 +5,6 @@ import HSE.All
 import Hint.All
 import Control.Applicative
 import Control.Arrow
-import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -67,24 +66,10 @@ parseModuleFile flags s file = do
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
 parseModuleString :: ParseFlags -> [Setting] -> FilePath -> String -> IO (Either Idea Module_)
 parseModuleString flags s file src = do
-    res <- parseString (parseFlagsAddFixities [x | Infix x <- s] flags) file src
+    res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file $ Just src
     case snd res of
-        ParseOk m -> return $ Right m
-        ParseFailed sl msg | length src `seq` True -> do
-            -- figure out the best line number to grab context from, by reparsing
-            (str2,pr2) <- parseString (parseFlagsNoLocations flags) "" src
-            let ctxt = case pr2 of
-                    ParseFailed sl2 _ -> context (srcLine sl2) str2
-                    _ -> context (srcLine sl) src
-            return $ Left $ classify s $ ParseFailure Warning "Parse error" sl msg ctxt
-
-
--- | Given a line number, and some source code, put bird ticks around the appropriate bit.
-context :: Int -> String -> String
-context lineNo src =
-    unlines $ trimBy (all isSpace) $
-    zipWith (++) ticks $ take 5 $ drop (lineNo - 3) $ lines src ++ [""]
-    where ticks = ["  ","  ","> ","  ","  "]
+        Right m -> return $ Right m
+        Left (ParseError sl msg ctxt) -> return $ Left $ classify s $ ParseFailure Warning "Parse error" sl msg ctxt
 
 
 -- | Find which hints a list of settings implies.

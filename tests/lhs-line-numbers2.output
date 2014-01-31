@@ -2,9 +2,8 @@ tests/lhs-line-numbers2.lhs:11:1: Parse error
 Error message:
   Parse error: EOF
 Code:
-    BUG 331
-    %  Blah1
-  > %  Blah2
-    %  Blah3
+    \end{code}
+
+  >
 
 1 suggestion
