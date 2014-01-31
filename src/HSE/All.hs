@@ -3,7 +3,7 @@
 module HSE.All(
     module X,
     ParseFlags(..), defaultParseFlags, parseFlagsAddFixities, parseFlagsSetExtensions,
-    parseModuleEx, parseFile, parseString, parseResult, undoParseError, ParseError(..)
+    parseModuleEx, parseResult, undoParseError, ParseError(..)
     ) where
 
 import HSE.Util as X
@@ -15,7 +15,6 @@ import HSE.Scope as X
 import HSE.FreeVars as X
 import Util
 import CmdLine
-import Control.Applicative
 import Control.Exception
 import Data.Char
 import Data.List
@@ -95,12 +94,6 @@ context lineNo src =
 undoParseError :: Either ParseError a -> ParseResult a
 undoParseError (Left ParseError{..}) = ParseFailed parseErrorLocation parseErrorMessage
 undoParseError (Right a) = ParseOk a
-
-parseString :: ParseFlags -> FilePath -> String -> IO (ParseResult Module_)
-parseString flags file str = undoParseError <$> parseModuleEx flags file (Just str)
-
-parseFile :: ParseFlags -> FilePath -> IO (ParseResult Module_)
-parseFile flags file = undoParseError <$> parseModuleEx flags file Nothing
 
 
 -- throw an error if the parse is invalid
