@@ -89,7 +89,7 @@ testInputOutput main = do
 
 nameCheckHints :: [Setting] -> IO Result
 nameCheckHints hints = do
-    let bad = [failed ["No name for the hint " ++ prettyPrint (lhs x)] | x@MatchExp{} <- hints, hintS x == defaultHintName]
+    let bad = [failed ["No name for the hint " ++ prettyPrint (lhs x)] | x@MatchExp{} <- hints, hintM x == defaultHintName]
     sequence_ bad
     return $ Result (length bad) 0
 

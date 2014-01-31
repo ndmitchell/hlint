@@ -69,7 +69,7 @@ classify xs i = i{severity = foldl' (f i) (severity i) $ filter isClassify xs}
     where
         -- figure out if we need to change the severity
         f :: Idea -> Severity -> Setting -> Severity
-        f i r c | matchHint (hintS c) (hint i) && matchFunc (funcS c) (func_ i) = severityS c
+        f i r c | matchHint (hintC c) (hint i) && matchFunc (funcC c) (func_ i) = severityC c
                 | otherwise = r
 
         func_ x = if isParseFailure x then ("","") else func x

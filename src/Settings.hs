@@ -75,8 +75,8 @@ showNotes = intercalate ", " . map show . filter use
 
 
 data Setting
-    = Classify {severityS :: Severity, hintS :: String, funcS :: FuncName}
-    | MatchExp {severityS :: Severity, hintS :: String, scope :: Scope, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_, notes :: [Note]}
+    = Classify {severityC :: Severity, hintC :: String, funcC :: FuncName}
+    | MatchExp {severityM :: Severity, hintM :: String, scope :: Scope, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_, notes :: [Note]}
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show
