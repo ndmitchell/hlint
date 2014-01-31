@@ -99,9 +99,9 @@ readSettings dataDir files hints = do
     return $ map Builtin builtin ++ concatMap f mods
 
 
-readHints :: FilePath -> Either FilePath String -> IO [Either String Module_]
-readHints datadir (Left file) = findHintModules datadir file Nothing
-readHints datadir (Right src) = findHintModules datadir "CommandLine" (Just src)
+readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
+readHints datadir (Left src) = findHintModules datadir "CommandLine" (Just src)
+readHints datadir (Right file) = findHintModules datadir file Nothing
 
 -- Read a hint file, and all hint files it imports
 findHintModules :: FilePath -> FilePath -> Maybe String -> IO [Either String Module_]
