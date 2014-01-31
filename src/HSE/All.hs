@@ -52,7 +52,7 @@ runCpp (Cpphs o) file x = runCpphs o file x
 -- PARSING
 
 -- | Parse a Haskell module. Applies CPP and ambiguous fixity resolution.
-parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (String, ParseResult Module_)
+parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (String, ParseResult (Module SrcSpanInfo))
 parseModuleEx flags file str = do
         str <- maybe (readFileEncoding (encoding flags) file) return str
         ppstr <- runCpp (cppFlags flags) file str

@@ -14,7 +14,6 @@ module API(
     -- * HSE.Scope
     Scope, scopeCreate, scopeMatch, scopeMove,
     -- * HSE
-    Module_, Decl_, Exp_, S,
     ParseFlags(..), defaultParseFlags, parseModuleEx,
     -- * File encodings
     Encoding, defaultEncoding, newEncoding, readFileEncoding
@@ -23,8 +22,7 @@ module API(
 import Settings
 import Idea
 import Apply
-import Hint.Type hiding (Module_, Exp_, S)
+import Hint.Type
 import Hint.All
-import HSE.All
 import Util
 
