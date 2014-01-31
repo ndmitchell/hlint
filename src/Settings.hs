@@ -8,7 +8,6 @@ module Settings(
     ) where
 
 import HSE.All
-import Control.Applicative
 import Data.Char
 import Data.List
 import Data.Monoid
@@ -210,11 +209,11 @@ errorOn val msg = exitMessage $
 -- find definitions in a source file
 findSettings :: ParseFlags -> FilePath -> IO (String, [Setting])
 findSettings flags file = do
-    x <- undoParseError <$> parseModuleEx flags file Nothing
+    x <- parseModuleEx flags file Nothing
     case x of
-        ParseFailed sl msg ->
+        Left (ParseError sl msg _) ->
             return ("-- Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
-        ParseOk m -> do
+        Right m -> do
             let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
                 s = unlines $ ["-- hints found in " ++ file] ++ map prettyPrint xs ++ ["-- no hints found" | null xs]
                 r = concatMap (readSetting mempty) xs
