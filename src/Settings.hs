@@ -8,6 +8,7 @@ module Settings(
     ) where
 
 import HSE.All
+import Control.Applicative
 import Data.Char
 import Data.List
 import Data.Monoid
@@ -209,7 +210,7 @@ errorOn val msg = exitMessage $
 -- find definitions in a source file
 findSettings :: ParseFlags -> FilePath -> IO (String, [Setting])
 findSettings flags file = do
-    x <- parseFile flags file
+    x <- undoParseError <$> parseModuleEx flags file Nothing
     case x of
         ParseFailed sl msg ->
             return ("-- Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
