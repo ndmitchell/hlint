@@ -99,7 +99,7 @@ findIdeas matches s _ decl =
 
 matchIdea :: Scope -> Decl_ -> Setting -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note])
 matchIdea s decl MatchExp{..} parent x = do
-    let nm = scopeMatch scope s
+    let nm a b = scopeMatch (scope,a) (s,b)
     u <- unifyExp nm True lhs x
     u <- check u
     let e = subst u rhs
@@ -249,7 +249,7 @@ unqualify from to subs = transformBi f
     where
         f (Qual _ (ModuleName _ [m]) x) | Just y <- fromNamed <$> lookup [m] subs
             = if null y then UnQual an x else Qual an (ModuleName an y) x
-        f x = scopeMove from to x
+        f x = scopeMove (from,x) to
 
 
 addBracket :: Maybe (Int,Exp_) -> Exp_ -> Exp_

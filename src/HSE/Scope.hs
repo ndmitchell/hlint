@@ -51,15 +51,15 @@ scopeImports (Scope x) = x
 
 -- given A B x y, does A{x} possibly refer to the same name as B{y}
 -- this property is reflexive
-scopeMatch :: Scope -> Scope -> QName S -> QName S -> Bool
-scopeMatch a b x@Special{} y@Special{} = x =~= y
-scopeMatch a b x y | isSpecial x || isSpecial y = False
-scopeMatch a b x y = unqual x =~= unqual y && not (null $ possModules a x `intersect` possModules b y)
+scopeMatch :: (Scope, QName S) -> (Scope, QName S) -> Bool
+scopeMatch (a, x@Special{}) (b, y@Special{}) = x =~= y
+scopeMatch (a, x) (b, y) | isSpecial x || isSpecial y = False
+scopeMatch (a, x) (b, y) = unqual x =~= unqual y && not (null $ possModules a x `intersect` possModules b y)
 
 
 -- given A B x, return y such that A{x} == B{y}, if you can
-scopeMove :: Scope -> Scope -> QName S -> QName S
-scopeMove a (Scope b) x
+scopeMove :: (Scope, QName S) -> Scope -> QName S
+scopeMove (a, x) (Scope b)
     | isSpecial x = x
     | null imps = head $ real ++ [x]
     | any (not . importQualified) imps = unqual x
