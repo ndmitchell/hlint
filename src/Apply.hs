@@ -8,6 +8,7 @@ import Control.Arrow
 import Data.Char
 import Data.List
 import Data.Maybe
+import Data.Monoid
 import Data.Ord
 import Settings
 import Idea
@@ -43,18 +44,17 @@ applyHintFiles flags s files = do
 executeHints :: [Setting] -> [Module_] -> [Idea]
 executeHints s ms = concat $
     [ map (classify $ s ++ mapMaybe readPragma (universeBi m)) $
-        order "" [i | ModuHint h <- hints, i <- h nm m] ++
-        concat [order (fromNamed d) [i | h <- decHints, i <- h d] | d <- moduleDecls m]
+        order "" (hintModule hints nm m) ++
+        concat [order (fromNamed d) $ decHints d | d <- moduleDecls m]
     | (nm,m) <- mns
-    , let decHints = [h nm m | DeclHint h <- hints] -- partially apply
+    , let decHints = hintDecl hints nm m -- partially apply
     , let order n = map (\i -> i{func = (moduleName m,n)}) . sortBy (comparing loc)] ++
-    [map (classify s) $ op mns | CrossHint op <- hints]
+    [map (classify s) (hintModules hints mns)]
     where
         mns = map (moduleScope &&& id) ms
 
-        hints = for (allHints s) $ \x -> case x of
-            CrossHint op | length ms <= 1 -> ModuHint $ \a b -> op [(a,b)]
-            _ -> x
+        hints = (if length ms <= 1 then noModules else id) $ mconcat $ allHints s
+        noModules h = h{hintModules = \_ -> []} `mappend` mempty{hintModule = \a b -> hintModules h [(a,b)]}
 
 
 -- | Like 'parseModuleString', but also load the file from disk.

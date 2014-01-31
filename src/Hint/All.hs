@@ -5,6 +5,7 @@ module Hint.All(
     ) where
 
 import Settings
+import Data.Monoid
 import Hint.Type
 
 import Hint.Match
@@ -36,9 +37,9 @@ staticHints =
     ,"Duplicate"  * duplicateHint
     ]
     where
-        x!y = (x,DeclHint y)
-        x+y = (x,ModuHint y)
-        x*y = (x,CrossHint y)
+        x!y = (x,mempty{hintDecl=y})
+        x+y = (x,mempty{hintModule=y})
+        x*y = (x,mempty{hintModules=y})
 
 dynamicHints :: [Setting] -> Hint
-dynamicHints = DeclHint . readMatch
+dynamicHints xs = mempty{hintDecl=readMatch xs}
