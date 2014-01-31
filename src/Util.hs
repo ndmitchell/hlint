@@ -90,6 +90,9 @@ limit n s = if null post then s else pre ++ "..."
 ltrim :: String -> String
 ltrim = dropWhile isSpace
 
+rtrim :: String -> String
+rtrim = reverse . ltrim . reverse
+
 trimBy :: (a -> Bool) -> [a] -> [a]
 trimBy f = reverse . dropWhile f . reverse . dropWhile f
 
