@@ -1,7 +1,7 @@
 
 module HSE.NameMatch(
     Scope, moduleScope, scopeImports,
-    NameMatch, nameMatch, nameQualify
+    nameMatch, nameQualify
     ) where
 
 import HSE.Type
@@ -26,8 +26,6 @@ import List as Data.List
 if Data.List.head x ==> x, then that might match List too
 -}
 
-type NameMatch = QName S -> QName S -> Bool
-
 
 newtype Scope = Scope [ImportDecl S]
              deriving Show
@@ -51,7 +49,7 @@ scopeImports (Scope x) = x
 
 -- given A B x y, does A{x} possibly refer to the same name as B{y}
 -- this property is reflexive
-nameMatch :: Scope -> Scope -> NameMatch
+nameMatch :: Scope -> Scope -> QName S -> QName S -> Bool
 nameMatch a b x@Special{} y@Special{} = x =~= y
 nameMatch a b x y | isSpecial x || isSpecial y = False
 nameMatch a b x y = unqual x =~= unqual y && not (null $ possModules a x `intersect` possModules b y)

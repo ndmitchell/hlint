@@ -113,6 +113,8 @@ matchIdea s decl MatchExp{..} parent x = do
 ---------------------------------------------------------------------
 -- UNIFICATION
 
+type NameMatch = QName S -> QName S -> Bool
+
 -- unify a b = c, a[c] = b
 unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe [(String,Exp_)]
 unify nm root x y | Just x <- cast x = unifyExp nm root x (unsafeCoerce y)

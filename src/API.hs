@@ -12,8 +12,7 @@ module API(
     -- * Hint.All
     staticHints, dynamicHints,
     -- * HSE.NameMatch
-    Scope, moduleScope,
-    NameMatch, nameMatch, nameQualify,
+    Scope, moduleScope, nameMatch, nameQualify,
     -- * HSE
     Module_, Exp_, S
     ) where
