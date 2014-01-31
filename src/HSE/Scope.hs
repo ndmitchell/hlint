@@ -1,5 +1,5 @@
 
-module HSE.NameMatch(
+module HSE.Scope(
     Scope, scopeCreate, scopeImports,
     scopeMatch, scopeMove
     ) where

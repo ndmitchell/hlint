@@ -65,7 +65,7 @@ library
         HSE.Evaluate
         HSE.FreeVars
         HSE.Match
-        HSE.NameMatch
+        HSE.Scope
         HSE.Type
         HSE.Util
         Hint.All
