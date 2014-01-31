@@ -28,7 +28,7 @@ if Data.List.head x ==> x, then that might match List too
 type NameMatch = QName S -> QName S -> Bool
 
 
-data Scope = Scope [ImportDecl S]
+newtype Scope = Scope [ImportDecl S]
              deriving Show
 
 moduleScope :: Module S -> Scope
