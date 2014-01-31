@@ -133,14 +133,14 @@ data Encoding = Encoding_Internal (Maybe (Handle -> IO ()))
 defaultEncoding :: Encoding
 defaultEncoding = Encoding_Internal Nothing
 
+useEncoding :: Handle -> Encoding -> IO ()
+useEncoding h (Encoding_Internal x) = maybe (return ()) ($ h) x
 
 readFileEncoding :: Encoding -> FilePath -> IO String
-readFileEncoding (Encoding_Internal x) file = case x of
-    Nothing -> if file == "-" then getContents else readFile file
-    Just set -> do
-        h <- if file == "-" then return stdin else openFile file ReadMode
-        set h
-        hGetContents h
+readFileEncoding enc file = do
+    h <- if file == "-" then return stdin else openFile file ReadMode
+    useEncoding h enc
+    hGetContents h
 
 
 -- GHC's mkTextEncoding function is fairly poor - it doesn't support lots of fun things,
