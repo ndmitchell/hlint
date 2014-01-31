@@ -14,7 +14,10 @@ module API(
     -- * HSE.Scope
     Scope, scopeCreate, scopeMatch, scopeMove,
     -- * HSE
-    Module_, Decl_, Exp_, S
+    Module_, Decl_, Exp_, S,
+    ParseFlags(..), defaultParseFlags, parseModuleEx,
+    -- * File encodings
+    Encoding, defaultEncoding, newEncoding, readFileEncoding
     ) where
 
 import Settings
@@ -23,4 +26,5 @@ import Apply
 import Hint.Type hiding (Module_, Exp_, S)
 import Hint.All
 import HSE.All
+import Util
 

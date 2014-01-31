@@ -100,7 +100,7 @@ readSettings dataDir files hints = do
 -- Read a hint file, and all hint files it imports
 readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
 readHints dataDir file = do
-    let flags = addInfix parseFlags
+    let flags = addInfix defaultParseFlags
     y <- parseResult $ either (parseString flags "CommandLine") (parseFile flags) file
     ys <- concatM [f $ fromNamed $ importModule i | i <- moduleImports y, importPkg i `elem` [Just "hint", Just "hlint"]]
     return $ Right y:ys

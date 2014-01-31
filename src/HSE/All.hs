@@ -1,8 +1,8 @@
 
 module HSE.All(
     module X,
-    ParseFlags(..), parseFlags, parseFlagsNoLocations,
-    parseFile, parseString, parseResult
+    ParseFlags(..), defaultParseFlags, parseFlagsNoLocations,
+    parseModuleEx, parseFile, parseString, parseResult
     ) where
 
 import HSE.Util as X
@@ -28,8 +28,8 @@ data ParseFlags = ParseFlags
     ,infixes :: [Fixity]
     }
 
-parseFlags :: ParseFlags
-parseFlags = ParseFlags NoCpp defaultExtensions defaultEncoding []
+defaultParseFlags :: ParseFlags
+defaultParseFlags = ParseFlags NoCpp defaultExtensions defaultEncoding []
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
@@ -46,8 +46,9 @@ runCpp (Cpphs o) file x = runCpphs o file x
 -- PARSING
 
 -- | Parse a Haskell module
-parseString :: ParseFlags -> FilePath -> String -> IO (String, ParseResult Module_)
-parseString flags file str = do
+parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (String, ParseResult Module_)
+parseModuleEx flags file str = do
+        str <- maybe (readFileEncoding (encoding flags) file) return str
         ppstr <- runCpp (cppFlags flags) file str
         return (ppstr, applyFixity fixity <$> parseFileContentsWithMode mode ppstr)
     where
@@ -59,11 +60,11 @@ parseString flags file str = do
             ,ignoreLinePragmas = False
             }
 
+parseString :: ParseFlags -> FilePath -> String -> IO (String, ParseResult Module_)
+parseString flags file str = parseModuleEx flags file $ Just str
 
 parseFile :: ParseFlags -> FilePath -> IO (String, ParseResult Module_)
-parseFile flags file = do
-    src <- readFileEncoding (encoding flags) file
-    parseString flags file src
+parseFile flags file = parseModuleEx flags file Nothing
 
 
 -- throw an error if the parse is invalid
