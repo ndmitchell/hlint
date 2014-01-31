@@ -27,6 +27,8 @@ if Data.List.head x ==> x, then that might match List too
 -}
 
 
+-- | Data type representing the modules in scope within a module.
+--   Created with 'moduleScope' and queried with 'nameMatch' and 'nameQualify'.
 newtype Scope = Scope [ImportDecl S]
              deriving Show
 
