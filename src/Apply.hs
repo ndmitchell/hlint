@@ -76,7 +76,7 @@ parseModuleString flags s file src = do
             let ctxt = case pr2 of
                     ParseFailed sl2 _ -> context (srcLine sl2) str2
                     _ -> context (srcLine sl) src
-            return $ Left $ classify s $ ParseError Warning "Parse error" sl msg ctxt
+            return $ Left $ classify s $ ParseFailure Warning "Parse error" sl msg ctxt
 
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
@@ -103,7 +103,7 @@ classify xs i = i{severity = foldl' (f i) (severity i) $ filter isClassify xs}
         f i r c | matchHint (hintS c) (hint i) && matchFunc (funcS c) (func_ i) = severityS c
                 | otherwise = r
 
-        func_ x = if isParseError x then ("","") else func x
+        func_ x = if isParseFailure x then ("","") else func x
         matchHint = (~=)
         matchFunc (x1,x2) (y1,y2) = (x1~=y1) && (x2~=y2)
         x ~= y = null x || x == y

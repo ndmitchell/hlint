@@ -61,7 +61,7 @@ writeIdea cls Idea{..} =
     ,""]
 
 
-writeIdea cls ParseError{..} =
+writeIdea cls ParseFailure{..} =
     ["<div class=" ++ show cls ++ ">"
     ,escapeHTML (showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint) ++ "<br/>"
     ,"Error message<br/>"

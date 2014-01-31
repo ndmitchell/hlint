@@ -11,11 +11,11 @@ import Util
 
 data Idea
     = Idea {func :: FuncName, severity :: Severity, hint :: String, loc :: SrcLoc, from :: String, to :: String, note :: [Note]}
-    | ParseError {severity :: Severity, hint :: String, loc :: SrcLoc, msg :: String, from :: String}
+    | ParseFailure {severity :: Severity, hint :: String, loc :: SrcLoc, msg :: String, from :: String}
       deriving (Eq,Ord)
 
 
-isParseError ParseError{} = True; isParseError _ = False
+isParseFailure ParseFailure{} = True; isParseFailure _ = False
 
 
 instance Show Idea where
@@ -37,7 +37,7 @@ showEx tt Idea{..} = unlines $
                 | otherwise = (msg ++ ":") : map ("  "++) xs
             where xs = lines $ tt x
 
-showEx tt ParseError{..} = unlines $
+showEx tt ParseFailure{..} = unlines $
     [showSrcLoc loc ++ ": Parse error","Error message:","  " ++ msg,"Code:"] ++ map ("  "++) (lines $ tt from)
 
 
