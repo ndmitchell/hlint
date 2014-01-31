@@ -84,7 +84,7 @@ runHints cmd@Cmd{..} flags = do
     let files = fromMaybe [] cmdFiles
     ideas <- if cmdCross
         then applyHintFiles flags settings files
-        else concat <$> parallel [listM' =<< applyHintFile flags settings x | x <- files]
+        else concat <$> parallel [listM' =<< applyHintFile flags settings x Nothing | x <- files]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || severity i /= Ignore) ideas
     showItem <- if cmdColor then showANSI else return show
     mapM_ (outStrLn . showItem) showideas

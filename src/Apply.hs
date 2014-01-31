@@ -1,5 +1,5 @@
 
-module Apply(applyHintFile, applyHintFiles, applyHintString) where
+module Apply(applyHintFile, applyHintFiles) where
 
 import HSE.All
 import Hint.All
@@ -14,19 +14,10 @@ import Idea
 import Util
 
 
--- | Apply hints to a single file.
-applyHintFile :: ParseFlags -> [Setting] -> FilePath -> IO [Idea]
-applyHintFile flags s file = do
-    res <- parseModuleFile flags s file
-    return $ case res of
-        Left err -> [err]
-        Right m -> executeHints s [m]
-
-
--- | Apply hints to the contents of a single file.
-applyHintString :: ParseFlags -> [Setting] -> FilePath -> String -> IO [Idea]
-applyHintString flags s file src = do
-    res <- parseModuleString flags s file src
+-- | Apply hints to a single file, you may have the contents of the file.
+applyHintFile :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO [Idea]
+applyHintFile flags s file src = do
+    res <- parseModuleApply flags s file src
     return $ case res of
         Left err -> [err]
         Right m -> executeHints s [m]
@@ -35,7 +26,7 @@ applyHintString flags s file src = do
 -- | Apply hints to multiple files, allowing cross-file hints to fire.
 applyHintFiles :: ParseFlags -> [Setting] -> [FilePath] -> IO [Idea]
 applyHintFiles flags s files = do
-    (err, ms) <- unzipEither <$> mapM (parseModuleFile flags s) files
+    (err, ms) <- unzipEither <$> mapM (\file -> parseModuleApply flags s file Nothing) files
     return $ err ++ executeHints s ms
 
 
@@ -56,17 +47,10 @@ executeHints s ms = concat $
         noModules h = h{hintModules = \_ -> []} `mappend` mempty{hintModule = \a b -> hintModules h [(a,b)]}
 
 
--- | Like 'parseModuleString', but also load the file from disk.
-parseModuleFile :: ParseFlags -> [Setting] -> FilePath -> IO (Either Idea Module_)
-parseModuleFile flags s file = do
-    src <- readFileEncoding (encoding flags) file
-    parseModuleString flags s file src
-
-
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
-parseModuleString :: ParseFlags -> [Setting] -> FilePath -> String -> IO (Either Idea Module_)
-parseModuleString flags s file src = do
-    res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file $ Just src
+parseModuleApply :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO (Either Idea Module_)
+parseModuleApply flags s file src = do
+    res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case res of
         Right m -> return $ Right m
         Left (ParseError sl msg ctxt) -> return $ Left $ classify s $ ParseFailure Warning "Parse error" sl msg ctxt
