@@ -72,7 +72,7 @@ readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
 readAllSettings Cmd{..} flags = do
     settings1 <- readSettings cmdDataDir cmdHintFiles cmdWithHints
     settings2 <- concatMapM (fmap snd . findSettings flags) cmdFindHints
-    settings3 <- return [Classify Ignore x ("","") | x <- cmdIgnore]
+    settings3 <- return [SettingClassify $ Classify Ignore x ("","") | x <- cmdIgnore]
     return $ settings1 ++ settings2 ++ settings3
 
 

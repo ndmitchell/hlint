@@ -65,10 +65,10 @@ allHints xs = dynamicHints xs : map f builtin
 
 -- | Given some settings, make sure the severity field of the Idea is correct.
 classify :: [Setting] -> Idea -> Idea
-classify xs i = i{severity = foldl' (f i) (severity i) $ filter isClassify xs}
+classify xs i = i{severity = foldl' (f i) (severity i) [x | SettingClassify x <- xs]}
     where
         -- figure out if we need to change the severity
-        f :: Idea -> Severity -> Setting -> Severity
+        f :: Idea -> Severity -> Classify -> Severity
         f i r c | matchHint (hintC c) (hint i) && matchFunc (funcC c) (func_ i) = severityC c
                 | otherwise = r
 

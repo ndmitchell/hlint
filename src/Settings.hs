@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
 
 module Settings(
-    Severity(..), Note(..), showNotes, FuncName, Setting(..), isClassify, isMatchExp,
+    Severity(..), Classify(..), Note(..), showNotes, FuncName, Setting(..), isClassify, isMatchExp,
     defaultHintName, isUnifyVar,
     findHintModules,
     readSettings, readPragma, findSettings
@@ -73,9 +73,11 @@ showNotes = intercalate ", " . map show . filter use
     where use ValidInstance{} = False -- Not important enough to tell an end user
           use _ = True
 
+data Classify = Classify {severityC :: Severity, hintC :: String, funcC :: FuncName}
+    deriving Show
 
 data Setting
-    = Classify {severityC :: Severity, hintC :: String, funcC :: FuncName}
+    = SettingClassify Classify
     | MatchExp {severityM :: Severity, hintM :: String, scope :: Scope, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_, notes :: [Note]}
     | Builtin String -- use a builtin hint set
     | Infix Fixity
@@ -129,7 +131,7 @@ readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats 
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
         let (a,b) = readSide $ childrenBi bind in
         [MatchExp severity (headDef defaultHintName names) s (fromParen lhs) (fromParen rhs) a b]
-    | otherwise = [Classify severity n func | n <- names2, func <- readFuncs bod]
+    | otherwise = [SettingClassify $ Classify severity n func | n <- names2, func <- readFuncs bod]
     where
         names = filter notNull $ getNames pats bod
         names2 = ["" | null names] ++ names
@@ -153,7 +155,7 @@ readPragma o = case o of
         f name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
                 case getSeverity a of
                     Nothing -> errorOn o "bad classify pragma"
-                    Just severity -> Just $ Classify severity (ltrim b) ("",name)
+                    Just severity -> Just $ SettingClassify $ Classify severity (ltrim b) ("",name)
             where (a,b) = break isSpace $ ltrim $ drop 6 s
         f name (Paren _ x) = f name x
         f name (ExpTypeSig _ x _) = f name x
