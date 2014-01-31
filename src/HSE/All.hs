@@ -3,7 +3,7 @@
 module HSE.All(
     module X,
     ParseFlags(..), defaultParseFlags, parseFlagsAddFixities, parseFlagsSetExtensions,
-    parseModuleEx, parseResult, undoParseError, ParseError(..)
+    parseModuleEx, parseResult, ParseError(..)
     ) where
 
 import HSE.Util as X
@@ -97,10 +97,10 @@ undoParseError (Right a) = ParseOk a
 
 
 -- throw an error if the parse is invalid
-parseResult :: IO (ParseResult Module_) -> IO Module_
+parseResult :: IO (Either ParseError Module_) -> IO Module_
 parseResult x = do
     res <- x
-    return $! fromParseResult res
+    return $! fromParseResult $ undoParseError res
 
 
 ---------------------------------------------------------------------
