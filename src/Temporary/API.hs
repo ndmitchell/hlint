@@ -15,7 +15,7 @@ module Temporary.API(
     -- * Scopes
     Scope, scopeCreate, scopeMatch, scopeMove,
     -- * HSE
-    ParseFlags(..), CppFlags(..), defaultParseFlags, parseModuleEx,
+    ParseError(..), ParseFlags(..), CppFlags(..), defaultParseFlags, parseModuleEx,
     -- * File encodings
     Encoding, defaultEncoding, newEncoding, useEncoding
     ) where
