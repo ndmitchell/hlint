@@ -89,7 +89,7 @@ parseModuleEx flags file str = do
 context :: Int -> String -> String
 context lineNo src =
     unlines $ trimBy (all isSpace) $
-    zipWith (++) ticks $ take 5 $ drop (lineNo - 3) $ lines src ++ [""]
+    zipWith (++) ticks $ take 5 $ drop (lineNo - 3) $ lines src ++ ["","","","",""]
     where ticks = ["  ","  ","> ","  ","  "]
 
 
