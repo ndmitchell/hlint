@@ -1,20 +1,19 @@
 
 -- | /WARNING: This module represents the evolving API of HLint, do not use./
 module Temporary.API(
-    -- * Entry point
     applyHints,
-    Idea(..), Note(..), Severity(..),
-    -- * Reading settings
+    -- * Idea data type
+    Idea(..), Severity(..), Note(..),
+    -- * Setting
     Classify(..),
     findHintModules, moduleSettings,
-    -- * Hint.All
-    hintRules, HintRule(..),
     -- * Hints
-    builtinHints, Hint(..),
+    Hint(..), builtinHints,
+    HintRule(..), hintRules,
     -- * Scopes
     Scope, scopeCreate, scopeMatch, scopeMove,
-    -- * HSE
-    ParseError(..), ParseFlags(..), CppFlags(..), defaultParseFlags, parseModuleEx,
+    -- * Haskell-src-exts
+    parseModuleEx, ParseError(..), ParseFlags(..), CppFlags(..), defaultParseFlags,
     -- * File encodings
     Encoding, defaultEncoding, newEncoding, useEncoding
     ) where
