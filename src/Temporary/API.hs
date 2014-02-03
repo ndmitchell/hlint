@@ -7,7 +7,7 @@ module Temporary.API(
     -- * Idea
     module Idea,
     -- * Apply
-    module Apply,
+    applyHints,
     -- * Hint.All
     hintRules,
     -- * Hints
