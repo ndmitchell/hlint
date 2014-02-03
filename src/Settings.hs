@@ -104,7 +104,7 @@ readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
 readHints datadir (Left src) = findHintModules datadir "CommandLine" (Just src)
 readHints datadir (Right file) = findHintModules datadir file Nothing
 
--- Read a hint file, and all hint files it imports
+-- | EXPORT: Read a hint file, and all hint files it imports
 findHintModules :: FilePath -> FilePath -> Maybe String -> IO [Either String Module_]
 findHintModules dataDir file contents = do
     let flags = addInfix defaultParseFlags
