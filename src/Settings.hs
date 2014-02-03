@@ -137,7 +137,7 @@ readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats 
         names2 = ["" | null names] ++ names
 
 readSetting s x | "test" `isPrefixOf` map toLower (fromNamed x) = []
-readSetting s (AnnPragma _ x) | Just y <- readPragma x = [y]
+readSetting s (AnnPragma _ x) | Just y <- readPragma x = [SettingClassify y]
 readSetting s (PatBind an (PVar _ name) _ bod bind) = readSetting s $ FunBind an [Match an name [] bod bind]
 readSetting s (FunBind an xs) | length xs /= 1 = concatMap (readSetting s . FunBind an . return) xs
 readSetting s (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting s $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
@@ -146,7 +146,7 @@ readSetting s x = errorOn x "bad hint"
 
 
 -- return Nothing if it is not an HLint pragma, otherwise all the settings
-readPragma :: Annotation S -> Maybe Setting
+readPragma :: Annotation S -> Maybe Classify
 readPragma o = case o of
     Ann _ name x -> f (fromNamed name) x
     TypeAnn _ name x -> f (fromNamed name) x
@@ -155,7 +155,7 @@ readPragma o = case o of
         f name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
                 case getSeverity a of
                     Nothing -> errorOn o "bad classify pragma"
-                    Just severity -> Just $ SettingClassify $ Classify severity (ltrim b) ("",name)
+                    Just severity -> Just $ Classify severity (ltrim b) ("",name)
             where (a,b) = break isSpace $ ltrim $ drop 6 s
         f name (Paren _ x) = f name x
         f name (ExpTypeSig _ x _) = f name x

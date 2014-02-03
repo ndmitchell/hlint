@@ -33,13 +33,13 @@ applyHintFiles flags s files = do
 -- | EXPORT
 applyHints :: [Classify] -> Hint -> [Module SrcSpanInfo] -> [Idea]
 applyHints cls hints_ ms = concat $
-    [ map (classify $ map SettingClassify cls ++ mapMaybe readPragma (universeBi m)) $
+    [ map (classify $ cls ++ mapMaybe readPragma (universeBi m)) $
         order "" (hintModule hints nm m) ++
         concat [order (fromNamed d) $ decHints d | d <- moduleDecls m]
     | (nm,m) <- mns
     , let decHints = hintDecl hints nm m -- partially apply
     , let order n = map (\i -> i{func = (moduleName m,n)}) . sortBy (comparing loc)] ++
-    [map (classify $ map SettingClassify cls) (hintModules hints mns)]
+    [map (classify cls) (hintModules hints mns)]
     where
         mns = map (scopeCreate &&& id) ms
         hints = (if length ms <= 1 then noModules else id) hints_
@@ -57,7 +57,7 @@ parseModuleApply flags s file src = do
     res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case res of
         Right m -> return $ Right m
-        Left (ParseError sl msg ctxt) -> return $ Left $ classify s $ ParseFailure Warning "Parse error" sl msg ctxt
+        Left (ParseError sl msg ctxt) -> return $ Left $ classify [x | SettingClassify x <- s] $ ParseFailure Warning "Parse error" sl msg ctxt
 
 
 -- | Find which hints a list of settings implies.
@@ -68,8 +68,8 @@ allHints xs = dynamicHints xs : map f builtin
 
 
 -- | Given some settings, make sure the severity field of the Idea is correct.
-classify :: [Setting] -> Idea -> Idea
-classify xs i = i{severity = foldl' (f i) (severity i) [x | SettingClassify x <- xs]}
+classify :: [Classify] -> Idea -> Idea
+classify xs i = i{severity = foldl' (f i) (severity i) xs}
     where
         -- figure out if we need to change the severity
         f :: Idea -> Severity -> Classify -> Severity
