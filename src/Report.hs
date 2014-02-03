@@ -64,17 +64,6 @@ writeIdea cls Idea{..} =
     ,""]
 
 
-writeIdea cls ParseFailure{..} =
-    ["<div class=" ++ show cls ++ ">"
-    ,escapeHTML (showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint) ++ "<br/>"
-    ,"Error message<br/>"
-    ,"<pre>" ++ escapeHTML msg ++ "</pre>"
-    ,"Code<br/>"
-    ,code from
-    ,"</div>"
-    ,""]
-
-
 escapeHTML :: String -> String
 escapeHTML = concatMap f
     where
