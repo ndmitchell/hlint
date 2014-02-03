@@ -42,5 +42,5 @@ builtinHints =
         x+y = (x,mempty{hintModule=y})
         x*y = (x,mempty{hintModules=y})
 
-dynamicHints :: [Setting] -> Hint
+dynamicHints :: [MatchExp] -> Hint
 dynamicHints xs = mempty{hintDecl=readMatch xs}

@@ -58,12 +58,12 @@ fmapAn = fmap (const an)
 ---------------------------------------------------------------------
 -- READ THE RULE
 
-readMatch :: [Setting] -> DeclHint
+readMatch :: [MatchExp] -> DeclHint
 readMatch settings = findIdeas (concatMap readRule settings)
 
 
-readRule :: Setting -> [MatchExp]
-readRule (SettingMatchExp m@MatchExp{lhs=(fmapAn -> lhs), rhs=(fmapAn -> rhs), side=(fmap fmapAn -> side)}) =
+readRule :: MatchExp -> [MatchExp]
+readRule (m@MatchExp{lhs=(fmapAn -> lhs), rhs=(fmapAn -> rhs), side=(fmap fmapAn -> side)}) =
     (:) m{lhs=lhs,side=side,rhs=rhs} $ fromMaybe [] $ do
         (l,v1) <- dotVersion lhs
         (r,v2) <- dotVersion rhs
