@@ -1,7 +1,5 @@
-tests/lhs-line-numbers2.lhs:11:1: Parse error
-Error message:
-  Parse error: EOF
-Code:
+tests/lhs-line-numbers2.lhs:11:1: Warning: Parse error: EOF
+Found:
     \end{code}
 
   >

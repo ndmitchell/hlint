@@ -57,7 +57,10 @@ parseModuleApply flags s file src = do
     res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case res of
         Right m -> return $ Right m
-        Left (ParseError sl msg ctxt) -> return $ Left $ classify [x | SettingClassify x <- s] $ ParseFailure Warning "Parse error" sl msg ctxt
+        Left (ParseError sl msg ctxt) -> do
+            i <- return $ rawIdea Warning "Parse error" sl ctxt Nothing []
+            i <- return $ classify [x | SettingClassify x <- s] i
+            return $ Left i{hint = if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg}
 
 
 -- | Find which hints a list of settings implies.

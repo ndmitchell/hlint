@@ -149,7 +149,7 @@ checkAnnotations setting file = do
                     Nothing -> null ideas
                     Just x -> length ideas == 1 &&
                               seq (length (show ideas)) True && -- force, mainly for hpc
-                              not (isParseFailure (head ideas)) &&
+                              isJust (to $ head ideas) && -- detects parse failure
                               match x (head ideas)
             return $
                 [failed $
