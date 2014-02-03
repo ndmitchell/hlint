@@ -57,7 +57,7 @@ importHint _ x = concatMap (wrap . snd) (groupSortFst
 
 
 wrap :: [ImportDecl S] -> [Idea]
-wrap o = [ rawIdea Error "Use fewer imports" (toSrcLoc $ ann $ head o) (f o) (Just $ f x) []
+wrap o = [ rawIdea Error "Use fewer imports" (toSrcSpan $ ann $ head o) (f o) (Just $ f x) []
          | Just x <- [simplify o]]
     where f = unlines . map prettyPrint
 
@@ -122,7 +122,7 @@ hierarchy i@ImportDecl{importModule=ModuleName _ x,importPkg=Nothing} | Just y <
 -- import IO is equivalent to
 -- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)
 hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing,importPkg=Nothing}
-    = [rawIdea Warning "Use hierarchical imports" (toSrcLoc $ ann i) (ltrim $ prettyPrint i) (
+    = [rawIdea Warning "Use hierarchical imports" (toSrcSpan $ ann i) (ltrim $ prettyPrint i) (
           Just $ unlines $ map (ltrim . prettyPrint)
           [f "System.IO" Nothing, f "System.IO.Error" Nothing
           ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an $ toNamed x | x <- ["bracket","bracket_"]]]) []]
@@ -139,7 +139,7 @@ desugarQual x | importQualified x && isNothing (importAs x) = x{importAs=Just (i
 
 multiExport :: Module S -> [Idea]
 multiExport x =
-    [ rawIdea Warning "Use import/export shortcut" (toSrcLoc $ ann hd)
+    [ rawIdea Warning "Use import/export shortcut" (toSrcSpan $ ann hd)
         (unlines $ prettyPrint hd : map prettyPrint imps)
         (Just $ unlines $ prettyPrint newhd : map prettyPrint newimps)
         []

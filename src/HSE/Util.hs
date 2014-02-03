@@ -264,8 +264,14 @@ showSrcLoc (SrcLoc file line col) = take 1 file ++ f (drop 1 file) ++ ":" ++ sho
 toSrcLoc :: SrcSpanInfo -> SrcLoc
 toSrcLoc = getPointLoc
 
+toSrcSpan :: SrcSpanInfo -> SrcSpan
+toSrcSpan (SrcSpanInfo x _) = x
+
 nullSrcLoc :: SrcLoc
 nullSrcLoc = SrcLoc "" 0 0
+
+nullSrcSpan :: SrcSpan
+nullSrcSpan = mkSrcSpan nullSrcLoc nullSrcLoc
 
 an :: SrcSpanInfo
 an = toSrcInfo nullSrcLoc [] nullSrcLoc

@@ -14,7 +14,7 @@ data Idea = Idea
     ,ideaDecl :: String
     ,ideaSeverity :: Severity
     ,ideaHint :: String
-    ,ideaLoc :: SrcLoc
+    ,ideaSpan :: SrcSpan
     ,ideaFrom :: String
     ,ideaTo :: Maybe String
     ,ideaNote :: [Note]
@@ -33,7 +33,7 @@ showANSI = do
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
-    [showSrcLoc ideaLoc ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint] ++
+    [showSrcLoc (getPointLoc ideaSpan) ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint] ++
     f "Found" (Just ideaFrom) ++ f "Why not" ideaTo ++
     ["Note: " ++ n | let n = showNotes ideaNote, n /= ""]
     where
@@ -44,7 +44,7 @@ showEx tt Idea{..} = unlines $
 
 
 rawIdea = Idea "" ""
-idea severity hint from to = rawIdea severity hint (toSrcLoc $ ann from) (f from) (Just $ f to) []
+idea severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) []
     where f = ltrim . prettyPrint
 warn = idea Warning
 err = idea Error

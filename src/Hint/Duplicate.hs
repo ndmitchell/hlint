@@ -36,8 +36,8 @@ dupes ys =
         (if length xs >= 5 then Error else Warning)
         "Reduce duplication" p1
         (unlines $ map (prettyPrint . fmap (const p1)) xs)
-        (Just $ "Combine with " ++ showSrcLoc p2) []
-    | (p1,p2,xs) <- duplicateOrdered 3 $ map (map (toSrcLoc . ann &&& dropAnn)) ys]
+        (Just $ "Combine with " ++ showSrcLoc (getPointLoc p2)) []
+    | (p1,p2,xs) <- duplicateOrdered 3 $ map (map (toSrcSpan . ann &&& dropAnn)) ys]
 
 
 ---------------------------------------------------------------------
@@ -59,8 +59,8 @@ add pos (v:vs) (Dupe p mp) = Dupe p $ Map.insertWith f v (add pos vs $ Dupe pos 
     where f new old = add pos vs old
 
 
-duplicateOrdered :: Ord val => Int -> [[(SrcLoc,val)]] -> [(SrcLoc,SrcLoc,[val])]
-duplicateOrdered threshold xs = concat $ concat $ snd $ mapAccumL f (Dupe nullSrcLoc Map.empty) xs
+duplicateOrdered :: Ord val => Int -> [[(SrcSpan,val)]] -> [(SrcSpan,SrcSpan,[val])]
+duplicateOrdered threshold xs = concat $ concat $ snd $ mapAccumL f (Dupe nullSrcSpan Map.empty) xs
     where
         f d xs = second overlaps $ mapAccumL (g pos) d $ takeWhile ((>= threshold) . length) $ tails xs
             where pos = Map.fromList $ zip (map fst xs) [0..]

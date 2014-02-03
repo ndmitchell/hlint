@@ -39,7 +39,7 @@ applyHints cls hints_ ms = concat $
         concat [order (fromNamed d) $ decHints d | d <- moduleDecls m]
     | (nm,m) <- mns
     , let decHints = hintDecl hints nm m -- partially apply
-    , let order n = map (\i -> i{ideaModule=moduleName m, ideaDecl=n}) . sortBy (comparing ideaLoc)] ++
+    , let order n = map (\i -> i{ideaModule=moduleName m, ideaDecl=n}) . sortBy (comparing ideaSpan)] ++
     [map (classify cls) (hintModules hints mns)]
     where
         mns = map (scopeCreate &&& id) ms
@@ -59,7 +59,7 @@ parseModuleApply flags s file src = do
     case res of
         Right m -> return $ Right m
         Left (ParseError sl msg ctxt) -> do
-            i <- return $ rawIdea Warning "Parse error" sl ctxt Nothing []
+            i <- return $ rawIdea Warning "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
             i <- return $ classify [x | SettingClassify x <- s] i
             return $ Left i{ideaHint = if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg}
 

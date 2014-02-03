@@ -29,7 +29,7 @@ instance Show Suggestion where
 
 -- | From a suggestion, extract the file location it refers to.
 suggestionLocation :: Suggestion -> SrcLoc
-suggestionLocation = ideaLoc . fromSuggestion
+suggestionLocation = getPointLoc . ideaSpan . fromSuggestion
 
 
 -- | From a suggestion, determine how severe it is.

@@ -164,7 +164,7 @@ checkAnnotations setting file = do
                     ,"SRC: " ++ showSrcLoc loc
                     ,"INPUT: " ++ inp
                     ,"OUTPUT: " ++ show i]
-                    | i@Idea{ideaLoc=SrcLoc{..}} <- ideas, srcFilename == "" || srcLine == 0 || srcColumn == 0]
+                    | i@Idea{..} <- ideas, let SrcLoc{..} = getPointLoc ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
 
         match "???" _ = True
         match x y | "@" `isPrefixOf` x = a == show (ideaSeverity y) && match (ltrim b) y

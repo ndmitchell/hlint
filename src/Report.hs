@@ -27,7 +27,7 @@ writeReport dataDir file ideas = writeTemplate dataDir inner file
     where
         generateIds :: [String] -> [(String,Int)] -- sorted by name
         generateIds = map (head &&& length) . group . sort
-        files = generateIds $ map (srcFilename . ideaLoc) ideas
+        files = generateIds $ map (srcSpanFilename . ideaSpan) ideas
         hints = generateIds $ map hintName ideas
         hintName x = show (ideaSeverity x) ++ ": " ++ ideaHint x
 
@@ -35,7 +35,7 @@ writeReport dataDir file ideas = writeTemplate dataDir inner file
                  ("HINTS",list "hint" hints),("FILES",list "file" files)]
 
         content = concatMap (\i -> writeIdea (getClass i) i) ideas
-        getClass i = "hint" ++ f hints (hintName i) ++ " file" ++ f files (srcFilename $ ideaLoc i)
+        getClass i = "hint" ++ f hints (hintName i) ++ " file" ++ f files (srcSpanFilename $ ideaSpan i)
             where f xs x = show $ fromJust $ findIndex ((==) x . fst) xs
 
         list mode xs = zipWith f [0..] xs
@@ -51,7 +51,7 @@ code = hscolour False
 writeIdea :: String -> Idea -> [String]
 writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
-    ,escapeHTML (showSrcLoc ideaLoc ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint) ++ "<br/>"
+    ,escapeHTML (showSrcLoc (getPointLoc ideaSpan) ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint) ++ "<br/>"
     ,"Found<br/>"
     ,code ideaFrom] ++
     (case ideaTo of

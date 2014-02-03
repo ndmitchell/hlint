@@ -41,7 +41,7 @@ pragmaHint _ x = languageDupes lang ++ [pragmaIdea old $ [LanguagePragma an (map
 
 
 pragmaIdea :: [ModulePragma S] -> [ModulePragma S] -> Idea
-pragmaIdea xs ys = rawIdea Error "Use better pragmas" (toSrcLoc $ ann $ head xs) (f xs) (Just $ f ys) []
+pragmaIdea xs ys = rawIdea Error "Use better pragmas" (toSrcSpan $ ann $ head xs) (f xs) (Just $ f ys) []
     where f = unlines . map prettyPrint
 
 
