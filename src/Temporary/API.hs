@@ -6,7 +6,7 @@ module Temporary.API(
     Classify(..),
     findHintModules, moduleSettings,
     -- * Idea
-    Idea(..), Note(..), Severity(..), showNotes, FuncName,
+    Idea(..), Note(..), Severity(..), showNotes,
     -- * Apply
     applyHints,
     -- * Hint.All

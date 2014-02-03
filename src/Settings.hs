@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
 
 module Settings(
-    Severity(..), Classify(..), HintRule(..), Note(..), showNotes, FuncName, Setting(..),
+    Severity(..), Classify(..), HintRule(..), Note(..), showNotes, Setting(..),
     defaultHintName, isUnifyVar,
     findHintModules, moduleSettings,
     readSettings, readPragma, findSettings
@@ -34,11 +34,6 @@ getSeverity "warning" = Just Warning
 getSeverity "error"  = Just Error
 getSeverity "hint"  = Just Error
 getSeverity _ = Nothing
-
-
--- (modulename,functionname)
--- either being blank implies universal matching
-type FuncName = (String,String)
 
 
 -- Any 1-letter variable names are assumed to be unification variables
@@ -203,7 +198,7 @@ readSide = foldl f (Nothing,[])
 
 
 -- Note: Foo may be ("","Foo") or ("Foo",""), return both
-readFuncs :: Exp_ -> [FuncName]
+readFuncs :: Exp_ -> [(String, String)]
 readFuncs (App _ x y) = readFuncs x ++ readFuncs y
 readFuncs (Lit _ (String _ "" _)) = [("","")]
 readFuncs (Var _ (UnQual _ name)) = [("",fromNamed name)]
