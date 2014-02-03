@@ -60,7 +60,7 @@ hlint args = do
         mapM_ (proof reps s) cmdProof
         return []
      else if isNothing cmdFiles && notNull cmdFindHints then
-        mapM_ (\x -> putStrLn . fst =<< findSettings flags x) cmdFindHints >> return []
+        mapM_ (\x -> putStrLn . fst =<< findSettings2 flags x) cmdFindHints >> return []
      else if isNothing cmdFiles then
         exitWithHelp
      else if cmdFiles == Just [] then
@@ -71,7 +71,7 @@ hlint args = do
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
 readAllSettings Cmd{..} flags = do
     settings1 <- readSettings2 cmdDataDir cmdHintFiles cmdWithHints
-    settings2 <- concatMapM (fmap snd . findSettings flags) cmdFindHints
+    settings2 <- concatMapM (fmap snd . findSettings2 flags) cmdFindHints
     settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
     return $ settings1 ++ settings2 ++ settings3
 

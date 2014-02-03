@@ -4,7 +4,7 @@ module Settings(
     Severity(..), Classify(..), HintRule(..), Note(..), showNotes, Setting(..),
     defaultHintName, isUnifyVar,
     findHintModules, moduleSettings,
-    readSettings2, readPragma, findSettings
+    readSettings2, readPragma, findSettings2
     ) where
 
 import HSE.All
@@ -243,8 +243,8 @@ errorOn val msg = exitMessage $
 -- FIND SETTINGS IN A SOURCE FILE
 
 -- find definitions in a source file
-findSettings :: ParseFlags -> FilePath -> IO (String, [Setting])
-findSettings flags file = do
+findSettings2 :: ParseFlags -> FilePath -> IO (String, [Setting])
+findSettings2 flags file = do
     x <- parseModuleEx flags file Nothing
     case x of
         Left (ParseError sl msg _) ->
