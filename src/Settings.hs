@@ -74,7 +74,12 @@ showNotes = intercalate ", " . map show . filter use
     where use ValidInstance{} = False -- Not important enough to tell an end user
           use _ = True
 
-data Classify = Classify {severityC :: Severity, hintC :: String, funcC :: FuncName}
+data Classify = Classify
+    {classifySeverity :: Severity
+    ,classifyHint :: String
+    ,classifyModule :: String
+    ,classifyDecl :: String
+    }
     deriving Show
 
 data HintRule = HintRule
@@ -103,11 +108,15 @@ data Setting
 readSettings :: FilePath -> [FilePath] -> [String] -> IO [Setting]
 readSettings dataDir files hints = do
     (builtin,mods) <- fmap unzipEither $ concatMapM (readHints dataDir) $ map Right files ++ map Left hints
-    return $ map Builtin builtin ++ concatMap moduleSettings mods
+    return $ map Builtin builtin ++ concatMap moduleSettings_ mods
 
-moduleSettings :: Module SrcSpanInfo -> [Setting]
-moduleSettings m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
+moduleSettings_ :: Module SrcSpanInfo -> [Setting]
+moduleSettings_ m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
                        [AnnPragma l x | AnnModulePragma l x <- modulePragmas m] ++ moduleDecls m
+
+moduleSettings :: Module SrcSpanInfo -> ([Classify], [HintRule])
+moduleSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
+    where xs = moduleSettings_ m
 
 
 readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
@@ -140,7 +149,7 @@ readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats 
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
         let (a,b) = readSide $ childrenBi bind in
         [SettingMatchExp $ HintRule severity (headDef defaultHintName names) s (fromParen lhs) (fromParen rhs) a b]
-    | otherwise = [SettingClassify $ Classify severity n func | n <- names2, func <- readFuncs bod]
+    | otherwise = [SettingClassify $ Classify severity n a b | n <- names2, (a,b) <- readFuncs bod]
     where
         names = filter notNull $ getNames pats bod
         names2 = ["" | null names] ++ names
@@ -164,7 +173,7 @@ readPragma o = case o of
         f name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
                 case getSeverity a of
                     Nothing -> errorOn o "bad classify pragma"
-                    Just severity -> Just $ Classify severity (ltrim b) ("",name)
+                    Just severity -> Just $ Classify severity (ltrim b) "" name
             where (a,b) = break isSpace $ ltrim $ drop 6 s
         f name (Paren _ x) = f name x
         f name (ExpTypeSig _ x _) = f name x

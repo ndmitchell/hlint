@@ -3,14 +3,14 @@
 --   I /will/ move this module and make regular significant breaking changes.
 module Temporary.API(
     -- * Settings
-    Classify(..), HintRule(..), Setting(..),
+    Classify(..),
     findHintModules, moduleSettings,
     -- * Idea
     Idea(..), Note(..), Severity(..), showNotes, FuncName,
     -- * Apply
     applyHints,
     -- * Hint.All
-    hintRules,
+    hintRules, HintRule(..),
     -- * Hints
     builtinHints, Hint(..),
     -- * Scopes
