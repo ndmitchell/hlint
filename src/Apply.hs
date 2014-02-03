@@ -38,7 +38,7 @@ applyHints cls hints_ ms = concat $
         concat [order (fromNamed d) $ decHints d | d <- moduleDecls m]
     | (nm,m) <- mns
     , let decHints = hintDecl hints nm m -- partially apply
-    , let order n = map (\i -> i{func = (moduleName m,n)}) . sortBy (comparing loc)] ++
+    , let order n = map (\i -> i{ideaModule=moduleName m, ideaDecl=n}) . sortBy (comparing loc)] ++
     [map (classify cls) (hintModules hints mns)]
     where
         mns = map (scopeCreate &&& id) ms
@@ -73,10 +73,9 @@ classify xs i = i{severity = foldl' (f i) (severity i) xs}
     where
         -- figure out if we need to change the severity
         f :: Idea -> Severity -> Classify -> Severity
-        f i r c | matchHint (classifyHint c) (hint i) && matchFunc (classifyModule c, classifyDecl c) (func_ i) = classifySeverity c
+        f i r c | matchHint (classifyHint c) (hint i) && matchFunc (classifyModule c, classifyDecl c) (ideaModule i, ideaDecl i) = classifySeverity c
                 | otherwise = r
 
-        func_ x = if isParseFailure x then ("","") else func x
         matchHint = (~=)
         matchFunc (x1,x2) (y1,y2) = (x1~=y1) && (x2~=y2)
         x ~= y = null x || x == y

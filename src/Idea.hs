@@ -10,7 +10,7 @@ import Util
 
 
 data Idea
-    = Idea {func :: FuncName, severity :: Severity, hint :: String, loc :: SrcLoc, from :: String, to :: String, note :: [Note]}
+    = Idea {ideaModule :: String, ideaDecl :: String, severity :: Severity, hint :: String, loc :: SrcLoc, from :: String, to :: String, note :: [Note]}
     | ParseFailure {severity :: Severity, hint :: String, loc :: SrcLoc, msg :: String, from :: String}
       deriving (Eq,Ord)
 
@@ -41,7 +41,7 @@ showEx tt ParseFailure{..} = unlines $
     [showSrcLoc loc ++ ": Parse error","Error message:","  " ++ msg,"Code:"] ++ map ("  "++) (lines $ tt from)
 
 
-rawIdea = Idea ("","")
+rawIdea = Idea "" ""
 idea severity hint from to = rawIdea severity hint (toSrcLoc $ ann from) (f from) (f to) []
     where f = ltrim . prettyPrint
 warn = idea Warning
