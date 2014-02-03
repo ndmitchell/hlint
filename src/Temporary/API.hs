@@ -5,7 +5,7 @@
 --
 -- 1. Use 'findSettings' to find and load the HLint settings files.
 --
--- 1. Use 'moduleSettings' to interpret the settings files, producing 'HintRule' values (@LHS ==> RHS@ replacements)
+-- 1. Use 'readSettings' to interpret the settings files, producing 'HintRule' values (@LHS ==> RHS@ replacements)
 --   and 'Classify' values to assign 'Severity' ratings to hints.
 --
 -- 1. Use 'builtinHints' and 'hintRules' to generate a 'Hint' value.
@@ -19,7 +19,7 @@ module Temporary.API(
     Idea(..), Severity(..), Note(..),
     -- * Setting
     Classify(..),
-    findSettings, moduleSettings,
+    findSettings, readSettings,
     -- * Hints
     Hint(..), builtinHints,
     HintRule(..), hintRules,

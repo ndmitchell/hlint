@@ -3,7 +3,7 @@
 module Settings(
     Severity(..), Classify(..), HintRule(..), Note(..), showNotes, Setting(..),
     defaultHintName, isUnifyVar,
-    findSettings, moduleSettings,
+    findSettings, readSettings,
     readSettings2, readPragma, findSettings2
     ) where
 
@@ -114,8 +114,8 @@ moduleSettings_ m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquat
 
 -- | Given a module containing HLint settings information return the 'Classify' rules and the 'HintRule' expressions.
 --   Any fixity declarations will be discarded, but any other unrecognised elements will result in an exception.
-moduleSettings :: Module SrcSpanInfo -> ([Classify], [HintRule])
-moduleSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
+readSettings :: Module SrcSpanInfo -> ([Classify], [HintRule])
+readSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
     where xs = moduleSettings_ m
 
 
