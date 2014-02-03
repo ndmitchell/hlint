@@ -73,9 +73,6 @@ classify xs i = i{severity = foldl' (f i) (severity i) xs}
     where
         -- figure out if we need to change the severity
         f :: Idea -> Severity -> Classify -> Severity
-        f i r c | matchHint (classifyHint c) (hint i) && matchFunc (classifyModule c, classifyDecl c) (ideaModule i, ideaDecl i) = classifySeverity c
+        f i r c | classifyHint c ~= hint i && classifyModule c ~= ideaModule i && classifyDecl c ~= ideaDecl i = classifySeverity c
                 | otherwise = r
-
-        matchHint = (~=)
-        matchFunc (x1,x2) (y1,y2) = (x1~=y1) && (x2~=y2)
         x ~= y = null x || x == y
