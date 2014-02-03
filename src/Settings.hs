@@ -4,7 +4,7 @@ module Settings(
     Severity(..), Classify(..), HintRule(..), Note(..), showNotes, Setting(..),
     defaultHintName, isUnifyVar,
     findHintModules, moduleSettings,
-    readSettings, readPragma, findSettings
+    readSettings2, readPragma, findSettings
     ) where
 
 import HSE.All
@@ -103,8 +103,8 @@ data Setting
 
 -- Given a list of hint files to start from
 -- Return the list of settings commands
-readSettings :: FilePath -> [FilePath] -> [String] -> IO [Setting]
-readSettings dataDir files hints = do
+readSettings2 :: FilePath -> [FilePath] -> [String] -> IO [Setting]
+readSettings2 dataDir files hints = do
     (builtin,mods) <- fmap unzipEither $ concatMapM (readHints dataDir) $ map Right files ++ map Left hints
     return $ map Builtin builtin ++ concatMap moduleSettings_ mods
 

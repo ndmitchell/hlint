@@ -66,7 +66,7 @@ testHintFiles dataDir = do
 
 testHintFile :: FilePath -> FilePath -> IO Result
 testHintFile dataDir file = do
-    hints <- readSettings dataDir [file] []
+    hints <- readSettings2 dataDir [file] []
     res <- results $ sequence $ nameCheckHints hints : checkAnnotations hints file :
                                 [typeCheckHints hints | takeFileName file /= "Test.hs"]
     progress
