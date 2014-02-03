@@ -3,9 +3,10 @@
 --   I /will/ move this module and make regular significant breaking changes.
 module Temporary.API(
     -- * Settings
-    module Settings,
+    Classify(..), HintRule(..), Setting(..),
+    findHintModules, moduleSettings,
     -- * Idea
-    module Idea,
+    Idea(..), Note(..), Severity(..), showNotes, FuncName,
     -- * Apply
     applyHints,
     -- * Hint.All
