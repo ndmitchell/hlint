@@ -120,8 +120,8 @@ findHintModules dataDir file contents = do
     return $ Right y:ys
     where
         f x | "HLint.Builtin." `isPrefixOf` x = return [Left $ drop 14 x]
-            | "HLint." `isPrefixOf` x = readHints dataDir $ Right $ dataDir </> drop 6 x <.> "hs"
-            | otherwise = readHints dataDir $ Right $ x <.> "hs"
+            | "HLint." `isPrefixOf` x = findHintModules dataDir (dataDir </> drop 6 x <.> "hs") Nothing
+            | otherwise = findHintModules dataDir (x <.> "hs") Nothing
 
 
 -- throw an error if the parse is invalid
