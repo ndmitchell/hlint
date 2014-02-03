@@ -8,6 +8,7 @@ module Settings(
     ) where
 
 import HSE.All
+import Control.Monad
 import Data.Char
 import Data.List
 import Data.Monoid
@@ -108,29 +109,28 @@ readSettings dataDir files hints = do
 
 
 readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
-readHints datadir (Left src) = findHintModules datadir "CommandLine" (Just src)
-readHints datadir (Right file) = findHintModules datadir file Nothing
+readHints datadir x = do
+    (builtin,errs,ms) <- case x of
+        Left src -> findHintModules datadir "CommandLine" (Just src)
+        Right file -> findHintModules datadir file Nothing
+    forM_ errs $ \(ParseError sl msg _) -> return $! fromParseResult $ ParseFailed sl msg
+    return $ map Left builtin ++ map Right ms
+
 
 -- | EXPORT: Read a hint file, and all hint files it imports
-findHintModules :: FilePath -> FilePath -> Maybe String -> IO [Either String Module_]
+findHintModules :: FilePath -> FilePath -> Maybe String -> IO ([String], [ParseError], [Module SrcSpanInfo])
 findHintModules dataDir file contents = do
     let flags = addInfix defaultParseFlags
-    y <- parseResult $ parseModuleEx flags file contents
-    ys <- concatM [f $ fromNamed $ importModule i | i <- moduleImports y, importPkg i `elem` [Just "hint", Just "hlint"]]
-    return $ Right y:ys
+    res <- parseModuleEx flags file contents
+    case res of
+        Left err -> return ([], [err], [])
+        Right m -> do
+            ys <- sequence [f $ fromNamed $ importModule i | i <- moduleImports m, importPkg i `elem` [Just "hint", Just "hlint"]]
+            return $ concat3 $ ([],[],[m]) : ys
     where
-        f x | Just x <- "HLint.Builtin." `stripPrefix` x = return [Left x]
+        f x | Just x <- "HLint.Builtin." `stripPrefix` x = return ([x],[],[])
             | Just x <- "HLint." `stripPrefix` x = findHintModules dataDir (dataDir </> x <.> "hs") Nothing
             | otherwise = findHintModules dataDir (x <.> "hs") Nothing
-
-
--- throw an error if the parse is invalid
-parseResult :: IO (Either ParseError Module_) -> IO Module_
-parseResult x = do
-    x <- x
-    case x of
-        Left (ParseError sl msg _) -> return $! fromParseResult $ ParseFailed sl msg
-        Right x -> return x
 
 
 readSetting :: Scope -> Decl_ -> [Setting]
