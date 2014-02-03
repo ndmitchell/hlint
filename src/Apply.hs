@@ -1,5 +1,5 @@
 
-module Apply(applyHintFile, applyHintFiles) where
+module Apply(applyHints, applyHintFile, applyHintFiles) where
 
 import HSE.All
 import Hint.All
@@ -30,21 +30,25 @@ applyHintFiles flags s files = do
     return $ err ++ executeHints s ms
 
 
--- | Given a list of settings (a way to classify) and a list of hints, run them over a list of modules.
-executeHints :: [Setting] -> [Module_] -> [Idea]
-executeHints s ms = concat $
-    [ map (classify $ s ++ mapMaybe readPragma (universeBi m)) $
+-- | EXPORT
+applyHints :: [Classify] -> Hint -> [Module SrcSpanInfo] -> [Idea]
+applyHints cls hints_ ms = concat $
+    [ map (classify $ map SettingClassify cls ++ mapMaybe readPragma (universeBi m)) $
         order "" (hintModule hints nm m) ++
         concat [order (fromNamed d) $ decHints d | d <- moduleDecls m]
     | (nm,m) <- mns
     , let decHints = hintDecl hints nm m -- partially apply
     , let order n = map (\i -> i{func = (moduleName m,n)}) . sortBy (comparing loc)] ++
-    [map (classify s) (hintModules hints mns)]
+    [map (classify $ map SettingClassify cls) (hintModules hints mns)]
     where
         mns = map (scopeCreate &&& id) ms
-
-        hints = (if length ms <= 1 then noModules else id) $ mconcat $ allHints s
+        hints = (if length ms <= 1 then noModules else id) hints_
         noModules h = h{hintModules = \_ -> []} `mappend` mempty{hintModule = \a b -> hintModules h [(a,b)]}
+
+
+-- | Given a list of settings (a way to classify) and a list of hints, run them over a list of modules.
+executeHints :: [Setting] -> [Module_] -> [Idea]
+executeHints s = applyHints [x | SettingClassify x <- s] (mconcat $ allHints s)
 
 
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
