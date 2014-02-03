@@ -9,9 +9,17 @@ import Language.Haskell.HsColour.Colourise
 import Util
 
 
-data Idea
-    = Idea {ideaModule :: String, ideaDecl :: String, severity :: Severity, hint :: String, loc :: SrcLoc, from :: String, to :: Maybe String, note :: [Note]}
-      deriving (Eq,Ord)
+data Idea = Idea
+    {ideaModule :: String
+    ,ideaDecl :: String
+    ,ideaSeverity :: Severity
+    ,ideaHint :: String
+    ,ideaLoc :: SrcLoc
+    ,ideaFrom :: String
+    ,ideaTo :: Maybe String
+    ,ideaNote :: [Note]
+    }
+    deriving (Eq,Ord)
 
 
 instance Show Idea where
@@ -25,9 +33,9 @@ showANSI = do
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
-    [showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint] ++
-    f "Found" (Just from) ++ f "Why not" to ++
-    ["Note: " ++ n | let n = showNotes note, n /= ""]
+    [showSrcLoc ideaLoc ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint] ++
+    f "Found" (Just ideaFrom) ++ f "Why not" ideaTo ++
+    ["Note: " ++ n | let n = showNotes ideaNote, n /= ""]
     where
         f msg Nothing = []
         f msg (Just x) | null xs = [msg ++ " remove it."]

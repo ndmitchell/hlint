@@ -91,7 +91,7 @@ dotVersion _ = Nothing
 
 findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
-  [ (idea (hintRuleSeverity m) (hintRuleName m) x y){note=notes}
+  [ (idea (hintRuleSeverity m) (hintRuleName m) x y){ideaNote=notes}
   | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
   , (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
   , m <- matches, Just (y,notes) <- [matchIdea s decl m parent x2]]

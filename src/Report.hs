@@ -27,15 +27,15 @@ writeReport dataDir file ideas = writeTemplate dataDir inner file
     where
         generateIds :: [String] -> [(String,Int)] -- sorted by name
         generateIds = map (head &&& length) . group . sort
-        files = generateIds $ map (srcFilename . loc) ideas
+        files = generateIds $ map (srcFilename . ideaLoc) ideas
         hints = generateIds $ map hintName ideas
-        hintName x = show (severity x) ++ ": " ++ hint x
+        hintName x = show (ideaSeverity x) ++ ": " ++ ideaHint x
 
         inner = [("VERSION",['v' : showVersion version]),("CONTENT",content),
                  ("HINTS",list "hint" hints),("FILES",list "file" files)]
 
         content = concatMap (\i -> writeIdea (getClass i) i) ideas
-        getClass i = "hint" ++ f hints (hintName i) ++ " file" ++ f files (srcFilename $ loc i)
+        getClass i = "hint" ++ f hints (hintName i) ++ " file" ++ f files (srcFilename $ ideaLoc i)
             where f xs x = show $ fromJust $ findIndex ((==) x . fst) xs
 
         list mode xs = zipWith f [0..] xs
@@ -51,15 +51,15 @@ code = hscolour False
 writeIdea :: String -> Idea -> [String]
 writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
-    ,escapeHTML (showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint) ++ "<br/>"
+    ,escapeHTML (showSrcLoc ideaLoc ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint) ++ "<br/>"
     ,"Found<br/>"
-    ,code from] ++
-    (case to of
+    ,code ideaFrom] ++
+    (case ideaTo of
         Nothing -> []
         Just to ->
             ["Why not" ++ (if to == "" then " remove it." else "") ++ "<br/>"
             ,code to]) ++
-    [let n = showNotes note in if n /= "" then "<span class='note'>Note: " ++ n ++ "</span>" else ""
+    [let n = showNotes ideaNote in if n /= "" then "<span class='note'>Note: " ++ n ++ "</span>" else ""
     ,"</div>"
     ,""]
 

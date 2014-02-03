@@ -149,7 +149,7 @@ checkAnnotations setting file = do
                     Nothing -> null ideas
                     Just x -> length ideas == 1 &&
                               seq (length (show ideas)) True && -- force, mainly for hpc
-                              isJust (to $ head ideas) && -- detects parse failure
+                              isJust (ideaTo $ head ideas) && -- detects parse failure
                               match x (head ideas)
             return $
                 [failed $
@@ -164,12 +164,12 @@ checkAnnotations setting file = do
                     ,"SRC: " ++ showSrcLoc loc
                     ,"INPUT: " ++ inp
                     ,"OUTPUT: " ++ show i]
-                    | i@Idea{loc=SrcLoc{..}} <- ideas, srcFilename == "" || srcLine == 0 || srcColumn == 0]
+                    | i@Idea{ideaLoc=SrcLoc{..}} <- ideas, srcFilename == "" || srcLine == 0 || srcColumn == 0]
 
         match "???" _ = True
-        match x y | "@" `isPrefixOf` x = a == show (severity y) && match (ltrim b) y
+        match x y | "@" `isPrefixOf` x = a == show (ideaSeverity y) && match (ltrim b) y
             where (a,b) = break isSpace $ tail x
-        match x y = on (==) norm (fromMaybe "" $ to y) x
+        match x y = on (==) norm (fromMaybe "" $ ideaTo y) x
 
         -- FIXME: Should use a better check for expected results
         norm = filter $ \x -> not (isSpace x) && x /= ';'

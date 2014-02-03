@@ -38,7 +38,7 @@ applyHints cls hints_ ms = concat $
         concat [order (fromNamed d) $ decHints d | d <- moduleDecls m]
     | (nm,m) <- mns
     , let decHints = hintDecl hints nm m -- partially apply
-    , let order n = map (\i -> i{ideaModule=moduleName m, ideaDecl=n}) . sortBy (comparing loc)] ++
+    , let order n = map (\i -> i{ideaModule=moduleName m, ideaDecl=n}) . sortBy (comparing ideaLoc)] ++
     [map (classify cls) (hintModules hints mns)]
     where
         mns = map (scopeCreate &&& id) ms
@@ -60,7 +60,7 @@ parseModuleApply flags s file src = do
         Left (ParseError sl msg ctxt) -> do
             i <- return $ rawIdea Warning "Parse error" sl ctxt Nothing []
             i <- return $ classify [x | SettingClassify x <- s] i
-            return $ Left i{hint = if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg}
+            return $ Left i{ideaHint = if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg}
 
 
 -- | Find which hints a list of settings implies.
@@ -72,10 +72,10 @@ allHints xs = mconcat $ hintRules [x | SettingMatchExp x <- xs] : map f builtin
 
 -- | Given some settings, make sure the severity field of the Idea is correct.
 classify :: [Classify] -> Idea -> Idea
-classify xs i = i{severity = foldl' (f i) (severity i) xs}
+classify xs i =  let s = foldl' (f i) (ideaSeverity i) xs in s `seq` i{ideaSeverity=s}
     where
         -- figure out if we need to change the severity
         f :: Idea -> Severity -> Classify -> Severity
-        f i r c | classifyHint c ~= hint i && classifyModule c ~= ideaModule i && classifyDecl c ~= ideaDecl i = classifySeverity c
+        f i r c | classifyHint c ~= ideaHint i && classifyModule c ~= ideaModule i && classifyDecl c ~= ideaDecl i = classifySeverity c
                 | otherwise = r
         x ~= y = null x || x == y

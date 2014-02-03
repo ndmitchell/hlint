@@ -29,12 +29,12 @@ instance Show Suggestion where
 
 -- | From a suggestion, extract the file location it refers to.
 suggestionLocation :: Suggestion -> SrcLoc
-suggestionLocation = loc . fromSuggestion
+suggestionLocation = ideaLoc . fromSuggestion
 
 
 -- | From a suggestion, determine how severe it is.
 suggestionSeverity :: Suggestion -> Severity
-suggestionSeverity = severity . fromSuggestion
+suggestionSeverity = ideaSeverity . fromSuggestion
 
 
 
@@ -85,7 +85,7 @@ runHints cmd@Cmd{..} flags = do
     ideas <- if cmdCross
         then applyHintFiles flags settings files
         else concat <$> parallel [listM' =<< applyHintFile flags settings x Nothing | x <- files]
-    let (showideas,hideideas) = partition (\i -> cmdShowAll || severity i /= Ignore) ideas
+    let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
     showItem <- if cmdColor then showANSI else return show
     mapM_ (outStrLn . showItem) showideas
 
