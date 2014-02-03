@@ -123,6 +123,17 @@ concatUnzip = (concat *** concat) . unzip
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
 
+fst3 :: (a,b,c) -> a
+fst3 (a,b,c) = a
+
+snd3 :: (a,b,c) -> b
+snd3 (a,b,c) = b
+
+thd3 :: (a,b,c) -> c
+thd3 (a,b,c) = c
+
+concat3 :: [([a],[b],[c])] -> ([a],[b],[c])
+concat3 xs = (concatMap fst3 xs, concatMap snd3 xs, concatMap thd3 xs)
 
 ---------------------------------------------------------------------
 -- SYSTEM.IO
