@@ -3,7 +3,7 @@
 module Settings(
     Severity(..), Classify(..), HintRule(..), Note(..), showNotes, FuncName, Setting(..),
     defaultHintName, isUnifyVar,
-    findHintModules,
+    findHintModules, moduleSettings,
     readSettings, readPragma, findSettings
     ) where
 
@@ -103,9 +103,11 @@ data Setting
 readSettings :: FilePath -> [FilePath] -> [String] -> IO [Setting]
 readSettings dataDir files hints = do
     (builtin,mods) <- fmap unzipEither $ concatMapM (readHints dataDir) $ map Right files ++ map Left hints
-    let f m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
-                    [AnnPragma l x | AnnModulePragma l x <- modulePragmas m] ++ moduleDecls m
-    return $ map Builtin builtin ++ concatMap f mods
+    return $ map Builtin builtin ++ concatMap moduleSettings mods
+
+moduleSettings :: Module SrcSpanInfo -> [Setting]
+moduleSettings m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
+                       [AnnPragma l x | AnnModulePragma l x <- modulePragmas m] ++ moduleDecls m
 
 
 readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
