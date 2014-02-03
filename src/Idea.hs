@@ -10,7 +10,7 @@ import Util
 
 
 data Idea
-    = Idea {ideaModule :: String, ideaDecl :: String, severity :: Severity, hint :: String, loc :: SrcLoc, from :: String, to :: String, note :: [Note]}
+    = Idea {ideaModule :: String, ideaDecl :: String, severity :: Severity, hint :: String, loc :: SrcLoc, from :: String, to :: Maybe String, note :: [Note]}
     | ParseFailure {severity :: Severity, hint :: String, loc :: SrcLoc, msg :: String, from :: String}
       deriving (Eq,Ord)
 
@@ -30,11 +30,12 @@ showANSI = do
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
     [showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint] ++
-    f "Found" from ++ f "Why not" to ++
+    f "Found" (Just from) ++ f "Why not" to ++
     ["Note: " ++ n | let n = showNotes note, n /= ""]
     where
-        f msg x | null xs = [msg ++ " remove it."]
-                | otherwise = (msg ++ ":") : map ("  "++) xs
+        f msg Nothing = []
+        f msg (Just x) | null xs = [msg ++ " remove it."]
+                       | otherwise = (msg ++ ":") : map ("  "++) xs
             where xs = lines $ tt x
 
 showEx tt ParseFailure{..} = unlines $
@@ -42,7 +43,7 @@ showEx tt ParseFailure{..} = unlines $
 
 
 rawIdea = Idea "" ""
-idea severity hint from to = rawIdea severity hint (toSrcLoc $ ann from) (f from) (f to) []
+idea severity hint from to = rawIdea severity hint (toSrcLoc $ ann from) (f from) (Just $ f to) []
     where f = ltrim . prettyPrint
 warn = idea Warning
 err = idea Error

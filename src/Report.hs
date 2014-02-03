@@ -53,10 +53,13 @@ writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
     ,escapeHTML (showSrcLoc loc ++ ": " ++ show severity ++ ": " ++ hint) ++ "<br/>"
     ,"Found<br/>"
-    ,code from
-    ,"Why not" ++ (if to == "" then " remove it." else "") ++ "<br/>"
-    ,code to
-    ,let n = showNotes note in if n /= "" then "<span class='note'>Note: " ++ n ++ "</span>" else ""
+    ,code from] ++
+    (case to of
+        Nothing -> []
+        Just to ->
+            ["Why not" ++ (if to == "" then " remove it." else "") ++ "<br/>"
+            ,code to]) ++
+    [let n = showNotes note in if n /= "" then "<span class='note'>Note: " ++ n ++ "</span>" else ""
     ,"</div>"
     ,""]
 

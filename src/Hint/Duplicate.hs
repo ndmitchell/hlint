@@ -36,7 +36,7 @@ dupes ys =
         (if length xs >= 5 then Error else Warning)
         "Reduce duplication" p1
         (unlines $ map (prettyPrint . fmap (const p1)) xs)
-        ("Combine with " ++ showSrcLoc p2) []
+        (Just $ "Combine with " ++ showSrcLoc p2) []
     | (p1,p2,xs) <- duplicateOrdered 3 $ map (map (toSrcLoc . ann &&& dropAnn)) ys]
 
 

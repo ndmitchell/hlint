@@ -71,7 +71,7 @@ import Util
 
 extensionsHint :: ModuHint
 extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" (toSrcLoc sl)
-          (prettyPrint o) (if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) new)
+          (prettyPrint o) (Just $ if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) new)
           (warnings old new)
     | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
     , o@(LanguagePragma sl exts) <- modulePragmas x

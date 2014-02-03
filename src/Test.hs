@@ -169,7 +169,7 @@ checkAnnotations setting file = do
         match "???" _ = True
         match x y | "@" `isPrefixOf` x = a == show (severity y) && match (ltrim b) y
             where (a,b) = break isSpace $ tail x
-        match x y = on (==) norm (to y) x
+        match x y = on (==) norm (fromMaybe "" $ to y) x
 
         -- FIXME: Should use a better check for expected results
         norm = filter $ \x -> not (isSpace x) && x /= ';'
