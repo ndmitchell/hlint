@@ -30,7 +30,8 @@ applyHintFiles flags s files = do
     return $ err ++ executeHints s ms
 
 
--- | EXPORT
+-- | Given a way of classifying results, and a 'Hint', apply to a set of modules generating a list of 'Idea's.
+--   The 'Idea' values will be ordered within a file.
 applyHints :: [Classify] -> Hint -> [Module SrcSpanInfo] -> [Idea]
 applyHints cls hints_ ms = concat $
     [ map (classify $ cls ++ mapMaybe readPragma (universeBi m)) $
