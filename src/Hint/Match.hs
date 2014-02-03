@@ -76,7 +76,6 @@ readRule (m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn ->
             ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=toNamed v1, hintRuleSide=hintRuleSide}]
          else
             Nothing
-readRule _ = []
 
 
 -- find a dot version of this rule, return the sequence of app prefixes, and the var
