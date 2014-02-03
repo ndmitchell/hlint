@@ -9,15 +9,16 @@ import Language.Haskell.HsColour.Colourise
 import Util
 
 
+-- | An idea suggest by a 'Hint'.
 data Idea = Idea
-    {ideaModule :: String
-    ,ideaDecl :: String
-    ,ideaSeverity :: Severity
-    ,ideaHint :: String
-    ,ideaSpan :: SrcSpan
-    ,ideaFrom :: String
-    ,ideaTo :: Maybe String
-    ,ideaNote :: [Note]
+    {ideaModule :: String -- ^ The module the idea applies to, may be @\"\"@ if the module cannot be determined or is a result of cross-module hints.
+    ,ideaDecl :: String -- ^ The declaration the idea applies to, typically the function name, but may be a type name.
+    ,ideaSeverity :: Severity -- ^ The severity of the idea, e.g. 'Warning'.
+    ,ideaHint :: String -- ^ The name of the hint that generated the idea, e.g. @\"Use reverse\"@.
+    ,ideaSpan :: SrcSpan -- ^ The source code the idea relates to.
+    ,ideaFrom :: String -- ^ The contents of the source code the idea relates to.
+    ,ideaTo :: Maybe String -- ^ The suggested replacement, or 'Nothing' for no replacement (e.g. on parse errors).
+    ,ideaNote :: [Note] -- ^ Notes about the effect of applying the replacement.
     }
     deriving (Eq,Ord)
 

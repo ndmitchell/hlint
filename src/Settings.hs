@@ -20,11 +20,11 @@ defaultHintName :: String
 defaultHintName = "Use alternative"
 
 
--- | How severe an error is.
+-- | How severe an issue is.
 data Severity
-    = Ignore -- ^ Ignored errors are only returned when @--show@ is passed.
+    = Ignore -- ^ The issue has been explicitly ignored and will usually be hidden (pass @--show@ on the command line to see ignored ideas).
     | Warning -- ^ Warnings are things that some people may consider improvements, but some may not.
-    | Error -- ^ Errors are suggestions that should nearly always be a good idea to apply.
+    | Error -- ^ Errors are suggestions that are nearly always a good idea to apply.
       deriving (Eq,Ord,Show,Read,Bounded,Enum)
 
 getSeverity :: String -> Maybe Severity
@@ -48,12 +48,14 @@ addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
 ---------------------------------------------------------------------
 -- TYPE
 
+-- | A note describing the impact of the replacement.
 data Note
-    = IncreasesLaziness
-    | DecreasesLaziness
-    | RemovesError String -- RemovesError "on []", RemovesError "when x is negative"
-    | ValidInstance String String -- ValidInstance "Eq" "x"
-    | Note String
+    = IncreasesLaziness -- ^ The replacement is increases laziness, for example replacing @reverse (reverse x)@ with @x@ makes the code lazier.
+    | DecreasesLaziness -- ^ The replacement is decreases laziness, for example replacing @(fst x, snd x)@ with @x@ makes the code stricter.
+    | RemovesError String -- ^ The replacement removes errors, for example replacing @foldr1 (+)@ with @sum@ removes an error on @[]@, and might contain the text @\"on []\"@.
+    | ValidInstance String String -- ^ The replacement assumes standard type class lemmas, a hint with the note @ValidInstance \"Eq\" \"x\"@ might only be valid if
+                                  --   the @x@ variable has a reflexive @Eq@ instance.
+    | Note String -- ^ An arbitrary note.
       deriving (Eq,Ord)
 
 instance Show Note where
@@ -69,11 +71,12 @@ showNotes = intercalate ", " . map show . filter use
     where use ValidInstance{} = False -- Not important enough to tell an end user
           use _ = True
 
+-- | How to classify an 'Idea'. If any matching field is @\"\"@ then it matches everything.
 data Classify = Classify
-    {classifySeverity :: Severity
-    ,classifyHint :: String
-    ,classifyModule :: String
-    ,classifyDecl :: String
+    {classifySeverity :: Severity -- ^ Severity to set the 'Idea' to.
+    ,classifyHint :: String -- ^ 'ideaHint'.
+    ,classifyModule :: String -- ^ 'ideaModule'.
+    ,classifyDecl :: String -- ^ 'ideaDecl'.
     }
     deriving Show
 
@@ -109,6 +112,8 @@ moduleSettings_ :: Module SrcSpanInfo -> [Setting]
 moduleSettings_ m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
                        [AnnPragma l x | AnnModulePragma l x <- modulePragmas m] ++ moduleDecls m
 
+-- | Given a module containing HLint settings information return the 'Classify' rules and the 'HintRule' expressions.
+--   Any fixity declarations will be discarded, but any other unrecognised elements will result in an exception.
 moduleSettings :: Module SrcSpanInfo -> ([Classify], [HintRule])
 moduleSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
     where xs = moduleSettings_ m
@@ -123,7 +128,14 @@ readHints datadir x = do
     return $ map Left builtin ++ map Right ms
 
 
--- | EXPORT: Read a hint file, and all hint files it imports
+-- | Given the data directory (where the @hlint@ data files reside), and a filename to read, and optionally that file's
+--   contents, produce a triple containing:
+--
+-- 1. Builtin hints to use, e.g. @"List"@, which should be resolved using 'builtinHints'.
+--
+-- 1. A list of parse errors produced while parsing settings files.
+--
+-- 1. A list of modules containing hints, suitable for processing with 'moduleSettings'.
 findHintModules :: FilePath -> FilePath -> Maybe String -> IO ([String], [ParseError], [Module SrcSpanInfo])
 findHintModules dataDir file contents = do
     let flags = addInfix defaultParseFlags
