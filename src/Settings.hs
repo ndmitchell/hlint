@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
 
 module Settings(
-    Severity(..), Classify(..), MatchExp(..), Note(..), showNotes, FuncName, Setting(..),
+    Severity(..), Classify(..), HintRule(..), Note(..), showNotes, FuncName, Setting(..),
     defaultHintName, isUnifyVar,
     findHintModules,
     readSettings, readPragma, findSettings
@@ -76,12 +76,19 @@ showNotes = intercalate ", " . map show . filter use
 data Classify = Classify {severityC :: Severity, hintC :: String, funcC :: FuncName}
     deriving Show
 
-data MatchExp = MatchExp {severityM :: Severity, hintM :: String, scope :: Scope, lhs :: Exp_, rhs :: Exp_, side :: Maybe Exp_, notes :: [Note]}
+data HintRule = HintRule
+    {hintRuleSeverity :: Severity
+    ,hintRuleName :: String
+    ,hintRuleScope :: Scope
+    ,hintRuleLHS :: Exp SrcSpanInfo
+    ,hintRuleRHS :: Exp SrcSpanInfo
+    ,hintRuleSide :: Maybe (Exp SrcSpanInfo)
+    ,hintRuleNotes :: [Note]}
     deriving Show
 
 data Setting
     = SettingClassify Classify
-    | SettingMatchExp MatchExp
+    | SettingMatchExp HintRule
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show
@@ -130,7 +137,7 @@ readSetting :: Scope -> Decl_ -> [Setting]
 readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats (UnGuardedRhs _ bod) bind])
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
         let (a,b) = readSide $ childrenBi bind in
-        [SettingMatchExp $ MatchExp severity (headDef defaultHintName names) s (fromParen lhs) (fromParen rhs) a b]
+        [SettingMatchExp $ HintRule severity (headDef defaultHintName names) s (fromParen lhs) (fromParen rhs) a b]
     | otherwise = [SettingClassify $ Classify severity n func | n <- names2, func <- readFuncs bod]
     where
         names = filter notNull $ getNames pats bod

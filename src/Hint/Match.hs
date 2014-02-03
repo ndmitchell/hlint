@@ -58,22 +58,22 @@ fmapAn = fmap (const an)
 ---------------------------------------------------------------------
 -- READ THE RULE
 
-readMatch :: [MatchExp] -> DeclHint
+readMatch :: [HintRule] -> DeclHint
 readMatch settings = findIdeas (concatMap readRule settings)
 
 
-readRule :: MatchExp -> [MatchExp]
-readRule (m@MatchExp{lhs=(fmapAn -> lhs), rhs=(fmapAn -> rhs), side=(fmap fmapAn -> side)}) =
-    (:) m{lhs=lhs,side=side,rhs=rhs} $ fromMaybe [] $ do
-        (l,v1) <- dotVersion lhs
-        (r,v2) <- dotVersion rhs
-        guard $ v1 == v2 && l /= [] && Set.notMember v1 (freeVars $ maybeToList side ++ l ++ r)
+readRule :: HintRule -> [HintRule]
+readRule (m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn -> hintRuleRHS), hintRuleSide=(fmap fmapAn -> hintRuleSide)}) =
+    (:) m{hintRuleLHS=hintRuleLHS,hintRuleSide=hintRuleSide,hintRuleRHS=hintRuleRHS} $ fromMaybe [] $ do
+        (l,v1) <- dotVersion hintRuleLHS
+        (r,v2) <- dotVersion hintRuleRHS
+        guard $ v1 == v2 && l /= [] && Set.notMember v1 (freeVars $ maybeToList hintRuleSide ++ l ++ r)
         if r /= [] then return
-            [m{lhs=dotApps l, rhs=dotApps r, side=side}
-            ,m{lhs=dotApps (l++[toNamed v1]), rhs=dotApps (r++[toNamed v1]), side=side}]
+            [m{hintRuleLHS=dotApps l, hintRuleRHS=dotApps r, hintRuleSide=hintRuleSide}
+            ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=dotApps (r++[toNamed v1]), hintRuleSide=hintRuleSide}]
          else if length l > 1 then return
-            [m{lhs=dotApps l, rhs=toNamed "id", side=side}
-            ,m{lhs=dotApps (l++[toNamed v1]), rhs=toNamed v1, side=side}]
+            [m{hintRuleLHS=dotApps l, hintRuleRHS=toNamed "id", hintRuleSide=hintRuleSide}
+            ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=toNamed v1, hintRuleSide=hintRuleSide}]
          else
             Nothing
 readRule _ = []
@@ -89,25 +89,25 @@ dotVersion _ = Nothing
 ---------------------------------------------------------------------
 -- PERFORM THE MATCHING
 
-findIdeas :: [MatchExp] -> Scope -> Module S -> Decl_ -> [Idea]
+findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
-  [ (idea (severityM m) (hintM m) x y){note=notes}
+  [ (idea (hintRuleSeverity m) (hintRuleName m) x y){note=notes}
   | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
   , (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
   , m <- matches, Just (y,notes) <- [matchIdea s decl m parent x2]]
 
 
-matchIdea :: Scope -> Decl_ -> MatchExp -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note])
-matchIdea s decl MatchExp{..} parent x = do
-    let nm a b = scopeMatch (scope,a) (s,b)
-    u <- unifyExp nm True lhs x
+matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note])
+matchIdea s decl HintRule{..} parent x = do
+    let nm a b = scopeMatch (hintRuleScope,a) (s,b)
+    u <- unifyExp nm True hintRuleLHS x
     u <- check u
-    let e = subst u rhs
-    let res = addBracket parent $ unqualify scope s u $ performEval e
-    guard $ (freeVars e Set.\\ freeVars rhs) `Set.isSubsetOf` freeVars x -- check no unexpected new free variables
-    guard $ checkSide side $ ("original",x) : ("result",res) : u
+    let e = subst u hintRuleRHS
+    let res = addBracket parent $ unqualify hintRuleScope s u $ performEval e
+    guard $ (freeVars e Set.\\ freeVars hintRuleRHS) `Set.isSubsetOf` freeVars x -- check no unexpected new free variables
+    guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
-    return (res,notes)
+    return (res,hintRuleNotes)
 
 
 ---------------------------------------------------------------------

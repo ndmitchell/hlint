@@ -48,7 +48,7 @@ applyHints cls hints_ ms = concat $
 
 -- | Given a list of settings (a way to classify) and a list of hints, run them over a list of modules.
 executeHints :: [Setting] -> [Module_] -> [Idea]
-executeHints s = applyHints [x | SettingClassify x <- s] (mconcat $ allHints s)
+executeHints s = applyHints [x | SettingClassify x <- s] (allHints s)
 
 
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
@@ -61,8 +61,8 @@ parseModuleApply flags s file src = do
 
 
 -- | Find which hints a list of settings implies.
-allHints :: [Setting] -> [Hint]
-allHints xs = dynamicHints [x | SettingMatchExp x <- xs] : map f builtin
+allHints :: [Setting] -> Hint
+allHints xs = mconcat $ hintRules [x | SettingMatchExp x <- xs] : map f builtin
     where builtin = nub $ concat [if x == "All" then map fst builtinHints else [x] | Builtin x <- xs]
           f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x builtinHints
 

@@ -89,12 +89,12 @@ testInputOutput main = do
 
 nameCheckHints :: [Setting] -> IO Result
 nameCheckHints hints = do
-    let bad = [failed ["No name for the hint " ++ prettyPrint (lhs x)] | SettingMatchExp x@MatchExp{} <- hints, hintM x == defaultHintName]
+    let bad = [failed ["No name for the hint " ++ prettyPrint (hintRuleLHS x)] | SettingMatchExp x@HintRule{} <- hints, hintRuleName x == defaultHintName]
     sequence_ bad
     return $ Result (length bad) 0
 
 
--- | Given a set of hints, do all the MatchExp hints type check
+-- | Given a set of hints, do all the HintRule hints type check
 typeCheckHints :: [Setting] -> IO Result
 typeCheckHints hints = bracket
     (openTempFile "." "hlinttmp.hs")
@@ -115,14 +115,14 @@ typeCheckHints hints = bracket
 
         contents =
             ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules #-}"] ++
-            concat [map (prettyPrint . hackImport) $ scopeImports $ scope x | x <- take 1 matches] ++
+            concat [map (prettyPrint . hackImport) $ scopeImports $ hintRuleScope x | x <- take 1 matches] ++
             ["main = return ()"
             ,"(==>) :: a -> a -> a; (==>) = undefined"
             ,"_noParen_ = id"
             ,"_eval_ = id"] ++
             ["{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
              prettyPrint (PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing)
-            | (i, MatchExp _ _ _ lhs rhs side _) <- zip [1..] matches, "notTypeSafe" `notElem` vars (maybeToList side)
+            | (i, HintRule _ _ _ lhs rhs side _) <- zip [1..] matches, "notTypeSafe" `notElem` vars (maybeToList side)
             , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
             , let bod = UnGuardedRhs an $ if null vs then inner else Lambda an vs inner]

@@ -1,7 +1,7 @@
 
 module Hint.All(
     Hint(..), DeclHint, ModuHint,
-    builtinHints, dynamicHints
+    builtinHints, hintRules
     ) where
 
 import Settings
@@ -42,5 +42,5 @@ builtinHints =
         x+y = (x,mempty{hintModule=y})
         x*y = (x,mempty{hintModules=y})
 
-dynamicHints :: [MatchExp] -> Hint
-dynamicHints xs = mempty{hintDecl=readMatch xs}
+hintRules :: [HintRule] -> Hint
+hintRules xs = mempty{hintDecl=readMatch xs}

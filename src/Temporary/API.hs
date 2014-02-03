@@ -9,7 +9,7 @@ module Temporary.API(
     -- * Apply
     module Apply,
     -- * Hint.All
-    dynamicHints,
+    hintRules,
     -- * Hints
     builtinHints, Hint(..),
     -- * Scopes

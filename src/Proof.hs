@@ -16,7 +16,7 @@ import HSE.All
 
 
 data Theorem = Theorem
-    {original :: Maybe MatchExp
+    {original :: Maybe HintRule
     ,location :: String
     ,lemma :: String
     }
@@ -26,7 +26,7 @@ instance Eq Theorem where
 
 instance Show Theorem where
     show Theorem{..} = location ++ ":\n" ++ maybe "" f original ++ lemma ++ "\n"
-        where f MatchExp{..} = "(* " ++ prettyPrint lhs ++ " ==> " ++ prettyPrint rhs ++ " *)\n"
+        where f HintRule{..} = "(* " ++ prettyPrint hintRuleLHS ++ " ==> " ++ prettyPrint hintRuleRHS ++ " *)\n"
 
 proof :: [FilePath] -> [Setting] -> FilePath -> IO ()
 proof reports hints thy = do
@@ -74,10 +74,10 @@ missingFuncs = let a*b = [(b,a) | b <- words b] in concat
 
 -- | Guess why a theorem is missing
 classifyMissing :: Theorem -> String
-classifyMissing Theorem{original = Just MatchExp{..}}
-    | _:_ <- [v :: Exp_ | v@Case{} <- universeBi (lhs,rhs)] = "case"
-    | _:_ <- [v :: Exp_ | v@ListComp{} <- universeBi (lhs,rhs)] = "list-comp"
-    | v:_ <- mapMaybe (`lookup` missingFuncs) [prettyPrint (v :: Name SrcSpanInfo) | v <- universeBi (lhs,rhs)] = v
+classifyMissing Theorem{original = Just HintRule{..}}
+    | _:_ <- [v :: Exp_ | v@Case{} <- universeBi (hintRuleLHS,hintRuleRHS)] = "case"
+    | _:_ <- [v :: Exp_ | v@ListComp{} <- universeBi (hintRuleLHS,hintRuleRHS)] = "list-comp"
+    | v:_ <- mapMaybe (`lookup` missingFuncs) [prettyPrint (v :: Name SrcSpanInfo) | v <- universeBi (hintRuleLHS,hintRuleRHS)] = v
 classifyMissing _ = "?unknown"
 
 
@@ -111,7 +111,7 @@ isabelleTheorems file = find . lexer 1
 
 
 reparen :: Setting -> Setting
-reparen (SettingMatchExp m@MatchExp{..}) = SettingMatchExp m{lhs = f False lhs, rhs = f True rhs}
+reparen (SettingMatchExp m@HintRule{..}) = SettingMatchExp m{hintRuleLHS = f False hintRuleLHS, hintRuleRHS = f True hintRuleRHS}
     where f right x = if isLambda x || isIf x || badInfix x then Paren (ann x) x else x
           badInfix (InfixApp _ _ op _) = prettyPrint op `elem` words "|| && ."
           badInfix _ = False
@@ -121,8 +121,8 @@ reparen x = x
 -- Extract theorems out of the hints
 hintTheorems :: [Setting] -> [Theorem]
 hintTheorems xs =
-    [ Theorem (Just m) (loc $ ann lhs) $ maybe "" assumes side ++ relationship notes a b
-    | SettingMatchExp m@MatchExp{..} <- map reparen xs, let a = exp1 $ typeclasses notes lhs, let b = exp1 rhs, a /= b]
+    [ Theorem (Just m) (loc $ ann hintRuleLHS) $ maybe "" assumes hintRuleSide ++ relationship hintRuleNotes a b
+    | SettingMatchExp m@HintRule{..} <- map reparen xs, let a = exp1 $ typeclasses hintRuleNotes hintRuleLHS, let b = exp1 hintRuleRHS, a /= b]
     where
         loc (SrcSpanInfo (SrcSpan file ln _ _ _) _) = takeFileName file ++ ":" ++ show ln
 
@@ -132,7 +132,7 @@ hintTheorems xs =
         pre = flip elem $ words "eq neq dollar dollarBang"
         cons = subs "True=TT False=FF"
 
-        typeclasses notes x = foldr f x notes
+        typeclasses hintRuleNotes x = foldr f x hintRuleNotes
             where
                 f (ValidInstance cls var) x = evalState (transformM g x) True
                     where g v@Var{} | v ~= var = do
@@ -141,8 +141,8 @@ hintTheorems xs =
                           g v = return v :: State Bool Exp_
                 f _  x = x
 
-        relationship notes a b | any lazier notes = a ++ " \\<sqsubseteq> " ++ b
-                               | DecreasesLaziness `elem` notes = b ++ " \\<sqsubseteq> " ++ a
+        relationship hintRuleNotes a b | any lazier hintRuleNotes = a ++ " \\<sqsubseteq> " ++ b
+                               | DecreasesLaziness `elem` hintRuleNotes = b ++ " \\<sqsubseteq> " ++ a
                                | otherwise = a ++ " = " ++ b
             where lazier IncreasesLaziness = True
                   lazier RemovesError{} = True
