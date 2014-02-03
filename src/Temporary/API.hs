@@ -1,14 +1,12 @@
 
--- | This module represents the evolving API of HLint, it is not yet stable, complete or usable.
---   I /will/ move this module and make regular significant breaking changes.
+-- | /WARNING: This module represents the evolving API of HLint, do not use./
 module Temporary.API(
-    -- * Settings
+    -- * Entry point
+    applyHints,
+    Idea(..), Note(..), Severity(..),
+    -- * Reading settings
     Classify(..),
     findHintModules, moduleSettings,
-    -- * Idea
-    Idea(..), Note(..), Severity(..), showNotes,
-    -- * Apply
-    applyHints,
     -- * Hint.All
     hintRules, HintRule(..),
     -- * Hints
@@ -28,25 +26,3 @@ import Hint.Type
 import Hint.All
 import Util
 import CmdLine
-
-{-
--- built in hints, defined hints, classification rules
-parseHintModule :: Module_ -> Either String ([HintMatch], [Classify])
-parseHintModule = undefined
-
-addParseErrorEx, which includes a snippet in the parse error message
-
--- start and read files
-findHints :: Maybe FilePath -> FilePath -> Maybe String -> IO [Either ParseError Module_]
-findHints = undefined
-
--- extract the fixities in a module
-moduleFixities :: Module S -> [Fixity S]
-
-
-hintMatch :: [HintMatch] -> Hint
-hintMatch = undefined
-
-classify :: [Classify] -> Idea -> Severity
-classify = undefined
--}
