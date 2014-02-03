@@ -11,9 +11,9 @@ type ModuHint = Scope -> Module_          -> [Idea]
 type CrossHint = [(Scope, Module_)] -> [Idea]
 
 data Hint = Hint
-    {hintModules :: [(Scope, Module_)] -> [Idea]
-    ,hintModule :: Scope -> Module_ -> [Idea]
-    ,hintDecl :: Scope -> Module_ -> Decl_ -> [Idea]
+    {hintModules :: [(Scope, Module SrcSpanInfo)] -> [Idea]
+    ,hintModule :: Scope -> Module SrcSpanInfo -> [Idea]
+    ,hintDecl :: Scope -> Module SrcSpanInfo -> Decl SrcSpanInfo -> [Idea]
     }
 
 instance Monoid Hint where
