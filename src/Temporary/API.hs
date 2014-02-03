@@ -3,14 +3,14 @@
 --
 --   This module provides a way to apply HLint hints. To replicate the full @hlint@ experience you would:
 --
--- 1. Use 'findHintModules' to find and load the HLint settings files.
+-- 1. Use 'findSettings' to find and load the HLint settings files.
 --
 -- 1. Use 'moduleSettings' to interpret the settings files, producing 'HintRule' values (@LHS ==> RHS@ replacements)
 --   and 'Classify' values to assign 'Severity' ratings to hints.
 --
 -- 1. Use 'builtinHints' and 'hintRules' to generate a 'Hint' value.
 --
--- 1. Use 'parseModuleEx' to parse the input files, using any fixity declarations from 'findHintModules'.
+-- 1. Use 'parseModuleEx' to parse the input files, using any fixity declarations from 'findSettings'.
 --
 -- 1. Use 'applyHints' to execute the hints on the modules, generating 'Idea's.
 module Temporary.API(
@@ -19,7 +19,7 @@ module Temporary.API(
     Idea(..), Severity(..), Note(..),
     -- * Setting
     Classify(..),
-    findHintModules, moduleSettings,
+    findSettings, moduleSettings,
     -- * Hints
     Hint(..), builtinHints,
     HintRule(..), hintRules,

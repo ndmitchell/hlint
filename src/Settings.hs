@@ -3,7 +3,7 @@
 module Settings(
     Severity(..), Classify(..), HintRule(..), Note(..), showNotes, Setting(..),
     defaultHintName, isUnifyVar,
-    findHintModules, moduleSettings,
+    findSettings, moduleSettings,
     readSettings2, readPragma, findSettings2
     ) where
 
@@ -122,8 +122,8 @@ moduleSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs]
 readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
 readHints datadir x = do
     (builtin,errs,ms) <- case x of
-        Left src -> findHintModules datadir "CommandLine" (Just src)
-        Right file -> findHintModules datadir file Nothing
+        Left src -> findSettings datadir "CommandLine" (Just src)
+        Right file -> findSettings datadir file Nothing
     forM_ errs $ \(ParseError sl msg _) -> return $! fromParseResult $ ParseFailed sl msg
     return $ map Left builtin ++ map Right ms
 
@@ -136,8 +136,8 @@ readHints datadir x = do
 -- 1. A list of parse errors produced while parsing settings files.
 --
 -- 1. A list of modules containing hints, suitable for processing with 'moduleSettings'.
-findHintModules :: FilePath -> FilePath -> Maybe String -> IO ([String], [ParseError], [Module SrcSpanInfo])
-findHintModules dataDir file contents = do
+findSettings :: FilePath -> FilePath -> Maybe String -> IO ([String], [ParseError], [Module SrcSpanInfo])
+findSettings dataDir file contents = do
     let flags = addInfix defaultParseFlags
     res <- parseModuleEx flags file contents
     case res of
@@ -147,8 +147,8 @@ findHintModules dataDir file contents = do
             return $ concat3 $ ([],[],[m]) : ys
     where
         f x | Just x <- "HLint.Builtin." `stripPrefix` x = return ([x],[],[])
-            | Just x <- "HLint." `stripPrefix` x = findHintModules dataDir (dataDir </> x <.> "hs") Nothing
-            | otherwise = findHintModules dataDir (x <.> "hs") Nothing
+            | Just x <- "HLint." `stripPrefix` x = findSettings dataDir (dataDir </> x <.> "hs") Nothing
+            | otherwise = findSettings dataDir (x <.> "hs") Nothing
 
 
 readSetting :: Scope -> Decl_ -> [Setting]
