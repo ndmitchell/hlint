@@ -119,8 +119,8 @@ findHintModules dataDir file contents = do
     ys <- concatM [f $ fromNamed $ importModule i | i <- moduleImports y, importPkg i `elem` [Just "hint", Just "hlint"]]
     return $ Right y:ys
     where
-        f x | "HLint.Builtin." `isPrefixOf` x = return [Left $ drop 14 x]
-            | "HLint." `isPrefixOf` x = findHintModules dataDir (dataDir </> drop 6 x <.> "hs") Nothing
+        f x | Just x <- "HLint.Builtin." `stripPrefix` x = return [Left x]
+            | Just x <- "HLint." `stripPrefix` x = findHintModules dataDir (dataDir </> x <.> "hs") Nothing
             | otherwise = findHintModules dataDir (x <.> "hs") Nothing
 
 
