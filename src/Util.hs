@@ -146,6 +146,7 @@ data Encoding = Encoding_Internal (Maybe (Handle -> IO ()))
 defaultEncoding :: Encoding
 defaultEncoding = Encoding_Internal Nothing
 
+-- | Apply an encoding to a 'Handle'.
 useEncoding :: Handle -> Encoding -> IO ()
 useEncoding h (Encoding_Internal x) = maybe (return ()) ($ h) x
 

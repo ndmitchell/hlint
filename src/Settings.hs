@@ -87,7 +87,7 @@ data HintRule = HintRule
     ,hintRuleScope :: Scope -- ^ Module scope in which the hint operates.
     ,hintRuleLHS :: Exp SrcSpanInfo -- ^ LHS
     ,hintRuleRHS :: Exp SrcSpanInfo -- ^ RHS
-    ,hintRuleSide :: Maybe (Exp SrcSpanInfo) -- Side condition, typically specified with @where _ = ...@.
+    ,hintRuleSide :: Maybe (Exp SrcSpanInfo) -- ^ Side condition, typically specified with @where _ = ...@.
     ,hintRuleNotes :: [Note] -- ^ Notes about application of the hint.
     }
     deriving Show
@@ -137,7 +137,7 @@ readHints datadir x = do
 --
 -- 1. A list of parse errors produced while parsing settings files.
 --
--- 1. A list of modules containing hints, suitable for processing with 'moduleSettings'.
+-- 1. A list of modules containing hints, suitable for processing with 'readSettings'.
 findSettings :: FilePath -> FilePath -> Maybe String -> IO ([String], [ParseError], [Module SrcSpanInfo])
 findSettings dataDir file contents = do
     let flags = addInfix defaultParseFlags
