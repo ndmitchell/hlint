@@ -80,14 +80,16 @@ data Classify = Classify
     }
     deriving Show
 
+-- | A @LHS ==> RHS@ style hint rule.
 data HintRule = HintRule
-    {hintRuleSeverity :: Severity
-    ,hintRuleName :: String
-    ,hintRuleScope :: Scope
-    ,hintRuleLHS :: Exp SrcSpanInfo
-    ,hintRuleRHS :: Exp SrcSpanInfo
-    ,hintRuleSide :: Maybe (Exp SrcSpanInfo)
-    ,hintRuleNotes :: [Note]}
+    {hintRuleSeverity :: Severity -- ^ Default severity for the hint.
+    ,hintRuleName :: String -- ^ Name for the hint.
+    ,hintRuleScope :: Scope -- ^ Module scope in which the hint operates.
+    ,hintRuleLHS :: Exp SrcSpanInfo -- ^ LHS
+    ,hintRuleRHS :: Exp SrcSpanInfo -- ^ RHS
+    ,hintRuleSide :: Maybe (Exp SrcSpanInfo) -- Side condition, typically specified with @where _ = ...@.
+    ,hintRuleNotes :: [Note] -- ^ Notes about application of the hint.
+    }
     deriving Show
 
 data Setting

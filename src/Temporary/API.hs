@@ -26,7 +26,7 @@ module Temporary.API(
     -- * Scopes
     Scope, scopeCreate, scopeMatch, scopeMove,
     -- * Haskell-src-exts
-    parseModuleEx, ParseError(..), ParseFlags(..), CppFlags(..), defaultParseFlags,
+    parseModuleEx, defaultParseFlags, ParseError(..), ParseFlags(..), CppFlags(..),
     -- * File encodings
     Encoding, defaultEncoding, readEncoding, useEncoding
     ) where

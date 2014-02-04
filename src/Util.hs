@@ -138,9 +138,11 @@ concat3 xs = (concatMap fst3 xs, concatMap snd3 xs, concatMap thd3 xs)
 ---------------------------------------------------------------------
 -- SYSTEM.IO
 
--- | An encoding is a function to change a handle to a particular encoding
+-- | An 'Encoding' represents how characters are stored in a file. Created with
+--   'defaultEncoding' or 'readEncoding' and used with 'useEncoding'.
 data Encoding = Encoding_Internal (Maybe (Handle -> IO ()))
 
+-- | The system default encoding.
 defaultEncoding :: Encoding
 defaultEncoding = Encoding_Internal Nothing
 
@@ -154,6 +156,9 @@ readFileEncoding enc file = do
     hGetContents h
 
 
+-- | Create an encoding from a string, or throw an error if the encoding is not known.
+--   Accepts many encodings including @locale@, @utf-8@ and all those supported by the
+--   GHC @mkTextEncoding@ function.
 readEncoding :: String -> IO Encoding
 -- GHC's mkTextEncoding function is fairly poor - it doesn't support lots of fun things,
 -- so we fake them up, and then try mkTextEncoding last

@@ -19,10 +19,11 @@ import Paths_hlint
 import Data.Version
 
 
+-- | What C pre processor should be used.
 data CppFlags
-    = NoCpp
-    | CppSimple
-    | Cpphs CpphsOptions
+    = NoCpp -- ^ No pre processing is done.
+    | CppSimple -- ^ Lines prefixed with @#@ are stripped.
+    | Cpphs CpphsOptions -- ^ The @cpphs@ library is used.
 
 
 -- FIXME: Hints vs GivenHints is horrible

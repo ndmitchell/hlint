@@ -23,12 +23,14 @@ import Language.Preprocessor.Cpphs
 import qualified Data.Map as Map
 
 
+-- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
 data ParseFlags = ParseFlags
-    {encoding :: Encoding
-    ,cppFlags :: CppFlags
-    ,hseFlags :: ParseMode
+    {encoding :: Encoding -- ^ How the file is read in (defaults to 'defaultEncoding').
+    ,cppFlags :: CppFlags -- ^ How the file is preprocessed (defaults to 'NoCpp').
+    ,hseFlags :: ParseMode -- ^ How the file is parsed (defaults to all fixities in the @base@ package and most non-conflicting extensions).
     }
 
+-- | Default values for 'defaultParseFlags'.
 defaultParseFlags :: ParseFlags
 defaultParseFlags = ParseFlags defaultEncoding NoCpp defaultParseMode{fixities=Just baseFixities, ignoreLinePragmas=False, extensions=defaultExtensions}
 
@@ -53,13 +55,15 @@ runCpp (Cpphs o) file x = runCpphs o file x
 ---------------------------------------------------------------------
 -- PARSING
 
+-- | A parse error from 'parseModuleEx'.
 data ParseError = ParseError
-    {parseErrorLocation :: SrcLoc
-    ,parseErrorMessage :: String
-    ,parseErrorContents :: String
+    {parseErrorLocation :: SrcLoc -- ^ Location of the error.
+    ,parseErrorMessage :: String -- ^ Message about the cause of the error.
+    ,parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
     }
 
--- | Parse a Haskell module. Applies CPP and ambiguous fixity resolution. @-@ as a file name is treated as Stdin
+-- | Parse a Haskell module. Applies the C pre processor, and uses best-guess fixity resolution if there are ambiguities.
+--   The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo))
 parseModuleEx flags file str = do
         str <- maybe (readFileEncoding (encoding flags) file) return str

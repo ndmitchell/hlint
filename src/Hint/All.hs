@@ -42,5 +42,6 @@ builtinHints =
         x+y = (x,mempty{hintModule=y})
         x*y = (x,mempty{hintModules=y})
 
+-- | Transform a list of 'HintRule' into a 'Hint'.
 hintRules :: [HintRule] -> Hint
 hintRules xs = mempty{hintDecl=readMatch xs}
