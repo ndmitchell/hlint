@@ -137,7 +137,7 @@ getCmd args = do
             | EnableExtension CPP `elem` languages = Cpphs cpphs
             | otherwise = NoCpp
 
-    encoding <- newEncoding $ last $ "" : [x | Encoding x <- opt]
+    encoding <- readEncoding $ last $ "" : [x | Encoding x <- opt]
 
     return Cmd
         {cmdTest = test

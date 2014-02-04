@@ -28,7 +28,7 @@ module Temporary.API(
     -- * Haskell-src-exts
     parseModuleEx, ParseError(..), ParseFlags(..), CppFlags(..), defaultParseFlags,
     -- * File encodings
-    Encoding, defaultEncoding, newEncoding, useEncoding
+    Encoding, defaultEncoding, readEncoding, useEncoding
     ) where
 
 import Settings

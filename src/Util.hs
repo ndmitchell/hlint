@@ -154,11 +154,11 @@ readFileEncoding enc file = do
     hGetContents h
 
 
+readEncoding :: String -> IO Encoding
 -- GHC's mkTextEncoding function is fairly poor - it doesn't support lots of fun things,
 -- so we fake them up, and then try mkTextEncoding last
-newEncoding :: String -> IO Encoding
-newEncoding "" = return defaultEncoding
-newEncoding enc
+readEncoding "" = return defaultEncoding
+readEncoding enc
         | Just e <- lookup (f enc) [(f a, b) | (as,b) <- encs, a <- as] = return $ wrap e
         | otherwise = do
             res <- try $ mkTextEncoding enc :: IO (Either SomeException TextEncoding)
