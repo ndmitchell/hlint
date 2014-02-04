@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.57
     #6, add a preview of an API
     #331, improve parse error locations for literate Haskell
 1.8.56
