@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #6, add a preview of an API
     #331, improve parse error locations for literate Haskell
 1.8.56
     Remove support for GHC 6.12 and below
