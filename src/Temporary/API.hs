@@ -17,7 +17,7 @@ module Temporary.API(
     applyHints,
     -- * Idea data type
     Idea(..), Severity(..), Note(..),
-    -- * Setting
+    -- * Settings
     Classify(..),
     findSettings, readSettings,
     -- * Hints

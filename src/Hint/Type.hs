@@ -10,10 +10,13 @@ type DeclHint = Scope -> Module_ -> Decl_ -> [Idea]
 type ModuHint = Scope -> Module_          -> [Idea]
 type CrossHint = [(Scope, Module_)] -> [Idea]
 
+-- | Functions to generate hints, combined using the 'Monoid' instance.
 data Hint = Hint
-    {hintModules :: [(Scope, Module SrcSpanInfo)] -> [Idea]
-    ,hintModule :: Scope -> Module SrcSpanInfo -> [Idea]
+    {hintModules :: [(Scope, Module SrcSpanInfo)] -> [Idea] -- ^ Given a list of modules (and their scope information) generate some 'Idea's.
+    ,hintModule :: Scope -> Module SrcSpanInfo -> [Idea] -- ^ Given a single module and its scope information generate some 'Idea's.
     ,hintDecl :: Scope -> Module SrcSpanInfo -> Decl SrcSpanInfo -> [Idea]
+        -- ^ Given a declaration (with a module and scope) generate some 'Idea's.
+        --   This function will be partially applied with one module/scope, then used on multiple 'Decl' values.
     }
 
 instance Monoid Hint where
