@@ -136,6 +136,11 @@ concat3 :: [([a],[b],[c])] -> ([a],[b],[c])
 concat3 xs = (concat a, concat b, concat c)
     where (a,b,c) = unzip3 xs
 
+concat2 :: [([a],[b])] -> ([a],[b])
+concat2 xs = (concat a, concat b)
+    where (a,b) = unzip xs
+
+
 ---------------------------------------------------------------------
 -- SYSTEM.IO
 
