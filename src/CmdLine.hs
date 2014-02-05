@@ -7,7 +7,7 @@ import Control.Monad
 import Data.Char
 import Data.List
 import Data.Maybe
-import System.Console.GetOpt
+import System.Console.CmdArgs.GetOpt
 import System.Directory
 import System.Exit
 import System.FilePath

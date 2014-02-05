@@ -42,6 +42,7 @@ library
         transformers >= 0.0,
         hscolour >= 1.17,
         cpphs >= 1.11,
+        cmdargs >= 0.10,
         haskell-src-exts >= 1.14 && < 1.15,
         uniplate >= 1.5
 

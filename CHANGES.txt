@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Switch to CmdArgs for command line parsing
     Remove -x as a synonym for --cross
 1.8.57
     #6, add a preview of an API
