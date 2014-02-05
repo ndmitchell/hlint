@@ -8,7 +8,6 @@ module Settings(
     ) where
 
 import HSE.All
-import Control.Monad
 import Data.Char
 import Data.List
 import Data.Monoid
@@ -123,32 +122,31 @@ readSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
 
 readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
 readHints datadir x = do
-    (builtin,errs,ms) <- case x of
+    (builtin,ms) <- case x of
         Left src -> findSettings datadir "CommandLine" (Just src)
         Right file -> findSettings datadir file Nothing
-    forM_ errs $ \(ParseError sl msg _) -> return $! fromParseResult $ ParseFailed sl msg
     return $ map Left builtin ++ map Right ms
 
 
 -- | Given the data directory (where the @hlint@ data files reside, see 'getHLintDataDir'),
---   and a filename to read, and optionally that file's contents, produce a triple containing:
+--   and a filename to read, and optionally that file's contents, produce a pair containing:
 --
 -- 1. Builtin hints to use, e.g. @"List"@, which should be resolved using 'builtinHints'.
 --
--- 1. A list of parse errors produced while parsing settings files.
---
 -- 1. A list of modules containing hints, suitable for processing with 'readSettings'.
-findSettings :: FilePath -> FilePath -> Maybe String -> IO ([String], [ParseError], [Module SrcSpanInfo])
+--
+--   Any parse failures will result in an exception.
+findSettings :: FilePath -> FilePath -> Maybe String -> IO ([String], [Module SrcSpanInfo])
 findSettings dataDir file contents = do
     let flags = addInfix defaultParseFlags
     res <- parseModuleEx flags file contents
     case res of
-        Left err -> return ([], [err], [])
+        Left (ParseError sl msg err) -> exitMessage $ "Parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
         Right m -> do
             ys <- sequence [f $ fromNamed $ importModule i | i <- moduleImports m, importPkg i `elem` [Just "hint", Just "hlint"]]
-            return $ concat3 $ ([],[],[m]) : ys
+            return $ concat2 $ ([],[m]) : ys
     where
-        f x | Just x <- "HLint.Builtin." `stripPrefix` x = return ([x],[],[])
+        f x | Just x <- "HLint.Builtin." `stripPrefix` x = return ([x],[])
             | Just x <- "HLint." `stripPrefix` x = findSettings dataDir (dataDir </> x <.> "hs") Nothing
             | otherwise = findSettings dataDir (x <.> "hs") Nothing
 
