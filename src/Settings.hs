@@ -14,7 +14,6 @@ import Data.List
 import Data.Monoid
 import System.FilePath
 import Util
-import Paths_hlint
 
 
 defaultHintName :: String
@@ -125,13 +124,13 @@ readSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
 readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
 readHints datadir x = do
     (builtin,errs,ms) <- case x of
-        Left src -> findSettings (Just datadir) "CommandLine" (Just src)
-        Right file -> findSettings (Just datadir) file Nothing
+        Left src -> findSettings datadir "CommandLine" (Just src)
+        Right file -> findSettings datadir file Nothing
     forM_ errs $ \(ParseError sl msg _) -> return $! fromParseResult $ ParseFailed sl msg
     return $ map Left builtin ++ map Right ms
 
 
--- | Given the data directory (where the @hlint@ data files reside or 'Nothing' for the configured data directory),
+-- | Given the data directory (where the @hlint@ data files reside, see 'getHLintDataDir'),
 --   and a filename to read, and optionally that file's contents, produce a triple containing:
 --
 -- 1. Builtin hints to use, e.g. @"List"@, which should be resolved using 'builtinHints'.
@@ -139,7 +138,7 @@ readHints datadir x = do
 -- 1. A list of parse errors produced while parsing settings files.
 --
 -- 1. A list of modules containing hints, suitable for processing with 'readSettings'.
-findSettings :: Maybe FilePath -> FilePath -> Maybe String -> IO ([String], [ParseError], [Module SrcSpanInfo])
+findSettings :: FilePath -> FilePath -> Maybe String -> IO ([String], [ParseError], [Module SrcSpanInfo])
 findSettings dataDir file contents = do
     let flags = addInfix defaultParseFlags
     res <- parseModuleEx flags file contents
@@ -150,9 +149,7 @@ findSettings dataDir file contents = do
             return $ concat3 $ ([],[],[m]) : ys
     where
         f x | Just x <- "HLint.Builtin." `stripPrefix` x = return ([x],[],[])
-            | Just x <- "HLint." `stripPrefix` x = do
-                dataDir <- maybe getDataDir return dataDir
-                findSettings (Just dataDir) (dataDir </> x <.> "hs") Nothing
+            | Just x <- "HLint." `stripPrefix` x = findSettings dataDir (dataDir </> x <.> "hs") Nothing
             | otherwise = findSettings dataDir (x <.> "hs") Nothing
 
 
