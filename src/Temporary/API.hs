@@ -19,6 +19,7 @@ module Temporary.API(
     Idea(..), Severity(..), Note(..),
     -- * Settings
     Classify(..),
+    getHLintDataDir,
     findSettings, readSettings,
     -- * Hints
     Hint(..), builtinHints,
@@ -38,3 +39,9 @@ import Hint.Type
 import Hint.All
 import Util
 import CmdLine
+import Paths_hlint
+
+
+-- | Get the Cabal configured data directory of HLint
+getHLintDataDir :: IO FilePath
+getHLintDataDir = getDataDir
