@@ -133,7 +133,8 @@ thd3 :: (a,b,c) -> c
 thd3 (a,b,c) = c
 
 concat3 :: [([a],[b],[c])] -> ([a],[b],[c])
-concat3 xs = (concatMap fst3 xs, concatMap snd3 xs, concatMap thd3 xs)
+concat3 xs = (concat a, concat b, concat c)
+    where (a,b,c) = unzip3 xs
 
 ---------------------------------------------------------------------
 -- SYSTEM.IO
