@@ -8,7 +8,7 @@ HLint is a tool for suggesting possible improvements to Haskell code. These sugg
 
 ### Acknowledgements
 
-This program has only been made possible by the presence of the [haskell-src-exts](http://www.cs.chalmers.se/~d00nibro/haskell-src-exts/) package, and many improvements have been made by [Niklas Broberg](http://www.cs.chalmers.se/~d00nibro/) in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott, Andy Stewart, Roman Leshchinskiy and others.
+This program has only been made possible by the presence of the [haskell-src-exts](http://www.cs.chalmers.se/~d00nibro/haskell-src-exts/) package, and many improvements have been made by [Niklas Broberg](http://www.cs.chalmers.se/~d00nibro/) in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott, Andy Stewart, Roman Leshchinskiy, Johannes Lippmann and others.
 
 ### Bugs and limitations
 
