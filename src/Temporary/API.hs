@@ -1,18 +1,13 @@
 
 -- | /WARNING: This module represents the evolving API of HLint, do not use./
 --
---   This module provides a way to apply HLint hints. To replicate the full @hlint@ experience you would:
+--   This module provides a way to apply HLint hints. As an example of approximating the @hlint@ experience:
 --
--- 1. Use 'findSettings' to find and load the HLint settings files.
---
--- 1. Use 'readSettings' to interpret the settings files, producing 'HintRule' values (@LHS ==> RHS@ replacements)
---   and 'Classify' values to assign 'Severity' ratings to hints.
---
--- 1. Use 'builtinHints' and 'hintRules' to generate a 'Hint' value.
---
--- 1. Use 'parseModuleEx' to parse the input files, using any fixity declarations from 'findSettings'.
---
--- 1. Use 'applyHints' to execute the hints on the modules, generating 'Idea's.
+-- @
+-- (flags, classify, hint) <- 'autoSettings'
+-- Right m <- 'parseModuleEx' flags \"MyFile.hs\" Nothing
+-- print $ 'applyHints' classify hint [m]
+-- @
 module Temporary.API(
     applyHints,
     -- * Idea data type
@@ -75,3 +70,10 @@ autoSettings = do
 resolveBuiltin :: [String] -> [Hint]
 resolveBuiltin builtin = map f $ nub $ concat [if x == "All" then map fst builtinHints else [x] | x <- builtin]
     where f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x builtinHints
+
+-- | Snippet from the documentation, if this changes, update the documentation
+_docs :: IO ()
+_docs = do
+    (flags, classify, hint) <- autoSettings
+    Right m <- parseModuleEx flags "MyFile.hs" Nothing
+    print $ applyHints classify hint [m]
