@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #635 and #18, require cpphs-1.18.1
     Switch to CmdArgs for command line parsing
     Remove -x as a synonym for --cross
 1.8.57
