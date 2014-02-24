@@ -4,8 +4,8 @@ module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity
 
 import Control.Applicative
 import Control.Monad
+import System.Console.CmdArgs.Verbosity
 import Data.List
-import Data.Maybe
 import System.Exit
 
 import CmdLine
@@ -49,7 +49,9 @@ suggestionSeverity = ideaSeverity . fromSuggestion
 hlint :: [String] -> IO [Suggestion]
 hlint args = do
     cmd@Cmd{..} <- getCmd args
-    let flags = parseFlagsSetExtensions cmdLanguage $ defaultParseFlags{cppFlags=cmdCpp, encoding=cmdEncoding}
+
+    encoding <- readEncoding cmdEncoding
+    let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if cmdTest then do
         failed <- test (void . hlint) cmdDataDir cmdGivenHints
         when (failed > 0) exitFailure
@@ -59,18 +61,22 @@ hlint args = do
         let reps = if cmdReports == ["report.html"] then ["report.txt"] else cmdReports
         mapM_ (proof reps s) cmdProof
         return []
-     else if isNothing cmdFiles && notNull cmdFindHints then
-        mapM_ (\x -> putStrLn . fst =<< findSettings2 flags x) cmdFindHints >> return []
-     else if isNothing cmdFiles then
+     else if null cmdFiles && notNull cmdFindHints then do
+        hints <- concatMapM (resolveFile cmd) cmdFindHints
+        mapM_ (\x -> putStrLn . fst =<< findSettings2 flags x) hints >> return []
+     else if null cmdFiles then
         exitWithHelp
-     else if cmdFiles == Just [] then
-        error "No files found"
-     else
-        runHints cmd flags
+     else do
+        files <- concatMapM (resolveFile cmd) cmdFiles
+        if null files then
+            error "No files found"
+        else
+            runHints cmd{cmdFiles=files} flags
 
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
-readAllSettings Cmd{..} flags = do
-    settings1 <- readSettings2 cmdDataDir cmdHintFiles cmdWithHints
+readAllSettings cmd@Cmd{..} flags = do
+    files <- cmdHintFiles cmd
+    settings1 <- readSettings2 cmdDataDir files cmdWithHints
     settings2 <- concatMapM (fmap snd . findSettings2 flags) cmdFindHints
     settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
     return $ settings1 ++ settings2 ++ settings3
@@ -78,13 +84,12 @@ readAllSettings Cmd{..} flags = do
 
 runHints :: Cmd -> ParseFlags -> IO [Suggestion]
 runHints cmd@Cmd{..} flags = do
-    let outStrLn x = unless cmdQuiet $ putStrLn x
+    let outStrLn = whenNormal . putStrLn
     settings <- readAllSettings cmd flags
 
-    let files = fromMaybe [] cmdFiles
     ideas <- if cmdCross
-        then applyHintFiles flags settings files
-        else concat <$> parallel [listM' =<< applyHintFile flags settings x Nothing | x <- files]
+        then applyHintFiles flags settings cmdFiles
+        else concat <$> parallel [listM' =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
     showItem <- if cmdColor then showANSI else return show
     mapM_ (outStrLn . showItem) showideas

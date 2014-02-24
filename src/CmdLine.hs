@@ -1,22 +1,36 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, RecordWildCards, DeriveDataTypeable #-}
 
-module CmdLine(Cmd(..), CppFlags(..), getCmd, exitWithHelp) where
+module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFiles, exitWithHelp, resolveFile) where
 
-import Control.Applicative
-import Control.Monad
 import Data.Char
 import Data.List
-import Data.Maybe
-import System.Console.CmdArgs.GetOpt
+import System.Console.CmdArgs.Implicit
 import System.Directory
 import System.Exit
 import System.FilePath
 import Language.Preprocessor.Cpphs
 import Language.Haskell.Exts.Extension
+import System.Environment
 
 import Util
 import Paths_hlint
 import Data.Version
+
+getCmd :: [String] -> IO Cmd
+getCmd args = withArgs args $ automatic =<< cmdArgsRun mode
+
+
+automatic :: Cmd -> IO Cmd
+automatic Cmd{..} = do
+    cmdDataDir <- if cmdDataDir == "" then getDataDir else return cmdDataDir
+    cmdPath <- return $ if null cmdPath then ["."] else cmdPath
+    return Cmd{..}
+
+
+exitWithHelp :: IO a
+exitWithHelp = do
+    putStr $ show mode
+    exitSuccess
 
 
 -- | What C pre processor should be used.
@@ -26,164 +40,86 @@ data CppFlags
     | Cpphs CpphsOptions -- ^ The @cpphs@ library is used.
 
 
--- FIXME: Hints vs GivenHints is horrible
 data Cmd = Cmd
-    {cmdTest :: Bool                 -- ^ run in test mode?
-    ,cmdFiles :: Maybe [FilePath]    -- ^ which files to run it on, nothing = none given
-    ,cmdHintFiles :: [FilePath]      -- ^ which settingsfiles to use
+    {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
+    ,cmdReports :: [FilePath]        -- ^ where to generate reports
     ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
     ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
-    ,cmdReports :: [FilePath]        -- ^ where to generate reports
+    ,cmdColor :: Bool                -- ^ color the result
     ,cmdIgnore :: [String]           -- ^ the hints to ignore
     ,cmdShowAll :: Bool              -- ^ display all skipped items
-    ,cmdColor :: Bool                -- ^ color the result
-    ,cmdCpp :: CppFlags              -- ^ options for CPP
-    ,cmdDataDir :: FilePath          -- ^ the data directory
-    ,cmdEncoding :: Encoding         -- ^ the text encoding
-    ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
-    ,cmdLanguage :: [Extension]      -- ^ the extensions (may be prefixed by "No")
-    ,cmdQuiet :: Bool                -- ^ supress all console output
+    ,cmdExtension :: [String]        -- ^ extensions
+    ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
+    ,cmdUtf8 :: Bool
+    ,cmdEncoding :: String         -- ^ the text encoding
     ,cmdCross :: Bool                -- ^ work between source files, applies to hints such as duplicate code between modules
+    ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
+    ,cmdTest :: Bool                 -- ^ run in test mode?
+    ,cmdDataDir :: FilePath          -- ^ the data directory
+    ,cmdPath :: [String]
     ,cmdProof :: [FilePath]          -- ^ a proof script to check against
-    }
+    ,cmdCppDefine :: [String]
+    ,cmdCppInclude :: [FilePath]
+    ,cmdCppSimple :: Bool
+    ,cmdCppAnsi :: Bool
+    } deriving (Data,Typeable,Show)
+
+mode = cmdArgsMode $ Cmd
+    {cmdFiles = def &= args &= typ "FILE/DIR"
+    ,cmdReports = nam "report" &= opt "report.html" &= typFile &= help "Generate a report in HTML"
+    ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
+    ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
+    ,cmdColor = nam "colour" &= name "color" &= help "Color output (requires ANSI terminal)"
+    ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
+    ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
+    ,cmdExtension = nam "extension" &= typ "EXT" &= help "File extensions to search (default hs/lhs)"
+    ,cmdLanguage = nam_ "language" &= name "X" &= typ "EXTENSION" &= help "Language extensions (Arrows, NoCPP)"
+    ,cmdUtf8 = nam "utf8" &= help "Use UTF-8 text encoding"
+    ,cmdEncoding = nam_ "encoding" &= typ "ENCODING" &= help "Choose the text encoding"
+    ,cmdCross = nam_ "cross" &= help "Work between modules"
+    ,cmdFindHints = nam "find" &= typFile &= help "Find hints in a Haskell file"
+    ,cmdTest = nam "test" &= help "Run in test mode"
+    ,cmdDataDir = nam "datadir" &= typDir &= help "Override the data directory"
+    ,cmdPath = nam "path" &= help "Directory in which to search for files"
+    ,cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
+    ,cmdCppDefine = nam_ "cpp-define" &= typ "NAME[=VALUE]" &= help "CPP #define"
+    ,cmdCppInclude = nam_ "cpp-include" &= typDir &= help "CPP include path"
+    ,cmdCppSimple = nam_ "cpp-simple" &= help "Use a simple CPP (strip # lines)"
+    ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
+    } &= explicit &= name "hlint" &= program "hlint"
+    &= summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2014")
+    &= details ["HLint gives hints on how to improve Haskell code."
+             ,""
+             ,"To check all Haskell files in 'src' and generate a report type:"
+             ,"  hlint src --report"]
+    where
+        nam xs@(x:_) = nam_ xs &= name [x]
+        nam_ xs = def &= explicit &= name xs
+
+cmdHintFiles :: Cmd -> IO [FilePath]
+cmdHintFiles Cmd{..} = mapM (getHintFile cmdDataDir) $ cmdGivenHints ++ ["HLint" | null cmdGivenHints && null cmdWithHints]
+
+cmdExtensions :: Cmd -> [Extension]
+cmdExtensions = getExtensions . cmdLanguage
 
 
-data Opts = Help
-          | Ver
-          | Test
-          | Hints FilePath
-          | WithHint String
-          | Path FilePath
-          | Report FilePath
-          | Skip String
-          | ShowAll
-          | Color
-          | Define String
-          | Include String
-          | SimpleCpp
-          | Ext String
-          | DataDir String
-          | Encoding String
-          | FindHints FilePath
-          | Language String
-          | Proof FilePath
-          | Quiet
-          | Cross
-          | Ansi
-            deriving Eq
-
-
-opts = [Option "?" ["help"] (NoArg Help) "Display help message"
-       ,Option "v" ["version"] (NoArg Ver) "Display version information"
-       ,Option "r" ["report"] (OptArg (Report . fromMaybe "report.html") "file") "Generate a report in HTML"
-       ,Option "h" ["hint"] (ReqArg Hints "file") "Hint/ignore file to use"
-       ,Option "w" ["with"] (ReqArg WithHint "hint") "Extra hints to use"
-       ,Option "c" ["color","colour"] (NoArg Color) "Color output (requires ANSI terminal)"
-       ,Option "i" ["ignore"] (ReqArg Skip "hint") "Ignore a particular hint"
-       ,Option "s" ["show"] (NoArg ShowAll) "Show all ignored ideas"
-       ,Option "e" ["extension"] (ReqArg Ext "ext") "File extensions to search (defaults to hs and lhs)"
-       ,Option "X" ["language"] (ReqArg Language "lang") "Language extensions (Arrows, NoCPP)"
-       ,Option "u" ["utf8"] (NoArg $ Encoding "UTF-8") "Use UTF-8 text encoding"
-       ,Option ""  ["encoding"] (ReqArg Encoding "encoding") "Choose the text encoding"
-       ,Option ""  ["cross"] (NoArg Cross) "Work between modules"
-       ,Option "f" ["find"] (ReqArg FindHints "file") "Find hints in a Haskell file"
-       ,Option "t" ["test"] (NoArg Test) "Run in test mode"
-       ,Option "d" ["datadir"] (ReqArg DataDir "dir") "Override the data directory"
-       ,Option "p" ["path"] (ReqArg Path "dir") "Directory in which to search for files"
-       ,Option "q" ["quiet"] (NoArg Quiet) "Supress most console output"
-       ,Option ""  ["proof"] (ReqArg Proof "file") "Isabelle/HOLCF theory file"
-       ,Option ""  ["cpp-define"] (ReqArg Define "name[=value]") "CPP #define"
-       ,Option ""  ["cpp-include"] (ReqArg Include "dir") "CPP include path"
-       ,Option ""  ["cpp-simple"] (NoArg SimpleCpp) "Use a simple CPP (strip # lines)"
-       ,Option ""  ["cpp-ansi"] (NoArg Ansi) "Use CPP in ANSI compatibility mode"
-       ]
-
-
--- | Exit out if you need to display help info
-getCmd :: [String] -> IO Cmd
-getCmd args = do
-    let (opt,files,err) = getOpt Permute opts args
-    unless (null err) $
-        error $ unlines $ "Unrecognised arguments:" : err
-
-    when (Ver `elem` opt) $ do
-        putStr versionText
-        exitSuccess
-
-    when (Help `elem` opt) exitWithHelp
-
-    let test = Test `elem` opt
-
-    dataDir <- last $ getDataDir : [return x | DataDir x <- opt]
-
-    let exts = [x | Ext x <- opt]
-        exts2 = if null exts then ["hs","lhs"] else exts
-    let path = [x | Path x <- opt] ++ ["."]
-    files <- if null files then return Nothing else Just <$> concatMapM (getFile path exts2) files
-    findHints <- concatMapM (getFile path exts2) [x | FindHints x <- opt]
-
-    let hintFiles = [x | Hints x <- opt]
-    let withHints = [x | WithHint x <- opt]
-    hints <- mapM (getHintFile dataDir) $ hintFiles ++ ["HLint" | null hintFiles && null withHints]
-    let givenHints = if null hintFiles then [] else hints
-
-    let languages = getExtensions [x | Language x <- opt]
-
-    let cpphs = defaultCpphsOptions
-            {boolopts=defaultBoolOptions{hashline=False, ansi=Ansi `elem` opt}
-            ,includes = [x | Include x <- opt]
-            ,defines = [(a,drop 1 b) | Define x <- opt, let (a,b) = break (== '=') x]
-            }
-    let cpp | SimpleCpp `elem` opt = CppSimple -- must be first, so can disable CPP
-            | EnableExtension CPP `elem` languages = Cpphs cpphs
-            | otherwise = NoCpp
-
-    encoding <- readEncoding $ last $ "" : [x | Encoding x <- opt]
-
-    return Cmd
-        {cmdTest = test
-        ,cmdFiles = files
-        ,cmdHintFiles = hints
-        ,cmdGivenHints = givenHints
-        ,cmdWithHints = withHints
-        ,cmdReports = [x | Report x <- opt]
-        ,cmdIgnore = [x | Skip x <- opt]
-        ,cmdShowAll = ShowAll `elem` opt
-        ,cmdColor = Color `elem` opt
-        ,cmdCpp = cpp
-        ,cmdDataDir = dataDir
-        ,cmdEncoding = encoding
-        ,cmdFindHints = findHints
-        ,cmdLanguage = languages
-        ,cmdQuiet = Quiet `elem` opt
-        ,cmdCross = Cross `elem` opt
-        ,cmdProof = [x | Proof x <- opt]
+cmdCpp :: Cmd -> CppFlags
+cmdCpp cmd@Cmd{..}
+    | cmdCppSimple = CppSimple
+    | EnableExtension CPP `elem` cmdExtensions cmd = Cpphs defaultCpphsOptions
+        {boolopts=defaultBoolOptions{hashline=False, ansi=cmdCppAnsi}
+        ,includes = cmdCppInclude
+        ,defines = [(a,drop 1 b) | x <- cmdCppDefine, let (a,b) = break (== '=') x]
         }
+    | otherwise = NoCpp
 
-
-exitWithHelp :: IO a
-exitWithHelp = do
-    putStr helpText
-    exitSuccess
-
-
-versionText :: String
-versionText = "HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2014\n"
-
-
-helpText :: String
-helpText = unlines
-    [versionText
-    ,"  hlint [files/directories] [options]"
-    ,usageInfo "" opts
-    ,"HLint gives hints on how to improve Haskell code."
-    ,""
-    ,"To check all Haskell files in 'src' and generate a report type:"
-    ,"  hlint src --report"
-    ]
 
 "." <\> x = x
 x <\> y = x </> y
+
+
+resolveFile :: Cmd -> FilePath -> IO [FilePath]
+resolveFile Cmd{..} = getFile cmdPath cmdExtension
 
 
 getFile :: [FilePath] -> [String] -> FilePath -> IO [FilePath]
