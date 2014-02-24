@@ -70,7 +70,7 @@ hlint args = do
         files <- concatMapM (resolveFile cmd) cmdFiles
         if null files then
             error "No files found"
-        else
+         else
             runHints cmd{cmdFiles=files} flags
 
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
