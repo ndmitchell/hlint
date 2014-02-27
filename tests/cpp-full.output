@@ -1,0 +1,7 @@
+tests/cpp-full.hs:3:8: Error: Use print
+Found:
+  putStrLn $ show "Hello"
+Why not:
+  print "Hello"
+
+1 suggestion
