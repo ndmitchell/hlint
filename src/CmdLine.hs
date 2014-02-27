@@ -107,7 +107,7 @@ cmdCpp :: Cmd -> CppFlags
 cmdCpp cmd@Cmd{..}
     | cmdCppSimple = CppSimple
     | EnableExtension CPP `elem` cmdExtensions cmd = Cpphs defaultCpphsOptions
-        {boolopts=defaultBoolOptions{hashline=False, ansi=cmdCppAnsi}
+        {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi}
         ,includes = cmdCppInclude
         ,defines = [(a,drop 1 b) | x <- cmdCppDefine, let (a,b) = break (== '=') x]
         }
