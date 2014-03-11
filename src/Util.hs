@@ -271,4 +271,5 @@ badExtensions =
     [Arrows -- steals proc
     ,TransformListComp -- steals the group keyword
     ,XmlSyntax, RegularPatterns -- steals a-b
+    ,UnboxedTuples -- breaks (#) lens operator
     ]

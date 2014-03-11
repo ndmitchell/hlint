@@ -583,7 +583,7 @@ test = foo . id . map -- map
 test = food id xs
 yes = baz baz >> return () -- Control.Monad.void (baz baz)
 no = foo >>= bar >>= something >>= elsee >> return ()
-
+no = f (#) x
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
