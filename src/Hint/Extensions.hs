@@ -46,7 +46,11 @@ data Foo = Foo Int deriving Class --
 {-# LANGUAGE DeriveFunctor #-} \
 data Foo = Foo Int deriving Functor
 {-# LANGUAGE DeriveFunctor #-} \
-newtype Foo = Foo Int deriving Functor --
+newtype Foo = Foo Int deriving Functor
+{-# LANGUAGE GeneralizedNewtypeDeriving #-} \
+newtype Foo = Foo Int deriving Functor
+{-# LANGUAGE GeneralizedNewtypeDeriving #-} \
+newtype Foo = Foo Int deriving Data --
 {-# LANGUAGE DeriveFunctor, GeneralizedNewtypeDeriving, StandaloneDeriving #-} \
 deriving instance Functor Bar
 {-# LANGUAGE DeriveFunctor, GeneralizedNewtypeDeriving, StandaloneDeriving #-} \
@@ -91,8 +95,13 @@ warnings old new | wildcards `elem` old && wildcards `notElem` new = [Note "you 
 warnings _ _ = []
 
 
+-- | Classes that don't work with newtype deriving
+noNewtypeDeriving :: [String]
+noNewtypeDeriving = ["Read","Show","Data","Typeable","Generic","Generic1"]
+
+
 usedExt :: Extension -> Module_ -> Bool
-usedExt (UnknownExtension "DeriveGeneric") = hasDerive True ["Generic","Generic1"]
+usedExt (UnknownExtension "DeriveGeneric") = hasDerive ["Generic","Generic1"]
 usedExt (EnableExtension x) = used x
 usedExt _ = const True
 
@@ -128,13 +137,11 @@ used UnboxedTuples = has (not . isBoxed)
 used PackageImports = hasS (isJust . importPkg)
 used QuasiQuotes = hasS isQuasiQuote
 used ViewPatterns = hasS isPViewPat
-used DeriveDataTypeable = hasDerive True ["Data","Typeable"]
-used DeriveFunctor = hasDerive False ["Functor"]
-used DeriveFoldable = hasDerive False ["Foldable"]
-used DeriveTraversable = hasDerive False ["Traversable"]
-used GeneralizedNewtypeDeriving = any (`notElem` special) . fst . derives
-    where special = ["Read","Show","Data","Typeable","Generic","Generic1"] -- these classes cannot use generalised deriving
-    -- FIXME: This special list is duplicated here, and as booleans to hasDerive
+used DeriveDataTypeable = hasDerive ["Data","Typeable"]
+used DeriveFunctor = hasDerive ["Functor"]
+used DeriveFoldable = hasDerive ["Foldable"]
+used DeriveTraversable = hasDerive ["Traversable"]
+used GeneralizedNewtypeDeriving = any (`notElem` noNewtypeDeriving) . fst . derives
 used Arrows = hasS f
     where f Proc{} = True
           f LeftArrApp{} = True
@@ -150,14 +157,13 @@ used TransformListComp = hasS f
 used x = usedExt $ UnknownExtension $ show x
 
 
-
-hasDerive :: Bool -> [String] -> Module_ -> Bool
-hasDerive nt want m = not $ null $ intersect want $ if nt then new ++ dat else dat
+hasDerive :: [String] -> Module_ -> Bool
+hasDerive want m = any (`elem` want) $ new ++ dat
     where (new,dat) = derives m
 
 
 -- | What is derived on newtype, and on data type
---   'deriving' declarations may be on either, so we approximate
+--   'deriving' declarations may be on either, so we approximate as both newtype and data
 derives :: Module_ -> ([String],[String])
 derives = concatUnzip . map f . childrenBi
     where

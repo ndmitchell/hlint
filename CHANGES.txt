@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #24, don't remove DeriveFunctor even when only on a newtype
     #22, turn off UnboxedTuples by default
     #21, strip /* C style */ comments
     #635 and #18, require cpphs-1.18.1
