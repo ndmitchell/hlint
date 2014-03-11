@@ -146,13 +146,14 @@ isLexeme _ = False
 
 isWHNF :: Exp_ -> Bool
 isWHNF Con{} = True
-isWHNF Lit{} = True
+isWHNF (Lit _ x) = case x of String{} -> False; Int{} -> False; Frac{} -> False; _ -> True
 isWHNF Lambda{} = True
 isWHNF Tuple{} = True
 isWHNF List{} = True
 isWHNF (Paren _ x) = isWHNF x
-isWHNF RecConstr{} = True
 isWHNF (ExpTypeSig _ x _) = isWHNF x
+-- other (unknown) constructors may have bang patterns in them, so approximate
+isWHNF (App _ c@Con{} _) | prettyPrint c `elem` ["Just","Left","Right"] = True
 isWHNF _ = False
 
 

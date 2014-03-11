@@ -584,6 +584,12 @@ test = food id xs
 yes = baz baz >> return () -- Control.Monad.void (baz baz)
 no = foo >>= bar >>= something >>= elsee >> return ()
 no = f (#) x
+data Pair = P {a :: !Int}; foo = return $! P{a=undefined}
+data Pair = P {a :: !Int}; foo = return $! P undefined
+foo = return $! Just undefined -- return (Just undefined)
+foo = return $! (a,b) -- return (a,b)
+foo = return $! 1
+foo = return $! "test"
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
