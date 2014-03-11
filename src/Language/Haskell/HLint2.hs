@@ -1,5 +1,6 @@
 
--- | /WARNING: This module represents the evolving API of HLint, do not use./
+-- | /WARNING: This module represents the evolving second version of the HLint API./
+--   /It will be renamed to drop the "2" in the next major version./
 --
 --   This module provides a way to apply HLint hints. As an example of approximating the @hlint@ experience:
 --
@@ -8,7 +9,7 @@
 -- Right m <- 'parseModuleEx' flags \"MyFile.hs\" Nothing
 -- print $ 'applyHints' classify hint [m]
 -- @
-module Temporary.API(
+module Language.Haskell.HLint2(
     applyHints,
     -- * Idea data type
     Idea(..), Severity(..), Note(..),

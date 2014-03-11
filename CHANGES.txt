@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Move the API to Language.Haskell.HLint2
     #638, ensure $! doesn't break strictness with strict fields
     #24, don't remove DeriveFunctor even when only on a newtype
     #22, turn off UnboxedTuples by default

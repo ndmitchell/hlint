@@ -1,6 +1,6 @@
 :set -fno-warn-overlapping-patterns -fwarn-unused-binds -fwarn-unused-imports
 :set -isrc
-:load src\Main.hs src\Paths.hs src\Temporary\API.hs
+:load src\Main.hs src\Paths.hs src\Language\Haskell\HLint2.hs
 
 :def test const $ return ":main --test"
 :def gen const $ return ":!runhaskell data\\HLint_Gen.hs"

@@ -48,8 +48,8 @@ library
 
     hs-source-dirs:     src
     exposed-modules:
-        Temporary.API
         Language.Haskell.HLint
+        Language.Haskell.HLint2
     other-modules:
         Paths_hlint
         Apply
