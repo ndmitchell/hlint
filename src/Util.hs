@@ -29,8 +29,8 @@ getDirectoryContentsRecursive :: FilePath -> IO [FilePath]
 getDirectoryContentsRecursive dir = do
     xs <- getDirectoryContents dir
     (dirs,files) <- partitionM doesDirectoryExist [dir </> x | x <- xs, not $ isBadDir x]
-    rest <- concatMapM getDirectoryContentsRecursive dirs
-    return $ files++rest
+    rest <- concatMapM getDirectoryContentsRecursive $ sort dirs
+    return $ sort files ++ rest
     where
         isBadDir x = "." `isPrefixOf` x || "_" `isPrefixOf` x
 
