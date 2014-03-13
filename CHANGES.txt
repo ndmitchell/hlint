@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.59
     #27, fix up directory file searching
 1.8.58
     Move the API to Language.Haskell.HLint2
