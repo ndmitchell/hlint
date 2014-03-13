@@ -24,6 +24,7 @@ automatic :: Cmd -> IO Cmd
 automatic Cmd{..} = do
     cmdDataDir <- if cmdDataDir == "" then getDataDir else return cmdDataDir
     cmdPath <- return $ if null cmdPath then ["."] else cmdPath
+    cmdExtension <- return $ if null cmdExtension then ["hs", "lhs"] else cmdExtension
     return Cmd{..}
 
 
