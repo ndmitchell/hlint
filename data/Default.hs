@@ -590,6 +590,7 @@ foo = return $! Just undefined -- return (Just undefined)
 foo = return $! (a,b) -- return (a,b)
 foo = return $! 1
 foo = return $! "test"
+bar = [x| (x,_) <- pts]
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

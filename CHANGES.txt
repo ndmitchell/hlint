@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #637, turn off QuasiQuotes by default
 1.8.59
     #27, fix up directory file searching
 1.8.58
