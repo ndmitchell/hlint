@@ -92,6 +92,7 @@ warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
 error = map f (replicate n x) ==> replicate n (f x)
 error = map f (repeat x) ==> repeat (f x)
+error = cycle [x] ==> repeat x
 error = head (reverse x) ==> last x
 error = head (drop n x) ==> x !! n where _ = isNat n
 error = reverse (tail (reverse x)) ==> init x where note = IncreasesLaziness
@@ -100,6 +101,8 @@ error "Avoid reverse" = reverse (reverse x) ==> x where note = IncreasesLaziness
 error = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
 error = foldr (++) [] ==> concat
 error = foldl (++) [] ==> concat where note = IncreasesLaziness
+error = foldl f (head x) (tail x) ==> foldl1 f x
+error = foldr f (last x) (init x) ==> foldr1 f x
 error = span (not . p) ==> break p
 error = break (not . p) ==> span p
 error = (takeWhile p x, dropWhile p x) ==> span p x
@@ -151,7 +154,20 @@ warn "Use null" = length x > 0 ==> not (null x) where note = IncreasesLaziness
 warn "Use null" = length x >= 1 ==> not (null x) where note = IncreasesLaziness
 error "Take on a non-positive" = take i x ==> [] where _ = isNegZero i
 error "Drop on a non-positive" = drop i x ==> x where _ = isNegZero i
+error = last (scanl f z x) ==> foldl f z x
+error = head (scanr f z x) ==> foldr f z x
 
+-- BY
+
+error = deleteBy (==) ==> delete
+error = groupBy (==) ==> group
+error = insertBy compare ==> insert
+error = intersectBy (==) ==> intersect
+error = maximumBy compare ==> maximum
+error = minimumBy compare ==> minimum
+error = nubBy (==) ==> nub
+error = sortBy compare ==> sort
+error = unionBy (==) ==> union
 
 -- FOLDS
 
@@ -384,6 +400,7 @@ error "Redundant fromIntegral" = fromIntegral x ==> x where _ = isLitInt x
 error "Redundant fromInteger" = fromInteger x ==> x where _ = isLitInt x
 warn  = x + negate y ==> x - y
 warn  = 0 - x ==> negate x
+error "Redundant negate" = negate (negate x) ==> x
 warn  = log y / log x ==> logBase x y
 warn  = sin x / cos x ==> tan x
 warn  = sinh x / cosh x ==> tanh x
