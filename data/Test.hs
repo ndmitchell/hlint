@@ -41,6 +41,7 @@ error = tail ==> Array.tail
 
 error = zip [1..length x] x ==> zipFrom 1 x
 
+error = before a ==> after a
 
 {-
 <TEST>
@@ -56,6 +57,7 @@ yes = Prelude2.readFile "foo" >>= putStr    \
   -- bad
 
 yes = 32 :: Int -- 32 :: Int32
+yes = before 12 -- after 12
 
 ignoreTest = filter -- @Ignore ???
 ignoreTest2 = filter -- @Error ???

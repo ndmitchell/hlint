@@ -67,7 +67,7 @@ readRule (m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn ->
     (:) m{hintRuleLHS=hintRuleLHS,hintRuleSide=hintRuleSide,hintRuleRHS=hintRuleRHS} $ fromMaybe [] $ do
         (l,v1) <- dotVersion hintRuleLHS
         (r,v2) <- dotVersion hintRuleRHS
-        guard $ v1 == v2 && l /= [] && Set.notMember v1 (freeVars $ maybeToList hintRuleSide ++ l ++ r)
+        guard $ v1 == v2 && l /= [] && (length l > 1 || length r > 1) && Set.notMember v1 (freeVars $ maybeToList hintRuleSide ++ l ++ r)
         if r /= [] then return
             [m{hintRuleLHS=dotApps l, hintRuleRHS=dotApps r, hintRuleSide=hintRuleSide}
             ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=dotApps (r++[toNamed v1]), hintRuleSide=hintRuleSide}]
