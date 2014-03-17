@@ -6,6 +6,7 @@ module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFile
 import Data.Char
 import Data.List
 import System.Console.CmdArgs.Implicit
+import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
 import System.Directory
 import System.Exit
 import System.FilePath
@@ -18,7 +19,8 @@ import Paths_hlint
 import Data.Version
 
 getCmd :: [String] -> IO Cmd
-getCmd args = withArgs args $ automatic =<< cmdArgsRun mode
+getCmd args = withArgs (map f args) $ automatic =<< cmdArgsRun mode
+    where f x = if x == "-?" || x == "--help" then "--help=all" else x
 
 
 automatic :: Cmd -> IO Cmd
@@ -27,6 +29,10 @@ automatic CmdMain{..} = do
     cmdPath <- return $ if null cmdPath then ["."] else cmdPath
     cmdExtension <- return $ if null cmdExtension then ["hs", "lhs"] else cmdExtension
     return CmdMain{..}
+automatic CmdGrep{..} = do
+    cmdPath <- return $ if null cmdPath then ["."] else cmdPath
+    cmdExtension <- return $ if null cmdExtension then ["hs", "lhs"] else cmdExtension
+    return CmdGrep{..}
 automatic CmdTest{..} = do
     cmdDataDir <- if cmdDataDir == "" then getDataDir else return cmdDataDir
     return CmdTest{..}
@@ -34,7 +40,7 @@ automatic CmdTest{..} = do
 
 exitWithHelp :: IO a
 exitWithHelp = do
-    putStr $ show mode
+    putStr $ show $ helpText [] HelpFormatAll mode
     exitSuccess
 
 
@@ -66,7 +72,22 @@ data Cmd
         ,cmdCppInclude :: [FilePath]
         ,cmdCppSimple :: Bool
         ,cmdCppAnsi :: Bool
-        } 
+        }
+    | CmdGrep
+        {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
+        ,cmdPattern :: String
+        ,cmdExact :: Bool
+        ,cmdColor :: Bool                -- ^ color the result
+        ,cmdExtension :: [String]        -- ^ extensions
+        ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
+        ,cmdUtf8 :: Bool
+        ,cmdEncoding :: String         -- ^ the text encoding
+        ,cmdPath :: [String]
+        ,cmdCppDefine :: [String]
+        ,cmdCppInclude :: [FilePath]
+        ,cmdCppSimple :: Bool
+        ,cmdCppAnsi :: Bool
+        }
     | CmdTest
         {cmdProof :: [FilePath]          -- ^ a proof script to check against
         ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
@@ -98,13 +119,18 @@ mode = cmdArgsMode $ modes
         ,cmdCppSimple = nam_ "cpp-simple" &= help "Use a simple CPP (strip # lines)"
         ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
         } &= auto &= explicit &= name "lint"
+    ,CmdGrep
+        {cmdFiles = def &= args &= typ "FILE/DIR"
+        ,cmdPattern = def &= argPos 0 &= typ "PATTERN"
+        ,cmdExact = nam_ "exact" &= name "x" &= help "Exact matches only"
+        } &= explicit &= name "grep"
+    ,CmdTest
+        {cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
+        } &= explicit &= name "test"
         &= details ["HLint gives hints on how to improve Haskell code."
                  ,""
                  ,"To check all Haskell files in 'src' and generate a report type:"
                  ,"  hlint src --report"]
-    ,CmdTest
-        {cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
-        } &= explicit &= name "test"
     ] &= program "hlint"
     &= summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2014")
     where
@@ -119,12 +145,12 @@ cmdExtensions = getExtensions . cmdLanguage
 
 
 cmdCpp :: Cmd -> CppFlags
-cmdCpp cmd@CmdMain{..}
-    | cmdCppSimple = CppSimple
+cmdCpp cmd
+    | cmdCppSimple cmd = CppSimple
     | EnableExtension CPP `elem` cmdExtensions cmd = Cpphs defaultCpphsOptions
-        {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi}
-        ,includes = cmdCppInclude
-        ,defines = [(a,drop 1 b) | x <- cmdCppDefine, let (a,b) = break (== '=') x]
+        {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi cmd}
+        ,includes = cmdCppInclude cmd
+        ,defines = [(a,drop 1 b) | x <- cmdCppDefine cmd, let (a,b) = break (== '=') x]
         }
     | otherwise = NoCpp
 
@@ -134,7 +160,7 @@ x <\> y = x </> y
 
 
 resolveFile :: Cmd -> FilePath -> IO [FilePath]
-resolveFile CmdMain{..} = getFile cmdPath cmdExtension
+resolveFile cmd = getFile (cmdPath cmd) (cmdExtension cmd)
 
 
 getFile :: [FilePath] -> [String] -> FilePath -> IO [FilePath]

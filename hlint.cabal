@@ -54,6 +54,7 @@ library
         Paths_hlint
         Apply
         CmdLine
+        Grep
         HLint
         Idea
         Settings

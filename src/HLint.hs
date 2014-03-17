@@ -14,6 +14,7 @@ import Report
 import Idea
 import Apply
 import Test
+import Grep
 import Proof
 import Util
 import Parallel
@@ -51,6 +52,7 @@ hlint args = do
     cmd <- getCmd args
     case cmd of
         CmdMain{} -> hlintMain cmd
+        CmdGrep{} -> hlintGrep cmd >> return []
         CmdTest{} -> hlintTest cmd >> return []
 
 hlintTest :: Cmd -> IO ()
@@ -63,6 +65,19 @@ hlintTest cmd@CmdTest{..} = do
      else do
         failed <- test (void . hlint) cmdDataDir cmdGivenHints
         when (failed > 0) exitFailure
+
+hlintGrep :: Cmd -> IO ()
+hlintGrep cmd@CmdGrep{..} = do
+    encoding <- readEncoding cmdEncoding
+    let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
+    if null cmdFiles then
+        exitWithHelp
+     else do
+        files <- concatMapM (resolveFile cmd) cmdFiles
+        if null files then
+            error "No files found"
+         else
+            runGrep cmdPattern cmdExact flags files
 
 hlintMain :: Cmd -> IO [Suggestion]
 hlintMain cmd@CmdMain{..} = do
