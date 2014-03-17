@@ -77,7 +77,7 @@ hlintGrep cmd@CmdGrep{..} = do
         if null files then
             error "No files found"
          else
-            runGrep cmdPattern cmdExact flags files
+            runGrep cmdPattern flags files
 
 hlintMain :: Cmd -> IO [Suggestion]
 hlintMain cmd@CmdMain{..} = do

@@ -7,8 +7,8 @@ import HSE.All
 import Control.Monad
 
 
-runGrep :: String -> Bool -> ParseFlags -> [FilePath] -> IO ()
-runGrep pattern exact flags files = do
+runGrep :: String -> ParseFlags -> [FilePath] -> IO ()
+runGrep pattern flags files = do
     let exp = fromParseResult $ parseExp pattern
     let scope = scopeCreate $ Module an Nothing [] [] []
     let rule = hintRules [HintRule Warning "grep" scope exp (Tuple an Boxed []) Nothing []]

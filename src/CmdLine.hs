@@ -76,8 +76,6 @@ data Cmd
     | CmdGrep
         {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
         ,cmdPattern :: String
-        ,cmdExact :: Bool
-        ,cmdColor :: Bool                -- ^ color the result
         ,cmdExtension :: [String]        -- ^ extensions
         ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
         ,cmdUtf8 :: Bool
@@ -122,7 +120,6 @@ mode = cmdArgsMode $ modes
     ,CmdGrep
         {cmdFiles = def &= args &= typ "FILE/DIR"
         ,cmdPattern = def &= argPos 0 &= typ "PATTERN"
-        ,cmdExact = nam_ "exact" &= name "x" &= help "Exact matches only"
         } &= explicit &= name "grep"
     ,CmdTest
         {cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
