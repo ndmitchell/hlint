@@ -34,7 +34,7 @@ showANSI = do
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
-    [showSrcLoc (getPointLoc ideaSpan) ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint] ++
+    [showSrcLoc (getPointLoc ideaSpan) ++ ": " ++ (if ideaHint == "" then "" else show ideaSeverity ++ ": " ++ ideaHint)] ++
     f "Found" (Just ideaFrom) ++ f "Why not" ideaTo ++
     ["Note: " ++ n | let n = showNotes ideaNote, n /= ""]
     where
