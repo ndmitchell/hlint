@@ -29,6 +29,8 @@ if Data.List.head x ==> x, then that might match List too
 
 -- | Data type representing the modules in scope within a module.
 --   Created with 'scopeCreate' and queried with 'scopeMatch' and 'scopeMove'.
+--   Note that the 'mempty' 'Scope' is not equivalent to 'scopeCreate' on an empty module,
+--   due to the implicit import of 'Prelude'.
 newtype Scope = Scope [ImportDecl S]
              deriving Show
 
