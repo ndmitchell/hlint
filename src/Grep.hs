@@ -7,6 +7,7 @@ import HSE.All
 import Control.Monad
 import Data.List
 import Util
+import Idea
 
 
 runGrep :: String -> ParseFlags -> [FilePath] -> IO ()
@@ -23,7 +24,7 @@ runGrep pattern flags files = do
         res <- parseModuleEx flags file Nothing
         case res of
             Left (ParseError sl msg ctxt) -> do
-                putStrLn $ showSrcLoc sl ++ ": " ++ (if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg) ++ "\n" ++ ctxt
+                print $ rawIdea Warning (if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg) (mkSrcSpan sl sl) ctxt Nothing []
             Right m ->
-                forM_ (applyHints [] rule [m]) $ \Idea{..} -> do
-                    putStrLn $ unlines $ (showSrcLoc (getPointLoc ideaSpan) ++ ":") : map ("  "++) (lines ideaFrom)
+                forM_ (applyHints [] rule [m]) $ \i ->
+                    print i{ideaHint="", ideaTo=Nothing}
