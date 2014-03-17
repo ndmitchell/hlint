@@ -10,8 +10,9 @@ import Control.Monad
 runGrep :: String -> Bool -> ParseFlags -> [FilePath] -> IO ()
 runGrep pattern exact flags files = do
     let exp = fromParseResult $ parseExp pattern
+    let scope = scopeCreate $ Module an Nothing [] [] []
+    let rule = hintRules [HintRule Warning "grep" scope exp (Tuple an Boxed []) Nothing []]
     forM_ files $ \file -> do
         Right m <- parseModuleEx flags file Nothing
-        let rule = hintRules [HintRule Warning "grep" (scopeCreate m) exp exp Nothing []]
         forM_ (applyHints [] rule [m]) $ \Idea{..} -> do
             putStr $ unlines $ showSrcLoc (getPointLoc ideaSpan) : map ("  "++) (lines ideaFrom)
