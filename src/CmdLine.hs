@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards, RecordWildCards, DeriveDataTypeable #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFiles, exitWithHelp, resolveFile) where
 
@@ -21,11 +22,14 @@ getCmd args = withArgs args $ automatic =<< cmdArgsRun mode
 
 
 automatic :: Cmd -> IO Cmd
-automatic Cmd{..} = do
+automatic CmdMain{..} = do
     cmdDataDir <- if cmdDataDir == "" then getDataDir else return cmdDataDir
     cmdPath <- return $ if null cmdPath then ["."] else cmdPath
     cmdExtension <- return $ if null cmdExtension then ["hs", "lhs"] else cmdExtension
-    return Cmd{..}
+    return CmdMain{..}
+automatic CmdTest{..} = do
+    cmdDataDir <- if cmdDataDir == "" then getDataDir else return cmdDataDir
+    return CmdTest{..}
 
 
 exitWithHelp :: IO a
@@ -41,71 +45,81 @@ data CppFlags
     | Cpphs CpphsOptions -- ^ The @cpphs@ library is used.
 
 
-data Cmd = Cmd
-    {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
-    ,cmdReports :: [FilePath]        -- ^ where to generate reports
-    ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
-    ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
-    ,cmdColor :: Bool                -- ^ color the result
-    ,cmdIgnore :: [String]           -- ^ the hints to ignore
-    ,cmdShowAll :: Bool              -- ^ display all skipped items
-    ,cmdExtension :: [String]        -- ^ extensions
-    ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
-    ,cmdUtf8 :: Bool
-    ,cmdEncoding :: String         -- ^ the text encoding
-    ,cmdCross :: Bool                -- ^ work between source files, applies to hints such as duplicate code between modules
-    ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
-    ,cmdTest :: Bool                 -- ^ run in test mode?
-    ,cmdDataDir :: FilePath          -- ^ the data directory
-    ,cmdPath :: [String]
-    ,cmdProof :: [FilePath]          -- ^ a proof script to check against
-    ,cmdCppDefine :: [String]
-    ,cmdCppInclude :: [FilePath]
-    ,cmdCppSimple :: Bool
-    ,cmdCppAnsi :: Bool
-    } deriving (Data,Typeable,Show)
+data Cmd
+    = CmdMain
+        {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
+        ,cmdReports :: [FilePath]        -- ^ where to generate reports
+        ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
+        ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
+        ,cmdColor :: Bool                -- ^ color the result
+        ,cmdIgnore :: [String]           -- ^ the hints to ignore
+        ,cmdShowAll :: Bool              -- ^ display all skipped items
+        ,cmdExtension :: [String]        -- ^ extensions
+        ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
+        ,cmdUtf8 :: Bool
+        ,cmdEncoding :: String         -- ^ the text encoding
+        ,cmdCross :: Bool                -- ^ work between source files, applies to hints such as duplicate code between modules
+        ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
+        ,cmdDataDir :: FilePath          -- ^ the data directory
+        ,cmdPath :: [String]
+        ,cmdCppDefine :: [String]
+        ,cmdCppInclude :: [FilePath]
+        ,cmdCppSimple :: Bool
+        ,cmdCppAnsi :: Bool
+        } 
+    | CmdTest
+        {cmdProof :: [FilePath]          -- ^ a proof script to check against
+        ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
+        ,cmdDataDir :: FilePath          -- ^ the data directory
+        ,cmdReports :: [FilePath]        -- ^ where to generate reports
+        ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
+        }
+    deriving (Data,Typeable,Show)
 
-mode = cmdArgsMode $ Cmd
-    {cmdFiles = def &= args &= typ "FILE/DIR"
-    ,cmdReports = nam "report" &= opt "report.html" &= typFile &= help "Generate a report in HTML"
-    ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
-    ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
-    ,cmdColor = nam "colour" &= name "color" &= help "Color output (requires ANSI terminal)"
-    ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
-    ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
-    ,cmdExtension = nam "extension" &= typ "EXT" &= help "File extensions to search (default hs/lhs)"
-    ,cmdLanguage = nam_ "language" &= name "X" &= typ "EXTENSION" &= help "Language extensions (Arrows, NoCPP)"
-    ,cmdUtf8 = nam "utf8" &= help "Use UTF-8 text encoding"
-    ,cmdEncoding = nam_ "encoding" &= typ "ENCODING" &= help "Choose the text encoding"
-    ,cmdCross = nam_ "cross" &= help "Work between modules"
-    ,cmdFindHints = nam "find" &= typFile &= help "Find hints in a Haskell file"
-    ,cmdTest = nam "test" &= help "Run in test mode"
-    ,cmdDataDir = nam "datadir" &= typDir &= help "Override the data directory"
-    ,cmdPath = nam "path" &= help "Directory in which to search for files"
-    ,cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
-    ,cmdCppDefine = nam_ "cpp-define" &= typ "NAME[=VALUE]" &= help "CPP #define"
-    ,cmdCppInclude = nam_ "cpp-include" &= typDir &= help "CPP include path"
-    ,cmdCppSimple = nam_ "cpp-simple" &= help "Use a simple CPP (strip # lines)"
-    ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
-    } &= explicit &= name "hlint" &= program "hlint"
+mode = cmdArgsMode $ modes
+    [CmdMain
+        {cmdFiles = def &= args &= typ "FILE/DIR"
+        ,cmdReports = nam "report" &= opt "report.html" &= typFile &= help "Generate a report in HTML"
+        ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
+        ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
+        ,cmdColor = nam "colour" &= name "color" &= help "Color output (requires ANSI terminal)"
+        ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
+        ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
+        ,cmdExtension = nam "extension" &= typ "EXT" &= help "File extensions to search (default hs/lhs)"
+        ,cmdLanguage = nam_ "language" &= name "X" &= typ "EXTENSION" &= help "Language extensions (Arrows, NoCPP)"
+        ,cmdUtf8 = nam "utf8" &= help "Use UTF-8 text encoding"
+        ,cmdEncoding = nam_ "encoding" &= typ "ENCODING" &= help "Choose the text encoding"
+        ,cmdCross = nam_ "cross" &= help "Work between modules"
+        ,cmdFindHints = nam "find" &= typFile &= help "Find hints in a Haskell file"
+        ,cmdDataDir = nam "datadir" &= typDir &= help "Override the data directory"
+        ,cmdPath = nam "path" &= help "Directory in which to search for files"
+        ,cmdCppDefine = nam_ "cpp-define" &= typ "NAME[=VALUE]" &= help "CPP #define"
+        ,cmdCppInclude = nam_ "cpp-include" &= typDir &= help "CPP include path"
+        ,cmdCppSimple = nam_ "cpp-simple" &= help "Use a simple CPP (strip # lines)"
+        ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
+        } &= auto &= explicit &= name "lint"
+        &= details ["HLint gives hints on how to improve Haskell code."
+                 ,""
+                 ,"To check all Haskell files in 'src' and generate a report type:"
+                 ,"  hlint src --report"]
+    ,CmdTest
+        {cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
+        } &= explicit &= name "test"
+    ] &= program "hlint"
     &= summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2014")
-    &= details ["HLint gives hints on how to improve Haskell code."
-             ,""
-             ,"To check all Haskell files in 'src' and generate a report type:"
-             ,"  hlint src --report"]
     where
         nam xs@(x:_) = nam_ xs &= name [x]
         nam_ xs = def &= explicit &= name xs
 
 cmdHintFiles :: Cmd -> IO [FilePath]
-cmdHintFiles Cmd{..} = mapM (getHintFile cmdDataDir) $ cmdGivenHints ++ ["HLint" | null cmdGivenHints && null cmdWithHints]
+cmdHintFiles cmd = mapM (getHintFile $ cmdDataDir cmd) $ cmdGivenHints cmd ++ ["HLint" | null (cmdGivenHints cmd) && null (cmdWithHints cmd)]
 
 cmdExtensions :: Cmd -> [Extension]
 cmdExtensions = getExtensions . cmdLanguage
 
 
 cmdCpp :: Cmd -> CppFlags
-cmdCpp cmd@Cmd{..}
+cmdCpp cmd@CmdMain{..}
     | cmdCppSimple = CppSimple
     | EnableExtension CPP `elem` cmdExtensions cmd = Cpphs defaultCpphsOptions
         {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi}
@@ -120,7 +134,7 @@ x <\> y = x </> y
 
 
 resolveFile :: Cmd -> FilePath -> IO [FilePath]
-resolveFile Cmd{..} = getFile cmdPath cmdExtension
+resolveFile CmdMain{..} = getFile cmdPath cmdExtension
 
 
 getFile :: [FilePath] -> [String] -> FilePath -> IO [FilePath]

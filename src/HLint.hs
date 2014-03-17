@@ -48,20 +48,27 @@ suggestionSeverity = ideaSeverity . fromSuggestion
 -- >    when (length hints > 3) $ error "Too many hints!"
 hlint :: [String] -> IO [Suggestion]
 hlint args = do
-    cmd@Cmd{..} <- getCmd args
+    cmd <- getCmd args
+    case cmd of
+        CmdMain{} -> hlintMain cmd
+        CmdTest{} -> hlintTest cmd >> return []
 
-    encoding <- readEncoding cmdEncoding
-    let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
-    if cmdTest then do
-        failed <- test (void . hlint) cmdDataDir cmdGivenHints
-        when (failed > 0) exitFailure
-        return []
-     else if notNull cmdProof then do
-        s <- readAllSettings cmd flags
+hlintTest :: Cmd -> IO ()
+hlintTest cmd@CmdTest{..} = do
+    if notNull cmdProof then do
+        files <- cmdHintFiles cmd
+        s <- readSettings2 cmdDataDir files []
         let reps = if cmdReports == ["report.html"] then ["report.txt"] else cmdReports
         mapM_ (proof reps s) cmdProof
-        return []
-     else if null cmdFiles && notNull cmdFindHints then do
+     else do
+        failed <- test (void . hlint) cmdDataDir cmdGivenHints
+        when (failed > 0) exitFailure
+
+hlintMain :: Cmd -> IO [Suggestion]
+hlintMain cmd@CmdMain{..} = do
+    encoding <- readEncoding cmdEncoding
+    let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
+    if null cmdFiles && notNull cmdFindHints then do
         hints <- concatMapM (resolveFile cmd) cmdFindHints
         mapM_ (\x -> putStrLn . fst =<< findSettings2 flags x) hints >> return []
      else if null cmdFiles then
@@ -74,7 +81,7 @@ hlint args = do
             runHints cmd{cmdFiles=files} flags
 
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
-readAllSettings cmd@Cmd{..} flags = do
+readAllSettings cmd@CmdMain{..} flags = do
     files <- cmdHintFiles cmd
     settings1 <- readSettings2 cmdDataDir files cmdWithHints
     settings2 <- concatMapM (fmap snd . findSettings2 flags) cmdFindHints
@@ -83,7 +90,7 @@ readAllSettings cmd@Cmd{..} flags = do
 
 
 runHints :: Cmd -> ParseFlags -> IO [Suggestion]
-runHints cmd@Cmd{..} flags = do
+runHints cmd@CmdMain{..} flags = do
     let outStrLn = whenNormal . putStrLn
     settings <- readAllSettings cmd flags
 

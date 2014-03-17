@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Change to make test a separate mode
     #12, more list based suggestions
     #637, turn off QuasiQuotes by default
 1.8.59
