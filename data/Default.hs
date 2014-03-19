@@ -386,13 +386,13 @@ error = [a | Right a <- a] ==> rights a
 
 -- INFIX
 
-warn "Use infix" = X.elem x y ==> x `X.elem` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = X.notElem x y ==> x `X.notElem` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = X.isInfixOf x y ==> x `X.isInfixOf` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = X.isSuffixOf x y ==> x `X.isSuffixOf` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = X.isPrefixOf x y ==> x `X.isPrefixOf` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = X.union x y ==> x `X.union` y where _ = not (isInfixApp original) && not (isParen result)
-warn "Use infix" = X.intersect x y ==> x `X.intersect` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = elem x y ==> x `elem` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = notElem x y ==> x `notElem` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = isInfixOf x y ==> x `isInfixOf` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = isSuffixOf x y ==> x `isSuffixOf` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = isPrefixOf x y ==> x `isPrefixOf` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = union x y ==> x `union` y where _ = not (isInfixApp original) && not (isParen result)
+warn "Use infix" = intersect x y ==> x `intersect` y where _ = not (isInfixApp original) && not (isParen result)
 
 -- MATHS
 
@@ -559,10 +559,8 @@ error = a $$$$ b $$$$ c ==> a . b $$$$$ c
 yes = when (not . null $ asdf) -- unless (null asdf)
 yes = id 1 -- 1
 yes = case concat (map f x) of [] -> [] -- concatMap f x
-yes = Map.union a b -- a `Map.union` b
 yes = [v | v <- xs] -- xs
 no  = [Left x | Left x <- xs]
-yes = Map.union a b -- a `Map.union` b
 when p s = if p then s else return ()
 no = x ^^ 18.5
 instance Arrow (->) where first f = f *** id

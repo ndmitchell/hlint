@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #30, remove weird "free module" matching
     #15, add prototype grep mode
     Change to make test a separate mode
     #12, more list based suggestions

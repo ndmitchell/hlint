@@ -131,9 +131,6 @@ unifyDef nm x y = fmap concat . sequence =<< gzip (unify nm False) x y
 unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
 unifyExp nm root x y | isParen x || isParen y = unifyExp nm root (fromParen x) (fromParen y)
 unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
-unifyExp nm root (Var _ (Qual _ (ModuleName _ [m]) x)) (Var _ y)
-    | Qual _ (ModuleName _ m2) y <- y, y == x = Just [([m], Var an $ UnQual an $ Ident an m2)]
-    | UnQual _ y <- y, y == x = Just [([m], Var an $ UnQual an $ Ident an "")]
 unifyExp nm root (Var _ x) (Var _ y) | nm x y = Just []
 unifyExp nm root x@(App _ x1 x2) (App _ y1 y2) =
     liftM2 (++) (unifyExp nm False x1 y1) (unifyExp nm False x2 y2) `mplus`
