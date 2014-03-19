@@ -36,6 +36,7 @@ automatic CmdGrep{..} = do
 automatic CmdTest{..} = do
     cmdDataDir <- if cmdDataDir == "" then getDataDir else return cmdDataDir
     return CmdTest{..}
+automatic x = return x
 
 
 exitWithHelp :: IO a
@@ -93,6 +94,9 @@ data Cmd
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
         }
+    | CmdHSE
+        {cmdFiles :: [FilePath]
+        }
     deriving (Data,Typeable,Show)
 
 mode = cmdArgsMode $ modes
@@ -128,6 +132,8 @@ mode = cmdArgsMode $ modes
                  ,""
                  ,"To check all Haskell files in 'src' and generate a report type:"
                  ,"  hlint src --report"]
+    ,CmdHSE
+        {} &= explicit &= name "hse"
     ] &= program "hlint"
     &= summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2014")
     where

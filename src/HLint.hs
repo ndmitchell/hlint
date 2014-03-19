@@ -53,7 +53,22 @@ hlint args = do
     case cmd of
         CmdMain{} -> hlintMain cmd
         CmdGrep{} -> hlintGrep cmd >> return []
+        CmdHSE{}  -> hlintHSE  cmd >> return []
         CmdTest{} -> hlintTest cmd >> return []
+
+hlintHSE :: Cmd -> IO ()
+hlintHSE CmdHSE{..} = do
+    v <- getVerbosity
+    forM_ cmdFiles $ \x -> do
+        putStrLn $ "Parse result of " ++ x ++ ":"
+        res <- parseFile x
+        case res of
+            x@ParseFailed{} -> print x
+            ParseOk m -> case v of
+                Loud -> print m
+                Quiet -> print $ prettyPrint m
+                _ -> print $ fmap (const ()) m
+        putStrLn ""
 
 hlintTest :: Cmd -> IO ()
 hlintTest cmd@CmdTest{..} = do
