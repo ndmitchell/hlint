@@ -1,18 +1,11 @@
 
-import Control.Monad
-import System.Cmd
-import System.Exit
-
+import Neil
 
 main :: IO ()
 main = do
     cmd "hlint test"
-    cmd "time hlint src; true"
+    (time,_) <- duration $ cmdOut "time hlint src"
+    print $ "Running HLint on self took " ++ show time ++ "s"
     cmd "ghc -threaded -rtsopts -isrc -i. src/Paths.hs src/Main.hs --make -O -prof -auto-all -caf-all"
-    cmd "src/Main src +RTS -p; true"
+    cmdOut "src/Main src +RTS -p"
     cmd "cat src/Main.prof"
-
-cmd :: String -> IO ()
-cmd x = do
-    res <- system x
-    when (res /= ExitSuccess) $ error $ "Failed in system command: " ++ x
