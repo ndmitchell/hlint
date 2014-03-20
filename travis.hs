@@ -5,7 +5,12 @@ import System.Exit
 
 
 main :: IO ()
-main = cmd "hlint_datadir=data hlint test"
+main = do
+    cmd "hlint test"
+    cmd "time hlint src; true"
+    cmd "ghc src/Main.hs --make -O -prof -auto-all -caf-all"
+    cmd "src/Main src +RTS -p; true"
+    cmd "cat src/Main.prof"
 
 
 cmd :: String -> IO ()
