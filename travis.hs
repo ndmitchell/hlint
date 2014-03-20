@@ -8,10 +8,9 @@ main :: IO ()
 main = do
     cmd "hlint test"
     cmd "time hlint src; true"
-    cmd "ghc src/Main.hs --make -O -prof -auto-all -caf-all"
+    cmd "ghc -threaded -rtsopts -isrc -i. src/Paths.hs src/Main.hs --make -O -prof -auto-all -caf-all"
     cmd "src/Main src +RTS -p; true"
     cmd "cat src/Main.prof"
-
 
 cmd :: String -> IO ()
 cmd x = do
