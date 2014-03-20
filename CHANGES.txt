@@ -1,6 +1,6 @@
 Changelog for HLint
 
-    #31, make elem/notElem hints only a warning
+    #31, delete the elem/notElem hints
     #30, remove weird "free module" matching
     #15, add prototype grep mode
     Change to make test a separate mode

@@ -61,8 +61,8 @@ error = compare x y /= GT ==> x <= y
 error = compare x y == LT ==> x < y
 error = compare x y /= LT ==> x >= y
 error = compare x y == GT ==> x > y
-warning = x == a || x == b || x == c ==> x `elem` [a,b,c] where note = ValidInstance "Eq" x
-warning = x /= a && x /= b && x /= c ==> x `notElem` [a,b,c] where note = ValidInstance "Eq" x
+--warning = x == a || x == b || x == c ==> x `elem` [a,b,c] where note = ValidInstance "Eq" x
+--warning = x /= a && x /= b && x /= c ==> x `notElem` [a,b,c] where note = ValidInstance "Eq" x
 --error = compare (f x) (f y) ==> Data.Ord.comparing f x y -- not that great
 --error = on compare f ==> Data.Ord.comparing f -- not that great
 error = head (sort x) ==> minimum x
