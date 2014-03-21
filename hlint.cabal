@@ -12,6 +12,7 @@ synopsis:           Source code suggestions
 description:
     HLint gives suggestions on how to improve your source code.
 homepage:           http://community.haskell.org/~ndm/hlint/
+bug-reports:        https://github.com/ndmitchell/hlint/issues
 data-dir:           data
 data-files:
     Default.hs
