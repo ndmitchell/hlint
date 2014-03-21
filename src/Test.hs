@@ -86,12 +86,15 @@ testInputOutput main = do
     (add,sub) <- fmap (second concat . unzip . concat) $ forM bulk $ \file -> do
         ios <- parseInputOutputs <$> readFile ("tests" </> file)
         forM (zip [1..] ios) $ \(i,InputOutput{..}) -> do
-            mapM_ (uncurry writeFile) files
+            forM_ files $ \(name,contents) -> do
+                createDirectoryIfMissing True $ takeDirectory name
+                writeFile name contents
             let name = "_" ++ takeBaseName file ++ "_" ++ show i
             writeFile ("tests" </> name <.> "flags") $ unlines run
             writeFile ("tests" </> name <.> "output") output
             return (map (name <.>) ["flags","output"], map fst files)
-    res <- results $ mapM (checkInputOutput main) $ add ++ groupBy ((==) `on` takeBaseName) (sort $ filter (not . isPrefixOf "_") $ filter (not . isPrefixOf ".") $ xs \\ map takeFileName sub)
+    res <- results $ mapM (checkInputOutput main) $ add ++ groupBy ((==) `on` takeBaseName)
+        (sort $ filter (not . null . takeExtension) $ filter (not . isPrefixOf "_") $ filter (not . isPrefixOf ".") $ xs \\ map takeFileName sub)
     mapM_ removeFile sub
     forM_ (concat add) $ \x -> removeFile $ "tests" </> x
     return res
