@@ -250,7 +250,7 @@ checkInputOutput main xs = do
         else if has "lhs" then return ["tests/" ++ pre <.> "lhs"]
         else error $ "checkInputOutput, couldn't find or figure out flags for " ++ pre
 
-    got <- fmap (map rtrim . lines) $ captureOutput $
+    got <- fmap (reverse . dropWhile null . reverse . map rtrim . lines) $ captureOutput $
         handle (\(e::SomeException) -> print e) $
         handle (\(e::ExitCode) -> return ()) $
         main flags
