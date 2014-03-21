@@ -1,0 +1,32 @@
+---------------------------------------------------------------------
+RUN tests/directory
+FILE tests/directory/File1.hs
+ foo = map f . map g
+FILE tests/directory/File2.lhs
+
+> foo = map f . map g
+OUTPUT
+tests/directory*File1.hs:1:8: Warning: Use map once
+Found:
+  map f . map g
+Why not:
+  map (f . g)
+
+tests/directory*File2.lhs:3:9: Warning: Use map once
+Found:
+  map f . map g
+Why not:
+  map (f . g)
+
+2 suggestions
+
+---------------------------------------------------------------------
+RUN tests/directory --extension=lhs
+OUTPUT
+tests/directory*File2.lhs:3:9: Warning: Use map once
+Found:
+  map f . map g
+Why not:
+  map (f . g)
+
+1 suggestion

@@ -1,7 +1,0 @@
-tests/directory*File2.lhs:3:9: Warning: Use map once
-Found:
-  map f . map g
-Why not:
-  map (f . g)
-
-1 suggestion
