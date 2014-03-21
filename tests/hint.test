@@ -1,0 +1,66 @@
+---------------------------------------------------------------------
+RUN tests/newtype-derive.hs
+FILE tests/newtype-derive.hs
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+module Test where
+
+import Data.Foldable (Foldable)
+import Data.Traversable (Traversable)
+import Data.Typeable (Typeable)
+
+newtype A f = A f
+  deriving (Foldable, Functor, Traversable, Typeable)
+OUTPUT
+No suggestions
+
+---------------------------------------------------------------------
+RUN tests/note.hs
+FILE tests/note.hs
+{-# LANGUAGE RecordWildCards #-}
+
+module Sample where
+
+test xs = length xs == 0
+OUTPUT
+tests/note.hs:1:1: Error: Unused LANGUAGE pragma
+Found:
+  {-# LANGUAGE RecordWildCards #-}
+Why not remove it.
+Note: you may need to add DisambiguateRecordFields
+
+tests/note.hs:5:11: Warning: Use null
+Found:
+  length xs == 0
+Why not:
+  null xs
+Note: increases laziness
+
+2 suggestions
+
+---------------------------------------------------------------------
+RUN tests/brackets.hs
+FILE tests/brackets.hs
+test = if isNothing x then (-1.0) else fromJust x
+OUTPUT
+tests/brackets.hs:1:8: Error: Use fromMaybe
+Found:
+  if isNothing x then (-1.0) else fromJust x
+Why not:
+  fromMaybe (-1.0) x
+
+1 suggestion
+
+---------------------------------------------------------------------
+RUN tests/typesig-ignore.hs
+FILE tests/typesig-ignore.hs
+-- Bug #563
+module Foo where
+{-# ANN foobar "HLint: ignore Use String" #-}
+
+foobar :: [Char]
+foobar = []
+OUTPUT
+No suggestions (1 ignored)
