@@ -1,0 +1,34 @@
+---------------------------------------------------------------------
+RUN tests/lhs-line-numbers.lhs
+FILE tests/lhs-line-numbers.lhs
+BUG 331
+
+> main = print ([1] ++ [2, 3])
+OUTPUT
+tests/lhs-line-numbers.lhs:4:17: Warning: Use :
+Found:
+  [1] ++ [2, 3]
+Why not:
+  1 : [2, 3]
+
+1 suggestion
+
+---------------------------------------------------------------------
+RUN tests/lhs-line-numbers2.lhs
+FILE tests/lhs-line-numbers2.lhs
+BUG 331
+%  Blah1
+%  Blah2
+%  Blah3
+
+\begin{code}
+module
+\end{code}
+OUTPUT
+tests/lhs-line-numbers2.lhs:11:1: Warning: Parse error: EOF
+Found:
+    \end{code}
+
+  >
+
+1 suggestion

@@ -1,7 +1,0 @@
-tests/lhs-line-numbers.lhs:4:17: Warning: Use :
-Found:
-  [1] ++ [2, 3]
-Why not:
-  1 : [2, 3]
-
-1 suggestion
