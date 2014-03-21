@@ -1,8 +1,9 @@
-{-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards #-}
+{-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
 
 module Test(test) where
 
 import Control.Applicative
+import Control.Arrow
 import Control.Exception
 import Control.Monad
 import Data.Char
@@ -81,8 +82,37 @@ testSourceFiles = mconcat <$> sequence
 testInputOutput :: ([String] -> IO ()) -> IO Result
 testInputOutput main = do
     xs <- getDirectoryContents "tests"
-    results $ mapM (checkInputOutput main) $ groupBy ((==) `on` takeBaseName) $ sort $ filter (not . isPrefixOf ".") xs
+    (bulk, xs) <- return $ partition ((==) ".test" . takeExtension) xs
+    (add,sub) <- fmap (second concat . unzip . concat) $ forM bulk $ \file -> do
+        ios <- parseInputOutputs <$> readFile ("tests" </> file)
+        forM (zip [1..] ios) $ \(i,InputOutput{..}) -> do
+            mapM_ (uncurry writeFile) files
+            let name = "_" ++ takeBaseName file ++ "_" ++ show i
+            writeFile ("tests" </> name <.> "flags") $ unlines run
+            writeFile ("tests" </> name <.> "output") output
+            return (map (name <.>) ["flags","output"], map fst files)
+    results $ mapM (checkInputOutput main) $ add ++ groupBy ((==) `on` takeBaseName) (sort $ filter (not . isPrefixOf "_") $ filter (not . isPrefixOf ".") $ xs \\ map takeFileName sub)
 
+data InputOutput = InputOutput
+    {files :: [(FilePath, String)]
+    ,run :: [String]
+    ,output :: String
+    } deriving Eq
+
+parseInputOutputs :: String -> [InputOutput]
+parseInputOutputs = f z . lines
+    where
+        z = InputOutput [] [] ""
+        interest x = any (`isPrefixOf` x) ["----","FILE","RUN","OUTPUT"]
+
+        f io ((stripPrefix "RUN " -> Just flags):xs) = f io{run = words flags} xs
+        f io ((stripPrefix "FILE " -> Just file):xs) | (str,xs) <- g xs = f io{files = files io ++ [(file,unlines str)]} xs
+        f io ("OUTPUT":xs) | (str,xs) <- g xs = f io{output = unlines str} xs
+        f io ((isPrefixOf "----" -> True):xs) = [io | io /= z] ++ f z xs
+        f io [] = [io | io /= z]
+        f io (x:xs) = error $ "Unknown test item, " ++ x
+
+        g = first (reverse . dropWhile null . reverse) . break interest
 
 ---------------------------------------------------------------------
 -- VARIOUS SMALL TESTS
