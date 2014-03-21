@@ -91,7 +91,10 @@ testInputOutput main = do
             writeFile ("tests" </> name <.> "flags") $ unlines run
             writeFile ("tests" </> name <.> "output") output
             return (map (name <.>) ["flags","output"], map fst files)
-    results $ mapM (checkInputOutput main) $ add ++ groupBy ((==) `on` takeBaseName) (sort $ filter (not . isPrefixOf "_") $ filter (not . isPrefixOf ".") $ xs \\ map takeFileName sub)
+    res <- results $ mapM (checkInputOutput main) $ add ++ groupBy ((==) `on` takeBaseName) (sort $ filter (not . isPrefixOf "_") $ filter (not . isPrefixOf ".") $ xs \\ map takeFileName sub)
+    mapM_ removeFile sub
+    forM_ (concat add) $ \x -> removeFile $ "tests" </> x
+    return res
 
 data InputOutput = InputOutput
     {files :: [(FilePath, String)]
