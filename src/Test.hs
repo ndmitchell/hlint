@@ -211,7 +211,7 @@ checkInputOutput main xs = do
         if has "flags" then lines <$> reader "flags"
         else if has "hs" then return ["tests/" ++ pre <.> "hs"]
         else if has "lhs" then return ["tests/" ++ pre <.> "lhs"]
-        else error "checkInputOutput, couldn't find or figure out flags"
+        else error $ "checkInputOutput, couldn't find or figure out flags for " ++ pre
 
     got <- fmap (map rtrim . lines) $ captureOutput $
         handle (\(e::SomeException) -> print e) $
