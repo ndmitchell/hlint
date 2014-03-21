@@ -14,6 +14,7 @@ import Data.Function
 import System.Directory
 import System.FilePath
 import System.IO
+import System.Console.CmdArgs.Explicit
 import System.Cmd
 import System.Exit
 
@@ -111,7 +112,7 @@ parseInputOutputs = f z . lines
         z = InputOutput [] [] ""
         interest x = any (`isPrefixOf` x) ["----","FILE","RUN","OUTPUT"]
 
-        f io ((stripPrefix "RUN " -> Just flags):xs) = f io{run = words flags} xs
+        f io ((stripPrefix "RUN " -> Just flags):xs) = f io{run = splitArgs flags} xs
         f io ((stripPrefix "FILE " -> Just file):xs) | (str,xs) <- g xs = f io{files = files io ++ [(file,unlines str)]} xs
         f io ("OUTPUT":xs) | (str,xs) <- g xs = f io{output = unlines str} xs
         f io ((isPrefixOf "----" -> True):xs) = [io | io /= z] ++ f z xs
