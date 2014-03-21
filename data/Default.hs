@@ -426,7 +426,6 @@ warn = Control.Exception.bracket b (const a) (const t) ==> Control.Exception.bra
 warn = Control.Exception.bracket (openFile x y) hClose ==> withFile x y
 warn = Control.Exception.bracket (openBinaryFile x y) hClose ==> withBinaryFile x y
 warn = throw (ErrorCall a) ==> error a
-error = a `seq` return a ==> Control.Exception.evaluate a
 error = toException NonTermination ==> nonTermination
 error = toException NestedAtomically ==> nestedAtomically
 
@@ -605,6 +604,7 @@ foo = return $! (a,b) -- return (a,b)
 foo = return $! 1
 foo = return $! "test"
 bar = [x| (x,_) <- pts]
+return' x = x `seq` return x
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

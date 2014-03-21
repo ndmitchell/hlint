@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #639, don't suggest evaluate, because not all Monad's are IO
     #31, delete the elem/notElem hints
     #30, remove weird "free module" matching
     #15, add prototype grep mode
