@@ -1,3 +1,9 @@
+---------------------------------------------------------------------
+RUN test --hint=tests/test-hints-fail.hs
+FILE tests/test-hints-fail.hs
+import Control.Arrow
+error = (&&&) ==> (***)
+OUTPUT
 
 tests*test-hints-fail.hs:2:*
     Occurs check: cannot construct the infinite type: b*

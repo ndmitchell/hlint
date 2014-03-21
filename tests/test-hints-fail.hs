@@ -1,2 +1,0 @@
-import Control.Arrow
-error = (&&&) ==> (***)
