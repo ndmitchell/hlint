@@ -1,3 +1,0 @@
---with=infixr 5 !:
---hint=HLint
-tests/fixity-flag.hs

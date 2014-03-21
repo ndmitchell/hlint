@@ -1,0 +1,12 @@
+---------------------------------------------------------------------
+RUN "--with=infixr 5 !:" --hint=HLint tests/fixity-flag.hs
+FILE tests/fixity-flag.hs
+foo x = Nothing !: Just x : []
+OUTPUT
+tests/fixity-flag.hs:1:20: Warning: Use list literal
+Found:
+  Just x : []
+Why not:
+  [Just x]
+
+1 suggestion

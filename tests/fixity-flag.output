@@ -1,7 +1,0 @@
-tests/fixity-flag.hs:1:20: Warning: Use list literal
-Found:
-  Just x : []
-Why not:
-  [Just x]
-
-1 suggestion
