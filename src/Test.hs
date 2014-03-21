@@ -83,8 +83,8 @@ testSourceFiles = mconcat <$> sequence
 testInputOutput :: ([String] -> IO ()) -> IO Result
 testInputOutput main = do
     xs <- getDirectoryContents "tests"
-    (bulk, xs) <- return $ partition ((==) ".test" . takeExtension) xs
-    (add,sub) <- fmap (second concat . unzip . concat) $ forM bulk $ \file -> do
+    files <- return $ filter ((==) ".test" . takeExtension) xs
+    (add,sub) <- fmap (second concat . unzip . concat) $ forM files $ \file -> do
         ios <- parseInputOutputs <$> readFile ("tests" </> file)
         forM (zip [1..] ios) $ \(i,InputOutput{..}) -> do
             forM_ files $ \(name,contents) -> do
@@ -94,8 +94,7 @@ testInputOutput main = do
             writeFile ("tests" </> name <.> "flags") $ unlines run
             writeFile ("tests" </> name <.> "output") output
             return (map (name <.>) ["flags","output"], map fst files)
-    res <- results $ mapM (checkInputOutput main) $ add ++ groupBy ((==) `on` takeBaseName)
-        (sort $ filter (not . null . takeExtension) $ filter (not . isPrefixOf "_") $ filter (not . isPrefixOf ".") $ xs \\ map takeFileName sub)
+    res <- results $ mapM (checkInputOutput main) add
     mapM_ removeFile sub
     forM_ (concat add) $ \x -> removeFile $ "tests" </> x
     return res
