@@ -1,0 +1,33 @@
+---------------------------------------------------------------------
+RUN tests/cross.hs1 tests/cross.hs2 --cross
+FILE tests/cross.hs1
+
+module B where
+
+
+bar = 1
+    where
+        a = 1
+        b = 2
+        c = 3
+
+FILE tests/cross.hs2
+        
+module A where
+
+foo = 1
+    where
+        a = 1
+        b = 2
+        c = 3
+
+OUTPUT
+tests/cross.hs1:7:9: Warning: Reduce duplication
+Found:
+  a = 1
+  b = 2
+  c = 3
+Why not:
+  Combine with tests/cross.hs2:6:9
+
+1 suggestion
