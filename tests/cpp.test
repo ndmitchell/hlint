@@ -1,0 +1,32 @@
+---------------------------------------------------------------------
+RUN tests/cpp-full.hs
+FILE tests/cpp-full.hs
+/* this is a test */
+
+main = putStrLn $ show "Hello"
+OUTPUT
+tests/cpp-full.hs:3:8: Error: Use print
+Found:
+  putStrLn $ show "Hello"
+Why not:
+  print "Hello"
+
+1 suggestion
+
+---------------------------------------------------------------------
+RUN -XNoCPP tests/cpp-none.hs
+FILE tests/cpp-none.hs
+#include "Any/File.h"
+
+main = print "Hello"
+OUTPUT
+No suggestions
+
+---------------------------------------------------------------------
+RUN --cpp-simple tests/cpp-simple.hs
+FILE tests/cpp-simple.hs
+#include "Any/File.h"
+
+main = print "Hello"
+OUTPUT
+No suggestions
