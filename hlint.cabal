@@ -87,6 +87,7 @@ library
         Hint.Util
         Test.Proof
         Test.Standard
+        Test.Util
 
 
 executable hlint

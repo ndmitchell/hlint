@@ -25,19 +25,7 @@ import Idea
 import Apply
 import HSE.All
 import Hint.All
-
-data Result = Result {_failures :: Int, _total :: Int}
-pass = Result 0 1
-failure = Result 1 1
-result x = if x then pass else failure
-results = fmap mconcat
-
-instance Monoid Result where
-    mempty = Result 0 0
-    mappend (Result f1 t1) (Result f2 t2) = Result (f1+f2) (t1+t2)
-
-progress = putChar '.'
-failed xs = putStrLn $ unlines $ "" : xs
+import Test.Util
 
 
 test :: ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
