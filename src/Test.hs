@@ -104,15 +104,17 @@ data InputOutput = InputOutput
     {files :: [(FilePath, String)]
     ,run :: [String]
     ,output :: String
+    ,exit :: Int
     } deriving Eq
 
 parseInputOutputs :: String -> [InputOutput]
 parseInputOutputs = f z . lines
     where
-        z = InputOutput [] [] ""
-        interest x = any (`isPrefixOf` x) ["----","FILE","RUN","OUTPUT"]
+        z = InputOutput [] [] "" 0
+        interest x = any (`isPrefixOf` x) ["----","FILE","RUN","OUTPUT","EXIT"]
 
         f io ((stripPrefix "RUN " -> Just flags):xs) = f io{run = splitArgs flags} xs
+        f io ((stripPrefix "EXIT " -> Just code):xs) = f io{exit = read code} xs
         f io ((stripPrefix "FILE " -> Just file):xs) | (str,xs) <- g xs = f io{files = files io ++ [(file,unlines str)]} xs
         f io ("OUTPUT":xs) | (str,xs) <- g xs = f io{output = unlines str} xs
         f io ((isPrefixOf "----" -> True):xs) = [io | io /= z] ++ f z xs
