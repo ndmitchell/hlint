@@ -1,0 +1,6 @@
+---------------------------------------------------------------------
+RUN tests/flag-quiet.hs --quiet
+FILE tests/flag-quiet.hs
+main = map f $ map g xs
+OUTPUT
+EXIT 1
