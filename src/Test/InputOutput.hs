@@ -92,7 +92,8 @@ checkInputOutput main xs = do
             ,"DIFFER ON LINE: " ++ show i
             ,"GOT : " ++ g
             ,"WANT: " ++ w]
-        when (null want) $ putStrLn $ unlines $ "FULL OUTPUT FOR GOT:" : got
+        v <- getVerbosity
+        when (null want || v >= Loud) $ putStrLn $ unlines $ "FULL OUTPUT FOR GOT:" : got
         return failure
 
 
