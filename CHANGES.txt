@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #33, add --cpp-file to preinclude a file
     #34, add back --quiet flag
     #639, don't suggest evaluate, because not all Monad's are IO
     #31, delete the elem/notElem hints

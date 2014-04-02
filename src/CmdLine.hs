@@ -71,6 +71,7 @@ data Cmd
         ,cmdPath :: [String]
         ,cmdCppDefine :: [String]
         ,cmdCppInclude :: [FilePath]
+        ,cmdCppFile :: [FilePath]
         ,cmdCppSimple :: Bool
         ,cmdCppAnsi :: Bool
         }
@@ -84,6 +85,7 @@ data Cmd
         ,cmdPath :: [String]
         ,cmdCppDefine :: [String]
         ,cmdCppInclude :: [FilePath]
+        ,cmdCppFile :: [FilePath]
         ,cmdCppSimple :: Bool
         ,cmdCppAnsi :: Bool
         }
@@ -118,6 +120,7 @@ mode = cmdArgsMode $ modes
         ,cmdPath = nam "path" &= help "Directory in which to search for files"
         ,cmdCppDefine = nam_ "cpp-define" &= typ "NAME[=VALUE]" &= help "CPP #define"
         ,cmdCppInclude = nam_ "cpp-include" &= typDir &= help "CPP include path"
+        ,cmdCppFile = nam_ "cpp-file" &= typDir &= help "CPP pre-include file"
         ,cmdCppSimple = nam_ "cpp-simple" &= help "Use a simple CPP (strip # lines)"
         ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
         } &= auto &= explicit &= name "lint"
@@ -153,6 +156,7 @@ cmdCpp cmd
     | EnableExtension CPP `elem` cmdExtensions cmd = Cpphs defaultCpphsOptions
         {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi cmd}
         ,includes = cmdCppInclude cmd
+        ,preInclude = cmdCppFile cmd
         ,defines = [(a,drop 1 b) | x <- cmdCppDefine cmd, let (a,b) = break (== '=') x]
         }
     | otherwise = NoCpp
