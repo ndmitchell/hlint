@@ -85,6 +85,7 @@ library
         Hint.Structure
         Hint.Type
         Hint.Util
+        Test.InputOutput
         Test.Proof
         Test.Standard
         Test.Util
