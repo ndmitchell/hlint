@@ -104,7 +104,7 @@ data InputOutput = InputOutput
     {files :: [(FilePath, String)]
     ,run :: [String]
     ,output :: String
-    ,exit :: Int
+    ,exit :: Int -- FIXME: Not currently checked
     } deriving Eq
 
 parseInputOutputs :: String -> [InputOutput]
