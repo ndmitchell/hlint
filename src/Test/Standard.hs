@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
 
-module Test(test) where
+module Test.Standard(test) where
 
 import Control.Applicative
 import Control.Arrow

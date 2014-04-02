@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards, PatternGuards #-}
 
-module Proof(proof) where
+module Test.Proof(proof) where
 
 import Control.Applicative
 import Control.Arrow

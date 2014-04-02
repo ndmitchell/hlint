@@ -13,9 +13,9 @@ import Settings
 import Report
 import Idea
 import Apply
-import Test
+import Test.Standard
 import Grep
-import Proof
+import Test.Proof
 import Util
 import Parallel
 import HSE.All

@@ -60,8 +60,6 @@ library
         Idea
         Settings
         Report
-        Proof
-        Test
         Util
         Parallel
         HSE.All
@@ -87,6 +85,8 @@ library
         Hint.Structure
         Hint.Type
         Hint.Util
+        Test.Proof
+        Test.Standard
 
 
 executable hlint
