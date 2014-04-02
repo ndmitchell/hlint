@@ -134,8 +134,8 @@ mode = cmdArgsMode $ modes
                  ,"  hlint src --report"]
     ,CmdHSE
         {} &= explicit &= name "hse"
-    ] &= program "hlint"
-    &= summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2014")
+    ] &= program "hlint" &= verbosity
+    &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2014")
     where
         nam xs@(x:_) = nam_ xs &= name [x]
         nam_ xs = def &= explicit &= name xs
