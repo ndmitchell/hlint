@@ -30,3 +30,15 @@ FILE tests/cpp-simple.hs
 main = print "Hello"
 OUTPUT
 No suggestions
+
+---------------------------------------------------------------------
+RUN --cpp-file=tests/cabal_macros.h tests/cpp-file.hs
+FILE tests/cabal_macros.h
+#define MIN_VERSION_wai(a,b,c) 1
+FILE tests/cpp-file.hs
+import Network.Wai
+#if MIN_VERSION_wai(2, 0, 0)
+import Network.Wai.Internal
+#endif
+OUTPUT
+No suggestions
