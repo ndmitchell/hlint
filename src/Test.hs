@@ -15,6 +15,7 @@ import System.Directory
 import System.FilePath
 import System.IO
 import System.Console.CmdArgs.Explicit
+import System.Console.CmdArgs.Verbosity
 import System.Cmd
 import System.Exit
 
@@ -251,8 +252,8 @@ checkInputOutput main xs = do
 
     got <- fmap (reverse . dropWhile null . reverse . map rtrim . lines) $ captureOutput $
         handle (\(e::SomeException) -> print e) $
-        handle (\(e::ExitCode) -> return ()) $
-        main flags
+        handle (\(e::ExitCode) -> return ()) $ do
+        bracket getVerbosity setVerbosity $ const $ setVerbosity Normal >> main flags
     want <- lines <$> reader "output"
     (want,got) <- return $ matchStarStar want got
 
