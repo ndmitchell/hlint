@@ -45,10 +45,10 @@ testHintFiles dataDir = do
 
 testHintFile :: FilePath -> FilePath -> IO ()
 testHintFile dataDir file = do
-    progress $ "Testing hint file " ++ file
     hints <- readSettings2 dataDir [file] []
     sequence_ $ nameCheckHints hints : checkAnnotations hints file :
-                [typeCheckHints file hints | takeFileName file /= "Test.hs"]
+                [typeCheckHints hints | takeFileName file /= "Test.hs"]
+    progress
 
 
 testSourceFiles :: IO ()
@@ -64,15 +64,15 @@ nameCheckHints hints = do
 
 
 -- | Given a set of hints, do all the HintRule hints type check
-typeCheckHints :: FilePath -> [Setting] -> IO ()
-typeCheckHints source hints = bracket
+typeCheckHints :: [Setting] -> IO ()
+typeCheckHints hints = bracket
     (openTempFile "." "hlinttmp.hs")
     (\(file,h) -> removeFile file)
     $ \(file,h) -> do
         hPutStrLn h $ unlines contents
         hClose h
-        progress $ "Typechecking " ++ source
         res <- system $ "runhaskell " ++ file
+        progress
         tested $ res == ExitSuccess
     where
         matches = [x | SettingMatchExp x <- hints]

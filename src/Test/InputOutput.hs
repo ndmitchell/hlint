@@ -20,7 +20,6 @@ import Test.Util
 
 testInputOutput :: ([String] -> IO ()) -> IO ()
 testInputOutput main = do
-    progress "Input/output examples"
     xs <- getDirectoryContents "tests"
     xs <- return $ filter ((==) ".test" . takeExtension) xs
     forM_ xs $ \file -> do
@@ -31,6 +30,7 @@ testInputOutput main = do
                 writeFile name contents
             checkInputOutput main io{name= "_" ++ takeBaseName file ++ "_" ++ show i}
         mapM_ (removeFile . fst) $ concatMap files ios
+    progress
 
 data InputOutput = InputOutput
     {name :: String

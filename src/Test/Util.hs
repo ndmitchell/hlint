@@ -25,16 +25,14 @@ withTests act = bracket (hGetBuffering stdout) (hSetBuffering stdout) $ const $ 
     atomicModifyIORef ref $ \r -> (Result 0 0 : r, ())
     act
     Result{..} <- atomicModifyIORef ref $ \(r:rs) -> (rs, r)
-    progress "Finishing"
     putStrLn ""
     putStrLn $ if failures == 0
         then "Tests passed (" ++ show total ++ ")"
         else "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
     return failures
 
-progress :: String -> IO ()
-progress x = putStr $ take mx (x ++ "..." ++ replicate mx ' ') ++ replicate mx '\b'
-    where mx = 69
+progress :: IO ()
+progress = putChar '.'
 
 passed :: IO ()
 passed = do
