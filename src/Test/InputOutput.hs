@@ -7,6 +7,7 @@ import Control.Arrow
 import Control.Exception
 import Control.Monad
 import Data.List
+import Data.IORef
 import System.Directory
 import System.FilePath
 import System.Console.CmdArgs.Explicit
@@ -36,17 +37,17 @@ data InputOutput = InputOutput
     ,files :: [(FilePath, String)]
     ,run :: [String]
     ,output :: String
-    ,exit :: Int -- FIXME: Not currently checked
+    ,exit :: Maybe ExitCode
     } deriving Eq
 
 parseInputOutputs :: String -> [InputOutput]
 parseInputOutputs = f z . lines
     where
-        z = InputOutput "unknown" [] [] "" 0
+        z = InputOutput "unknown" [] [] "" Nothing
         interest x = any (`isPrefixOf` x) ["----","FILE","RUN","OUTPUT","EXIT"]
 
         f io ((stripPrefix "RUN " -> Just flags):xs) = f io{run = splitArgs flags} xs
-        f io ((stripPrefix "EXIT " -> Just code):xs) = f io{exit = read code} xs
+        f io ((stripPrefix "EXIT " -> Just code):xs) = f io{exit = Just $ let i = read code in if i == 0 then ExitSuccess else ExitFailure i} xs
         f io ((stripPrefix "FILE " -> Just file):xs) | (str,xs) <- g xs = f io{files = files io ++ [(file,unlines str)]} xs
         f io ("OUTPUT":xs) | (str,xs) <- g xs = f io{output = unlines str} xs
         f io ((isPrefixOf "----" -> True):xs) = [io | io /= z] ++ f z xs
@@ -61,13 +62,22 @@ parseInputOutputs = f z . lines
 
 checkInputOutput :: ([String] -> IO ()) -> InputOutput -> IO ()
 checkInputOutput main InputOutput{..} = do
+    code <- newIORef ExitSuccess
     got <- fmap (reverse . dropWhile null . reverse . map rtrim . lines) $ captureOutput $
         handle (\(e::SomeException) -> print e) $
-        handle (\(e::ExitCode) -> return ()) $ do
+        handle (\(e::ExitCode) -> writeIORef code e) $ do
         bracket getVerbosity setVerbosity $ const $ setVerbosity Normal >> main run
+    code <- readIORef code
     (want,got) <- return $ matchStarStar (lines output) got
 
-    if length got == length want && and (zipWith matchStar want got) then
+    if maybe False (/= code) exit then
+        failed
+            ["TEST FAILURE IN tests/" ++ name
+            ,"WRONG EXIT CODE"
+            ,"GOT : " ++ show code
+            ,"WANT: " ++ show exit
+            ]
+     else if length got == length want && and (zipWith matchStar want got) then
         passed
      else do
         let trail = replicate (max (length got) (length want)) "<EOF>"
