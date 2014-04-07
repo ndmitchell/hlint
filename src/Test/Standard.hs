@@ -2,13 +2,11 @@
 
 module Test.Standard(test) where
 
-import Control.Applicative
 import Control.Exception
 import Control.Monad
 import Data.Char
 import Data.List
 import Data.Maybe
-import Data.Monoid
 import Data.Function
 import System.Directory
 import System.FilePath
@@ -27,57 +25,46 @@ import Test.InputOutput
 
 
 test :: ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
-test main dataDir files = do
-    Result failures total <-
-        if null files then do
-            src <- doesFileExist "hlint.cabal"
-            res <- results $ sequence $ (if src then id else take 1)
-                [testHintFiles dataDir, testSourceFiles, testInputOutput main]
-            putStrLn ""
-            unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
-            return res
-        else do
-            res <- results $ mapM (testHintFile dataDir) files
-            putStrLn ""
-            return res
-    putStrLn $ if failures == 0
-        then "Tests passed (" ++ show total ++ ")"
-        else "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
-    return failures
+test main dataDir files = withTests $
+    if null files then do
+        src <- doesFileExist "hlint.cabal"
+        sequence_ $ (if src then id else take 1)
+            [testHintFiles dataDir, testSourceFiles, testInputOutput main]
+        putStrLn ""
+        unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
+    else do
+        mapM_ (testHintFile dataDir) files
 
 
-testHintFiles :: FilePath -> IO Result
+testHintFiles :: FilePath -> IO ()
 testHintFiles dataDir = do
     xs <- getDirectoryContents dataDir
-    results $ mapM (testHintFile dataDir)
+    mapM_ (testHintFile dataDir)
         [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint" `isPrefixOf` takeBaseName x]
 
 
-testHintFile :: FilePath -> FilePath -> IO Result
+testHintFile :: FilePath -> FilePath -> IO ()
 testHintFile dataDir file = do
     hints <- readSettings2 dataDir [file] []
-    res <- results $ sequence $ nameCheckHints hints : checkAnnotations hints file :
-                                [typeCheckHints hints | takeFileName file /= "Test.hs"]
+    sequence_ $ nameCheckHints hints : checkAnnotations hints file :
+                [typeCheckHints hints | takeFileName file /= "Test.hs"]
     progress
-    return res
 
 
-testSourceFiles :: IO Result
-testSourceFiles = mconcat <$> sequence
+testSourceFiles :: IO ()
+testSourceFiles = sequence_
     [checkAnnotations [Builtin name] ("src/Hint" </> name <.> "hs") | (name,h) <- builtinHints]
 
 ---------------------------------------------------------------------
 -- VARIOUS SMALL TESTS
 
-nameCheckHints :: [Setting] -> IO Result
+nameCheckHints :: [Setting] -> IO ()
 nameCheckHints hints = do
-    let bad = [failed ["No name for the hint " ++ prettyPrint (hintRuleLHS x)] | SettingMatchExp x@HintRule{} <- hints, hintRuleName x == defaultHintName]
-    sequence_ bad
-    return $ Result (length bad) 0
+    sequence_ [failed ["No name for the hint " ++ prettyPrint (hintRuleLHS x)] | SettingMatchExp x@HintRule{} <- hints, hintRuleName x == defaultHintName]
 
 
 -- | Given a set of hints, do all the HintRule hints type check
-typeCheckHints :: [Setting] -> IO Result
+typeCheckHints :: [Setting] -> IO ()
 typeCheckHints hints = bracket
     (openTempFile "." "hlinttmp.hs")
     (\(file,h) -> removeFile file)
@@ -86,7 +73,7 @@ typeCheckHints hints = bracket
         hClose h
         res <- system $ "runhaskell " ++ file
         progress
-        return $ result $ res == ExitSuccess
+        tested $ res == ExitSuccess
     where
         matches = [x | SettingMatchExp x <- hints]
 
@@ -118,12 +105,10 @@ typeCheckHints hints = bracket
 -- Output = Just xs, should match xs
 data Test = Test SrcLoc String (Maybe String)
 
-checkAnnotations :: [Setting] -> FilePath -> IO Result
+checkAnnotations :: [Setting] -> FilePath -> IO ()
 checkAnnotations setting file = do
     tests <- parseTestFile file
-    failures <- concatMapM f tests
-    sequence_ failures
-    return $ Result (length failures) (length tests)
+    mapM_ f tests
     where
         f (Test loc inp out) = do
             ideas <- applyHintFile defaultParseFlags setting file $ Just inp
@@ -133,20 +118,21 @@ checkAnnotations setting file = do
                               seq (length (show ideas)) True && -- force, mainly for hpc
                               isJust (ideaTo $ head ideas) && -- detects parse failure
                               match x (head ideas)
-            return $
-                [failed $
-                    ["TEST FAILURE (" ++ show (length ideas) ++ " hints generated)"
-                    ,"SRC: " ++ showSrcLoc loc
-                    ,"INPUT: " ++ inp] ++
-                    map ((++) "OUTPUT: " . show) ideas ++
-                    ["WANTED: " ++ fromMaybe "<failure>" out]
-                    | not good] ++
-                [failed
-                    ["TEST FAILURE (BAD LOCATION)"
-                    ,"SRC: " ++ showSrcLoc loc
-                    ,"INPUT: " ++ inp
-                    ,"OUTPUT: " ++ show i]
-                    | i@Idea{..} <- ideas, let SrcLoc{..} = getPointLoc ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
+            let bad =
+                    [failed $
+                        ["TEST FAILURE (" ++ show (length ideas) ++ " hints generated)"
+                        ,"SRC: " ++ showSrcLoc loc
+                        ,"INPUT: " ++ inp] ++
+                        map ((++) "OUTPUT: " . show) ideas ++
+                        ["WANTED: " ++ fromMaybe "<failure>" out]
+                        | not good] ++
+                    [failed
+                        ["TEST FAILURE (BAD LOCATION)"
+                        ,"SRC: " ++ showSrcLoc loc
+                        ,"INPUT: " ++ inp
+                        ,"OUTPUT: " ++ show i]
+                        | i@Idea{..} <- ideas, let SrcLoc{..} = getPointLoc ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
+            if null bad then passed else sequence_ bad
 
         match "???" _ = True
         match x y | "@" `isPrefixOf` x = a == show (ideaSeverity y) && match (ltrim b) y

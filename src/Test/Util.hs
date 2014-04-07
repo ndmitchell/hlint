@@ -1,34 +1,44 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
 
 module Test.Util(
-    Result(..),
-    pass, failure, result, results,
-    progress, failed
+	withTests, tested, passed, failed, progress
     ) where
 
-import Data.Monoid
+import Data.IORef
+import System.IO.Unsafe
+import Control.Monad
 
 
-data Result = Result {resultFailures :: Int, resultTotal :: Int}
+data Result = Result {failures :: Int, total :: Int} deriving Show
 
-pass :: Result
-pass = Result 0 1
+{-# NOINLINE ref #-}
+ref :: IORef [Result]
+ref = unsafePerformIO $ newIORef []
 
-failure :: Result
-failure = Result 1 1
-
-result :: Bool -> Result
-result x = if x then pass else failure
-
-results :: IO [Result] -> IO Result
-results = fmap mconcat
-
-instance Monoid Result where
-    mempty = Result 0 0
-    mappend (Result f1 t1) (Result f2 t2) = Result (f1+f2) (t1+t2)
+-- | Returns the number of failing tests.
+--   Warning: Not multithread safe, but is reenterant
+withTests :: IO () -> IO Int
+withTests act = do
+    atomicModifyIORef ref $ \r -> (Result 0 0 : r, ())
+    act
+    Result{..} <- atomicModifyIORef ref $ \(r:rs) -> (rs, r)
+    putStrLn ""
+    putStrLn $ if failures == 0
+        then "Tests passed (" ++ show total ++ ")"
+        else "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
+    return failures
 
 progress :: IO ()
 progress = putChar '.'
 
+passed :: IO ()
+passed = do
+	atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1}:rs, ())
+
 failed :: [String] -> IO ()
-failed xs = putStrLn $ unlines $ "" : xs
+failed xs = do
+	unless (null xs) $ putStrLn $ unlines $ "" : xs
+	atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1, failures=failures r+1}:rs, ())
+
+tested :: Bool -> IO ()
+tested b = if b then passed else failed []
