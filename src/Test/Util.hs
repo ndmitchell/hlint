@@ -6,7 +6,9 @@ module Test.Util(
 
 import Data.IORef
 import System.IO.Unsafe
+import Control.Exception
 import Control.Monad
+import System.IO
 
 
 data Result = Result {failures :: Int, total :: Int} deriving Show
@@ -18,7 +20,8 @@ ref = unsafePerformIO $ newIORef []
 -- | Returns the number of failing tests.
 --   Warning: Not multithread safe, but is reenterant
 withTests :: IO () -> IO Int
-withTests act = do
+withTests act = bracket (hGetBuffering stdout) (hSetBuffering stdout) $ const $ do
+    hSetBuffering stdout NoBuffering
     atomicModifyIORef ref $ \r -> (Result 0 0 : r, ())
     act
     Result{..} <- atomicModifyIORef ref $ \(r:rs) -> (rs, r)
@@ -28,8 +31,9 @@ withTests act = do
         else "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
     return failures
 
-progress :: IO ()
-progress = putChar '.'
+progress :: String -> IO ()
+progress x = putStr $ take mx (x ++ "..." ++ replicate mx ' ') ++ replicate mx '\b'
+    where mx = 69
 
 passed :: IO ()
 passed = do
