@@ -19,6 +19,7 @@ import Test.Util
 
 testInputOutput :: ([String] -> IO ()) -> IO ()
 testInputOutput main = do
+    progress "Input/output examples"
     xs <- getDirectoryContents "tests"
     xs <- return $ filter ((==) ".test" . takeExtension) xs
     forM_ xs $ \file -> do
