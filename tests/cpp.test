@@ -19,6 +19,7 @@ FILE tests/cpp-none.hs
 #include "Any/File.h"
 
 main = print "Hello"
+EXIT 0
 OUTPUT
 No suggestions
 

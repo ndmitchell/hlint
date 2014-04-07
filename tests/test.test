@@ -3,6 +3,7 @@ RUN test --hint=tests/test-hints-fail.hs
 FILE tests/test-hints-fail.hs
 import Control.Arrow
 error = (&&&) ==> (***)
+EXIT 1
 OUTPUT
 *
 tests*test-hints-fail.hs:2:*
