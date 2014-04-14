@@ -1,6 +1,6 @@
 Changelog for HLint
 
-    Allow haskell-src-exts-1.15
+    #40, allow haskell-src-exts-1.15
     Don't detect redundant Generics extension
 1.8.60
     #33, add --cpp-file to preinclude a file
