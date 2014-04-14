@@ -122,7 +122,6 @@ used TemplateHaskell = hasT2 (un :: (Bracket S, Splice S)) & hasS f & hasS isSpl
           f TypQuote{} = True
           f _ = False
 used ForeignFunctionInterface = hasT (un :: CallConv S)
-used Generics = hasS isPExplTypeArg
 used PatternGuards = hasS f1 & hasS f2
     where f1 (GuardedRhs _ xs _) = g xs
           f2 (GuardedAlt _ xs _) = g xs

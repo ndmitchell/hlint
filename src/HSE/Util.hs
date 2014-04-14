@@ -86,7 +86,6 @@ isMDo MDo{} = True; isMDo _ = False
 isBoxed Boxed{} = True; isBoxed _ = False
 isDerivDecl DerivDecl{} = True; isDerivDecl _ = False
 isPBangPat PBangPat{} = True; isPBangPat _ = False
-isPExplTypeArg PExplTypeArg{} = True; isPExplTypeArg _ = False
 isPFieldPun PFieldPun{} = True; isPFieldPun _ = False
 isFieldPun FieldPun{} = True; isFieldPun _ = False
 isPWildCard PWildCard{} = True; isPWildCard _ = False

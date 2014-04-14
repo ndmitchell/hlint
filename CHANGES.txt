@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Don't detect redundant Generics extension
 1.8.60
     #33, add --cpp-file to preinclude a file
     #34, add back --quiet flag
