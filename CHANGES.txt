@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.8.61
     #40, allow haskell-src-exts-1.15
     Don't detect redundant Generics extension
 1.8.60
