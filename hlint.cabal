@@ -44,7 +44,7 @@ library
         hscolour >= 1.17,
         cpphs >= 1.18.1,
         cmdargs >= 0.10,
-        haskell-src-exts >= 1.14 && < 1.15,
+        haskell-src-exts >= 1.14 && < 1.16,
         uniplate >= 1.5
 
     hs-source-dirs:     src
