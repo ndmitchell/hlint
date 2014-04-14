@@ -6,7 +6,7 @@
 f = id --
 {-# LANGUAGE TotallyUnknown #-} \
 f = id
-{-# LANGUAGE Foo, Generics, ParallelListComp, ImplicitParams #-} \
+{-# LANGUAGE Foo, ParallelListComp, ImplicitParams #-} \
 f = [(a,c) | a <- b | c <- d] -- {-# LANGUAGE Foo, ParallelListComp #-}
 {-# LANGUAGE EmptyDataDecls #-} \
 data Foo
