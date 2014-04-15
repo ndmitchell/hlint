@@ -156,9 +156,9 @@ error "Take on a non-positive" = take i x ==> [] where _ = isNegZero i
 error "Drop on a non-positive" = drop i x ==> x where _ = isNegZero i
 error = last (scanl f z x) ==> foldl f z x
 error = head (scanr f z x) ==> foldr f z x
-error = iterate id = repeat
-error = zipWith f (repeat x) = map (f x)
-error = zipWith f xs (repeat y) = map (\x -> f x y)
+error = iterate id ==> repeat
+error = zipWith f (repeat x) ==> map (f x)
+error = zipWith f x (repeat y) ==> map (\x -> f x y) x
 
 -- BY
 
