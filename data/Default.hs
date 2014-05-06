@@ -377,6 +377,7 @@ error = (if isJust x then fromJust x else y) ==> fromMaybe y x
 error = isJust x && (fromJust x == y) ==> x == Just y
 error = mapMaybe f (map g x) ==> mapMaybe (f . g) x
 error = fromMaybe a (fmap f x) ==> maybe a f x
+error = mapMaybe id ==> catMaybes
 warn = [x | Just x <- a] ==> Data.Maybe.catMaybes a
 warn = (case m of Nothing -> Nothing; Just x -> x) ==> Control.Monad.join m
 warn = maybe Nothing id ==> join
@@ -577,6 +578,7 @@ getInt = do { x <- readIO "0"; return $! (x :: Int) }
 foo = evaluate [12] -- return [12]
 test = \ a -> f a >>= \ b -> return (a, b)
 fooer input = catMaybes . map Just $ input -- mapMaybe Just
+yes = mapMaybe id -- catMaybes
 main = print $ map (\_->5) [2,3,5] -- const 5
 main = head $ drop n x
 main = head $ drop (-3) x -- x
