@@ -89,6 +89,7 @@ library
         Test.InputOutput
         Test.Proof
         Test.Standard
+        Test.Translate
         Test.Util
 
 
