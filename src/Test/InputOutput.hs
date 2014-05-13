@@ -24,9 +24,9 @@ testInputOutput main = do
     xs <- getDirectoryContents "tests"
     xs <- return $ filter ((==) ".test" . takeExtension) xs
     forM_ xs $ \file -> do
-        progress
         ios <- parseInputOutputs <$> readFile ("tests" </> file)
         forM_ (zip [1..] ios) $ \(i,io@InputOutput{..}) -> do
+            progress
             forM_ files $ \(name,contents) -> do
                 createDirectoryIfMissing True $ takeDirectory name
                 writeFile name contents
