@@ -89,9 +89,9 @@ toQuickCheck hints =
     ,"class Testable2 a where property2 :: a -> a -> Property"
     ,"instance Eq a => Testable2 a where property2 x y = property $ catcher x == catcher y"
     ,"instance (Arbitrary a, Show a, Testable2 b) => Testable2 (a -> b) where property2 x y = property $ \\a -> property2 (x a) (y a)"
-    ,"main = do " ++ intercalate "; " ["hlintTest " ++ show i ++ " test" ++ show i | (i,_) <- tests]
-    ,"hlintTest :: (Show p, Testable p, Typeable p) => Int -> p -> IO ()"
-    ,"hlintTest i x = do putStrLn $ \"test\" ++ show i ++ \" :: \" ++ show (typeOf x); quickCheck x"
+    ,"main = do " ++ intercalate "; " ["hlintTest " ++ show i ++ " " ++ show n ++ " test" ++ show i | (i,n,_) <- tests]
+    ,"hlintTest :: (Show p, Testable p, Typeable p) => Int -> String -> p -> IO ()"
+    ,"hlintTest i s x = do putStrLn $ \"test\" ++ show i ++ \" :: \" ++ show (typeOf x); putStrLn s; quickCheck x"
     ,"catcher :: a -> Maybe a"
     ,"catcher x = unsafePerformIO $ do"
     ,"    res <- try $ evaluate x"
@@ -113,10 +113,10 @@ toQuickCheck hints =
     ,"instance Show (Chan a)"
     ,"_noParen_ = id"
     ,"_eval_ = id"] ++
-    map snd tests
+    map thd3 tests
     where
         tests =
-            [(,) i $ -- "{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
+            [(,,) i (prettyPrint lhs ++ " ==> " ++ prettyPrint rhs) $
               prettyPrint (PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing)
             | (i, HintRule _ _ _ lhs rhs side _) <- zip [1..] hints, "notTypeSafe" `notElem` vars (maybeToList side)
             , i `notElem` ([2,118,139,323,324] ++ [199..251] ++ [41,42,43,44,106])
