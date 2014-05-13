@@ -3,6 +3,7 @@ import Neil
 
 main :: IO ()
 main = do
+    retry 3 $ cmd "cabal install QuickCheck"
     cmd "hlint test --typecheck --quickcheck"
     (time,_) <- duration $ cmdCode "hlint src"
     putStrLn $ "Running HLint on self took " ++ show time ++ "s"
