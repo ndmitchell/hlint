@@ -213,6 +213,8 @@ captureOutput :: IO () -> IO String
 captureOutput act = do
     tmp <- getTemporaryDirectory
     (f,h) <- openTempFile tmp "hlint"
+    bout <- hGetBuffering stdout
+    berr <- hGetBuffering stderr
     sto <- hDuplicate stdout
     ste <- hDuplicate stderr
     hDuplicateTo h stdout
@@ -221,9 +223,17 @@ captureOutput act = do
     act
     hDuplicateTo sto stdout
     hDuplicateTo ste stderr
+    hSetBuffering stdout bout
+    hSetBuffering stderr berr
     res <- readFile' f
     removeFile f
     return res
+
+
+withBuffering :: Handle -> BufferMode -> IO a -> IO a
+withBuffering h m act = bracket (hGetBuffering h) (hSetBuffering h) $ const $ do
+    hSetBuffering h m
+    act
 
 
 -- FIXME: Should use strict ByteString

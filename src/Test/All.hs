@@ -9,32 +9,35 @@ import System.FilePath
 
 import Settings
 import CmdLine
+import Util
 import HSE.All
 import Hint.All
 import Test.Util
 import Test.InputOutput
 import Test.Annotations
 import Test.Translate
+import System.IO
 
 
 test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
-test CmdTest{..} main dataDir files = withTests $ do
+test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTests $ do
     hasSrc <- doesFileExist "hlint.cabal"
     useSrc <- return $ hasSrc && null files
     testFiles <- if files /= [] then return files else do
         xs <- getDirectoryContents dataDir
         return [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint" `isPrefixOf` takeBaseName x]
     testFiles <- forM testFiles $ \file -> fmap ((,) file) $ readSettings2 dataDir [file] []
-    let wrap msg act = putStr msg >> act >> putStrLn ""
+    let wrap msg act = putStr (msg ++ " ") >> act >> putStrLn ""
 
-    when useSrc $ wrap "Testing source annotations: " $
-        forM_ builtinHints $ \(name,_) -> testAnnotations [Builtin name] $ "src/Hint" </> name <.> "hs"
-    when useSrc $ wrap "Testing input/output pairs: " $ testInputOutput main
+    putStrLn "Testing"
+    when useSrc $ wrap "Source annotations" $
+        forM_ builtinHints $ \(name,_) -> do progress; testAnnotations [Builtin name] $ "src/Hint" </> name <.> "hs"
+    when useSrc $ wrap "Input/outputs" $ testInputOutput main
 
-    wrap "Testing names in hints: " $ mapM_ (testNames . snd) testFiles
-    wrap "Testing annotations in hints: " $ forM_ testFiles $ \(file,h) -> testAnnotations h file
-    when cmdTypeCheck $ wrap "Typechecking hints: " $
-        forM_ testFiles $ \(file,h) -> when (takeFileName file /= "Test.hs") $ testTypeCheck h
+    wrap "Hint names" $ mapM_ (\x -> do progress; testNames $ snd x) testFiles
+    wrap "Hint annotations" $ forM_ testFiles $ \(file,h) -> do progress; testAnnotations h file
+    when cmdTypeCheck $ wrap "Hint typechecking" $
+        forM_ testFiles $ \(file,h) -> when (takeFileName file /= "Test.hs") $ do progress; testTypeCheck h
 
     when (null files && not hasSrc) $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
 

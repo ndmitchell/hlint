@@ -6,9 +6,7 @@ module Test.Util(
 
 import Data.IORef
 import System.IO.Unsafe
-import Control.Exception
 import Control.Monad
-import System.IO
 
 
 data Result = Result {failures :: Int, total :: Int} deriving Show
@@ -17,11 +15,11 @@ data Result = Result {failures :: Int, total :: Int} deriving Show
 ref :: IORef [Result]
 ref = unsafePerformIO $ newIORef []
 
+
 -- | Returns the number of failing tests.
 --   Warning: Not multithread safe, but is reenterant
 withTests :: IO () -> IO Int
-withTests act = bracket (hGetBuffering stdout) (hSetBuffering stdout) $ const $ do
-    hSetBuffering stdout NoBuffering
+withTests act = do
     atomicModifyIORef ref $ \r -> (Result 0 0 : r, ())
     act
     Result{..} <- atomicModifyIORef ref $ \(r:rs) -> (rs, r)

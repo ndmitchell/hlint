@@ -24,6 +24,7 @@ testInputOutput main = do
     xs <- getDirectoryContents "tests"
     xs <- return $ filter ((==) ".test" . takeExtension) xs
     forM_ xs $ \file -> do
+        progress
         ios <- parseInputOutputs <$> readFile ("tests" </> file)
         forM_ (zip [1..] ios) $ \(i,io@InputOutput{..}) -> do
             forM_ files $ \(name,contents) -> do
@@ -31,7 +32,6 @@ testInputOutput main = do
                 writeFile name contents
             checkInputOutput main io{name= "_" ++ takeBaseName file ++ "_" ++ show i}
         mapM_ (removeFile . fst) $ concatMap files ios
-    progress
 
 data InputOutput = InputOutput
     {name :: String
