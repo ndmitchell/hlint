@@ -37,7 +37,7 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
     wrap "Hint names" $ mapM_ (\x -> do progress; testNames $ snd x) testFiles
     wrap "Hint annotations" $ forM_ testFiles $ \(file,h) -> do progress; testAnnotations h file
     when cmdTypeCheck $ wrap "Hint typechecking" $
-        forM_ testFiles $ \(file,h) -> when (takeFileName file /= "Test.hs") $ do progress; testTypeCheck h
+        progress >> testTypeCheck [h | (file, h) <- testFiles, takeFileName file /= "Test.hs"]
 
     when (null files && not hasSrc) $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
 
