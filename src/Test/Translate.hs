@@ -25,7 +25,6 @@ testTypeCheck hints = bracket
         hPutStrLn h $ unlines contents
         hClose h
         res <- system $ "runhaskell " ++ file
-        progress
         tested $ res == ExitSuccess
     where
         matches = [x | SettingMatchExp x <- hints]
