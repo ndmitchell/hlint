@@ -3,27 +3,21 @@
 -- | Translate the hints to Haskell and run with GHC.
 module Test.Translate(testTypeCheck) where
 
-import Control.Exception
 import Data.List
 import Data.Maybe
-import System.Directory
-import System.IO
 import System.Cmd
 import System.Exit
 
 import Settings
+import Util
 import HSE.All
 import Test.Util
 
 
 -- | Given a set of hints, do all the HintRule hints type check
 testTypeCheck :: [Setting] -> IO ()
-testTypeCheck hints = bracket
-    (openTempFile "." "hlinttmp.hs")
-    (\(file,h) -> removeFile file)
-    $ \(file,h) -> do
-        hPutStrLn h $ unlines contents
-        hClose h
+testTypeCheck hints = withTemporaryFile "hlinttmp.hs" $ \file -> do
+        writeFile file $ unlines contents
         res <- system $ "runhaskell " ++ file
         tested $ res == ExitSuccess
     where
