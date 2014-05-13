@@ -214,6 +214,12 @@ withTemporaryFile pat act = do
     bracket (openTempFile tmp pat) (removeFile . fst) $
         \(file,h) -> hClose h >> act file
 
+withTemporaryFiles :: String -> Int -> ([FilePath] -> IO a) -> IO a
+withTemporaryFiles pat 0 act = act []
+withTemporaryFiles pat i act | i > 0 =
+    withTemporaryFile pat $ \file ->
+        withTemporaryFiles pat (i-1) $ \files ->
+            act $ file : files
 
 captureOutput :: IO () -> IO String
 captureOutput act = withTemporaryFile "hlint_capture_output.txt" $ \file -> do
