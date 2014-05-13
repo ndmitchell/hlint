@@ -95,6 +95,7 @@ data Cmd
         ,cmdDataDir :: FilePath          -- ^ the data directory
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
+        ,cmdQuickCheck :: Bool
         ,cmdTypeCheck :: Bool
         }
     | CmdHSE
@@ -132,6 +133,7 @@ mode = cmdArgsMode $ modes
     ,CmdTest
         {cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
         ,cmdTypeCheck = nam_ "typecheck" &= help "Use GHC to type check the hints"
+        ,cmdQuickCheck = nam_ "quickcheck" &= help "Use QuickCheck to check the hints"
         } &= explicit &= name "test"
         &= details ["HLint gives hints on how to improve Haskell code."
                  ,""
