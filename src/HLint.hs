@@ -13,7 +13,7 @@ import Settings
 import Report
 import Idea
 import Apply
-import Test.Standard
+import Test.All
 import Grep
 import Test.Proof
 import Util

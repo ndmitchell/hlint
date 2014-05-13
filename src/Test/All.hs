@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
 
-module Test.Standard(test) where
+module Test.All(test) where
 
 import Control.Monad
 import Data.List
