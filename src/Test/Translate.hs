@@ -16,12 +16,6 @@ import HSE.All
 import Test.Util
 
 
-replace :: String -> String -> String -> String
-replace from to xs | Just xs <- stripPrefix from xs = to ++ replace from to xs
-replace from to (x:xs) = x : replace from to xs
-replace from to [] = []
-
-
 runMains :: [String] -> IO ()
 runMains xs = withTemporaryFiles "HLint_tmp.hs" (length xs + 1) $ \(root:bodies) -> do
     forM_ (zip bodies xs) $ \(file,x) -> do
