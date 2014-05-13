@@ -29,12 +29,20 @@ runMains xs = withTemporaryFiles "HLint_tmp.hs" (length xs + 1) $ \(root:bodies)
     replicateM_ (length xs) $ tested $ res == ExitSuccess
 
 
----------------------------------------------------------------------
--- TYPE CHECKING
-
 -- | Given a set of hints, do all the HintRule hints type check
 testTypeCheck :: [[Setting]] -> IO ()
-testTypeCheck hints = runMains $ map (unlines . toTypeCheck) hints
+testTypeCheck = wrap toTypeCheck
+
+-- | Given a set of hints, do all the HintRule hints satisfy QuickCheck
+testQuickCheck :: [[Setting]] -> IO ()
+testQuickCheck = wrap toQuickCheck
+
+wrap :: ([Setting] -> [String]) -> [[Setting]] -> IO ()
+wrap f hints = runMains $ map (unlines . f) hints
+
+
+---------------------------------------------------------------------
+-- TYPE CHECKING
 
 toTypeCheck :: [Setting] -> [String]
 toTypeCheck hints =
@@ -62,10 +70,6 @@ toTypeCheck hints =
 
 ---------------------------------------------------------------------
 -- QUICKCHECK
-
--- | Given a set of hints, do all the HintRule hints satisfy QuickCheck
-testQuickCheck :: [[Setting]] -> IO ()
-testQuickCheck hints = runMains $ map (unlines . toQuickCheck) hints
 
 toQuickCheck :: [Setting] -> [String]
 toQuickCheck hints =
