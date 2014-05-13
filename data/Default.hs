@@ -223,8 +223,6 @@ error = a >= '0' && a <= '7' ==> isOctDigit a
 error = not (isControl a) ==> isPrint a
 error = isLower a || isUpper a ==> isAlpha a
 error = isUpper a || isLower a ==> isAlpha a
-error = isAlpha a || isDigit a ==> isAlphaNum a
-error = isDigit a || isAlpha a ==> isAlphaNum a
 
 -- BOOL
 
