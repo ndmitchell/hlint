@@ -208,11 +208,16 @@ exitMessage msg = unsafePerformIO $ do
     exitWith $ ExitFailure 1
 
 
--- FIXME: This could use a lot more bracket calls!
-captureOutput :: IO () -> IO String
-captureOutput act = do
+withTemporaryFile :: String -> (FilePath -> IO a) -> IO a
+withTemporaryFile pat act = do
     tmp <- getTemporaryDirectory
-    (f,h) <- openTempFile tmp "hlint"
+    bracket (openTempFile tmp pat) (removeFile . fst) $
+        \(file,h) -> hClose h >> act file
+
+
+captureOutput :: IO () -> IO String
+captureOutput act = withTemporaryFile "hlint_capture_output.txt" $ \file -> do
+    h <- openFile file ReadWriteMode
     bout <- hGetBuffering stdout
     berr <- hGetBuffering stderr
     sto <- hDuplicate stdout
@@ -225,9 +230,7 @@ captureOutput act = do
     hDuplicateTo ste stderr
     hSetBuffering stdout bout
     hSetBuffering stderr berr
-    res <- readFile' f
-    removeFile f
-    return res
+    readFile' file
 
 
 withBuffering :: Handle -> BufferMode -> IO a -> IO a
