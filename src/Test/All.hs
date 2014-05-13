@@ -38,14 +38,14 @@ testHintFiles dataDir = do
 testHintFile :: FilePath -> FilePath -> IO ()
 testHintFile dataDir file = do
     hints <- readSettings2 dataDir [file] []
-    sequence_ $ nameCheckHints hints : checkAnnotations hints file :
-                [typeCheckHints hints | takeFileName file /= "Test.hs"]
+    sequence_ $ nameCheckHints hints : testAnnotations hints file :
+                [testTranslate hints | takeFileName file /= "Test.hs"]
     progress
 
 
 testSourceFiles :: IO ()
 testSourceFiles = sequence_
-    [checkAnnotations [Builtin name] ("src/Hint" </> name <.> "hs") | (name,h) <- builtinHints]
+    [testAnnotations [Builtin name] ("src/Hint" </> name <.> "hs") | (name,h) <- builtinHints]
 
 ---------------------------------------------------------------------
 -- VARIOUS SMALL TESTS

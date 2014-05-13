@@ -1,6 +1,7 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
 
-module Test.Annotations(checkAnnotations) where
+-- | Check the <TEST> annotations within source and hint files.
+module Test.Annotations(testAnnotations) where
 
 import Data.Char
 import Data.List
@@ -20,8 +21,8 @@ import Test.Util
 -- Output = Just xs, should match xs
 data Test = Test SrcLoc String (Maybe String)
 
-checkAnnotations :: [Setting] -> FilePath -> IO ()
-checkAnnotations setting file = do
+testAnnotations :: [Setting] -> FilePath -> IO ()
+testAnnotations setting file = do
     tests <- parseTestFile file
     mapM_ f tests
     where

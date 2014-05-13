@@ -1,5 +1,6 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
 
+-- | Check the input/output pairs in the tests/ directory
 module Test.InputOutput(testInputOutput) where
 
 import Control.Applicative

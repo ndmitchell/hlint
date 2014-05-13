@@ -1,5 +1,6 @@
 {-# LANGUAGE RecordWildCards, PatternGuards #-}
 
+-- | Check the coverage of the hints given a list of Isabelle theorems
 module Test.Proof(proof) where
 
 import Control.Applicative
