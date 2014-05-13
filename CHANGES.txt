@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Remove incorrect for intercalate to unlines
     #37, remove incorrect hint for isAlphaNum
     #45, add mapMaybe id ==> catMaybes
     #42, add some repeat hints
