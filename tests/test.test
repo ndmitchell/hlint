@@ -6,11 +6,9 @@ error = (&&&) ==> (***)
 EXIT 1
 OUTPUT
 *
-tests*test-hints-fail.hs:2:*
-    Occurs check: cannot construct the infinite type: b*
 *
 *
-    In the second argument of `(==>)', namely `((***))'
-    In the expression: ((&&&)) ==> ((***))
+tests*test-hints-fail.hs:*
+    Occurs check: *
 **
 Tests failed (1 of 1)

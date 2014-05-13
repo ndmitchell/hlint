@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
 
 -- | Translate the hints to Haskell and run with GHC.
-module Test.Translate(testTranslate) where
+module Test.Translate(testTypeCheck) where
 
 import Control.Exception
 import Data.List
@@ -17,8 +17,8 @@ import Test.Util
 
 
 -- | Given a set of hints, do all the HintRule hints type check
-testTranslate :: [Setting] -> IO ()
-testTranslate hints = bracket
+testTypeCheck :: [Setting] -> IO ()
+testTypeCheck hints = bracket
     (openTempFile "." "hlinttmp.hs")
     (\(file,h) -> removeFile file)
     $ \(file,h) -> do
