@@ -37,31 +37,29 @@ testTypeCheck = wrap toTypeCheck
 testQuickCheck :: [[Setting]] -> IO ()
 testQuickCheck = wrap toQuickCheck
 
-wrap :: ([Setting] -> [String]) -> [[Setting]] -> IO ()
-wrap f hints = runMains $ map (unlines . f) hints
+wrap :: ([HintRule] -> [String]) -> [[Setting]] -> IO ()
+wrap f hints = runMains [unlines $ f [x | SettingMatchExp x <- xs] | xs <- hints]
 
 
 ---------------------------------------------------------------------
 -- TYPE CHECKING
 
-toTypeCheck :: [Setting] -> [String]
+toTypeCheck :: [HintRule] -> [String]
 toTypeCheck hints =
         ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules #-}"
         ,"module Main(main) where"] ++
-        concat [map (prettyPrint . hackImport) $ scopeImports $ hintRuleScope x | x <- take 1 matches] ++
+        concat [map (prettyPrint . hackImport) $ scopeImports $ hintRuleScope x | x <- take 1 hints] ++
         ["main = return ()"
         ,"(==>) :: a -> a -> a; (==>) = undefined"
         ,"_noParen_ = id"
         ,"_eval_ = id"] ++
         ["{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
          prettyPrint (PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing)
-        | (i, HintRule _ _ _ lhs rhs side _) <- zip [1..] matches, "notTypeSafe" `notElem` vars (maybeToList side)
+        | (i, HintRule _ _ _ lhs rhs side _) <- zip [1..] hints, "notTypeSafe" `notElem` vars (maybeToList side)
         , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
         , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
         , let bod = UnGuardedRhs an $ if null vs then inner else Lambda an vs inner]
     where
-        matches = [x | SettingMatchExp x <- hints]
-
         -- Hack around haskell98 not being compatible with base anymore
         hackImport i@ImportDecl{importAs=Just a,importModule=b}
             | prettyPrint b `elem` words "Maybe List Monad IO Char" = i{importAs=Just b,importModule=a}
@@ -71,7 +69,7 @@ toTypeCheck hints =
 ---------------------------------------------------------------------
 -- QUICKCHECK
 
-toQuickCheck :: [Setting] -> [String]
+toQuickCheck :: [HintRule] -> [String]
 toQuickCheck hints =
         ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules, ScopedTypeVariables, DeriveDataTypeable #-}"
         ,"{-# LANGUAGE FlexibleInstances, UndecidableInstances, OverlappingInstances #-}"
@@ -84,7 +82,7 @@ toQuickCheck hints =
         ,"import System.Mem.Weak"
         ,"import Test.QuickCheck hiding ((==>))"
         ] ++
-        concat [map (prettyPrint . hackImport) $ scopeImports $ hintRuleScope x | x <- take 1 matches] ++
+        concat [map (prettyPrint . hackImport) $ scopeImports $ hintRuleScope x | x <- take 1 hints] ++
         ["default(Maybe Bool,Int,Double)"
         ,"data Test a = a :==> a deriving (Show, Typeable)"
         ,"a ==> b = a :==> b"
@@ -118,8 +116,6 @@ toQuickCheck hints =
         ,"_eval_ = id"] ++
         map snd tests
     where
-        matches = [x | SettingMatchExp x <- hints]
-
         -- Hack around haskell98 not being compatible with base anymore
         hackImport i@ImportDecl{importAs=Just a,importModule=b}
             | prettyPrint b `elem` words "Maybe List Monad IO Char" = i{importAs=Just b,importModule=a}
@@ -128,7 +124,7 @@ toQuickCheck hints =
         tests =
             [(,) i $ -- "{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
               prettyPrint (PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing)
-            | (i, HintRule _ _ _ lhs rhs side _) <- zip [1..] matches, "notTypeSafe" `notElem` vars (maybeToList side)
+            | (i, HintRule _ _ _ lhs rhs side _) <- zip [1..] hints, "notTypeSafe" `notElem` vars (maybeToList side)
             , i `notElem` ([2,118,139,323,324] ++ [199..251] ++ [41,42,43,44,106])
             , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
