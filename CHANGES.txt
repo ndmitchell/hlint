@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add --typecheck flag to test mode to type check the hints
     Remove incorrect for intercalate to unlines
     #37, remove incorrect hint for isAlphaNum
     #45, add mapMaybe id ==> catMaybes

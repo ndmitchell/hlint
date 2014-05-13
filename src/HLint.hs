@@ -78,7 +78,7 @@ hlintTest cmd@CmdTest{..} = do
         let reps = if cmdReports == ["report.html"] then ["report.txt"] else cmdReports
         mapM_ (proof reps s) cmdProof
      else do
-        failed <- test (\args -> do errs <- hlint args; when (length errs > 0) $ exitWith $ ExitFailure 1) cmdDataDir cmdGivenHints
+        failed <- test cmd (\args -> do errs <- hlint args; when (length errs > 0) $ exitWith $ ExitFailure 1) cmdDataDir cmdGivenHints
         when (failed > 0) exitFailure
 
 hlintGrep :: Cmd -> IO ()

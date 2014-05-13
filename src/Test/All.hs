@@ -8,6 +8,7 @@ import System.Directory
 import System.FilePath
 
 import Settings
+import CmdLine
 import HSE.All
 import Hint.All
 import Test.Util
@@ -16,30 +17,30 @@ import Test.Annotations
 import Test.Translate
 
 
-test :: ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
-test main dataDir files = withTests $
+test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
+test CmdTest{..} main dataDir files = withTests $
     if null files then do
         src <- doesFileExist "hlint.cabal"
         sequence_ $ (if src then id else take 1)
-            [testHintFiles dataDir, testSourceFiles, testInputOutput main]
+            [testHintFiles cmdTypeCheck dataDir, testSourceFiles, testInputOutput main]
         putStrLn ""
         unless src $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
     else do
-        mapM_ (testHintFile dataDir) files
+        mapM_ (testHintFile cmdTypeCheck dataDir) files
 
 
-testHintFiles :: FilePath -> IO ()
-testHintFiles dataDir = do
+testHintFiles :: Bool -> FilePath -> IO ()
+testHintFiles typecheck dataDir = do
     xs <- getDirectoryContents dataDir
-    mapM_ (testHintFile dataDir)
+    mapM_ (testHintFile typecheck dataDir)
         [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint" `isPrefixOf` takeBaseName x]
 
 
-testHintFile :: FilePath -> FilePath -> IO ()
-testHintFile dataDir file = do
+testHintFile :: Bool -> FilePath -> FilePath -> IO ()
+testHintFile typecheck dataDir file = do
     hints <- readSettings2 dataDir [file] []
     sequence_ $ nameCheckHints hints : testAnnotations hints file :
-                [testTranslate hints | takeFileName file /= "Test.hs"]
+                [testTranslate hints | typecheck, takeFileName file /= "Test.hs"]
     progress
 
 

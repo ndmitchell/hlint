@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------
-RUN test --hint=tests/test-hints-fail.hs
+RUN test --typecheck --hint=tests/test-hints-fail.hs
 FILE tests/test-hints-fail.hs
 import Control.Arrow
 error = (&&&) ==> (***)
