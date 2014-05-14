@@ -56,3 +56,13 @@ catcher x = unsafePerformIO $ do
 
 _noParen_ = id
 _eval_ = id
+
+
+---------------------------------------------------------------------
+-- EXAMPLES
+
+main :: IO ()
+main = do
+    hlintTest 92 "findIndex ((==) a) ==> elemIndex a" _test92
+
+_test92 = \ a -> (findIndex ((==) a)) ==> (elemIndex a)

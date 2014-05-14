@@ -75,7 +75,7 @@ toTypeCheck hints =
 
 toQuickCheck :: [HintRule] -> [String]
 toQuickCheck hints =
-    ["import HLint_QuickCheck"
+    ["import HLint_QuickCheck hiding(main)"
     ,"default(Maybe Bool,Int,Double)"
     ,"main = do " ++ intercalate "; " ["hlintTest " ++ show i ++ " " ++ show n ++ " test" ++ show i | (i,n,_) <- tests]] ++
     map thd3 tests
