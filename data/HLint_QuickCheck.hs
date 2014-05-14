@@ -8,10 +8,12 @@ import System.IO.Unsafe
 import Data.Typeable
 import Data.List
 import Control.Exception
+import Control.Monad
 import System.IO
 import Control.Concurrent.Chan
 import System.Mem.Weak(Weak)
 import Test.QuickCheck hiding ((==>))
+import Test.QuickCheck.Test hiding (test)
 
 default(Maybe Bool,Int,Double)
 
@@ -43,8 +45,10 @@ instance (Arbitrary a, Show a, Testable2 b) => Testable2 (a -> b) where property
 
 test :: (Show p, Testable p, Typeable p) => FilePath -> Int -> String -> p -> IO ()
 test file line hint p = do
-    putStrLn $ file ++ ":" ++ show line ++ ": " ++ hint
-    quickCheck p
+    res <- quickCheckWithResult stdArgs{chatty=False} p
+    unless (isSuccess res) $ do
+        putStrLn $ "\n" ++ file ++ ":" ++ show line ++ ": " ++ hint
+        putStr $ output res
 
 catcher :: a -> Maybe a
 catcher x = unsafePerformIO $ do
