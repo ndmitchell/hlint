@@ -41,11 +41,10 @@ instance Testable2 a => Testable (Test a) where property (x :==> y) = property2 
 instance Eq a => Testable2 a where property2 x y = property $ catcher x == catcher y
 instance (Arbitrary a, Show a, Testable2 b) => Testable2 (a -> b) where property2 x y = property $ \a -> property2 (x a) (y a)
 
-hlintTest :: (Show p, Testable p, Typeable p) => Int -> String -> p -> IO ()
-hlintTest i s x = do
-    putStrLn $ "test" ++ show i ++ " :: " ++ show (typeOf x)
-    putStrLn s
-    quickCheck x
+test :: (Show p, Testable p, Typeable p) => FilePath -> Int -> String -> p -> IO ()
+test file line hint p = do
+    putStrLn $ file ++ ":" ++ show line ++ ": " ++ hint
+    quickCheck p
 
 catcher :: a -> Maybe a
 catcher x = unsafePerformIO $ do
@@ -63,6 +62,4 @@ _eval_ = id
 
 main :: IO ()
 main = do
-    hlintTest 92 "findIndex ((==) a) ==> elemIndex a" _test92
-
-_test92 = \ a -> (findIndex ((==) a)) ==> (elemIndex a)
+    test "data\\Default.hs" 57 "(findIndex ((==) a)) ==> (elemIndex a)" $ \ a -> (findIndex ((==) a)) ==> (elemIndex a)
