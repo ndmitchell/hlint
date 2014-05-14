@@ -10,6 +10,7 @@ import System.Cmd
 import System.Exit
 import System.FilePath
 
+import Paths_hlint
 import Settings
 import Util
 import HSE.All
@@ -25,7 +26,8 @@ runMains xs = withTemporaryFiles "HLint_tmp.hs" (length xs + 1) $ \(root:bodies)
         ["import qualified " ++ m | m <- ms] ++
         ["main = do"] ++
         ["    " ++ m ++ ".main" | m <- ms]
-    res <- system $ "runhaskell -i" ++ takeDirectory root ++ " " ++ root
+    dat <- getDataDir
+    res <- system $ "runhaskell -i" ++ takeDirectory root ++ " -i" ++ dat ++ " " ++ root
     replicateM_ (length xs) $ tested $ res == ExitSuccess
 
 
@@ -58,10 +60,8 @@ wrap f hints = runMains [unlines $ body [x | SettingMatchExp x <- xs] | xs <- hi
 
 toTypeCheck :: [HintRule] -> [String]
 toTypeCheck hints =
-    ["main = return ()"
-    ,"(==>) :: a -> a -> a; (==>) = undefined"
-    ,"_noParen_ = id"
-    ,"_eval_ = id"] ++
+    ["import HLint_TypeCheck hiding(main)"
+    ,"main = return ()"] ++
     ["{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
      prettyPrint (PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing)
     | (i, HintRule _ _ _ lhs rhs side _) <- zip [1..] hints, "notTypeSafe" `notElem` vars (maybeToList side)
@@ -75,44 +75,9 @@ toTypeCheck hints =
 
 toQuickCheck :: [HintRule] -> [String]
 toQuickCheck hints =
-    ["import System.IO.Unsafe"
-    ,"import Data.Typeable"
-    ,"import Control.Exception"
-    ,"import System.IO"
-    ,"import Control.Concurrent"
-    ,"import System.Mem.Weak"
-    ,"import Test.QuickCheck hiding ((==>))"
+    ["import HLint_QuickCheck"
     ,"default(Maybe Bool,Int,Double)"
-    ,"data Test a = a :==> a deriving (Show, Typeable)"
-    ,"a ==> b = a :==> b"
-    ,"instance Testable2 a => Testable (Test a) where property (x :==> y) = property2 x y"
-    ,"class Testable2 a where property2 :: a -> a -> Property"
-    ,"instance Eq a => Testable2 a where property2 x y = property $ catcher x == catcher y"
-    ,"instance (Arbitrary a, Show a, Testable2 b) => Testable2 (a -> b) where property2 x y = property $ \\a -> property2 (x a) (y a)"
-    ,"main = do " ++ intercalate "; " ["hlintTest " ++ show i ++ " " ++ show n ++ " test" ++ show i | (i,n,_) <- tests]
-    ,"hlintTest :: (Show p, Testable p, Typeable p) => Int -> String -> p -> IO ()"
-    ,"hlintTest i s x = do putStrLn $ \"test\" ++ show i ++ \" :: \" ++ show (typeOf x); putStrLn s; quickCheck x"
-    ,"catcher :: a -> Maybe a"
-    ,"catcher x = unsafePerformIO $ do"
-    ,"    res <- try $ evaluate x"
-    ,"    return $ case res of"
-    ,"        Left (_ :: SomeException) -> Nothing"
-    ,"        Right v -> Just v"
-    ,"instance (Show a, Show b) => Show (a -> b) where show x = \"<func>\""
-    ,"instance (Show a) => Show (IO a) where show x = \"<IO>\""
-    ,"instance Show (Weak a) where show x = \"<Weak>\""
-    ,"instance Eq (IO a) where _ == _ = True"
-    ,"instance Arbitrary Handle where arbitrary = elements [stdin, stdout, stderr]"
-    ,"instance CoArbitrary Handle where coarbitrary _ = variant 0"
-    ,"instance Arbitrary IOMode where arbitrary = elements [ReadMode,WriteMode,AppendMode,ReadWriteMode]"
-    ,"instance Typeable IOMode where typeOf _ = typeOf ()"
-    ,"instance Arbitrary a => Arbitrary (IO a) where arbitrary = fmap return arbitrary"
-    ,"instance Eq SomeException where a == b = show a == show b"
-    ,"instance Exception (Maybe Bool)"
-    ,"instance Arbitrary (Chan a)"
-    ,"instance Show (Chan a)"
-    ,"_noParen_ = id"
-    ,"_eval_ = id"] ++
+    ,"main = do " ++ intercalate "; " ["hlintTest " ++ show i ++ " " ++ show n ++ " test" ++ show i | (i,n,_) <- tests]] ++
     map thd3 tests
     where
         tests =
