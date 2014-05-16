@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances, UndecidableInstances, OverlappingInstances, GeneralizedNewtypeDeriving #-}
 
 -- | Used with --quickcheck
-module HLint_QuickCheck where
+module HLint_QuickCheck(module HLint_QuickCheck, module X) where
 
 import System.IO.Unsafe
 import Data.Typeable
@@ -15,6 +15,7 @@ import Control.Concurrent.Chan
 import System.Mem.Weak(Weak)
 import Test.QuickCheck hiding ((==>))
 import Test.QuickCheck.Test hiding (test)
+import Test.QuickCheck.Modifiers as X
 
 default(Maybe Bool,Int,Dbl)
 
@@ -27,6 +28,18 @@ instance Eq Dbl where
 instance Ord Dbl where
     compare a b | a == b = EQ
     compare (Dbl a) (Dbl b) = compare a b
+
+newtype NegZero a = NegZero a deriving (Typeable, Show)
+instance (Num a, Arbitrary a) => Arbitrary (NegZero a) where
+    arbitrary = fmap (NegZero . negate . abs) arbitrary
+
+newtype Nat a = Nat a deriving (Typeable, Show)
+instance (Num a, Arbitrary a) => Arbitrary (Nat a) where
+    arbitrary = fmap (Nat . abs) arbitrary
+
+newtype Compare a = Compare (a -> a -> Ordering) deriving (Typeable, Show)
+instance (Ord a, Arbitrary a) => Arbitrary (Compare a) where
+    arbitrary = fmap (\b -> Compare $ (if b then flip else id) compare) arbitrary
 
 instance (Show a, Show b) => Show (a -> b) where show _ = "<func>"
 instance Show a => Show (IO a) where show _ = "<IO>"
@@ -93,3 +106,7 @@ main = do
         ((foldr1 (&&)) ?==> (and))
     test "data\\Default.hs" 407 "sinh x / cosh x ==> tanh x" $
         \ x -> (sqrt x) ==> (x ** 0.5)
+    test "data\\Default.hs" 154 "take i x ==> []" $
+        \ (NegZero i) x -> (take i x) ==> ([])
+    test "data\\Default.hs" 70 "head (sortBy f x) ==> minimumBy f x" $
+        \ (Compare f) x -> (head (sortBy f x)) ==> (minimumBy f x)

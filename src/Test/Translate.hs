@@ -88,10 +88,16 @@ toQuickCheck hints =
                  str (prettyPrint lhs ++ " ==> " ++ prettyPrint rhs)) (toNamed "$") bod
             | (i, HintRule _ _ _ lhs rhs side note) <- zip [1..] hints, "notTypeSafe" `notElem` vars (maybeToList side)
             , i `notElem` ([2,118,139,322,323] ++ [199..251] ++ [41,42,43,44,106])
-            , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
+            , let vs = map (restrict side) $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let op = if any isRemovesError note then "?==>" else "==>"
             , let inner = InfixApp an (Paren an lhs) (toNamed op) (Paren an rhs)
             , let bod = if null vs then Paren an inner else Lambda an vs inner]
+
+        restrict (Just side) v
+            | any (=~= App an (toNamed "isNegZero") (toNamed v)) (universe side) = PApp an (toNamed "NegZero") [toNamed v]
+            | any (=~= App an (toNamed "isNat") (toNamed v)) (universe side) = PApp an (toNamed "Nat") [toNamed v]
+            | any (=~= App an (toNamed "isCompare") (toNamed v)) (universe side) = PApp an (toNamed "Compare") [toNamed v]
+        restrict _ v = toNamed v
 
 
 isRemovesError RemovesError{} = True
