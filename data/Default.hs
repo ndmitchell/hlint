@@ -404,7 +404,6 @@ warn  = 0 - x ==> negate x
 error "Redundant negate" = negate (negate x) ==> x
 warn  = log y / log x ==> logBase x y
 warn  = sin x / cos x ==> tan x
-warn  = sinh x / cosh x ==> tanh x
 warn  = n `rem` 2 == 0 ==> even n
 warn  = n `rem` 2 /= 0 ==> odd n
 warn  = not (even x) ==> odd x

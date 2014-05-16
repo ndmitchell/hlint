@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Remove an invalid rule suggesting tanh
     #13, add a --quickcheck flag to test the hints
     Add --typecheck flag to test mode to type check the hints
     Remove incorrect for intercalate to unlines
