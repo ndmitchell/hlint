@@ -198,6 +198,7 @@ checkSide x bind = maybe True f x
         f x | x ~= "notTypeSafe" = True
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
 
+        isType "Compare" x = True -- just a hint for proof stuff
         isType "Atom" x = isAtom x
         isType "WHNF" x = isWHNF x
         isType "Nat" (asInt -> Just x) | x >= 0 = True
