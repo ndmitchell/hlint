@@ -77,17 +77,17 @@ toQuickCheck :: [HintRule] -> [String]
 toQuickCheck hints =
     ["import HLint_QuickCheck hiding(main)"
     ,"default(Maybe Bool,Int,Dbl)"
-    ,prettyPrint $ PatBind an (toNamed "main") Nothing (UnGuardedRhs an $ Do an tests) Nothing]
+    ,prettyPrint $ PatBind an (toNamed "main") Nothing (UnGuardedRhs an $ toNamed "withMain" $$ Do an tests) Nothing]
     where
         str x = Lit an $ String an x (show x)
         int x = Lit an $ Int an (toInteger x) (show x)
         app = App an
+        a $$ b = InfixApp an a (toNamed "$") b
         tests =
-            [ Qualifier an $ InfixApp an
+            [ Qualifier an $
                 (toNamed "test" `app` str (fileName $ ann rhs) `app` int (startLine $ ann rhs) `app`
-                 str (prettyPrint lhs ++ " ==> " ++ prettyPrint rhs)) (toNamed "$") bod
+                 str (prettyPrint lhs ++ " ==> " ++ prettyPrint rhs)) $$ bod
             | (i, HintRule _ _ _ lhs rhs side note) <- zip [1..] hints, "noQuickCheck" `notElem` vars (maybeToList side)
-            , i `notElem` ([199..251])
             , let vs = map (restrict side) $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let op = if any isRemovesError note then "?==>" else "==>"
             , let inner = InfixApp an (Paren an lhs) (toNamed op) (Paren an rhs)

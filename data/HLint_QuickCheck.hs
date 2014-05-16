@@ -8,6 +8,7 @@ import System.IO.Unsafe
 import Data.Typeable
 import Data.List
 import Data.Maybe
+import Data.IORef
 import Control.Exception
 import Control.Monad
 import System.IO
@@ -76,6 +77,10 @@ instance Eq a => Testable2 a where
 instance (Arbitrary a, Show a, Testable2 b) => Testable2 (a -> b) where
     property2 x = property $ \a -> fmap ($ a) x
 
+{-# NOINLINE bad #-}
+bad :: IORef Int
+bad = unsafePerformIO $ newIORef 0
+
 test :: (Show p, Testable p, Typeable p) => FilePath -> Int -> String -> p -> IO ()
 test file line hint p = do
     res <- quickCheckWithResult stdArgs{chatty=False} p
@@ -83,6 +88,7 @@ test file line hint p = do
         putStrLn $ "\n" ++ file ++ ":" ++ show line ++ ": " ++ hint
         print $ typeOf p
         putStr $ output res
+        modifyIORef bad (+1)
 
 catcher :: a -> Maybe a
 catcher x = unsafePerformIO $ do
@@ -94,12 +100,18 @@ catcher x = unsafePerformIO $ do
 _noParen_ = id
 _eval_ = id
 
+withMain :: IO () -> IO ()
+withMain act = do
+    act
+    bad <- readIORef bad
+    when (bad > 0) $
+        error $ "Failed " ++ show bad ++ " tests"
 
 ---------------------------------------------------------------------
 -- EXAMPLES
 
 main :: IO ()
-main = do
+main = withMain $ do
     test "data\\Default.hs" 144 "findIndex ((==) a) ==> elemIndex a" $
         \ a -> (findIndex ((==) a)) ==> (elemIndex a)
     test "data\\Default.hs" 179 "foldr1 (&&) ==> and" $
