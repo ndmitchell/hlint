@@ -279,70 +279,71 @@ warn "Redundant pair" = (fst x, snd x) ==>  x where note = DecreasesLaziness
 
 -- FUNCTOR
 
-error "Functor law" = fmap f (fmap g x) ==> fmap (f . g) x
-error "Functor law" = fmap id ==> id
+error "Functor law" = fmap f (fmap g x) ==> fmap (f . g) x where _ = noQuickCheck
+error "Functor law" = fmap id ==> id where _ = noQuickCheck
 warn = fmap f $ x ==> f Control.Applicative.<$> x
-    where _ = isApp x || isAtom x
+    where _ = (isApp x || isAtom x) && noQuickCheck
 
 -- MONAD
 
-error "Monad law, left identity" = return a >>= f ==> f a
-error "Monad law, right identity" = m >>= return ==> m
-warn  = m >>= return . f ==> Control.Monad.liftM f m -- cannot be fmap, because is in Functor not Monad
-error = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y where _ = not (isAtom y)
-error = (if x then y else return ()) ==> Control.Monad.when x y where _ = isAtom y
-error = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y where _ = not (isAtom y)
-error = (if x then return () else y) ==> Control.Monad.unless x y where _ = isAtom y
-error = sequence (map f x) ==> mapM f x
-error = sequence_ (map f x) ==> mapM_ f x
-warn  = flip mapM ==> Control.Monad.forM
-warn  = flip mapM_ ==> Control.Monad.forM_
-warn  = flip forM ==> mapM
-warn  = flip forM_ ==> mapM_
-error = when (not x) ==> unless x
-error = x >>= id ==> Control.Monad.join x
-error = liftM f (liftM g x) ==> liftM (f . g) x
-error = fmap f (fmap g x) ==> fmap (f . g) x
+error "Monad law, left identity" = return a >>= f ==> f a where _ = noQuickCheck
+error "Monad law, right identity" = m >>= return ==> m where _ = noQuickCheck
+warn  = m >>= return . f ==> Control.Monad.liftM f m where _ = noQuickCheck -- cannot be fmap, because is in Functor not Monad
+error = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
+error = (if x then y else return ()) ==> Control.Monad.when x y where _ = isAtom y && noQuickCheck
+error = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
+error = (if x then return () else y) ==> Control.Monad.unless x y where _ = isAtom y && noQuickCheck
+error = sequence (map f x) ==> mapM f x where _ = noQuickCheck
+error = sequence_ (map f x) ==> mapM_ f x where _ = noQuickCheck
+warn  = flip mapM ==> Control.Monad.forM where _ = noQuickCheck
+warn  = flip mapM_ ==> Control.Monad.forM_ where _ = noQuickCheck
+warn  = flip forM ==> mapM where _ = noQuickCheck
+warn  = flip forM_ ==> mapM_ where _ = noQuickCheck
+error = when (not x) ==> unless x where _ = noQuickCheck
+error = x >>= id ==> Control.Monad.join x where _ = noQuickCheck
+error = liftM f (liftM g x) ==> liftM (f . g) x where _ = noQuickCheck
+error = fmap f (fmap g x) ==> fmap (f . g) x where _ = noQuickCheck
 warn  = a >> return () ==> Control.Monad.void a
-    where _ = isAtom a || isApp a
-error = fmap (const ()) ==> Control.Monad.void
-error = flip (>=>) ==> (<=<)
-error = flip (<=<) ==> (>=>)
-warn  = (\x -> f x >>= g) ==> f Control.Monad.>=> g
-warn  = (\x -> f =<< g x) ==> f Control.Monad.<=< g
-error = a >> forever a ==> forever a
-warn  = liftM2 id ==> ap
-error = mapM (uncurry f) (zip l m) ==> zipWithM f l m
+    where _ = (isAtom a || isApp a) && noQuickCheck
+error = fmap (const ()) ==> Control.Monad.void where _ = noQuickCheck
+error = flip (>=>) ==> (<=<) where _ = noQuickCheck
+error = flip (<=<) ==> (>=>) where _ = noQuickCheck
+warn  = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = noQuickCheck
+warn  = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = noQuickCheck
+error = a >> forever a ==> forever a where _ = noQuickCheck
+warn  = liftM2 id ==> ap where _ = noQuickCheck
+error = mapM (uncurry f) (zip l m) ==> zipWithM f l m where _ = noQuickCheck
 
 -- STATE MONAD
 
-error = fst (runState x y) ==> evalState x y
-error = snd (runState x y) ==> execState x y
+error = fst (runState x y) ==> evalState x y where _ = noQuickCheck
+error = snd (runState x y) ==> execState x y where _ = noQuickCheck
 
 -- MONAD LIST
 
-error = liftM unzip (mapM f x) ==> Control.Monad.mapAndUnzipM f x
-error = sequence (zipWith f x y) ==> Control.Monad.zipWithM f x y
-error = sequence_ (zipWith f x y) ==> Control.Monad.zipWithM_ f x y
-error = sequence (replicate n x) ==> Control.Monad.replicateM n x
-error = sequence_ (replicate n x) ==> Control.Monad.replicateM_ n x
-error = mapM f (replicate n x) ==> Control.Monad.replicateM n (f x)
-error = mapM_ f (replicate n x) ==> Control.Monad.replicateM_ n (f x)
-error = mapM f (map g x) ==> mapM (f . g) x
-error = mapM_ f (map g x) ==> mapM_ (f . g) x
-error = mapM id ==> sequence
-error = mapM_ id ==> sequence_
+error = liftM unzip (mapM f x) ==> Control.Monad.mapAndUnzipM f x where _ = noQuickCheck
+error = sequence (zipWith f x y) ==> Control.Monad.zipWithM f x y where _ = noQuickCheck
+error = sequence_ (zipWith f x y) ==> Control.Monad.zipWithM_ f x y where _ = noQuickCheck
+error = sequence (replicate n x) ==> Control.Monad.replicateM n x where _ = noQuickCheck
+error = sequence_ (replicate n x) ==> Control.Monad.replicateM_ n x where _ = noQuickCheck
+error = mapM f (replicate n x) ==> Control.Monad.replicateM n (f x) where _ = noQuickCheck
+error = mapM_ f (replicate n x) ==> Control.Monad.replicateM_ n (f x) where _ = noQuickCheck
+error = mapM f (map g x) ==> mapM (f . g) x where _ = noQuickCheck
+error = mapM_ f (map g x) ==> mapM_ (f . g) x where _ = noQuickCheck
+error = mapM id ==> sequence where _ = noQuickCheck
+error = mapM_ id ==> sequence_ where _ = noQuickCheck
 
 -- APPLICATIVE / TRAVERSABLE
 
-error = flip traverse ==> for
-error = flip for ==> traverse
-error = flip traverse_ ==> for_
-error = flip for_ ==> traverse_
-error = foldr (*>) (pure ()) ==> sequenceA_
-error = foldr (<|>) empty ==> asum
-error = liftA2 (flip ($)) ==> (<**>)
-error = Just <$> a <|> pure Nothing ==> optional a
+error = flip traverse ==> for where _ = noQuickCheck
+error = flip for ==> traverse where _ = noQuickCheck
+error = flip traverse_ ==> for_ where _ = noQuickCheck
+error = flip for_ ==> traverse_ where _ = noQuickCheck
+error = foldr (*>) (pure ()) ==> sequenceA_ where _ = noQuickCheck
+error = foldr (<|>) empty ==> asum where _ = noQuickCheck
+error = liftA2 (flip ($)) ==> (<**>) where _ = noQuickCheck
+error = Just <$> a <|> pure Nothing ==> optional a where _ = noQuickCheck
+
 
 -- LIST COMP
 
