@@ -93,9 +93,13 @@ warn = concat [a, b] ==> a ++ b
 warn "Use map once" = map f (map g x) ==> map (f . g) x
 warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
+    where _ = noQuickCheck -- takes too long
 error = map f (replicate n x) ==> replicate n (f x)
+    where _ = noQuickCheck -- takes too long
 error = map f (repeat x) ==> repeat (f x)
+    where _ = noQuickCheck -- takes forever
 error = cycle [x] ==> repeat x
+    where _ = noQuickCheck -- takes forever
 error = head (reverse x) ==> last x
 error = head (drop n x) ==> x !! n where _ = isNat n
 error = reverse (tail (reverse x)) ==> init x where note = IncreasesLaziness
@@ -159,6 +163,7 @@ error "Drop on a non-positive" = drop i x ==> x where _ = isNegZero i
 error = last (scanl f z x) ==> foldl f z x
 error = head (scanr f z x) ==> foldr f z x
 error = iterate id ==> repeat
+    where _ = noQuickCheck -- takes forever
 error = zipWith f (repeat x) ==> map (f x)
 error = zipWith f x (repeat y) ==> map (\x -> f x y) x
 
@@ -177,6 +182,7 @@ error = unionBy (==) ==> union
 -- FOLDS
 
 error = foldr  (>>) (return ()) ==> sequence_
+    where _ = noQuickCheck
 error = foldr  (&&) True ==> and
 error = foldl  (&&) True ==> and where note = IncreasesLaziness
 error = foldr1 (&&)  ==> and where note = RemovesError "on []"
@@ -198,6 +204,7 @@ error = foldr1 max   ==> maximum
 error = foldl1 min   ==> minimum
 error = foldr1 min   ==> minimum
 error = foldr mplus mzero ==> msum
+    where _ = noQuickCheck
 
 -- FUNCTION
 
@@ -440,7 +447,9 @@ error = mkWeak a (a, b) c ==> mkWeakPair a b c
 -- FOLDABLE
 
 error "Use Foldable.forM_" = (case m of Nothing -> return (); Just x -> f x) ==> Data.Foldable.forM_ m f
+    where _ = noQuickCheck
 error "Use Foldable.forM_" = when (isJust m) (f (fromJust m)) ==> Data.Foldable.forM_ m f
+    where _ = noQuickCheck
 
 -- EVALUATE
 
@@ -609,6 +618,7 @@ foo = return $! 1
 foo = return $! "test"
 bar = [x| (x,_) <- pts]
 return' x = x `seq` return x
+foo = last (sortBy (compare `on` fst) xs) -- maximumBy (compare `on` fst) xs
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

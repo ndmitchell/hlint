@@ -11,7 +11,7 @@ import "hint" HLint.Builtin.All
 error = Prelude.readFile ==> bad
 
 error = (x :: Int) ==> (x :: Int32)
-    where _ = notTypeSafe
+    where _ = noTypeCheck
 
 
 error "Test1" = scanr ==> scanr

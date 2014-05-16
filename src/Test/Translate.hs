@@ -87,7 +87,7 @@ toQuickCheck hints =
                 (toNamed "test" `app` str (fileName $ ann rhs) `app` int (startLine $ ann rhs) `app`
                  str (prettyPrint lhs ++ " ==> " ++ prettyPrint rhs)) (toNamed "$") bod
             | (i, HintRule _ _ _ lhs rhs side note) <- zip [1..] hints, "noQuickCheck" `notElem` vars (maybeToList side)
-            , i `notElem` ([2,118,139,322,323] ++ [199..251] ++ [41,42,43,44,106])
+            , i `notElem` ([199..251])
             , let vs = map (restrict side) $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let op = if any isRemovesError note then "?==>" else "==>"
             , let inner = InfixApp an (Paren an lhs) (toNamed op) (Paren an rhs)
