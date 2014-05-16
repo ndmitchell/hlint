@@ -64,7 +64,7 @@ toTypeCheck hints =
     ,"main = return ()"] ++
     ["{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
      prettyPrint (PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing)
-    | (i, HintRule _ _ _ lhs rhs side _) <- zip [1..] hints, "notTypeSafe" `notElem` vars (maybeToList side)
+    | (i, HintRule _ _ _ lhs rhs side _) <- zip [1..] hints, "noTypeCheck" `notElem` vars (maybeToList side)
     , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
     , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
     , let bod = UnGuardedRhs an $ if null vs then inner else Lambda an vs inner]
@@ -86,7 +86,7 @@ toQuickCheck hints =
             [ Qualifier an $ InfixApp an
                 (toNamed "test" `app` str (fileName $ ann rhs) `app` int (startLine $ ann rhs) `app`
                  str (prettyPrint lhs ++ " ==> " ++ prettyPrint rhs)) (toNamed "$") bod
-            | (i, HintRule _ _ _ lhs rhs side note) <- zip [1..] hints, "notTypeSafe" `notElem` vars (maybeToList side)
+            | (i, HintRule _ _ _ lhs rhs side note) <- zip [1..] hints, "noQuickCheck" `notElem` vars (maybeToList side)
             , i `notElem` ([2,118,139,322,323] ++ [199..251] ++ [41,42,43,44,106])
             , let vs = map (restrict side) $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let op = if any isRemovesError note then "?==>" else "==>"

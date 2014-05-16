@@ -16,7 +16,7 @@ isAtom x - does x never need brackets
 isFoo x - is the root constructor of x a "Foo"
 notEq x y - are x and y not equal
 notIn xs ys - are all x variables not in ys expressions
-notTypeSafe - no semantics, a hint for testing only
+noTypeCheck, noQuickCheck - no semantics, a hint for testing only
 
 ($) AND (.)
 We see through ($)/(.) by expanding it if nothing else matches.
@@ -195,7 +195,8 @@ checkSide x bind = maybe True f x
         f (App _ (App _ cond (sub -> x)) (sub -> y))
             | cond ~= "notIn" = and [x `notElem` universe y | x <- list x, y <- list y]
             | cond ~= "notEq" = x /= y
-        f x | x ~= "notTypeSafe" = True
+        f x | x ~= "noTypeCheck" = True
+        f x | x ~= "noQuickCheck" = True
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
 
         isType "Compare" x = True -- just a hint for proof stuff
