@@ -24,6 +24,8 @@ data-files:
     hs-lint.el
     hlint.1
     hlint.ghci
+    HLint_QuickCheck.hs
+    HLint_TypeCheck.hs
 extra-source-files:
     README.md
     CHANGES.txt
