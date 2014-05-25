@@ -12,11 +12,12 @@ This program has only been made possible by the presence of the [haskell-src-ext
 
 ### Bugs and limitations
 
-Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/issues). There are three common issues that I do not intend to fix:
+Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/issues). There are some issues that I do not intend to fix:
 
+* HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope.
 * The presence of `seq` may cause some hints (i.e. eta-reduction) to change the semantics of a program.
 * Either the monomorphism restriction, or rank-2 types, may cause transformed programs to require type signatures to be manually inserted.
-* HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope.
+* The `RebindableSyntax` extension can cause HLint to suggest incorrect changes.
 
 ## Installing and running HLint
 
