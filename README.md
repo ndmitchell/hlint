@@ -1,4 +1,4 @@
-# HLint [![Build Status](https://travis-ci.org/ndmitchell/hlint.png)](https://travis-ci.org/ndmitchell/hlint)
+# HLint [![Build Status](https://travis-ci.org/ndmitchell/hlint.svg)](https://travis-ci.org/ndmitchell/hlint)
 
 HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
 
