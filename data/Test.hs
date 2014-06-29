@@ -89,9 +89,9 @@ import Array(head); test = head -- head
 import Array as A; test = A.head -- head
 test = tail -- Array.tail
 import qualified Array as B; test = tail -- B.tail
--- import Control.Arrow; test = id *** id -- id
+import Control.Arrow; test = id *** id -- id
 test = id Control.Arrow.*** id -- id
--- import Control.Arrow as Q; test = id Q.*** id -- id
+import Control.Arrow as Q; test = id Q.*** id -- id
 zip [1..length x]
 zip [1..length x] x -- zipFrom 1 x
 
