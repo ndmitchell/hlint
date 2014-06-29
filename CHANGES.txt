@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #59, make sure qualified operators match properly
     Rename notTypeSafe annotation to noTypeCheck
     Remove an invalid rule suggesting tanh
     #13, add a --quickcheck flag to test the hints

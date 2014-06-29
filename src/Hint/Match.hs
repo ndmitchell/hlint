@@ -114,6 +114,12 @@ matchIdea s decl HintRule{..} parent x = do
 
 type NameMatch = QName S -> QName S -> Bool
 
+nmOp :: NameMatch -> QOp S -> QOp S -> Bool
+nmOp nm (QVarOp _ x) (QVarOp _ y) = nm x y
+nmOp nm (QConOp _ x) (QConOp _ y) = nm x y
+nmOp nm  _ _ = False
+
+
 -- unify a b = c, a[c] = b
 unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe [(String,Exp_)]
 unify nm root x y | Just x <- cast x = unifyExp nm root x (unsafeCoerce y)
@@ -136,7 +142,7 @@ unifyExp nm root x@(App _ x1 x2) (App _ y1 y2) =
     liftM2 (++) (unifyExp nm False x1 y1) (unifyExp nm False x2 y2) `mplus`
     (do guard $ not root; InfixApp _ y11 dot y12 <- return $ fromParen y1; guard $ isDot dot; unifyExp nm root x (App an y11 (App an y12 y2)))
 unifyExp nm root x (InfixApp _ lhs2 op2 rhs2)
-    | InfixApp _ lhs1 op1 rhs1 <- x = guard (op1 == op2) >> liftM2 (++) (unifyExp nm False lhs1 lhs2) (unifyExp nm False rhs1 rhs2)
+    | InfixApp _ lhs1 op1 rhs1 <- x = guard (nmOp nm op1 op2) >> liftM2 (++) (unifyExp nm False lhs1 lhs2) (unifyExp nm False rhs1 rhs2)
     | isDol op2 = unifyExp nm root x $ App an lhs2 rhs2
     | otherwise = unifyExp nm root x $ App an (App an (opExp op2) lhs2) rhs2
 unifyExp nm root x y | isOther x, isOther y = unifyDef nm x y
