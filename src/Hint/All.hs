@@ -20,6 +20,7 @@ import Hint.Import
 import Hint.Pragma
 import Hint.Extensions
 import Hint.Duplicate
+import Hint.Comment
 
 
 -- | A list of builtin hints, currently including entries such as @\"List\"@ and @\"Bracket\"@.
@@ -36,11 +37,13 @@ builtinHints =
     ,"Pragma"     + pragmaHint
     ,"Extensions" + extensionsHint
     ,"Duplicate"  * duplicateHint
+    ,"Comment"    - commentHint
     ]
     where
         x!y = (x,mempty{hintDecl=y})
         x+y = (x,mempty{hintModule=y})
         x*y = (x,mempty{hintModules=y})
+        x-y = (x,mempty{hintComment=y})
 
 -- | Transform a list of 'HintRule' into a 'Hint'.
 hintRules :: [HintRule] -> Hint

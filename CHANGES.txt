@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #57, warn on invalid pragmas
     Make the API pass and require comments
     #59, make sure qualified operators match properly
     Rename notTypeSafe annotation to noTypeCheck

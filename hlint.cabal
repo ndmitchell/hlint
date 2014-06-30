@@ -74,6 +74,7 @@ library
         HSE.Util
         Hint.All
         Hint.Bracket
+        Hint.Comment
         Hint.Duplicate
         Hint.Extensions
         Hint.Import
