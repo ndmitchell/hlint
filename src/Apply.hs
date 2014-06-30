@@ -32,7 +32,7 @@ applyHintFiles flags s files = do
 
 -- | Given a way of classifying results, and a 'Hint', apply to a set of modules generating a list of 'Idea's.
 --   The 'Idea' values will be ordered within a file.
-applyHints :: [Classify] -> Hint -> [Module SrcSpanInfo] -> [Idea]
+applyHints :: [Classify] -> Hint -> [(Module SrcSpanInfo, [Comment])] -> [Idea]
 applyHints cls hints_ ms = concat $
     [ map (classify $ cls ++ mapMaybe readPragma (universeBi m)) $
         order "" (hintModule hints nm m) ++
@@ -42,14 +42,14 @@ applyHints cls hints_ ms = concat $
     , let order n = map (\i -> i{ideaModule=moduleName m, ideaDecl=n}) . sortBy (comparing ideaSpan)] ++
     [map (classify cls) (hintModules hints mns)]
     where
-        mns = map (scopeCreate &&& id) ms
+        mns = map ((scopeCreate &&& id) . fst) ms
         hints = (if length ms <= 1 then noModules else id) hints_
         noModules h = h{hintModules = \_ -> []} `mappend` mempty{hintModule = \a b -> hintModules h [(a,b)]}
 
 
 -- | Given a list of settings (a way to classify) and a list of hints, run them over a list of modules.
 executeHints :: [Setting] -> [Module_] -> [Idea]
-executeHints s = applyHints [x | SettingClassify x <- s] (allHints s)
+executeHints s = applyHints [x | SettingClassify x <- s] (allHints s) . map (flip (,) [])
 
 
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
@@ -57,7 +57,7 @@ parseModuleApply :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO (E
 parseModuleApply flags s file src = do
     res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case res of
-        Right m -> return $ Right m
+        Right (m, _) -> return $ Right m
         Left (ParseError sl msg ctxt) -> do
             i <- return $ rawIdea Warning "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
             i <- return $ classify [x | SettingClassify x <- s] i

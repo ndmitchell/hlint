@@ -142,7 +142,7 @@ findSettings dataDir file contents = do
     res <- parseModuleEx flags file contents
     case res of
         Left (ParseError sl msg err) -> exitMessage $ "Parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
-        Right m -> do
+        Right (m, _) -> do
             ys <- sequence [f $ fromNamed $ importModule i | i <- moduleImports m, importPkg i `elem` [Just "hint", Just "hlint"]]
             return $ concat2 $ ([],[m]) : ys
     where
@@ -249,7 +249,7 @@ findSettings2 flags file = do
     case x of
         Left (ParseError sl msg _) ->
             return ("-- Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
-        Right m -> do
+        Right (m, _) -> do
             let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
                 s = unlines $ ["-- hints found in " ++ file] ++ map prettyPrint xs ++ ["-- no hints found" | null xs]
                 r = concatMap (readSetting mempty) xs

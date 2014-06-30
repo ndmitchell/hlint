@@ -64,12 +64,12 @@ data ParseError = ParseError
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses best-guess fixity resolution if there are ambiguities.
 --   The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
-parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo))
+parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
 parseModuleEx flags file str = do
         str <- maybe (readFileEncoding (encoding flags) file) return str
         ppstr <- runCpp (cppFlags flags) file str
-        case parseFileContentsWithMode (mode flags) ppstr of
-            ParseOk x -> return $ Right $ applyFixity fixity x
+        case parseFileContentsWithComments (mode flags) ppstr of
+            ParseOk (x, cs) -> return $ Right (applyFixity fixity x, cs)
             ParseFailed sl msg -> do
                 -- figure out the best line number to grab context from, by reparsing
                 flags <- return $ parseFlagsNoLocations flags
