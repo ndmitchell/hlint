@@ -87,6 +87,9 @@ limit :: Int -> String -> String
 limit n s = if null post then s else pre ++ "..."
     where (pre,post) = splitAt n s
 
+trim :: String -> String
+trim = ltrim . rtrim
+
 ltrim :: String -> String
 ltrim = dropWhile isSpace
 
