@@ -116,6 +116,12 @@ revTake i = reverse . take i . reverse
 concatUnzip :: [([a], [b])] -> ([a], [b])
 concatUnzip = (concat *** concat) . unzip
 
+mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+mergeBy f (x:xs) (y:ys)
+    | f x y == GT = y : mergeBy f (x:xs) ys
+    | otherwise = x : mergeBy f xs (y:ys)
+mergeBy f xs ys = xs ++ ys
+
 
 ---------------------------------------------------------------------
 -- DATA.TUPLE
