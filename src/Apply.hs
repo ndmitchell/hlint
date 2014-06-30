@@ -48,16 +48,16 @@ applyHints cls hints_ ms = concat $
 
 
 -- | Given a list of settings (a way to classify) and a list of hints, run them over a list of modules.
-executeHints :: [Setting] -> [Module_] -> [Idea]
-executeHints s = applyHints [x | SettingClassify x <- s] (allHints s) . map (flip (,) [])
+executeHints :: [Setting] -> [(Module_, [Comment])] -> [Idea]
+executeHints s = applyHints [x | SettingClassify x <- s] (allHints s)
 
 
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
-parseModuleApply :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO (Either Idea Module_)
+parseModuleApply :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO (Either Idea (Module_, [Comment]))
 parseModuleApply flags s file src = do
     res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case res of
-        Right (m, _) -> return $ Right m
+        Right m -> return $ Right m
         Left (ParseError sl msg ctxt) -> do
             i <- return $ rawIdea Warning "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
             i <- return $ classify [x | SettingClassify x <- s] i
