@@ -70,7 +70,7 @@ parseTestFile file = do
         f False ((i,x):xs) = f (open x) xs
         f True  ((i,x):xs)
             | shut x = f False xs
-            | null x || "--" `isPrefixOf` x = f True xs
+            | null x || "-- " `isPrefixOf` x = f True xs
             | "\\" `isSuffixOf` x, (_,y):ys <- xs = f True $ (i,init x++"\n"++y):ys
             | otherwise = parseTest file i x : f True xs
         f _ [] = []
