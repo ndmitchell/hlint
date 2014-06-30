@@ -3,6 +3,7 @@
 -- | Check the <TEST> annotations within source and hint files.
 module Test.Annotations(testAnnotations) where
 
+import Control.Arrow
 import Data.Char
 import Data.List
 import Data.Maybe
@@ -76,8 +77,8 @@ parseTestFile file = do
         f _ [] = []
 
 
-parseTest file i x = Test (SrcLoc file i 0) x $
-    case dropWhile (/= "--") $ words x of
-        [] -> Nothing
-        _:xs -> Just $ unwords xs
-
+parseTest file i x = uncurry (Test (SrcLoc file i 0)) $ f x
+    where
+        f (' ':'-':'-':xs) | null xs || " " `isPrefixOf` xs = ("", Just $ dropWhile isSpace xs)
+        f (x:xs) = first (x:) $ f xs
+        f [] = ([], Nothing)
