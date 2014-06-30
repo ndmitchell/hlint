@@ -79,6 +79,7 @@ parseTestFile file = do
 
 parseTest file i x = uncurry (Test (SrcLoc file i 0)) $ f x
     where
+        f x | Just x <- stripPrefix "<COMMENT>" x = first ("--"++) $ f x
         f (' ':'-':'-':xs) | null xs || " " `isPrefixOf` xs = ("", Just $ dropWhile isSpace xs)
         f (x:xs) = first (x:) $ f xs
         f [] = ([], Nothing)
