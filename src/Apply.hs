@@ -36,13 +36,15 @@ applyHints :: [Classify] -> Hint -> [(Module SrcSpanInfo, [Comment])] -> [Idea]
 applyHints cls hints_ ms = concat $
     [ map (classify $ cls ++ mapMaybe readPragma (universeBi m)) $
         order "" (hintModule hints nm m) `merge`
-        concat [order (fromNamed d) $ decHints d | d <- moduleDecls m]
-    | (nm,m) <- mns
+        concat [order (fromNamed d) $ decHints d | d <- moduleDecls m] `merge`
+        concat [order "" $ hintComment hints c | c <- cs]
+    | (nm,(m,cs)) <- mns
     , let decHints = hintDecl hints nm m -- partially apply
-    , let order n = map (\i -> i{ideaModule=moduleName m, ideaDecl=n}) . sortBy (comparing ideaSpan)] ++
-    [map (classify cls) (hintModules hints mns)]
+    , let order n = map (\i -> i{ideaModule=moduleName m, ideaDecl=n}) . sortBy (comparing ideaSpan)
+    , let merge = mergeBy (comparing ideaSpan)] ++
+    [map (classify cls) (hintModules hints $ map (second fst) mns)]
     where
-        mns = map ((scopeCreate &&& id) . fst) ms
+        mns = map (scopeCreate . fst &&& id) ms
         hints = (if length ms <= 1 then noModules else id) hints_
         noModules h = h{hintModules = \_ -> []} `mappend` mempty{hintModule = \a b -> hintModules h [(a,b)]}
 

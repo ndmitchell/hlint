@@ -17,8 +17,10 @@ data Hint = Hint
     ,hintDecl :: Scope -> Module SrcSpanInfo -> Decl SrcSpanInfo -> [Idea]
         -- ^ Given a declaration (with a module and scope) generate some 'Idea's.
         --   This function will be partially applied with one module/scope, then used on multiple 'Decl' values.
+    ,hintComment :: Comment -> [Idea] -- ^ Given a comment generate some 'Idea's.
     }
 
 instance Monoid Hint where
-    mempty = Hint (\_ -> []) (\_ _ -> []) (\_ _ _ -> [])
-    mappend (Hint x1 x2 x3) (Hint y1 y2 y3) = Hint (\a -> x1 a ++ y1 a) (\a b -> x2 a b ++ y2 a b) (\a b c -> x3 a b c ++ y3 a b c)
+    mempty = Hint (\_ -> []) (\_ _ -> []) (\_ _ _ -> []) (\_ -> [])
+    mappend (Hint x1 x2 x3 x4) (Hint y1 y2 y3 y4) =
+        Hint (\a -> x1 a ++ y1 a) (\a b -> x2 a b ++ y2 a b) (\a b c -> x3 a b c ++ y3 a b c) (\a -> x4 a ++ y4 a)
