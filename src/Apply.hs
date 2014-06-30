@@ -35,7 +35,7 @@ applyHintFiles flags s files = do
 applyHints :: [Classify] -> Hint -> [(Module SrcSpanInfo, [Comment])] -> [Idea]
 applyHints cls hints_ ms = concat $
     [ map (classify $ cls ++ mapMaybe readPragma (universeBi m)) $
-        order "" (hintModule hints nm m) ++
+        order "" (hintModule hints nm m) `merge`
         concat [order (fromNamed d) $ decHints d | d <- moduleDecls m]
     | (nm,m) <- mns
     , let decHints = hintDecl hints nm m -- partially apply
