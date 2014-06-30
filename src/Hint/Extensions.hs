@@ -65,7 +65,7 @@ f :: x -> (x, x); f x = (x, x) --
 -}
 
 
-module Hint.Extensions where
+module Hint.Extensions(extensionsHint) where
 
 import Hint.Type
 import Data.Maybe

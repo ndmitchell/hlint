@@ -24,7 +24,7 @@
 -}
 
 
-module Hint.Pragma where
+module Hint.Pragma(pragmaHint) where
 
 import Hint.Type
 import Data.List

@@ -34,7 +34,7 @@ yes = mapM async ds >>= mapM wait >> return () -- mapM async ds >>= mapM_ wait
 -}
 
 
-module Hint.Monad where
+module Hint.Monad(monadHint) where
 
 import Control.Arrow
 import Control.Applicative

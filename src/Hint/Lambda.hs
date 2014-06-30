@@ -66,7 +66,7 @@ baz = bar (\x -> (x +)) -- (+)
 -}
 
 
-module Hint.Lambda where
+module Hint.Lambda(lambdaHint) where
 
 import Hint.Util
 import Hint.Type

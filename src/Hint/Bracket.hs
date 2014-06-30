@@ -58,7 +58,7 @@ main = 1; {-# ANN module (1 + (2)) #-} -- 2
 -}
 
 
-module Hint.Bracket where
+module Hint.Bracket(bracketHint) where
 
 import Hint.Type
 

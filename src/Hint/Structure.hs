@@ -36,7 +36,7 @@ foo = let ~(x:xs) = y in z
 -}
 
 
-module Hint.Structure where
+module Hint.Structure(structureHint) where
 
 import Hint.Type
 import Util

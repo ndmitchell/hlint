@@ -23,7 +23,7 @@ foo = [a b] ++ xs -- a b : xs
 -}
 
 
-module Hint.List where
+module Hint.List(listHint) where
 
 import Control.Applicative
 import Hint.Type

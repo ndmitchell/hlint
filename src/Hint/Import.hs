@@ -40,7 +40,7 @@ module Foo(module A, baz, module B, module X) where; import A; import B; import 
 -}
 
 
-module Hint.Import where
+module Hint.Import(importHint) where
 
 import Hint.Type
 import Util
