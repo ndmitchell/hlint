@@ -229,7 +229,6 @@ error = a >= 'a' && a <= 'z' ==> isAsciiLower a
 error = a >= 'A' && a <= 'Z' ==> isAsciiUpper a
 error = a >= '0' && a <= '9' ==> isDigit a
 error = a >= '0' && a <= '7' ==> isOctDigit a
-error = not (isControl a) ==> isPrint a
 error = isLower a || isUpper a ==> isAlpha a
 error = isUpper a || isLower a ==> isAlpha a
 

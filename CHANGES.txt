@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Remove not (isControl x) ==> isPrint (not true for '\173')
     #57, warn on invalid pragmas
     Make the API pass and require comments
     #59, make sure qualified operators match properly
