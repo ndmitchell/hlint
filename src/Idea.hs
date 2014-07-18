@@ -2,6 +2,7 @@
 
 module Idea(module Idea, Note(..), showNotes, Severity(..)) where
 
+import Data.List
 import HSE.All
 import Settings
 import Language.Haskell.HsColour.TTY
@@ -22,6 +23,28 @@ data Idea = Idea
     }
     deriving (Eq,Ord)
 
+showIdeaJson :: Idea -> String
+showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = wrap . intercalate "," . map mkPair $
+    [("module", show ideaModule)
+    ,("decl", show ideaDecl)
+    ,("severity", show . show $ ideaSeverity)
+    ,("hint", show ideaHint)
+    ,("file", show srcSpanFilename)
+    ,("span", show [srcSpanStartLine
+                   ,srcSpanStartColumn
+                   ,srcSpanEndLine
+                   ,srcSpanEndColumn
+                   ])
+    ,("from", show ideaFrom)
+    ,("to", maybe "null" show ideaTo)
+    ,("note", show $ map (show . show) ideaNote)
+    ]
+  where
+    mkPair (k, v) = show k ++ ":" ++ v
+    wrap x = "{" ++ x ++ "}"
+
+showIdeasJson :: [Idea] -> String
+showIdeasJson ideas = "[" ++ intercalate "," (map showIdeaJson ideas) ++ "]"
 
 instance Show Idea where
     show = showEx id

@@ -128,16 +128,18 @@ runHints cmd@CmdMain{..} flags = do
         then applyHintFiles flags settings cmdFiles
         else concat <$> parallel [listM' =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
-    showItem <- if cmdColor then showANSI else return show
-    mapM_ (outStrLn . showItem) showideas
-
-    if null showideas then
-        when (cmdReports /= []) $ outStrLn "Skipping writing reports"
-     else
-        forM_ cmdReports $ \x -> do
-            outStrLn $ "Writing report to " ++ x ++ " ..."
-            writeReport cmdDataDir x showideas
-    outStrLn $
-        (let i = length showideas in if i == 0 then "No suggestions" else show i ++ " suggestion" ++ ['s'|i/=1]) ++
-        (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
+    if cmdJson
+        then putStrLn . showIdeasJson $ showideas
+        else do
+            showItem <- if cmdColor then showANSI else return show
+            mapM_ (outStrLn . showItem) showideas
+            if null showideas then
+                when (cmdReports /= []) $ outStrLn "Skipping writing reports"
+             else
+                forM_ cmdReports $ \x -> do
+                    outStrLn $ "Writing report to " ++ x ++ " ..."
+                    writeReport cmdDataDir x showideas
+            outStrLn $
+                (let i = length showideas in if i == 0 then "No suggestions" else show i ++ " suggestion" ++ ['s'|i/=1]) ++
+                (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
     return $ map Suggestion showideas

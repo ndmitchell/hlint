@@ -1,0 +1,23 @@
+---------------------------------------------------------------------
+RUN tests/json-none.hs --json
+FILE tests/json-none.hs
+foo = (+1)
+OUTPUT
+[]
+
+---------------------------------------------------------------------
+RUN tests/json-one.hs --json
+FILE tests/json-one.hs
+foo = (+1)
+bar x = foo x
+OUTPUT
+[{"module":"Main","decl":"bar","severity":"Error","hint":"Eta reduce","file":"tests/json-one.hs","span":[2,1,2,14],"from":"bar x = foo x","to":"bar = foo","note":[]}]
+
+---------------------------------------------------------------------
+RUN tests/json-two.hs --json
+FILE tests/json-two.hs
+foo = (+1)
+bar x = foo x
+baz = getLine >>= return . map toUpper
+OUTPUT
+[{"module":"Main","decl":"bar","severity":"Error","hint":"Eta reduce","file":"tests/json-two.hs","span":[2,1,2,14],"from":"bar x = foo x","to":"bar = foo","note":[]},{"module":"Main","decl":"baz","severity":"Warning","hint":"Use liftM","file":"tests/json-two.hs","span":[3,7,3,39],"from":"getLine >>= return . map toUpper","to":"Control.Monad.liftM (map toUpper) getLine","note":[]}]
