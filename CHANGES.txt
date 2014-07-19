@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add --json flag
 1.9
     Remove not (isControl x) ==> isPrint (not true for '\173')
     #57, warn on invalid pragmas
