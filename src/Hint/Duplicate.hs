@@ -56,7 +56,7 @@ find _ (Dupe p mp) = (p, 0)
 add :: Ord val => pos -> [val] -> Dupe pos val -> Dupe pos val
 add pos [] d = d
 add pos (v:vs) (Dupe p mp) = Dupe p $ Map.insertWith f v (add pos vs $ Dupe pos Map.empty) mp
-    where f new old = add pos vs old
+    where f new = add pos vs
 
 
 duplicateOrdered :: Ord val => Int -> [[(SrcSpan,val)]] -> [(SrcSpan,SrcSpan,[val])]

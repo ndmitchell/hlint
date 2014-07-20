@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
+{-# LANGUAGE PatternGuards, ViewPatterns #-}
 
 module Settings(
     Severity(..), Classify(..), HintRule(..), Note(..), showNotes, Setting(..),

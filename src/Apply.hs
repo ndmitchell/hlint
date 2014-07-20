@@ -46,7 +46,7 @@ applyHints cls hints_ ms = concat $
     where
         mns = map (scopeCreate . fst &&& id) ms
         hints = (if length ms <= 1 then noModules else id) hints_
-        noModules h = h{hintModules = \_ -> []} `mappend` mempty{hintModule = \a b -> hintModules h [(a,b)]}
+        noModules h = h{hintModules = const []} `mappend` mempty{hintModule = \a b -> hintModules h [(a,b)]}
 
 
 -- | Given a list of settings (a way to classify) and a list of hints, run them over a list of modules.
