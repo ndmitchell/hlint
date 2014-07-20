@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, RecordWildCards, DeriveDataTypeable #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
-module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFiles, exitWithHelp, resolveFile) where
+module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFiles, exitWithHelp, exitWithNumericVersion, resolveFile) where
 
 import Data.Char
 import Data.List
@@ -44,6 +44,10 @@ exitWithHelp = do
     putStr $ show $ helpText [] HelpFormatAll mode
     exitSuccess
 
+exitWithNumericVersion :: IO a
+exitWithNumericVersion = do
+    putStrLn $ showVersion version
+    exitSuccess
 
 -- | What C pre processor should be used.
 data CppFlags
@@ -54,7 +58,8 @@ data CppFlags
 
 data Cmd
     = CmdMain
-        {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
+        {cmdNumericVersion :: Bool       -- ^ Display numeric version and exit
+        ,cmdFiles :: [FilePath]          -- ^ which files to run it on, nothing = none given
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
         ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
@@ -106,7 +111,8 @@ data Cmd
 
 mode = cmdArgsMode $ modes
     [CmdMain
-        {cmdFiles = def &= args &= typ "FILE/DIR"
+        {cmdNumericVersion = nam_ "numeric-version" &= help "Print numeric version and exit"
+        ,cmdFiles = def &= args &= typ "FILE/DIR"
         ,cmdReports = nam "report" &= opt "report.html" &= typFile &= help "Generate a report in HTML"
         ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
         ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
