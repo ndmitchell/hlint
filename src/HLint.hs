@@ -98,17 +98,19 @@ hlintMain :: Cmd -> IO [Suggestion]
 hlintMain cmd@CmdMain{..} = do
     encoding <- readEncoding cmdEncoding
     let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
-    if null cmdFiles && notNull cmdFindHints then do
-        hints <- concatMapM (resolveFile cmd) cmdFindHints
-        mapM_ (\x -> putStrLn . fst =<< findSettings2 flags x) hints >> return []
-     else if null cmdFiles then
-        exitWithHelp
-     else do
-        files <- concatMapM (resolveFile cmd) cmdFiles
-        if null files then
-            error "No files found"
-         else
-            runHints cmd{cmdFiles=files} flags
+    if cmdNumericVersion then
+        exitWithNumericVersion
+     else if null cmdFiles && notNull cmdFindHints then do
+         hints <- concatMapM (resolveFile cmd) cmdFindHints
+         mapM_ (\x -> putStrLn . fst =<< findSettings2 flags x) hints >> return []
+      else if null cmdFiles then
+         exitWithHelp
+      else do
+         files <- concatMapM (resolveFile cmd) cmdFiles
+         if null files then
+             error "No files found"
+          else
+             runHints cmd{cmdFiles=files} flags
 
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
 readAllSettings cmd@CmdMain{..} flags = do
