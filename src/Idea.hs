@@ -30,11 +30,10 @@ showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = wrap . intercalate ",
     ,("severity", show . show $ ideaSeverity)
     ,("hint", show ideaHint)
     ,("file", show srcSpanFilename)
-    ,("span", show [srcSpanStartLine
-                   ,srcSpanStartColumn
-                   ,srcSpanEndLine
-                   ,srcSpanEndColumn
-                   ])
+    ,("startLine", show srcSpanStartLine)
+    ,("startColumn", show srcSpanStartColumn)
+    ,("endLine", show srcSpanEndLine)
+    ,("endColumn", show srcSpanEndColumn)
     ,("from", show ideaFrom)
     ,("to", maybe "null" show ideaTo)
     ,("note", show $ map (show . show) ideaNote)
