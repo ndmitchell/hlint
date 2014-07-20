@@ -71,14 +71,14 @@ hlintHSE CmdHSE{..} = do
         putStrLn ""
 
 hlintTest :: Cmd -> IO ()
-hlintTest cmd@CmdTest{..} = do
+hlintTest cmd@CmdTest{..} =
     if notNull cmdProof then do
         files <- cmdHintFiles cmd
         s <- readSettings2 cmdDataDir files []
         let reps = if cmdReports == ["report.html"] then ["report.txt"] else cmdReports
         mapM_ (proof reps s) cmdProof
      else do
-        failed <- test cmd (\args -> do errs <- hlint args; when (length errs > 0) $ exitWith $ ExitFailure 1) cmdDataDir cmdGivenHints
+        failed <- test cmd (\args -> do errs <- hlint args; unless (null errs) $ exitWith $ ExitFailure 1) cmdDataDir cmdGivenHints
         when (failed > 0) exitFailure
 
 hlintGrep :: Cmd -> IO ()

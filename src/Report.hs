@@ -38,7 +38,7 @@ writeReport dataDir file ideas = writeTemplate dataDir inner file
         getClass i = "hint" ++ f hints (hintName i) ++ " file" ++ f files (srcSpanFilename $ ideaSpan i)
             where f xs x = show $ fromJust $ findIndex ((==) x . fst) xs
 
-        list mode xs = zipWith f [0..] xs
+        list mode = zipWith f [0..]
             where
                 f i (name,n) = "<li><a id=" ++ show id ++ " href=\"javascript:show('" ++ id ++ "')\">" ++
                                escapeHTML name ++ " (" ++ show n ++ ")</a></li>"
