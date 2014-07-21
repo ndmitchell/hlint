@@ -307,6 +307,8 @@ warn  = a >> return () ==> Control.Monad.void a
 error = fmap (const ()) ==> Control.Monad.void where _ = noQuickCheck
 error = flip (>=>) ==> (<=<) where _ = noQuickCheck
 error = flip (<=<) ==> (>=>) where _ = noQuickCheck
+error = flip (>>=) ==> (=<<) where _ = noQuickCheck
+error = flip (=<<) ==> (>>=) where _ = noQuickCheck
 warn  = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = noQuickCheck
 warn  = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = noQuickCheck
 error = a >> forever a ==> forever a where _ = noQuickCheck

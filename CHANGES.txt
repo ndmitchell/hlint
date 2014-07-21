@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #65, add flip (>>=) ==> (=<<) and the reverse
     #61, add --json flag
 1.9
     Remove not (isControl x) ==> isPrint (not true for '\173')
