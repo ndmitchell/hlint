@@ -1,0 +1,18 @@
+---------------------------------------------------------------------
+RUN tests/flag-no-summary1.hs --no-summary
+FILE tests/flag-no-summary1.hs
+main = map f $ map g xs
+OUTPUT
+tests/flag-no-summary1.hs:1:8: Warning: Use map once
+Found:
+  map f $ map g xs
+Why not:
+  map (f . g) xs
+
+EXIT 1
+---------------------------------------------------------------------
+RUN tests/flag-no-summary2.hs --no-summary
+FILE tests/flag-no-summary2.hs
+main = return ()
+OUTPUT
+EXIT 0
