@@ -75,6 +75,7 @@ data Cmd
         ,cmdCppSimple :: Bool
         ,cmdCppAnsi :: Bool
         ,cmdJson :: Bool                -- ^ display hint data as JSON
+        ,cmdNoSummary :: Bool           -- ^ do not show the summary info
         }
     | CmdGrep
         {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
@@ -127,6 +128,7 @@ mode = cmdArgsMode $ modes
         ,cmdCppSimple = nam_ "cpp-simple" &= help "Use a simple CPP (strip # lines)"
         ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
         ,cmdJson = nam_ "json" &= help "Display hint data as JSON"
+        ,cmdNoSummary = nam_ "no-summary" &= help "Do not show summary information"
         } &= auto &= explicit &= name "lint"
     ,CmdGrep
         {cmdFiles = def &= args &= typ "FILE/DIR"
