@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.2
     #68, add --no-summary
 1.9.1
     #65, add flip (>>=) ==> (=<<) and the reverse
