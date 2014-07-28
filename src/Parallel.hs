@@ -13,6 +13,7 @@ module Parallel(parallel) where
 import System.IO.Unsafe
 import GHC.Conc(numCapabilities)
 import Control.Concurrent
+import Control.Exception
 import Control.Monad
 
 
@@ -34,13 +35,13 @@ parallelN xs = do
     chan <- newChan
     mapM_ (writeChan chan . Just) $ zip ms xs
     replicateM_ numCapabilities (writeChan chan Nothing >> forkIO (f chan))
-    parallel1 $ map takeMVar ms
+    let throwE x = throw (x :: SomeException)
+    parallel1 $ map (fmap (either throwE id) . takeMVar) ms
     where
         f chan = do
             v <- readChan chan
             case v of
                 Nothing -> return ()
                 Just (m,x) -> do
-                    x' <- x
-                    putMVar m x'
+                    putMVar m =<< try x
                     f chan
