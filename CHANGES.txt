@@ -1,6 +1,6 @@
 Changelog for HLint
 
-    #73, fix multithreading and exceptions with the API
+    #73, fix multithreading and exceptions
 1.9.2
     #68, add --no-summary
 1.9.1
