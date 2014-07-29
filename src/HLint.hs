@@ -131,7 +131,8 @@ runHints cmd@CmdMain{..} flags = do
     if cmdJson
         then putStrLn . showIdeasJson $ showideas
         else do
-            showItem <- if cmdColor then showANSI else return show
+            usecolour <- cmdUseColour cmd
+            showItem <- if usecolour then showANSI else return show
             mapM_ (outStrLn . showItem) showideas
             if null showideas then
                 when (cmdReports /= []) $ outStrLn "Skipping writing reports"

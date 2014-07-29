@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, RecordWildCards, DeriveDataTypeable #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
-module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFiles, exitWithHelp, resolveFile) where
+module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFiles, cmdUseColour, exitWithHelp, resolveFile) where
 
 import Data.Char
 import Data.List
@@ -10,9 +10,11 @@ import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
 import System.Directory
 import System.Exit
 import System.FilePath
+import System.IO (hIsTerminalDevice, stdout)
 import Language.Preprocessor.Cpphs
 import Language.Haskell.Exts.Extension
 import System.Environment
+import System.Info (os)
 
 import Util
 import Paths_hlint
@@ -52,13 +54,27 @@ data CppFlags
     | Cpphs CpphsOptions -- ^ The @cpphs@ library is used.
 
 
+-- | When to colour terminal output.
+data ColorMode
+    = Off  -- ^ Terminal output will not be coloured.
+    | On   -- ^ Terminal output will always be coloured.
+    | Auto -- ^ Terminal output will be coloured if stdout is a terminal.
+      deriving (Show, Typeable, Data)
+
+
+instance Default ColorMode where
+  def = if os == "mingw32"
+          then Off
+          else Auto
+
+
 data Cmd
     = CmdMain
         {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
         ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
-        ,cmdColor :: Bool                -- ^ color the result
+        ,cmdColor :: ColorMode           -- ^ color the result
         ,cmdIgnore :: [String]           -- ^ the hints to ignore
         ,cmdShowAll :: Bool              -- ^ display all skipped items
         ,cmdExtension :: [String]        -- ^ extensions
@@ -111,7 +127,7 @@ mode = cmdArgsMode $ modes
         ,cmdReports = nam "report" &= opt "report.html" &= typFile &= help "Generate a report in HTML"
         ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
         ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
-        ,cmdColor = nam "colour" &= name "color" &= help "Color output (requires ANSI terminal)"
+        ,cmdColor = nam "colour" &= name "color" &= typ "on/off/auto" &= help "Color output (requires ANSI terminal; auto means on when stdout is a terminal)"
         ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
         ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
         ,cmdExtension = nam "extension" &= typ "EXT" &= help "File extensions to search (default hs/lhs)"
@@ -168,6 +184,15 @@ cmdCpp cmd
         ,defines = [(a,drop 1 b) | x <- cmdCppDefine cmd, let (a,b) = break (== '=') x]
         }
     | otherwise = NoCpp
+
+
+-- | Determines whether to use colour or not.
+cmdUseColour :: Cmd -> IO Bool
+cmdUseColour cmd =
+  case cmdColor cmd of
+    Auto -> hIsTerminalDevice stdout
+    Off  -> return False
+    On   -> return True
 
 
 "." <\> x = x
