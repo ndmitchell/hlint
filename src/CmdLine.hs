@@ -56,15 +56,15 @@ data CppFlags
 
 -- | When to colour terminal output.
 data ColorMode
-    = Off  -- ^ Terminal output will not be coloured.
-    | On   -- ^ Terminal output will always be coloured.
-    | Auto -- ^ Terminal output will be coloured if stdout is a terminal.
+    = Never  -- ^ Terminal output will never be coloured.
+    | Always -- ^ Terminal output will always be coloured.
+    | Auto   -- ^ Terminal output will be coloured if stdout is a terminal.
       deriving (Show, Typeable, Data)
 
 
 instance Default ColorMode where
   def = if os == "mingw32"
-          then Off
+          then Never
           else Auto
 
 
@@ -127,7 +127,7 @@ mode = cmdArgsMode $ modes
         ,cmdReports = nam "report" &= opt "report.html" &= typFile &= help "Generate a report in HTML"
         ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
         ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
-        ,cmdColor = nam "colour" &= name "color" &= typ "on/off/auto" &= help "Color output (requires ANSI terminal; auto means on when stdout is a terminal)"
+        ,cmdColor = nam "colour" &= name "color" &= opt Always &= typ "always/never/auto" &= help "Color output (requires ANSI terminal; auto means on when stdout is a terminal; by itself, selects always)"
         ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
         ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
         ,cmdExtension = nam "extension" &= typ "EXT" &= help "File extensions to search (default hs/lhs)"
@@ -190,9 +190,9 @@ cmdCpp cmd
 cmdUseColour :: Cmd -> IO Bool
 cmdUseColour cmd =
   case cmdColor cmd of
-    Auto -> hIsTerminalDevice stdout
-    Off  -> return False
-    On   -> return True
+    Auto   -> hIsTerminalDevice stdout
+    Never  -> return False
+    Always -> return True
 
 
 "." <\> x = x
