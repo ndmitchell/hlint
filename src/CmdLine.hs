@@ -140,7 +140,7 @@ mode = cmdArgsMode $ modes
         ,cmdPath = nam "path" &= help "Directory in which to search for files"
         ,cmdCppDefine = nam_ "cpp-define" &= typ "NAME[=VALUE]" &= help "CPP #define"
         ,cmdCppInclude = nam_ "cpp-include" &= typDir &= help "CPP include path"
-        ,cmdCppFile = nam_ "cpp-file" &= typDir &= help "CPP pre-include file"
+        ,cmdCppFile = nam_ "cpp-file" &= typFile &= help "CPP pre-include file"
         ,cmdCppSimple = nam_ "cpp-simple" &= help "Use a simple CPP (strip # lines)"
         ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
         ,cmdJson = nam_ "json" &= help "Display hint data as JSON"
