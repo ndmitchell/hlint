@@ -26,6 +26,13 @@ instance View Exp_ App1 where
     view (fromParen -> App _ f x) = App1 f x
     view _ = NoApp1
 
+data PApp_ = NoPApp_ | PApp_ String [Pat_]
+
+instance View Pat_ PApp_ where
+    view (fromPParen -> PApp _ x xs) = PApp_ (fromNamed x) xs
+    view (fromPParen -> PInfixApp _ lhs op rhs) = PApp_ (fromNamed op) [lhs, rhs]
+    view _ = NoPApp_
+
 data PVar_ = NoPVar_ | PVar_ String
 
 instance View Pat_ PVar_ where
