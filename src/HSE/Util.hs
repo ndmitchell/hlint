@@ -46,6 +46,13 @@ isChar _ = False
 fromChar :: Exp_ -> Char
 fromChar (Lit _ (Char _ x _)) = x
 
+isPChar :: Pat_ -> Bool
+isPChar (PLit _ Char{}) = True
+isPChar _ = False
+
+fromPChar :: Pat_ -> Char
+fromPChar (PLit _ (Char _ x _)) = x
+
 isString :: Exp_ -> Bool
 isString (Lit _ String{}) = True
 isString _ = False
