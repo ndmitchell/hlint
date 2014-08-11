@@ -6,6 +6,8 @@
 <TEST>
 yes = 1:2:[] -- [1,2]
 yes = ['h','e','l','l','o'] -- "hello"
+yes (1:2:[]) = 1 -- [1,2]
+yes ['h','e'] = 1 -- "he"
 
 -- [a]++b -> a : b, but only if not in a chain of ++'s
 yes = [x] ++ xs -- x : xs
@@ -33,7 +35,7 @@ listHint :: DeclHint
 listHint _ _ = listDecl
 
 listDecl :: Decl_ -> [Idea]
-listDecl x = concatMap (listExp False) (childrenBi x) ++ stringType x
+listDecl x = concatMap (listExp False) (childrenBi x) ++ stringType x ++ concatMap listPat (childrenBi x)
 
 -- boolean = are you in a ++ chain
 listExp :: Bool -> Exp_ -> [Idea]
@@ -42,6 +44,9 @@ listExp b (fromParen -> x) =
     where
         res = [warn name x x2 | (name,f) <- checks, Just x2 <- [f b x]]
 
+listPat :: Pat_ -> [Idea]
+listPat x = if null res then concatMap listPat $ children x else [head res]
+    where res = [warn name x x2 | (name,f) <- pchecks, Just x2 <- [f x]]
 
 isAppend (view -> App2 op _ _) = op ~= "++"
 isAppend _ = False
@@ -53,6 +58,21 @@ checks = let (*) = (,) in
          ,"Use :" * useCons
          ]
 
+pchecks = let (*) = (,) in
+          ["Use string literal pattern" * usePString
+          ,"Use list literal pattern" * usePList
+          ]
+
+
+usePString (PList _ xs) | xs /= [] && all isPChar xs = Just $ PLit an $ String an s (show s)
+    where s = map fromPChar xs
+usePString _ = Nothing
+
+usePList = fmap (PList an) . f True
+    where
+        f first x | x ~= "[]" = if first then Nothing else Just []
+        f first (view -> PApp_ ":" [a,b]) = (a:) <$> f False b
+        f first _ = Nothing
 
 useString b (List _ xs) | xs /= [] && all isChar xs = Just $ Lit an $ String an s (show s)
     where s = map fromChar xs
