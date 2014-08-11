@@ -107,6 +107,7 @@ instance Named (ModuleName S) where
 instance Named (Pat S) where
     fromNamed (PVar _ x) = fromNamed x
     fromNamed (PApp _ x []) = fromNamed x
+    fromNamed (PList _ []) = "[]"
     fromNamed _ = ""
 
     toNamed x | isCtor x = PApp an (toNamed x) []
