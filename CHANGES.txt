@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #81, fixes for GHC 7.9
     #78, add hints for list patterns
     #72, make --color the default on Linux
 1.9.3
