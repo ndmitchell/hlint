@@ -94,8 +94,8 @@ bracket bad = f Nothing
 
 
 fieldDecl :: FieldDecl S -> [Idea]
-fieldDecl o@(FieldDecl a b (UnBangedTy c (TyParen _ d)))
-    = [warn "Redundant bracket" o (FieldDecl a b (UnBangedTy c d))]
+fieldDecl o@(FieldDecl a b (TyParen _ c))
+    = [warn "Redundant bracket" o (FieldDecl a b c)]
 fieldDecl _ = []
 
 

@@ -64,7 +64,7 @@ pchecks = let (*) = (,) in
           ]
 
 
-usePString (PList _ xs) | xs /= [] && all isPChar xs = Just $ PLit an $ String an s (show s)
+usePString (PList _ xs) | xs /= [] && all isPChar xs = Just $ PLit an (Signless an) $ String an s (show s)
     where s = map fromPChar xs
 usePString _ = Nothing
 

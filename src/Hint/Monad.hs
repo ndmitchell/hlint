@@ -96,7 +96,7 @@ monadLet xs = if xs == ys then Nothing else Just ys
         vs = concatMap pvars [p | Generator _ p _ <- xs]
         mkLet (Generator _ (view -> PVar_ p) (fromRet -> Just y))
             | p `notElem` vars y, p `notElem` delete p vs
-            = LetStmt an $ BDecls an [PatBind an (toNamed p) Nothing (UnGuardedRhs an y) Nothing]
+            = LetStmt an $ BDecls an [PatBind an (toNamed p) (UnGuardedRhs an y) Nothing]
         mkLet x = x
 
 fromRet (Paren _ x) = fromRet x

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Upgrade to haskell-src-exts-1.16
 1.9.4
     #81, fixes for GHC 7.9
     #78, add hints for list patterns

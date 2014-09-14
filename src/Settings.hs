@@ -163,9 +163,9 @@ readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats 
 
 readSetting s x | "test" `isPrefixOf` map toLower (fromNamed x) = []
 readSetting s (AnnPragma _ x) | Just y <- readPragma x = [SettingClassify y]
-readSetting s (PatBind an (PVar _ name) _ bod bind) = readSetting s $ FunBind an [Match an name [] bod bind]
+readSetting s (PatBind an (PVar _ name) bod bind) = readSetting s $ FunBind an [Match an name [] bod bind]
 readSetting s (FunBind an xs) | length xs /= 1 = concatMap (readSetting s . FunBind an . return) xs
-readSetting s (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting s $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
+readSetting s (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting s $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an (Signless an) y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
 readSetting s x@InfixDecl{} = map Infix $ getFixity x
 readSetting s x = errorOn x "bad hint"
 
@@ -189,9 +189,9 @@ readPragma o = case o of
 
 readSide :: [Decl_] -> (Maybe Exp_, [Note])
 readSide = foldl f (Nothing,[])
-    where f (Nothing,notes) (PatBind _ PWildCard{} Nothing (UnGuardedRhs _ side) Nothing) = (Just side, notes)
-          f (Nothing,notes) (PatBind _ (fromNamed -> "side") Nothing (UnGuardedRhs _ side) Nothing) = (Just side, notes)
-          f (side,[]) (PatBind _ (fromNamed -> "note") Nothing (UnGuardedRhs _ note) Nothing) = (side,g note)
+    where f (Nothing,notes) (PatBind _ PWildCard{} (UnGuardedRhs _ side) Nothing) = (Just side, notes)
+          f (Nothing,notes) (PatBind _ (fromNamed -> "side") (UnGuardedRhs _ side) Nothing) = (Just side, notes)
+          f (side,[]) (PatBind _ (fromNamed -> "note") (UnGuardedRhs _ note) Nothing) = (side,g note)
           f _ x = errorOn x "bad side condition"
 
           g (Lit _ (String _ x _)) = [Note x]
@@ -258,7 +258,7 @@ findSettings2 flags file = do
 
 findSetting :: (Name S -> QName S) -> Decl_ -> [Decl_]
 findSetting qual (InstDecl _ _ _ (Just xs)) = concatMap (findSetting qual) [x | InsDecl _ x <- xs]
-findSetting qual (PatBind _ (PVar _ name) Nothing (UnGuardedRhs _ bod) Nothing) = findExp (qual name) [] bod
+findSetting qual (PatBind _ (PVar _ name) (UnGuardedRhs _ bod) Nothing) = findExp (qual name) [] bod
 findSetting qual (FunBind _ [InfixMatch _ p1 name ps rhs bind]) = findSetting qual $ FunBind an [Match an name (p1:ps) rhs bind]
 findSetting qual (FunBind _ [Match _ name ps (UnGuardedRhs _ bod) Nothing]) = findExp (qual name) [] $ Lambda an ps bod
 findSetting _ x@InfixDecl{} = [x]
@@ -273,7 +273,7 @@ findExp name vs (Lambda _ ps bod) | length ps2 == length ps = findExp name (vs++
 findExp name vs Var{} = []
 findExp name vs (InfixApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $ App an x $ Paren an $ App an y (toNamed "_hlint")
 
-findExp name vs bod = [PatBind an (toNamed "warn") Nothing (UnGuardedRhs an $ InfixApp an lhs (toNamed "==>") rhs) Nothing]
+findExp name vs bod = [PatBind an (toNamed "warn") (UnGuardedRhs an $ InfixApp an lhs (toNamed "==>") rhs) Nothing]
     where
         lhs = g $ transform f bod
         rhs = apps $ Var an name : map snd rep

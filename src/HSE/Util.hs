@@ -47,11 +47,11 @@ fromChar :: Exp_ -> Char
 fromChar (Lit _ (Char _ x _)) = x
 
 isPChar :: Pat_ -> Bool
-isPChar (PLit _ Char{}) = True
+isPChar (PLit _ _ Char{}) = True
 isPChar _ = False
 
 fromPChar :: Pat_ -> Char
-fromPChar (PLit _ (Char _ x _)) = x
+fromPChar (PLit _ _ (Char _ x _)) = x
 
 isString :: Exp_ -> Bool
 isString (Lit _ String{}) = True
@@ -60,8 +60,8 @@ isString _ = False
 fromString :: Exp_ -> String
 fromString (Lit _ (String _ x _)) = x
 
-isPString (PLit _ String{}) = True; isPString _ = False
-fromPString (PLit _ (String _ x _)) = x
+isPString (PLit _ _ String{}) = True; isPString _ = False
+fromPString (PLit _ _ (String _ x _)) = x
 
 fromParen :: Exp_ -> Exp_
 fromParen (Paren _ x) = fromParen x
@@ -75,7 +75,7 @@ fromTyParen :: Type s -> Type s
 fromTyParen (TyParen _ x) = fromTyParen x
 fromTyParen x = x
 
-fromDeriving :: Deriving s -> [InstHead s]
+fromDeriving :: Deriving s -> [InstRule s]
 fromDeriving (Deriving _ x) = x
 
 -- is* :: Exp_ -> Bool
@@ -175,17 +175,8 @@ getEquations x = [x]
 
 
 toFunBind :: Decl s -> Decl s
-toFunBind (PatBind s (PVar _ name) _ bod bind) = FunBind s [Match s name [] bod bind]
+toFunBind (PatBind s (PVar _ name) bod bind) = FunBind s [Match s name [] bod bind]
 toFunBind x = x
-
-
-fromGuardedAlts :: GuardedAlts s -> Rhs s
-fromGuardedAlts (UnGuardedAlt s x) = UnGuardedRhs s x
-fromGuardedAlts (GuardedAlts s xs) = GuardedRhss s [GuardedRhs a b c | GuardedAlt a b c <- xs]
-
-toGuardedAlts :: Rhs s -> GuardedAlts s
-toGuardedAlts (UnGuardedRhs s x) = UnGuardedAlt s x
-toGuardedAlts (GuardedRhss s xs) = GuardedAlts s [GuardedAlt a b c | GuardedRhs a b c <- xs]
 
 
 -- case and if both have branches, nothing else does
@@ -193,11 +184,11 @@ replaceBranches :: Exp s -> ([Exp s], [Exp s] -> Exp s)
 replaceBranches (If s a b c) = ([b,c], \[b,c] -> If s a b c)
 replaceBranches (Case s a bs) = (concatMap f bs, Case s a . g bs)
     where
-        f (Alt _ _ (UnGuardedAlt _ x) _) = [x]
-        f (Alt _ _ (GuardedAlts _ xs) _) = [x | GuardedAlt _ _ x <- xs]
-        g (Alt s1 a (UnGuardedAlt s2 _) b:rest) (x:xs) = Alt s1 a (UnGuardedAlt s2 x) b : g rest xs
-        g (Alt s1 a (GuardedAlts s2 ns) b:rest) xs =
-                Alt s1 a (GuardedAlts s2 [GuardedAlt a b x | (GuardedAlt a b _,x) <- zip ns as]) b : g rest bs
+        f (Alt _ _ (UnGuardedRhs _ x) _) = [x]
+        f (Alt _ _ (GuardedRhss _ xs) _) = [x | GuardedRhs _ _ x <- xs]
+        g (Alt s1 a (UnGuardedRhs s2 _) b:rest) (x:xs) = Alt s1 a (UnGuardedRhs s2 x) b : g rest xs
+        g (Alt s1 a (GuardedRhss s2 ns) b:rest) xs =
+                Alt s1 a (GuardedRhss s2 [GuardedRhs a b x | (GuardedRhs a b _,x) <- zip ns as]) b : g rest bs
             where (as,bs) = splitAt (length ns) xs
         g [] [] = []
 replaceBranches x = ([], \[] -> x)

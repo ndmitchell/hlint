@@ -51,7 +51,7 @@ naming seen x = [warn "Use camelCase" x2 (replaceNames res x2) | notNull res]
 shorten :: Decl_ -> Decl_
 shorten x = case x of
     FunBind sl (Match a b c d _:_) -> FunBind sl [f (Match a b c) d]
-    PatBind a b c d _ -> f (PatBind a b c) d
+    PatBind a b c _ -> f (PatBind a b) c
     x -> x
     where
         dots = Var an $ UnQual an $ Ident an "..." -- Must be an Ident, not a Symbol
@@ -65,7 +65,7 @@ getNames x = case x of
     PatBind{} -> name
     TypeDecl{} -> name
     DataDecl _ _ _ _ cons _ -> name ++ [fromNamed x | QualConDecl _ _ _ x <- cons, x <- f x]
-    GDataDecl _ _ _ _ _ cons _ -> name ++ [fromNamed x | GadtDecl _ x _ <- cons]
+    GDataDecl _ _ _ _ _ cons _ -> name ++ [fromNamed x | GadtDecl _ x _ _ <- cons]
     TypeFamDecl{} -> name
     DataFamDecl{} -> name
     ClassDecl{} -> name

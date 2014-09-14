@@ -43,7 +43,7 @@ scopeCreate :: Module SrcSpanInfo -> Scope
 scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
     where
         res = [x | x <- moduleImports xs, importPkg x /= Just "hint"]
-        prelude = ImportDecl an (ModuleName an "Prelude") False False Nothing Nothing Nothing
+        prelude = ImportDecl an (ModuleName an "Prelude") False False False Nothing Nothing Nothing
         isPrelude x = fromModuleName (importModule x) == "Prelude"
 
 
@@ -96,7 +96,7 @@ possImport i (UnQual _ x) = not (importQualified i) && maybe True f (importSpecs
             where ms = map g xs
         
         g :: ImportSpec S -> Maybe Bool -- does this import cover the name x
-        g (IVar _ y) = Just $ x =~= y
+        g (IVar _ _ y) = Just $ x =~= y
         g (IAbs _ y) = Just $ x =~= y
         g (IThingAll _ y) = if x =~= y then Just True else Nothing
         g (IThingWith _ y ys) = Just $ x `elem_` (y : map fromCName ys)

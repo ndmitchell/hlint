@@ -139,9 +139,10 @@ instance Named (Match S) where
     toNamed = error "No toNamed for Match"
 
 instance Named (DeclHead S) where
-    fromNamed (DHead _ x _) = fromNamed x
-    fromNamed (DHInfix _ _ x _) = fromNamed x
+    fromNamed (DHead _ x) = fromNamed x
+    fromNamed (DHInfix _ _ x) = fromNamed x
     fromNamed (DHParen _ x) = fromNamed x
+    fromNamed (DHApp _ x _) = fromNamed x
     toNamed = error "No toNamed for DeclHead"
 
 instance Named (Decl S) where
@@ -151,7 +152,7 @@ instance Named (Decl S) where
     fromNamed (TypeFamDecl _ name _) = fromNamed name
     fromNamed (DataFamDecl _ _ name _) = fromNamed name
     fromNamed (ClassDecl _ _ name _ _) = fromNamed name
-    fromNamed (PatBind _ (PVar _ name) _ _ _) = fromNamed name
+    fromNamed (PatBind _ (PVar _ name) _ _) = fromNamed name
     fromNamed (FunBind _ (name:_)) = fromNamed name
     fromNamed (ForImp _ _ _ _ name _) = fromNamed name
     fromNamed (ForExp _ _ _ name _) = fromNamed name

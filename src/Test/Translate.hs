@@ -63,7 +63,7 @@ toTypeCheck hints =
     ["import HLint_TypeCheck hiding(main)"
     ,"main = return ()"] ++
     ["{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
-     prettyPrint (PatBind an (toNamed $ "test" ++ show i) Nothing bod Nothing)
+     prettyPrint (PatBind an (toNamed $ "test" ++ show i) bod Nothing)
     | (i, HintRule _ _ _ lhs rhs side _) <- zip [1..] hints, "noTypeCheck" `notElem` vars (maybeToList side)
     , let vs = map toNamed $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
     , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
@@ -77,7 +77,7 @@ toQuickCheck :: [HintRule] -> [String]
 toQuickCheck hints =
     ["import HLint_QuickCheck hiding(main)"
     ,"default(Maybe Bool,Int,Dbl)"
-    ,prettyPrint $ PatBind an (toNamed "main") Nothing (UnGuardedRhs an $ toNamed "withMain" $$ Do an tests) Nothing]
+    ,prettyPrint $ PatBind an (toNamed "main") (UnGuardedRhs an $ toNamed "withMain" $$ Do an tests) Nothing]
     where
         str x = Lit an $ String an x (show x)
         int x = Lit an $ Int an (toInteger x) (show x)

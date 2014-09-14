@@ -122,9 +122,8 @@ used TemplateHaskell = hasT2 (un :: (Bracket S, Splice S)) & hasS f & hasS isSpl
           f TypQuote{} = True
           f _ = False
 used ForeignFunctionInterface = hasT (un :: CallConv S)
-used PatternGuards = hasS f1 & hasS f2
-    where f1 (GuardedRhs _ xs _) = g xs
-          f2 (GuardedAlt _ xs _) = g xs
+used PatternGuards = hasS f
+    where f (GuardedRhs _ xs _) = g xs
           g [] = False
           g [Qualifier{}] = False
           g _ = True
@@ -172,16 +171,19 @@ derives = concatUnzip . map f . childrenBi
         f (DataInsDecl _ dn _ _ ds) = g dn ds
         f (GDataInsDecl _ dn _ _ _ ds) = g dn ds
         f (DerivDecl _ _ hd) = (xs, xs) -- don't know whether this was on newtype or not
-            where xs = [h hd]
+            where xs = [ir hd]
         f _ = ([], [])
 
         g dn ds = if isNewType dn then (xs,[]) else ([],xs)
-            where xs = maybe [] (map h . fromDeriving) ds
+            where xs = maybe [] (map ir . fromDeriving) ds
 
-        h (IHead _ a _) = prettyPrint $ unqual a
-        h (IHInfix _ _ a _) = prettyPrint $ unqual a
-        h (IHParen _ a) = h a
+        ir (IRule _ _ _ x) = ih x
+        ir (IParen _ x) = ir x
 
+        ih (IHCon _ a) = prettyPrint $ unqual a
+        ih (IHInfix _ _ a) = prettyPrint $ unqual a
+        ih (IHParen _ a) = ih a
+        ih (IHApp _ a _) = ih a
 
 un = undefined
 

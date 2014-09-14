@@ -103,13 +103,6 @@ instance FreeVars (Alt S) where
 instance FreeVars [Alt S] where
     freeVars = mconcat . map freeVars
 
-instance FreeVars (GuardedAlts S) where
-    freeVars (UnGuardedAlt _ x) = freeVars x
-    freeVars (GuardedAlts _ xs) = mconcat $ map freeVars xs
-
-instance FreeVars (GuardedAlt S) where
-    freeVars (GuardedAlt _ stmt exp) = inFree stmt exp
-
 instance FreeVars (Rhs S) where
     freeVars (UnGuardedRhs _ x) = freeVars x
     freeVars (GuardedRhss _ xs) = mconcat $ map freeVars xs
@@ -147,7 +140,7 @@ instance AllVars [Decl S] where
 
 instance AllVars (Decl S) where
     allVars (FunBind _ m) = allVars m
-    allVars (PatBind _ pat _ rhs bind) = allVars pat `mappend` freeVars_ (inFree bind rhs)
+    allVars (PatBind _ pat rhs bind) = allVars pat `mappend` freeVars_ (inFree bind rhs)
     allVars _ = mempty
 
 instance AllVars [Match S] where

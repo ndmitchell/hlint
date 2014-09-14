@@ -67,7 +67,7 @@ niceDotApp a b | a ~= "$" = b
 --   Mainly so that later stages can match on fewer alternatives.
 simplifyExp :: Exp_ -> Exp_
 simplifyExp (InfixApp _ x dol y) | isDol dol = App an x (paren y)
-simplifyExp (Let _ (BDecls _ [PatBind _ (view -> PVar_ x) Nothing (UnGuardedRhs _ y) Nothing]) z)
+simplifyExp (Let _ (BDecls _ [PatBind _ (view -> PVar_ x) (UnGuardedRhs _ y) Nothing]) z)
     | x `notElem` vars y && length [() | UnQual _ a <- universeS z, prettyPrint a == x] <= 1 = transform f z
     where f (view -> Var_ x') | x == x' = paren y
           f x = x
