@@ -18,6 +18,7 @@ Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/is
 * The presence of `seq` may cause some hints (i.e. eta-reduction) to change the semantics of a program.
 * Either the monomorphism restriction, or rank-2 types, may cause transformed programs to require type signatures to be manually inserted.
 * The `RebindableSyntax` extension can cause HLint to suggest incorrect changes.
+* HLint turns on many language extensions so it can parse more documents, occasionally some break otherwise legal syntax - e.g. `{-#INLINE foo#-}` doesn't work with `MagicHash`. These extensions can be disabled with `-XNoMagicHash`.
 
 ## Installing and running HLint
 
