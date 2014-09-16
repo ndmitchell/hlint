@@ -57,11 +57,11 @@ hlint args = do
         CmdTest{} -> hlintTest cmd >> return []
 
 hlintHSE :: Cmd -> IO ()
-hlintHSE CmdHSE{..} = do
+hlintHSE c@CmdHSE{..} = do
     v <- getVerbosity
     forM_ cmdFiles $ \x -> do
         putStrLn $ "Parse result of " ++ x ++ ":"
-        res <- parseFile x
+        res <- parseFileWithExts (cmdExtensions c) x
         case res of
             x@ParseFailed{} -> print x
             ParseOk m -> case v of

@@ -118,6 +118,7 @@ data Cmd
         }
     | CmdHSE
         {cmdFiles :: [FilePath]
+        ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
         }
     deriving (Data,Typeable,Show)
 
