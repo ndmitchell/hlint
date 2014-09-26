@@ -43,7 +43,7 @@ showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = wrap . intercalate ",
     wrap x = "{" ++ x ++ "}"
 
 showIdeasJson :: [Idea] -> String
-showIdeasJson ideas = "[" ++ intercalate "," (map showIdeaJson ideas) ++ "]"
+showIdeasJson ideas = "[" ++ intercalate "\n," (map showIdeaJson ideas) ++ "]"
 
 instance Show Idea where
     show = showEx id
