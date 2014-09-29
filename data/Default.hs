@@ -396,6 +396,7 @@ warn "Too strict maybe" = maybe (f x) (f . g) ==> f . maybe x g where note = Inc
 
 error = [a | Left a <- a] ==> lefts a
 error = [a | Right a <- a] ==> rights a
+error = either Left (Right . f) ==> fmap f
 
 -- INFIX
 
