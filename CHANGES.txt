@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #84, suggest fmap for Either
     Make --json put each hint on a different line
     Support -X for extensions to the hse mode
 1.9.5
