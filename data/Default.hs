@@ -216,7 +216,7 @@ warn "Use curry" = (\x y -> f (x,y)) ==> curry f
 warn "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where note = IncreasesLaziness
 error "Redundant $" = (($) . f) ==> f
 error "Redundant $" = (f $) ==> f
-warn  = (\x -> y) ==> const y where _ = isAtom y && notIn x y
+warn  = (\x -> y) ==> const y where _ = isAtom y
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 warn  = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
 error "Evaluate" = id x ==> x
@@ -623,6 +623,8 @@ bar = [x| (x,_) <- pts]
 return' x = x `seq` return x
 foo = last (sortBy (compare `on` fst) xs) -- maximumBy (compare `on` fst) xs
 g = \ f -> parseFile f >>= (\ cu -> return (f, cu))
+foo = bar $ \x -> [x,y]
+foo = bar $ \x -> [z,y] -- const [z,y]
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
