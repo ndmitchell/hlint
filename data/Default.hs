@@ -309,8 +309,8 @@ error = flip (>=>) ==> (<=<) where _ = noQuickCheck
 error = flip (<=<) ==> (>=>) where _ = noQuickCheck
 error = flip (>>=) ==> (=<<) where _ = noQuickCheck
 error = flip (=<<) ==> (>>=) where _ = noQuickCheck
-warn  = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = noQuickCheck
-warn  = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = noQuickCheck
+warn  = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = noQuickCheck && notIn x [f,g]
+warn  = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = noQuickCheck && notIn x [f,g]
 error = a >> forever a ==> forever a where _ = noQuickCheck
 warn  = liftM2 id ==> ap where _ = noQuickCheck
 error = mapM (uncurry f) (zip l m) ==> zipWithM f l m where _ = noQuickCheck
@@ -622,6 +622,7 @@ foo = return $! "test"
 bar = [x| (x,_) <- pts]
 return' x = x `seq` return x
 foo = last (sortBy (compare `on` fst) xs) -- maximumBy (compare `on` fst) xs
+g = \ f -> parseFile f >>= (\ cu -> return (f, cu))
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #85, add a required notIn check for >=>
     #84, suggest fmap for Either
     Make --json put each hint on a different line
     Support -X for extensions to the hse mode
