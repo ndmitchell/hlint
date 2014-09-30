@@ -103,7 +103,9 @@ matchIdea s decl HintRule{..} parent x = do
     u <- check u
     let e = subst u hintRuleRHS
     let res = addBracket parent $ unqualify hintRuleScope s u $ performEval e
-    guard $ (freeVars e Set.\\ freeVars hintRuleRHS) `Set.isSubsetOf` freeVars x -- check no unexpected new free variables
+    guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
+            `Set.isSubsetOf` freeVars x
+        -- check no unexpected new free variables
     guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
     return (res,hintRuleNotes)
