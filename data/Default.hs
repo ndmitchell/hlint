@@ -309,8 +309,8 @@ error = flip (>=>) ==> (<=<) where _ = noQuickCheck
 error = flip (<=<) ==> (>=>) where _ = noQuickCheck
 error = flip (>>=) ==> (=<<) where _ = noQuickCheck
 error = flip (=<<) ==> (>>=) where _ = noQuickCheck
-warn  = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = noQuickCheck && notIn x [f,g]
-warn  = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = noQuickCheck && notIn x [f,g]
+warn  = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = noQuickCheck
+warn  = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = noQuickCheck
 error = a >> forever a ==> forever a where _ = noQuickCheck
 warn  = liftM2 id ==> ap where _ = noQuickCheck
 error = mapM (uncurry f) (zip l m) ==> zipWithM f l m where _ = noQuickCheck
@@ -623,6 +623,10 @@ bar = [x| (x,_) <- pts]
 return' x = x `seq` return x
 foo = last (sortBy (compare `on` fst) xs) -- maximumBy (compare `on` fst) xs
 g = \ f -> parseFile f >>= (\ cu -> return (f, cu))
+foo = bar $ \(x,y) -> x x y
+foo = (\x -> f x >>= g) -- f Control.Monad.>=> g
+foo = (\f -> h f >>= g) -- h Control.Monad.>=> g
+foo = (\f -> h f >>= f)
 foo = bar $ \x -> [x,y]
 foo = bar $ \x -> [z,y] -- const [z,y]
 
