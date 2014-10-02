@@ -65,7 +65,7 @@ HLint enables most Haskell extensions, disabling only those which steal too much
 
 ### Emacs Integration
 
-Emacs integration has been provided by [Alex Ott](http://xtalk.msk.su/~ott/). The integration is similar to compilation-mode, allowing navigation between errors. The script is at [hs-lint.el](http://community.haskell.org/~ndm/darcs/hlint/data/hs-lint.el), and a copy is installed locally in the data directory. To use, add the following code to the Emacs init file:
+Emacs integration has been provided by [Alex Ott](http://xtalk.msk.su/~ott/). The integration is similar to compilation-mode, allowing navigation between errors. The script is at [hs-lint.el](https://github.com/ndmitchell/hlint/blob/master/data/hs-lint.el), and a copy is installed locally in the data directory. To use, add the following code to the Emacs init file:
 
     (require 'hs-lint)
     (defun my-haskell-mode-hook ()
