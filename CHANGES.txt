@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #86, don't use color unless $TERM claims to support it
 1.9.6
     #85, fix the free variable matching check for lambda
     #84, suggest fmap for Either
