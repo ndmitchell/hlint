@@ -58,7 +58,7 @@ data CppFlags
 data ColorMode
     = Never  -- ^ Terminal output will never be coloured.
     | Always -- ^ Terminal output will always be coloured.
-    | Auto   -- ^ Terminal output will be coloured if stdout is a terminal.
+    | Auto   -- ^ Terminal output will be coloured if $TERM and stdout appear to support it.
       deriving (Show, Typeable, Data)
 
 
@@ -128,7 +128,7 @@ mode = cmdArgsMode $ modes
         ,cmdReports = nam "report" &= opt "report.html" &= typFile &= help "Generate a report in HTML"
         ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
         ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
-        ,cmdColor = nam "colour" &= name "color" &= opt Always &= typ "always/never/auto" &= help "Color output (requires ANSI terminal; auto means on when stdout is a terminal; by itself, selects always)"
+        ,cmdColor = nam "colour" &= name "color" &= opt Always &= typ "always/never/auto" &= help "Color output (requires ANSI terminal; auto means on when $TERM is supported; by itself, selects always)"
         ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
         ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
         ,cmdExtension = nam "extension" &= typ "EXT" &= help "File extensions to search (default hs/lhs)"
@@ -189,11 +189,14 @@ cmdCpp cmd
 
 -- | Determines whether to use colour or not.
 cmdUseColour :: Cmd -> IO Bool
-cmdUseColour cmd =
-  case cmdColor cmd of
-    Auto   -> hIsTerminalDevice stdout
-    Never  -> return False
-    Always -> return True
+cmdUseColour cmd = case cmdColor cmd of
+  Always -> return True
+  Never  -> return False
+  Auto   -> do
+    stdoutIsTerminal <- hIsTerminalDevice stdout
+    termType         <- lookup "TERM" `fmap` getEnvironment
+    return $ stdoutIsTerminal && maybe False isColorTerm termType
+    where isColorTerm t = t == "ansi" || "xterm" `isPrefixOf` t || "xvt" `isSuffixOf` t
 
 
 "." <\> x = x
