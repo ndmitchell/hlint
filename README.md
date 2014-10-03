@@ -1,6 +1,6 @@
 # HLint [![Hackage version](https://img.shields.io/hackage/v/hlint.svg?style=flat)](http://hackage.haskell.org/package/hlint) [![Build Status](http://img.shields.io/travis/ndmitchell/hlint.svg?style=flat)](https://travis-ci.org/ndmitchell/hlint)
 
-HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
+HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. You can try HLint online at [lpaste.net](http://lpaste.net/) - suggestions are shown at the bottom. This document is structured as follows:
 
 * [Installing and running HLint](#installing-and-running-hlint)
 * [FAQ](#faq)
