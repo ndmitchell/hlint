@@ -25,16 +25,20 @@ expOp _ = Nothing
 
 moduleDecls :: Module_ -> [Decl_]
 moduleDecls (Module _ _ _ _ xs) = xs
+moduleDecls _ = [] -- XmlPage/XmlHybrid
 
 moduleName :: Module_ -> String
 moduleName (Module _ Nothing _ _ _) = "Main"
 moduleName (Module _ (Just (ModuleHead _ (ModuleName _ x) _ _)) _ _ _) = x
+moduleName _ = "" -- XmlPage/XmlHybrid
 
 moduleImports :: Module_ -> [ImportDecl S]
 moduleImports (Module _ _ _ x _) = x
+moduleImports _ = [] -- XmlPage/XmlHybrid
 
 modulePragmas :: Module_ -> [ModulePragma S]
 modulePragmas (Module _ _ x _ _) = x
+modulePragmas _ = [] -- XmlPage/XmlHybrid
 
 fromModuleName :: ModuleName S -> String
 fromModuleName (ModuleName _ x) = x
