@@ -262,7 +262,8 @@ warn = and [x, y, z] ==> x && y && z
 error "Redundant if" = (if x then False else y) ==> not x && y where _ = notEq y True
 error "Redundant if" = (if x then y else True) ==> not x || y where _ = notEq y False
 error "Redundant not" = not (not x) ==> x
-error "Too strict if" = (if c then f x else f y) ==> f (if c then x else y) where note = IncreasesLaziness
+-- error "Too strict if" = (if c then f x else f y) ==> f (if c then x else y) where note = IncreasesLaziness
+-- also breaks types, see #87
 
 -- ARROW
 
@@ -629,6 +630,7 @@ foo = (\f -> h f >>= g) -- h Control.Monad.>=> g
 foo = (\f -> h f >>= f)
 foo = bar $ \x -> [x,y]
 foo = bar $ \x -> [z,y] -- const [z,y]
+f condition tChar tBool = if condition then _monoField tChar else _monoField tBool
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
