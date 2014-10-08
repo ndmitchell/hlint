@@ -39,15 +39,23 @@ flag threaded
     default: True
     description: Build with support for multithreaded execution
 
+flag gpl
+    default: True
+    description: Use GPL libraries, specifically hscolour
+
 library
     build-depends:
         base == 4.*, process, filepath, directory, containers,
         transformers >= 0.0,
-        hscolour >= 1.17,
         cpphs >= 1.18.1,
         cmdargs >= 0.10,
         haskell-src-exts >= 1.16 && < 1.17,
         uniplate >= 1.5
+
+    if flag(gpl)
+        build-depends: hscolour >= 1.17
+    else
+        cpp-options: -DGPL_SCARES_ME
 
     hs-source-dirs:     src
     exposed-modules:

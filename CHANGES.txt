@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #88, allow avoiding HsColour, as it is GPL licensed
     #87, don't push if down, since it can be type incorrect
 1.9.7
     #86, don't use color unless $TERM claims to support it

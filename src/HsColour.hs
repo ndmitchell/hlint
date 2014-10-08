@@ -1,5 +1,15 @@
-
+{-# LANGUAGE CPP #-}
 module HsColour(hsColourHTML, hsColourConsole) where
+
+#ifdef GPL_SCARES_ME
+
+hsColourConsole :: IO (String -> String)
+hsColourConsole = return id
+
+hsColourHTML :: String -> String
+hsColourHTML = id
+
+#else
 
 import Language.Haskell.HsColour.TTY as TTY
 import Language.Haskell.HsColour.Colourise
@@ -13,3 +23,5 @@ hsColourConsole = do
 
 hsColourHTML :: String -> String
 hsColourHTML = CSS.hscolour False
+
+#endif
