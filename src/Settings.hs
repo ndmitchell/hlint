@@ -199,14 +199,13 @@ readSide = foldl f (Nothing,[])
           g x = case fromApps x of
               [con -> Just "IncreasesLaziness"] -> [IncreasesLaziness]
               [con -> Just "DecreasesLaziness"] -> [DecreasesLaziness]
-              [con -> Just "RemovesError",str -> Just a] -> [RemovesError a]
-              [con -> Just "ValidInstance",str -> Just a,var -> Just b] -> [ValidInstance a b]
+              [con -> Just "RemovesError",fromString -> Just a] -> [RemovesError a]
+              [con -> Just "ValidInstance",fromString -> Just a,var -> Just b] -> [ValidInstance a b]
               _ -> errorOn x "bad note"
 
           con :: Exp_ -> Maybe String
           con c@Con{} = Just $ prettyPrint c; con _ = Nothing
           var c@Var{} = Just $ prettyPrint c; var _ = Nothing
-          str c = if isString c then Just $ fromString c else Nothing
 
 
 -- Note: Foo may be ("","Foo") or ("Foo",""), return both
@@ -221,7 +220,7 @@ readFuncs x = errorOn x "bad classification rule"
 
 
 getNames :: [Pat_] -> Exp_ -> [String]
-getNames ps _ | ps /= [] && all isPString ps = map fromPString ps
+getNames ps _ | ps /= [], Just ps <- mapM fromPString ps = ps
 getNames [] (InfixApp _ lhs op rhs) | opExp op ~= "==>" = map ("Use "++) names
     where
         lnames = map f $ childrenS lhs

@@ -64,8 +64,7 @@ pchecks = let (*) = (,) in
           ]
 
 
-usePString (PList _ xs) | xs /= [] && all isPChar xs = Just $ PLit an (Signless an) $ String an s (show s)
-    where s = map fromPChar xs
+usePString (PList _ xs) | xs /= [], Just s <- mapM fromPChar xs = Just $ PLit an (Signless an) $ String an s (show s)
 usePString _ = Nothing
 
 usePList = fmap (PList an) . f True
@@ -74,8 +73,7 @@ usePList = fmap (PList an) . f True
         f first (view -> PApp_ ":" [a,b]) = (a:) <$> f False b
         f first _ = Nothing
 
-useString b (List _ xs) | xs /= [] && all isChar xs = Just $ Lit an $ String an s (show s)
-    where s = map fromChar xs
+useString b (List _ xs) | xs /= [], Just s <- mapM fromChar xs = Just $ Lit an $ String an s (show s)
 useString b _ = Nothing
 
 useList b = fmap (List an) . f True

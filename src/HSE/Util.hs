@@ -43,29 +43,21 @@ modulePragmas _ = [] -- XmlPage/XmlHybrid
 fromModuleName :: ModuleName S -> String
 fromModuleName (ModuleName _ x) = x
 
-isChar :: Exp_ -> Bool
-isChar (Lit _ Char{}) = True
-isChar _ = False
+fromChar :: Exp_ -> Maybe Char
+fromChar (Lit _ (Char _ x _)) = Just x
+fromChar _ = Nothing
 
-fromChar :: Exp_ -> Char
-fromChar (Lit _ (Char _ x _)) = x
+fromPChar :: Pat_ -> Maybe Char
+fromPChar (PLit _ _ (Char _ x _)) = Just x
+fromPChar _ = Nothing
 
-isPChar :: Pat_ -> Bool
-isPChar (PLit _ _ Char{}) = True
-isPChar _ = False
+fromString :: Exp_ -> Maybe String
+fromString (Lit _ (String _ x _)) = Just x
+fromString _ = Nothing
 
-fromPChar :: Pat_ -> Char
-fromPChar (PLit _ _ (Char _ x _)) = x
-
-isString :: Exp_ -> Bool
-isString (Lit _ String{}) = True
-isString _ = False
-
-fromString :: Exp_ -> String
-fromString (Lit _ (String _ x _)) = x
-
-isPString (PLit _ _ String{}) = True; isPString _ = False
-fromPString (PLit _ _ (String _ x _)) = x
+fromPString :: Pat_ -> Maybe String
+fromPString (PLit _ _ (String _ x _)) =  Just x
+fromPString _ = Nothing
 
 fromParen :: Exp_ -> Exp_
 fromParen (Paren _ x) = fromParen x
