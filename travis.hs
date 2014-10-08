@@ -2,7 +2,7 @@
 import Neil
 
 main :: IO ()
-main = do
+main = neil $ do
     retry 3 $ cmd "cabal install QuickCheck"
     cmd "hlint test --typecheck --quickcheck"
     (time,_) <- duration $ cmdCode "hlint src"
