@@ -59,6 +59,7 @@ library
         CmdLine
         Grep
         HLint
+        HsColour
         Idea
         Settings
         Report

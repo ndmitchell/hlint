@@ -10,7 +10,7 @@ import Data.Version
 import System.FilePath
 import HSE.All
 import Paths_hlint
-import Language.Haskell.HsColour.CSS
+import HsColour
 
 
 writeTemplate :: FilePath -> [(String,[String])] -> FilePath -> IO ()
@@ -45,20 +45,17 @@ writeReport dataDir file ideas = writeTemplate dataDir inner file
                     where id = mode ++ show i
 
 
-code = hscolour False
-
-
 writeIdea :: String -> Idea -> [String]
 writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
     ,escapeHTML (showSrcLoc (getPointLoc ideaSpan) ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint) ++ "<br/>"
     ,"Found<br/>"
-    ,code ideaFrom] ++
+    ,hsColourHTML ideaFrom] ++
     (case ideaTo of
         Nothing -> []
         Just to ->
             ["Why not" ++ (if to == "" then " remove it." else "") ++ "<br/>"
-            ,code to]) ++
+            ,hsColourHTML to]) ++
     [let n = showNotes ideaNote in if n /= "" then "<span class='note'>Note: " ++ n ++ "</span>" else ""
     ,"</div>"
     ,""]

@@ -5,8 +5,7 @@ module Idea(module Idea, Note(..), showNotes, Severity(..)) where
 import Data.List
 import HSE.All
 import Settings
-import Language.Haskell.HsColour.TTY
-import Language.Haskell.HsColour.Colourise
+import HsColour
 import Util
 
 
@@ -51,8 +50,8 @@ instance Show Idea where
 
 showANSI :: IO (Idea -> String)
 showANSI = do
-    prefs <- readColourPrefs
-    return $ showEx (hscolour prefs)
+    f <- hsColourConsole
+    return $ showEx f
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
