@@ -165,7 +165,7 @@ mode = cmdArgsMode $ modes
     ] &= program "hlint" &= verbosity
     &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2014")
     where
-        nam xs@(x:_) = nam_ xs &= name [x]
+        nam xs = nam_ xs &= name [head xs]
         nam_ xs = def &= explicit &= name xs
 
 cmdHintFiles :: Cmd -> IO [FilePath]

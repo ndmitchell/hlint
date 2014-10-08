@@ -117,6 +117,7 @@ unqual x = x
 fromQual :: QName S -> Name S
 fromQual (Qual _ _ x) = x
 fromQual (UnQual _ x) = x
+fromQual x = error $ "HSE.Util.fromQual, not a name: " ++ prettyPrint x
 
 isSpecial :: QName S -> Bool
 isSpecial Special{} = True; isSpecial _ = False
@@ -137,6 +138,7 @@ dotApp :: Exp_ -> Exp_ -> Exp_
 dotApp x = InfixApp an x (QVarOp an $ UnQual an $ Symbol an ".")
 
 dotApps :: [Exp_] -> Exp_
+dotApps [] = error "HSE.Util.dotApps, does not work on an empty list"
 dotApps [x] = x
 dotApps (x:xs) = dotApp x (dotApps xs)
 
@@ -187,6 +189,7 @@ replaceBranches (Case s a bs) = (concatMap f bs, Case s a . g bs)
                 Alt s1 a (GuardedRhss s2 [GuardedRhs a b x | (GuardedRhs a b _,x) <- zip ns as]) b : g rest bs
             where (as,bs) = splitAt (length ns) xs
         g [] [] = []
+        g _ _ = error "HSE.Util.replaceBranches: internal invariant failed, lists are of differing lengths"
 replaceBranches x = ([], \[] -> x)
 
 

@@ -229,8 +229,8 @@ withTemporaryFile pat act = do
         \(file,h) -> hClose h >> act file
 
 withTemporaryFiles :: String -> Int -> ([FilePath] -> IO a) -> IO a
-withTemporaryFiles pat 0 act = act []
-withTemporaryFiles pat i act | i > 0 =
+withTemporaryFiles pat i act | i <= 0 = act []
+withTemporaryFiles pat i act =
     withTemporaryFile pat $ \file ->
         withTemporaryFiles pat (i-1) $ \files ->
             act $ file : files

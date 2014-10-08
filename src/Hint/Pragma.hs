@@ -46,12 +46,12 @@ pragmaIdea xs ys = rawIdea Error "Use better pragmas" (toSrcSpan $ ann $ head xs
 
 
 languageDupes :: [ModulePragma S] -> [Idea]
-languageDupes [] = []
 languageDupes (a@(LanguagePragma _ x):xs) =
     (if nub_ x `neqList` x
         then [pragmaIdea [a] [LanguagePragma an $ nub_ x]]
         else [pragmaIdea [a,b] [LanguagePragma an (nub_ $ x ++ y)] | b@(LanguagePragma _ y) <- xs, notNull $ intersect_ x y]) ++
     languageDupes xs
+languageDupes _ = []
 
 
 -- Given a pragma, can you extract some language features out

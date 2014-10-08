@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity(..)) where
 
