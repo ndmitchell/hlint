@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.8
     #82, don't crash on XmlHybrid modules
     #88, allow avoiding HsColour, as it is GPL licensed
     #87, don't push if down, since it can be type incorrect
