@@ -114,3 +114,5 @@ executable hlint
     if flag(threaded)
         ghc-options:    -threaded
 
+    if !flag(gpl)
+        cpp-options: -DGPL_SCARES_ME
