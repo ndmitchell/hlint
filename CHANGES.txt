@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.10
     Spot unsafePerformIO without NOINLINE
 1.9.9
     #89, fix compiling the executable with --flag=-gpl
