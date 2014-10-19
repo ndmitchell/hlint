@@ -96,6 +96,7 @@ library
         Hint.Pragma
         Hint.Structure
         Hint.Type
+        Hint.Unsafe
         Hint.Util
         Test.All
         Test.Annotations

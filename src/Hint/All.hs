@@ -21,6 +21,7 @@ import Hint.Pragma
 import Hint.Extensions
 import Hint.Duplicate
 import Hint.Comment
+import Hint.Unsafe
 
 
 -- | A list of builtin hints, currently including entries such as @\"List\"@ and @\"Bracket\"@.
@@ -36,6 +37,7 @@ builtinHints =
     ,"Import"     + importHint
     ,"Pragma"     + pragmaHint
     ,"Extensions" + extensionsHint
+    ,"Unsafe"     + unsafeHint
     ,"Duplicate"  * duplicateHint
     ,"Comment"    - commentHint
     ]
