@@ -50,7 +50,8 @@ library
         cpphs >= 1.18.1,
         cmdargs >= 0.10,
         haskell-src-exts >= 1.16 && < 1.17,
-        uniplate >= 1.5
+        uniplate >= 1.5,
+        ansi-terminal >= 0.6.2
 
     if flag(gpl)
         build-depends: hscolour >= 1.17

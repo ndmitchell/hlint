@@ -5,12 +5,13 @@ module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFile
 
 import Data.Char
 import Data.List
+import System.Console.ANSI (hSupportsANSI)
 import System.Console.CmdArgs.Implicit
 import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
 import System.Directory
 import System.Exit
 import System.FilePath
-import System.IO (hIsTerminalDevice, stdout)
+import System.IO (stdout)
 import Language.Preprocessor.Cpphs
 import Language.Haskell.Exts.Extension
 import System.Environment
@@ -192,11 +193,7 @@ cmdUseColour :: Cmd -> IO Bool
 cmdUseColour cmd = case cmdColor cmd of
   Always -> return True
   Never  -> return False
-  Auto   -> do
-    stdoutIsTerminal <- hIsTerminalDevice stdout
-    termType         <- lookup "TERM" `fmap` getEnvironment
-    return $ stdoutIsTerminal && maybe False isColorTerm termType
-    where isColorTerm t = t == "ansi" || "xterm" `isPrefixOf` t || "xvt" `isSuffixOf` t
+  Auto   -> hSupportsANSI stdout
 
 
 "." <\> x = x
