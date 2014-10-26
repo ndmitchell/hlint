@@ -1,5 +1,7 @@
 Changelog for HLint
 
+    #92, use a new way for determining the color default
+    Add a dependency on ansi-terminal
 1.9.10
     Spot unsafePerformIO without NOINLINE
 1.9.9
