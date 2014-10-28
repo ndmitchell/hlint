@@ -5,17 +5,17 @@ module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFile
 
 import Data.Char
 import Data.List
-import System.Console.ANSI (hSupportsANSI)
+import System.Console.ANSI(hSupportsANSI)
 import System.Console.CmdArgs.Implicit
 import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
 import System.Directory.Extra
 import System.Exit
 import System.FilePath
-import System.IO (stdout)
+import System.IO
 import Language.Preprocessor.Cpphs
 import Language.Haskell.Exts.Extension
 import System.Environment
-import System.Info (os)
+import System.Info
 
 import Util
 import Paths_hlint
