@@ -3,7 +3,7 @@
 -- | Check the <TEST> annotations within source and hint files.
 module Test.Annotations(testAnnotations) where
 
-import Control.Arrow
+import Data.Tuple.Extra
 import Data.Char
 import Data.List.Extra
 import Data.Maybe

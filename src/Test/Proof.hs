@@ -4,7 +4,7 @@
 module Test.Proof(proof) where
 
 import Control.Applicative
-import Control.Arrow
+import Data.Tuple.Extra
 import Control.Monad
 import Control.Monad.Trans.State
 import Data.Char

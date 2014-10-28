@@ -3,7 +3,7 @@
 module Report(writeReport) where
 
 import Idea
-import Control.Arrow
+import Data.Tuple.Extra
 import Data.List
 import Data.Maybe
 import Data.Version

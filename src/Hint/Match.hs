@@ -47,7 +47,7 @@ import Settings
 import Hint.Type
 import Control.Monad
 import Control.Applicative
-import Control.Arrow
+import Data.Tuple.Extra
 import Util
 import qualified Data.Set as Set
 

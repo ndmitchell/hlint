@@ -38,7 +38,7 @@ import CmdLine
 import Paths_hlint
 
 import Control.Applicative
-import Control.Arrow
+import Data.Tuple.Extra
 import Data.List.Extra
 import Data.Maybe
 import Data.Monoid

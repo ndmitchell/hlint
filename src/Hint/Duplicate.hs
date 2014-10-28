@@ -19,7 +19,7 @@ foo = a where {a = 1; b = 2; c = 3}; bar = a where {a = 1; b = 2; c = 3} -- ???
 module Hint.Duplicate(duplicateHint) where
 
 import Hint.Type
-import Control.Arrow
+import Data.Tuple.Extra
 import Data.List hiding (find)
 import qualified Data.Map as Map
 

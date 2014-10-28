@@ -4,7 +4,7 @@ module Apply(applyHints, applyHintFile, applyHintFiles) where
 import HSE.All
 import Hint.All
 import Control.Applicative
-import Control.Arrow
+import Data.Tuple.Extra
 import Data.Either
 import Data.List.Extra
 import Data.Maybe
