@@ -157,7 +157,7 @@ readSetting :: Scope -> Decl_ -> [Setting]
 readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats (UnGuardedRhs _ bod) bind])
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
         let (a,b) = readSide $ childrenBi bind in
-        [SettingMatchExp $ HintRule severity (headDef defaultHintName names) s (fromParen lhs) (fromParen rhs) a b]
+        [SettingMatchExp $ HintRule severity (head $ snoc names defaultHintName) s (fromParen lhs) (fromParen rhs) a b]
     | otherwise = [SettingClassify $ Classify severity n a b | n <- names2, (a,b) <- readFuncs bod]
     where
         names = filter (not . null) $ getNames pats bod

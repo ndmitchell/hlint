@@ -4,7 +4,6 @@ module Util(
     defaultExtensions,
     Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
     withTemporaryFiles,
-    headDef,
     gzip, universeParentBi, descendIndex,
     exitMessage
     ) where
@@ -21,14 +20,6 @@ import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.Operations
 import Language.Haskell.Exts.Extension
-
-
----------------------------------------------------------------------
--- PRELUDE
-
-headDef :: a -> [a] -> a
-headDef x [] = x
-headDef x (y:ys) = y
 
 
 ---------------------------------------------------------------------
