@@ -8,7 +8,7 @@ import Data.List
 import System.Console.ANSI (hSupportsANSI)
 import System.Console.CmdArgs.Implicit
 import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
-import System.Directory
+import System.Directory.Extra
 import System.Exit
 import System.FilePath
 import System.IO (stdout)
@@ -210,7 +210,8 @@ getFile [] exts file = error $ "Couldn't find file: " ++ file
 getFile (p:ath) exts file = do
     isDir <- doesDirectoryExist $ p <\> file
     if isDir then do
-        xs <- getDirectoryContentsRecursive $ p <\> file
+        let avoid x = any (`isPrefixOf` takeFileName x) [".","_"]
+        xs <- listFilesInside (return . not . avoid) $ p <\> file
         return [x | x <- xs, drop 1 (takeExtension x) `elem` exts]
      else do
         isFil <- doesFileExist $ p <\> file

@@ -2,7 +2,6 @@
 
 module Util(
     defaultExtensions,
-    getDirectoryContentsRecursive,
     descendIndex,
     Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
     withTemporaryFiles,
@@ -11,33 +10,18 @@ module Util(
     exitMessage
     ) where
 
-import Control.Monad.Extra
 import Control.Monad.Trans.State
 import Control.Exception
 import Data.Char
 import Data.List
 import System.Directory
 import System.Exit
-import System.FilePath
 import System.IO
 import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.Operations
 import Language.Haskell.Exts.Extension
-
-
----------------------------------------------------------------------
--- SYSTEM.DIRECTORY
-
-getDirectoryContentsRecursive :: FilePath -> IO [FilePath]
-getDirectoryContentsRecursive dir = do
-    xs <- getDirectoryContents dir
-    (dirs,files) <- partitionM doesDirectoryExist [dir </> x | x <- xs, not $ isBadDir x]
-    rest <- concatMapM getDirectoryContentsRecursive $ sort dirs
-    return $ sort files ++ rest
-    where
-        isBadDir x = "." `isPrefixOf` x || "_" `isPrefixOf` x
 
 
 ---------------------------------------------------------------------
