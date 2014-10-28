@@ -4,7 +4,7 @@
 module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity(..)) where
 
 import Control.Applicative
-import Control.Monad
+import Control.Monad.Extra
 import System.Console.CmdArgs.Verbosity
 import Data.List
 import System.Exit

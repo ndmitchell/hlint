@@ -12,7 +12,7 @@ module Util(
     replace,
     withBuffering,
     listM',
-    concatMapM, concat2, headDef, notNull, concatUnzip,
+    concat2, headDef, notNull, concatUnzip,
     swap, unsnoc, disjoint,
     groupSortFst, gzip, universeParentBi,
     mergeBy,

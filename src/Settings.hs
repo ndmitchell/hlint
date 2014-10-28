@@ -8,6 +8,7 @@ module Settings(
     ) where
 
 import HSE.All
+import Control.Monad.Extra
 import Data.Char
 import Data.Either
 import Data.List
