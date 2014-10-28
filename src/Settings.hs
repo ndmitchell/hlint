@@ -146,7 +146,7 @@ findSettings dataDir file contents = do
         Left (ParseError sl msg err) -> exitMessage $ "Parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
         Right (m, _) -> do
             ys <- sequence [f $ fromNamed $ importModule i | i <- moduleImports m, importPkg i `elem` [Just "hint", Just "hlint"]]
-            return $ concat2 $ ([],[m]) : ys
+            return $ concatUnzip $ ([],[m]) : ys
     where
         f x | Just x <- "HLint.Builtin." `stripPrefix` x = return ([x],[])
             | Just x <- "HLint." `stripPrefix` x = findSettings dataDir (dataDir </> x <.> "hs") Nothing

@@ -69,7 +69,7 @@ module Hint.Extensions(extensionsHint) where
 
 import Hint.Type
 import Data.Maybe
-import Data.List
+import Data.List.Extra
 import Util
 
 

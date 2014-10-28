@@ -8,8 +8,7 @@ module Util(
     withTemporaryFiles,
     withBuffering,
     listM',
-    concat2, headDef, notNull, concatUnzip,
-    swap,
+    headDef, notNull,
     groupSortFst, gzip, universeParentBi,
     exitMessage
     ) where
@@ -68,20 +67,6 @@ headDef x (y:ys) = y
 
 groupSortFst :: Ord a => [(a,b)] -> [(a,[b])]
 groupSortFst = map (fst . head &&& map snd) . groupBy ((==) `on` fst) . sortBy (comparing fst)
-
-concatUnzip :: [([a], [b])] -> ([a], [b])
-concatUnzip = (concat *** concat) . unzip
-
-
----------------------------------------------------------------------
--- DATA.TUPLE
-
-swap :: (a,b) -> (b,a)
-swap (a,b) = (b,a)
-
-concat2 :: [([a],[b])] -> ([a],[b])
-concat2 xs = (concat a, concat b)
-    where (a,b) = unzip xs
 
 
 ---------------------------------------------------------------------

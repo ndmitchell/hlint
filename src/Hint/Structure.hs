@@ -40,7 +40,7 @@ module Hint.Structure(structureHint) where
 
 import Hint.Type
 import Data.List.Extra
-import Util
+import Data.Tuple
 
 
 structureHint :: DeclHint

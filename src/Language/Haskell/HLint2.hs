@@ -39,7 +39,7 @@ import Paths_hlint
 
 import Control.Applicative
 import Control.Arrow
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Data.Monoid
 import System.FilePath
@@ -64,7 +64,7 @@ autoSettings :: IO (ParseFlags, [Classify], Hint)
 autoSettings = do
     dataDir <- getHLintDataDir
     (builtin, matches) <- first resolveBuiltin <$> findSettings dataDir (dataDir </> "HLint.hs") Nothing
-    let (classify, rules) = second hintRules $ concat2 $ map readSettings matches
+    let (classify, rules) = second hintRules $ concatUnzip $ map readSettings matches
     let fixities = getFixity =<< moduleDecls =<< matches
     return (parseFlagsAddFixities fixities defaultParseFlags, classify, mconcat $ rules : builtin)
 
