@@ -6,13 +6,12 @@ import Hint.All
 import Control.Applicative
 import Control.Arrow
 import Data.Either
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Data.Monoid
 import Data.Ord
 import Settings
 import Idea
-import Util
 
 
 -- | Apply hints to a single file, you may have the contents of the file.
