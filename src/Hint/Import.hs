@@ -43,14 +43,13 @@ module Foo(module A, baz, module B, module X) where; import A; import B; import 
 module Hint.Import(importHint) where
 
 import Hint.Type
-import Util
 import Control.Applicative
 import Data.List.Extra
 import Data.Maybe
 
 
 importHint :: ModuHint
-importHint _ x = concatMap (wrap . snd) (groupSortFst
+importHint _ x = concatMap (wrap . snd) (groupSort
                  [((fromNamed $ importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]) ++
                  concatMap (\x -> hierarchy x ++ reduce1 x) (universeBi x) ++
                  multiExport x

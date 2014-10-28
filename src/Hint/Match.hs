@@ -39,7 +39,7 @@ not . not . x ==> x
 
 module Hint.Match(readMatch) where
 
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Data.Data
 import Unsafe.Coerce
@@ -170,7 +170,7 @@ isOther _ = True
 
 -- check the unification is valid
 check :: [(String,Exp_)] -> Maybe [(String,Exp_)]
-check = mapM f . groupSortFst
+check = mapM f . groupSort
     where f (x,ys) = if length (nub ys) == 1 then Just (x,head ys) else Nothing
 
 

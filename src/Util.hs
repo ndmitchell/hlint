@@ -8,18 +8,15 @@ module Util(
     withTemporaryFiles,
     listM',
     headDef,
-    groupSortFst, gzip, universeParentBi,
+    gzip, universeParentBi,
     exitMessage
     ) where
 
-import Control.Arrow
 import Control.Monad.Extra
 import Control.Monad.Trans.State
 import Control.Exception
 import Data.Char
-import Data.Function
 import Data.List
-import Data.Ord
 import System.Directory
 import System.Exit
 import System.FilePath
@@ -57,13 +54,6 @@ listM' x = length x `seq` return x
 headDef :: a -> [a] -> a
 headDef x [] = x
 headDef x (y:ys) = y
-
-
----------------------------------------------------------------------
--- DATA.LIST
-
-groupSortFst :: Ord a => [(a,b)] -> [(a,[b])]
-groupSortFst = map (fst . head &&& map snd) . groupBy ((==) `on` fst) . sortBy (comparing fst)
 
 
 ---------------------------------------------------------------------
