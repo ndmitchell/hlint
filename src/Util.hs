@@ -3,7 +3,6 @@
 module Util(
     defaultExtensions,
     Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
-    withTemporaryFiles,
     gzip, universeParentBi, descendIndex,
     exitMessage
     ) where
@@ -12,9 +11,8 @@ import Control.Monad.Trans.State
 import Control.Exception
 import Data.Char
 import Data.List
-import System.Directory
 import System.Exit
-import System.IO
+import System.IO.Extra hiding (readFileEncoding)
 import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
@@ -87,20 +85,6 @@ exitMessage :: String -> a
 exitMessage msg = unsafePerformIO $ do
     putStrLn msg
     exitWith $ ExitFailure 1
-
-
-withTemporaryFile :: String -> (FilePath -> IO a) -> IO a
-withTemporaryFile pat act = do
-    tmp <- getTemporaryDirectory
-    bracket (openTempFile tmp pat) (removeFile . fst) $
-        \(file,h) -> hClose h >> act file
-
-withTemporaryFiles :: String -> Int -> ([FilePath] -> IO a) -> IO a
-withTemporaryFiles pat i act | i <= 0 = act []
-withTemporaryFiles pat i act =
-    withTemporaryFile pat $ \file ->
-        withTemporaryFiles pat (i-1) $ \files ->
-            act $ file : files
 
 
 ---------------------------------------------------------------------
