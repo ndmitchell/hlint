@@ -123,3 +123,4 @@ main = withMain $ do
         \ (NegZero i) x -> (take i x) ==> ([])
     test "data\\Default.hs" 70 "head (sortBy f x) ==> minimumBy f x" $
         \ (Compare f) x -> (head (sortBy f x)) ==> (minimumBy f x)
+    test "data\\Default.hs" 218 "(f $) ==> f" $ \ f -> ((f $)) ==> (f)
