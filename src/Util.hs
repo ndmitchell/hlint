@@ -6,7 +6,6 @@ module Util(
     descendIndex,
     Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
     withTemporaryFiles,
-    listM',
     headDef,
     gzip, universeParentBi,
     exitMessage
@@ -39,13 +38,6 @@ getDirectoryContentsRecursive dir = do
     return $ sort files ++ rest
     where
         isBadDir x = "." `isPrefixOf` x || "_" `isPrefixOf` x
-
-
----------------------------------------------------------------------
--- CONTROL.MONAD
-
-listM' :: Monad m => [a] -> m [a]
-listM' x = length x `seq` return x
 
 
 ---------------------------------------------------------------------

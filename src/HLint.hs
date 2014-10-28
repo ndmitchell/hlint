@@ -127,7 +127,7 @@ runHints cmd@CmdMain{..} flags = do
 
     ideas <- if cmdCross
         then applyHintFiles flags settings cmdFiles
-        else concat <$> parallel [listM' =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
+        else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
     if cmdJson
         then putStrLn . showIdeasJson $ showideas
@@ -143,6 +143,9 @@ runHints cmd@CmdMain{..} flags = do
                     writeReport cmdDataDir x showideas
             unless cmdNoSummary $
                 outStrLn $
-                    (let i = length showideas in if i == 0 then "No suggestions" else show i ++ " suggestion" ++ ['s'|i/=1]) ++
+                    (let i = length showideas in if i == 0 then "No suggestions" else show i ++ " suggestion" ++ ['s' | i/=1]) ++
                     (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
     return $ map Suggestion showideas
+
+evaluateList :: [a] -> IO [a]
+evaluateList xs = length xs `seq` return xs
