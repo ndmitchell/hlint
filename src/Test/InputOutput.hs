@@ -16,7 +16,6 @@ import System.Console.CmdArgs.Verbosity
 import System.Exit
 import System.IO.Extra
 
-import Util
 import Test.Util
 
 
@@ -103,5 +102,5 @@ matchStar _ _ = False
 matchStarStar :: [String] -> [String] -> ([String], [String])
 matchStarStar want got = case break (== "**") want of
     (_, []) -> (want, got)
-    (w1,_:w2) -> (w1++w2, g1 ++ revTake (length w2) g2)
+    (w1,_:w2) -> (w1++w2, g1 ++ takeEnd (length w2) g2)
         where (g1,g2) = splitAt (length w1) got

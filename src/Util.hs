@@ -5,7 +5,6 @@ module Util(
     getDirectoryContentsRecursive,
     descendIndex,
     Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
-    revTake,
     withTemporaryFiles,
     withBuffering,
     listM',
@@ -77,9 +76,6 @@ disjoint xs = null . intersect xs
 unsnoc :: [a] -> ([a],a)
 unsnoc [] = error "Unsnoc on empty list"
 unsnoc xs = (init xs, last xs)
-
-revTake :: Int -> [a] -> [a]
-revTake i = reverse . take i . reverse
 
 concatUnzip :: [([a], [b])] -> ([a], [b])
 concatUnzip = (concat *** concat) . unzip
