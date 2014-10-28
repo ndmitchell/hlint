@@ -7,7 +7,9 @@ env:
 
 matrix:
   allow_failures:
-   - env: [GHCVER=head, GHCVER=7.8.3]
+   - env:
+      - GHCVER=7.8.3
+      - GHCVER=head
 
 script:
  - wget https://raw.github.com/ndmitchell/neil/master/travis.sh -O - --no-check-certificate --quiet | sh
