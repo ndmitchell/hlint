@@ -34,7 +34,7 @@ import Hint.Util
 import Data.List
 import Data.Maybe
 import Data.Ord
-import Data.Either
+import Data.Either.Extra
 import Control.Monad
 
 
@@ -95,7 +95,7 @@ matchListRec o@(ListCase vs nil (x,xs,cons))
     | [v] <- vs, App _ ret res <- nil, ret ~= "return", res ~= "()" || view res == Var_ v
     , [Generator _ (view -> PVar_ b1) e, Qualifier _ (fromParen -> App _ r (view -> Var_ b2))] <- asDo cons
     , b1 == b2, r == recursive, xs `notElem` vars e
-    , name <- "foldM" ++ ['_'|res ~= "()"]
+    , name <- "foldM" ++ ['_' | res ~= "()"]
     = Just $ (,,) name Warning $ appsBracket
         [toNamed name, niceLambda [v,x] e, toNamed v, toNamed xs]
 
@@ -158,7 +158,7 @@ findBranch x = do
 findPat :: [Pat_] -> Maybe ([String], Int, BList)
 findPat ps = do
     ps <- mapM readPat ps
-    [i] <- return $ findIndices isRight_ ps
+    [i] <- return $ findIndices isRight ps
     let (left,[right]) = partitionEithers ps
     return (left, i, right)
 

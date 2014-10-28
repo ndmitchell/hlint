@@ -5,6 +5,7 @@ import HSE.All
 import Hint.All
 import Control.Applicative
 import Control.Arrow
+import Data.Either
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -26,7 +27,7 @@ applyHintFile flags s file src = do
 -- | Apply hints to multiple files, allowing cross-file hints to fire.
 applyHintFiles :: ParseFlags -> [Setting] -> [FilePath] -> IO [Idea]
 applyHintFiles flags s files = do
-    (err, ms) <- unzipEither <$> mapM (\file -> parseModuleApply flags s file Nothing) files
+    (err, ms) <- partitionEithers <$> mapM (\file -> parseModuleApply flags s file Nothing) files
     return $ err ++ executeHints s ms
 
 

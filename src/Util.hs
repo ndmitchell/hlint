@@ -12,11 +12,9 @@ module Util(
     replace,
     withBuffering,
     listM',
-    unzipEither,
     concatMapM, concat2, headDef, notNull, concatUnzip,
     swap, unsnoc, disjoint,
     groupSortFst, gzip, universeParentBi,
-    isRight_,
     mergeBy,
     exitMessage
     ) where
@@ -80,15 +78,6 @@ headDef :: a -> [a] -> a
 headDef x [] = x
 headDef x (y:ys) = y
 
-isLeft_ Left{} = True; isLeft_ _ = False
-isRight_ = not . isLeft_
-
-unzipEither :: [Either a b] -> ([a], [b])
-unzipEither (x:xs) = case x of
-    Left y -> (y:a,b)
-    Right y -> (a,y:b)
-    where (a,b) = unzipEither xs
-unzipEither [] = ([], [])
 
 ---------------------------------------------------------------------
 -- DATA.STRING

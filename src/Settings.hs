@@ -9,6 +9,7 @@ module Settings(
 
 import HSE.All
 import Data.Char
+import Data.Either
 import Data.List
 import Data.Monoid
 import System.FilePath
@@ -106,7 +107,7 @@ data Setting
 -- Return the list of settings commands
 readSettings2 :: FilePath -> [FilePath] -> [String] -> IO [Setting]
 readSettings2 dataDir files hints = do
-    (builtin,mods) <- fmap unzipEither $ concatMapM (readHints dataDir) $ map Right files ++ map Left hints
+    (builtin,mods) <- fmap partitionEithers $ concatMapM (readHints dataDir) $ map Right files ++ map Left hints
     return $ map Builtin builtin ++ concatMap moduleSettings_ mods
 
 moduleSettings_ :: Module SrcSpanInfo -> [Setting]
