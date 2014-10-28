@@ -10,7 +10,4 @@ matrix:
    - env: GHCVER=head
 
 script:
- - ls /usr/bin
- - echo $PATH
- - export PATH=/usr/bin:$PATH
  - wget https://raw.github.com/ndmitchell/neil/master/travis.sh -O - --no-check-certificate --quiet | sh
