@@ -160,7 +160,7 @@ readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats 
         [SettingMatchExp $ HintRule severity (headDef defaultHintName names) s (fromParen lhs) (fromParen rhs) a b]
     | otherwise = [SettingClassify $ Classify severity n a b | n <- names2, (a,b) <- readFuncs bod]
     where
-        names = filter notNull $ getNames pats bod
+        names = filter (not . null) $ getNames pats bod
         names2 = ["" | null names] ++ names
 
 readSetting s x | "test" `isPrefixOf` map toLower (fromNamed x) = []

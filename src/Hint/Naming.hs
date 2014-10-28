@@ -35,7 +35,6 @@ import Hint.Type
 import Data.List
 import Data.Char
 import Data.Maybe
-import Util
 import qualified Data.Set as Set
 
 
@@ -43,7 +42,7 @@ namingHint :: DeclHint
 namingHint _ modu = naming $ Set.fromList [x | Ident _ x <- universeS modu]
 
 naming :: Set.Set String -> Decl_ -> [Idea]
-naming seen x = [warn "Use camelCase" x2 (replaceNames res x2) | notNull res]
+naming seen x = [warn "Use camelCase" x2 (replaceNames res x2) | not $ null res]
     where res = [(n,y) | n <- nub $ getNames x, Just y <- [suggestName n], not $ y `Set.member` seen]
           x2 = shorten x
 

@@ -4,7 +4,6 @@ module Hint.Util where
 
 import HSE.All
 import Data.List.Extra
-import Util
 
 
 -- | Generate a lambda, but prettier (if possible).
@@ -23,7 +22,7 @@ niceLambda xs (Lambda _ [] x) = niceLambda xs x
 niceLambda [] x = x
 
 -- \xs -> e xs ==> e
-niceLambda xs (fromApps -> e) | map view xs2 == map Var_ xs, vars e2 `disjoint` xs, notNull e2 = apps e2
+niceLambda xs (fromApps -> e) | map view xs2 == map Var_ xs, vars e2 `disjoint` xs, not $ null e2 = apps e2
     where (e2,xs2) = splitAt (length e - length xs) e
 
 -- \x y -> x + y ==> (+)

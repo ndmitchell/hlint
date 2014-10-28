@@ -73,7 +73,7 @@ hlintHSE c@CmdHSE{..} = do
 
 hlintTest :: Cmd -> IO ()
 hlintTest cmd@CmdTest{..} =
-    if notNull cmdProof then do
+    if not $ null cmdProof then do
         files <- cmdHintFiles cmd
         s <- readSettings2 cmdDataDir files []
         let reps = if cmdReports == ["report.html"] then ["report.txt"] else cmdReports
@@ -99,7 +99,7 @@ hlintMain :: Cmd -> IO [Suggestion]
 hlintMain cmd@CmdMain{..} = do
     encoding <- readEncoding cmdEncoding
     let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
-    if null cmdFiles && notNull cmdFindHints then do
+    if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd) cmdFindHints
         mapM_ (\x -> putStrLn . fst =<< findSettings2 flags x) hints >> return []
      else if null cmdFiles then

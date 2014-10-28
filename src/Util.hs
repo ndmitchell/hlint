@@ -8,7 +8,7 @@ module Util(
     withTemporaryFiles,
     withBuffering,
     listM',
-    headDef, notNull,
+    headDef,
     groupSortFst, gzip, universeParentBi,
     exitMessage
     ) where
@@ -54,8 +54,6 @@ listM' x = length x `seq` return x
 
 ---------------------------------------------------------------------
 -- PRELUDE
-
-notNull = not . null
 
 headDef :: a -> [a] -> a
 headDef x [] = x
