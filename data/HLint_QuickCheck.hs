@@ -1,5 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules, ScopedTypeVariables, DeriveDataTypeable, ViewPatterns #-}
 {-# LANGUAGE FlexibleInstances, UndecidableInstances, OverlappingInstances, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP #-}
 
 -- | Used with --quickcheck
 module HLint_QuickCheck(module HLint_QuickCheck, module X) where
@@ -50,7 +51,12 @@ instance Show a => Show (Chan a) where show _ = "<Chan>"
 instance Eq (IO a) where _ == _ = True
 instance Eq SomeException where a == b = show a == show b
 
-instance Typeable IOMode where typeOf _ = typeOf ()
+instance Typeable IOMode where
+#if __GLASGOW_HASKELL__ >= 708
+    typeRep# _ = typeOf ()
+#else
+    typeOf _ = typeOf ()
+#endif
 
 instance Arbitrary Handle where arbitrary = elements [stdin, stdout, stderr]
 instance CoArbitrary Handle where coarbitrary _ = variant 0
