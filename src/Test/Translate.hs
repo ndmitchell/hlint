@@ -5,6 +5,7 @@ module Test.Translate(testTypeCheck, testQuickCheck) where
 
 import Control.Monad
 import Data.List.Extra
+import System.IO.Extra
 import Data.Maybe
 import System.Cmd
 import System.Exit
@@ -12,22 +13,22 @@ import System.FilePath
 
 import Paths_hlint
 import Settings
-import Util
 import HSE.All
 import Test.Util
 
 
 runMains :: [String] -> IO ()
-runMains xs = withTemporaryFiles "HLint_tmp.hs" (length xs + 1) $ \(root:bodies) -> do
-    forM_ (zip bodies xs) $ \(file,x) -> do
-        writeFile file $ replace "module Main" ("module " ++ takeBaseName file) x
-    let ms = map takeBaseName bodies
-    writeFile root $ unlines $
+runMains xs = withTempDir $ \dir -> do
+    ms <- forM (zip [1..] xs) $ \(i,x) -> do
+        let m = "I" ++ show i
+        writeFile (dir </> m <.> "hs") $ replace "module Main" ("module " ++ m) x
+        return m
+    writeFile (dir </> "Main.hs") $ unlines $
         ["import qualified " ++ m | m <- ms] ++
         ["main = do"] ++
         ["    " ++ m ++ ".main" | m <- ms]
     dat <- getDataDir
-    res <- system $ "runhaskell -i" ++ takeDirectory root ++ " -i" ++ dat ++ " " ++ root
+    res <- system $ "runhaskell -i" ++ dir ++ " -i" ++ dat ++ " Main"
     replicateM_ (length xs) $ tested $ res == ExitSuccess
 
 
