@@ -14,6 +14,7 @@ import System.FilePath
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Verbosity
 import System.Exit
+import System.IO.Extra
 
 import Util
 import Test.Util
@@ -64,7 +65,7 @@ parseInputOutputs = f z . lines
 checkInputOutput :: ([String] -> IO ()) -> InputOutput -> IO ()
 checkInputOutput main InputOutput{..} = do
     code <- newIORef ExitSuccess
-    got <- fmap (reverse . dropWhile null . reverse . map rtrim . lines) $ captureOutput $
+    got <- fmap (reverse . dropWhile null . reverse . map rtrim . lines . fst) $ captureOutput $
         handle (\(e::SomeException) -> print e) $
         handle (\(e::ExitCode) -> writeIORef code e) $ do
         bracket getVerbosity setVerbosity $ const $ setVerbosity Normal >> main run

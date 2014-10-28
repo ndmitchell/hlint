@@ -6,7 +6,6 @@ module Util(
     descendIndex,
     Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
     ltrim, trimBy, trim, rtrim,
-    captureOutput,
     revTake,
     withTemporaryFiles,
     replace,
@@ -36,7 +35,6 @@ import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.Operations
 import Language.Haskell.Exts.Extension
-import GHC.IO.Handle(hDuplicate,hDuplicateTo)
 
 
 ---------------------------------------------------------------------
@@ -207,33 +205,11 @@ withTemporaryFiles pat i act =
         withTemporaryFiles pat (i-1) $ \files ->
             act $ file : files
 
-captureOutput :: IO () -> IO String
-captureOutput act = withTemporaryFile "hlint_capture_output.txt" $ \file -> do
-    h <- openFile file ReadWriteMode
-    bout <- hGetBuffering stdout
-    berr <- hGetBuffering stderr
-    sto <- hDuplicate stdout
-    ste <- hDuplicate stderr
-    hDuplicateTo h stdout
-    hDuplicateTo h stderr
-    hClose h
-    act
-    hDuplicateTo sto stdout
-    hDuplicateTo ste stderr
-    hSetBuffering stdout bout
-    hSetBuffering stderr berr
-    readFile' file
-
 
 withBuffering :: Handle -> BufferMode -> IO a -> IO a
 withBuffering h m act = bracket (hGetBuffering h) (hSetBuffering h) $ const $ do
     hSetBuffering h m
     act
-
-
--- FIXME: Should use strict ByteString
-readFile' :: FilePath -> IO String
-readFile' x = listM' =<< readFile x
 
 
 ---------------------------------------------------------------------
