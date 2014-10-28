@@ -15,7 +15,7 @@ import System.IO
 import Language.Preprocessor.Cpphs
 import Language.Haskell.Exts.Extension
 import System.Environment
-import System.Info
+import System.Info.Extra
 
 import Util
 import Paths_hlint
@@ -64,9 +64,7 @@ data ColorMode
 
 
 instance Default ColorMode where
-  def = if os == "mingw32"
-          then Never
-          else Auto
+  def = if isWindows then Never else Auto
 
 
 data Cmd
