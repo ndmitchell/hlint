@@ -9,7 +9,7 @@ module Util(
     withBuffering,
     listM',
     concat2, headDef, notNull, concatUnzip,
-    swap, unsnoc, disjoint,
+    swap,
     groupSortFst, gzip, universeParentBi,
     exitMessage
     ) where
@@ -68,13 +68,6 @@ headDef x (y:ys) = y
 
 groupSortFst :: Ord a => [(a,b)] -> [(a,[b])]
 groupSortFst = map (fst . head &&& map snd) . groupBy ((==) `on` fst) . sortBy (comparing fst)
-
-disjoint :: Eq a => [a] -> [a] -> Bool
-disjoint xs = null . intersect xs
-
-unsnoc :: [a] -> ([a],a)
-unsnoc [] = error "Unsnoc on empty list"
-unsnoc xs = (init xs, last xs)
 
 concatUnzip :: [([a], [b])] -> ([a], [b])
 concatUnzip = (concat *** concat) . unzip

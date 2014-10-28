@@ -29,9 +29,8 @@ f [] y = y; f (x:xs) y = f xs (f xs z)
 module Hint.ListRec(listRecHint) where
 
 import Hint.Type
-import Util
 import Hint.Util
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Data.Ord
 import Data.Either.Extra

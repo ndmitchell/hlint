@@ -71,6 +71,7 @@ module Hint.Lambda(lambdaHint) where
 import Hint.Util
 import Hint.Type
 import Util
+import Data.List.Extra
 import Data.Maybe
 
 

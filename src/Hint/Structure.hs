@@ -39,6 +39,7 @@ foo = let ~(x:xs) = y in z
 module Hint.Structure(structureHint) where
 
 import Hint.Type
+import Data.List.Extra
 import Util
 
 
@@ -76,7 +77,7 @@ hints gen (Pattern pats bod (Just bind)) | f bind && False -- disabled due to bu
         f (BDecls _ x) = null x
         f (IPBinds _ x) = null x
 
-hints gen (Pattern pats (GuardedRhss _ (unsnoc -> (gs, GuardedRhs _ [test] bod))) bind)
+hints gen (Pattern pats (GuardedRhss _ (unsnoc -> Just (gs, GuardedRhs _ [test] bod))) bind)
     | prettyPrint test == "True"
     = [gen "Use otherwise" $ Pattern pats (GuardedRhss an $ gs ++ [GuardedRhs an [Qualifier an $ toNamed "otherwise"] bod]) bind]
 

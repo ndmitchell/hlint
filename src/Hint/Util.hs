@@ -3,6 +3,7 @@
 module Hint.Util where
 
 import HSE.All
+import Data.List.Extra
 import Util
 
 
@@ -42,8 +43,8 @@ niceLambda [x,y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
 niceLambda [x] y | Just z <- factor y, x `notElem` vars z = z
     where
         -- factor the expression with respect to x
-        factor y@App{} | (ini,lst) <- unsnoc $ fromApps y, view lst == Var_ x = Just $ apps ini
-        factor y@App{} | (ini,lst) <- unsnoc $ fromApps y, Just z <- factor lst = Just $ niceDotApp (apps ini) z
+        factor y@App{} | Just (ini,lst) <- unsnoc $ fromApps y, view lst == Var_ x = Just $ apps ini
+        factor y@App{} | Just (ini,lst) <- unsnoc $ fromApps y, Just z <- factor lst = Just $ niceDotApp (apps ini) z
         factor (InfixApp _ y op (factor -> Just z)) | isDol op = Just $ niceDotApp y z
         factor (Paren _ y@App{}) = factor y
         factor _ = Nothing
