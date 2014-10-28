@@ -7,7 +7,7 @@ import Control.Monad
 import Data.List.Extra
 import System.IO.Extra
 import Data.Maybe
-import System.Cmd
+import System.Process
 import System.Exit
 import System.FilePath
 
