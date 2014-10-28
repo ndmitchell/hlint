@@ -10,14 +10,13 @@ import System.FilePath
 
 import Settings
 import CmdLine
-import Util
 import HSE.All
 import Hint.All
 import Test.Util
 import Test.InputOutput
 import Test.Annotations
 import Test.Translate
-import System.IO
+import System.IO.Extra
 
 
 test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int

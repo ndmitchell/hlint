@@ -6,7 +6,6 @@ module Util(
     descendIndex,
     Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
     withTemporaryFiles,
-    withBuffering,
     listM',
     headDef,
     groupSortFst, gzip, universeParentBi,
@@ -146,12 +145,6 @@ withTemporaryFiles pat i act =
     withTemporaryFile pat $ \file ->
         withTemporaryFiles pat (i-1) $ \files ->
             act $ file : files
-
-
-withBuffering :: Handle -> BufferMode -> IO a -> IO a
-withBuffering h m act = bracket (hGetBuffering h) (hSetBuffering h) $ const $ do
-    hSetBuffering h m
-    act
 
 
 ---------------------------------------------------------------------
