@@ -1,6 +1,25 @@
 {-# LANGUAGE ExistentialQuantification, Rank2Types, PatternGuards #-}
 
-module Util where
+module Util(
+    defaultExtensions,
+    getDirectoryContentsRecursive,
+    descendIndex,
+    Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
+    ltrim, trimBy, trim, rtrim,
+    captureOutput,
+    revTake,
+    withTemporaryFiles,
+    replace,
+    withBuffering,
+    listM',
+    unzipEither,
+    concatMapM, concat2, headDef, notNull, concatUnzip,
+    swap, unsnoc, disjoint,
+    groupSortFst, gzip, universeParentBi,
+    isRight_,
+    mergeBy,
+    exitMessage
+    ) where
 
 import Control.Arrow
 import Control.Monad
