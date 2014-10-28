@@ -14,6 +14,7 @@ import Control.Exception
 import Control.Monad
 import System.IO
 import Control.Concurrent.Chan
+import Text.Show.Functions()
 import System.Mem.Weak(Weak)
 import Test.QuickCheck hiding ((==>))
 import Test.QuickCheck.Test hiding (test)
@@ -43,7 +44,6 @@ newtype Compare a = Compare (a -> a -> Ordering) deriving (Typeable, Show)
 instance (Ord a, Arbitrary a) => Arbitrary (Compare a) where
     arbitrary = fmap (\b -> Compare $ (if b then flip else id) compare) arbitrary
 
-instance (Show a, Show b) => Show (a -> b) where show _ = "<func>"
 instance Show a => Show (IO a) where show _ = "<IO>"
 instance Show a => Show (Weak a) where show _ = "<Weak>"
 instance Show a => Show (Chan a) where show _ = "<Chan>"
