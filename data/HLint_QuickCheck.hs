@@ -14,13 +14,16 @@ import Control.Exception
 import Control.Monad
 import System.IO
 import Control.Concurrent.Chan
-import Text.Show.Functions()
 import System.Mem.Weak(Weak)
 import Test.QuickCheck hiding ((==>))
 import Test.QuickCheck.Test hiding (test)
 import Test.QuickCheck.Modifiers as X
 
 default(Maybe Bool,Int,Dbl)
+
+-- We need a Show instance that nails down the sides, so defaulting works.
+-- The one from Text.Show.Functions is insufficient.
+instance (Show a, Show b) => Show (a -> b) where show _ = "<func>"
 
 newtype Dbl = Dbl Double deriving (Enum,Floating,Fractional,Num,Read,Real,RealFloat,RealFrac,Show,Typeable,Arbitrary,CoArbitrary)
 
