@@ -1,8 +1,16 @@
-language: haskell
+env:
+# - GHCVER=7.2.2 # tasty library does not work with 7.2
+# - GHCVER=7.4.2 # getModificationTime signature change
+ - GHCVER=7.6.3
+ - GHCVER=7.8.3
+ - GHCVER=head
+
+matrix:
+  allow_failures:
+   - env: GHCVER=head
+
 script:
-    - which happy
-    - which happy
-    - wget https://raw.github.com/ndmitchell/neil/master/travis.sh -O - --no-check-certificate --no-cache --quiet | sh
-relevant: |
-    Running HLint on self took
-    Tests passed (
+ - ls /usr/bin
+ - echo $PATH
+ - export PATH=/usr/bin:$PATH
+ - wget https://raw.github.com/ndmitchell/neil/master/travis.sh -O - --no-check-certificate --quiet | sh
