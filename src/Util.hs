@@ -5,7 +5,6 @@ module Util(
     getDirectoryContentsRecursive,
     descendIndex,
     Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
-    ltrim, trimBy, trim, rtrim,
     revTake,
     withTemporaryFiles,
     withBuffering,
@@ -64,22 +63,6 @@ notNull = not . null
 headDef :: a -> [a] -> a
 headDef x [] = x
 headDef x (y:ys) = y
-
-
----------------------------------------------------------------------
--- DATA.STRING
-
-trim :: String -> String
-trim = ltrim . rtrim
-
-ltrim :: String -> String
-ltrim = dropWhile isSpace
-
-rtrim :: String -> String
-rtrim = reverse . ltrim . reverse
-
-trimBy :: (a -> Bool) -> [a] -> [a]
-trimBy f = reverse . dropWhile f . reverse . dropWhile f
 
 
 ---------------------------------------------------------------------

@@ -17,7 +17,7 @@ import Util
 import CmdLine
 import Control.Exception
 import Data.Char
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Language.Preprocessor.Cpphs
 import qualified Data.Map as Map
@@ -48,7 +48,7 @@ parseFlagsSetExtensions es x = x{hseFlags=(hseFlags x){extensions = es}}
 
 runCpp :: CppFlags -> FilePath -> String -> IO String
 runCpp NoCpp _ x = return x
-runCpp CppSimple _ x = return $ unlines [if "#" `isPrefixOf` ltrim x then "" else x | x <- lines x]
+runCpp CppSimple _ x = return $ unlines [if "#" `isPrefixOf` trimStart x then "" else x | x <- lines x]
 runCpp (Cpphs o) file x = runCpphs o file x
 
 
@@ -90,7 +90,7 @@ parseModuleEx flags file str = do
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
 context :: Int -> String -> String
 context lineNo src =
-    unlines $ trimBy (all isSpace) $
+    unlines $ dropWhileEnd (all isSpace) $ dropWhile (all isSpace) $
     zipWith (++) ticks $ take 5 $ drop (lineNo - 3) $ lines src ++ ["","","","",""]
     where ticks = ["  ","  ","> ","  ","  "]
 

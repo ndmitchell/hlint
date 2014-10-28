@@ -16,8 +16,7 @@ module Hint.Comment(commentHint) where
 
 import Hint.Type
 import Data.Char
-import Data.List
-import Util
+import Data.List.Extra
 
 
 pragmas = words $

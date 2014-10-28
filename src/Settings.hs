@@ -11,7 +11,7 @@ import HSE.All
 import Control.Monad.Extra
 import Data.Char
 import Data.Either
-import Data.List
+import Data.List.Extra
 import Data.Monoid
 import System.FilePath
 import Util
@@ -182,8 +182,8 @@ readPragma o = case o of
         f name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
                 case getSeverity a of
                     Nothing -> errorOn o "bad classify pragma"
-                    Just severity -> Just $ Classify severity (ltrim b) "" name
-            where (a,b) = break isSpace $ ltrim $ drop 6 s
+                    Just severity -> Just $ Classify severity (trimStart b) "" name
+            where (a,b) = break isSpace $ trimStart $ drop 6 s
         f name (Paren _ x) = f name x
         f name (ExpTypeSig _ x _) = f name x
         f _ _ = Nothing

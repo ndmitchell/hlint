@@ -7,7 +7,7 @@ import Control.Applicative
 import Control.Arrow
 import Control.Exception
 import Control.Monad
-import Data.List
+import Data.List.Extra
 import Data.IORef
 import System.Directory
 import System.FilePath
@@ -65,7 +65,7 @@ parseInputOutputs = f z . lines
 checkInputOutput :: ([String] -> IO ()) -> InputOutput -> IO ()
 checkInputOutput main InputOutput{..} = do
     code <- newIORef ExitSuccess
-    got <- fmap (reverse . dropWhile null . reverse . map rtrim . lines . fst) $ captureOutput $
+    got <- fmap (reverse . dropWhile null . reverse . map trimEnd . lines . fst) $ captureOutput $
         handle (\(e::SomeException) -> print e) $
         handle (\(e::ExitCode) -> writeIORef code e) $ do
         bracket getVerbosity setVerbosity $ const $ setVerbosity Normal >> main run

@@ -5,12 +5,11 @@ module Test.Annotations(testAnnotations) where
 
 import Control.Arrow
 import Data.Char
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Data.Function
 
 import Settings
-import Util
 import Idea
 import Apply
 import HSE.All
@@ -52,7 +51,7 @@ testAnnotations setting file = do
             if null bad then passed else sequence_ bad
 
         match "???" _ = True
-        match x y | "@" `isPrefixOf` x = a == show (ideaSeverity y) && match (ltrim b) y
+        match x y | "@" `isPrefixOf` x = a == show (ideaSeverity y) && match (trimStart b) y
             where (a,b) = break isSpace $ tail x
         match x y = on (==) norm (fromMaybe "" $ ideaTo y) x
 

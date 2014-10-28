@@ -45,7 +45,7 @@ module Hint.Import(importHint) where
 import Hint.Type
 import Util
 import Control.Applicative
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 
 
@@ -122,8 +122,8 @@ hierarchy i@ImportDecl{importModule=ModuleName _ x,importPkg=Nothing} | Just y <
 -- import IO is equivalent to
 -- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)
 hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing,importPkg=Nothing}
-    = [rawIdea Warning "Use hierarchical imports" (toSrcSpan $ ann i) (ltrim $ prettyPrint i) (
-          Just $ unlines $ map (ltrim . prettyPrint)
+    = [rawIdea Warning "Use hierarchical imports" (toSrcSpan $ ann i) (trimStart $ prettyPrint i) (
+          Just $ unlines $ map (trimStart . prettyPrint)
           [f "System.IO" Nothing, f "System.IO.Error" Nothing
           ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an (NoNamespace an) $ toNamed x | x <- ["bracket","bracket_"]]]) []]
     where f a b = (desugarQual i){importModule=ModuleName an a, importSpecs=b}

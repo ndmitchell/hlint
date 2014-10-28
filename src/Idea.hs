@@ -2,11 +2,10 @@
 
 module Idea(module Idea, Note(..), showNotes, Severity(..)) where
 
-import Data.List
+import Data.List.Extra
 import HSE.All
 import Settings
 import HsColour
-import Util
 
 
 -- | An idea suggest by a 'Hint'.
@@ -67,6 +66,6 @@ showEx tt Idea{..} = unlines $
 
 rawIdea = Idea "" ""
 idea severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) []
-    where f = ltrim . prettyPrint
+    where f = trimStart . prettyPrint
 warn = idea Warning
 err = idea Error
