@@ -1,5 +1,4 @@
 language: haskell
-install: cabal install --only-dependencies --enable-library-profiling || cabal install --only-dependencies --enable-library-profiling || cabal install --only-dependencies --enable-library-profiling
 script: wget https://raw.github.com/ndmitchell/neil/master/travis.sh -O - --no-check-certificate --no-cache --quiet | sh
 relevant: |
     Running HLint on self took
