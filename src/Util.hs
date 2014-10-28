@@ -8,7 +8,6 @@ module Util(
     ltrim, trimBy, trim, rtrim,
     revTake,
     withTemporaryFiles,
-    replace,
     withBuffering,
     listM',
     concat2, headDef, notNull, concatUnzip,
@@ -118,11 +117,6 @@ swap (a,b) = (b,a)
 concat2 :: [([a],[b])] -> ([a],[b])
 concat2 xs = (concat a, concat b)
     where (a,b) = unzip xs
-
-replace :: String -> String -> String -> String
-replace from to xs | Just xs <- stripPrefix from xs = to ++ replace from to xs
-replace from to (x:xs) = x : replace from to xs
-replace from to [] = []
 
 
 ---------------------------------------------------------------------

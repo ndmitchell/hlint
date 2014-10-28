@@ -4,7 +4,7 @@
 module Test.Translate(testTypeCheck, testQuickCheck) where
 
 import Control.Monad
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import System.Cmd
 import System.Exit
