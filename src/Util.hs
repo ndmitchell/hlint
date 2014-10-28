@@ -67,12 +67,6 @@ partitionM f (x:xs) = do
 concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
 concatMapM f = liftM concat . mapM f
 
-concatM :: Monad m => [m [a]] -> m [a]
-concatM = liftM concat . sequence
-
-concatZipWithM :: Monad m => (a -> b -> m [c]) -> [a] -> [b] -> m [c]
-concatZipWithM f xs ys = liftM concat $ zipWithM f xs ys
-
 listM' :: Monad m => [a] -> m [a]
 listM' x = length x `seq` return x
 
@@ -96,15 +90,8 @@ unzipEither (x:xs) = case x of
     where (a,b) = unzipEither xs
 unzipEither [] = ([], [])
 
-
-for = flip map
-
 ---------------------------------------------------------------------
 -- DATA.STRING
-
-limit :: Int -> String -> String
-limit n s = if null post then s else pre ++ "..."
-    where (pre,post) = splitAt n s
 
 trim :: String -> String
 trim = ltrim . rtrim
@@ -150,19 +137,6 @@ mergeBy f xs ys = xs ++ ys
 
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
-
-fst3 :: (a,b,c) -> a
-fst3 (a,b,c) = a
-
-snd3 :: (a,b,c) -> b
-snd3 (a,b,c) = b
-
-thd3 :: (a,b,c) -> c
-thd3 (a,b,c) = c
-
-concat3 :: [([a],[b],[c])] -> ([a],[b],[c])
-concat3 xs = (concat a, concat b, concat c)
-    where (a,b,c) = unzip3 xs
 
 concat2 :: [([a],[b])] -> ([a],[b])
 concat2 xs = (concat a, concat b)
