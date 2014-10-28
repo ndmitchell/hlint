@@ -2,11 +2,10 @@
 
 module Util(
     defaultExtensions,
-    descendIndex,
     Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
     withTemporaryFiles,
     headDef,
-    gzip, universeParentBi,
+    gzip, universeParentBi, descendIndex,
     exitMessage
     ) where
 
