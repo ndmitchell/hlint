@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add a dependency on the extra package
     #92, use a new way for determining the color default
     Add a dependency on ansi-terminal
 1.9.10

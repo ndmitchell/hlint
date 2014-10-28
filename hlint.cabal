@@ -51,7 +51,8 @@ library
         cmdargs >= 0.10,
         haskell-src-exts >= 1.16 && < 1.17,
         uniplate >= 1.5,
-        ansi-terminal >= 0.6.2
+        ansi-terminal >= 0.6.2,
+        extra >= 0.5
 
     if flag(gpl)
         build-depends: hscolour >= 1.17
