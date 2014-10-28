@@ -20,7 +20,7 @@ module Util(
     ) where
 
 import Control.Arrow
-import Control.Monad
+import Control.Monad.Extra
 import Control.Monad.Trans.State
 import Control.Exception
 import Data.Char
@@ -54,16 +54,6 @@ getDirectoryContentsRecursive dir = do
 
 ---------------------------------------------------------------------
 -- CONTROL.MONAD
-
-partitionM :: Monad m => (a -> m Bool) -> [a] -> m ([a], [a])
-partitionM f [] = return ([], [])
-partitionM f (x:xs) = do
-    res <- f x
-    (as,bs) <- partitionM f xs
-    return ([x | res]++as, [x | not res]++bs)
-
-concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
-concatMapM f = liftM concat . mapM f
 
 listM' :: Monad m => [a] -> m [a]
 listM' x = length x `seq` return x
