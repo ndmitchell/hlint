@@ -34,12 +34,12 @@ progress = putChar '.'
 
 passed :: IO ()
 passed = do
-	atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1}:rs, ())
+    atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1}:rs, ())
 
 failed :: [String] -> IO ()
 failed xs = do
-	unless (null xs) $ putStrLn $ unlines $ "" : xs
-	atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1, failures=failures r+1}:rs, ())
+    unless (null xs) $ putStrLn $ unlines $ "" : xs
+    atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1, failures=failures r+1}:rs, ())
 
 tested :: Bool -> IO ()
 tested b = if b then passed else failed []
