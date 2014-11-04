@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
 
 module Test.Util(
-	withTests, tested, passed, failed, progress
+    withTests, tested, passed, failed, progress
     ) where
 
 import Data.IORef
