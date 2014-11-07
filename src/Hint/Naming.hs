@@ -80,7 +80,10 @@ getNames x = case x of
 
 
 suggestName :: String -> Maybe String
-suggestName x = listToMaybe [f x | not $ isSym x || good || not (any isLower x) || "prop_" `isPrefixOf` x || "case_" `isPrefixOf` x]
+suggestName x
+    | isSym x || good || not (any isLower x) ||
+        any (`isPrefixOf` x) ["prop_","case_"] = Nothing
+    | otherwise = Just $ f x
     where
         good = all isAlphaNum $ drp '_' $ drp '#' $ drp '\'' $ reverse $ drp '_' x
         drp x = dropWhile (== x)
