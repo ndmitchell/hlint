@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #95, don't suggest camel case for names containing digits
     Add a dependency on the extra package
     #92, use a new way for determining the color default
     Add a dependency on ansi-terminal

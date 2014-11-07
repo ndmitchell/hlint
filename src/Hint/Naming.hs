@@ -8,6 +8,7 @@
     Apply this to things that would get exported by default only
     Also allow prop_ as it's a standard QuickCheck idiom
     Also allow case_ as it's a standard test-framework-th idiom
+    Also allow numbers separated by _
     Also don't suggest anything mentioned elsewhere in the module
 
 <TEST>
@@ -26,6 +27,7 @@ case_foo = 1
 cast_foo = 1 -- castFoo = ...
 replicateM_ = 1
 _foo__ = 1
+section_1_1 = 1
 runMutator# = 1
 </TEST>
 -}
@@ -81,7 +83,7 @@ getNames x = case x of
 
 suggestName :: String -> Maybe String
 suggestName x
-    | isSym x || good || not (any isLower x) ||
+    | isSym x || good || not (any isLower x) || any isDigit x ||
         any (`isPrefixOf` x) ["prop_","case_"] = Nothing
     | otherwise = Just $ f x
     where
