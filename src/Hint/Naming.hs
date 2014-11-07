@@ -24,6 +24,8 @@ semiring'laws = 1 -- semiringLaws = ...
 data Yes = FOO_A | Foo_B -- data Yes = FOO_A | FooB
 case_foo = 1
 cast_foo = 1 -- castFoo = ...
+replicateM_ = 1
+_foo__ = 1
 runMutator# = 1
 </TEST>
 -}
