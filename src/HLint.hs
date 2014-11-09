@@ -8,6 +8,7 @@ import Control.Monad.Extra
 import System.Console.CmdArgs.Verbosity
 import Data.List
 import System.Exit
+import System.IO
 
 import CmdLine
 import Settings
@@ -84,7 +85,7 @@ hlintTest cmd@CmdTest{..} =
 
 hlintGrep :: Cmd -> IO ()
 hlintGrep cmd@CmdGrep{..} = do
-    encoding <- readEncoding cmdEncoding
+    encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
     let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles then
         exitWithHelp
@@ -97,7 +98,7 @@ hlintGrep cmd@CmdGrep{..} = do
 
 hlintMain :: Cmd -> IO [Suggestion]
 hlintMain cmd@CmdMain{..} = do
-    encoding <- readEncoding cmdEncoding
+    encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
     let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd) cmdFindHints
