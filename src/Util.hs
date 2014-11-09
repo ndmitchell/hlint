@@ -25,15 +25,15 @@ import Language.Haskell.Exts.Extension
 
 -- | An 'Encoding' represents how characters are stored in a file. Created with
 --   'defaultEncoding' or 'readEncoding' and used with 'useEncoding'.
-data Encoding = Encoding_Internal (Handle -> IO ())
+type Encoding = TextEncoding
 
 -- | The system default encoding.
 defaultEncoding :: Encoding
-defaultEncoding = Encoding_Internal $ flip hSetEncoding utf8
+defaultEncoding = utf8
 
 -- | Apply an encoding to a 'Handle'.
 useEncoding :: Handle -> Encoding -> IO ()
-useEncoding h (Encoding_Internal x) = x h
+useEncoding = hSetEncoding
 
 readFileEncoding :: Encoding -> FilePath -> IO String
 readFileEncoding enc file = do
@@ -50,11 +50,11 @@ readEncoding :: String -> IO Encoding
 -- so we fake them up, and then try mkTextEncoding last
 readEncoding "" = return defaultEncoding
 readEncoding enc
-        | Just e <- lookup (f enc) [(f a, b) | (as,b) <- encs, a <- as] = return $ wrap e
+        | Just e <- lookup (f enc) [(f a, b) | (as,b) <- encs, a <- as] = return e
         | otherwise = do
             res <- try $ mkTextEncoding enc :: IO (Either SomeException TextEncoding)
             case res of
-                Right e -> return $ wrap e
+                Right e -> return e
                 Left _ -> do
                     let (a,b) = splitAt 2 $ map (head . fst) encs
                     putStr $ unlines
@@ -66,7 +66,6 @@ readEncoding enc
                     exitWith $ ExitFailure 1
     where
         f = map toLower . filter (`notElem` "-_ ")
-        wrap = Encoding_Internal . flip hSetEncoding
 
         encs = let a*b = (words a, b)
                in ["ISO8859-1 8859-1 ISO8859 8859 LATIN LATIN1" * latin1

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Make Encoding an alias for TextEncoding
     Default to UTF8 encoding
 1.9.11
     #95, don't suggest camel case for names containing digits
