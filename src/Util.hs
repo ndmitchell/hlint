@@ -25,15 +25,15 @@ import Language.Haskell.Exts.Extension
 
 -- | An 'Encoding' represents how characters are stored in a file. Created with
 --   'defaultEncoding' or 'readEncoding' and used with 'useEncoding'.
-data Encoding = Encoding_Internal (Maybe (Handle -> IO ()))
+data Encoding = Encoding_Internal (Handle -> IO ())
 
 -- | The system default encoding.
 defaultEncoding :: Encoding
-defaultEncoding = Encoding_Internal Nothing
+defaultEncoding = Encoding_Internal $ const $ return ()
 
 -- | Apply an encoding to a 'Handle'.
 useEncoding :: Handle -> Encoding -> IO ()
-useEncoding h (Encoding_Internal x) = maybe (return ()) ($ h) x
+useEncoding h (Encoding_Internal x) = x h
 
 readFileEncoding :: Encoding -> FilePath -> IO String
 readFileEncoding enc file = do
@@ -66,7 +66,7 @@ readEncoding enc
                     exitWith $ ExitFailure 1
     where
         f = map toLower . filter (`notElem` "-_ ")
-        wrap = Encoding_Internal . Just . flip hSetEncoding 
+        wrap = Encoding_Internal . flip hSetEncoding
 
         encs = let a*b = (words a, b)
                in ["ISO8859-1 8859-1 ISO8859 8859 LATIN LATIN1" * latin1
