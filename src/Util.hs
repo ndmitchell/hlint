@@ -29,7 +29,7 @@ data Encoding = Encoding_Internal (Handle -> IO ())
 
 -- | The system default encoding.
 defaultEncoding :: Encoding
-defaultEncoding = Encoding_Internal $ const $ return ()
+defaultEncoding = Encoding_Internal $ flip hSetEncoding utf8
 
 -- | Apply an encoding to a 'Handle'.
 useEncoding :: Handle -> Encoding -> IO ()
