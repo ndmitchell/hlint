@@ -116,14 +116,15 @@ withMain act = do
 
 main :: IO ()
 main = withMain $ do
-    test "data\\Default.hs" 144 "findIndex ((==) a) ==> elemIndex a" $
-        \ a -> (findIndex ((==) a)) ==> (elemIndex a)
-    test "data\\Default.hs" 179 "foldr1 (&&) ==> and" $
-        ((foldr1 (&&)) ?==> (and))
-    test "data\\Default.hs" 407 "sinh x / cosh x ==> tanh x" $
-        \ x -> (sqrt x) ==> (x ** 0.5)
-    test "data\\Default.hs" 154 "take i x ==> []" $
-        \ (NegZero i) x -> (take i x) ==> ([])
-    test "data\\Default.hs" 70 "head (sortBy f x) ==> minimumBy f x" $
-        \ (Compare f) x -> (head (sortBy f x)) ==> (minimumBy f x)
-    test "data\\Default.hs" 218 "(f $) ==> f" $ \ f -> ((f $)) ==> (f)
+    let t = \ a -> (findIndex ((==) a)) ==> (elemIndex a)
+        in test "data\\Default.hs" 144 "findIndex ((==) a) ==> elemIndex a" t
+    let t = ((foldr1 (&&)) ?==> (and))
+        in test "data\\Default.hs" 179 "foldr1 (&&) ==> and" t
+    let t = \ x -> (sqrt x) ==> (x ** 0.5)
+        in test "data\\Default.hs" 407 "sinh x / cosh x ==> tanh x" t
+    let t = \ (NegZero i) x -> (take i x) ==> ([])
+        in test "data\\Default.hs" 154 "take i x ==> []" t
+    let t = \ (Compare f) x -> (head (sortBy f x)) ==> (minimumBy f x)
+        in test "data\\Default.hs" 70 "head (sortBy f x) ==> minimumBy f x" t
+    let t = \ f -> ((f $)) ==> (f)
+        in test "data\\Default.hs" 218 "(f $) ==> f" t
