@@ -17,8 +17,8 @@ import HSE.All
 import Test.Util
 
 
-runMains :: [String] -> IO ()
-runMains xs = withTempDir $ \dir -> do
+runMains :: FilePath -> [String] -> IO ()
+runMains tmpdir xs = (if tmpdir == "" then withTempDir else ($ tmpdir)) $ \dir -> do
     ms <- forM (zip [1..] xs) $ \(i,x) -> do
         let m = "I" ++ show i
         writeFile (dir </> m <.> "hs") $ replace "module Main" ("module " ++ m) x
@@ -33,15 +33,15 @@ runMains xs = withTempDir $ \dir -> do
 
 
 -- | Given a set of hints, do all the HintRule hints type check
-testTypeCheck :: [[Setting]] -> IO ()
+testTypeCheck :: FilePath -> [[Setting]] -> IO ()
 testTypeCheck = wrap toTypeCheck
 
 -- | Given a set of hints, do all the HintRule hints satisfy QuickCheck
-testQuickCheck :: [[Setting]] -> IO ()
+testQuickCheck :: FilePath -> [[Setting]] -> IO ()
 testQuickCheck = wrap toQuickCheck
 
-wrap :: ([HintRule] -> [String]) -> [[Setting]] -> IO ()
-wrap f hints = runMains [unlines $ body [x | SettingMatchExp x <- xs] | xs <- hints]
+wrap :: ([HintRule] -> [String]) -> FilePath -> [[Setting]] -> IO ()
+wrap f tmpdir hints = runMains tmpdir [unlines $ body [x | SettingMatchExp x <- xs] | xs <- hints]
     where
         body xs =
             ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules, ScopedTypeVariables, DeriveDataTypeable #-}"

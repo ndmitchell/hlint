@@ -112,6 +112,7 @@ data Cmd
         ,cmdDataDir :: FilePath          -- ^ the data directory
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
+        ,cmdTempDir :: FilePath          -- ^ temporary directory to put the files in
         ,cmdQuickCheck :: Bool
         ,cmdTypeCheck :: Bool
         }
@@ -154,6 +155,7 @@ mode = cmdArgsMode $ modes
         {cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
         ,cmdTypeCheck = nam_ "typecheck" &= help "Use GHC to type check the hints"
         ,cmdQuickCheck = nam_ "quickcheck" &= help "Use QuickCheck to check the hints"
+        ,cmdTempDir = nam_ "tempdir" &= help "Where to put temporary files (not cleaned up)"
         } &= explicit &= name "test"
         &= details ["HLint gives hints on how to improve Haskell code."
                  ,""
