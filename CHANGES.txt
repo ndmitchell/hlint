@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add --tempdir flag to the test mode
 1.9.12
     #96, fix the --utf8 flag
     Make Encoding an alias for TextEncoding
