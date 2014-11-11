@@ -2,12 +2,11 @@ env:
 # - GHCVER=7.2.2 # not supported by haskell-src-exts
  - GHCVER=7.4.2
  - GHCVER=7.6.3
- - GHCVER=7.8.3 # not fully supported, see #93
+ - GHCVER=7.8.3
  - GHCVER=head
 
 matrix:
   allow_failures:
-   - env: GHCVER=7.8.3
    - env: GHCVER=head
 
 script:
