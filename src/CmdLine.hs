@@ -1,5 +1,5 @@
 {-# LANGUAGE PatternGuards, RecordWildCards, DeriveDataTypeable #-}
-{-# OPTIONS_GHC -fno-warn-missing-fields #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields -fno-cse #-}
 
 module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFiles, cmdUseColour, exitWithHelp, resolveFile) where
 
