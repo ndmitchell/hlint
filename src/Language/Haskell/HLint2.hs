@@ -16,7 +16,7 @@ module Language.Haskell.HLint2(
     -- * Settings
     Classify(..),
     getHLintDataDir,
-    autoSettings, findSettings, readSettings,
+    autoSettings, autoSettings', findSettings, readSettings,
     -- * Hints
     Hint(..), builtinHints,
     HintRule(..), hintRules,
@@ -61,8 +61,10 @@ getHLintDataDir = getDataDir
 --
 -- 1. Take all fixities from the 'findSettings' modules and put them in the 'ParseFlags'.
 autoSettings :: IO (ParseFlags, [Classify], Hint)
-autoSettings = do
-    dataDir <- getHLintDataDir
+autoSettings = getHLintDataDir >>= autoSettings'
+
+autoSettings' :: FilePath -> IO (ParseFlags, [Classify], Hint)
+autoSettings' dataDir = do
     (builtin, matches) <- first resolveBuiltin <$> findSettings dataDir (dataDir </> "HLint.hs") Nothing
     let (classify, rules) = second hintRules $ concatUnzip $ map readSettings matches
     let fixities = getFixity =<< moduleDecls =<< matches
