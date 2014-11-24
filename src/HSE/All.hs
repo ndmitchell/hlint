@@ -21,18 +21,19 @@ import Data.List.Extra
 import Data.Maybe
 import Language.Preprocessor.Cpphs
 import qualified Data.Map as Map
+import System.IO
 
 
 -- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
 data ParseFlags = ParseFlags
-    {encoding :: Encoding -- ^ How the file is read in (defaults to 'defaultEncoding').
+    {encoding :: TextEncoding -- ^ How the file is read in (defaults to 'utf8').
     ,cppFlags :: CppFlags -- ^ How the file is preprocessed (defaults to 'NoCpp').
     ,hseFlags :: ParseMode -- ^ How the file is parsed (defaults to all fixities in the @base@ package and most non-conflicting extensions).
     }
 
--- | Default values for 'ParseFlags'.
+-- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags defaultEncoding NoCpp defaultParseMode{fixities=Just baseFixities, ignoreLinePragmas=False, extensions=defaultExtensions}
+defaultParseFlags = ParseFlags utf8 NoCpp defaultParseMode{fixities=Just baseFixities, ignoreLinePragmas=False, extensions=defaultExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
