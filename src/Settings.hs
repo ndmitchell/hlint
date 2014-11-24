@@ -75,9 +75,9 @@ showNotes = intercalate ", " . map show . filter use
 -- | How to classify an 'Idea'. If any matching field is @\"\"@ then it matches everything.
 data Classify = Classify
     {classifySeverity :: Severity -- ^ Severity to set the 'Idea' to.
-    ,classifyHint :: String -- ^ 'ideaHint'.
-    ,classifyModule :: String -- ^ 'ideaModule'.
-    ,classifyDecl :: String -- ^ 'ideaDecl'.
+    ,classifyHint :: String -- ^ Match on 'Idea' field 'ideaHint'.
+    ,classifyModule :: String -- ^ Match on 'Idea' field 'ideaModule'.
+    ,classifyDecl :: String -- ^ Match on 'Idea' field 'ideaDecl'.
     }
     deriving Show
 
