@@ -23,9 +23,7 @@ module Language.Haskell.HLint3(
     -- * Scopes
     Scope, scopeCreate, scopeMatch, scopeMove,
     -- * Haskell-src-exts
-    parseModuleEx, defaultParseFlags, ParseError(..), ParseFlags(..), CppFlags(..),
-    -- * File encodings
-    Encoding, defaultEncoding, readEncoding, useEncoding
+    parseModuleEx, defaultParseFlags, ParseError(..), ParseFlags(..), CppFlags(..)
     ) where
 
 import Settings
@@ -33,7 +31,6 @@ import Idea
 import Apply
 import Hint.Type
 import Hint.All
-import Util
 import CmdLine
 import Paths_hlint
 
