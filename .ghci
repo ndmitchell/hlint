@@ -1,7 +1,7 @@
 :set -fwarn-incomplete-patterns
 :set -fwarn-unused-binds -fwarn-unused-imports
 :set -isrc
-:load src\Main.hs src\Paths.hs src\Language\Haskell\HLint2.hs
+:load src\Main.hs src\Paths.hs src\Language\Haskell\HLint3.hs
 
 :def test const $ return ":main test"
 :def testfull const $ return ":main test --typecheck --quickcheck"

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add an HLint3 prototype API
     #93, make the --quickcheck tests work on GHC 7.8
     Add --tempdir flag to the test mode
 1.9.12
