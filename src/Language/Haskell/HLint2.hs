@@ -1,6 +1,6 @@
 
 -- | /WARNING: This module represents the evolving second version of the HLint API./
---   /It will be renamed to drop the "2" in the next major version./
+--   /It will be deleted in favour of "Language.Haskell.HLint3" in the next major version./
 --
 --   This module provides a way to apply HLint hints. As an example of approximating the @hlint@ experience:
 --
