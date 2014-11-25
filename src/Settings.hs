@@ -4,7 +4,7 @@ module Settings(
     Severity(..), Classify(..), HintRule(..), Note(..), showNotes, Setting(..),
     defaultHintName, isUnifyVar,
     findSettings, readSettings,
-    readSettings2, readPragma, findSettings2
+    readSettings2, readPragma, findSettings2, addInfix
     ) where
 
 import HSE.All
