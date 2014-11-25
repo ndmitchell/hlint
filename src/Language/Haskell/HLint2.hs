@@ -40,7 +40,6 @@ import Paths_hlint
 import Control.Applicative
 import Data.Tuple.Extra
 import Data.List.Extra
-import Data.Maybe
 import Data.Monoid
 import System.FilePath
 
@@ -68,9 +67,6 @@ autoSettings = do
     let fixities = getFixity =<< moduleDecls =<< matches
     return (parseFlagsAddFixities fixities defaultParseFlags, classify, mconcat $ rules : builtin)
 
-resolveBuiltin :: [String] -> [Hint]
-resolveBuiltin builtin = map f $ nub $ concat [if x == "All" then map fst builtinHints else [x] | x <- builtin]
-    where f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x builtinHints
 
 -- | Snippet from the documentation, if this changes, update the documentation
 _docs :: IO ()
