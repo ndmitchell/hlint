@@ -1,7 +1,7 @@
 Changelog for HLint
 
     #97, remove the encoding bits of the API
-    Add an HLint3 prototype API
+    #98, add an HLint3 prototype API
     #93, make the --quickcheck tests work on GHC 7.8
     Add --tempdir flag to the test mode
 1.9.12
