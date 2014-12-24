@@ -57,7 +57,7 @@ The first suggestion is marked as an error, because using `concatMap` in prefere
 
 ### Reports
 
-HLint can generate a lot of information, making it difficult to search for particular types of errors. The `--report` flag will cause HLint to generate a report file in HTML, which can be viewed interactively. Reports are recommended when there are more than a handlful of hints.
+HLint can generate a lot of information, making it difficult to search for particular types of errors. The `--report` flag will cause HLint to generate a report file in HTML, which can be viewed interactively. Reports are recommended when there are more than a handful of hints.
 
 ### Language Extensions
 
@@ -91,7 +91,7 @@ HLint runs the [cpphs C preprocessor](http://hackage.haskell.org/package/cpphs) 
 
 ### Unicode support
 
-By default, HLint uses the current locale encoding. The encoding can be overriden with either `--utf8` or `--encoding=value`. For descriptions of some valid [encodings see the mkTextEncoding documentation](http://haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#v%3AmkTextEncoding).
+By default, HLint uses the current locale encoding. The encoding can be overridden with either `--utf8` or `--encoding=value`. For descriptions of some valid [encodings see the mkTextEncoding documentation](http://haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#v%3AmkTextEncoding).
 
 ## FAQ
 
@@ -168,7 +168,7 @@ As an example, to check the file `Example.hs` with both the default hints and th
 
 ### Ignoring hints
 
-Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for supressing certain hints. Ignore directives can either be written as pragmas in the file being analysed, or in the hint files. Examples of pragmas are:
+Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for suppressing certain hints. Ignore directives can either be written as pragmas in the file being analysed, or in the hint files. Examples of pragmas are:
 
 * `{-# ANN module "HLint: ignore Eta reduce" #-}` - ignore all eta reduction suggestions in this module (use `module` literally, not the name of the module).
 * `{-# ANN myFunction "HLint: ignore" #-}` - don't give any hints in the function `myFunction`.
@@ -178,8 +178,8 @@ Some of the hints are subjective, and some users believe they should be ignored.
 
 Ignore directives can also be written in the hint files:
 
-* `ignore "Eta reduce"` - supress all eta reduction suggestions.
-* `ignore "Eta reduce" = MyModule1 MyModule2` - supress eta reduction hints in the `MyModule1` and `MyModule2` modules.
+* `ignore "Eta reduce"` - suppress all eta reduction suggestions.
+* `ignore "Eta reduce" = MyModule1 MyModule2` - suppress eta reduction hints in the `MyModule1` and `MyModule2` modules.
 * `ignore = MyModule.myFunction` - don't give any hints in the function `MyModule.myFunction`.
 * `error = MyModule.myFunction` - any hint in the function `MyModule.myFunction` is an error.
 * `error "Use concatMap"` - the hint to use `concatMap` is an error.
