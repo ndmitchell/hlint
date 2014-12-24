@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #649, don't suggest const for values using RecordWildCards
 1.9.13
     #97, remove the encoding bits of the API
     #98, add an HLint3 prototype API

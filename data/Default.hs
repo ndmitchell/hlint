@@ -216,7 +216,7 @@ warn "Use curry" = (\x y -> f (x,y)) ==> curry f
 warn "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where note = IncreasesLaziness
 error "Redundant $" = (($) . f) ==> f
 error "Redundant $" = (f $) ==> f
-warn  = (\x -> y) ==> const y where _ = isAtom y
+warn  = (\x -> y) ==> const y where _ = isAtom y && not (isWildcard y)
 error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 warn  = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
 error "Evaluate" = id x ==> x
