@@ -210,6 +210,7 @@ checkSide x bind = maybe True f x
         isType "Compare" x = True -- just a hint for proof stuff
         isType "Atom" x = isAtom x
         isType "WHNF" x = isWHNF x
+        isType "Wildcard" x = any isFieldWildcard $ universeS x
         isType "Nat" (asInt -> Just x) | x >= 0 = True
         isType "Pos" (asInt -> Just x) | x >  0 = True
         isType "Neg" (asInt -> Just x) | x <  0 = True
