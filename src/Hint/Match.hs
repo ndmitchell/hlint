@@ -171,7 +171,7 @@ isOther _ = True
 -- check the unification is valid
 check :: [(String,Exp_)] -> Maybe [(String,Exp_)]
 check = mapM f . groupSort
-    where f (x,ys) = if length (nub ys) == 1 then Just (x,head ys) else Nothing
+    where f (x,ys) = if allSame ys then Just (x,head ys) else Nothing
 
 
 -- perform a substitution
