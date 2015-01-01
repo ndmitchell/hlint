@@ -3,7 +3,7 @@
 module HSE.FreeVars(FreeVars, freeVars, vars, varss, pvars, declBind) where
 
 import HSE.Type
-import Data.Monoid
+import Data.Monoid (Monoid(..))
 import qualified Data.Set as Set
 import Data.Set(Set)
 
