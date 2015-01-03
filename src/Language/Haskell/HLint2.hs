@@ -28,6 +28,8 @@ module Language.Haskell.HLint2(
     Encoding, defaultEncoding, readEncoding, useEncoding
     ) where
 
+import Prelude()
+import PreludeEx
 import Settings
 import Idea
 import Apply
@@ -37,10 +39,8 @@ import Util
 import CmdLine
 import Paths_hlint
 
-import Control.Applicative
 import Data.Tuple.Extra
 import Data.List.Extra
-import Data.Monoid
 import System.FilePath
 
 

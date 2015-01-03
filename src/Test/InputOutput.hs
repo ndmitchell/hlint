@@ -3,7 +3,8 @@
 -- | Check the input/output pairs in the tests/ directory
 module Test.InputOutput(testInputOutput) where
 
-import Control.Applicative
+import Prelude()
+import PreludeEx
 import Data.Tuple.Extra
 import Control.Exception
 import Control.Monad

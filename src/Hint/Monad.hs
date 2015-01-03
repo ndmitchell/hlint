@@ -36,8 +36,9 @@ yes = mapM async ds >>= mapM wait >> return () -- mapM async ds >>= mapM_ wait
 
 module Hint.Monad(monadHint) where
 
+import Prelude()
+import PreludeEx
 import Data.Tuple.Extra
-import Control.Applicative
 import Data.Maybe
 import Data.List
 import Hint.Type

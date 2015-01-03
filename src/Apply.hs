@@ -1,14 +1,14 @@
 
 module Apply(applyHints, applyHintFile, applyHintFiles) where
 
+import Prelude()
+import PreludeEx
 import HSE.All
 import Hint.All
-import Control.Applicative
 import Data.Tuple.Extra
 import Data.Either
 import Data.List.Extra
 import Data.Maybe
-import Data.Monoid
 import Data.Ord
 import Settings
 import Idea

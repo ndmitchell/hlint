@@ -1,9 +1,10 @@
 
 module Hint.Type(module Hint.Type, module Idea, module HSE.All) where
 
+import Prelude()
+import PreludeEx
 import HSE.All
 import Idea
-import Data.Monoid
 
 
 type DeclHint = Scope -> Module_ -> Decl_ -> [Idea]

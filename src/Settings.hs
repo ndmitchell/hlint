@@ -7,12 +7,13 @@ module Settings(
     readSettings2, readPragma, findSettings2, addInfix
     ) where
 
+import Prelude()
+import PreludeEx
 import HSE.All
 import Control.Monad.Extra
 import Data.Char
 import Data.Either
 import Data.List.Extra
-import Data.Monoid
 import System.FilePath
 import Util
 

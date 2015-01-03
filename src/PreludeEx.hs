@@ -4,7 +4,7 @@
 --   warning-compatible with GHC 7.10.
 module PreludeEx(
     module Prelude,
-    Monoid(..), Applicative(..)
+    Monoid(..), Applicative(..), (<$>)
     ) where
 
 import Data.Monoid

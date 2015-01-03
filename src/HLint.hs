@@ -3,7 +3,8 @@
 
 module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity(..)) where
 
-import Control.Applicative
+import Prelude()
+import PreludeEx
 import Control.Monad.Extra
 import System.Console.CmdArgs.Verbosity
 import Data.List

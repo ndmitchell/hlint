@@ -39,6 +39,8 @@ not . not . x ==> x
 
 module Hint.Match(readMatch) where
 
+import Prelude()
+import PreludeEx
 import Data.List.Extra
 import Data.Maybe
 import Data.Data
@@ -46,7 +48,6 @@ import Unsafe.Coerce
 import Settings
 import Hint.Type
 import Control.Monad
-import Control.Applicative
 import Data.Tuple.Extra
 import Util
 import qualified Data.Set as Set

@@ -27,7 +27,8 @@ foo = [a b] ++ xs -- a b : xs
 
 module Hint.List(listHint) where
 
-import Control.Applicative
+import Prelude()
+import PreludeEx
 import Hint.Type
 
 
