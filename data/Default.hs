@@ -185,7 +185,7 @@ error = foldr  (>>) (return ()) ==> sequence_
     where _ = noQuickCheck
 error = foldr  (&&) True ==> and
 error = foldl  (&&) True ==> and where note = IncreasesLaziness
-error = foldr1 (&&)  ==> and where note = RemovesError "on []"
+error = foldr1 (&&)  ==> and where note = RemovesError "on []"; _ = noQuickCheck
 error = foldl1 (&&)  ==> and where note = RemovesError "on []"
 error = foldr  (||) False ==> or
 error = foldl  (||) False ==> or where note = IncreasesLaziness
