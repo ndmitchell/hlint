@@ -76,6 +76,7 @@ library
         Report
         Util
         Parallel
+        PreludeEx
         HSE.All
         HSE.Bracket
         HSE.Evaluate

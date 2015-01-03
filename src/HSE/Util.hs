@@ -2,7 +2,8 @@
 
 module HSE.Util where
 
-import Control.Applicative
+import Prelude()
+import PreludeEx
 import Control.Monad
 import Data.List
 import Data.Maybe
