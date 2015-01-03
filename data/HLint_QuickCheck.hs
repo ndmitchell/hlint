@@ -19,7 +19,7 @@ import Test.QuickCheck hiding ((==>))
 import Test.QuickCheck.Test hiding (test)
 import Test.QuickCheck.Modifiers as X
 
-default(Maybe Bool,Int,Dbl)
+default(Maybe Bool,[Bool],Int,Dbl)
 
 -- We need a Show instance that nails down the sides, so defaulting works.
 -- The one from Text.Show.Functions is insufficient.
