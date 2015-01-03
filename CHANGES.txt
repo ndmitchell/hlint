@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #105, build with GHC 7.10
 1.9.14
     #649, don't suggest const for values using RecordWildCards
 1.9.13
