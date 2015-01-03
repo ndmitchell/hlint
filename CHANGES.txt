@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.15
     #106, avoid warnings with GHC 7.10
     #105, build with GHC 7.10
 1.9.14
