@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.16
     #108, make "hlint ." work again
 1.9.15
     #106, avoid warnings with GHC 7.10
