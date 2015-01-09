@@ -87,7 +87,7 @@ toQuickCheck hints =
             [ Qualifier an $
                 Let an (BDecls an [PatBind an (toNamed "t") (UnGuardedRhs an bod) Nothing]) $
                 (toNamed "test" `app` str (fileName $ ann rhs) `app` int (startLine $ ann rhs) `app`
-                 str (prettyPrint lhs ++ " ==> " ++ prettyPrint rhs)) `app` (toNamed "t")
+                 str (prettyPrint lhs ++ " ==> " ++ prettyPrint rhs)) `app` toNamed "t"
             | (i, HintRule _ _ _ lhs rhs side note) <- zip [1..] hints, "noQuickCheck" `notElem` vars (maybeToList side)
             , let vs = map (restrict side) $ nub $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let op = if any isRemovesError note then "?==>" else "==>"

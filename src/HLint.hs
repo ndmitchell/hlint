@@ -70,7 +70,7 @@ hlintHSE c@CmdHSE{..} = do
             ParseOk m -> case v of
                 Loud -> print m
                 Quiet -> print $ prettyPrint m
-                _ -> print $ fmap (const ()) m
+                _ -> print $ void m
         putStrLn ""
 
 hlintTest :: Cmd -> IO ()
