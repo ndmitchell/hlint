@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
 
 -- | Translate the hints to Haskell and run with GHC.
 module Test.Translate(testTypeCheck, testQuickCheck) where

@@ -1,4 +1,3 @@
-{-# LANGUAGE ViewPatterns #-}
 
 {-
     Find things that are unsafe

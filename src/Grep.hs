@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 
 module Grep(runGrep) where
 

@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE PatternGuards, RecordWildCards #-}
 
 -- | Check the <TEST> annotations within source and hint files.
 module Test.Annotations(testAnnotations) where

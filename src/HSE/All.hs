@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 
 module HSE.All(
     module X,

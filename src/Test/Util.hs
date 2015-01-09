@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Test.Util(
     withTests, tested, passed, failed, progress
