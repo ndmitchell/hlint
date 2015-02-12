@@ -164,7 +164,7 @@ mode = cmdArgsMode $ modes
     ,CmdHSE
         {} &= explicit &= name "hse"
     ] &= program "hlint" &= verbosity
-    &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2014")
+    &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2015")
     where
         nam xs = nam_ xs &= name [head xs]
         nam_ xs = def &= explicit &= name xs
