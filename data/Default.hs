@@ -455,6 +455,10 @@ error "Use Foldable.forM_" = (case m of Nothing -> return (); Just x -> f x) ==>
 error "Use Foldable.forM_" = when (isJust m) (f (fromJust m)) ==> Data.Foldable.forM_ m f
     where _ = noQuickCheck
 
+-- PARTIALS
+
+error "fromJust is partial" = fromJust ==> fromMaybe (error "Impossible! This should never happen.")
+
 -- EVALUATE
 
 -- TODO: These should be moved in to HSE\Evaluate.hs and applied
