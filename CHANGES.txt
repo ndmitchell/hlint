@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #116, support hscolour-1.21
 1.9.16
     #108, make "hlint ." work again
 1.9.15

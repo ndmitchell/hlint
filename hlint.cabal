@@ -55,7 +55,7 @@ library
         extra >= 0.5
 
     if flag(gpl)
-        build-depends: hscolour >= 1.17
+        build-depends: hscolour >= 1.21
     else
         cpp-options: -DGPL_SCARES_ME
 

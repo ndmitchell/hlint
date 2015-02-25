@@ -22,6 +22,6 @@ hsColourConsole = do
     return $ TTY.hscolour prefs
 
 hsColourHTML :: String -> String
-hsColourHTML = CSS.hscolour False
+hsColourHTML = CSS.hscolour False 1
 
 #endif
