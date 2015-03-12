@@ -7,8 +7,7 @@ module Settings(
     readSettings2, readPragma, findSettings2, addInfix
     ) where
 
-import Prelude()
-import PreludeEx
+import Data.Monoid
 import HSE.All
 import Control.Monad.Extra
 import Data.Char
@@ -16,6 +15,7 @@ import Data.Either
 import Data.List.Extra
 import System.FilePath
 import Util
+import Prelude
 
 
 defaultHintName :: String

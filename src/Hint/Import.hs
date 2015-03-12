@@ -42,11 +42,11 @@ module Foo(module A, baz, module B, module X) where; import A; import B; import 
 
 module Hint.Import(importHint) where
 
-import Prelude()
-import PreludeEx
+import Control.Applicative
 import Hint.Type
 import Data.List.Extra
 import Data.Maybe
+import Prelude
 
 
 importHint :: ModuHint

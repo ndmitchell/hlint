@@ -4,12 +4,12 @@ module HSE.Scope(
     scopeMatch, scopeMove
     ) where
 
-import Prelude()
-import PreludeEx
+import Data.Monoid
 import HSE.Type
 import HSE.Util
 import Data.List
 import Data.Maybe
+import Prelude
 
 {-
 the hint file can do:

@@ -1,8 +1,8 @@
 
 module Apply(applyHints, applyHintFile, applyHintFiles) where
 
-import Prelude()
-import PreludeEx
+import Control.Applicative
+import Data.Monoid
 import HSE.All
 import Hint.All
 import Data.Tuple.Extra
@@ -12,6 +12,7 @@ import Data.Maybe
 import Data.Ord
 import Settings
 import Idea
+import Prelude
 
 
 -- | Apply hints to a single file, you may have the contents of the file.

@@ -3,13 +3,13 @@
 
 module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity(..)) where
 
-import Prelude()
-import PreludeEx
+import Control.Applicative
 import Control.Monad.Extra
 import System.Console.CmdArgs.Verbosity
 import Data.List
 import System.Exit
 import System.IO
+import Prelude
 
 import CmdLine
 import Settings

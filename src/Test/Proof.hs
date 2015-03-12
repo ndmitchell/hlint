@@ -3,9 +3,8 @@
 -- | Check the coverage of the hints given a list of Isabelle theorems
 module Test.Proof(proof) where
 
-import Prelude()
-import PreludeEx
 import Data.Tuple.Extra
+import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.State
 import Data.Char
@@ -15,6 +14,7 @@ import Data.Function
 import System.FilePath
 import Settings
 import HSE.All
+import Prelude
 
 
 data Theorem = Theorem

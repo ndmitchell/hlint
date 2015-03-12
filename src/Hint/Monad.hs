@@ -36,12 +36,12 @@ yes = mapM async ds >>= mapM wait >> return () -- mapM async ds >>= mapM_ wait
 
 module Hint.Monad(monadHint) where
 
-import Prelude()
-import PreludeEx
+import Control.Applicative
 import Data.Tuple.Extra
 import Data.Maybe
 import Data.List
 import Hint.Type
+import Prelude
 
 
 badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM"]

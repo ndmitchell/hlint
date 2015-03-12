@@ -2,14 +2,14 @@
 
 module HSE.Util where
 
-import Prelude()
-import PreludeEx
+import Control.Applicative
 import Control.Monad
 import Data.List
 import Data.Maybe
 import System.FilePath
 import HSE.Type
 import Language.Haskell.Exts.Annotated.Simplify(sQName, sAssoc)
+import Prelude
 
 
 ---------------------------------------------------------------------

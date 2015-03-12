@@ -2,11 +2,11 @@
 
 module HSE.FreeVars(FreeVars, freeVars, vars, varss, pvars, declBind) where
 
-import Prelude()
-import PreludeEx
+import Data.Monoid
 import HSE.Type
 import qualified Data.Set as Set
 import Data.Set(Set)
+import Prelude
 
 
 -- which names are bound by a declaration

@@ -4,13 +4,13 @@ module Hint.All(
     resolveHints, hintRules, resolveBuiltin, builtinHints
     ) where
 
-import Prelude()
-import PreludeEx
+import Data.Monoid
 import Settings
 import Data.Either
 import Data.List
 import Data.Maybe
 import Hint.Type
+import Prelude
 
 import Hint.Match
 import Hint.List

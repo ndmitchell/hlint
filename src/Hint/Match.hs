@@ -39,8 +39,7 @@ not . not . x ==> x
 
 module Hint.Match(readMatch) where
 
-import Prelude()
-import PreludeEx
+import Control.Applicative
 import Data.List.Extra
 import Data.Maybe
 import Data.Data
@@ -51,6 +50,7 @@ import Control.Monad
 import Data.Tuple.Extra
 import Util
 import qualified Data.Set as Set
+import Prelude
 
 
 fmapAn = fmap (const an)

@@ -3,8 +3,7 @@
 -- | Check the input/output pairs in the tests/ directory
 module Test.InputOutput(testInputOutput) where
 
-import Prelude()
-import PreludeEx
+import Control.Applicative
 import Data.Tuple.Extra
 import Control.Exception
 import Control.Monad
@@ -16,6 +15,7 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Verbosity
 import System.Exit
 import System.IO.Extra
+import Prelude
 
 import Test.Util
 
