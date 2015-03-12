@@ -2,7 +2,7 @@ env:
 # - GHCVER=7.2.2 # not supported by haskell-src-exts
  - GHCVER=7.4.2
  - GHCVER=7.6.3
- - GHCVER=7.8.3
+ - GHCVER=7.8.4
  - GHCVER=7.10.1
  - GHCVER=head
 
