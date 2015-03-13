@@ -3,7 +3,7 @@
 module HSE.FreeVars(FreeVars, freeVars, vars, varss, pvars, declBind) where
 
 import Data.Monoid
-import HSE.Type
+import HSE.Type as HSE
 import qualified Data.Set as Set
 import Data.Set(Set)
 import Prelude
@@ -98,10 +98,10 @@ instance AllVars Pat_ where
 instance AllVars [Pat_] where
     allVars = mconcat . map allVars
 
-instance FreeVars (Alt S) where
-    freeVars (Alt _ pat alt bind) = inFree pat $ inFree bind alt
+instance FreeVars (HSE.Alt S) where
+    freeVars (HSE.Alt _ pat alt bind) = inFree pat $ inFree bind alt
 
-instance FreeVars [Alt S] where
+instance FreeVars [HSE.Alt S] where
     freeVars = mconcat . map freeVars
 
 instance FreeVars (Rhs S) where
