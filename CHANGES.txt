@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    More GHC 7.10 warnings and build support
 1.9.17
     #116, support hscolour-1.21
 1.9.16
