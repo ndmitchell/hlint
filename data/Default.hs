@@ -91,6 +91,7 @@ warn = showIntAtBase 8 intToDigit ==> showOct
 error = concat (map f x) ==> concatMap f x
 warn = concat [a, b] ==> a ++ b
 warn "Use map once" = map f (map g x) ==> map (f . g) x
+warn "Fuse concatMap/map" = concatMap f (map g x) ==> concatMap (f . g) x
 warn  = x !! 0 ==> head x
 error = take n (repeat x) ==> replicate n x
     where _ = noQuickCheck -- takes too long
