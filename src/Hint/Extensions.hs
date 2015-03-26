@@ -20,6 +20,8 @@ test = case x of _ | y <- z -> w
 $(fmap return $ dataD (return []) (mkName "Void") [] [] [])
 {-# LANGUAGE RecursiveDo #-} \
 main = mdo x <- y; return y
+{-# LANGUAGE RecursiveDo #-} \
+main = do {rec {x <- return 1}; print x}
 {-# LANGUAGE ImplicitParams, BangPatterns #-} \
 sort :: (?cmp :: a -> a -> Bool) => [a] -> [a] \
 sort !f = undefined
