@@ -106,7 +106,7 @@ usedExt _ = const True
 
 
 used :: KnownExtension -> Module_ -> Bool
-used RecursiveDo = hasS isMDo
+used RecursiveDo = hasS isMDo & hasS isRecStmt
 used ParallelListComp = hasS isParComp
 used FunctionalDependencies = hasT (un :: FunDep S)
 used ImplicitParams = hasT (un :: IPName S)

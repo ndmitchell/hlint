@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #119, don't remove RecursiveDo if they use the rec statement
     Add a suggestion concatMap/map ==> concatMap
 1.9.18
     More GHC 7.10 warnings and build support
