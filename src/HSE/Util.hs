@@ -101,6 +101,7 @@ isPatTypeSig PatTypeSig{} = True; isPatTypeSig _ = False
 isQuasiQuote QuasiQuote{} = True; isQuasiQuote _ = False
 isSpliceDecl SpliceDecl{} = True; isSpliceDecl _ = False
 isNewType NewType{} = True; isNewType _ = False
+isRecStmt RecStmt{} = True; isRecStmt _ = False
 
 isSection LeftSection{} = True
 isSection RightSection{} = True
