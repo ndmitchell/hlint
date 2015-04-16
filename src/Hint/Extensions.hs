@@ -102,7 +102,6 @@ noNewtypeDeriving = ["Read","Show","Data","Typeable","Generic","Generic1"]
 
 
 usedExt :: Extension -> Module_ -> Bool
-usedExt (UnknownExtension "DeriveGeneric") = hasDerive ["Generic","Generic1"]
 usedExt (EnableExtension x) = used x
 usedExt _ = const True
 
@@ -140,6 +139,7 @@ used DeriveDataTypeable = hasDerive ["Data","Typeable"]
 used DeriveFunctor = hasDerive ["Functor"]
 used DeriveFoldable = hasDerive ["Foldable"]
 used DeriveTraversable = hasDerive ["Traversable"]
+used DeriveGeneric = hasDerive ["Generic","Generic1"]
 used GeneralizedNewtypeDeriving = any (`notElem` noNewtypeDeriving) . fst . derives
 used Arrows = hasS f
     where f Proc{} = True
