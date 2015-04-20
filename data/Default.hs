@@ -166,7 +166,7 @@ error = head (scanr f z x) ==> foldr f z x
 error = iterate id ==> repeat
     where _ = noQuickCheck -- takes forever
 error = zipWith f (repeat x) ==> map (f x)
-error = zipWith f x (repeat y) ==> map (\x -> f x y) x
+error = zipWith f y (repeat z) ==> map (\x -> f x z) y
 
 -- BY
 

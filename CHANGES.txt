@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #122, fix the zipWith/repeat hint
 1.9.19
     #119, don't remove RecursiveDo if they use the rec statement
     Add a suggestion concatMap/map ==> concatMap
