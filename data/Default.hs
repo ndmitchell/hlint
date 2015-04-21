@@ -108,7 +108,9 @@ error "Avoid reverse" = reverse (reverse x) ==> x where note = IncreasesLaziness
 -- error = take (length x - 1) x ==> init x -- not true for x == []
 error = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
 error = foldr (++) [] ==> concat
+error = foldr (++) "" ==> concat
 error = foldl (++) [] ==> concat where note = IncreasesLaziness
+error = foldl (++) "" ==> concat where note = IncreasesLaziness
 error = foldl f (head x) (tail x) ==> foldl1 f x
 error = foldr f (last x) (init x) ==> foldr1 f x
 error = span (not . p) ==> break p
