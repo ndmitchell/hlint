@@ -1,6 +1,7 @@
 Changelog for HLint
 
     #130, ignore a BOM if it exists
+    #128, don't find files starting with . when searching directories
     Suggest concat even if the [] is written ""
 1.9.20
     #122, fix the zipWith/repeat hint

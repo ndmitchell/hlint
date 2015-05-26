@@ -210,9 +210,10 @@ getFile [] exts file = error $ "Couldn't find file: " ++ file
 getFile (p:ath) exts file = do
     isDir <- doesDirectoryExist $ p <\> file
     if isDir then do
-        let avoid x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y))
-        xs <- listFilesInside (return . not . avoid) $ p <\> file
-        return [x | x <- xs, drop 1 (takeExtension x) `elem` exts]
+        let avoidDir x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y))
+            avoidFile x = let y = takeFileName x in "." `isPrefixOf` y
+        xs <- listFilesInside (return . not . avoidDir) $ p <\> file
+        return [x | x <- xs, drop 1 (takeExtension x) `elem` exts, not $ avoidFile x]
      else do
         isFil <- doesFileExist $ p <\> file
         if isFil then return [p <\> file]
