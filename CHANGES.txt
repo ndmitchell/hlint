@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.21
     #130, ignore a BOM if it exists
     #128, don't find files starting with . when searching directories
     Suggest concat even if the [] is written ""
