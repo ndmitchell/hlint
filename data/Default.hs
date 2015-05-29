@@ -290,8 +290,11 @@ warn = fmap f $ x ==> f Control.Applicative.<$> x
 -- MONAD
 
 error "Monad law, left identity" = return a >>= f ==> f a where _ = noQuickCheck
+error "Monad law, left identity" = f =<< return a ==> f a where _ = noQuickCheck
 error "Monad law, right identity" = m >>= return ==> m where _ = noQuickCheck
+error "Monad law, right identity" = return =<< m ==> m where _ = noQuickCheck
 warn  = m >>= return . f ==> Control.Monad.liftM f m where _ = noQuickCheck -- cannot be fmap, because is in Functor not Monad
+warn  = return . f =<< m ==> Control.Monad.liftM f m where _ = noQuickCheck
 error = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
 error = (if x then y else return ()) ==> Control.Monad.when x y where _ = isAtom y && noQuickCheck
 error = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
@@ -304,6 +307,7 @@ warn  = flip forM ==> mapM where _ = noQuickCheck
 warn  = flip forM_ ==> mapM_ where _ = noQuickCheck
 error = when (not x) ==> unless x where _ = noQuickCheck
 error = x >>= id ==> Control.Monad.join x where _ = noQuickCheck
+error = id =<< x ==> Control.Monad.join x where _ = noQuickCheck
 error = liftM f (liftM g x) ==> liftM (f . g) x where _ = noQuickCheck
 error = fmap f (fmap g x) ==> fmap (f . g) x where _ = noQuickCheck
 warn  = a >> return () ==> Control.Monad.void a
@@ -469,6 +473,7 @@ error "Evaluate" = False || x ==> x
 error "Evaluate" = not True ==> False
 error "Evaluate" = not False ==> True
 error "Evaluate" = Nothing >>= k ==> Nothing
+error "Evaluate" = k =<< Nothing ==> Nothing
 error "Evaluate" = either f g (Left x) ==> f x
 error "Evaluate" = either f g (Right y) ==> g y
 error "Evaluate" = fst (x,y) ==> x
