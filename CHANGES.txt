@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #131, add =<< rules in addition to >>=
 1.9.21
     #130, ignore a BOM if it exists
     #128, don't find files starting with . when searching directories
