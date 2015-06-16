@@ -305,7 +305,6 @@ warn  = flip forM_ ==> mapM_ where _ = noQuickCheck
 error = when (not x) ==> unless x where _ = noQuickCheck
 error = x >>= id ==> Control.Monad.join x where _ = noQuickCheck
 error = liftM f (liftM g x) ==> liftM (f . g) x where _ = noQuickCheck
-error = fmap f (fmap g x) ==> fmap (f . g) x where _ = noQuickCheck
 warn  = a >> return () ==> Control.Monad.void a
     where _ = (isAtom a || isApp a) && noQuickCheck
 error = fmap (const ()) ==> Control.Monad.void where _ = noQuickCheck
