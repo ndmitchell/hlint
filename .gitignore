@@ -1,2 +1,4 @@
 /dist/
 /.hpc/
+/.stack-work/
+/dist-stack/
