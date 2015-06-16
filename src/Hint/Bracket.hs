@@ -102,11 +102,10 @@ fieldDecl _ = []
 dollar :: Exp_ -> [Idea]
 dollar = concatMap f . universe
     where
-        msg = warn "Redundant $"
-        f x = [msg x y | InfixApp _ a d b <- [x], opExp d ~= "$"
+        f x = [warn "Redundant $" x y | InfixApp _ a d b <- [x], opExp d ~= "$"
               ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b]
               ++
-              [msg x (t y) |(t, Paren _ (InfixApp _ a1 op1 a2)) <- splitInfix x
+              [warn "Move brackets to avoid $" x (t y) |(t, Paren _ (InfixApp _ a1 op1 a2)) <- splitInfix x
               ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
               ,let y = App an a1 (Paren an a2)]
 
