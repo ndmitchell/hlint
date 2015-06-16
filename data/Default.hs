@@ -283,7 +283,9 @@ warn "Redundant pair" = (fst x, snd x) ==>  x where note = DecreasesLaziness
 -- FUNCTOR
 
 error "Functor law" = fmap f (fmap g x) ==> fmap (f . g) x where _ = noQuickCheck
+error "Functor law" = f <$> g <$> x ==> f . g <$> x where _ = noQuickCheck
 error "Functor law" = fmap id ==> id where _ = noQuickCheck
+error "Functor law" = id <$> x ==> x where _ = noQuickCheck
 warn = fmap f $ x ==> f Control.Applicative.<$> x
     where _ = (isApp x || isAtom x) && noQuickCheck
 
@@ -308,6 +310,7 @@ error = liftM f (liftM g x) ==> liftM (f . g) x where _ = noQuickCheck
 warn  = a >> return () ==> Control.Monad.void a
     where _ = (isAtom a || isApp a) && noQuickCheck
 error = fmap (const ()) ==> Control.Monad.void where _ = noQuickCheck
+error = const () <$> x ==> Control.Monad.void x where _ = noQuickCheck
 error = flip (>=>) ==> (<=<) where _ = noQuickCheck
 error = flip (<=<) ==> (>=>) where _ = noQuickCheck
 error = flip (>>=) ==> (=<<) where _ = noQuickCheck
