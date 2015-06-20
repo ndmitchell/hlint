@@ -137,7 +137,7 @@ runHints cmd@CmdMain{..} flags = do
         else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
     if | cmdJson -> putStrLn . showIdeasJson $ showideas
-       | cmdSerialise ->  print $ mapMaybe toRefact showideas
+       | cmdSerialise ->  print $ mapMaybe ideaRefactoring showideas
        | otherwise -> do
             usecolour <- cmdUseColour cmd
             showItem <- if usecolour then showANSI else return show
@@ -154,15 +154,6 @@ runHints cmd@CmdMain{..} flags = do
                     (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
     return $ map Suggestion showideas
 
-toRefact :: Idea -> Maybe (Refactoring R.SrcSpan)
-toRefact Idea{..} = Replace <$> pure (toRefactSrcSpan ideaSpan)
-                            <*> ideaSubst'
-                            <*> ideaTemplate
-  where
-    ideaSubst' = map (fmap toRefactSrcSpan) <$> ideaSubst
-
-toRefactSrcSpan :: SrcSpan -> R.SrcSpan
-toRefactSrcSpan ss = R.SrcSpan (srcSpanStart ss) (srcSpanEnd ss)
 
 evaluateList :: [a] -> IO [a]
 evaluateList xs = length xs `seq` return xs

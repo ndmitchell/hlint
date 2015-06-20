@@ -6,6 +6,8 @@ import Data.List.Extra
 import HSE.All
 import Settings
 import HsColour
+import Refact.Types hiding (SrcSpan)
+import qualified Refact.Types as R
 
 
 -- | An idea suggest by a 'Hint'.
@@ -18,8 +20,10 @@ data Idea = Idea
     ,ideaFrom :: String -- ^ The contents of the source code the idea relates to.
     ,ideaTo :: Maybe String -- ^ The suggested replacement, or 'Nothing' for no replacement (e.g. on parse errors).
     ,ideaNote :: [Note] -- ^ Notes about the effect of applying the replacement.
-    , ideaSubst :: Maybe [(String, SrcSpan)] -- ^ The performed substitution
-    , ideaTemplate :: Maybe String -- ^ The template used to generate the output
+    , ideaRefactoring :: Maybe (Refactoring R.SrcSpan) -- ^ How to perform this idea
+--    , ideaPreciseSpan :: SrcSpan -- ^ The source code that needs to be replaced
+--    , ideaSubst :: Maybe [(String, SrcSpan)] -- ^ The performed substitution
+--    , ideaTemplate :: Maybe String -- ^ The template used to generate the output
     }
     deriving (Eq,Ord)
 
@@ -66,12 +70,33 @@ showEx tt Idea{..} = unlines $
             where xs = lines $ tt x
 
 
-rawIdea a b c d e f = Idea "" "" a b c d e f Nothing Nothing
+rawIdea a b c d e f = Idea "" "" a b c d e f Nothing
+rawRefactorIdea = Idea "" ""
 idea' severity hint from to subst fromE = (idea severity hint from to)
-                                            { ideaSubst = map (fmap (toSrcSpan . ann)) <$> subst
-                                            , ideaTemplate = prettyPrint <$> fromE
+                                            {
+                                              ideaRefactoring = Just (refactReplace from subst fromE)
                                             }
 idea severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) []
     where f = trimStart . prettyPrint
 warn = idea Warning
 err = idea Error
+
+warn' = idea' Warning
+err' = idea' Error
+
+preciseIdea severity hint from to subst template replexp =
+  (idea severity hint from to)
+    { ideaRefactoring = Just (refactReplace replexp subst template ) }
+
+preciseWarn = preciseIdea Warning
+preciseErr  = preciseIdea Error
+
+
+refactReplace :: Annotated a => a S -> [(String, a S)] -> String -> Refactoring R.SrcSpan
+refactReplace ss subt template =
+  Replace (f ss) (map (fmap f) subt) template
+  where
+    f = toRefactSrcSpan . toSrcSpan . ann
+
+toRefactSrcSpan :: SrcSpan -> R.SrcSpan
+toRefactSrcSpan ss = R.SrcSpan (srcSpanStart ss) (srcSpanEnd ss)
