@@ -92,7 +92,7 @@ dotVersion _ = Nothing
 
 findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
-  [ (idea' (hintRuleSeverity m) (hintRuleName m) x y (Just subst) (Just rule)){ideaNote=notes}
+  [ (idea' (hintRuleSeverity m) (hintRuleName m) x y subst (prettyPrint rule)){ideaNote=notes}
   | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
   , (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
   , m <- matches, Just (y,notes, subst, rule) <- [matchIdea s decl m parent x]]
@@ -151,6 +151,9 @@ unifyExp nm root x (InfixApp _ lhs2 op2 rhs2)
     | otherwise = unifyExp nm root x $ App an (App an (opExp op2) lhs2) rhs2
 unifyExp nm root x y | isOther x, isOther y = unifyDef nm x y
 unifyExp nm root _ _ = Nothing
+
+rebracket (Paren l _) (v, e) = (v, Paren l e)
+rebracket e (v, e') = (v, e')
 
 
 unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe [(String,Exp_)]

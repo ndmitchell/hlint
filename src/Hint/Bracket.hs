@@ -84,13 +84,17 @@ bracket bad = f Nothing
 
         -- f (Maybe (index, parent, gen)) child
         f :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
-        f Just{} o@(remParen -> Just x) | isAtom x = err msg o x : g x
-        f Nothing o@(remParen -> Just x) | bad = warn msg o x : g x
-        f (Just (i,o,gen)) (remParen -> Just x) | not $ needBracket i o x = warn msg o (gen x) : g x
+        f Just{} o@(remParen -> Just x) | isAtom x = bracketError msg o x : g x
+        f Nothing o@(remParen -> Just x) | bad = bracketWarning msg o x : g x
+        f (Just (i,o,gen)) v@(remParen -> Just x) | not $ needBracket i o x =
+          preciseWarn msg o (gen x) [("x", x)] "x" v : g x
         f _ x = g x
 
         g :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
+
+bracketWarning msg o x = idea' Warning msg o x [("x", x)] "x"
+bracketError msg o x = idea' Error msg o x [("x", x)] "x"
 
 
 fieldDecl :: FieldDecl S -> [Idea]
@@ -102,10 +106,10 @@ fieldDecl _ = []
 dollar :: Exp_ -> [Idea]
 dollar = concatMap f . universe
     where
-        f x = [warn "Redundant $" x y | InfixApp _ a d b <- [x], opExp d ~= "$"
+        f x = [warn' "Redundant $" x y [("a", a), ("b", b)] "a b" | InfixApp _ a d b <- [x], opExp d ~= "$"
               ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b]
               ++
-              [warn "Move brackets to avoid $" x (t y) |(t, Paren _ (InfixApp _ a1 op1 a2)) <- splitInfix x
+              [preciseWarn "Move brackets to avoid $" x (t y) [("a", a1), ("b", a2)] "a (b)" e |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
               ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
               ,let y = App an a1 (Paren an a2)]
 
