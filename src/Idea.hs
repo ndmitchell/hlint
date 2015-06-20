@@ -18,6 +18,8 @@ data Idea = Idea
     ,ideaFrom :: String -- ^ The contents of the source code the idea relates to.
     ,ideaTo :: Maybe String -- ^ The suggested replacement, or 'Nothing' for no replacement (e.g. on parse errors).
     ,ideaNote :: [Note] -- ^ Notes about the effect of applying the replacement.
+    , ideaSubst :: Maybe [(String, SrcSpan)] -- ^ The performed substitution
+    , ideaTemplate :: Maybe String -- ^ The template used to generate the output
     }
     deriving (Eq,Ord)
 
@@ -64,7 +66,11 @@ showEx tt Idea{..} = unlines $
             where xs = lines $ tt x
 
 
-rawIdea = Idea "" ""
+rawIdea a b c d e f = Idea "" "" a b c d e f Nothing Nothing
+idea' severity hint from to subst fromE = (idea severity hint from to)
+                                            { ideaSubst = map (fmap (toSrcSpan . ann)) <$> subst
+                                            , ideaTemplate = prettyPrint <$> fromE
+                                            }
 idea severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) []
     where f = trimStart . prettyPrint
 warn = idea Warning

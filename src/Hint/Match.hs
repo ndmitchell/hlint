@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec, RecordWildCards, FlexibleContexts #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec, RecordWildCards, FlexibleContexts, ScopedTypeVariables #-}
 
 {-
 The matching does a fairly simple unification between the two terms, treating
@@ -50,6 +50,7 @@ import Control.Monad
 import Data.Tuple.Extra
 import Util
 import qualified Data.Set as Set
+import Debug.Trace
 import Prelude
 
 
@@ -91,13 +92,12 @@ dotVersion _ = Nothing
 
 findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
-  [ (idea (hintRuleSeverity m) (hintRuleName m) x y){ideaNote=notes}
+  [ (idea' (hintRuleSeverity m) (hintRuleName m) x y (Just subst) (Just rule)){ideaNote=notes}
   | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
   , (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
-  , m <- matches, Just (y,notes) <- [matchIdea s decl m parent x2]]
+  , m <- matches, Just (y,notes, subst, rule) <- [matchIdea s decl m parent x]]
 
-
-matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note])
+matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note], [(String, Exp_)], Exp_)
 matchIdea s decl HintRule{..} parent x = do
     let nm a b = scopeMatch (hintRuleScope,a) (s,b)
     u <- unifyExp nm True hintRuleLHS x
@@ -109,7 +109,7 @@ matchIdea s decl HintRule{..} parent x = do
         -- check no unexpected new free variables
     guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
-    return (res,hintRuleNotes)
+    return (res,hintRuleNotes, u, hintRuleRHS)
 
 
 ---------------------------------------------------------------------

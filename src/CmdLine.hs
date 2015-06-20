@@ -91,6 +91,7 @@ data Cmd
         ,cmdCppAnsi :: Bool
         ,cmdJson :: Bool                -- ^ display hint data as JSON
         ,cmdNoSummary :: Bool           -- ^ do not show the summary info
+        ,cmdSerialise :: Bool           -- ^ Display hints in serialisation format
         }
     | CmdGrep
         {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
@@ -146,6 +147,7 @@ mode = cmdArgsMode $ modes
         ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
         ,cmdJson = nam_ "json" &= help "Display hint data as JSON"
         ,cmdNoSummary = nam_ "no-summary" &= help "Do not show summary information"
+        ,cmdSerialise = nam_ "serialise" &= help "Refactor with HaRe"
         } &= auto &= explicit &= name "lint"
     ,CmdGrep
         {cmdFiles = def &= args &= typ "FILE/DIR"

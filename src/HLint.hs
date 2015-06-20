@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity(..)) where
@@ -7,6 +8,7 @@ import Control.Applicative
 import Control.Monad.Extra
 import System.Console.CmdArgs.Verbosity
 import Data.List
+import Data.Maybe (mapMaybe)
 import System.Exit
 import System.IO
 import Prelude
@@ -22,6 +24,9 @@ import Test.Proof
 import Util
 import Parallel
 import HSE.All
+
+import qualified Refact.Types as R
+import Refact.Types hiding (SrcSpan)
 
 
 -- | A suggestion - the @Show@ instance is of particular use.
@@ -131,9 +136,9 @@ runHints cmd@CmdMain{..} flags = do
         then applyHintFiles flags settings cmdFiles
         else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
-    if cmdJson
-        then putStrLn . showIdeasJson $ showideas
-        else do
+    if | cmdJson -> putStrLn . showIdeasJson $ showideas
+       | cmdSerialise ->  print $ mapMaybe toRefact showideas
+       | otherwise -> do
             usecolour <- cmdUseColour cmd
             showItem <- if usecolour then showANSI else return show
             mapM_ (outStrLn . showItem) showideas
@@ -148,6 +153,16 @@ runHints cmd@CmdMain{..} flags = do
                     (let i = length showideas in if i == 0 then "No suggestions" else show i ++ " suggestion" ++ ['s' | i/=1]) ++
                     (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
     return $ map Suggestion showideas
+
+toRefact :: Idea -> Maybe (Refactoring R.SrcSpan)
+toRefact Idea{..} = Replace <$> pure (toRefactSrcSpan ideaSpan)
+                            <*> ideaSubst'
+                            <*> ideaTemplate
+  where
+    ideaSubst' = map (fmap toRefactSrcSpan) <$> ideaSubst
+
+toRefactSrcSpan :: SrcSpan -> R.SrcSpan
+toRefactSrcSpan ss = R.SrcSpan (srcSpanStart ss) (srcSpanEnd ss)
 
 evaluateList :: [a] -> IO [a]
 evaluateList xs = length xs `seq` return xs
