@@ -138,7 +138,8 @@ unifyDef nm x y = fmap concat . sequence =<< gzip (unify nm False) x y
 -- root = True, this is the outside of the expr
 -- do not expand out a dot at the root, since otherwise you get two matches because of readRule (Bug #570)
 unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
-unifyExp nm root x y | isParen x || isParen y = unifyExp nm root (fromParen x) (fromParen y)
+unifyExp nm root x y | isParen x || isParen y =
+  map (rebracket y) <$> (unifyExp nm root (fromParen x) (fromParen y))
 unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
 unifyExp nm root (Var _ x) (Var _ y) | nm x y = Just []
 unifyExp nm root x@(App _ x1 x2) (App _ y1 y2) =
