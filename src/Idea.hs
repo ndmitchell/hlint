@@ -74,7 +74,7 @@ rawIdea a b c d e f = Idea "" "" a b c d e f Nothing
 rawRefactorIdea = Idea "" ""
 idea' severity hint from to subst fromE = (idea severity hint from to)
                                             {
-                                              ideaRefactoring = Just (refactReplace from subst fromE)
+                                              ideaRefactoring = Just (refactReplace Expr from subst fromE)
                                             }
 idea severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) []
     where f = trimStart . prettyPrint
@@ -84,17 +84,17 @@ err = idea Error
 warn' = idea' Warning
 err' = idea' Error
 
-preciseIdea severity hint from to subst template replexp =
+preciseIdea severity hint from to subst template replexp typ =
   (idea severity hint from to)
-    { ideaRefactoring = Just (refactReplace replexp subst template ) }
+    { ideaRefactoring = Just (refactReplace typ replexp subst template ) }
 
 preciseWarn = preciseIdea Warning
 preciseErr  = preciseIdea Error
 
 
-refactReplace :: Annotated a => a S -> [(String, a S)] -> String -> Refactoring R.SrcSpan
-refactReplace ss subt template =
-  Replace (f ss) (map (fmap f) subt) template
+refactReplace :: Annotated a => RType -> a S -> [(String, a S)] -> String -> Refactoring R.SrcSpan
+refactReplace typ ss subt template =
+  Replace typ (f ss) (map (fmap f) subt) template
   where
     f = toRefactSrcSpan . toSrcSpan . ann
 
