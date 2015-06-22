@@ -1,5 +1,6 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-
 Raise an error if you are bracketing an atom, or are enclosed be a list bracket
 
@@ -85,9 +86,14 @@ tyConToRtype "Exp" = Expr
 tyConToRtype "Type" = Type
 tyConToRtype "Pat"  = Pattern
 
-changeRefactType :: RType -> Refactoring a -> Refactoring a
-changeRefactType rt r@Replace{} = r { rtype = rt }
-changeRefactType _ r = r
+findType :: (Data a) => a -> RType
+findType = tyConToRtype . dataTypeName . dataTypeOf
+
+changeRefactType :: RType -> Idea -> Idea
+changeRefactType rt i@Idea{ ideaRefactoring} =
+  case ideaRefactoring of
+    Just (r@Replace{}) -> i { ideaRefactoring = Just (r { rtype = rt }) }
+    _ -> i
 
 
 bracket :: (Data (a S), Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
@@ -103,14 +109,16 @@ bracket bad = f Nothing
           preciseWarn msg o (gen x) [("x", x)] "x" v typ
             : g x
           where
-            typ = tyConToRtype . dataTypeName . dataTypeOf $ x
+            typ = findType x
         f _ x = g x
 
         g :: (Data (a S), Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
 
-bracketWarning msg o x = idea' Warning msg o x [("x", x)] "x"
-bracketError msg o x = idea' Error msg o x [("x", x)] "x"
+bracketWarning msg o x =
+  changeRefactType (findType x) (idea' Warning msg o x [("x", x)] "x")
+bracketError msg o x =
+  changeRefactType (findType x) (idea' Error msg o x [("x", x)] "x")
 
 
 fieldDecl :: FieldDecl S -> [Idea]
