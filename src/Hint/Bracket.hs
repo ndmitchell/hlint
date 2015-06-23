@@ -89,11 +89,6 @@ tyConToRtype "Pat"  = Pattern
 findType :: (Data a) => a -> RType
 findType = tyConToRtype . dataTypeName . dataTypeOf
 
-changeRefactType :: RType -> Idea -> Idea
-changeRefactType rt i@Idea{ ideaRefactoring} =
-  case ideaRefactoring of
-    Just (r@Replace{}) -> i { ideaRefactoring = Just (r { rtype = rt }) }
-    _ -> i
 
 
 bracket :: (Data (a S), Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
@@ -106,7 +101,7 @@ bracket bad = f Nothing
         f Just{} o@(remParen -> Just x) | isAtom x = bracketError msg o x : g x
         f Nothing o@(remParen -> Just x) | bad = bracketWarning msg o x : g x
         f (Just (i,o,gen)) v@(remParen -> Just x) | not $ needBracket i o x =
-          preciseWarn msg o (gen x) [("x", x)] "x" v typ
+          preciseWarn msg o (gen x) [("x", ann x)] "x" v typ
             : g x
           where
             typ = findType x
@@ -116,9 +111,9 @@ bracket bad = f Nothing
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
 
 bracketWarning msg o x =
-  changeRefactType (findType x) (idea' Warning msg o x [("x", x)] "x")
+  changeRefactType (findType x) (idea' Warning msg o x [("x", ann x)] "x")
 bracketError msg o x =
-  changeRefactType (findType x) (idea' Error msg o x [("x", x)] "x")
+  changeRefactType (findType x) (idea' Error msg o x [("x", ann x)] "x")
 
 
 fieldDecl :: FieldDecl S -> [Idea]
@@ -130,10 +125,10 @@ fieldDecl _ = []
 dollar :: Exp_ -> [Idea]
 dollar = concatMap f . universe
     where
-        f x = [warn' "Redundant $" x y [("a", a), ("b", b)] "a b" | InfixApp _ a d b <- [x], opExp d ~= "$"
+        f x = [warn' "Redundant $" x y [("a", ann a), ("b", ann b)] "a b" | InfixApp _ a d b <- [x], opExp d ~= "$"
               ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b]
               ++
-              [preciseWarn "Move brackets to avoid $" x (t y) [("a", a1), ("b", a2)] "a (b)" e Expr |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
+              [preciseWarn "Move brackets to avoid $" x (t y) [("a", ann a1), ("b",ann a2)] "a (b)" e Expr |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
               ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
               ,let y = App an a1 (Paren an a2)]
 

@@ -3,7 +3,7 @@
     Reduce the number of import declarations.
     Two import declarations can be combined if:
       (note, A[] is A with whatever import list, or none)
-    
+
     import A[]; import A[] = import A[]
     import A(B); import A(C) = import A(B,C)
     import A; import A(C) = import A

@@ -97,7 +97,7 @@ findIdeas matches s _ decl =
   , (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
   , m <- matches, Just (y,notes, subst, rule) <- [matchIdea s decl m parent x]]
 
-matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note], [(String, Exp_)], Exp_)
+matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note], [(String, S)], Exp_)
 matchIdea s decl HintRule{..} parent x = do
     let nm a b = scopeMatch (hintRuleScope,a) (s,b)
     u <- unifyExp nm True hintRuleLHS x
@@ -109,7 +109,7 @@ matchIdea s decl HintRule{..} parent x = do
         -- check no unexpected new free variables
     guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
-    return (res,hintRuleNotes, u, hintRuleRHS)
+    return (res,hintRuleNotes, (map (ann <$>) u), hintRuleRHS)
 
 
 ---------------------------------------------------------------------

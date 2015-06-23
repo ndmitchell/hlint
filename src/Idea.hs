@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards, NoMonomorphismRestriction #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Idea(module Idea, Note(..), showNotes, Severity(..)) where
 
@@ -92,11 +93,17 @@ preciseWarn = preciseIdea Warning
 preciseErr  = preciseIdea Error
 
 
-refactReplace :: Annotated a => RType -> a S -> [(String, a S)] -> String -> Refactoring R.SrcSpan
+refactReplace :: Annotated a => RType -> a S -> [(String, S)] -> String -> Refactoring R.SrcSpan
 refactReplace typ ss subt template =
-  Replace typ (f ss) (map (fmap f) subt) template
+  Replace typ (f (ann ss)) (map (fmap f) subt) template
   where
-    f = toRefactSrcSpan . toSrcSpan . ann
+    f = toRefactSrcSpan . toSrcSpan
 
 toRefactSrcSpan :: SrcSpan -> R.SrcSpan
 toRefactSrcSpan ss = R.SrcSpan (srcSpanStart ss) (srcSpanEnd ss)
+
+changeRefactType :: RType -> Idea -> Idea
+changeRefactType rt i@Idea{ ideaRefactoring} =
+  case ideaRefactoring of
+    Just (r@Replace{}) -> i { ideaRefactoring = Just (r { rtype = rt }) }
+    _ -> i
