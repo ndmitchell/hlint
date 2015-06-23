@@ -83,17 +83,23 @@ lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatM
 lambdaDecl :: Decl_ -> [Idea]
 lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) bind]))
     | isNothing bind, isLambda $ fromParen bod =
-      [changeRefactType Decl (err' "Redundant lambda" o (gen pats bod) subts template)]
-    | (pats2,bod2) <- etaReduce pats bod, length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
-        = [err "Eta reduce" (reform pats bod) (reform pats2 bod2)]
+      [changeRefactType Decl (err' "Redundant lambda" o (gen pats bod) s1 t1)]
+    | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
+        = [changeRefactType Decl $ err' "Eta reduce" (reform pats bod) (reform pats2 bod2) s2 t2]
         where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) Nothing]
               gen ps b = uncurry reform . fromLambda . Lambda an ps $ b
               (finalpats, body) = fromLambda . Lambda an pats $ bod
-              template = prettyPrint $ reform (zipWith munge ['a'..'z'] finalpats) (Var (ann body) (UnQual (ann body) (Symbol (ann body) "body")))
+              (pats2, bod2) = etaReduce pats bod
+              template fps b = prettyPrint $ reform (zipWith munge ['a'..'z'] fps) (Var (ann b) (UnQual (ann b) (Ident (ann b) "body")))
               munge :: Char -> Pat_ -> Pat_
               munge ident p@(PWildCard _) = p
-              munge ident p = PVar (ann p) (Symbol (ann p) [ident])
-              subts = ("body", ann body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map ann finalpats)
+              munge ident p = PVar (ann p) (Ident (ann p) [ident])
+              subts fps b = ("body", ann b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map ann fps)
+              s1 = subts finalpats body
+              s2 = subts pats2 bod2
+              t1 = template finalpats body
+              t2 = template pats2 bod2
+
 lambdaDecl _ = []
 
 
