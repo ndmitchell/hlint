@@ -30,6 +30,7 @@ module Hint.List(listHint) where
 import Control.Applicative
 import Hint.Type
 import Prelude
+import Refact.Types
 
 
 listHint :: DeclHint
@@ -43,11 +44,13 @@ listExp :: Bool -> Exp_ -> [Idea]
 listExp b (fromParen -> x) =
         if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
     where
-        res = [warn name x x2 | (name,f) <- checks, Just x2 <- [f b x]]
+        -- I think this is wrong for useCons, useList
+        res = [warn' name x x2 [] (prettyPrint x2) | (name,f) <- checks, Just x2 <- [f b x]]
 
 listPat :: Pat_ -> [Idea]
 listPat x = if null res then concatMap listPat $ children x else [head res]
-    where res = [warn name x x2 | (name,f) <- pchecks, Just x2 <- [f x]]
+    where res = [changeRefactType Pattern (warn' name x x2 [] (prettyPrint x2))
+                  | (name,f) <- pchecks, Just x2 <- [f x]]
 
 isAppend (view -> App2 op _ _) = op ~= "++"
 isAppend _ = False
