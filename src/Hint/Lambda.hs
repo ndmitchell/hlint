@@ -13,8 +13,8 @@
     (flip op x) ==> (`op` x)  -- rotate operators
     \x y -> x + y ==> (+)  -- insert operator
     \x y -> op y x ==> flip op
-    \x -> x + y ==> (+ y)  -- insert section, 
-    \x -> op x y ==> (`op` y)  -- insert section 
+    \x -> x + y ==> (+ y)  -- insert section,
+    \x -> op x y ==> (`op` y)  -- insert section
     \x -> y + x ==> (y +)  -- insert section
     \x -> \y -> ... ==> \x y -- lambda compression
     \x -> (x +) ==> (+) -- operator reduction

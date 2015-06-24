@@ -155,7 +155,7 @@ unifyExp nm root _ _ = Nothing
 unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe [(String,Exp_)]
 unifyPat nm (PVar _ x) (PVar _ y) = Just [(fromNamed x, toNamed $ fromNamed y)]
 unifyPat nm (PVar _ x) PWildCard{} = Just [(fromNamed x, toNamed $ "_" ++ fromNamed x)]
-unifyPat nm x y = unifyDef nm x y 
+unifyPat nm x y = unifyDef nm x y
 
 
 -- types that are not already handled in unify
