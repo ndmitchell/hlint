@@ -111,14 +111,25 @@ etaReduce ps x = (ps,x)
 
 
 lambdaExp :: Maybe Exp_ -> Exp_ -> [Idea]
-lambdaExp p o@(Paren _ (App _ (Var _ (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
-    [warn "Use section" o $ LeftSection an y (toNamed x)]
+lambdaExp p o@(Paren _ (App _ (Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
+    [warn' "Use section" o (exp y x) subts template]
+    where
+      exp op rhs = LeftSection an op (toNamed rhs)
+      template = prettyPrint (exp (toNamed "a") "*")
+      subts = [("a", ann y), ("*", l)]
 lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
     [warn "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, res <- niceLambda [] o, not $ isLambda res =
     [(if isVar res || isCon res then err else warn) "Avoid lambda" o res]
 lambdaExp p o@(Lambda _ _ x) | isLambda (fromParen x) && maybe True (not . isLambda) p =
-    [warn "Collapse lambdas" o $ uncurry (Lambda an) $ fromLambda o]
+    [warn' "Collapse lambdas" o (Lambda an pats body) subts template]
+    where
+      (pats, body) = fromLambda o
+      template = prettyPrint $  Lambda an (zipWith munge ['a'..'z'] pats) (toNamed "body")
+      munge :: Char -> Pat_ -> Pat_
+      munge ident p@(PWildCard _) = p
+      munge ident p = PVar (ann p) (Ident (ann p) [ident])
+      subts = ("body", ann body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map ann pats)
 lambdaExp _ _ = []
 
 
