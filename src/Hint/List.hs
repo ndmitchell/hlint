@@ -49,8 +49,8 @@ listExp b (fromParen -> x) =
 
 listPat :: Pat_ -> [Idea]
 listPat x = if null res then concatMap listPat $ children x else [head res]
-    where res = [changeRefactType Pattern (warn' name x x2 [] (prettyPrint x2))
-                  | (name,f) <- pchecks, Just x2 <- [f x]]
+    where res = [changeRefactType Pattern (warn' name x x2 subts temp)
+                  | (name,f) <- pchecks, Just (x2, subts, temp) <- [f x]]
 
 isAppend (view -> App2 op _ _) = op ~= "++"
 isAppend _ = False
@@ -68,14 +68,21 @@ pchecks = let (*) = (,) in
           ]
 
 
-usePString (PList _ xs) | xs /= [], Just s <- mapM fromPChar xs = Just $ PLit an (Signless an) $ String an s (show s)
+usePString (PList _ xs) | xs /= [], Just s <- mapM fromPChar xs =
+  let literal = PLit an (Signless an) $ String an s (show s)
+  in Just (literal, [], prettyPrint literal)
 usePString _ = Nothing
 
-usePList = fmap (PList an) . f True
+usePList = fmap (\(e, s) -> (PList an e, map (fmap ann) s, prettyPrint (PList an (map snd s))))
+    . fmap unzip . f True ['a'..'z']
     where
-        f first x | x ~= "[]" = if first then Nothing else Just []
-        f first (view -> PApp_ ":" [a,b]) = (a:) <$> f False b
-        f first _ = Nothing
+        f first _ x | x ~= "[]" = if first then Nothing else Just []
+        f first (ident: cs) (view -> PApp_ ":" [a,b]) =
+          ((a, g ident a) :) <$> f False cs b
+        f first _ _ = Nothing
+
+        g :: Char -> Pat_ -> (String, Pat_)
+        g c p = ([c], PVar (ann p) (toNamed [c]))
 
 useString b (List _ xs) | xs /= [], Just s <- mapM fromChar xs =
   let literal = Lit an $ String an s (show s)
