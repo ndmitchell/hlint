@@ -35,6 +35,7 @@ import Data.Maybe
 import Data.Ord
 import Data.Either.Extra
 import Control.Monad
+import Refact.Types
 
 
 listRecHint :: DeclHint
@@ -46,7 +47,8 @@ listRecHint _ _ = concatMap f . universe
             (use,severity,x) <- matchListRec x
             let y = addCase x
             guard $ recursiveStr `notElem` varss y
-            return $ idea severity ("Use " ++ use) o y
+            -- Maybe we can do better here maintaining source formatting?
+            return $ changeRefactType Decl (idea' severity ("Use " ++ use) o y [] (prettyPrint y))
 
 
 recursiveStr = "_recursive_"
