@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts, TupleSections #-}
 
 {-
     Find and match:
@@ -45,7 +45,7 @@ listExp b (fromParen -> x) =
         if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
     where
         -- I think this is wrong for useCons, useList
-        res = [warn' name x x2 [] (prettyPrint x2) | (name,f) <- checks, Just x2 <- [f b x]]
+        res = [warn' name x x2 subts temp | (name,f) <- checks, Just (x2, subts, temp) <- [f b x]]
 
 listPat :: Pat_ -> [Idea]
 listPat x = if null res then concatMap listPat $ children x else [head res]
@@ -77,20 +77,28 @@ usePList = fmap (PList an) . f True
         f first (view -> PApp_ ":" [a,b]) = (a:) <$> f False b
         f first _ = Nothing
 
-useString b (List _ xs) | xs /= [], Just s <- mapM fromChar xs = Just $ Lit an $ String an s (show s)
+useString b (List _ xs) | xs /= [], Just s <- mapM fromChar xs =
+  let literal = Lit an $ String an s (show s)
+  in Just (literal , [], prettyPrint literal)
 useString b _ = Nothing
 
-useList b = fmap (List an) . f True
+useList b = fmap (\(e, s) -> (List an e, map (fmap ann) s, prettyPrint (List an (map snd s))))
+              . fmap unzip . f True ['a'..'z']
     where
-        f first x | x ~= "[]" = if first then Nothing else Just []
-        f first (view -> App2 c a b) | c ~= ":" = (a:) <$> f False b
-        f first _ = Nothing
+        f first _ x | x ~= "[]" = if first then Nothing else Just []
+        f first (ident:cs) (view -> App2 c a b) | c ~= ":" =
+          ((a, g ident a) :) <$> f False cs b
+        f first _ _ = Nothing
 
-useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend y =
-        Just $ InfixApp an x2 (QConOp an $ list_cons_name an) y
+        g :: Char -> Exp_ -> (String, Exp_)
+        g c p = ([c], Var (ann p) (toNamed [c]))
+
+useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend y = Just (gen x2 y, [("x", ann x2), ("xs", ann y)], prettyPrint $ gen (toNamed "x") (toNamed "xs"))
     where
         f (List _ [x]) = Just $ if isApp x then x else paren x
         f _ = Nothing
+
+        gen x xs = InfixApp an x (QConOp an $ list_cons_name an) xs
 useCons _ _ = Nothing
 
 
