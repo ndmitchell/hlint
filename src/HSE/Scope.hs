@@ -95,13 +95,13 @@ possImport i (UnQual _ x) = not (importQualified i) && maybe True f (importSpecs
     where
         f (ImportSpecList _ hide xs) = if hide then Just True `notElem` ms else Nothing `elem` ms || Just True `elem` ms
             where ms = map g xs
-        
+
         g :: ImportSpec S -> Maybe Bool -- does this import cover the name x
         g (IVar _ _ y) = Just $ x =~= y
         g (IAbs _ y) = Just $ x =~= y
         g (IThingAll _ y) = if x =~= y then Just True else Nothing
         g (IThingWith _ y ys) = Just $ x `elem_` (y : map fromCName ys)
-        
+
         fromCName :: CName S -> Name S
         fromCName (VarName _ x) = x
         fromCName (ConName _ x) = x

@@ -41,7 +41,7 @@ instance Brackets Exp_ where
         _ -> isLexeme x
 
     -- note: i is the index in children, not in the AST
-    needBracket i parent child 
+    needBracket i parent child
         | isAtom child = False
         | InfixApp{} <- parent, App{} <- child = False
         | isSection parent, App{} <- child = False

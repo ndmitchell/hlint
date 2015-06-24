@@ -117,7 +117,7 @@ cheapFixities :: [Fixity] -> Decl_ -> Decl_
 cheapFixities fixs = descendBi (transform f)
     where
         ask = askFixity fixs
-    
+
         f o@(InfixApp s1 (InfixApp s2 x op1 y) op2 z)
                 | p1 == p2 && (a1 /= a2 || a1 == AssocNone) = o -- Ambiguous infix expression!
                 | p1 > p2 || p1 == p2 && (a1 == AssocLeft || a2 == AssocNone) = o

@@ -74,7 +74,7 @@ data Branch = Branch String [String] Int BList Exp_
 
 matchListRec :: ListCase -> Maybe (String,Severity,Exp_)
 matchListRec o@(ListCase vs nil (x,xs,cons))
-    
+
     | [] <- vs, nil ~= "[]", InfixApp _ lhs c rhs <- cons, opExp c ~= ":"
     , fromParen rhs =~= recursive, xs `notElem` vars lhs
     = Just $ (,,) "map" Error $ appsBracket

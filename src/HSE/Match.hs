@@ -69,7 +69,7 @@ instance Named (Exp S) where
     fromNamed (Con _ x) = fromNamed x
     fromNamed (List _ []) = "[]"
     fromNamed _ = ""
-    
+
     toNamed "[]" = List an []
     toNamed x | isCtor x = Con an $ toNamed x
               | otherwise = Var an $ toNamed x
