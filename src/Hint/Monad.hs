@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts #-}
 
 {-
     Find and match:
@@ -54,13 +54,17 @@ monadExp :: Decl_ -> Exp_ -> [Idea]
 monadExp decl x = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         Do _ xs -> [err "Redundant return" x y | Just y <- [monadReturn xs]] ++
-                   [err "Use join" x (Do an y) | Just y <- [monadJoin xs]] ++
-                   [err "Redundant do" x y | [Qualifier _ y] <- [xs]] ++
+                   [err' "Use join" x (Do an y) subts (prettyPrint (Do an template)) | Just (y, subts, template) <- [split <$> monadJoin xs ['a'..'z']]] ++
+                   [err' "Redundant do" x y [("y", ann y)] "y" | [Qualifier _ y] <- [xs]] ++
                    [warn "Use let" x (Do an y) | Just y <- [monadLet xs]] ++
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where
         f x = [err ("Use " ++ name) x y | Just (name,y) <- [monadCall x], fromNamed decl /= name]
+        split [] = ([], [], [])
+        split ((s, v, t):xs) =
+          let (ss, subts, ts) = split xs in
+            (s:ss, (v, ann t): subts, t:ts)
 
 
 -- see through Paren and down if/case etc
@@ -77,20 +81,26 @@ monadCall (replaceBranches -> (bs@(_:_), gen)) | all isJust res
 monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, toNamed x2)
 monadCall _ = Nothing
 
-
+monadReturn :: [Stmt S] -> Maybe Exp_
 monadReturn (reverse -> Qualifier _ (App _ ret (Var _ v)):Generator _ (PVar _ p) x:rest)
     | ret ~= "return", fromNamed v == fromNamed p
     = Just $ Do an $ reverse $ Qualifier an x : rest
 monadReturn _ = Nothing
 
-
-monadJoin (Generator _ (view -> PVar_ p) x:Qualifier _ (view -> Var_ v):xs)
+monadJoin :: [Stmt S] -> [Char] -> Maybe [(Stmt S, String, Stmt S)]
+monadJoin (Generator _ (view -> PVar_ p) x:Qualifier _ (view -> Var_ v):xs) (c:cs)
     | p == v && v `notElem` varss xs
-    = Just $ Qualifier an (rebracket1 $ App an (toNamed "join") x) : fromMaybe xs (monadJoin xs)
-monadJoin (x:xs) = (x:) <$> monadJoin xs
-monadJoin [] = Nothing
+    = Just $ (gen x, [c], template) : fromMaybe def (monadJoin xs cs)
+    where
+      gen expr = Qualifier (ann x) (rebracket1 $ App an (toNamed "join") expr)
+      template = gen (Var (ann x) (toNamed [c]))
+      def = zipWith munge cs xs
+      munge c stmt = (stmt, [c], Qualifier (ann stmt) (toNamed [c]))
 
+monadJoin (x:xs) (c:cs) = ((x, [c], Qualifier (ann x) (toNamed [c])) :)   <$> monadJoin xs cs
+monadJoin [] _ = Nothing
 
+monadLet :: [Stmt S] -> Maybe [Stmt S]
 monadLet xs = if xs == ys then Nothing else Just ys
     where
         ys = map mkLet xs
