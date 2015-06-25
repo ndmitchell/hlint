@@ -78,7 +78,7 @@ import Refact.Types
 extensionsHint :: ModuHint
 extensionsHint _ x = [rawRefactorIdea Error "Unused LANGUAGE pragma" (toSrcSpan sl)
           (prettyPrint o) (Just $ if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) new)
-          (warnings old new) (Just refact)
+          (warnings old new) [refact]
     | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
     , o@(LanguagePragma sl exts) <- modulePragmas x
     , let old = map (parseExtension . prettyPrint) exts

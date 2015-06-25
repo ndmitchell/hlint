@@ -35,4 +35,4 @@ commentHint _ = []
 suggest :: String -> Comment -> String -> Idea
 suggest msg (Comment typ pos s1) s2 = rawRefactorIdea Warning msg pos (f s1) (Just $ f s2) [] refact
     where f s = if typ then "{-" ++ s ++ "-}" else "--" ++ s
-          refact = Just (ModifyComment (f s1) (f s2))
+          refact = [ModifyComment (f s1) (f s2)]

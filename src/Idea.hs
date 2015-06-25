@@ -21,7 +21,7 @@ data Idea = Idea
     ,ideaFrom :: String -- ^ The contents of the source code the idea relates to.
     ,ideaTo :: Maybe String -- ^ The suggested replacement, or 'Nothing' for no replacement (e.g. on parse errors).
     ,ideaNote :: [Note] -- ^ Notes about the effect of applying the replacement.
-    , ideaRefactoring :: Maybe (Refactoring R.SrcSpan) -- ^ How to perform this idea
+    , ideaRefactoring :: [Refactoring R.SrcSpan] -- ^ How to perform this idea
 --    , ideaPreciseSpan :: SrcSpan -- ^ The source code that needs to be replaced
 --    , ideaSubst :: Maybe [(String, SrcSpan)] -- ^ The performed substitution
 --    , ideaTemplate :: Maybe String -- ^ The template used to generate the output
@@ -71,11 +71,11 @@ showEx tt Idea{..} = unlines $
             where xs = lines $ tt x
 
 
-rawIdea a b c d e f = Idea "" "" a b c d e f Nothing
+rawIdea a b c d e f = Idea "" "" a b c d e f []
 rawRefactorIdea = Idea "" ""
 idea' severity hint from to subst fromE = (idea severity hint from to)
                                             {
-                                              ideaRefactoring = Just (refactReplace Expr from subst fromE)
+                                              ideaRefactoring = [refactReplace Expr from subst fromE]
                                             }
 idea severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) []
     where f = trimStart . prettyPrint
@@ -87,7 +87,7 @@ err' = idea' Error
 
 preciseIdea severity hint from to subst template replexp typ =
   (idea severity hint from to)
-    { ideaRefactoring = Just (refactReplace typ replexp subst template ) }
+    { ideaRefactoring = [refactReplace typ replexp subst template] }
 
 preciseWarn = preciseIdea Warning
 preciseErr  = preciseIdea Error
@@ -105,5 +105,5 @@ toRefactSrcSpan ss = R.SrcSpan (srcSpanStart ss) (srcSpanEnd ss)
 changeRefactType :: RType -> Idea -> Idea
 changeRefactType rt i@Idea{ ideaRefactoring} =
   case ideaRefactoring of
-    Just (r@Replace{}) -> i { ideaRefactoring = Just (r { rtype = rt }) }
+    [r@Replace{}] -> i { ideaRefactoring = [(r { rtype = rt })] }
     _ -> i

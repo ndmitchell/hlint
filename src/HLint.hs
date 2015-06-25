@@ -137,7 +137,7 @@ runHints cmd@CmdMain{..} flags = do
         else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
     if | cmdJson -> putStrLn . showIdeasJson $ showideas
-       | cmdSerialise ->  print $ mapMaybe ideaRefactoring showideas
+       | cmdSerialise ->  print $ concatMap ideaRefactoring showideas
        | otherwise -> do
             usecolour <- cmdUseColour cmd
             showItem <- if usecolour then showANSI else return show
