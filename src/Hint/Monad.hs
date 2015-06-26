@@ -41,6 +41,8 @@ import Data.Tuple.Extra
 import Data.Maybe
 import Data.List
 import Hint.Type
+import Refact.Types
+import qualified Refact.Types as R
 import Prelude
 
 
@@ -54,7 +56,7 @@ monadExp :: Decl_ -> Exp_ -> [Idea]
 monadExp decl x = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         Do _ xs -> [err "Redundant return" x y | Just y <- [monadReturn xs]] ++
-                   [err' "Use join" x (Do an y) subts (prettyPrint (Do an template)) | Just (y, subts, template) <- [split <$> monadJoin xs ['a'..'z']]] ++
+                   [(err "Use join" x (Do an y)) { ideaRefactoring = rs } | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
                    [err' "Redundant do" x y [("y", ann y)] "y" | [Qualifier _ y] <- [xs]] ++
                    [warn "Use let" x (Do an y) | Just y <- [monadLet xs]] ++
                    concat [f x | Qualifier _ x <- init xs]
@@ -87,17 +89,20 @@ monadReturn (reverse -> Qualifier _ (App _ ret (Var _ v)):Generator _ (PVar _ p)
     = Just $ Do an $ reverse $ Qualifier an x : rest
 monadReturn _ = Nothing
 
-monadJoin :: [Stmt S] -> [Char] -> Maybe [(Stmt S, String, Stmt S)]
-monadJoin (Generator _ (view -> PVar_ p) x:Qualifier _ (view -> Var_ v):xs) (c:cs)
+monadJoin :: [Stmt S] -> [Char] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
+monadJoin (g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Var_ v)):xs) (c:cs)
     | p == v && v `notElem` varss xs
-    = Just $ (gen x, [c], template) : fromMaybe def (monadJoin xs cs)
+    = Just . f $ fromMaybe def (monadJoin xs cs)
     where
       gen expr = Qualifier (ann x) (rebracket1 $ App an (toNamed "join") expr)
-      template = gen (Var (ann x) (toNamed [c]))
-      def = zipWith munge cs xs
-      munge c stmt = (stmt, [c], Qualifier (ann stmt) (toNamed [c]))
+      def = (xs, [])
+      f (ss, rs) = (s:ss, r ++ rs)
+      s = gen x
+      toSS :: Annotated a => a S -> R.SrcSpan
+      toSS = toRefactSrcSpan . toSrcSpan . ann
+      r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete (toSS q)]
 
-monadJoin (x:xs) (c:cs) = ((x, [c], Qualifier (ann x) (toNamed [c])) :)   <$> monadJoin xs cs
+monadJoin (x:xs) cs = first (x:)   <$> monadJoin xs cs
 monadJoin [] _ = Nothing
 
 monadLet :: [Stmt S] -> Maybe [Stmt S]
