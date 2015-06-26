@@ -95,12 +95,15 @@ preciseErr  = preciseIdea Error
 
 refactReplace :: Annotated a => RType -> a S -> [(String, S)] -> String -> Refactoring R.SrcSpan
 refactReplace typ ss subt template =
-  Replace typ (f (ann ss)) (map (fmap f) subt) template
+  Replace typ (toSS ss) (map (fmap f) subt) template
   where
     f = toRefactSrcSpan . toSrcSpan
 
 toRefactSrcSpan :: SrcSpan -> R.SrcSpan
 toRefactSrcSpan ss = R.SrcSpan (srcSpanStart ss) (srcSpanEnd ss)
+
+toSS :: Annotated a => a S -> R.SrcSpan
+toSS = toRefactSrcSpan . toSrcSpan . ann
 
 changeRefactType :: RType -> Idea -> Idea
 changeRefactType rt i@Idea{ ideaRefactoring} =

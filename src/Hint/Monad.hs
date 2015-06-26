@@ -55,10 +55,10 @@ monadHint _ _ d = concatMap (monadExp d) $ universeBi d
 monadExp :: Decl_ -> Exp_ -> [Idea]
 monadExp decl x = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
-        Do _ xs -> [err "Redundant return" x y | Just y <- [monadReturn xs]] ++
+        Do _ xs -> [(err "Redundant return" x (Do an y)) { ideaRefactoring = rs } | Just (y, rs) <- [monadReturn xs]] ++
                    [(err "Use join" x (Do an y)) { ideaRefactoring = rs } | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
                    [err' "Redundant do" x y [("y", ann y)] "y" | [Qualifier _ y] <- [xs]] ++
-                   [warn "Use let" x (Do an y) | Just y <- [monadLet xs]] ++
+                   [(warn "Use let" x (Do an y)) { ideaRefactoring = rs } | Just (y, rs) <- [monadLet xs]] ++
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where
@@ -83,10 +83,11 @@ monadCall (replaceBranches -> (bs@(_:_), gen)) | all isJust res
 monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, toNamed x2)
 monadCall _ = Nothing
 
-monadReturn :: [Stmt S] -> Maybe Exp_
-monadReturn (reverse -> Qualifier _ (App _ ret (Var _ v)):Generator _ (PVar _ p) x:rest)
+monadReturn :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
+monadReturn (reverse -> q@(Qualifier _ (App _ ret (Var _ v))):g@(Generator _ (PVar _ p) x):rest)
     | ret ~= "return", fromNamed v == fromNamed p
-    = Just $ Do an $ reverse $ Qualifier an x : rest
+    = Just (reverse (Qualifier an x : rest),
+            [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete (toSS q)])
 monadReturn _ = Nothing
 
 monadJoin :: [Stmt S] -> [Char] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
@@ -98,22 +99,24 @@ monadJoin (g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Var_ v)):
       def = (xs, [])
       f (ss, rs) = (s:ss, r ++ rs)
       s = gen x
-      toSS :: Annotated a => a S -> R.SrcSpan
-      toSS = toRefactSrcSpan . toSrcSpan . ann
       r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete (toSS q)]
 
 monadJoin (x:xs) cs = first (x:)   <$> monadJoin xs cs
 monadJoin [] _ = Nothing
 
-monadLet :: [Stmt S] -> Maybe [Stmt S]
-monadLet xs = if xs == ys then Nothing else Just ys
+monadLet :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
+monadLet xs = if null rs then Nothing else Just (ys, rs)
     where
-        ys = map mkLet xs
+        (ys, catMaybes -> rs) = unzip $ map mkLet xs
         vs = concatMap pvars [p | Generator _ p _ <- xs]
-        mkLet (Generator _ (view -> PVar_ p) (fromRet -> Just y))
+        mkLet g@(Generator _ v@(view -> PVar_ p) (fromRet -> Just y))
             | p `notElem` vars y, p `notElem` delete p vs
-            = LetStmt an $ BDecls an [PatBind an (toNamed p) (UnGuardedRhs an y) Nothing]
-        mkLet x = x
+            = (template (toNamed p) y, Just refact)
+         where
+            refact = Replace Stmt (toSS g) [("lhs", toSS v), ("rhs", toSS y)]
+                      (prettyPrint $ template (toNamed "lhs") (toNamed "rhs"))
+        mkLet x = (x, Nothing)
+        template lhs rhs = LetStmt an $ BDecls an [PatBind an lhs (UnGuardedRhs an rhs) Nothing]
 
 fromRet (Paren _ x) = fromRet x
 fromRet (InfixApp _ x y z) | opExp y ~= "$" = fromRet $ App an x z
