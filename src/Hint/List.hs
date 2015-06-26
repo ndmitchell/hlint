@@ -122,5 +122,8 @@ stringType x = case x of
         f x = concatMap g $ childrenBi x
 
         g :: Type_ -> [Idea]
-        g (fromTyParen -> x) = [warn "Use String" x (transform f x) | any (=~= typeListChar) $ universe x]
+        g e@(fromTyParen -> x) = [(warn "Use String" x (transform f x))
+                                    { ideaRefactoring = rs} | not . null $ rs]
             where f x = if x =~= typeListChar then typeString else x
+                  toSS = toRefactSrcSpan . toSrcSpan . ann
+                  rs = [Replace Type (toSS t) [] (prettyPrint typeString) | t <- universe x, t =~= typeListChar]
