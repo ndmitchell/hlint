@@ -62,25 +62,29 @@ monadExp decl x = case x of
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where
-        f x = [err ("Use " ++ name) x y | Just (name,y) <- [monadCall x], fromNamed decl /= name]
+        f x = [(err ("Use " ++ name) x y) { ideaRefactoring = r}  | Just (name,y, r) <- [monadCall x], fromNamed decl /= name]
         split [] = ([], [], [])
         split ((s, v, t):xs) =
           let (ss, subts, ts) = split xs in
             (s:ss, (v, ann t): subts, t:ts)
 
+middle :: (b -> d) -> (a, b, c) -> (a, d, c)
+middle f (a,b,c) = (a, f b, c)
+
 
 -- see through Paren and down if/case etc
 -- return the name to use in the hint, and the revised expression
-monadCall :: Exp_ -> Maybe (String,Exp_)
-monadCall (Paren _ x) = second (Paren an) <$> monadCall x
-monadCall (App _ x y) = second (\x -> App an x y) <$> monadCall x
-monadCall (InfixApp _ x op y)
-    | isDol op = second (\x -> InfixApp an x op y) <$> monadCall x
-    | op ~= ">>=" = second (\y -> InfixApp an x op y) <$> monadCall y
+monadCall :: Exp_ -> Maybe (String,Exp_, [Refactoring R.SrcSpan])
+monadCall (Paren l x) = middle (Paren l) <$> monadCall x
+monadCall (App l x y) = middle (\x -> App l x y) <$> monadCall x
+monadCall (InfixApp l x op y)
+    | isDol op = middle (\x -> InfixApp l x op y) <$> monadCall x
+    | op ~= ">>=" = middle (\y -> InfixApp l x op y) <$> monadCall y
 monadCall (replaceBranches -> (bs@(_:_), gen)) | all isJust res
-    = Just (fst $ fromJust $ head res, gen $ map (snd . fromJust) res)
+    = Just ("Use simple functions", gen $ map (\(Just (a,b,c)) -> b) res, rs)
     where res = map monadCall bs
-monadCall x | x:_ <- filter (x ~=) badFuncs = let x2 = x ++ "_" in  Just (x2, toNamed x2)
+          rs  = concatMap (\(Just (a,b,c)) -> c) res
+monadCall x | x2:_ <- filter (x ~=) badFuncs = let x3 = x2 ++ "_" in  Just (x3, toNamed x3, [Replace Expr (toSS x) [] x3])
 monadCall _ = Nothing
 
 monadReturn :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
