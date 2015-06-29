@@ -41,6 +41,8 @@ module Hint.Structure(structureHint) where
 import Hint.Type
 import Data.List.Extra
 import Data.Tuple
+import Refact.Types hiding (RType(Pattern))
+import qualified Refact.Types as R (RType(Pattern))
 
 
 structureHint :: DeclHint
@@ -108,25 +110,30 @@ asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
 -- Should these hints be in the same module? They are less structure, and more about pattern matching
 -- Or perhaps the entire module should be renamed Pattern, since it's all about patterns
 patHint :: Pat_ -> [Idea]
-patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args = [warn "Use record patterns" o $ PRec an name []]
-patHint o@(PBangPat _ x) | f x = [err "Redundant bang pattern" o x]
+patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args =
+  [(warn "Use record patterns" o $ PRec an name [])
+    { ideaRefactoring = [Replace R.Pattern (toSS o) [] (prettyPrint $ PRec an name [])] } ]
+
+patHint o@(PBangPat _ x) | f x = [(err "Redundant bang pattern" o x) { ideaRefactoring = [r]}]
     where f (PParen _ x) = f x
           f (PAsPat _ _ x) = f x
           f PLit{} = True
           f PApp{} = True
           f PInfixApp{} = True
           f _ = False
-patHint o@(PIrrPat _ x) | f x = [err "Redundant irrefutable pattern" o x]
+          r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
+patHint o@(PIrrPat _ x) | f x = [(err "Redundant irrefutable pattern" o x) { ideaRefactoring = [r]}]
     where f (PParen _ x) = f x
           f (PAsPat _ _ x) = f x
           f PWildCard{} = True
           f PVar{} = True
           f _ = False
+          r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
 patHint _ = []
 
 
 expHint :: Exp_ -> [Idea]
-expHint o@(Case _ _ [Alt _ PWildCard{} (UnGuardedRhs _ e) Nothing]) = [warn "Redundant case" o e]
+expHint o@(Case _ _ [Alt _ PWildCard{} (UnGuardedRhs _ e) Nothing]) = [warn' "Redundant case" o e [("x", ann e)] "x"]
 expHint o@(Case _ (Var _ x) [Alt _ (PVar _ y) (UnGuardedRhs _ e) Nothing])
-    | x =~= UnQual an y = [warn "Redundant case" o e]
+    | x =~= UnQual an y = [warn' "Redundant case" o e [("x", ann e)] "x"]
 expHint _ = []
