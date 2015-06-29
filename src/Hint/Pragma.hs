@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-
     Suggest better pragmas
     OPTIONS_GHC -cpp => LANGUAGE CPP
@@ -29,26 +31,65 @@ module Hint.Pragma(pragmaHint) where
 import Hint.Type
 import Data.List
 import Data.Maybe
+import Refact.Types
+import qualified Refact.Types as R
 
 
 pragmaHint :: ModuHint
-pragmaHint _ x = languageDupes lang ++ [pragmaIdea old $ [LanguagePragma an (map toNamed ns2) | ns2 /= []] ++ catMaybes new | old /= []]
+pragmaHint _ x = languageDupes lang ++ optToPragma x lang
     where
         lang = [x | x@LanguagePragma{} <- modulePragmas x]
-        (old,new,ns) = unzip3 [(old,new,ns) | old <- modulePragmas x, Just (new,ns) <- [optToLanguage old]]
-        ns2 = nub (concat ns) \\ concat [map fromNamed n | LanguagePragma _ n <- lang]
+
+optToPragma :: Module_ -> [ModulePragma S] -> [Idea]
+optToPragma x lang =
+  [pragmaIdea (OptionsToComment old ys rs) | old /= []]
+  where
+        (old,new,ns, rs) =
+          unzip4 [(old,new,ns, r)
+                 | old <- modulePragmas x, Just (new,ns) <- [optToLanguage old ls]
+                 , let r = mkRefact old new ns]
+
+        ls = concat [map fromNamed n | LanguagePragma _ n <- lang]
+        ns2 = nub (concat ns) \\ ls
+
+        ys = [LanguagePragma an (map toNamed ns2) | ns2 /= []] ++ catMaybes new
+        mkRefact :: ModulePragma S -> Maybe (ModulePragma S) -> [String] -> Refactoring R.SrcSpan
+        mkRefact old (maybe "" prettyPrint -> new) ns =
+          let ns' = map (\n -> prettyPrint $ LanguagePragma an [toNamed n]) ns
+          in
+          ModifyComment (toSS old) (intercalate "\n" (filter (not . null) (new: ns')))
+
+data PragmaIdea = SingleComment (ModulePragma S) (ModulePragma S)
+                | MultiComment (ModulePragma S) (ModulePragma S) (ModulePragma S)
+                | OptionsToComment [ModulePragma S] [ModulePragma S] [Refactoring R.SrcSpan]
 
 
-pragmaIdea :: [ModulePragma S] -> [ModulePragma S] -> Idea
-pragmaIdea xs ys = rawIdea Error "Use better pragmas" (toSrcSpan $ ann $ head xs) (f xs) (Just $ f ys) []
-    where f = unlines . map prettyPrint
+pragmaIdea :: PragmaIdea -> Idea
+pragmaIdea pidea =
+  case pidea of
+    SingleComment old new ->
+      mkIdea (toSrcSpan . ann $ old)
+        (prettyPrint old) (Just $ prettyPrint new) []
+        [ModifyComment (toSS old) (prettyPrint new)]
+    MultiComment repl delete new ->
+      mkIdea (toSrcSpan . ann $ repl)
+        (f [repl, delete]) (Just $ prettyPrint new) []
+        [ ModifyComment (toSS repl) (prettyPrint new)
+        , ModifyComment (toSS delete) ""]
+    OptionsToComment old new r ->
+      mkIdea (toSrcSpan . ann . head $ old)
+        (f old) (Just $ f new) []
+        r
+    where
+          f = unlines . map prettyPrint
+          mkIdea = rawRefactorIdea Error "Use better pragmas"
 
 
 languageDupes :: [ModulePragma S] -> [Idea]
 languageDupes (a@(LanguagePragma _ x):xs) =
     (if nub_ x `neqList` x
-        then [pragmaIdea [a] [LanguagePragma an $ nub_ x]]
-        else [pragmaIdea [a,b] [LanguagePragma an (nub_ $ x ++ y)] | b@(LanguagePragma _ y) <- xs, not $ null $ intersect_ x y]) ++
+        then [pragmaIdea (SingleComment a (LanguagePragma (ann a) $ nub_ x))]
+        else [pragmaIdea (MultiComment a b (LanguagePragma (ann a) (nub_ $ x ++ y))) | b@(LanguagePragma _ y) <- xs, not $ null $ intersect_ x y]) ++
     languageDupes xs
 languageDupes _ = []
 
@@ -61,12 +102,13 @@ strToLanguage "-fglasgow-exts" = Just $ map prettyExtension glasgowExts
 strToLanguage _ = Nothing
 
 
-optToLanguage :: ModulePragma S -> Maybe (Maybe (ModulePragma S), [String])
-optToLanguage (OptionsPragma sl tool val)
-    | maybe True (== GHC) tool && any isJust vs = Just (res, concat $ catMaybes vs)
+optToLanguage :: ModulePragma S -> [String] -> Maybe (Maybe (ModulePragma S), [String])
+optToLanguage (OptionsPragma sl tool val) ls
+    | maybe True (== GHC) tool && any isJust vs =
+      Just (res, filter (not . (`elem` ls)) (concat $ catMaybes vs))
     where
         strs = words val
         vs = map strToLanguage strs
         keep = concat $ zipWith (\v s -> [s | isNothing v]) vs strs
         res = if null keep then Nothing else Just $ OptionsPragma sl tool (unwords keep)
-optToLanguage _ = Nothing
+optToLanguage _ _ = Nothing

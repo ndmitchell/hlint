@@ -83,7 +83,7 @@ extensionsHint _ x = [rawRefactorIdea Error "Unused LANGUAGE pragma" (toSrcSpan 
     , o@(LanguagePragma sl exts) <- modulePragmas x
     , let old = map (parseExtension . prettyPrint) exts
     , let new = minimalExtensions x old
-    , let refact = ModifyComment (prettyPrint o) ""
+    , let refact = ModifyComment (toSS o) ""
     , sort new /= sort old]
 
 
