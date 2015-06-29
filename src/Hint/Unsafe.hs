@@ -20,14 +20,15 @@ module Hint.Unsafe(unsafeHint) where
 
 import Hint.Type
 import Data.Char
+import Refact.Types
 
 
 unsafeHint :: ModuHint
 unsafeHint _ m =
-        [ rawIdea Error "Missing NOINLINE pragma" (toSrcSpan $ ann d)
+        [ rawRefactorIdea Error "Missing NOINLINE pragma" (toSrcSpan $ ann d)
             (prettyPrint d)
             (Just $ dropWhile isSpace (prettyPrint $ gen x) ++ "\n" ++ prettyPrint d)
-            []
+            [] [InsertComment (toSS d) (prettyPrint $ gen x)]
         | d@(PatBind _ (PVar _ x) _ _) <- moduleDecls m
         , isUnsafeDecl d, x `notElem_` noinline]
     where
