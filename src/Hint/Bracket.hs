@@ -85,6 +85,7 @@ tyConToRtype :: String -> RType
 tyConToRtype "Exp" = Expr
 tyConToRtype "Type" = Type
 tyConToRtype "Pat"  = Pattern
+tyConToRtype _      = Expr
 
 findType :: (Data a) => a -> RType
 findType = tyConToRtype . dataTypeName . dataTypeOf

@@ -94,7 +94,7 @@ findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
   [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
   | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
-  , (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
+  , (parent,x) <- universeParentExp decl, not $ isParen x
   , m <- matches, Just (y,notes, subst, rule) <- [matchIdea s decl m parent x]
   , let r = R.Replace R.Expr (toSS x) subst (prettyPrint rule) ]
 

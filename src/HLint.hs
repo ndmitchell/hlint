@@ -8,7 +8,6 @@ import Control.Applicative
 import Control.Monad.Extra
 import System.Console.CmdArgs.Verbosity
 import Data.List
-import Data.Maybe (mapMaybe)
 import System.Exit
 import System.IO
 import Prelude
@@ -24,10 +23,6 @@ import Test.Proof
 import Util
 import Parallel
 import HSE.All
-
-import qualified Refact.Types as R
-import Refact.Types hiding (SrcSpan)
-
 
 -- | A suggestion - the @Show@ instance is of particular use.
 newtype Suggestion = Suggestion {fromSuggestion :: Idea}

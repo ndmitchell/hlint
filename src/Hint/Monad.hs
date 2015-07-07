@@ -63,10 +63,6 @@ monadExp decl x = case x of
         _ -> []
     where
         f x = [err ("Use " ++ name) x y r  | Just (name,y, r) <- [monadCall x], fromNamed decl /= name]
-        split [] = ([], [], [])
-        split ((s, v, t):xs) =
-          let (ss, subts, ts) = split xs in
-            (s:ss, (v, ann t): subts, t:ts)
 
 middle :: (b -> d) -> (a, b, c) -> (a, d, c)
 middle f (a,b,c) = (a, f b, c)
