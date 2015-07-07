@@ -57,7 +57,7 @@ importHint _ x = concatMap (wrap . snd) (groupSort
 
 
 wrap :: [ImportDecl S] -> [Idea]
-wrap o = [ rawIdea Error "Use fewer imports" (toSrcSpan $ ann $ head o) (f o) (Just $ f x) []
+wrap o = [ rawIdeaN Error "Use fewer imports" (toSrcSpan $ ann $ head o) (f o) (Just $ f x) []
          | Just x <- [simplify o]]
     where f = unlines . map prettyPrint
 
@@ -94,7 +94,7 @@ reduce _ _ = Nothing
 reduce1 :: ImportDecl S -> [Idea]
 reduce1 i@ImportDecl{..}
     | Just (dropAnn importModule) == fmap dropAnn importAs
-    = [warn "Redundant as" i i{importAs=Nothing}]
+    = [warnN "Redundant as" i i{importAs=Nothing}]
 reduce1 _ = []
 
 
@@ -117,12 +117,12 @@ newNames = let (*) = flip (,) in
 
 hierarchy :: ImportDecl S -> [Idea]
 hierarchy i@ImportDecl{importModule=ModuleName _ x,importPkg=Nothing} | Just y <- lookup x newNames
-    = [warn "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an $ y ++ "." ++ x}]
+    = [warnN "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an $ y ++ "." ++ x}]
 
 -- import IO is equivalent to
 -- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)
 hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing,importPkg=Nothing}
-    = [rawIdea Warning "Use hierarchical imports" (toSrcSpan $ ann i) (trimStart $ prettyPrint i) (
+    = [rawIdeaN Warning "Use hierarchical imports" (toSrcSpan $ ann i) (trimStart $ prettyPrint i) (
           Just $ unlines $ map (trimStart . prettyPrint)
           [f "System.IO" Nothing, f "System.IO.Error" Nothing
           ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an (NoNamespace an) $ toNamed x | x <- ["bracket","bracket_"]]]) []]
@@ -139,7 +139,7 @@ desugarQual x | importQualified x && isNothing (importAs x) = x{importAs=Just (i
 
 multiExport :: Module S -> [Idea]
 multiExport x =
-    [ rawIdea Warning "Use import/export shortcut" (toSrcSpan $ ann hd)
+    [ rawIdeaN Warning "Use import/export shortcut" (toSrcSpan $ ann hd)
         (unlines $ prettyPrint hd : map prettyPrint imps)
         (Just $ unlines $ prettyPrint newhd : map prettyPrint newimps)
         []

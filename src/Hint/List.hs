@@ -45,12 +45,16 @@ listExp b (fromParen -> x) =
         if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
     where
         -- I think this is wrong for useCons, useList
-        res = [warn' name x x2 subts temp | (name,f) <- checks, Just (x2, subts, temp) <- [f b x]]
+        res = [warn name x x2 [r] | (name,f) <- checks
+                                  , Just (x2, subts, temp) <- [f b x]
+                                  , let r = Replace Expr (toSS x) subts temp ]
 
 listPat :: Pat_ -> [Idea]
 listPat x = if null res then concatMap listPat $ children x else [head res]
-    where res = [changeRefactType Pattern (warn' name x x2 subts temp)
-                  | (name,f) <- pchecks, Just (x2, subts, temp) <- [f x]]
+    where res = [warn name x x2 [r]
+                  | (name,f) <- pchecks
+                  , Just (x2, subts, temp) <- [f x]
+                  , let r = Replace Pattern (toSS x) subts temp ]
 
 isAppend (view -> App2 op _ _) = op ~= "++"
 isAppend _ = False
@@ -73,7 +77,7 @@ usePString (PList _ xs) | xs /= [], Just s <- mapM fromPChar xs =
   in Just (literal, [], prettyPrint literal)
 usePString _ = Nothing
 
-usePList = fmap (\(e, s) -> (PList an e, map (fmap ann) s, prettyPrint (PList an (map snd s))))
+usePList = fmap (\(e, s) -> (PList an e, map (fmap toSS) s, prettyPrint (PList an (map snd s))))
     . fmap unzip . f True ['a'..'z']
     where
         f first _ x | x ~= "[]" = if first then Nothing else Just []
@@ -89,7 +93,7 @@ useString b (List _ xs) | xs /= [], Just s <- mapM fromChar xs =
   in Just (literal , [], prettyPrint literal)
 useString b _ = Nothing
 
-useList b = fmap (\(e, s) -> (List an e, map (fmap ann) s, prettyPrint (List an (map snd s))))
+useList b = fmap (\(e, s) -> (List an e, map (fmap toSS) s, prettyPrint (List an (map snd s))))
               . fmap unzip . f True ['a'..'z']
     where
         f first _ x | x ~= "[]" = if first then Nothing else Just []
@@ -100,7 +104,7 @@ useList b = fmap (\(e, s) -> (List an e, map (fmap ann) s, prettyPrint (List an 
         g :: Char -> Exp_ -> (String, Exp_)
         g c p = ([c], Var (ann p) (toNamed [c]))
 
-useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend y = Just (gen x2 y, [("x", ann x2), ("xs", ann y)], prettyPrint $ gen (toNamed "x") (toNamed "xs"))
+useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend y = Just (gen x2 y, [("x", toSS x2), ("xs", toSS y)], prettyPrint $ gen (toNamed "x") (toNamed "xs"))
     where
         f (List _ [x]) = Just $ if isApp x then x else paren x
         f _ = Nothing
@@ -122,8 +126,8 @@ stringType x = case x of
         f x = concatMap g $ childrenBi x
 
         g :: Type_ -> [Idea]
-        g e@(fromTyParen -> x) = [(warn "Use String" x (transform f x))
-                                    { ideaRefactoring = rs} | not . null $ rs]
+        g e@(fromTyParen -> x) = [warn "Use String" x (transform f x)
+                                    rs | not . null $ rs]
             where f x = if x =~= typeListChar then typeString else x
                   toSS = toRefactSrcSpan . toSrcSpan . ann
                   rs = [Replace Type (toSS t) [] (prettyPrint typeString) | t <- universe x, t =~= typeListChar]

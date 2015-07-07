@@ -101,36 +101,41 @@ bracket bad = f Nothing
         f Just{} o@(remParen -> Just x) | isAtom x = bracketError msg o x : g x
         f Nothing o@(remParen -> Just x) | bad = bracketWarning msg o x : g x
         f (Just (i,o,gen)) v@(remParen -> Just x) | not $ needBracket i o x =
-          preciseWarn msg o (gen x) [("x", ann x)] "x" v typ
+          warn msg o (gen x) [r]
             : g x
           where
-            typ = findType x
+            typ = findType v
+            r = Replace typ (toSS v) [("x", toSS x)] "x"
         f _ x = g x
 
         g :: (Data (a S), Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
 
 bracketWarning msg o x =
-  changeRefactType (findType x) (idea' Warning msg o x [("x", ann x)] "x")
+  idea Warning msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 bracketError msg o x =
-  changeRefactType (findType x) (idea' Error msg o x [("x", ann x)] "x")
+  idea Error msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 
 
 fieldDecl :: FieldDecl S -> [Idea]
 fieldDecl o@(FieldDecl a b (TyParen _ c))
-    = [warn "Redundant bracket" o (FieldDecl a b c)]
+    = [warnN "Redundant bracket" o (FieldDecl a b c)]
 fieldDecl _ = []
 
 
 dollar :: Exp_ -> [Idea]
 dollar = concatMap f . universe
     where
-        f x = [warn' "Redundant $" x y [("a", ann a), ("b", ann b)] "a b" | InfixApp _ a d b <- [x], opExp d ~= "$"
-              ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b]
+        f x = [warn "Redundant $" x y [r] | InfixApp _ a d b <- [x], opExp d ~= "$"
+              ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b
+              ,let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"
+                ]
+
               ++
-              [preciseWarn "Move brackets to avoid $" x (t y) [("a", ann a1), ("b",ann a2)] "a (b)" e Expr |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
+              [warn "Move brackets to avoid $" x (t y) [r] |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
               ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
-              ,let y = App an a1 (Paren an a2)]
+              , let y = App an a1 (Paren an a2)
+              , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]
 
 
 -- return both sides, and a way to put them together again

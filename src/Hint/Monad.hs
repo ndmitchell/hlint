@@ -55,14 +55,14 @@ monadHint _ _ d = concatMap (monadExp d) $ universeBi d
 monadExp :: Decl_ -> Exp_ -> [Idea]
 monadExp decl x = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
-        Do _ xs -> [(err "Redundant return" x (Do an y)) { ideaRefactoring = rs } | Just (y, rs) <- [monadReturn xs]] ++
-                   [(err "Use join" x (Do an y)) { ideaRefactoring = rs } | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
-                   [err' "Redundant do" x y [("y", ann y)] "y" | [Qualifier _ y] <- [xs]] ++
-                   [(warn "Use let" x (Do an y)) { ideaRefactoring = rs } | Just (y, rs) <- [monadLet xs]] ++
+        Do _ xs -> [err "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
+                   [err "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
+                   [err "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"] | [Qualifier _ y] <- [xs]] ++
+                   [warn "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where
-        f x = [(err ("Use " ++ name) x y) { ideaRefactoring = r}  | Just (name,y, r) <- [monadCall x], fromNamed decl /= name]
+        f x = [err ("Use " ++ name) x y r  | Just (name,y, r) <- [monadCall x], fromNamed decl /= name]
         split [] = ([], [], [])
         split ((s, v, t):xs) =
           let (ss, subts, ts) = split xs in

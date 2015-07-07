@@ -50,8 +50,8 @@ import Control.Monad
 import Data.Tuple.Extra
 import Util
 import qualified Data.Set as Set
-import Debug.Trace
 import Prelude
+import qualified Refact.Types as R
 
 
 fmapAn = fmap (const an)
@@ -92,12 +92,13 @@ dotVersion _ = Nothing
 
 findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
-  [ (idea' (hintRuleSeverity m) (hintRuleName m) x y subst (prettyPrint rule)){ideaNote=notes}
+  [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
   | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
   , (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
-  , m <- matches, Just (y,notes, subst, rule) <- [matchIdea s decl m parent x]]
+  , m <- matches, Just (y,notes, subst, rule) <- [matchIdea s decl m parent x]
+  , let r = R.Replace R.Expr (toSS x) subst (prettyPrint rule) ]
 
-matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note], [(String, S)], Exp_)
+matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note], [(String, R.SrcSpan)], Exp_)
 matchIdea s decl HintRule{..} parent x = do
     let nm a b = scopeMatch (hintRuleScope,a) (s,b)
     u <- unifyExp nm True hintRuleLHS x
@@ -109,7 +110,7 @@ matchIdea s decl HintRule{..} parent x = do
         -- check no unexpected new free variables
     guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
-    return (res,hintRuleNotes, (map (ann <$>) u), hintRuleRHS)
+    return (res,hintRuleNotes, (map (toSS <$>) u), hintRuleRHS)
 
 
 ---------------------------------------------------------------------

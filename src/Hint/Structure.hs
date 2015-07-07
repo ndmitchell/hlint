@@ -98,12 +98,12 @@ data Pattern = Pattern [Pat_] (Rhs S) (Maybe (Binds S))
 asPattern :: Decl_ -> [(Pattern, String -> Pattern -> Idea)]
 asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
     where
-        decl o@(PatBind a pat rhs bind) = [(Pattern [pat] rhs bind, \msg (Pattern [pat] rhs bind) -> warn msg o $ PatBind a pat rhs bind)]
+        decl o@(PatBind a pat rhs bind) = [(Pattern [pat] rhs bind, \msg (Pattern [pat] rhs bind) -> warnN msg o $ PatBind a pat rhs bind)]
         decl (FunBind _ xs) = map match xs
         decl _ = []
-        match o@(Match a b pat rhs bind) = (Pattern pat rhs bind, \msg (Pattern pat rhs bind) -> warn msg o $ Match a b pat rhs bind)
-        match o@(InfixMatch a p b ps rhs bind) = (Pattern (p:ps) rhs bind, \msg (Pattern (p:ps) rhs bind) -> warn msg o $ InfixMatch a p b ps rhs bind)
-        alt o@(Alt a pat rhs bind) = [(Pattern [pat] rhs bind, \msg (Pattern [pat] rhs bind) -> warn msg o $ Alt a pat rhs bind)]
+        match o@(Match a b pat rhs bind) = (Pattern pat rhs bind, \msg (Pattern pat rhs bind) -> warnN msg o $ Match a b pat rhs bind)
+        match o@(InfixMatch a p b ps rhs bind) = (Pattern (p:ps) rhs bind, \msg (Pattern (p:ps) rhs bind) -> warnN msg o $ InfixMatch a p b ps rhs bind)
+        alt o@(Alt a pat rhs bind) = [(Pattern [pat] rhs bind, \msg (Pattern [pat] rhs bind) -> warnN msg o $ Alt a pat rhs bind)]
 
 
 
@@ -111,10 +111,9 @@ asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
 -- Or perhaps the entire module should be renamed Pattern, since it's all about patterns
 patHint :: Pat_ -> [Idea]
 patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args =
-  [(warn "Use record patterns" o $ PRec an name [])
-    { ideaRefactoring = [Replace R.Pattern (toSS o) [] (prettyPrint $ PRec an name [])] } ]
+  [warn "Use record patterns" o (PRec an name []) [Replace R.Pattern (toSS o) [] (prettyPrint $ PRec an name [])] ]
 
-patHint o@(PBangPat _ x) | f x = [(err "Redundant bang pattern" o x) { ideaRefactoring = [r]}]
+patHint o@(PBangPat _ x) | f x = [err "Redundant bang pattern" o x [r]]
     where f (PParen _ x) = f x
           f (PAsPat _ _ x) = f x
           f PLit{} = True
@@ -122,7 +121,7 @@ patHint o@(PBangPat _ x) | f x = [(err "Redundant bang pattern" o x) { ideaRefac
           f PInfixApp{} = True
           f _ = False
           r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
-patHint o@(PIrrPat _ x) | f x = [(err "Redundant irrefutable pattern" o x) { ideaRefactoring = [r]}]
+patHint o@(PIrrPat _ x) | f x = [err "Redundant irrefutable pattern" o x [r]]
     where f (PParen _ x) = f x
           f (PAsPat _ _ x) = f x
           f PWildCard{} = True
@@ -133,7 +132,13 @@ patHint _ = []
 
 
 expHint :: Exp_ -> [Idea]
-expHint o@(Case _ _ [Alt _ PWildCard{} (UnGuardedRhs _ e) Nothing]) = [warn' "Redundant case" o e [("x", ann e)] "x"]
+expHint o@(Case _ _ [Alt _ PWildCard{} (UnGuardedRhs _ e) Nothing]) =
+  [warn "Redundant case" o e [r]]
+  where
+    r = Replace Expr (toSS o) [("x", toSS e)] "x"
 expHint o@(Case _ (Var _ x) [Alt _ (PVar _ y) (UnGuardedRhs _ e) Nothing])
-    | x =~= UnQual an y = [warn' "Redundant case" o e [("x", ann e)] "x"]
+    | x =~= UnQual an y =
+      [warn "Redundant case" o e [r]]
+  where
+    r = Replace Expr (toSS o) [("x", toSS e)] "x"
 expHint _ = []

@@ -25,7 +25,7 @@ import Refact.Types
 
 unsafeHint :: ModuHint
 unsafeHint _ m =
-        [ rawRefactorIdea Error "Missing NOINLINE pragma" (toSrcSpan $ ann d)
+        [ rawIdea Error "Missing NOINLINE pragma" (toSrcSpan $ ann d)
             (prettyPrint d)
             (Just $ dropWhile isSpace (prettyPrint $ gen x) ++ "\n" ++ prettyPrint d)
             [] [InsertComment (toSS d) (prettyPrint $ gen x)]

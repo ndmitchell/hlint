@@ -71,42 +71,18 @@ showEx tt Idea{..} = unlines $
             where xs = lines $ tt x
 
 
-rawIdea a b c d e f = Idea "" "" a b c d e f []
-rawRefactorIdea = Idea "" ""
-idea' severity hint from to subst fromE = (idea severity hint from to)
-                                            {
-                                              ideaRefactoring = [refactReplace Expr from subst fromE]
-                                            }
-idea severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) []
+rawIdea = Idea "" ""
+rawIdeaN a b c d e f = Idea "" "" a b c d e f []
+
+idea severity hint from to rs = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) [] rs
     where f = trimStart . prettyPrint
 warn = idea Warning
 err = idea Error
 
-warn' = idea' Warning
-err' = idea' Error
 
-preciseIdea severity hint from to subst template replexp typ =
-  (idea severity hint from to)
-    { ideaRefactoring = [refactReplace typ replexp subst template] }
+ideaN severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) [] []
+    where f = trimStart . prettyPrint
 
-preciseWarn = preciseIdea Warning
-preciseErr  = preciseIdea Error
+warnN = ideaN Warning
+errN  = ideaN Error
 
-
-refactReplace :: Annotated a => RType -> a S -> [(String, S)] -> String -> Refactoring R.SrcSpan
-refactReplace typ ss subt template =
-  Replace typ (toSS ss) (map (fmap f) subt) template
-  where
-    f = toRefactSrcSpan . toSrcSpan
-
-toRefactSrcSpan :: SrcSpan -> R.SrcSpan
-toRefactSrcSpan ss = R.SrcSpan (srcSpanStart ss) (srcSpanEnd ss)
-
-toSS :: Annotated a => a S -> R.SrcSpan
-toSS = toRefactSrcSpan . toSrcSpan . ann
-
-changeRefactType :: RType -> Idea -> Idea
-changeRefactType rt i@Idea{ ideaRefactoring} =
-  case ideaRefactoring of
-    [r@Replace{}] -> i { ideaRefactoring = [(r { rtype = rt })] }
-    _ -> i

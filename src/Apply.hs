@@ -62,7 +62,7 @@ parseModuleApply flags s file src = do
     case res of
         Right m -> return $ Right m
         Left (ParseError sl msg ctxt) -> do
-            i <- return $ rawIdea Warning "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
+            i <- return $ rawIdeaN Warning "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
             i <- return $ classify [x | SettingClassify x <- s] i
             return $ Left i{ideaHint = if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg}
 

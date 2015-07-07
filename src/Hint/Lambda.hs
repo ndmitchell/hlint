@@ -83,9 +83,10 @@ lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatM
 lambdaDecl :: Decl_ -> [Idea]
 lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) bind]))
     | isNothing bind, isLambda $ fromParen bod =
-      [changeRefactType Decl (err' "Redundant lambda" o (gen pats bod) s1 t1)]
+      [err "Redundant lambda" o (gen pats bod) [Replace Decl (toSS o) s1 t1]]
     | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
-        = [changeRefactType Decl $ err' "Eta reduce" (reform pats bod) (reform pats2 bod2) s2 t2]
+        = [err "Eta reduce" (reform pats bod) (reform pats2 bod2)
+            [Replace Decl (toSS $ reform pats bod) s2 t2]]
         where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) Nothing]
               gen ps b = uncurry reform . fromLambda . Lambda an ps $ b
               (finalpats, body) = fromLambda . Lambda an pats $ bod
@@ -94,7 +95,7 @@ lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) 
               munge :: Char -> Pat_ -> Pat_
               munge ident p@(PWildCard _) = p
               munge ident p = PVar (ann p) (Ident (ann p) [ident])
-              subts fps b = ("body", ann b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map ann fps)
+              subts fps b = ("body", toSS b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS fps)
               s1 = subts finalpats body
               s2 = subts pats2 bod2
               t1 = template finalpats body
@@ -111,25 +112,25 @@ etaReduce ps x = (ps,x)
 
 
 lambdaExp :: Maybe Exp_ -> Exp_ -> [Idea]
-lambdaExp p o@(Paren _ (App _ (Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
-    [warn' "Use section" o (exp y x) subts template]
+lambdaExp p o@(Paren _ (App _ v@(Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
+    [warn "Use section" o (exp y x) [Replace Expr (toSS o) subts template]]
     where
       exp op rhs = LeftSection an op (toNamed rhs)
       template = prettyPrint (exp (toNamed "a") "*")
-      subts = [("a", ann y), ("*", l)]
+      subts = [("a", toSS y), ("*", toSS v)]
 lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
-    [warn "Use section" o $ RightSection an (QVarOp an x) y]
+    [warnN "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, res <- niceLambda [] o, not $ isLambda res =
-    [(if isVar res || isCon res then err else warn) "Avoid lambda" o res]
+    [(if isVar res || isCon res then errN else warnN) "Avoid lambda" o res]
 lambdaExp p o@(Lambda _ _ x) | isLambda (fromParen x) && maybe True (not . isLambda) p =
-    [warn' "Collapse lambdas" o (Lambda an pats body) subts template]
+    [warn "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
     where
       (pats, body) = fromLambda o
       template = prettyPrint $  Lambda an (zipWith munge ['a'..'z'] pats) (toNamed "body")
       munge :: Char -> Pat_ -> Pat_
       munge ident p@(PWildCard _) = p
       munge ident p = PVar (ann p) (Ident (ann p) [ident])
-      subts = ("body", ann body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map ann pats)
+      subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS pats)
 lambdaExp _ _ = []
 
 

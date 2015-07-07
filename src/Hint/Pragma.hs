@@ -82,7 +82,7 @@ pragmaIdea pidea =
         r
     where
           f = unlines . map prettyPrint
-          mkIdea = rawRefactorIdea Error "Use better pragmas"
+          mkIdea = rawIdea Error "Use better pragmas"
 
 
 languageDupes :: [ModulePragma S] -> [Idea]
