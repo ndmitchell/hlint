@@ -104,10 +104,16 @@ useList b = fmap (\(e, s) -> (List an e, map (fmap toSS) s, prettyPrint (List an
         g :: Char -> Exp_ -> (String, Exp_)
         g c p = ([c], Var (ann p) (toNamed [c]))
 
-useCons False (view -> App2 op x y) | op ~= "++", Just x2 <- f x, not $ isAppend y = Just (gen x2 y, [("x", toSS x2), ("xs", toSS y)], prettyPrint $ gen (toNamed "x") (toNamed "xs"))
+useCons False (view -> App2 op x y) | op ~= "++"
+                                    , Just (x2, build) <- f x
+                                    , not $ isAppend y =
+  Just (gen (build x2) y
+       , [("x", toSS x2), ("xs", toSS y)]
+       , prettyPrint $ gen (build $ toNamed "x") (toNamed "xs"))
     where
-        f (List _ [x]) = Just $ if isApp x then x else paren x
+        f (List _ [x]) = Just $ (x, \v -> if isApp x then v else addParen v)
         f _ = Nothing
+
 
         gen x xs = InfixApp an x (QConOp an $ list_cons_name an) xs
 useCons _ _ = Nothing
