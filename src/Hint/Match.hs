@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec, RecordWildCards, FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec, RecordWildCards, FlexibleContexts, ScopedTypeVariables, TupleSections #-}
 
 {-
 The matching does a fairly simple unification between the two terms, treating
@@ -104,13 +104,43 @@ matchIdea s decl HintRule{..} parent x = do
     u <- unifyExp nm True hintRuleLHS x
     u <- check u
     let e = subst u hintRuleRHS
+        template = substT u hintRuleRHS
     let res = addBracket parent $ unqualify hintRuleScope s u $ performEval e
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables
     guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
-    return (res,hintRuleNotes, (map (toSS <$>) u), hintRuleRHS)
+    return (res,hintRuleNotes, (map (toSS <$>) u), template)
+
+
+-- | Descend, and if something changes then add/remove brackets appropriately
+descendBracketTemplate :: (Exp_ -> (Bool, (Exp_, Exp_))) -> Exp_ -> Exp_
+descendBracketTemplate op x = descendIndex g x
+    where
+        g i y = if a then f i b else (fst b)
+            where (a,b) = op y
+
+        f i (v, y) | needBracket i x y = addParen v
+        f i (v, y) = v
+
+transformBracketTemplate :: (Exp_ -> Maybe (Exp_, Exp_)) -> Exp_ -> Exp_
+transformBracketTemplate op = fst . snd . g
+    where
+        g :: Exp_ -> (Bool, (Exp_, Exp_))
+        g = f . descendBracketTemplate g
+        f :: Exp_ -> (Bool, (Exp_, Exp_))
+        f x = maybe (False,(x, x)) ((,) True) (op x)
+
+-- perform a substitution
+substT :: [(String,Exp_)] -> Exp_ -> Exp_
+substT bind = transform g . transformBracketTemplate f
+    where
+        f v@(Var _ (fromNamed -> x)) | isUnifyVar x = (v,) <$>  lookup x bind
+        f _ = Nothing
+
+        g (App _ np x) | np ~= "_noParen_" = fromParen x
+        g x = x
 
 
 ---------------------------------------------------------------------
