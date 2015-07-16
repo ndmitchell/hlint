@@ -44,6 +44,7 @@ module Hint.Import(importHint) where
 
 import Control.Applicative
 import Hint.Type
+import Refact.Types
 import Data.List.Extra
 import Data.Maybe
 import Prelude
@@ -94,7 +95,7 @@ reduce _ _ = Nothing
 reduce1 :: ImportDecl S -> [Idea]
 reduce1 i@ImportDecl{..}
     | Just (dropAnn importModule) == fmap dropAnn importAs
-    = [warnN "Redundant as" i i{importAs=Nothing}]
+    = [warn "Redundant as" i i{importAs=Nothing} [RemoveAsKeyword (toSS i)]]
 reduce1 _ = []
 
 
