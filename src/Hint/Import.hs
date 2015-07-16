@@ -44,7 +44,8 @@ module Hint.Import(importHint) where
 
 import Control.Applicative
 import Hint.Type
-import Refact.Types
+import Refact.Types hiding (ModuleName)
+import qualified Refact.Types as R
 import Data.List.Extra
 import Data.Maybe
 import Prelude
@@ -117,8 +118,11 @@ newNames = let (*) = flip (,) in
 
 
 hierarchy :: ImportDecl S -> [Idea]
-hierarchy i@ImportDecl{importModule=ModuleName _ x,importPkg=Nothing} | Just y <- lookup x newNames
-    = [warnN "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an $ y ++ "." ++ x}]
+hierarchy i@ImportDecl{importModule=m@(ModuleName _ x),importPkg=Nothing} | Just y <- lookup x newNames
+    =
+    let newModuleName = y ++ "." ++ x
+        r = [Replace R.ModuleName (toSS m) [] newModuleName] in
+    [warn "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an $ newModuleName} r]
 
 -- import IO is equivalent to
 -- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)
