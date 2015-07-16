@@ -183,7 +183,8 @@ unifyExp nm root x (InfixApp _ lhs2 op2 rhs2)
 unifyExp nm root x y | isOther x, isOther y = unifyDef nm x y
 unifyExp nm root _ _ = Nothing
 
-rebracket (Paren l _) (v, e) = (v, Paren l e)
+rebracket (Paren l e') (v, e)
+  | e' == e = (v, Paren l e)
 rebracket e (v, e') = (v, e')
 
 
