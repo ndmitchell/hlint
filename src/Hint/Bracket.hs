@@ -119,8 +119,8 @@ bracketError msg o x =
 
 
 fieldDecl :: FieldDecl S -> [Idea]
-fieldDecl o@(FieldDecl a b (TyParen _ c))
-    = [warnN "Redundant bracket" o (FieldDecl a b c)]
+fieldDecl o@(FieldDecl a b v@(TyParen _ c))
+    = [warn "Redundant bracket" o (FieldDecl a b c)  [Replace Type (toSS v) [("x", toSS c)] "x"]]
 fieldDecl _ = []
 
 
