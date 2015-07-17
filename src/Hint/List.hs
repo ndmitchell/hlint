@@ -111,7 +111,7 @@ useCons False (view -> App2 op x y) | op ~= "++"
        , [("x", toSS x2), ("xs", toSS y)]
        , prettyPrint $ gen (build $ toNamed "x") (toNamed "xs"))
     where
-        f (List _ [x]) = Just $ (x, \v -> if isApp x then v else addParen v)
+        f (List _ [x]) = Just $ (x, \v -> if isApp x then v else paren v)
         f _ = Nothing
 
 
