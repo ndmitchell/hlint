@@ -40,7 +40,9 @@ niceLambdaR [x,y] (InfixApp _ (view -> Var_ x1) (opExp -> op) (view -> Var_ y1))
 
 -- \x -> x + b ==> (+ b) [heuristic, b must be a single lexeme, or gets too complex]
 niceLambdaR [x] (view -> App2 (expOp -> Just op) a b)
-    | isLexeme b, view a == Var_ x, x `notElem` vars b, allowRightSection (fromNamed op) = (rebracket1 $ RightSection an op b, const [])
+    | isLexeme b, view a == Var_ x, x `notElem` vars b, allowRightSection (fromNamed op) =
+      let e = rebracket1 $ RightSection an op b
+      in (e, \s -> [Replace Expr s [] (prettyPrint e)])
 
 -- \x y -> f y x = flip f
 niceLambdaR [x,y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
@@ -71,7 +73,9 @@ niceLambdaR [x] y | Just (z, subts) <- factor y, x `notElem` vars z = (z, \s -> 
 
 -- \x -> (x +) ==> (+)
 -- Section handling is not yet supported for refactoring
-niceLambdaR [x] (LeftSection _ (view -> Var_ x1) op) | x == x1 = (opExp op, const [])
+niceLambdaR [x] (LeftSection _ (view -> Var_ x1) op) | x == x1 =
+  let e = opExp op
+  in (e, \s -> [Replace Expr s [] (prettyPrint e)])
 
 -- base case
 niceLambdaR ps x = (Lambda an (map toNamed ps) x, const [])
