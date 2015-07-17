@@ -212,7 +212,9 @@ isOther _ = True
 -- check the unification is valid
 check :: [(String,Exp_)] -> Maybe [(String,Exp_)]
 check = mapM f . groupSort
-    where f (x,ys) = if allSame ys then Just (x,head ys) else Nothing
+    where f (x,ys) = if checkSame ys then Just (x,head ys) else Nothing
+          checkSame [] = True
+          checkSame (x:xs) = all (x =~=) xs
 
 
 -- perform a substitution
