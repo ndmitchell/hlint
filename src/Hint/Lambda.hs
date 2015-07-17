@@ -73,7 +73,7 @@ import Hint.Type
 import Util
 import Data.List.Extra
 import Data.Maybe
-import Refact.Types
+import Refact.Types hiding (RType(Match))
 
 
 lambdaHint :: DeclHint
@@ -111,17 +111,18 @@ etaReduce ps (App _ x (Var _ (UnQual _ (Ident _ y))))
 etaReduce ps x = (ps,x)
 
 
+--Section refactoring is not currently implemented.
 lambdaExp :: Maybe Exp_ -> Exp_ -> [Idea]
 lambdaExp p o@(Paren _ (App _ v@(Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
-    [warn "Use section" o (exp y x) [Replace Expr (toSS o) subts template]]
+    [warnN "Use section" o (exp y x)] -- [Replace Expr (toSS o) subts template]]
     where
       exp op rhs = LeftSection an op (toNamed rhs)
       template = prettyPrint (exp (toNamed "a") "*")
       subts = [("a", toSS y), ("*", toSS v)]
 lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
     [warnN "Use section" o $ RightSection an (QVarOp an x) y]
-lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, res <- niceLambda [] o, not $ isLambda res =
-    [(if isVar res || isCon res then errN else warnN) "Avoid lambda" o res]
+lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o, not $ isLambda res =
+    [(if isVar res || isCon res then err else warn) "Avoid lambda" o res (refact $ toSS o)]
 lambdaExp p o@(Lambda _ _ x) | isLambda (fromParen x) && maybe True (not . isLambda) p =
     [warn "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
     where

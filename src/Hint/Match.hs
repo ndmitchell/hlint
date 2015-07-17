@@ -215,7 +215,7 @@ check = mapM f . groupSort
 subst :: [(String,Exp_)] -> Exp_ -> Exp_
 subst bind = transform g . transformBracket f
     where
-        f (Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
+        f v@(Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
         f _ = Nothing
 
         g (App _ np x) | np ~= "_noParen_" = fromParen x

@@ -208,6 +208,11 @@ fromApps (App _ x y) = fromApps x ++ [y]
 fromApps x = [x]
 
 
+fromAppsWithLoc :: Exp_ -> [(Exp_, S)]
+fromAppsWithLoc (App l x y) = fromAppsWithLoc x ++ [(y, l)]
+fromAppsWithLoc x = [(x, ann x)]
+
+
 -- Rule for the Uniplate Apps functions
 -- Given (f a) b, consider the children to be: children f ++ [a,b]
 

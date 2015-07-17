@@ -73,7 +73,7 @@ hints gen (Pattern l rtype pat (UnGuardedRhs d bod) bind)
                                        -- contains any template variables
                        ps  -> mkTemplate "p100" ps
           guardSubts = mkTemplate "g100" lhs
-          exprSubts  = mkTemplate "e100"' rhs
+          exprSubts  = mkTemplate "e100" rhs
           templateGuards = zipWith (\a b -> mkGuard (toString a) (toString b)) guardSubts exprSubts
           toString (Left e) = e
           toString (Right (v, _)) = toNamed v

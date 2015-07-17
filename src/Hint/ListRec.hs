@@ -35,7 +35,7 @@ import Data.Maybe
 import Data.Ord
 import Data.Either.Extra
 import Control.Monad
-import Refact.Types
+import Refact.Types hiding (RType(Match))
 
 
 listRecHint :: DeclHint
