@@ -52,6 +52,9 @@ import Util
 import qualified Data.Set as Set
 import Prelude
 import qualified Refact.Types as R
+import Language.Haskell.Exts.Annotated.Simplify
+
+import Debug.Trace
 
 
 fmapAn = fmap (const an)
@@ -158,6 +161,7 @@ nmOp nm  _ _ = False
 unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe [(String,Exp_)]
 unify nm root x y | Just x <- cast x = unifyExp nm root x (unsafeCoerce y)
                   | Just x <- cast x = unifyPat nm x (unsafeCoerce y)
+                  | Just (x :: SrcSpanInfo) <- cast x = Just []
                   | otherwise = unifyDef nm x y
 
 
@@ -239,7 +243,7 @@ checkSide x bind = maybe True f x
             = isType typ y
         f (App _ (App _ cond (sub -> x)) (sub -> y))
             | cond ~= "notIn" = and [x `notElem` universe y | x <- list x, y <- list y]
-            | cond ~= "notEq" = x /= y
+            | cond ~= "notEq" = x /=~= y
         f x | x ~= "noTypeCheck" = True
         f x | x ~= "noQuickCheck" = True
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
