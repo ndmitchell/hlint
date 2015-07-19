@@ -26,7 +26,7 @@ data-files:
     hlint.ghci
     HLint_QuickCheck.hs
     HLint_TypeCheck.hs
-extra-source-files:
+extra-doc-files:
     README.md
     CHANGES.txt
 tested-with:        GHC==7.10.1, GHC==7.8.4, GHC==7.6.3, GHC==7.4.2
