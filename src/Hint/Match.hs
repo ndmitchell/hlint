@@ -116,7 +116,8 @@ matchIdea s decl HintRule{..} parent x = do
     return (res,hintRuleNotes, [(s, toSS pos) | (s, pos) <- u, ann pos /= an], template)
 
 
--- | Descend, and if something changes then add/remove brackets appropriately
+-- | Descend, and if something changes then add/remove brackets appropriately in both the template
+-- and the original expression.
 descendBracketTemplate :: (Exp_ -> (Bool, (Exp_, Exp_))) -> Exp_ -> Exp_
 descendBracketTemplate op x = descendIndex g x
     where
