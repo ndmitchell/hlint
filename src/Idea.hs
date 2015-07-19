@@ -1,5 +1,4 @@
 {-# LANGUAGE RecordWildCards, NoMonomorphismRestriction #-}
-{-# LANGUAGE NamedFieldPuns #-}
 
 module Idea(module Idea, Note(..), showNotes, Severity(..)) where
 

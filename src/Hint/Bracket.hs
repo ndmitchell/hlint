@@ -1,6 +1,5 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE NamedFieldPuns #-}
 {-
 Raise an error if you are bracketing an atom, or are enclosed be a list bracket
 
