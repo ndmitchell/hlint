@@ -22,9 +22,6 @@ data Idea = Idea
     ,ideaTo :: Maybe String -- ^ The suggested replacement, or 'Nothing' for no replacement (e.g. on parse errors).
     ,ideaNote :: [Note] -- ^ Notes about the effect of applying the replacement.
     , ideaRefactoring :: [Refactoring R.SrcSpan] -- ^ How to perform this idea
---    , ideaPreciseSpan :: SrcSpan -- ^ The source code that needs to be replaced
---    , ideaSubst :: Maybe [(String, SrcSpan)] -- ^ The performed substitution
---    , ideaTemplate :: Maybe String -- ^ The template used to generate the output
     }
     deriving (Eq,Ord)
 
