@@ -113,7 +113,7 @@ matchIdea s decl HintRule{..} parent x = do
         -- check no unexpected new free variables
     guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
-    return (res,hintRuleNotes, (map (toSS <$>) u), template)
+    return (res,hintRuleNotes, [(s, toSS pos) | (s, pos) <- u, ann pos /= an], template)
 
 
 -- | Descend, and if something changes then add/remove brackets appropriately
@@ -138,7 +138,10 @@ transformBracketTemplate op = fst . snd . g
 substT :: [(String,Exp_)] -> Exp_ -> Exp_
 substT bind = transform g . transformBracketTemplate f
     where
-        f v@(Var _ (fromNamed -> x)) | isUnifyVar x = (v,) <$>  lookup x bind
+        f v@(Var _ (fromNamed -> x)) | isUnifyVar x = case lookup x bind of
+                                                        Just x -> if ann x == an then  Just (x, x)
+                                                                                 else  Just (v, x)
+                                                        Nothing -> Nothing
         f _ = Nothing
 
         g (App _ np x) | np ~= "_noParen_" = fromParen x
