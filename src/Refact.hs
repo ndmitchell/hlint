@@ -1,7 +1,5 @@
 module Refact where
 
-
-import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
 import HSE.All
 

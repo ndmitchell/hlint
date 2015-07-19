@@ -52,9 +52,6 @@ import Util
 import qualified Data.Set as Set
 import Prelude
 import qualified Refact.Types as R
-import Language.Haskell.Exts.Annotated.Simplify
-
-import Debug.Trace
 
 
 fmapAn = fmap (const an)

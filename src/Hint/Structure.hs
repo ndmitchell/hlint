@@ -40,7 +40,6 @@ module Hint.Structure(structureHint) where
 
 import Hint.Type
 import Data.List.Extra
-import Control.Arrow
 import Data.Tuple
 import Data.Maybe
 import Data.Either

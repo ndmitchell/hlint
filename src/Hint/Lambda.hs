@@ -117,8 +117,8 @@ lambdaExp p o@(Paren _ (App _ v@(Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, 
     [warnN "Use section" o (exp y x)] -- [Replace Expr (toSS o) subts template]]
     where
       exp op rhs = LeftSection an op (toNamed rhs)
-      template = prettyPrint (exp (toNamed "a") "*")
-      subts = [("a", toSS y), ("*", toSS v)]
+--      template = prettyPrint (exp (toNamed "a") "*")
+--      subts = [("a", toSS y), ("*", toSS v)]
 lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
     [warnN "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o, not $ isLambda res =
