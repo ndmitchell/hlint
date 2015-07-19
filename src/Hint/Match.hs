@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec, RecordWildCards, FlexibleContexts, ScopedTypeVariables, TupleSections #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec, RecordWildCards, FlexibleContexts, ScopedTypeVariables, TupleSections, MultiWayIf #-}
 
 {-
 The matching does a fairly simple unification between the two terms, treating
@@ -73,20 +73,19 @@ readRule (m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn ->
         (l,v1) <- dotVersion hintRuleLHS
         (r,v2) <- dotVersion hintRuleRHS
         guard $ v1 == v2 && l /= [] && (length l > 1 || length r > 1) && Set.notMember v1 (freeVars $ maybeToList hintRuleSide ++ l ++ r)
-        if r /= [] then return
-            [m{hintRuleLHS=dotApps l, hintRuleRHS=dotApps r, hintRuleSide=hintRuleSide}
-            ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=dotApps (r++[toNamed v1]), hintRuleSide=hintRuleSide}]
-         else if length l > 1 then return
-            [m{hintRuleLHS=dotApps l, hintRuleRHS=toNamed "id", hintRuleSide=hintRuleSide}
-            ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=toNamed v1, hintRuleSide=hintRuleSide}]
-         else
-            Nothing
+        if  | r /= [] -> return
+              [m{hintRuleLHS=dotApps l, hintRuleRHS=dotApps r, hintRuleSide=hintRuleSide}
+              ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=dotApps (r++[toNamed v1]), hintRuleSide=hintRuleSide}]
+            | length l > 1 -> return
+              [m{hintRuleLHS=dotApps l, hintRuleRHS=toNamed "id", hintRuleSide=hintRuleSide}
+              ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=toNamed v1, hintRuleSide=hintRuleSide}]
+            | otherwise -> Nothing
 
 
 -- find a dot version of this rule, return the sequence of app prefixes, and the var
 dotVersion :: Exp_ -> Maybe ([Exp_], String)
 dotVersion (view -> Var_ v) | isUnifyVar v = Just ([], v)
-dotVersion (fromApps -> xs) | length xs > 1 = first (apps (init xs) :) <$> dotVersion (fromParen $ last xs)
+dotVersion (App l ls rs) = first (ls :) <$> dotVersion (fromParen $ rs)
 dotVersion _ = Nothing
 
 
