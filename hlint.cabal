@@ -53,7 +53,7 @@ library
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
         extra >= 0.5,
-        refact >= 0.1
+        refact >= 0.2
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
