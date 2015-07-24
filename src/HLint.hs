@@ -151,6 +151,5 @@ runHints cmd@CmdMain{..} flags = do
                     (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
     return $ map Suggestion showideas
 
-
 evaluateList :: [a] -> IO [a]
 evaluateList xs = length xs `seq` return xs

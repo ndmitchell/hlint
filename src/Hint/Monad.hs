@@ -87,7 +87,7 @@ monadReturn :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
 monadReturn (reverse -> q@(Qualifier _ (App _ ret (Var _ v))):g@(Generator _ (PVar _ p) x):rest)
     | ret ~= "return", fromNamed v == fromNamed p
     = Just (reverse (Qualifier an x : rest),
-            [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete (toSS q)])
+            [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)])
 monadReturn _ = Nothing
 
 monadJoin :: [Stmt S] -> [Char] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
@@ -99,7 +99,7 @@ monadJoin (g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Var_ v)):
       def = (xs, [])
       f (ss, rs) = (s:ss, r ++ rs)
       s = gen x
-      r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete (toSS q)]
+      r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete Stmt (toSS q)]
 
 monadJoin (x:xs) cs = first (x:)   <$> monadJoin xs cs
 monadJoin [] _ = Nothing

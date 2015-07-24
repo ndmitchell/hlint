@@ -17,7 +17,7 @@ module Hint.Comment(commentHint) where
 import Hint.Type
 import Data.Char
 import Data.List.Extra
-import Refact.Types (Refactoring(ModifyComment))
+import Refact.Types(Refactoring(ModifyComment))
 
 
 pragmas = words $

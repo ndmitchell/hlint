@@ -202,11 +202,8 @@ replaceBranches x = ([], \[] -> x)
 apps :: [Exp_] -> Exp_
 apps = foldl1 (App an)
 
-
 fromApps :: Exp_ -> [Exp_]
-fromApps (App _ x y) = fromApps x ++ [y]
-fromApps x = [x]
-
+fromApps = map fst . fromAppsWithLoc
 
 fromAppsWithLoc :: Exp_ -> [(Exp_, S)]
 fromAppsWithLoc (App l x y) = fromAppsWithLoc x ++ [(y, l)]

@@ -44,7 +44,6 @@ listExp :: Bool -> Exp_ -> [Idea]
 listExp b (fromParen -> x) =
         if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
     where
-        -- I think this is wrong for useCons, useList
         res = [warn name x x2 [r] | (name,f) <- checks
                                   , Just (x2, subts, temp) <- [f b x]
                                   , let r = Replace Expr (toSS x) subts temp ]

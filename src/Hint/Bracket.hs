@@ -101,8 +101,7 @@ bracket bad = f Nothing
         f Just{} o@(remParen -> Just x) | isAtom x = bracketError msg o x : g x
         f Nothing o@(remParen -> Just x) | bad = bracketWarning msg o x : g x
         f (Just (i,o,gen)) v@(remParen -> Just x) | not $ needBracket i o x =
-          warn msg o (gen x) [r]
-            : g x
+          warn msg o (gen x) [r] : g x
           where
             typ = findType v
             r = Replace typ (toSS v) [("x", toSS x)] "x"

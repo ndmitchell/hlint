@@ -44,6 +44,7 @@ module Foo(module A, baz, module B, module X) where; import A; import B; import 
 module Hint.Import(importHint) where
 
 import Control.Applicative
+import Control.Arrow
 import Hint.Type
 import Refact.Types hiding (ModuleName)
 import qualified Refact.Types as R

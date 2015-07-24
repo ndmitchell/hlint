@@ -147,7 +147,7 @@ mode = cmdArgsMode $ modes
         ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
         ,cmdJson = nam_ "json" &= help "Display hint data as JSON"
         ,cmdNoSummary = nam_ "no-summary" &= help "Do not show summary information"
-        ,cmdSerialise = nam_ "serialise" &= help "Refactor with HaRe"
+        ,cmdSerialise = nam_ "serialise" &= help "Serialise hint data for consumption by apply-refact"
         } &= auto &= explicit &= name "lint"
     ,CmdGrep
         {cmdFiles = def &= args &= typ "FILE/DIR"
