@@ -57,7 +57,7 @@ languageDupes _ = []
 strToLanguage :: String -> Maybe [String]
 strToLanguage "-cpp" = Just ["CPP"]
 strToLanguage x | "-X" `isPrefixOf` x = Just [drop 2 x]
-strToLanguage "-fglasgow-exts" = Just $ map show glasgowExts
+strToLanguage "-fglasgow-exts" = Just $ map prettyExtension glasgowExts
 strToLanguage _ = Nothing
 
 
