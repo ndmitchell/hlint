@@ -70,7 +70,7 @@ simplify :: [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
 simplify [] = Nothing
 simplify (x:xs) = case simplifyHead x xs of
     Nothing -> first (x:) <$> simplify xs
-    Just xs -> Just $ fromMaybe xs $ simplify (fst xs)
+    Just (xs, rs) -> Just $ fromMaybe (xs, rs) $ (second (++ rs) <$> simplify xs)
 
 
 simplifyHead :: ImportDecl S -> [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
