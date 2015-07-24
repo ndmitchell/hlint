@@ -60,31 +60,38 @@ importHint _ x = concatMap (wrap . snd) (groupSort
 
 
 wrap :: [ImportDecl S] -> [Idea]
-wrap o = [ rawIdeaN Error "Use fewer imports" (toSrcSpan $ ann $ head o) (f o) (Just $ f x) []
-         | Just x <- [simplify o]]
+wrap o = [ rawIdea Error "Use fewer imports" (toSrcSpan $ ann $ head o) (f o) (Just $ f x) [] rs
+         | Just (x, rs) <- [simplify o]]
     where f = unlines . map prettyPrint
 
 
-simplify :: [ImportDecl S] -> Maybe [ImportDecl S]
+simplify :: [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
 simplify [] = Nothing
 simplify (x:xs) = case simplifyHead x xs of
-    Nothing -> (x:) <$> simplify xs
-    Just xs -> Just $ fromMaybe xs $ simplify xs
+    Nothing -> first (x:) <$> simplify xs
+    Just xs -> Just $ fromMaybe xs $ simplify (fst xs)
 
 
-simplifyHead :: ImportDecl S -> [ImportDecl S] -> Maybe [ImportDecl S]
+simplifyHead :: ImportDecl S -> [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
 simplifyHead x [] = Nothing
 simplifyHead x (y:ys) = case reduce x y of
-    Nothing -> (y:) <$> simplifyHead x ys
-    Just xy -> Just $ xy : ys
+    Nothing -> first (y:) <$> simplifyHead x ys
+    Just (xy, rs) -> Just $ (xy : ys, rs)
 
 
-reduce :: ImportDecl S -> ImportDecl S -> Maybe (ImportDecl S)
-reduce x y | qual, as, specs = Just x
-           | qual, as, Just (ImportSpecList _ False xs) <- importSpecs x, Just (ImportSpecList _ False ys) <- importSpecs y =
-                Just x{importSpecs = Just $ ImportSpecList an False $ nub_ $ xs ++ ys}
-           | qual, as, isNothing (importSpecs x) || isNothing (importSpecs y) = Just x{importSpecs=Nothing}
-           | not (importQualified x), qual, specs, length ass == 1 = Just x{importAs=Just $ head ass}
+reduce :: ImportDecl S -> ImportDecl S -> Maybe ((ImportDecl S), [Refactoring R.SrcSpan])
+reduce x y | qual, as, specs = Just (x, [Delete Import (toSS y)])
+           | qual, as, Just (ImportSpecList _ False xs) <- importSpecs x, Just (ImportSpecList _ False ys) <- importSpecs y = let newImp = x{importSpecs = Just $ ImportSpecList an False $ nub_ $ xs ++ ys}
+            in Just (newImp, [ Replace Import (toSS x)  [] (prettyPrint newImp)
+                             , Delete Import (toSS y) ] )
+
+           | qual, as, isNothing (importSpecs x) || isNothing (importSpecs y) =
+             let (newImp, toDelete) = if isNothing (importSpecs x) then (x, y) else (y, x)
+             in Just (newImp, [Delete Import (toSS toDelete)])
+           | not (importQualified x), qual, specs, length ass == 1 =
+             let (newImp, toDelete) = if isJust (importAs x) then (x, y) else (y, x)
+             in Just (newImp, [Delete Import (toSS toDelete)])
+
     where
         qual = importQualified x == importQualified y
         as = importAs x `eqMaybe` importAs y
