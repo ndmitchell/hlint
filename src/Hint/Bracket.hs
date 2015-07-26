@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE RecordWildCards #-}
 {-
 Raise an error if you are bracketing an atom, or are enclosed be a list bracket
 
@@ -61,6 +62,8 @@ main = 1; {-# ANN module (1 + (2)) #-} -- 2
 module Hint.Bracket(bracketHint) where
 
 import Hint.Type
+import Data.Data
+import Refact.Types
 
 
 bracketHint :: DeclHint
@@ -76,38 +79,62 @@ bracketHint _ _ x =
             Paren _ x -> x
             x -> x
 
+-- Dirty, should add to Brackets type class I think
+tyConToRtype :: String -> RType
+tyConToRtype "Exp" = Expr
+tyConToRtype "Type" = Type
+tyConToRtype "Pat"  = Pattern
+tyConToRtype _      = Expr
 
-bracket :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
+findType :: (Data a) => a -> RType
+findType = tyConToRtype . dataTypeName . dataTypeOf
+
+
+
+bracket :: (Data (a S), Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
 bracket bad = f Nothing
     where
         msg = "Redundant bracket"
 
         -- f (Maybe (index, parent, gen)) child
-        f :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
-        f Just{} o@(remParen -> Just x) | isAtom x = err msg o x : g x
-        f Nothing o@(remParen -> Just x) | bad = warn msg o x : g x
-        f (Just (i,o,gen)) (remParen -> Just x) | not $ needBracket i o x = warn msg o (gen x) : g x
+        f :: (Data (a S), Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
+        f Just{} o@(remParen -> Just x) | isAtom x = bracketError msg o x : g x
+        f Nothing o@(remParen -> Just x) | bad = bracketWarning msg o x : g x
+        f (Just (i,o,gen)) v@(remParen -> Just x) | not $ needBracket i o x =
+          warn msg o (gen x) [r] : g x
+          where
+            typ = findType v
+            r = Replace typ (toSS v) [("x", toSS x)] "x"
         f _ x = g x
 
-        g :: (Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
+        g :: (Data (a S), Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
+
+bracketWarning msg o x =
+  idea Warning msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
+bracketError msg o x =
+  idea Error msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 
 
 fieldDecl :: FieldDecl S -> [Idea]
-fieldDecl o@(FieldDecl a b (TyParen _ c))
-    = [warn "Redundant bracket" o (FieldDecl a b c)]
+fieldDecl o@(FieldDecl a b v@(TyParen _ c))
+    = [warn "Redundant bracket" o (FieldDecl a b c)  [Replace Type (toSS v) [("x", toSS c)] "x"]]
 fieldDecl _ = []
 
 
 dollar :: Exp_ -> [Idea]
 dollar = concatMap f . universe
     where
-        f x = [warn "Redundant $" x y | InfixApp _ a d b <- [x], opExp d ~= "$"
-              ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b]
+        f x = [warn "Redundant $" x y [r] | InfixApp _ a d b <- [x], opExp d ~= "$"
+              ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b
+              ,let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"
+                ]
+
               ++
-              [warn "Move brackets to avoid $" x (t y) |(t, Paren _ (InfixApp _ a1 op1 a2)) <- splitInfix x
+              [warn "Move brackets to avoid $" x (t y) [r] |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
               ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
-              ,let y = App an a1 (Paren an a2)]
+              , let y = App an a1 (Paren an a2)
+              , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]
 
 
 -- return both sides, and a way to put them together again

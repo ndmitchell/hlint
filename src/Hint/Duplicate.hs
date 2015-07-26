@@ -32,7 +32,7 @@ duplicateHint ms =
 
 
 dupes ys =
-    [rawIdea
+    [rawIdeaN
         (if length xs >= 5 then Error else Warning)
         "Reduce duplication" p1
         (unlines $ map (prettyPrint . fmap (const p1)) xs)

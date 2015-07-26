@@ -72,16 +72,19 @@ module Hint.Extensions(extensionsHint) where
 import Hint.Type
 import Data.Maybe
 import Data.List.Extra
+import Refact.Types
 
 
 extensionsHint :: ModuHint
 extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" (toSrcSpan sl)
-          (prettyPrint o) (Just $ if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) new)
-          (warnings old new)
+          (prettyPrint o) (Just newPragma)
+          (warnings old new) [refact]
     | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
     , o@(LanguagePragma sl exts) <- modulePragmas x
     , let old = map (parseExtension . prettyPrint) exts
     , let new = minimalExtensions x old
+    , let newPragma = if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) new
+    , let refact = ModifyComment (toSS o) newPragma
     , sort new /= sort old]
 
 

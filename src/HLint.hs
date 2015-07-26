@@ -23,7 +23,6 @@ import Util
 import Parallel
 import HSE.All
 
-
 -- | A suggestion - the @Show@ instance is of particular use.
 newtype Suggestion = Suggestion {fromSuggestion :: Idea}
                      deriving (Eq,Ord)
@@ -131,11 +130,14 @@ runHints cmd@CmdMain{..} flags = do
         then applyHintFiles flags settings cmdFiles
         else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
     let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
+    usecolour <- cmdUseColour cmd
+    showItem <- if usecolour then showANSI else return show
     if cmdJson
         then putStrLn . showIdeasJson $ showideas
+        else if cmdSerialise then do
+          hSetBuffering stdout NoBuffering
+          print $ map (\i -> (show i, ideaRefactoring i)) showideas
         else do
-            usecolour <- cmdUseColour cmd
-            showItem <- if usecolour then showANSI else return show
             mapM_ (outStrLn . showItem) showideas
             if null showideas then
                 when (cmdReports /= []) $ outStrLn "Skipping writing reports"

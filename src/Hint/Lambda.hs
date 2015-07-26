@@ -73,6 +73,7 @@ import Hint.Type
 import Util
 import Data.List.Extra
 import Data.Maybe
+import Refact.Types hiding (RType(Match))
 
 
 lambdaHint :: DeclHint
@@ -81,10 +82,25 @@ lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatM
 
 lambdaDecl :: Decl_ -> [Idea]
 lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) bind]))
-    | isNothing bind, isLambda $ fromParen bod = [err "Redundant lambda" o $ uncurry reform $ fromLambda $ Lambda an pats bod]
-    | (pats2,bod2) <- etaReduce pats bod, length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
-        = [err "Eta reduce" (reform pats bod) (reform pats2 bod2)]
+    | isNothing bind, isLambda $ fromParen bod =
+      [err "Redundant lambda" o (gen pats bod) [Replace Decl (toSS o) s1 t1]]
+    | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
+        = [err "Eta reduce" (reform pats bod) (reform pats2 bod2)
+            [Replace Decl (toSS $ reform pats bod) s2 t2]]
         where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) Nothing]
+              gen ps b = uncurry reform . fromLambda . Lambda an ps $ b
+              (finalpats, body) = fromLambda . Lambda an pats $ bod
+              (pats2, bod2) = etaReduce pats bod
+              template fps b = prettyPrint $ reform (zipWith munge ['a'..'z'] fps) (Var (ann b) (UnQual (ann b) (Ident (ann b) "body")))
+              munge :: Char -> Pat_ -> Pat_
+              munge ident p@(PWildCard _) = p
+              munge ident p = PVar (ann p) (Ident (ann p) [ident])
+              subts fps b = ("body", toSS b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS fps)
+              s1 = subts finalpats body
+              s2 = subts pats2 bod2
+              t1 = template finalpats body
+              t2 = template pats2 bod2
+
 lambdaDecl _ = []
 
 
@@ -95,15 +111,27 @@ etaReduce ps (App _ x (Var _ (UnQual _ (Ident _ y))))
 etaReduce ps x = (ps,x)
 
 
+--Section refactoring is not currently implemented.
 lambdaExp :: Maybe Exp_ -> Exp_ -> [Idea]
-lambdaExp p o@(Paren _ (App _ (Var _ (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
-    [warn "Use section" o $ LeftSection an y (toNamed x)]
+lambdaExp p o@(Paren _ (App _ v@(Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
+    [warnN "Use section" o (exp y x)] -- [Replace Expr (toSS o) subts template]]
+    where
+      exp op rhs = LeftSection an op (toNamed rhs)
+--      template = prettyPrint (exp (toNamed "a") "*")
+--      subts = [("a", toSS y), ("*", toSS v)]
 lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
-    [warn "Use section" o $ RightSection an (QVarOp an x) y]
-lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, res <- niceLambda [] o, not $ isLambda res =
-    [(if isVar res || isCon res then err else warn) "Avoid lambda" o res]
+    [warnN "Use section" o $ RightSection an (QVarOp an x) y]
+lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o, not $ isLambda res =
+    [(if isVar res || isCon res then err else warn) "Avoid lambda" o res (refact $ toSS o)]
 lambdaExp p o@(Lambda _ _ x) | isLambda (fromParen x) && maybe True (not . isLambda) p =
-    [warn "Collapse lambdas" o $ uncurry (Lambda an) $ fromLambda o]
+    [warn "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
+    where
+      (pats, body) = fromLambda o
+      template = prettyPrint $  Lambda an (zipWith munge ['a'..'z'] pats) (toNamed "body")
+      munge :: Char -> Pat_ -> Pat_
+      munge ident p@(PWildCard _) = p
+      munge ident p = PVar (ann p) (Ident (ann p) [ident])
+      subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS pats)
 lambdaExp _ _ = []
 
 

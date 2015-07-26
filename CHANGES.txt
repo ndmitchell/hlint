@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #147, fix the -fglasgow-exts hint
     #140, better name for moving brackets to eliminate $
     Extra hints for <$>
     Remove a redundant fmap hint
