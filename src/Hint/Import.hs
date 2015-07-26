@@ -3,7 +3,7 @@
     Reduce the number of import declarations.
     Two import declarations can be combined if:
       (note, A[] is A with whatever import list, or none)
-    
+
     import A[]; import A[] = import A[]
     import A(B); import A(C) = import A(B,C)
     import A; import A(C) = import A
@@ -14,6 +14,7 @@
 import A; import A -- import A
 import A; import A; import A -- import A
 import A(Foo) ; import A -- import A
+import A ;import A(Foo) -- import A
 import A(Bar(..)); import {-# SOURCE #-} A
 import A; import B
 import A(B) ; import A(C) -- import A(B,C)
@@ -43,7 +44,10 @@ module Foo(module A, baz, module B, module X) where; import A; import B; import 
 module Hint.Import(importHint) where
 
 import Control.Applicative
+import Control.Arrow
 import Hint.Type
+import Refact.Types hiding (ModuleName)
+import qualified Refact.Types as R
 import Data.List.Extra
 import Data.Maybe
 import Prelude
@@ -57,31 +61,38 @@ importHint _ x = concatMap (wrap . snd) (groupSort
 
 
 wrap :: [ImportDecl S] -> [Idea]
-wrap o = [ rawIdea Error "Use fewer imports" (toSrcSpan $ ann $ head o) (f o) (Just $ f x) []
-         | Just x <- [simplify o]]
+wrap o = [ rawIdea Error "Use fewer imports" (toSrcSpan $ ann $ head o) (f o) (Just $ f x) [] rs
+         | Just (x, rs) <- [simplify o]]
     where f = unlines . map prettyPrint
 
 
-simplify :: [ImportDecl S] -> Maybe [ImportDecl S]
+simplify :: [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
 simplify [] = Nothing
 simplify (x:xs) = case simplifyHead x xs of
-    Nothing -> (x:) <$> simplify xs
-    Just xs -> Just $ fromMaybe xs $ simplify xs
+    Nothing -> first (x:) <$> simplify xs
+    Just (xs, rs) -> Just $ fromMaybe (xs, rs) $ (second (++ rs) <$> simplify xs)
 
 
-simplifyHead :: ImportDecl S -> [ImportDecl S] -> Maybe [ImportDecl S]
+simplifyHead :: ImportDecl S -> [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
 simplifyHead x [] = Nothing
 simplifyHead x (y:ys) = case reduce x y of
-    Nothing -> (y:) <$> simplifyHead x ys
-    Just xy -> Just $ xy : ys
+    Nothing -> first (y:) <$> simplifyHead x ys
+    Just (xy, rs) -> Just $ (xy : ys, rs)
 
 
-reduce :: ImportDecl S -> ImportDecl S -> Maybe (ImportDecl S)
-reduce x y | qual, as, specs = Just x
-           | qual, as, Just (ImportSpecList _ False xs) <- importSpecs x, Just (ImportSpecList _ False ys) <- importSpecs y =
-                Just x{importSpecs = Just $ ImportSpecList an False $ nub_ $ xs ++ ys}
-           | qual, as, isNothing (importSpecs x) || isNothing (importSpecs y) = Just x{importSpecs=Nothing}
-           | not (importQualified x), qual, specs, length ass == 1 = Just x{importAs=Just $ head ass}
+reduce :: ImportDecl S -> ImportDecl S -> Maybe ((ImportDecl S), [Refactoring R.SrcSpan])
+reduce x y | qual, as, specs = Just (x, [Delete Import (toSS y)])
+           | qual, as, Just (ImportSpecList _ False xs) <- importSpecs x, Just (ImportSpecList _ False ys) <- importSpecs y = let newImp = x{importSpecs = Just $ ImportSpecList an False $ nub_ $ xs ++ ys}
+            in Just (newImp, [ Replace Import (toSS x)  [] (prettyPrint newImp)
+                             , Delete Import (toSS y) ] )
+
+           | qual, as, isNothing (importSpecs x) || isNothing (importSpecs y) =
+             let (newImp, toDelete) = if isNothing (importSpecs x) then (x, y) else (y, x)
+             in Just (newImp, [Delete Import (toSS toDelete)])
+           | not (importQualified x), qual, specs, length ass == 1 =
+             let (newImp, toDelete) = if isJust (importAs x) then (x, y) else (y, x)
+             in Just (newImp, [Delete Import (toSS toDelete)])
+
     where
         qual = importQualified x == importQualified y
         as = importAs x `eqMaybe` importAs y
@@ -94,7 +105,7 @@ reduce _ _ = Nothing
 reduce1 :: ImportDecl S -> [Idea]
 reduce1 i@ImportDecl{..}
     | Just (dropAnn importModule) == fmap dropAnn importAs
-    = [warn "Redundant as" i i{importAs=Nothing}]
+    = [warn "Redundant as" i i{importAs=Nothing} [RemoveAsKeyword (toSS i)]]
 reduce1 _ = []
 
 
@@ -116,13 +127,16 @@ newNames = let (*) = flip (,) in
 
 
 hierarchy :: ImportDecl S -> [Idea]
-hierarchy i@ImportDecl{importModule=ModuleName _ x,importPkg=Nothing} | Just y <- lookup x newNames
-    = [warn "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an $ y ++ "." ++ x}]
+hierarchy i@ImportDecl{importModule=m@(ModuleName _ x),importPkg=Nothing} | Just y <- lookup x newNames
+    =
+    let newModuleName = y ++ "." ++ x
+        r = [Replace R.ModuleName (toSS m) [] newModuleName] in
+    [warn "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an $ newModuleName} r]
 
 -- import IO is equivalent to
 -- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)
 hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing,importPkg=Nothing}
-    = [rawIdea Warning "Use hierarchical imports" (toSrcSpan $ ann i) (trimStart $ prettyPrint i) (
+    = [rawIdeaN Warning "Use hierarchical imports" (toSrcSpan $ ann i) (trimStart $ prettyPrint i) (
           Just $ unlines $ map (trimStart . prettyPrint)
           [f "System.IO" Nothing, f "System.IO.Error" Nothing
           ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an (NoNamespace an) $ toNamed x | x <- ["bracket","bracket_"]]]) []]
@@ -139,7 +153,7 @@ desugarQual x | importQualified x && isNothing (importAs x) = x{importAs=Just (i
 
 multiExport :: Module S -> [Idea]
 multiExport x =
-    [ rawIdea Warning "Use import/export shortcut" (toSrcSpan $ ann hd)
+    [ rawIdeaN Warning "Use import/export shortcut" (toSrcSpan $ ann hd)
         (unlines $ prettyPrint hd : map prettyPrint imps)
         (Just $ unlines $ prettyPrint newhd : map prettyPrint newimps)
         []

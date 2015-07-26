@@ -4,55 +4,81 @@ module Hint.Util where
 
 import HSE.All
 import Data.List.Extra
+import Refact.Types
+import Refact
+import qualified Refact.Types as R (SrcSpan)
+
+niceLambda :: [String] -> Exp_ -> Exp_
+niceLambda ss e = fst (niceLambdaR ss e)
 
 
 -- | Generate a lambda, but prettier (if possible).
 --   Generally no lambda is good, but removing just some arguments isn't so useful.
-niceLambda :: [String] -> Exp_ -> Exp_
+niceLambdaR :: [String] -> Exp_ -> (Exp_, R.SrcSpan -> [Refactoring R.SrcSpan])
 
 -- \xs -> (e) ==> \xs -> e
-niceLambda xs (Paren _ x) = niceLambda xs x
+niceLambdaR xs (Paren l x) = niceLambdaR xs x
 
 -- \xs -> \v vs -> e ==> \xs v -> \vs -> e
 -- \xs -> \ -> e ==> \xs -> e
-niceLambda xs (Lambda _ ((view -> PVar_ v):vs) x) | v `notElem` xs = niceLambda (xs++[v]) (Lambda an vs x)
-niceLambda xs (Lambda _ [] x) = niceLambda xs x
+niceLambdaR xs (Lambda _ ((view -> PVar_ v):vs) x) | v `notElem` xs = niceLambdaR (xs++[v]) (Lambda an vs x)
+niceLambdaR xs (Lambda _ [] x) = niceLambdaR xs x
 
 -- \ -> e ==> e
-niceLambda [] x = x
+niceLambdaR [] x = (x, const [])
 
 -- \xs -> e xs ==> e
-niceLambda xs (fromApps -> e) | map view xs2 == map Var_ xs, vars e2 `disjoint` xs, not $ null e2 = apps e2
-    where (e2,xs2) = splitAt (length e - length xs) e
+niceLambdaR xs (fromAppsWithLoc -> e) | map view xs2 == map Var_ xs, vars e2 `disjoint` xs, not $ null e2 =
+    (apps e2, \s -> [Replace Expr s [("x", pos)] "x"])
+    where (e',xs') = splitAt (length e - length xs) e
+          (e2, xs2) = (map fst e', map fst xs')
+          pos      = toRefactSrcSpan . toSrcSpan $ snd (last e')
 
 -- \x y -> x + y ==> (+)
-niceLambda [x,y] (InfixApp _ (view -> Var_ x1) (opExp -> op) (view -> Var_ y1))
-    | x == x1, y == y1, vars op `disjoint` [x,y] = op
+niceLambdaR [x,y] (InfixApp _ (view -> Var_ x1) (opExp -> op) (view -> Var_ y1))
+    | x == x1, y == y1, vars op `disjoint` [x,y] = (op, \s -> [Replace Expr s [] (prettyPrint op)])
 
 -- \x -> x + b ==> (+ b) [heuristic, b must be a single lexeme, or gets too complex]
-niceLambda [x] (view -> App2 (expOp -> Just op) a b)
-    | isLexeme b, view a == Var_ x, x `notElem` vars b, allowRightSection (fromNamed op) = rebracket1 $ RightSection an op b
+niceLambdaR [x] (view -> App2 (expOp -> Just op) a b)
+    | isLexeme b, view a == Var_ x, x `notElem` vars b, allowRightSection (fromNamed op) =
+      let e = rebracket1 $ RightSection an op b
+      in (e, \s -> [Replace Expr s [] (prettyPrint e)])
 
 -- \x y -> f y x = flip f
-niceLambda [x,y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
-    | x == x1, y == y1, vars op `disjoint` [x,y] = App an (toNamed "flip") op
+niceLambdaR [x,y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
+    | x == x1, y == y1, vars op `disjoint` [x,y] = (gen op, \s -> [Replace Expr s [("x", toSS op)] (prettyPrint $ gen (toNamed "x"))])
+    where
+      gen x = App an (toNamed "flip") x
 
 -- \x -> f (b x) ==> f . b
 -- \x -> f $ b x ==> f . b
-niceLambda [x] y | Just z <- factor y, x `notElem` vars z = z
+niceLambdaR [x] y | Just (z, subts) <- factor y, x `notElem` vars z = (z, \s -> [mkRefact subts s])
     where
         -- factor the expression with respect to x
-        factor y@App{} | Just (ini,lst) <- unsnoc $ fromApps y, view lst == Var_ x = Just $ apps ini
-        factor y@App{} | Just (ini,lst) <- unsnoc $ fromApps y, Just z <- factor lst = Just $ niceDotApp (apps ini) z
-        factor (InfixApp _ y op (factor -> Just z)) | isDol op = Just $ niceDotApp y z
+        factor y@(App _ ini lst) | view lst == Var_ x = Just $ (ini, [ann ini])
+        factor y@(App _ ini lst) | Just (z, ss) <- factor lst = let r = niceDotApp ini z
+                                                           in if r == z then Just (r, ss)
+                                                                        else Just (r, ann ini : ss)
+        factor (InfixApp _ y op (factor -> Just (z, ss))) | isDol op = let r = niceDotApp y z
+                                                                 in if r == z then Just (r, ss)
+                                                                              else Just (r, ann y : ss)
         factor (Paren _ y@App{}) = factor y
         factor _ = Nothing
+        mkRefact :: [S] -> R.SrcSpan -> Refactoring R.SrcSpan
+        mkRefact subts s =
+          let tempSubts = zipWith (\a b -> ([a], toRefactSrcSpan . toSrcSpan $ b)) ['a' .. 'z'] subts
+              template = dotApps (map (toNamed . fst) tempSubts)
+          in Replace Expr s tempSubts (prettyPrint template)
+
 
 -- \x -> (x +) ==> (+)
-niceLambda [x] (LeftSection _ (view -> Var_ x1) op) | x == x1 = opExp op
+-- Section handling is not yet supported for refactoring
+niceLambdaR [x] (LeftSection _ (view -> Var_ x1) op) | x == x1 =
+  let e = opExp op
+  in (e, \s -> [Replace Expr s [] (prettyPrint e)])
 
 -- base case
-niceLambda ps x = Lambda an (map toNamed ps) x
+niceLambdaR ps x = (Lambda an (map toNamed ps) x, const [])
 
 
 

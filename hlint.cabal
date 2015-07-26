@@ -52,7 +52,8 @@ library
         haskell-src-exts >= 1.16 && < 1.17,
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
-        extra >= 0.5
+        extra >= 0.5,
+        refact >= 0.3
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
@@ -76,6 +77,7 @@ library
         Report
         Util
         Parallel
+        Refact
         HSE.All
         HSE.Bracket
         HSE.Evaluate
@@ -113,7 +115,7 @@ executable hlint
     build-depends:      base
     hs-source-dirs:     src
     main-is:            Main.hs
- 
+
     ghc-options:        -fno-warn-overlapping-patterns
     if flag(threaded)
         ghc-options:    -threaded

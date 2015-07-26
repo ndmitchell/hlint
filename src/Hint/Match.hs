@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec, RecordWildCards, FlexibleContexts #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, RelaxedPolyRec, RecordWildCards, FlexibleContexts, ScopedTypeVariables, TupleSections #-}
 
 {-
 The matching does a fairly simple unification between the two terms, treating
@@ -51,6 +51,7 @@ import Data.Tuple.Extra
 import Util
 import qualified Data.Set as Set
 import Prelude
+import qualified Refact.Types as R
 
 
 fmapAn = fmap (const an)
@@ -69,20 +70,19 @@ readRule (m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn ->
         (l,v1) <- dotVersion hintRuleLHS
         (r,v2) <- dotVersion hintRuleRHS
         guard $ v1 == v2 && l /= [] && (length l > 1 || length r > 1) && Set.notMember v1 (freeVars $ maybeToList hintRuleSide ++ l ++ r)
-        if r /= [] then return
-            [m{hintRuleLHS=dotApps l, hintRuleRHS=dotApps r, hintRuleSide=hintRuleSide}
-            ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=dotApps (r++[toNamed v1]), hintRuleSide=hintRuleSide}]
-         else if length l > 1 then return
-            [m{hintRuleLHS=dotApps l, hintRuleRHS=toNamed "id", hintRuleSide=hintRuleSide}
-            ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=toNamed v1, hintRuleSide=hintRuleSide}]
-         else
-            Nothing
+        if  r /= [] then  return
+              [m{hintRuleLHS=dotApps l, hintRuleRHS=dotApps r, hintRuleSide=hintRuleSide}
+              ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=dotApps (r++[toNamed v1]), hintRuleSide=hintRuleSide}]
+            else if length l > 1 then return
+              [m{hintRuleLHS=dotApps l, hintRuleRHS=toNamed "id", hintRuleSide=hintRuleSide}
+              ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=toNamed v1, hintRuleSide=hintRuleSide}]
+              else  Nothing
 
 
 -- find a dot version of this rule, return the sequence of app prefixes, and the var
 dotVersion :: Exp_ -> Maybe ([Exp_], String)
 dotVersion (view -> Var_ v) | isUnifyVar v = Just ([], v)
-dotVersion (fromApps -> xs) | length xs > 1 = first (apps (init xs) :) <$> dotVersion (fromParen $ last xs)
+dotVersion (App l ls rs) = first (ls :) <$> dotVersion (fromParen $ rs)
 dotVersion _ = Nothing
 
 
@@ -91,25 +91,59 @@ dotVersion _ = Nothing
 
 findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
-  [ (idea (hintRuleSeverity m) (hintRuleName m) x y){ideaNote=notes}
+  [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
   | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
-  , (parent,x) <- universeParentExp decl, not $ isParen x, let x2 = fmapAn x
-  , m <- matches, Just (y,notes) <- [matchIdea s decl m parent x2]]
+  , (parent,x) <- universeParentExp decl, not $ isParen x
+  , m <- matches, Just (y,notes, subst, rule) <- [matchIdea s decl m parent x]
+  , let r = R.Replace R.Expr (toSS x) subst (prettyPrint rule) ]
 
-
-matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note])
+matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note], [(String, R.SrcSpan)], Exp_)
 matchIdea s decl HintRule{..} parent x = do
     let nm a b = scopeMatch (hintRuleScope,a) (s,b)
     u <- unifyExp nm True hintRuleLHS x
     u <- check u
     let e = subst u hintRuleRHS
+        template = substT u hintRuleRHS
     let res = addBracket parent $ unqualify hintRuleScope s u $ performEval e
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables
     guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : u
     guard $ checkDefine decl parent res
-    return (res,hintRuleNotes)
+    return (res,hintRuleNotes, [(s, toSS pos) | (s, pos) <- u, ann pos /= an], template)
+
+
+-- | Descend, and if something changes then add/remove brackets appropriately in both the template
+-- and the original expression.
+descendBracketTemplate :: (Exp_ -> (Bool, (Exp_, Exp_))) -> Exp_ -> Exp_
+descendBracketTemplate op x = descendIndex g x
+    where
+        g i y = if a then f i b else (fst b)
+            where (a,b) = op y
+
+        f i (v, y) | needBracket i x y = addParen v
+        f i (v, y) = v
+
+transformBracketTemplate :: (Exp_ -> Maybe (Exp_, Exp_)) -> Exp_ -> Exp_
+transformBracketTemplate op = fst . snd . g
+    where
+        g :: Exp_ -> (Bool, (Exp_, Exp_))
+        g = f . descendBracketTemplate g
+        f :: Exp_ -> (Bool, (Exp_, Exp_))
+        f x = maybe (False,(x, x)) ((,) True) (op x)
+
+-- perform a substitution
+substT :: [(String,Exp_)] -> Exp_ -> Exp_
+substT bind = transform g . transformBracketTemplate f
+    where
+        f v@(Var _ (fromNamed -> x)) | isUnifyVar x = case lookup x bind of
+                                                        Just x -> if ann x == an then  Just (x, x)
+                                                                                 else  Just (v, x)
+                                                        Nothing -> Nothing
+        f _ = Nothing
+
+        g (App _ np x) | np ~= "_noParen_" = fromParen x
+        g x = x
 
 
 ---------------------------------------------------------------------
@@ -127,6 +161,7 @@ nmOp nm  _ _ = False
 unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe [(String,Exp_)]
 unify nm root x y | Just x <- cast x = unifyExp nm root x (unsafeCoerce y)
                   | Just x <- cast x = unifyPat nm x (unsafeCoerce y)
+                  | Just (x :: SrcSpanInfo) <- cast x = Just []
                   | otherwise = unifyDef nm x y
 
 
@@ -138,7 +173,8 @@ unifyDef nm x y = fmap concat . sequence =<< gzip (unify nm False) x y
 -- root = True, this is the outside of the expr
 -- do not expand out a dot at the root, since otherwise you get two matches because of readRule (Bug #570)
 unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
-unifyExp nm root x y | isParen x || isParen y = unifyExp nm root (fromParen x) (fromParen y)
+unifyExp nm root x y | isParen x || isParen y =
+  map (rebracket y) <$> (unifyExp nm root (fromParen x) (fromParen y))
 unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
 unifyExp nm root (Var _ x) (Var _ y) | nm x y = Just []
 unifyExp nm root x@(App _ x1 x2) (App _ y1 y2) =
@@ -150,6 +186,10 @@ unifyExp nm root x (InfixApp _ lhs2 op2 rhs2)
     | otherwise = unifyExp nm root x $ App an (App an (opExp op2) lhs2) rhs2
 unifyExp nm root x y | isOther x, isOther y = unifyDef nm x y
 unifyExp nm root _ _ = Nothing
+
+rebracket (Paren l e') (v, e)
+  | e' == e = (v, Paren l e)
+rebracket e (v, e') = (v, e')
 
 
 unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe [(String,Exp_)]
@@ -172,7 +212,9 @@ isOther _ = True
 -- check the unification is valid
 check :: [(String,Exp_)] -> Maybe [(String,Exp_)]
 check = mapM f . groupSort
-    where f (x,ys) = if allSame ys then Just (x,head ys) else Nothing
+    where f (x,ys) = if checkSame ys then Just (x,head ys) else Nothing
+          checkSame [] = True
+          checkSame (x:xs) = all (x =~=) xs
 
 
 -- perform a substitution
@@ -203,7 +245,7 @@ checkSide x bind = maybe True f x
             = isType typ y
         f (App _ (App _ cond (sub -> x)) (sub -> y))
             | cond ~= "notIn" = and [x `notElem` universe y | x <- list x, y <- list y]
-            | cond ~= "notEq" = x /= y
+            | cond ~= "notEq" = x /=~= y
         f x | x ~= "noTypeCheck" = True
         f x | x ~= "noQuickCheck" = True
         f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x

@@ -6,6 +6,8 @@ import Data.List.Extra
 import HSE.All
 import Settings
 import HsColour
+import Refact.Types hiding (SrcSpan)
+import qualified Refact.Types as R
 
 
 -- | An idea suggest by a 'Hint'.
@@ -18,6 +20,7 @@ data Idea = Idea
     ,ideaFrom :: String -- ^ The contents of the source code the idea relates to.
     ,ideaTo :: Maybe String -- ^ The suggested replacement, or 'Nothing' for no replacement (e.g. on parse errors).
     ,ideaNote :: [Note] -- ^ Notes about the effect of applying the replacement.
+    , ideaRefactoring :: [Refactoring R.SrcSpan] -- ^ How to perform this idea
     }
     deriving (Eq,Ord)
 
@@ -65,7 +68,17 @@ showEx tt Idea{..} = unlines $
 
 
 rawIdea = Idea "" ""
-idea severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) []
+rawIdeaN a b c d e f = Idea "" "" a b c d e f []
+
+idea severity hint from to rs = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) [] rs
     where f = trimStart . prettyPrint
 warn = idea Warning
 err = idea Error
+
+
+ideaN severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) [] []
+    where f = trimStart . prettyPrint
+
+warnN = ideaN Warning
+errN  = ideaN Error
+
