@@ -202,14 +202,16 @@ cmdUseColour cmd = case cmdColor cmd of
 x <\> y = x </> y
 
 
-resolveFile :: Cmd -> FilePath -> IO [FilePath]
+resolveFile :: Cmd -> Maybe (FilePath, Handle) -> FilePath -> IO [FilePath]
 resolveFile cmd = getFile (cmdPath cmd) (cmdExtension cmd)
 
 
-getFile :: [FilePath] -> [String] -> FilePath -> IO [FilePath]
-getFile path _ "-" = return ["-"]
-getFile [] exts file = error $ "Couldn't find file: " ++ file
-getFile (p:ath) exts file = do
+getFile :: [FilePath] -> [String] -> Maybe (FilePath, Handle) -> FilePath -> IO [FilePath]
+getFile path _ (Just (tmpfile, thandle)) "-" =
+  getContents >>= hPutStr thandle >> hClose thandle >> return [tmpfile]
+getFile path _ Nothing "-" = return ["-"]
+getFile [] exts _ file = error $ "Couldn't find file: " ++ file
+getFile (p:ath) exts t file = do
     isDir <- doesDirectoryExist $ p <\> file
     if isDir then do
         let avoidDir x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y))
@@ -223,7 +225,7 @@ getFile (p:ath) exts file = do
             res <- getModule p exts file
             case res of
                 Just x -> return [x]
-                Nothing -> getFile ath exts file
+                Nothing -> getFile ath exts t file
 
 
 getModule :: FilePath -> [String] -> FilePath -> IO (Maybe FilePath)

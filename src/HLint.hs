@@ -90,7 +90,7 @@ hlintGrep cmd@CmdGrep{..} = do
     if null cmdFiles then
         exitWithHelp
      else do
-        files <- concatMapM (resolveFile cmd) cmdFiles
+        files <- concatMapM (resolveFile cmd Nothing) cmdFiles
         if null files then
             error "No files found"
          else
@@ -98,15 +98,16 @@ hlintGrep cmd@CmdGrep{..} = do
 
 hlintMain :: Cmd -> IO [Suggestion]
 hlintMain cmd@CmdMain{..} = do
+    let resolver = resolveFile cmd Nothing
     encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
     let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles && not (null cmdFindHints) then do
-        hints <- concatMapM (resolveFile cmd) cmdFindHints
+        hints <- concatMapM resolver cmdFindHints
         mapM_ (\x -> putStrLn . fst =<< findSettings2 flags x) hints >> return []
      else if null cmdFiles then
         exitWithHelp
      else do
-        files <- concatMapM (resolveFile cmd) cmdFiles
+        files <- concatMapM resolver cmdFiles
         if null files then
             error "No files found"
          else
