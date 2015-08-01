@@ -13,7 +13,7 @@ import System.IO.Extra
 import Prelude
 
 import Data.Version
-import System.Process
+import System.Process.Extra
 import Data.Maybe
 import System.Directory
 import Text.ParserCombinators.ReadP
@@ -174,7 +174,7 @@ runHints cmd@CmdMain{..} flags = do
     return $ map Suggestion showideas
 
 runRefactoring :: FilePath -> FilePath -> String -> IO ()
-runRefactoring rpath fin opts = callCommand (unwords [rpath, fin, "--refact-file", "hlint.refact", "-v0", opts])
+runRefactoring rpath fin opts = system_ (unwords [rpath, fin, "--refact-file", "hlint.refact", "-v0", opts])
 
 
 checkRefactor :: Maybe FilePath -> IO FilePath
