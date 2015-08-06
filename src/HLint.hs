@@ -192,7 +192,7 @@ checkRefactor rpath = do
   mexc <- findExecutable excPath
   case mexc of
     Just exc ->  do
-      vers <- readP_to_S parseVersion . tail <$> (readProcess "refactor" ["--version"] "")
+      vers <- readP_to_S parseVersion . tail <$> (readProcess exc ["--version"] "")
       case vers of
         [] -> putStrLn "Unabled to determine version of refactor" >> (return exc)
         (last -> (version, _)) -> if versionBranch version >= [0,1,0,0]
