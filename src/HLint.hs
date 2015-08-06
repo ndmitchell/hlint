@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity(..)) where
@@ -9,7 +9,14 @@ import System.Console.CmdArgs.Verbosity
 import Data.List
 import System.Exit
 import System.IO
+import System.IO.Extra
 import Prelude
+
+import Data.Version
+import System.Process.Extra
+import Data.Maybe
+import System.Directory
+import Text.ParserCombinators.ReadP
 
 import CmdLine
 import Settings
@@ -90,7 +97,7 @@ hlintGrep cmd@CmdGrep{..} = do
     if null cmdFiles then
         exitWithHelp
      else do
-        files <- concatMapM (resolveFile cmd) cmdFiles
+        files <- concatMapM (resolveFile cmd Nothing) cmdFiles
         if null files then
             error "No files found"
          else
@@ -101,16 +108,20 @@ hlintMain cmd@CmdMain{..} = do
     encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
     let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles && not (null cmdFindHints) then do
-        hints <- concatMapM (resolveFile cmd) cmdFindHints
+        hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
         mapM_ (\x -> putStrLn . fst =<< findSettings2 flags x) hints >> return []
      else if null cmdFiles then
         exitWithHelp
-     else do
-        files <- concatMapM (resolveFile cmd) cmdFiles
-        if null files then
-            error "No files found"
-         else
-            runHints cmd{cmdFiles=files} flags
+     else if cmdRefactor then do
+         withTempFile (\t ->  runHlintMain cmd (Just t) flags)
+     else runHlintMain cmd Nothing flags
+
+runHlintMain :: Cmd -> Maybe FilePath -> ParseFlags -> IO [Suggestion]
+runHlintMain cmd@(CmdMain{..}) fp flags = do
+  files <- concatMapM (resolveFile cmd fp) cmdFiles
+  if null files
+    then error "No files found"
+    else runHints cmd{cmdFiles=files} flags
 
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
 readAllSettings cmd@CmdMain{..} flags = do
@@ -137,6 +148,18 @@ runHints cmd@CmdMain{..} flags = do
         else if cmdSerialise then do
           hSetBuffering stdout NoBuffering
           print $ map (\i -> (show i, ideaRefactoring i)) showideas
+        else if cmdRefactor then do
+          case cmdFiles of
+            [file] -> do
+              -- Ensure that we can find the executable
+              path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
+              -- writeFile "hlint.refact"
+              let hints =  show $ map (\i -> (show i, ideaRefactoring i)) showideas
+              runRefactoring path file hints cmdRefactorOptions
+              -- Overwrite exit code as it is 1 when there are suggestions
+              exitSuccess
+            _ -> error "Refactor flag can only be used with an individual file"
+
         else do
             mapM_ (outStrLn . showItem) showideas
             if null showideas then
@@ -150,6 +173,33 @@ runHints cmd@CmdMain{..} flags = do
                     (let i = length showideas in if i == 0 then "No suggestions" else show i ++ " suggestion" ++ ['s' | i/=1]) ++
                     (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
     return $ map Suggestion showideas
+
+runRefactoring :: FilePath -> FilePath -> String -> String -> IO ()
+runRefactoring rpath fin hints opts =  do
+  let cmd = unwords [rpath, fin, "-v0", opts]
+  (Just hin, Just hout, _stderr, _) <- createProcess $ (shell cmd) { std_in = CreatePipe
+                                                                   , std_out = CreatePipe }
+  hPutStr hin hints
+  hClose hin
+  hGetContents hout >>= putStr
+
+
+
+
+checkRefactor :: Maybe FilePath -> IO FilePath
+checkRefactor rpath = do
+  let excPath = (fromMaybe "refactor" rpath)
+  mexc <- findExecutable excPath
+  case mexc of
+    Just exc ->  do
+      vers <- readP_to_S parseVersion . tail <$> (readProcess exc ["--version"] "")
+      case vers of
+        [] -> putStrLn "Unabled to determine version of refactor" >> (return exc)
+        (last -> (version, _)) -> if versionBranch version >= [0,1,0,0]
+                                    then return exc
+                                    else error "Your version of refactor is too old, please upgrade to the latest version"
+    Nothing ->  error $ unlines ["Could not find refactor"
+                                , "Tried with: " ++ excPath ]
 
 evaluateList :: [a] -> IO [a]
 evaluateList xs = length xs `seq` return xs

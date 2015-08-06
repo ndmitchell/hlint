@@ -55,6 +55,14 @@ The first suggestion is marked as an error, because using `concatMap` in prefere
 
 **Bug reports:** The suggested replacement should be equivalent - please report all incorrect suggestions not mentioned as known limitations.
 
+### Automatically Applying Hints
+
+By supplying the `--refactor` flag hlint can automatically apply most suggestions. Instead of a list of hints, hlint will instead output the refactored file on stdout. In order to do this a file `hlint.refact` will be created before `refactor` (an executable provided by the [`apply-refact`](https://github.com/mpickering/apply-refact) package) is used to perform the hints.
+
+Additional configuration can be passed to `refactor` with the `--refactor-options` flag. Some useful flags include `-i` which replaces the original file and `-s` which asks for confirmation before performing a hint.
+
+There are no plans to support the duplication nor the renaming hints.
+
 ### Reports
 
 HLint can generate a lot of information, making it difficult to search for particular types of errors. The `--report` flag will cause HLint to generate a report file in HTML, which can be viewed interactively. Reports are recommended when there are more than a handful of hints.
@@ -109,16 +117,6 @@ This will suggest eta reduction to `concat . map op`, and then after making that
 * Some people only make use of some of the suggestions. In the above example using concatMap is a good idea, but sometimes eta reduction isn't. By suggesting them separately, people can pick and choose.
 * Sometimes a transformed expression will be large, and a further hint will apply to some small part of the result, which appears confusing.
 * Consider `f $ (a b)`. There are two valid hints, either remove the $ or remove the brackets, but only one can be applied.
-
-### Why aren't the suggestions automatically applied?
-
-If you want to automatically apply suggestions, the [Emacs integration](https://rawgithub.com/ndmitchell/hlint/master/hlint.htm#emacs) offers such a feature. However, there are a number of reasons that HLint itself doesn't have an option to automatically apply suggestions:
-
-* The underlying Haskell parser library makes it hard to modify the code, then print it similarly to the original.
-* Sometimes multiple transformations may apply.
-* After applying one transformation, others that were otherwise suggested may become inappropriate.
-
-I am intending to develop such a feature, but the above reasons mean it is likely to take some time.
 
 ### Why doesn't the compiler automatically apply the optimisations?
 

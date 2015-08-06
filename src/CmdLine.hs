@@ -92,6 +92,9 @@ data Cmd
         ,cmdJson :: Bool                -- ^ display hint data as JSON
         ,cmdNoSummary :: Bool           -- ^ do not show the summary info
         ,cmdSerialise :: Bool           -- ^ Display hints in serialisation format
+        ,cmdRefactor :: Bool            -- ^ Run the `refactor` executable to automatically perform hints
+        ,cmdRefactorOptions :: String   -- ^ Options to pass to the `refactor` executable.
+        ,cmdWithRefactor :: FilePath    -- ^ Path to refactor tool
         }
     | CmdGrep
         {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
@@ -148,6 +151,9 @@ mode = cmdArgsMode $ modes
         ,cmdJson = nam_ "json" &= help "Display hint data as JSON"
         ,cmdNoSummary = nam_ "no-summary" &= help "Do not show summary information"
         ,cmdSerialise = nam_ "serialise" &= help "Serialise hint data for consumption by apply-refact"
+        ,cmdRefactor = nam_ "refactor" &= help "Automatically invoke `refactor` to apply hints"
+        ,cmdRefactorOptions = nam_ "refactor-options" &= typ "OPTIONS" &= help "Options to pass to the `refactor` executable"
+        , cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
         } &= auto &= explicit &= name "lint"
     ,CmdGrep
         {cmdFiles = def &= args &= typ "FILE/DIR"
@@ -202,14 +208,16 @@ cmdUseColour cmd = case cmdColor cmd of
 x <\> y = x </> y
 
 
-resolveFile :: Cmd -> FilePath -> IO [FilePath]
+resolveFile :: Cmd -> Maybe FilePath -> FilePath -> IO [FilePath]
 resolveFile cmd = getFile (cmdPath cmd) (cmdExtension cmd)
 
 
-getFile :: [FilePath] -> [String] -> FilePath -> IO [FilePath]
-getFile path _ "-" = return ["-"]
-getFile [] exts file = error $ "Couldn't find file: " ++ file
-getFile (p:ath) exts file = do
+getFile :: [FilePath] -> [String] -> Maybe FilePath -> FilePath -> IO [FilePath]
+getFile path _ (Just tmpfile) "-" =
+  getContents >>= writeFile tmpfile >> return [tmpfile]
+getFile path _ Nothing "-" = return ["-"]
+getFile [] exts _ file = error $ "Couldn't find file: " ++ file
+getFile (p:ath) exts t file = do
     isDir <- doesDirectoryExist $ p <\> file
     if isDir then do
         let avoidDir x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y))
@@ -223,7 +231,7 @@ getFile (p:ath) exts file = do
             res <- getModule p exts file
             case res of
                 Just x -> return [x]
-                Nothing -> getFile ath exts file
+                Nothing -> getFile ath exts t file
 
 
 getModule :: FilePath -> [String] -> FilePath -> IO (Maybe FilePath)
