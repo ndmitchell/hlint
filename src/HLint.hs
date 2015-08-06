@@ -153,8 +153,9 @@ runHints cmd@CmdMain{..} flags = do
             [file] -> do
               -- Ensure that we can find the executable
               path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
-              writeFile "hlint.refact" (show $ map (\i -> (show i, ideaRefactoring i)) showideas)
-              runRefactoring path file cmdRefactorOptions
+              -- writeFile "hlint.refact"
+              let hints =  show $ map (\i -> (show i, ideaRefactoring i)) showideas
+              runRefactoring path file hints cmdRefactorOptions
               -- Overwrite exit code as it is 1 when there are suggestions
               exitSuccess
             _ -> error "Refactor flag can only be used with an individual file"
@@ -173,8 +174,16 @@ runHints cmd@CmdMain{..} flags = do
                     (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
     return $ map Suggestion showideas
 
-runRefactoring :: FilePath -> FilePath -> String -> IO ()
-runRefactoring rpath fin opts = system_ (unwords [rpath, fin, "--refact-file", "hlint.refact", "-v0", opts])
+runRefactoring :: FilePath -> FilePath -> String -> String -> IO ()
+runRefactoring rpath fin hints opts =  do
+  let cmd = unwords [rpath, fin, "-v0", opts]
+  (Just hin, Just hout, _stderr, _) <- createProcess $ (shell cmd) { std_in = CreatePipe
+                                                                   , std_out = CreatePipe }
+  hPutStr hin hints
+  hClose hin
+  hGetContents hout >>= putStr
+
+
 
 
 checkRefactor :: Maybe FilePath -> IO FilePath
