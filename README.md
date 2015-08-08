@@ -57,9 +57,24 @@ The first suggestion is marked as an error, because using `concatMap` in prefere
 
 ### Automatically Applying Hints
 
-By supplying the `--refactor` flag hlint can automatically apply most suggestions. Instead of a list of hints, hlint will instead output the refactored file on stdout. In order to do this a file `hlint.refact` will be created before `refactor` (an executable provided by the [`apply-refact`](https://github.com/mpickering/apply-refact) package) is used to perform the hints.
+By supplying the `--refactor` flag hlint can automatically apply most
+suggestions. Instead of a list of hints, hlint will instead output the
+refactored file on stdout. In order to do this, it is necessary to have the
+`refactor` executable on you path. `refactor` is provided by the
+[`apply-refact`](https://github.com/mpickering/apply-refact) package,
+it uses the GHC API in order to transform source files given a list of
+refactorings to apply. Hlint directly calls the executable to apply the
+suggestions.
 
-Additional configuration can be passed to `refactor` with the `--refactor-options` flag. Some useful flags include `-i` which replaces the original file and `-s` which asks for confirmation before performing a hint.
+Additional configuration can be passed to `refactor` with the
+`--refactor-options` flag. Some useful flags include `-i` which replaces the
+original file and `-s` which asks for confirmation before performing a hint.
+
+An alternative location for `refactor` can be specified with the
+`--with-refactor` flag.
+
+Simple bindings for [vim](https://github.com/mpickering/hlint-refactor-vim),
+[emacs](https://github.com/mpickering/hlint-refactor-mode) and [atom](https://github.com/mpickering/hlint-refactor-atom) are provided.
 
 There are no plans to support the duplication nor the renaming hints.
 
