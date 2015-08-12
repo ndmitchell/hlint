@@ -139,7 +139,7 @@ hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing,impor
     = [rawIdeaN Warning "Use hierarchical imports" (toSrcSpan $ ann i) (trimStart $ prettyPrint i) (
           Just $ unlines $ map (trimStart . prettyPrint)
           [f "System.IO" Nothing, f "System.IO.Error" Nothing
-          ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an (NoNamespace an) $ toNamed x | x <- ["bracket","bracket_"]]]) []]
+          ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an $ toNamed x | x <- ["bracket","bracket_"]]]) []]
     where f a b = (desugarQual i){importModule=ModuleName an a, importSpecs=b}
 
 hierarchy _ = []
