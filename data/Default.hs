@@ -52,7 +52,11 @@ error = exitWith ExitSuccess ==> exitSuccess
 -- ORD
 
 error = not (a == b) ==> a /= b where note = "incorrect if either value is NaN"
+error = not . (a ==) ==> (a /=) where note = "incorrect if either value is NaN"
+error = not . (== a) ==> (/= a) where note = "incorrect if either value is NaN"
 error = not (a /= b) ==> a == b where note = "incorrect if either value is NaN"
+error = not . (/= a) ==> (== a) where note = "incorrect if either value is NaN"
+error = not . (a /=) ==> (a ==) where note = "incorrect if either value is NaN"
 error = not (a >  b) ==> a <= b where note = "incorrect if either value is NaN"
 error = not (a >= b) ==> a <  b where note = "incorrect if either value is NaN"
 error = not (a <  b) ==> a >= b where note = "incorrect if either value is NaN"
@@ -537,6 +541,10 @@ yes = "test" ++ concatMap (' ':) ["of","this"] -- unwords ("test":["of","this"])
 yes = if f a then True else b -- f a || b
 yes = not (a == b) -- a /= b
 yes = not (a /= b) -- a == b
+yes = not . (a ==) -- (a /=)
+yes = not . (== a) -- (/= a)
+yes = not . (a /=) -- (a ==)
+yes = not . (/= a) -- (== a)
 yes = if a then 1 else if b then 1 else 2 -- if a || b then 1 else 2
 no  = if a then 1 else if b then 3 else 2
 yes = a >>= return . bob -- Control.Monad.liftM bob a
