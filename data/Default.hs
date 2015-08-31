@@ -52,7 +52,11 @@ error = exitWith ExitSuccess ==> exitSuccess
 -- ORD
 
 error = not (a == b) ==> a /= b where note = "incorrect if either value is NaN"
+error = not . (a ==) ==> (a /=) where note = "incorrect if either value is NaN"
+error = not . (== a) ==> (/= a) where note = "incorrect if either value is NaN"
 error = not (a /= b) ==> a == b where note = "incorrect if either value is NaN"
+error = not . (/= a) ==> (== a) where note = "incorrect if either value is NaN"
+error = not . (a /=) ==> (a ==) where note = "incorrect if either value is NaN"
 error = not (a >  b) ==> a <= b where note = "incorrect if either value is NaN"
 error = not (a >= b) ==> a <  b where note = "incorrect if either value is NaN"
 error = not (a <  b) ==> a >= b where note = "incorrect if either value is NaN"
