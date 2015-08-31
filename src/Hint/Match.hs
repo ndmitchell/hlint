@@ -83,6 +83,8 @@ readRule (m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn ->
 dotVersion :: Exp_ -> [([Exp_], String)]
 dotVersion (view -> Var_ v) | isUnifyVar v = [([], v)]
 dotVersion (App l ls rs) = first (ls :) <$> dotVersion (fromParen $ rs)
+dotVersion (InfixApp l x op y) = (first (LeftSection l x op :) <$> dotVersion y) ++
+                                 (first (RightSection l op y:) <$> dotVersion x)
 dotVersion _ = []
 
 

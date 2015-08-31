@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #170, add hints for eta-reduced operators
     #149, integrate a --refactor flag
     #147, fix the -fglasgow-exts hint
     #140, better name for moving brackets to eliminate $
