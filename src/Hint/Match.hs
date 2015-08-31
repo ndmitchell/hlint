@@ -66,7 +66,7 @@ readMatch settings = findIdeas (concatMap readRule settings)
 
 readRule :: HintRule -> [HintRule]
 readRule (m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn -> hintRuleRHS), hintRuleSide=(fmap fmapAn -> hintRuleSide)}) =
-    (:) m{hintRuleLHS=hintRuleLHS,hintRuleSide=hintRuleSide,hintRuleRHS=hintRuleRHS} $ fromMaybe [] $ do
+    (:) m{hintRuleLHS=hintRuleLHS,hintRuleSide=hintRuleSide,hintRuleRHS=hintRuleRHS} $ do
         (l,v1) <- dotVersion hintRuleLHS
         (r,v2) <- dotVersion hintRuleRHS
         guard $ v1 == v2 && l /= [] && (length l > 1 || length r > 1) && Set.notMember v1 (freeVars $ maybeToList hintRuleSide ++ l ++ r)
@@ -80,10 +80,10 @@ readRule (m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn ->
 
 
 -- find a dot version of this rule, return the sequence of app prefixes, and the var
-dotVersion :: Exp_ -> Maybe ([Exp_], String)
-dotVersion (view -> Var_ v) | isUnifyVar v = Just ([], v)
+dotVersion :: Exp_ -> [([Exp_], String)]
+dotVersion (view -> Var_ v) | isUnifyVar v = [([], v)]
 dotVersion (App l ls rs) = first (ls :) <$> dotVersion (fromParen $ rs)
-dotVersion _ = Nothing
+dotVersion _ = []
 
 
 ---------------------------------------------------------------------
