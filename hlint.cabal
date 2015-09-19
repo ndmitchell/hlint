@@ -116,7 +116,7 @@ executable hlint
     hs-source-dirs:     src
     main-is:            Main.hs
 
-    ghc-options:        -fno-warn-overlapping-patterns
+    ghc-options:        -fno-warn-overlapping-patterns -rtsopts
     if flag(threaded)
         ghc-options:    -threaded
 
