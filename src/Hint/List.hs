@@ -5,9 +5,9 @@
 
 <TEST>
 yes = 1:2:[] -- [1,2]
-yes = ['h','e','l','l','o'] -- "hello"
+yes = ['h','e','l','l','o']
 yes (1:2:[]) = 1 -- [1,2]
-yes ['h','e'] = 1 -- "he"
+yes ['h','e'] = 1
 
 -- [a]++b -> a : b, but only if not in a chain of ++'s
 yes = [x] ++ xs -- x : xs
@@ -59,13 +59,13 @@ isAppend (view -> App2 op _ _) = op ~= "++"
 isAppend _ = False
 
 
-checks = let (*) = (,) in
+checks = let (*) = (,) in drop 1 -- see #174
          ["Use string literal" * useString
          ,"Use list literal" * useList
          ,"Use :" * useCons
          ]
 
-pchecks = let (*) = (,) in
+pchecks = let (*) = (,) in drop 1 -- see #174
           ["Use string literal pattern" * usePString
           ,"Use list literal pattern" * usePList
           ]
