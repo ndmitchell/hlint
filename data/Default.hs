@@ -648,6 +648,7 @@ f condition tChar tBool = if condition then _monoField tChar else _monoField tBo
 foo = maybe Bar{..} id -- Data.Maybe.fromMaybe Bar{..}
 foo = (\a -> Foo {..}) 1
 foo = zipWith SymInfo [0 ..] (repeat ty) -- map (\ x -> SymInfo x ty) [0 ..]
+f rec = rec
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
