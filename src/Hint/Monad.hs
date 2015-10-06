@@ -19,7 +19,7 @@ yes = do bar; a <- foo; return a -- do bar; foo
 no = do bar; a <- foo; return b
 yes = do x <- bar; x -- do join bar
 no = do x <- bar; x; x
-no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
+{-# LANGUAGE RecursiveDo #-}; no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
 yes = do x <- return y; foo x -- @Warning do let x = y; foo x
 yes = do x <- return $ y + z; foo x -- do let x = y + z; foo x
 no = do x <- return x; foo x
