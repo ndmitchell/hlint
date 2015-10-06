@@ -128,4 +128,5 @@ badExtensions =
     ,XmlSyntax, RegularPatterns -- steals a-b
     ,UnboxedTuples -- breaks (#) lens operator
     ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
+    ,DoRec, RecursiveDo -- breaks rec
     ]
