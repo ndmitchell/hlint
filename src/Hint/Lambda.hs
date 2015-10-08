@@ -86,7 +86,9 @@ lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) 
       [err "Redundant lambda" o (gen pats bod) [Replace Decl (toSS o) s1 t1]]
     | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
         = [err "Eta reduce" (reform pats bod) (reform pats2 bod2)
-            [Replace Decl (toSS $ reform pats bod) s2 t2]]
+            [ -- Disabled, see apply-refact #3
+              -- Replace Decl (toSS $ reform pats bod) s2 t2]]
+            ]]
         where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) Nothing]
               gen ps b = uncurry reform . fromLambda . Lambda an ps $ b
               (finalpats, body) = fromLambda . Lambda an pats $ bod
@@ -97,9 +99,9 @@ lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) 
               munge ident p = PVar (ann p) (Ident (ann p) [ident])
               subts fps b = ("body", toSS b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS fps)
               s1 = subts finalpats body
-              s2 = subts pats2 bod2
+              --s2 = subts pats2 bod2
               t1 = template finalpats body
-              t2 = template pats2 bod2
+              --t2 = template pats2 bod2
 
 lambdaDecl _ = []
 
