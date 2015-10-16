@@ -20,5 +20,5 @@ test_script:
 # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
 # descriptor
 - stack init
-- echo "" | stack --arch i386 --no-terminal --install-ghc test
+- echo "" | stack --arch i386 --no-terminal --install-ghc build
 - stack exec hlint test
