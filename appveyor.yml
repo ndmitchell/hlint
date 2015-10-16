@@ -21,4 +21,4 @@ test_script:
 # descriptor
 - stack init
 - echo "" | stack --arch i386 --no-terminal --install-ghc test
-- hlint test +RTS -K1K
+- stack exec hlint test
