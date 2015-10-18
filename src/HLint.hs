@@ -176,9 +176,9 @@ runHints cmd@CmdMain{..} flags = do
 
 runRefactoring :: FilePath -> FilePath -> String -> String -> IO ExitCode
 runRefactoring rpath fin hints opts =  do
-  let cmd = unwords [rpath, fin, "-v0", opts]
-  (Just hin, Just hout, _stderr, phand) <- createProcess $ (shell cmd) { std_in = CreatePipe
-                                                                   , std_out = CreatePipe }
+  let args = [fin, "-v0"] ++ words opts
+  (Just hin, Just hout, _stderr, phand) <- createProcess $ (proc rpath args) { std_in = CreatePipe
+                                                                             , std_out = CreatePipe }
   hPutStr hin hints
   hClose hin
   hGetContents hout >>= putStr
