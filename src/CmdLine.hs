@@ -91,6 +91,7 @@ data Cmd
         ,cmdCppAnsi :: Bool
         ,cmdJson :: Bool                -- ^ display hint data as JSON
         ,cmdNoSummary :: Bool           -- ^ do not show the summary info
+        ,cmdNoExitCode :: Bool
         ,cmdSerialise :: Bool           -- ^ Display hints in serialisation format
         ,cmdRefactor :: Bool            -- ^ Run the `refactor` executable to automatically perform hints
         ,cmdRefactorOptions :: String   -- ^ Options to pass to the `refactor` executable.
@@ -150,6 +151,7 @@ mode = cmdArgsMode $ modes
         ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
         ,cmdJson = nam_ "json" &= help "Display hint data as JSON"
         ,cmdNoSummary = nam_ "no-summary" &= help "Do not show summary information"
+        ,cmdNoExitCode = nam_ "no-exit-code" &= help "Do not give a negative exit if hints"
         ,cmdSerialise = nam_ "serialise" &= help "Serialise hint data for consumption by apply-refact"
         ,cmdRefactor = nam_ "refactor" &= help "Automatically invoke `refactor` to apply hints"
         ,cmdRefactorOptions = nam_ "refactor-options" &= typ "OPTIONS" &= help "Options to pass to the `refactor` executable"

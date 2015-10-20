@@ -60,7 +60,7 @@ hlint :: [String] -> IO [Suggestion]
 hlint args = do
     cmd <- getCmd args
     case cmd of
-        CmdMain{} -> hlintMain cmd
+        CmdMain{} -> do xs <- hlintMain cmd; return $ if cmdNoExitCode cmd then [] else xs
         CmdGrep{} -> hlintGrep cmd >> return []
         CmdHSE{}  -> hlintHSE  cmd >> return []
         CmdTest{} -> hlintTest cmd >> return []

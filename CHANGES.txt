@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add --no-exit-code flag
     #174, don't suggest string literals
     #175, disable 'rec' stealing extensions by default
     #170, add hints for eta-reduced operators
