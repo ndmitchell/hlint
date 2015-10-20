@@ -1,0 +1,20 @@
+cache:
+- "c:\\sr" # stack root, short paths == less problems
+- "%LOCALAPPDATA%\\Programs\\stack"
+
+build: off
+
+before_test:
+- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
+- 7z x stack.zip stack.exe
+
+clone_folder: "c:\\project"
+environment:
+  global:
+    STACK_ROOT: "c:\\sr"
+
+test_script:
+- stack init
+- echo "" | stack --arch i386 --no-terminal --install-ghc build
+- stack exec -- hlint test
+- stack exec -- hlint --version

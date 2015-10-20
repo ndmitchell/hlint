@@ -155,7 +155,9 @@ runHints cmd@CmdMain{..} flags = do
               path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
               -- writeFile "hlint.refact"
               let hints =  show $ map (\i -> (show i, ideaRefactoring i)) showideas
-              runRefactoring path file hints cmdRefactorOptions
+              withTempFile $ \f -> do
+                writeFile f hints
+                runRefactoring path file f cmdRefactorOptions
                 -- Exit with the exit code from 'refactor'
                 >>= exitWith
             _ -> error "Refactor flag can only be used with an individual file"
@@ -174,14 +176,12 @@ runHints cmd@CmdMain{..} flags = do
                     (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
     return $ map Suggestion showideas
 
-runRefactoring :: FilePath -> FilePath -> String -> String -> IO ExitCode
+runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
 runRefactoring rpath fin hints opts =  do
-  let cmd = unwords [rpath, fin, "-v0", opts]
-  (Just hin, Just hout, _stderr, phand) <- createProcess $ (shell cmd) { std_in = CreatePipe
-                                                                   , std_out = CreatePipe }
-  hPutStr hin hints
-  hClose hin
-  hGetContents hout >>= putStr
+  let args = [fin, "-v0"] ++ words opts ++ ["--refact-file", hints]
+  (_, _, _, phand) <- createProcess $ proc rpath args
+  hSetBuffering stdin LineBuffering
+  hSetBuffering stdout LineBuffering
   -- Propagate the exit code from the spawn process
   waitForProcess phand
 
