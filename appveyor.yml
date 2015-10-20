@@ -15,5 +15,5 @@ environment:
 
 test_script:
 - stack init
-- stack --arch i386 --no-terminal --install-ghc build
+- echo "" | stack --arch i386 --no-terminal --install-ghc build
 - stack exec -- hlint test
