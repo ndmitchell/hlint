@@ -23,6 +23,7 @@
 f a = \x -> x + x -- f a x = x + x
 f a = \a -> a + a -- f _ a = a + a
 f a = \x -> x + x where _ = test
+f (test -> a) = \x -> x + x
 f = \x -> x + x -- f x = x + x
 fun x y z = f x y z -- fun = f
 fun x y z = f x x y z -- fun x = f x x
@@ -82,7 +83,7 @@ lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatM
 
 lambdaDecl :: Decl_ -> [Idea]
 lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) bind]))
-    | isNothing bind, isLambda $ fromParen bod =
+    | isNothing bind, isLambda $ fromParen bod, null (universeBi pats :: [Exp_]) =
       [err "Redundant lambda" o (gen pats bod) [Replace Decl (toSS o) s1 t1]]
     | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
         = [err "Eta reduce" (reform pats bod) (reform pats2 bod2)
