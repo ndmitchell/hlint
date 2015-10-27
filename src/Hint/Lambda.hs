@@ -41,6 +41,7 @@ f = foo (\x -> x * y) -- @Warning (* y)
 f = foo (\x -> x # y)
 f = foo (\x -> \y -> x x y y) -- \x y -> x x y y
 f = foo (\x -> \x -> foo x x) -- \_ x -> foo x x
+f = foo (\(foo -> x) -> \y -> x x y y)
 f = foo (\(x:xs) -> \x -> foo x x) -- \(_:xs) x -> foo x x
 f = foo (\x -> \y -> \z -> x x y y z z) -- \x y z -> x x y y z z
 x ! y = fromJust $ lookup x y
@@ -124,7 +125,7 @@ lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allo
     [warnN "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o, not $ isLambda res =
     [(if isVar res || isCon res then err else warn) "Avoid lambda" o res (refact $ toSS o)]
-lambdaExp p o@(Lambda _ _ x) | isLambda (fromParen x) && maybe True (not . isLambda) p =
+lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats :: [Exp_]), maybe True (not . isLambda) p =
     [warn "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
     where
       (pats, body) = fromLambda o
