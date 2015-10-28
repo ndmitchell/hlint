@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.22
     Don't suggest redundant lambda on view patterns
     Add --no-exit-code flag
     #174, don't suggest string literals
