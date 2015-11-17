@@ -8,6 +8,7 @@
     Apply this to things that would get exported by default only
     Also allow prop_ as it's a standard QuickCheck idiom
     Also allow case_ as it's a standard test-framework-th idiom
+    Also allow test_ as it's a standard tasty-th idiom
     Also allow numbers separated by _
     Also don't suggest anything mentioned elsewhere in the module
 
@@ -24,6 +25,7 @@ myTest = 1; my_test = 1
 semiring'laws = 1 -- semiringLaws = ...
 data Yes = FOO_A | Foo_B -- data Yes = FOO_A | FooB
 case_foo = 1
+test_foo = 1
 cast_foo = 1 -- castFoo = ...
 replicateM_ = 1
 _foo__ = 1
@@ -84,7 +86,7 @@ getNames x = case x of
 suggestName :: String -> Maybe String
 suggestName x
     | isSym x || good || not (any isLower x) || any isDigit x ||
-        any (`isPrefixOf` x) ["prop_","case_"] = Nothing
+        any (`isPrefixOf` x) ["prop_","case_","test_"] = Nothing
     | otherwise = Just $ f x
     where
         good = all isAlphaNum $ drp '_' $ drp '#' $ drp '\'' $ reverse $ drp '_' x
