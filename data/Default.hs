@@ -583,7 +583,7 @@ h a = flip f x $ y z
 yes x = case x of {True -> a ; False -> b} -- if x then a else b
 yes x = case x of {False -> a ; _ -> b} -- if x then b else a
 no = const . ok . toResponse $ "saved"
-yes = case x z of Nothing -> y z; Just pattern -> pattern -- fromMaybe (y z) (x z)
+yes = case x z of Nothing -> y z; Just pat -> pat -- fromMaybe (y z) (x z)
 yes = if p then s else return () -- Control.Monad.when p s
 error = a $$$$ b $$$$ c ==> a . b $$$$$ c
 yes = when (not . null $ asdf) -- unless (null asdf)
