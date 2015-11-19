@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.23
     #184, require haskell-src-exts-1.17
     #183, allow test_ as a prefix
 1.9.22
