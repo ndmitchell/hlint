@@ -97,7 +97,7 @@ hints gen (Pattern l t pats (GuardedRhss _ [GuardedRhs _ [test] bod]) bind)
     | prettyPrint test `elem` ["otherwise","True"]
     = [gen "Redundant guard" (Pattern l t pats (UnGuardedRhs an bod) bind) [Delete Stmt (toSS test)]]
 
-hints gen (Pattern l t pats bod (Just bind)) | f bind && False -- disabled due to bug #138
+hints gen (Pattern l t pats bod (Just bind)) | f bind
     = [gen "Redundant where" (Pattern l t pats bod Nothing) []]
     where
         f (BDecls _ x) = null x
