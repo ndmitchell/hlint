@@ -95,6 +95,7 @@ instance Brackets Pat_ where
         PParen{} -> True
         PTuple{} -> True
         PList{} -> True
+        PRec{} -> True
         PVar{} -> True
         PApp _ _ [] -> True
         PWildCard{} -> True
