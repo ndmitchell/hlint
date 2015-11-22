@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #188, improve spotting redundant brackets around patterns
     #138, reenable redundant where hint
 1.9.23
     #184, require haskell-src-exts-1.17

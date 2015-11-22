@@ -31,8 +31,11 @@ instance Named (DeclHead S)
 data Foo = Foo {foo :: (Maybe Foo)} -- @Warning foo :: Maybe Foo
 
 -- pattern bracket reduction
-foo (True) = 1
-foo ((True)) = 1 -- @Error True
+foo (x:xs) = 1
+foo (True) = 1 -- @Error True
+foo ((True)) = 1 -- @Error (True)
+foo (A{}) = True -- A{}
+f x = case x of (Nothing) -> 1; _ -> 2 -- Nothing
 
 -- dollar reduction tests
 no = groupFsts . sortFst $ mr
@@ -99,7 +102,7 @@ bracket bad = f Nothing
         -- f (Maybe (index, parent, gen)) child
         f :: (Data (a S), Annotated a, Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
         f Just{} o@(remParen -> Just x) | isAtom x = bracketError msg o x : g x
-        f Nothing o@(remParen -> Just x) | bad = bracketWarning msg o x : g x
+        f Nothing o@(remParen -> Just x) | bad || isAtom x = (if isAtom x then bracketError else bracketWarning) msg o x : g x
         f (Just (i,o,gen)) v@(remParen -> Just x) | not $ needBracket i o x =
           warn msg o (gen x) [r] : g x
           where
