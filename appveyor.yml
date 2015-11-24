@@ -13,8 +13,8 @@ environment:
     STACK_ROOT: "c:\\sr"
 
 test_script:
-- stack init --solver
 - stack setup > nul
+- stack init --solver
 - echo "" | stack --no-terminal build
 - stack exec -- hlint test
 - stack exec -- hlint src --no-exit-code
