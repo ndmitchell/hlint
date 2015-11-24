@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #192, fix stdin output and --refactor on Windows
 1.9.24
     #188, improve spotting redundant brackets around patterns
     #138, reenable redundant where hint

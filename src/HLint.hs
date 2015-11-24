@@ -5,6 +5,7 @@ module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity
 
 import Control.Applicative
 import Control.Monad.Extra
+import Control.Exception
 import System.Console.CmdArgs.Verbosity
 import Data.List
 import System.Exit
@@ -180,7 +181,7 @@ runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
 runRefactoring rpath fin hints opts =  do
   let args = [fin, "-v0"] ++ words opts ++ ["--refact-file", hints]
   (_, _, _, phand) <- createProcess $ proc rpath args
-  hSetBuffering stdin LineBuffering
+  try $ hSetBuffering stdin LineBuffering :: IO (Either IOException ())
   hSetBuffering stdout LineBuffering
   -- Propagate the exit code from the spawn process
   waitForProcess phand
