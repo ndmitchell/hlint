@@ -14,7 +14,7 @@ environment:
 
 test_script:
 - stack setup > nul
-- echo "" | stack install cabal-install --no-terminal build
+- echo "" | stack install cabal-install --no-terminal
 - stack init --solver
 - echo "" | stack --no-terminal build
 - stack exec -- hlint test
