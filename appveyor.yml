@@ -1,5 +1,5 @@
-cache:
-- "c:\\sr" # stack root, short paths == less problems
+# cache:
+# - "c:\\sr" # stack root, short paths == less problems
 
 build: off
 
