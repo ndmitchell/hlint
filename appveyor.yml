@@ -13,10 +13,8 @@ environment:
     STACK_ROOT: "c:\\sr"
 
 test_script:
+- stack init
 - stack setup > nul
-- echo "" | stack install cabal-install --no-terminal
-- set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\local\bin
-- stack init --solver
 - echo "" | stack --no-terminal build
 - stack exec -- hlint test
 - stack exec -- hlint src --no-exit-code
