@@ -33,6 +33,11 @@ applyHintFiles flags s files = do
 
 -- | Given a way of classifying results, and a 'Hint', apply to a set of modules generating a list of 'Idea's.
 --   The 'Idea' values will be ordered within a file.
+--
+--   Given a set of modules, it may be faster pass each to 'applyHints' in a singleton list.
+--   When given multiple modules at once this function attempts to find hints between modules,
+--   which is slower and often pointless (by default HLint passes modules singularly, using
+--   @--cross@ to pass all modules together).
 applyHints :: [Classify] -> Hint -> [(Module SrcSpanInfo, [Comment])] -> [Idea]
 applyHints cls hints_ ms = concat $
     [ map (classify $ cls ++ mapMaybe readPragma (universeBi m)) $
