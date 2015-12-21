@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections, PatternGuards #-}
+{-# LANGUAGE TupleSections, PatternGuards, RecordWildCards #-}
 
 -- | /WARNING: This module represents the evolving second version of the HLint API./
 --   /It will be renamed to drop the "3" in the next major version./
@@ -16,7 +16,7 @@ module Language.Haskell.HLint3(
     Idea(..), Severity(..), Note(..),
     -- * Settings
     Classify(..),
-    getHLintDataDir, autoSettings,
+    getHLintDataDir, autoSettings, argsSettings,
     findSettings, readSettingsFile,
     -- * Hints
     HintBuiltin(..), HintRule(..),
@@ -33,6 +33,8 @@ import Apply
 import Hint.Type
 import Hint.All
 import CmdLine
+import Util
+import System.IO
 import Paths_hlint
 
 import Data.List.Extra
@@ -59,6 +61,24 @@ autoSettings :: IO (ParseFlags, [Classify], Hint)
 autoSettings = do
     (fixities, classify, hints) <- findSettings (readSettingsFile Nothing) Nothing
     return (parseFlagsAddFixities fixities defaultParseFlags, classify, resolveHints hints)
+
+
+-- | A version of 'autoSettings' which respects some of the arguments supported by HLint.
+--   If arguments unrecognised by HLint are used it will result in an error.
+--   Arugments which have no representation in the return type are silently ignored.
+argsSettings :: [String] -> IO (ParseFlags, [Classify], Hint)
+argsSettings args = do
+    cmd <- getCmd args
+    case cmd of
+        CmdMain{..} -> do
+            -- FIXME: Two things that could be supported (but aren't) are 'cmdGivenHints' and 'cmdWithHints'.
+            (fixities, classify, hints) <- findSettings (readSettingsFile $ Just cmdDataDir) Nothing
+            encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
+            let flags = parseFlagsSetExtensions (cmdExtensions cmd) $  parseFlagsAddFixities fixities $
+                        defaultParseFlags{cppFlags = cmdCpp cmd, encoding = encoding}
+            let ignore = [Classify Ignore x "" "" | x <- cmdIgnore]
+            return (flags, classify ++ ignore, resolveHints hints)
+        _ -> error $ "Can only invoke autoSettingsArgs with the root process"
 
 
 -- | Given a directory (or 'Nothing' to imply 'getHLintDataDir'), and a module name
