@@ -61,7 +61,7 @@ autoSettings = do
     return (parseFlagsAddFixities fixities defaultParseFlags, classify, resolveHints hints)
 
 
--- | Given a directory (or 'Nothing' to imply 'getHLintDataDir'), and a mdoule name
+-- | Given a directory (or 'Nothing' to imply 'getHLintDataDir'), and a module name
 --   (e.g. @HLint.Default@), find the settings file associated with it, returning the
 --   name of the file, and (optionally) the contents.
 --
