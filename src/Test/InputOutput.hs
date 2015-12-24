@@ -67,7 +67,7 @@ checkInputOutput main InputOutput{..} = do
     code <- newIORef ExitSuccess
     got <- fmap (reverse . dropWhile null . reverse . map trimEnd . lines . fst) $ captureOutput $
         handle (\(e::SomeException) -> print e) $
-        handle (\(e::ExitCode) -> writeIORef code e) $ do
+        handle (\(e::ExitCode) -> writeIORef code e) $
         bracket getVerbosity setVerbosity $ const $ setVerbosity Normal >> main run
     code <- readIORef code
     (want,got) <- return $ matchStarStar (lines output) got

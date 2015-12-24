@@ -48,14 +48,14 @@ niceLambdaR [x] (view -> App2 (expOp -> Just op) a b)
 niceLambdaR [x,y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
     | x == x1, y == y1, vars op `disjoint` [x,y] = (gen op, \s -> [Replace Expr s [("x", toSS op)] (prettyPrint $ gen (toNamed "x"))])
     where
-      gen x = App an (toNamed "flip") x
+      gen = App an (toNamed "flip")
 
 -- \x -> f (b x) ==> f . b
 -- \x -> f $ b x ==> f . b
 niceLambdaR [x] y | Just (z, subts) <- factor y, x `notElem` vars z = (z, \s -> [mkRefact subts s])
     where
         -- factor the expression with respect to x
-        factor y@(App _ ini lst) | view lst == Var_ x = Just $ (ini, [ann ini])
+        factor y@(App _ ini lst) | view lst == Var_ x = Just (ini, [ann ini])
         factor y@(App _ ini lst) | Just (z, ss) <- factor lst = let r = niceDotApp ini z
                                                            in if r == z then Just (r, ss)
                                                                         else Just (r, ann ini : ss)

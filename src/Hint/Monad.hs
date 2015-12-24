@@ -75,7 +75,7 @@ monadCall (Paren l x) = middle (Paren l) <$> monadCall x
 monadCall (App l x y) = middle (\x -> App l x y) <$> monadCall x
 monadCall (InfixApp l x op y)
     | isDol op = middle (\x -> InfixApp l x op y) <$> monadCall x
-    | op ~= ">>=" = middle (\y -> InfixApp l x op y) <$> monadCall y
+    | op ~= ">>=" = middle (InfixApp l x op) <$> monadCall y
 monadCall (replaceBranches -> (bs@(_:_), gen)) | all isJust res
     = Just ("Use simple functions", gen $ map (\(Just (a,b,c)) -> b) res, rs)
     where res = map monadCall bs
@@ -90,7 +90,7 @@ monadReturn (reverse -> q@(Qualifier _ (App _ ret (Var _ v))):g@(Generator _ (PV
             [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)])
 monadReturn _ = Nothing
 
-monadJoin :: [Stmt S] -> [Char] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
+monadJoin :: [Stmt S] -> String -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
 monadJoin (g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Var_ v)):xs) (c:cs)
     | p == v && v `notElem` varss xs
     = Just . f $ fromMaybe def (monadJoin xs cs)

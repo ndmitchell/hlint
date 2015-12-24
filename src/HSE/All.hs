@@ -73,11 +73,11 @@ parseModuleEx flags file str = do
             ParseOk (x, cs) -> return $ Right (applyFixity fixity x, cs)
             ParseFailed sl msg -> do
                 -- figure out the best line number to grab context from, by reparsing
-                flags <- return $ parseFlagsNoLocations flags
-                ppstr2 <- runCpp (cppFlags flags) file str
-                pe <- return $ case parseFileContentsWithMode (mode flags) ppstr2 of
-                    ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
-                    _ -> context (srcLine sl) ppstr
+                let flags' = parseFlagsNoLocations flags
+                ppstr2 <- runCpp (cppFlags flags') file str
+                let pe = case parseFileContentsWithMode (mode flags') ppstr2 of
+                        ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
+                        _ -> context (srcLine sl) ppstr
                 Control.Exception.evaluate $ length pe -- if we fail to parse, we may be keeping the file handle alive
                 return $ Left $ ParseError sl msg pe
     where

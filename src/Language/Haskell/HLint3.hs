@@ -78,7 +78,7 @@ argsSettings args = do
                         defaultParseFlags{cppFlags = cmdCpp cmd, encoding = encoding}
             let ignore = [Classify Ignore x "" "" | x <- cmdIgnore]
             return (flags, classify ++ ignore, resolveHints hints)
-        _ -> error $ "Can only invoke autoSettingsArgs with the root process"
+        _ -> error "Can only invoke autoSettingsArgs with the root process"
 
 
 -- | Given a directory (or 'Nothing' to imply 'getHLintDataDir'), and a module name

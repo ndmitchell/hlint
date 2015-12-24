@@ -10,12 +10,12 @@ import Idea
 
 
 runGrep :: String -> ParseFlags -> [FilePath] -> IO ()
-runGrep pattern flags files = do
-    exp <- case parseExp pattern of
+runGrep patt flags files = do
+    exp <- case parseExp patt of
         ParseOk x -> return x
         ParseFailed sl msg ->
             exitMessage $ (if "Parse error" `isPrefixOf` msg then msg else "Parse error in pattern: " ++ msg) ++ "\n" ++
-                          pattern ++ "\n" ++
+                          patt ++ "\n" ++
                           replicate (srcColumn sl - 1) ' ' ++ "^"
     let scope = scopeCreate $ Module an Nothing [] [] []
     let rule = hintRules [HintRule Warning "grep" scope exp (Tuple an Boxed []) Nothing []]

@@ -19,6 +19,7 @@ import Test.Translate
 import System.IO.Extra
 
 
+{-# ANN test "HLint: ignore Use let" #-}
 test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
 test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTests $ do
     hasSrc <- doesFileExist "hlint.cabal"
@@ -26,7 +27,7 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
     testFiles <- if files /= [] then return files else do
         xs <- getDirectoryContents dataDir
         return [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint" `isPrefixOf` takeBaseName x]
-    testFiles <- forM testFiles $ \file -> fmap ((,) file) $ readSettings2 dataDir [file] []
+    testFiles <- forM testFiles $ \file -> (,) file <$> readSettings2 dataDir [file] []
     let wrap msg act = putStr (msg ++ " ") >> act >> putStrLn ""
 
     putStrLn "Testing"

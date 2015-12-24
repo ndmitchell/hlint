@@ -82,7 +82,7 @@ readRule (m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn ->
 -- find a dot version of this rule, return the sequence of app prefixes, and the var
 dotVersion :: Exp_ -> [([Exp_], String)]
 dotVersion (view -> Var_ v) | isUnifyVar v = [([], v)]
-dotVersion (App l ls rs) = first (ls :) <$> dotVersion (fromParen $ rs)
+dotVersion (App l ls rs) = first (ls :) <$> dotVersion (fromParen rs)
 dotVersion (InfixApp l x op y) = (first (LeftSection l x op :) <$> dotVersion y) ++
                                  (first (RightSection l op y:) <$> dotVersion x)
 dotVersion _ = []
@@ -120,8 +120,8 @@ matchIdea s decl HintRule{..} parent x = do
 descendBracketTemplate :: (Exp_ -> (Bool, (Exp_, Exp_))) -> Exp_ -> Exp_
 descendBracketTemplate op x = descendIndex g x
     where
-        g i y = if a then f i b else (fst b)
-            where (a,b) = op y
+        g i y = if a then f i b else fst b
+            where (a, b) = op y
 
         f i (v, y) | needBracket i x y = addParen v
         f i (v, y) = v
@@ -176,7 +176,7 @@ unifyDef nm x y = fmap concat . sequence =<< gzip (unify nm False) x y
 -- do not expand out a dot at the root, since otherwise you get two matches because of readRule (Bug #570)
 unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
 unifyExp nm root x y | isParen x || isParen y =
-  map (rebracket y) <$> (unifyExp nm root (fromParen x) (fromParen y))
+  map (rebracket y) <$> unifyExp nm root (fromParen x) (fromParen y)
 unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
 unifyExp nm root (Var _ x) (Var _ y) | nm x y = Just []
 unifyExp nm root x@(App _ x1 x2) (App _ y1 y2) =

@@ -39,6 +39,7 @@ foo = let ~(x:xs) = y in z
 module Hint.Structure(structureHint) where
 
 import Hint.Type
+import Data.Function (on)
 import Data.List.Extra
 import Data.Tuple
 import Data.Maybe
@@ -58,7 +59,7 @@ hints :: (String -> Pattern -> [Refactoring R.SrcSpan] -> Idea) -> Pattern -> [I
 hints gen (Pattern l rtype pat (UnGuardedRhs d bod) bind)
     | length guards > 2 = [gen "Use guards" (Pattern l rtype pat (GuardedRhss d guards) bind) [refactoring]]
     where rawGuards = asGuards bod
-          mkGuard a b = GuardedRhs an [Qualifier an a] b
+          mkGuard a = GuardedRhs an [Qualifier an a]
           guards = map (uncurry mkGuard) rawGuards
           (lhs, rhs) = unzip rawGuards
           mkTemplate c ps =
@@ -73,7 +74,7 @@ hints gen (Pattern l rtype pat (UnGuardedRhs d bod) bind)
                        ps  -> mkTemplate "p100" ps
           guardSubts = mkTemplate "g100" lhs
           exprSubts  = mkTemplate "e100" rhs
-          templateGuards = zipWith (\a b -> mkGuard (toString a) (toString b)) guardSubts exprSubts
+          templateGuards = zipWith (mkGuard `on` toString) guardSubts exprSubts
           toString (Left e) = e
           toString (Right (v, _)) = toNamed v
           template = fromMaybe "" $ ideaTo (gen "" (Pattern l rtype (map toString patSubts) (GuardedRhss d templateGuards) bind) [])

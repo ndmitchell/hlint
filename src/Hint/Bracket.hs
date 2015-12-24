@@ -1,5 +1,4 @@
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE RecordWildCards #-}
 {-
 Raise an error if you are bracketing an atom, or are enclosed be a list bracket
 

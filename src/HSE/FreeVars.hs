@@ -11,7 +11,7 @@ import Prelude
 
 -- which names are bound by a declaration
 declBind :: Decl_ -> [String]
-declBind x = pvars x
+declBind = pvars
 
 vars x = Set.toList $ freeVars x
 
