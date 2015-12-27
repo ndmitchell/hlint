@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
@@ -7,6 +8,10 @@ import Control.Monad
 import Data.List
 import System.Directory
 import System.FilePath
+
+#if __GLASGOW_HASKELL__ < 710
+import Data.Functor ((<$>))
+#endif
 
 import Settings
 import CmdLine
