@@ -3,6 +3,7 @@
     but then Cabal will always use it in preference to the
     auto-generated one.
 -}
+{-# OPTIONS_GHC -w #-}
 
 module Paths_hlint where
 
