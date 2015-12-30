@@ -9,7 +9,6 @@ import Control.Exception
 import System.Console.CmdArgs.Verbosity
 import Data.List
 import System.Exit
-import System.IO
 import System.IO.Extra
 import Prelude
 
