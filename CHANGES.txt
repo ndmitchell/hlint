@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #200, fix all lint warnings
     #143, expose argsSettings
 1.9.25
     #192, fix stdin output and --refactor
