@@ -10,6 +10,7 @@ import System.Console.CmdArgs.Verbosity
 import Data.List
 import System.Exit
 import System.IO.Extra
+import Data.Tuple.Extra
 import Prelude
 
 import Data.Version
@@ -30,7 +31,6 @@ import Util
 import Parallel
 import HSE.All
 
-{-# ANN module "HLint: ignore Use &&&" #-}
 
 -- | A suggestion - the @Show@ instance is of particular use.
 newtype Suggestion = Suggestion {fromSuggestion :: Idea}
@@ -150,14 +150,14 @@ runHints cmd@CmdMain{..} flags = do
         then putStrLn . showIdeasJson $ showideas
         else if cmdSerialise then do
           hSetBuffering stdout NoBuffering
-          print $ map (\i -> (show i, ideaRefactoring i)) showideas
+          print $ map (show &&& ideaRefactoring) showideas
         else if cmdRefactor then
           case cmdFiles of
             [file] -> do
               -- Ensure that we can find the executable
               path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
               -- writeFile "hlint.refact"
-              let hints =  show $ map (\i -> (show i, ideaRefactoring i)) showideas
+              let hints =  show $ map (show &&& ideaRefactoring) showideas
               withTempFile $ \f -> do
                 writeFile f hints
                 runRefactoring path file f cmdRefactorOptions
