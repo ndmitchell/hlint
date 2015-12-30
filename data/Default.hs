@@ -635,7 +635,7 @@ foo = return $! Just undefined -- return (Just undefined)
 foo = return $! (a,b) -- return (a,b)
 foo = return $! 1
 foo = return $! "test"
-bar = [x| (x,_) <- pts]
+bar = [x | (x,_) <- pts]
 return' x = x `seq` return x
 foo = last (sortBy (compare `on` fst) xs) -- maximumBy (compare `on` fst) xs
 g = \ f -> parseFile f >>= (\ cu -> return (f, cu))

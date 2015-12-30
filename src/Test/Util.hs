@@ -33,8 +33,7 @@ progress :: IO ()
 progress = putChar '.'
 
 passed :: IO ()
-passed = do
-    atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1}:rs, ())
+passed = atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1}:rs, ())
 
 failed :: [String] -> IO ()
 failed xs = do

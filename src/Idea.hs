@@ -70,7 +70,7 @@ showEx tt Idea{..} = unlines $
 rawIdea = Idea "" ""
 rawIdeaN a b c d e f = Idea "" "" a b c d e f []
 
-idea severity hint from to rs = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) [] rs
+idea severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) []
     where f = trimStart . prettyPrint
 warn = idea Warning
 err = idea Error
@@ -81,4 +81,3 @@ ideaN severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f fr
 
 warnN = ideaN Warning
 errN  = ideaN Error
-

@@ -70,17 +70,17 @@ simplify :: [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
 simplify [] = Nothing
 simplify (x:xs) = case simplifyHead x xs of
     Nothing -> first (x:) <$> simplify xs
-    Just (xs, rs) -> Just $ fromMaybe (xs, rs) $ (second (++ rs) <$> simplify xs)
+    Just (xs, rs) -> Just $ fromMaybe (xs, rs) (second (++ rs) <$> simplify xs)
 
 
 simplifyHead :: ImportDecl S -> [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
 simplifyHead x [] = Nothing
 simplifyHead x (y:ys) = case reduce x y of
     Nothing -> first (y:) <$> simplifyHead x ys
-    Just (xy, rs) -> Just $ (xy : ys, rs)
+    Just (xy, rs) -> Just (xy : ys, rs)
 
 
-reduce :: ImportDecl S -> ImportDecl S -> Maybe ((ImportDecl S), [Refactoring R.SrcSpan])
+reduce :: ImportDecl S -> ImportDecl S -> Maybe (ImportDecl S, [Refactoring R.SrcSpan])
 reduce x y | qual, as, specs = Just (x, [Delete Import (toSS y)])
            | qual, as, Just (ImportSpecList _ False xs) <- importSpecs x, Just (ImportSpecList _ False ys) <- importSpecs y = let newImp = x{importSpecs = Just $ ImportSpecList an False $ nub_ $ xs ++ ys}
             in Just (newImp, [ Replace Import (toSS x)  [] (prettyPrint newImp)
@@ -131,7 +131,7 @@ hierarchy i@ImportDecl{importModule=m@(ModuleName _ x),importPkg=Nothing} | Just
     =
     let newModuleName = y ++ "." ++ x
         r = [Replace R.ModuleName (toSS m) [] newModuleName] in
-    [warn "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an $ newModuleName} r]
+    [warn "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an newModuleName} r]
 
 -- import IO is equivalent to
 -- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)

@@ -76,8 +76,11 @@ usePString (PList _ xs) | xs /= [], Just s <- mapM fromPChar xs =
   in Just (literal, [], prettyPrint literal)
 usePString _ = Nothing
 
-usePList = fmap (\(e, s) -> (PList an e, map (fmap toSS) s, prettyPrint (PList an (map snd s))))
-    . fmap unzip . f True ['a'..'z']
+usePList =
+        fmap  ( (\(e, s) -> (PList an e, map (fmap toSS) s, prettyPrint (PList an (map snd s))))
+              . unzip
+              )
+        . f True ['a'..'z']
     where
         f first _ x | x ~= "[]" = if first then Nothing else Just []
         f first (ident: cs) (view -> PApp_ ":" [a,b]) =
@@ -92,8 +95,11 @@ useString b (List _ xs) | xs /= [], Just s <- mapM fromChar xs =
   in Just (literal , [], prettyPrint literal)
 useString b _ = Nothing
 
-useList b = fmap (\(e, s) -> (List an e, map (fmap toSS) s, prettyPrint (List an (map snd s))))
-              . fmap unzip . f True ['a'..'z']
+useList b =
+        fmap  ( (\(e, s) -> (List an e, map (fmap toSS) s, prettyPrint (List an (map snd s))))
+              . unzip
+              )
+        . f True ['a'..'z']
     where
         f first _ x | x ~= "[]" = if first then Nothing else Just []
         f first (ident:cs) (view -> App2 c a b) | c ~= ":" =
@@ -110,11 +116,11 @@ useCons False (view -> App2 op x y) | op ~= "++"
        , [("x", toSS x2), ("xs", toSS y)]
        , prettyPrint $ gen (build $ toNamed "x") (toNamed "xs"))
     where
-        f (List _ [x]) = Just $ (x, \v -> if isApp x then v else paren v)
+        f (List _ [x]) = Just (x, \v -> if isApp x then v else paren v)
         f _ = Nothing
 
 
-        gen x xs = InfixApp an x (QConOp an $ list_cons_name an) xs
+        gen x = InfixApp an x (QConOp an $ list_cons_name an)
 useCons _ _ = Nothing
 
 

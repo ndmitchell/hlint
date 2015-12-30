@@ -1,11 +1,10 @@
-
-module Hint.Type(module Hint.Type, module Idea, module HSE.All, module Refact) where
+module Hint.Type(module Hint.Type, module Export) where
 
 import Data.Monoid
-import HSE.All
-import Idea
+import HSE.All  as Export
+import Idea     as Export
 import Prelude
-import Refact
+import Refact   as Export
 
 
 type DeclHint = Scope -> Module_ -> Decl_ -> [Idea]

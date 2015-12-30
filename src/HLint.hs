@@ -31,6 +31,8 @@ import Util
 import Parallel
 import HSE.All
 
+{-# ANN module "HLint: ignore Use &&&" #-}
+
 -- | A suggestion - the @Show@ instance is of particular use.
 newtype Suggestion = Suggestion {fromSuggestion :: Idea}
                      deriving (Eq,Ord)
@@ -110,20 +112,21 @@ hlintMain cmd@CmdMain{..} = do
     let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
-        mapM_ (\x -> putStrLn . fst =<< findSettings2 flags x) hints >> return []
+        mapM_ (putStrLn . fst <=< findSettings2 flags) hints >> return []
      else if null cmdFiles then
         exitWithHelp
-     else if cmdRefactor then do
+     else if cmdRefactor then
          withTempFile (\t ->  runHlintMain cmd (Just t) flags)
      else runHlintMain cmd Nothing flags
 
 runHlintMain :: Cmd -> Maybe FilePath -> ParseFlags -> IO [Suggestion]
-runHlintMain cmd@(CmdMain{..}) fp flags = do
+runHlintMain cmd@CmdMain{..} fp flags = do
   files <- concatMapM (resolveFile cmd fp) cmdFiles
   if null files
     then error "No files found"
     else runHints cmd{cmdFiles=files} flags
 
+{-# ANN readAllSettings "HLint: ignore Use let" #-}
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
 readAllSettings cmd@CmdMain{..} flags = do
     files <- cmdHintFiles cmd
@@ -149,7 +152,7 @@ runHints cmd@CmdMain{..} flags = do
         else if cmdSerialise then do
           hSetBuffering stdout NoBuffering
           print $ map (\i -> (show i, ideaRefactoring i)) showideas
-        else if cmdRefactor then do
+        else if cmdRefactor then
           case cmdFiles of
             [file] -> do
               -- Ensure that we can find the executable
@@ -188,17 +191,17 @@ runRefactoring rpath fin hints opts =  do
 
 checkRefactor :: Maybe FilePath -> IO FilePath
 checkRefactor rpath = do
-  let excPath = (fromMaybe "refactor" rpath)
+  let excPath = fromMaybe "refactor" rpath
   mexc <- findExecutable excPath
   case mexc of
     Just exc ->  do
-      vers <- readP_to_S parseVersion . tail <$> (readProcess exc ["--version"] "")
+      vers <- readP_to_S parseVersion . tail <$> readProcess exc ["--version"] ""
       case vers of
-        [] -> putStrLn "Unabled to determine version of refactor" >> (return exc)
+        [] -> putStrLn "Unabled to determine version of refactor" >> return exc
         (last -> (version, _)) -> if versionBranch version >= [0,1,0,0]
                                     then return exc
                                     else error "Your version of refactor is too old, please upgrade to the latest version"
-    Nothing ->  error $ unlines ["Could not find refactor"
+    Nothing ->  error $ unlines [ "Could not find refactor"
                                 , "Tried with: " ++ excPath ]
 
 evaluateList :: [a] -> IO [a]
