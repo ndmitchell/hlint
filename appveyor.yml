@@ -17,4 +17,4 @@ test_script:
 - stack setup > nul
 - echo "" | stack --no-terminal build
 - stack exec -- hlint test
-- stack exec -- hlint src --no-exit-code
+- stack exec -- hlint src
