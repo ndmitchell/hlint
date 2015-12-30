@@ -39,7 +39,7 @@ foo = let ~(x:xs) = y in z
 module Hint.Structure(structureHint) where
 
 import Hint.Type
-import Data.Function (on)
+import Data.Function
 import Data.List.Extra
 import Data.Tuple
 import Data.Maybe
