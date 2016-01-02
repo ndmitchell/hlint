@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.26
     #200, fix all lint warnings
     #143, expose argsSettings
 1.9.25
