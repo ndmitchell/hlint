@@ -20,7 +20,7 @@ data Idea = Idea
     ,ideaFrom :: String -- ^ The contents of the source code the idea relates to.
     ,ideaTo :: Maybe String -- ^ The suggested replacement, or 'Nothing' for no replacement (e.g. on parse errors).
     ,ideaNote :: [Note] -- ^ Notes about the effect of applying the replacement.
-    , ideaRefactoring :: [Refactoring R.SrcSpan] -- ^ How to perform this idea
+    ,ideaRefactoring :: [Refactoring R.SrcSpan] -- ^ How to perform this idea
     }
     deriving (Eq,Ord)
 
@@ -38,6 +38,7 @@ showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = wrap . intercalate ",
     ,("from", show ideaFrom)
     ,("to", maybe "null" show ideaTo)
     ,("note", show $ map (show . show) ideaNote)
+    ,("refactorings", show . show $ ideaRefactoring)
     ]
   where
     mkPair (k, v) = show k ++ ":" ++ v
