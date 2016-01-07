@@ -123,6 +123,7 @@ error = fst (break p x) ==> takeWhile (not . p) x
 error = snd (break p x) ==> dropWhile (not . p) x
 error = concatMap (++ "\n") ==> unlines
 error = map id ==> id
+error = concatMap id ==> concat
 error = or (map p x) ==> any p x
 error = and (map p x) ==> all p x
 error = zipWith (,) ==> zip
