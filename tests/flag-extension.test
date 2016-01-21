@@ -6,13 +6,13 @@ FILE tests/directory/File2.lhs
 
 > foo = map f . map g
 OUTPUT
-tests/directory*File1.hs:1:8: Warning: Use map once
+tests/directory*File1.hs:1:8: Suggestion: Use map once
 Found:
   map f . map g
 Why not:
   map (f . g)
 
-tests/directory*File2.lhs:3:9: Warning: Use map once
+tests/directory*File2.lhs:3:9: Suggestion: Use map once
 Found:
   map f . map g
 Why not:
@@ -23,7 +23,7 @@ Why not:
 ---------------------------------------------------------------------
 RUN tests/directory --extension=lhs
 OUTPUT
-tests/directory*File2.lhs:3:9: Warning: Use map once
+tests/directory*File2.lhs:3:9: Suggestion: Use map once
 Found:
   map f . map g
 Why not:

@@ -31,7 +31,7 @@ Found:
 Why not remove it.
 Note: you may need to add DisambiguateRecordFields
 
-tests/note.hs:5:11: Warning: Use null
+tests/note.hs:5:11: Suggestion: Use null
 Found:
   length xs == 0
 Why not:
