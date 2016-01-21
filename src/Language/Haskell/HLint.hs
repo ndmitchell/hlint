@@ -22,12 +22,12 @@ import HSE.All
 -- > do hints <- hlint ["src", "--ignore=Use map","--quiet"]
 -- >    when (length hints > 3) $ error "Too many hints!"
 hlint :: [String] -> IO [Suggestion]
-hlint = fmap (map Suggestion) . HLint.hlint
+hlint = fmap (map Suggestion_) . HLint.hlint
 
 
 
 -- | A suggestion - the @Show@ instance is of particular use.
-newtype Suggestion = Suggestion {fromSuggestion :: Idea}
+newtype Suggestion = Suggestion_ {fromSuggestion :: Idea}
                      deriving (Eq,Ord)
 
 instance Show Suggestion where
