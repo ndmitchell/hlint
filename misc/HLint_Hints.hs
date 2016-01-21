@@ -7,7 +7,6 @@ error = QVarOp a (UnQual b x) ==> toNamed x
 error = QConOp a (UnQual b x) ==> toNamed x
 error = UnQual a (Symbol b x) ==> toNamed x
 error = UnQual a (Ident  b x) ==> toNamed x
-error = idea Error ==> err
 error = idea Warning ==> warn
 error = idea Suggestion ==> suggest
 
