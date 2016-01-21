@@ -107,7 +107,7 @@ useList b =
         f first _ _ = Nothing
 
         g :: Char -> Exp_ -> (String, Exp_)
-        g c p = ([c], Var (ann p) (toNamed [c]))
+        g c p = ([c], toNamed [c])
 
 useCons False (view -> App2 op x y) | op ~= "++"
                                     , Just (x2, build) <- f x

@@ -95,7 +95,7 @@ lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) 
               gen ps b = uncurry reform . fromLambda . Lambda an ps $ b
               (finalpats, body) = fromLambda . Lambda an pats $ bod
               (pats2, bod2) = etaReduce pats bod
-              template fps b = prettyPrint $ reform (zipWith munge ['a'..'z'] fps) (Var (ann b) (UnQual (ann b) (Ident (ann b) "body")))
+              template fps b = prettyPrint $ reform (zipWith munge ['a'..'z'] fps) (toNamed "body")
               munge :: Char -> Pat_ -> Pat_
               munge ident p@(PWildCard _) = p
               munge ident p = PVar (ann p) (Ident (ann p) [ident])
