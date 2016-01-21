@@ -11,7 +11,7 @@ FILE tests/serialise-one.hs
 foo = (+1)
 bar x = foo x
 OUTPUT
-[("tests/serialise-one.hs:2:1: Error: Eta reduce\nFound:\n  bar x = foo x\nWhy not:\n  bar = foo\n",[])]
+[("tests/serialise-one.hs:2:1: Warning: Eta reduce\nFound:\n  bar x = foo x\nWhy not:\n  bar = foo\n",[])]
 
 
 ---------------------------------------------------------------------
@@ -21,7 +21,7 @@ foo = (+1)
 bar x = foo x
 baz = getLine >>= return . map toUpper
 OUTPUT
-[("tests/serialise-two.hs:2:1: Error: Eta reduce\nFound:\n  bar x = foo x\nWhy not:\n  bar = foo\n",[]),("tests/serialise-two.hs:3:7: Suggestion: Use liftM\nFound:\n  getLine >>= return . map toUpper\nWhy not:\n  Control.Monad.liftM (map toUpper) getLine\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [("f",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),("m",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = "Control.Monad.liftM (f) m"}])]
+[("tests/serialise-two.hs:2:1: Warning: Eta reduce\nFound:\n  bar x = foo x\nWhy not:\n  bar = foo\n",[]),("tests/serialise-two.hs:3:7: Suggestion: Use liftM\nFound:\n  getLine >>= return . map toUpper\nWhy not:\n  Control.Monad.liftM (map toUpper) getLine\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [("f",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),("m",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = "Control.Monad.liftM (f) m"}])]
 
 
 ---------------------------------------------------------------------
@@ -38,7 +38,7 @@ FILE tests/serialise-four.hs
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE CPP #-}
 OUTPUT
-[("tests/serialise-four.hs:1:1: Error: Use better pragmas\nFound:\n  {-# LANGUAGE CPP #-}\n  {-# LANGUAGE CPP #-}\nWhy not:\n  {-# LANGUAGE CPP #-}\n",[ModifyComment {pos = SrcSpan {startLine = 1, startCol = 1, endLine = 1, endCol = 21}, newComment = "{-# LANGUAGE CPP #-}"},ModifyComment {pos = SrcSpan {startLine = 2, startCol = 1, endLine = 2, endCol = 21}, newComment = ""}])]
+[("tests/serialise-four.hs:1:1: Warning: Use better pragmas\nFound:\n  {-# LANGUAGE CPP #-}\n  {-# LANGUAGE CPP #-}\nWhy not:\n  {-# LANGUAGE CPP #-}\n",[ModifyComment {pos = SrcSpan {startLine = 1, startCol = 1, endLine = 1, endCol = 21}, newComment = "{-# LANGUAGE CPP #-}"},ModifyComment {pos = SrcSpan {startLine = 2, startCol = 1, endLine = 2, endCol = 21}, newComment = ""}])]
 
 
 
@@ -77,7 +77,7 @@ FILE tests/serialise-eight.hs
 foo = do x <- baz
          x
 OUTPUT
-[("tests/serialise-eight.hs:1:7: Error: Use join\nFound:\n  do x <- baz\n     x\nWhy not:\n  do join baz\n",[Replace {rtype = Stmt, pos = SrcSpan {startLine = 1, startCol = 10, endLine = 1, endCol = 18}, subts = [("x",SrcSpan {startLine = 1, startCol = 15, endLine = 1, endCol = 18})], orig = "join x"},Delete {rtype = Stmt, pos = SrcSpan {startLine = 2, startCol = 10, endLine = 2, endCol = 11}}])]
+[("tests/serialise-eight.hs:1:7: Warning: Use join\nFound:\n  do x <- baz\n     x\nWhy not:\n  do join baz\n",[Replace {rtype = Stmt, pos = SrcSpan {startLine = 1, startCol = 10, endLine = 1, endCol = 18}, subts = [("x",SrcSpan {startLine = 1, startCol = 15, endLine = 1, endCol = 18})], orig = "join x"},Delete {rtype = Stmt, pos = SrcSpan {startLine = 2, startCol = 10, endLine = 2, endCol = 11}}])]
 
 
 ---------------------------------------------------------------------

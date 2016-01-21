@@ -35,7 +35,7 @@ f = foo (flip op x) -- (`op` x)
 f = flip op x
 f = foo (flip (*) x) -- (* x)
 f = foo (flip (-) x)
-f = foo (\x y -> fun x y) -- @Error fun
+f = foo (\x y -> fun x y) -- @Warning fun
 f = foo (\x y -> x + y) -- (+)
 f = foo (\x -> x * y) -- @Suggestion (* y)
 f = foo (\x -> x # y)
@@ -61,7 +61,7 @@ foo = [\x -> x]
 foo = [\m x -> insert x x m]
 foo a b c = bar (flux ++ quux) c where flux = a -- foo a b = bar (flux ++ quux)
 foo a b c = bar (flux ++ quux) c where flux = c
-yes = foo (\x -> Just x) -- @Error Just
+yes = foo (\x -> Just x) -- @Warning Just
 foo = bar (\x -> (x `f`)) -- f
 baz = bar (\x -> (x +)) -- (+)
 </TEST>
@@ -85,9 +85,9 @@ lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatM
 lambdaDecl :: Decl_ -> [Idea]
 lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) bind]))
     | isNothing bind, isLambda $ fromParen bod, null (universeBi pats :: [Exp_]) =
-      [err "Redundant lambda" o (gen pats bod) [Replace Decl (toSS o) s1 t1]]
+      [warn "Redundant lambda" o (gen pats bod) [Replace Decl (toSS o) s1 t1]]
     | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
-        = [err "Eta reduce" (reform pats bod) (reform pats2 bod2)
+        = [warn "Eta reduce" (reform pats bod) (reform pats2 bod2)
             [ -- Disabled, see apply-refact #3
               -- Replace Decl (toSS $ reform pats bod) s2 t2]]
             ]]
@@ -126,7 +126,7 @@ lambdaExp p o@(Paren _ (App _ v@(Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, 
 lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
     [suggestN "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o, not $ isLambda res =
-    [(if isVar res || isCon res then err else suggest) "Avoid lambda" o res (refact $ toSS o)]
+    [(if isVar res || isCon res then warn else suggest) "Avoid lambda" o res (refact $ toSS o)]
 lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats :: [Exp_]), maybe True (not . isLambda) p =
     [suggest "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
     where

@@ -138,7 +138,7 @@ patHint :: Pat_ -> [Idea]
 patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args =
   [suggest "Use record patterns" o (PRec an name []) [Replace R.Pattern (toSS o) [] (prettyPrint $ PRec an name [])] ]
 
-patHint o@(PBangPat _ x) | f x = [err "Redundant bang pattern" o x [r]]
+patHint o@(PBangPat _ x) | f x = [warn "Redundant bang pattern" o x [r]]
     where f (PParen _ x) = f x
           f (PAsPat _ _ x) = f x
           f PLit{} = True
@@ -146,7 +146,7 @@ patHint o@(PBangPat _ x) | f x = [err "Redundant bang pattern" o x [r]]
           f PInfixApp{} = True
           f _ = False
           r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
-patHint o@(PIrrPat _ x) | f x = [err "Redundant irrefutable pattern" o x [r]]
+patHint o@(PIrrPat _ x) | f x = [warn "Redundant irrefutable pattern" o x [r]]
     where f (PParen _ x) = f x
           f (PAsPat _ _ x) = f x
           f PWildCard{} = True

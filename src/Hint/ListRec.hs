@@ -79,7 +79,7 @@ matchListRec o@(ListCase vs nil (x,xs,cons))
 
     | [] <- vs, nil ~= "[]", InfixApp _ lhs c rhs <- cons, opExp c ~= ":"
     , fromParen rhs =~= recursive, xs `notElem` vars lhs
-    = Just $ (,,) "map" Error $ appsBracket
+    = Just $ (,,) "map" Warning $ appsBracket
         [toNamed "map", niceLambda [x] lhs, toNamed xs]
 
     | [] <- vs, App2 op lhs rhs <- view cons

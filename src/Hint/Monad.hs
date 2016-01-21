@@ -55,14 +55,14 @@ monadHint _ _ d = concatMap (monadExp d) $ universeBi d
 monadExp :: Decl_ -> Exp_ -> [Idea]
 monadExp decl x = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
-        Do _ xs -> [err "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
-                   [err "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
-                   [err "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"] | [Qualifier _ y] <- [xs]] ++
+        Do _ xs -> [warn "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
+                   [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
+                   [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"] | [Qualifier _ y] <- [xs]] ++
                    [suggest "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where
-        f x = [err ("Use " ++ name) x y r  | Just (name,y, r) <- [monadCall x], fromNamed decl /= name]
+        f x = [warn ("Use " ++ name) x y r  | Just (name,y, r) <- [monadCall x], fromNamed decl /= name]
 
 middle :: (b -> d) -> (a, b, c) -> (a, d, c)
 middle f (a,b,c) = (a, f b, c)

@@ -25,7 +25,7 @@ module Sample where
 
 test xs = length xs == 0
 OUTPUT
-tests/note.hs:1:1: Error: Unused LANGUAGE pragma
+tests/note.hs:1:1: Warning: Unused LANGUAGE pragma
 Found:
   {-# LANGUAGE RecordWildCards #-}
 Why not remove it.

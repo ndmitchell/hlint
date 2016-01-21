@@ -76,7 +76,7 @@ import Refact.Types
 
 
 extensionsHint :: ModuHint
-extensionsHint _ x = [rawIdea Error "Unused LANGUAGE pragma" (toSrcSpan sl)
+extensionsHint _ x = [rawIdea Warning "Unused LANGUAGE pragma" (toSrcSpan sl)
           (prettyPrint o) (Just newPragma)
           (warnings old new) [refact]
     | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically

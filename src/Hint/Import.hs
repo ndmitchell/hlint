@@ -61,7 +61,7 @@ importHint _ x = concatMap (wrap . snd) (groupSort
 
 
 wrap :: [ImportDecl S] -> [Idea]
-wrap o = [ rawIdea Error "Use fewer imports" (toSrcSpan $ ann $ head o) (f o) (Just $ f x) [] rs
+wrap o = [ rawIdea Warning "Use fewer imports" (toSrcSpan $ ann $ head o) (f o) (Just $ f x) [] rs
          | Just (x, rs) <- [simplify o]]
     where f = unlines . map prettyPrint
 

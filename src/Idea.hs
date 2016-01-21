@@ -75,7 +75,6 @@ idea severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f fro
     where f = trimStart . prettyPrint
 suggest = idea Suggestion
 warn = idea Warning
-err = idea Error
 
 
 ideaN severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f from) (Just $ f to) [] []
@@ -83,4 +82,3 @@ ideaN severity hint from to = rawIdea severity hint (toSrcSpan $ ann from) (f fr
 
 suggestN = ideaN Suggestion
 warnN = ideaN Warning
-errN  = ideaN Error

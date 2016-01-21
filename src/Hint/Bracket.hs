@@ -8,8 +8,8 @@ yes = (f x) x -- @Suggestion f x x
 no = f (x x)
 yes = (foo) -- foo
 yes = (foo bar) -- @Suggestion foo bar
-yes = foo (bar) -- @Error bar
-yes = foo ((x x)) -- @Error (x x)
+yes = foo (bar) -- @Warning bar
+yes = foo ((x x)) -- @Warning (x x)
 yes = (f x) ||| y -- @Suggestion f x ||| y
 yes = if (f x) then y else z -- @Suggestion if f x then y else z
 yes = if x then (f y) else z -- @Suggestion if x then f y else z
@@ -31,8 +31,8 @@ data Foo = Foo {foo :: (Maybe Foo)} -- @Suggestion foo :: Maybe Foo
 
 -- pattern bracket reduction
 foo (x:xs) = 1
-foo (True) = 1 -- @Error True
-foo ((True)) = 1 -- @Error (True)
+foo (True) = 1 -- @Warning True
+foo ((True)) = 1 -- @Warning (True)
 foo (A{}) = True -- A{}
 f x = case x of (Nothing) -> 1; _ -> 2 -- Nothing
 
@@ -115,7 +115,7 @@ bracket bad = f Nothing
 bracketWarning msg o x =
   suggest msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 bracketError msg o x =
-  idea Error msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
+  warn msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 
 
 fieldDecl :: FieldDecl S -> [Idea]
