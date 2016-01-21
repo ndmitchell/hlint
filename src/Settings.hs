@@ -33,9 +33,9 @@ data Severity
 getSeverity :: String -> Maybe Severity
 getSeverity "ignore" = Just Ignore
 getSeverity "warn" = Just Warning
+getSeverity "warning" = Just Warning
 getSeverity "suggest" = Just Suggestion
 getSeverity "suggestion" = Just Suggestion
-getSeverity "warning" = Just Warning
 getSeverity "error"  = Just Error
 getSeverity "hint"  = Just Error
 getSeverity _ = Nothing
