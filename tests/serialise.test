@@ -47,7 +47,7 @@ RUN tests/serialise-five.hs --serialise
 FILE tests/serialise-five.hs
 import qualified GHC as GHC
 OUTPUT
-[("tests/serialise-five.hs:1:1: Warning: Redundant as\nFound:\n  import qualified GHC as GHC\nWhy not:\n  import qualified GHC\n",[RemoveAsKeyword {pos = SrcSpan {startLine = 1, startCol = 1, endLine = 1, endCol = 28}}])]
+[("tests/serialise-five.hs:1:1: Suggestion: Redundant as\nFound:\n  import qualified GHC as GHC\nWhy not:\n  import qualified GHC\n",[RemoveAsKeyword {pos = SrcSpan {startLine = 1, startCol = 1, endLine = 1, endCol = 28}}])]
 
 
 ---------------------------------------------------------------------
@@ -55,7 +55,7 @@ RUN tests/serialise-six.hs --serialise
 FILE tests/serialise-six.hs
 foo = qux (\x -> f (g x))
 OUTPUT
-[("tests/serialise-six.hs:1:12: Warning: Avoid lambda\nFound:\n  \\ x -> f (g x)\nWhy not:\n  f . g\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 1, startCol = 12, endLine = 1, endCol = 25}, subts = [("a",SrcSpan {startLine = 1, startCol = 18, endLine = 1, endCol = 19}),("b",SrcSpan {startLine = 1, startCol = 21, endLine = 1, endCol = 22})], orig = "a . b"}])]
+[("tests/serialise-six.hs:1:12: Suggestion: Avoid lambda\nFound:\n  \\ x -> f (g x)\nWhy not:\n  f . g\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 1, startCol = 12, endLine = 1, endCol = 25}, subts = [("a",SrcSpan {startLine = 1, startCol = 18, endLine = 1, endCol = 19}),("b",SrcSpan {startLine = 1, startCol = 21, endLine = 1, endCol = 22})], orig = "a . b"}])]
 
 
 ---------------------------------------------------------------------
@@ -67,7 +67,7 @@ foo = if baz
              then qux'
              else qux''
 OUTPUT
-[("tests/serialise-seven.hs:1:1: Warning: Use guards\nFound:\n  foo = if baz then qux else if baz' then qux' else qux''\nWhy not:\n  foo\n    | baz = qux\n    | baz' = qux'\n    | otherwise = qux''\n",[Replace {rtype = Bind, pos = SrcSpan {startLine = 1, startCol = 1, endLine = 5, endCol = 24}, subts = [("g1001",SrcSpan {startLine = 1, startCol = 10, endLine = 1, endCol = 13}),("g1002",SrcSpan {startLine = 3, startCol = 17, endLine = 3, endCol = 21}),("e1001",SrcSpan {startLine = 2, startCol = 14, endLine = 2, endCol = 17}),("e1002",SrcSpan {startLine = 4, startCol = 19, endLine = 4, endCol = 23}),("e1003",SrcSpan {startLine = 5, startCol = 19, endLine = 5, endCol = 24})], orig = "foo\n  | g1001 = e1001\n  | g1002 = e1002\n  | otherwise = e1003"}])]
+[("tests/serialise-seven.hs:1:1: Suggestion: Use guards\nFound:\n  foo = if baz then qux else if baz' then qux' else qux''\nWhy not:\n  foo\n    | baz = qux\n    | baz' = qux'\n    | otherwise = qux''\n",[Replace {rtype = Bind, pos = SrcSpan {startLine = 1, startCol = 1, endLine = 5, endCol = 24}, subts = [("g1001",SrcSpan {startLine = 1, startCol = 10, endLine = 1, endCol = 13}),("g1002",SrcSpan {startLine = 3, startCol = 17, endLine = 3, endCol = 21}),("e1001",SrcSpan {startLine = 2, startCol = 14, endLine = 2, endCol = 17}),("e1002",SrcSpan {startLine = 4, startCol = 19, endLine = 4, endCol = 23}),("e1003",SrcSpan {startLine = 5, startCol = 19, endLine = 5, endCol = 24})], orig = "foo\n  | g1001 = e1001\n  | g1002 = e1002\n  | otherwise = e1003"}])]
 
 
 
@@ -85,6 +85,6 @@ RUN tests/serialise-nine.hs --serialise
 FILE tests/serialise-nine.hs
 foo | True = baz
 OUTPUT
-[("tests/serialise-nine.hs:1:1: Warning: Redundant guard\nFound:\n  foo | True = baz\nWhy not:\n  foo = baz\n",[Delete {rtype = Stmt, pos = SrcSpan {startLine = 1, startCol = 7, endLine = 1, endCol = 11}}])]
+[("tests/serialise-nine.hs:1:1: Suggestion: Redundant guard\nFound:\n  foo | True = baz\nWhy not:\n  foo = baz\n",[Delete {rtype = Stmt, pos = SrcSpan {startLine = 1, startCol = 7, endLine = 1, endCol = 11}}])]
 
 

@@ -18,12 +18,12 @@ runGrep patt flags files = do
                           patt ++ "\n" ++
                           replicate (srcColumn sl - 1) ' ' ++ "^"
     let scope = scopeCreate $ Module an Nothing [] [] []
-    let rule = hintRules [HintRule Warning "grep" scope exp (Tuple an Boxed []) Nothing []]
+    let rule = hintRules [HintRule Suggestion "grep" scope exp (Tuple an Boxed []) Nothing []]
     forM_ files $ \file -> do
         res <- parseModuleEx flags file Nothing
         case res of
             Left (ParseError sl msg ctxt) ->
-                print $ rawIdeaN Warning (if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg) (mkSrcSpan sl sl) ctxt Nothing []
+                print $ rawIdeaN Suggestion (if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg) (mkSrcSpan sl sl) ctxt Nothing []
             Right m ->
                 forM_ (applyHints [] rule [m]) $ \i ->
                     print i{ideaHint="", ideaTo=Nothing}

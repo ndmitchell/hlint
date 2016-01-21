@@ -3,7 +3,7 @@ RUN "--with=infixr 5 !:" --hint=HLint tests/flag-fixity.hs
 FILE tests/flag-fixity.hs
 foo x = Nothing !: Just x : []
 OUTPUT
-tests/flag-fixity.hs:1:20: Warning: Use list literal
+tests/flag-fixity.hs:1:20: Suggestion: Use list literal
 Found:
   Just x : []
 Why not:

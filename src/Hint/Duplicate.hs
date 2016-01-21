@@ -33,7 +33,7 @@ duplicateHint ms =
 
 dupes ys =
     [rawIdeaN
-        (if length xs >= 5 then Error else Warning)
+        (if length xs >= 5 then Error else Suggestion)
         "Reduce duplication" p1
         (unlines $ map (prettyPrint . fmap (const p1)) xs)
         (Just $ "Combine with " ++ showSrcLoc (getPointLoc p2)) []

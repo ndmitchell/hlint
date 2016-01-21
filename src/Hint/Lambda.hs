@@ -37,7 +37,7 @@ f = foo (flip (*) x) -- (* x)
 f = foo (flip (-) x)
 f = foo (\x y -> fun x y) -- @Error fun
 f = foo (\x y -> x + y) -- (+)
-f = foo (\x -> x * y) -- @Warning (* y)
+f = foo (\x -> x * y) -- @Suggestion (* y)
 f = foo (\x -> x # y)
 f = foo (\x -> \y -> x x y y) -- \x y -> x x y y
 f = foo (\x -> \x -> foo x x) -- \_ x -> foo x x
@@ -118,17 +118,17 @@ etaReduce ps x = (ps,x)
 --Section refactoring is not currently implemented.
 lambdaExp :: Maybe Exp_ -> Exp_ -> [Idea]
 lambdaExp p o@(Paren _ (App _ v@(Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, allowLeftSection x =
-    [warnN "Use section" o (exp y x)] -- [Replace Expr (toSS o) subts template]]
+    [suggestN "Use section" o (exp y x)] -- [Replace Expr (toSS o) subts template]]
     where
       exp op rhs = LeftSection an op (toNamed rhs)
 --      template = prettyPrint (exp (toNamed "a") "*")
 --      subts = [("a", toSS y), ("*", toSS v)]
 lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
-    [warnN "Use section" o $ RightSection an (QVarOp an x) y]
+    [suggestN "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o, not $ isLambda res =
-    [(if isVar res || isCon res then err else warn) "Avoid lambda" o res (refact $ toSS o)]
+    [(if isVar res || isCon res then err else suggest) "Avoid lambda" o res (refact $ toSS o)]
 lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats :: [Exp_]), maybe True (not . isLambda) p =
-    [warn "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
+    [suggest "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
     where
       (pats, body) = fromLambda o
       template = prettyPrint $  Lambda an (zipWith munge ['a'..'z'] pats) (toNamed "body")

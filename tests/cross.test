@@ -22,7 +22,7 @@ foo = 1
         c = 3
 
 OUTPUT
-tests/cross.hs1:7:9: Warning: Reduce duplication
+tests/cross.hs1:7:9: Suggestion: Reduce duplication
 Found:
   a = 1
   b = 2

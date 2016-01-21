@@ -33,6 +33,6 @@ commentHint c@(Comment True span s)
 commentHint _ = []
 
 grab :: String -> Comment -> String -> Idea
-grab msg (Comment typ pos s1) s2 = rawIdea Warning msg pos (f s1) (Just $ f s2) [] refact
+grab msg (Comment typ pos s1) s2 = rawIdea Suggestion msg pos (f s1) (Just $ f s2) [] refact
     where f s = if typ then "{-" ++ s ++ "-}" else "--" ++ s
           refact = [ModifyComment (toRefactSrcSpan pos) (f s2)]

@@ -20,7 +20,7 @@ no = do bar; a <- foo; return b
 yes = do x <- bar; x -- do join bar
 no = do x <- bar; x; x
 {-# LANGUAGE RecursiveDo #-}; no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
-yes = do x <- return y; foo x -- @Warning do let x = y; foo x
+yes = do x <- return y; foo x -- @Suggestion do let x = y; foo x
 yes = do x <- return $ y + z; foo x -- do let x = y + z; foo x
 no = do x <- return x; foo x
 no = do x <- return y; x <- return y; foo x
@@ -58,7 +58,7 @@ monadExp decl x = case x of
         Do _ xs -> [err "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
                    [err "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
                    [err "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"] | [Qualifier _ y] <- [xs]] ++
-                   [warn "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
+                   [suggest "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where

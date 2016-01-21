@@ -105,7 +105,7 @@ reduce _ _ = Nothing
 reduce1 :: ImportDecl S -> [Idea]
 reduce1 i@ImportDecl{..}
     | Just (dropAnn importModule) == fmap dropAnn importAs
-    = [warn "Redundant as" i i{importAs=Nothing} [RemoveAsKeyword (toSS i)]]
+    = [suggest "Redundant as" i i{importAs=Nothing} [RemoveAsKeyword (toSS i)]]
 reduce1 _ = []
 
 
@@ -131,12 +131,12 @@ hierarchy i@ImportDecl{importModule=m@(ModuleName _ x),importPkg=Nothing} | Just
     =
     let newModuleName = y ++ "." ++ x
         r = [Replace R.ModuleName (toSS m) [] newModuleName] in
-    [warn "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an newModuleName} r]
+    [suggest "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an newModuleName} r]
 
 -- import IO is equivalent to
 -- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)
 hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing,importPkg=Nothing}
-    = [rawIdeaN Warning "Use hierarchical imports" (toSrcSpan $ ann i) (trimStart $ prettyPrint i) (
+    = [rawIdeaN Suggestion "Use hierarchical imports" (toSrcSpan $ ann i) (trimStart $ prettyPrint i) (
           Just $ unlines $ map (trimStart . prettyPrint)
           [f "System.IO" Nothing, f "System.IO.Error" Nothing
           ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an $ toNamed x | x <- ["bracket","bracket_"]]]) []]
@@ -153,7 +153,7 @@ desugarQual x | importQualified x && isNothing (importAs x) = x{importAs=Just (i
 
 multiExport :: Module S -> [Idea]
 multiExport x =
-    [ rawIdeaN Warning "Use import/export shortcut" (toSrcSpan $ ann hd)
+    [ rawIdeaN Suggestion "Use import/export shortcut" (toSrcSpan $ ann hd)
         (unlines $ prettyPrint hd : map prettyPrint imps)
         (Just $ unlines $ prettyPrint newhd : map prettyPrint newimps)
         []

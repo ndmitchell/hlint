@@ -85,19 +85,19 @@ matchListRec o@(ListCase vs nil (x,xs,cons))
     | [] <- vs, App2 op lhs rhs <- view cons
     , vars op `disjoint` [x,xs]
     , fromParen rhs == recursive, xs `notElem` vars lhs
-    = Just $ (,,) "foldr" Warning $ appsBracket
+    = Just $ (,,) "foldr" Suggestion $ appsBracket
         [toNamed "foldr", niceLambda [x] $ appsBracket [op,lhs], nil, toNamed xs]
 
     | [v] <- vs, view nil == Var_ v, App _ r lhs <- cons, r =~= recursive
     , xs `notElem` vars lhs
-    = Just $ (,,) "foldl" Warning $ appsBracket
+    = Just $ (,,) "foldl" Suggestion $ appsBracket
         [toNamed "foldl", niceLambda [v,x] lhs, toNamed v, toNamed xs]
 
     | [v] <- vs, App _ ret res <- nil, ret ~= "return", res ~= "()" || view res == Var_ v
     , [Generator _ (view -> PVar_ b1) e, Qualifier _ (fromParen -> App _ r (view -> Var_ b2))] <- asDo cons
     , b1 == b2, r == recursive, xs `notElem` vars e
     , name <- "foldM" ++ ['_' | res ~= "()"]
-    = Just $ (,,) name Warning $ appsBracket
+    = Just $ (,,) name Suggestion $ appsBracket
         [toNamed name, niceLambda [v,x] e, toNamed v, toNamed xs]
 
     | otherwise = Nothing

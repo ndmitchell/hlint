@@ -44,13 +44,13 @@ listExp :: Bool -> Exp_ -> [Idea]
 listExp b (fromParen -> x) =
         if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
     where
-        res = [warn name x x2 [r] | (name,f) <- checks
+        res = [suggest name x x2 [r] | (name,f) <- checks
                                   , Just (x2, subts, temp) <- [f b x]
                                   , let r = Replace Expr (toSS x) subts temp ]
 
 listPat :: Pat_ -> [Idea]
 listPat x = if null res then concatMap listPat $ children x else [head res]
-    where res = [warn name x x2 [r]
+    where res = [suggest name x x2 [r]
                   | (name,f) <- pchecks
                   , Just (x2, subts, temp) <- [f x]
                   , let r = Replace Pattern (toSS x) subts temp ]
@@ -137,7 +137,7 @@ stringType x = case x of
         f x = concatMap g $ childrenBi x
 
         g :: Type_ -> [Idea]
-        g e@(fromTyParen -> x) = [warn "Use String" x (transform f x)
+        g e@(fromTyParen -> x) = [suggest "Use String" x (transform f x)
                                     rs | not . null $ rs]
             where f x = if x =~= typeListChar then typeString else x
                   toSS = toRefactSrcSpan . toSrcSpan . ann

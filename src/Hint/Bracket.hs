@@ -4,30 +4,30 @@ Raise an error if you are bracketing an atom, or are enclosed be a list bracket
 
 <TEST>
 -- expression bracket reduction
-yes = (f x) x -- @Warning f x x
+yes = (f x) x -- @Suggestion f x x
 no = f (x x)
 yes = (foo) -- foo
-yes = (foo bar) -- @Warning foo bar
+yes = (foo bar) -- @Suggestion foo bar
 yes = foo (bar) -- @Error bar
 yes = foo ((x x)) -- @Error (x x)
-yes = (f x) ||| y -- @Warning f x ||| y
-yes = if (f x) then y else z -- @Warning if f x then y else z
-yes = if x then (f y) else z -- @Warning if x then f y else z
-yes = (a foo) :: Int -- @Warning a foo :: Int
-yes = [(foo bar)] -- @Warning [foo bar]
-yes = foo ((x y), z) -- @Warning (x y, z)
-yes = C { f = (e h) } -- @Warning C {f = e h}
-yes = \ x -> (x && x) -- @Warning \x -> x && x
+yes = (f x) ||| y -- @Suggestion f x ||| y
+yes = if (f x) then y else z -- @Suggestion if f x then y else z
+yes = if x then (f y) else z -- @Suggestion if x then f y else z
+yes = (a foo) :: Int -- @Suggestion a foo :: Int
+yes = [(foo bar)] -- @Suggestion [foo bar]
+yes = foo ((x y), z) -- @Suggestion (x y, z)
+yes = C { f = (e h) } -- @Suggestion C {f = e h}
+yes = \ x -> (x && x) -- @Suggestion \x -> x && x
 no = \(x -> y) -> z
-yes = (`foo` (bar baz)) -- @Warning (`foo` bar baz)
-main = do f; (print x) -- @Warning do f print x
+yes = (`foo` (bar baz)) -- @Suggestion (`foo` bar baz)
+main = do f; (print x) -- @Suggestion do f print x
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
-foo :: Int -> (Int -> Int) -- @Warning Int -> Int -> Int
-foo :: (Maybe Int) -> a -- @Warning Maybe Int -> a
+foo :: Int -> (Int -> Int) -- @Suggestion Int -> Int -> Int
+foo :: (Maybe Int) -> a -- @Suggestion Maybe Int -> a
 instance Named (DeclHead S)
-data Foo = Foo {foo :: (Maybe Foo)} -- @Warning foo :: Maybe Foo
+data Foo = Foo {foo :: (Maybe Foo)} -- @Suggestion foo :: Maybe Foo
 
 -- pattern bracket reduction
 foo (x:xs) = 1
@@ -103,7 +103,7 @@ bracket bad = f Nothing
         f Just{} o@(remParen -> Just x) | isAtom x = bracketError msg o x : g x
         f Nothing o@(remParen -> Just x) | bad || isAtom x = (if isAtom x then bracketError else bracketWarning) msg o x : g x
         f (Just (i,o,gen)) v@(remParen -> Just x) | not $ needBracket i o x =
-          warn msg o (gen x) [r] : g x
+          suggest msg o (gen x) [r] : g x
           where
             typ = findType v
             r = Replace typ (toSS v) [("x", toSS x)] "x"
@@ -113,27 +113,27 @@ bracket bad = f Nothing
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
 
 bracketWarning msg o x =
-  idea Warning msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
+  suggest msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 bracketError msg o x =
   idea Error msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 
 
 fieldDecl :: FieldDecl S -> [Idea]
 fieldDecl o@(FieldDecl a b v@(TyParen _ c))
-    = [warn "Redundant bracket" o (FieldDecl a b c)  [Replace Type (toSS v) [("x", toSS c)] "x"]]
+    = [suggest "Redundant bracket" o (FieldDecl a b c)  [Replace Type (toSS v) [("x", toSS c)] "x"]]
 fieldDecl _ = []
 
 
 dollar :: Exp_ -> [Idea]
 dollar = concatMap f . universe
     where
-        f x = [warn "Redundant $" x y [r] | InfixApp _ a d b <- [x], opExp d ~= "$"
+        f x = [suggest "Redundant $" x y [r] | InfixApp _ a d b <- [x], opExp d ~= "$"
               ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b
               ,let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"
                 ]
 
               ++
-              [warn "Move brackets to avoid $" x (t y) [r] |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
+              [suggest "Move brackets to avoid $" x (t y) [r] |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
               ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
               , let y = App an a1 (Paren an a2)
               , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]

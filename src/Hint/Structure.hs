@@ -123,12 +123,12 @@ data Pattern = Pattern SrcSpanInfo R.RType [Pat_] (Rhs S) (Maybe (Binds S))
 asPattern :: Decl_ -> [(Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)]
 asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
     where
-        decl o@(PatBind a pat rhs bind) = [(Pattern a Bind [pat] rhs bind, \msg (Pattern _ _ [pat] rhs bind) rs -> warn msg o (PatBind a pat rhs bind) rs)]
+        decl o@(PatBind a pat rhs bind) = [(Pattern a Bind [pat] rhs bind, \msg (Pattern _ _ [pat] rhs bind) rs -> suggest msg o (PatBind a pat rhs bind) rs)]
         decl (FunBind _ xs) = map match xs
         decl _ = []
-        match o@(Match a b pat rhs bind) = (Pattern a R.Match pat rhs bind, \msg (Pattern _ _ pat rhs bind) rs -> warn msg o (Match a b pat rhs bind) rs)
-        match o@(InfixMatch a p b ps rhs bind) = (Pattern a R.Match (p:ps) rhs bind, \msg (Pattern _ _ (p:ps) rhs bind) rs -> warn msg o (InfixMatch a p b ps rhs bind) rs)
-        alt o@(Alt a pat rhs bind) = [(Pattern a R.Match [pat] rhs bind, \msg (Pattern _ _ [pat] rhs bind) rs -> warn msg o (Alt a pat rhs bind) [])]
+        match o@(Match a b pat rhs bind) = (Pattern a R.Match pat rhs bind, \msg (Pattern _ _ pat rhs bind) rs -> suggest msg o (Match a b pat rhs bind) rs)
+        match o@(InfixMatch a p b ps rhs bind) = (Pattern a R.Match (p:ps) rhs bind, \msg (Pattern _ _ (p:ps) rhs bind) rs -> suggest msg o (InfixMatch a p b ps rhs bind) rs)
+        alt o@(Alt a pat rhs bind) = [(Pattern a R.Match [pat] rhs bind, \msg (Pattern _ _ [pat] rhs bind) rs -> suggest msg o (Alt a pat rhs bind) [])]
 
 
 
@@ -136,7 +136,7 @@ asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
 -- Or perhaps the entire module should be renamed Pattern, since it's all about patterns
 patHint :: Pat_ -> [Idea]
 patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args =
-  [warn "Use record patterns" o (PRec an name []) [Replace R.Pattern (toSS o) [] (prettyPrint $ PRec an name [])] ]
+  [suggest "Use record patterns" o (PRec an name []) [Replace R.Pattern (toSS o) [] (prettyPrint $ PRec an name [])] ]
 
 patHint o@(PBangPat _ x) | f x = [err "Redundant bang pattern" o x [r]]
     where f (PParen _ x) = f x
@@ -158,12 +158,12 @@ patHint _ = []
 
 expHint :: Exp_ -> [Idea]
 expHint o@(Case _ _ [Alt _ PWildCard{} (UnGuardedRhs _ e) Nothing]) =
-  [warn "Redundant case" o e [r]]
+  [suggest "Redundant case" o e [r]]
   where
     r = Replace Expr (toSS o) [("x", toSS e)] "x"
 expHint o@(Case _ (Var _ x) [Alt _ (PVar _ y) (UnGuardedRhs _ e) Nothing])
     | x =~= UnQual an y =
-      [warn "Redundant case" o e [r]]
+      [suggest "Redundant case" o e [r]]
   where
     r = Replace Expr (toSS o) [("x", toSS e)] "x"
 expHint _ = []
