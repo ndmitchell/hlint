@@ -29,7 +29,7 @@ RUN tests/serialise-three.hs --serialise
 FILE tests/serialise-three.hs
 foo = concat (map f (let x = x in x))
 OUTPUT
-[("tests/serialise-three.hs:1:7: Error: Use concatMap\nFound:\n  concat (map f (let x = x in x))\nWhy not:\n  concatMap f (let x = x in x)\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 1, startCol = 7, endLine = 1, endCol = 38}, subts = [("f",SrcSpan {startLine = 1, startCol = 19, endLine = 1, endCol = 20}),("x",SrcSpan {startLine = 1, startCol = 21, endLine = 1, endCol = 37})], orig = "concatMap f x"}])]
+[("tests/serialise-three.hs:1:7: Warning: Use concatMap\nFound:\n  concat (map f (let x = x in x))\nWhy not:\n  concatMap f (let x = x in x)\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 1, startCol = 7, endLine = 1, endCol = 38}, subts = [("f",SrcSpan {startLine = 1, startCol = 19, endLine = 1, endCol = 20}),("x",SrcSpan {startLine = 1, startCol = 21, endLine = 1, endCol = 37})], orig = "concatMap f x"}])]
 
 
 ---------------------------------------------------------------------

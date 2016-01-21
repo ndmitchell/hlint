@@ -45,7 +45,7 @@ RUN tests/brackets.hs
 FILE tests/brackets.hs
 test = if isNothing x then (-1.0) else fromJust x
 OUTPUT
-tests/brackets.hs:1:8: Error: Use fromMaybe
+tests/brackets.hs:1:8: Warning: Use fromMaybe
 Found:
   if isNothing x then (-1.0) else fromJust x
 Why not:

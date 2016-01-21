@@ -5,7 +5,7 @@ FILE tests/cpp-full.hs
 
 main = putStrLn $ show "Hello"
 OUTPUT
-tests/cpp-full.hs:3:8: Error: Use print
+tests/cpp-full.hs:3:8: Warning: Use print
 Found:
   putStrLn $ show "Hello"
 Why not:

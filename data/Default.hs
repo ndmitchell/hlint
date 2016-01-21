@@ -32,49 +32,49 @@ import Char as Data.Char
 
 -- I/O
 
-error = putStrLn (show x) ==> print x
-error = mapM_ putChar ==> putStr
-error = hGetChar stdin ==> getChar
-error = hGetLine stdin ==> getLine
-error = hGetContents stdin ==> getContents
-error = hPutChar stdout ==> putChar
-error = hPutStr stdout ==> putStr
-error = hPutStrLn stdout ==> putStrLn
-error = hPrint stdout ==> print
-error = hWaitForInput a 0 ==> hReady a
-error = hPutStrLn a (show b) ==> hPrint a b
-error = hIsEOF stdin ==> isEOF
+warn = putStrLn (show x) ==> print x
+warn = mapM_ putChar ==> putStr
+warn = hGetChar stdin ==> getChar
+warn = hGetLine stdin ==> getLine
+warn = hGetContents stdin ==> getContents
+warn = hPutChar stdout ==> putChar
+warn = hPutStr stdout ==> putStr
+warn = hPutStrLn stdout ==> putStrLn
+warn = hPrint stdout ==> print
+warn = hWaitForInput a 0 ==> hReady a
+warn = hPutStrLn a (show b) ==> hPrint a b
+warn = hIsEOF stdin ==> isEOF
 
 -- EXIT
 
-error = exitWith ExitSuccess ==> exitSuccess
+warn = exitWith ExitSuccess ==> exitSuccess
 
 -- ORD
 
-error = not (a == b) ==> a /= b where note = "incorrect if either value is NaN"
-error = not (a /= b) ==> a == b where note = "incorrect if either value is NaN"
-error = not (a >  b) ==> a <= b where note = "incorrect if either value is NaN"
-error = not (a >= b) ==> a <  b where note = "incorrect if either value is NaN"
-error = not (a <  b) ==> a >= b where note = "incorrect if either value is NaN"
-error = not (a <= b) ==> a >  b where note = "incorrect if either value is NaN"
-error = compare x y /= GT ==> x <= y
-error = compare x y == LT ==> x < y
-error = compare x y /= LT ==> x >= y
-error = compare x y == GT ==> x > y
-error = compare x y == EQ ==> x == y
-error = compare x y /= EQ ==> x /= y
+warn = not (a == b) ==> a /= b where note = "incorrect if either value is NaN"
+warn = not (a /= b) ==> a == b where note = "incorrect if either value is NaN"
+warn = not (a >  b) ==> a <= b where note = "incorrect if either value is NaN"
+warn = not (a >= b) ==> a <  b where note = "incorrect if either value is NaN"
+warn = not (a <  b) ==> a >= b where note = "incorrect if either value is NaN"
+warn = not (a <= b) ==> a >  b where note = "incorrect if either value is NaN"
+warn = compare x y /= GT ==> x <= y
+warn = compare x y == LT ==> x < y
+warn = compare x y /= LT ==> x >= y
+warn = compare x y == GT ==> x > y
+warn = compare x y == EQ ==> x == y
+warn = compare x y /= EQ ==> x /= y
 --warning = x == a || x == b || x == c ==> x `elem` [a,b,c] where note = ValidInstance "Eq" x
 --warning = x /= a && x /= b && x /= c ==> x `notElem` [a,b,c] where note = ValidInstance "Eq" x
---error = compare (f x) (f y) ==> Data.Ord.comparing f x y -- not that great
---error = on compare f ==> Data.Ord.comparing f -- not that great
-error = head (sort x) ==> minimum x
-error = last (sort x) ==> maximum x
-error = head (sortBy f x) ==> minimumBy f x
+--warn = compare (f x) (f y) ==> Data.Ord.comparing f x y -- not that great
+--warn = on compare f ==> Data.Ord.comparing f -- not that great
+warn = head (sort x) ==> minimum x
+warn = last (sort x) ==> maximum x
+warn = head (sortBy f x) ==> minimumBy f x
     where _ = isCompare f
-error = last (sortBy f x) ==> maximumBy f x
+warn = last (sortBy f x) ==> maximumBy f x
     where _ = isCompare f
-error "Avoid reverse" = reverse (sort x) ==> sortBy (flip compare) x
-error "Avoid reverse" = reverse (sortBy f x) ==> sortBy (flip f) x
+warn "Avoid reverse" = reverse (sort x) ==> sortBy (flip compare) x
+warn "Avoid reverse" = reverse (sortBy f x) ==> sortBy (flip f) x
     where _ = isCompare f
 suggest = flip (g `on` h) ==> flip g `on` h
 suggest = (f `on` g) `on` h ==> f `on` (g . h)
@@ -82,180 +82,180 @@ suggest = (f `on` g) `on` h ==> f `on` (g . h)
 
 -- READ/SHOW
 
-error = showsPrec 0 x "" ==> show x
-error = readsPrec 0 ==> reads
-error = showsPrec 0 ==> shows
+warn = showsPrec 0 x "" ==> show x
+warn = readsPrec 0 ==> reads
+warn = showsPrec 0 ==> shows
 suggest = showIntAtBase 16 intToDigit ==> showHex
 suggest = showIntAtBase 8 intToDigit ==> showOct
 
 -- LIST
 
-error = concat (map f x) ==> concatMap f x
-error = concat (fmap f x) ==> concatMap f x
+warn = concat (map f x) ==> concatMap f x
+warn = concat (fmap f x) ==> concatMap f x
 suggest = concat [a, b] ==> a ++ b
 suggest "Use map once" = map f (map g x) ==> map (f . g) x
 suggest "Fuse concatMap/map" = concatMap f (map g x) ==> concatMap (f . g) x
 suggest = x !! 0 ==> head x
-error = take n (repeat x) ==> replicate n x
+warn = take n (repeat x) ==> replicate n x
     where _ = noQuickCheck -- takes too long
-error = map f (replicate n x) ==> replicate n (f x)
+warn = map f (replicate n x) ==> replicate n (f x)
     where _ = noQuickCheck -- takes too long
-error = map f (repeat x) ==> repeat (f x)
+warn = map f (repeat x) ==> repeat (f x)
     where _ = noQuickCheck -- takes forever
-error = cycle [x] ==> repeat x
+warn = cycle [x] ==> repeat x
     where _ = noQuickCheck -- takes forever
-error = head (reverse x) ==> last x
-error = head (drop n x) ==> x !! n where _ = isNat n
-error = reverse (tail (reverse x)) ==> init x where note = IncreasesLaziness
-error "Avoid reverse" = reverse (reverse x) ==> x where note = IncreasesLaziness
--- error = take (length x - 1) x ==> init x -- not true for x == []
-error = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
-error = foldr (++) [] ==> concat
-error = foldr (++) "" ==> concat
-error = foldl (++) [] ==> concat where note = IncreasesLaziness
-error = foldl (++) "" ==> concat where note = IncreasesLaziness
-error = foldl f (head x) (tail x) ==> foldl1 f x
-error = foldr f (last x) (init x) ==> foldr1 f x
-error = span (not . p) ==> break p
-error = break (not . p) ==> span p
-error = (takeWhile p x, dropWhile p x) ==> span p x
-error = fst (span p x) ==> takeWhile p x
-error = snd (span p x) ==> dropWhile p x
-error = fst (break p x) ==> takeWhile (not . p) x
-error = snd (break p x) ==> dropWhile (not . p) x
-error = concatMap (++ "\n") ==> unlines
-error = map id ==> id
-error = concatMap id ==> concat
-error = or (map p x) ==> any p x
-error = and (map p x) ==> all p x
-error = zipWith (,) ==> zip
-error = zipWith3 (,,) ==> zip3
+warn = head (reverse x) ==> last x
+warn = head (drop n x) ==> x !! n where _ = isNat n
+warn = reverse (tail (reverse x)) ==> init x where note = IncreasesLaziness
+warn "Avoid reverse" = reverse (reverse x) ==> x where note = IncreasesLaziness
+-- warn = take (length x - 1) x ==> init x -- not true for x == []
+warn = isPrefixOf (reverse x) (reverse y) ==> isSuffixOf x y
+warn = foldr (++) [] ==> concat
+warn = foldr (++) "" ==> concat
+warn = foldl (++) [] ==> concat where note = IncreasesLaziness
+warn = foldl (++) "" ==> concat where note = IncreasesLaziness
+warn = foldl f (head x) (tail x) ==> foldl1 f x
+warn = foldr f (last x) (init x) ==> foldr1 f x
+warn = span (not . p) ==> break p
+warn = break (not . p) ==> span p
+warn = (takeWhile p x, dropWhile p x) ==> span p x
+warn = fst (span p x) ==> takeWhile p x
+warn = snd (span p x) ==> dropWhile p x
+warn = fst (break p x) ==> takeWhile (not . p) x
+warn = snd (break p x) ==> dropWhile (not . p) x
+warn = concatMap (++ "\n") ==> unlines
+warn = map id ==> id
+warn = concatMap id ==> concat
+warn = or (map p x) ==> any p x
+warn = and (map p x) ==> all p x
+warn = zipWith (,) ==> zip
+warn = zipWith3 (,,) ==> zip3
 suggest = length x == 0 ==> null x where note = IncreasesLaziness
 suggest  = x == [] ==> null x
 suggest  "Use null" = length x /= 0 ==> not (null x) where note = IncreasesLaziness
 suggest  "Use :" = (\x -> [x]) ==> (:[])
-error = map (uncurry f) (zip x y) ==> zipWith f x y
+warn = map (uncurry f) (zip x y) ==> zipWith f x y
 suggest  = map f (zip x y) ==> zipWith (curry f) x y where _ = isVar f
-error = not (elem x y) ==> notElem x y
+warn = not (elem x y) ==> notElem x y
 suggest  = foldr f z (map g x) ==> foldr (f . g) z x
-error = x ++ concatMap (' ':) y ==> unwords (x:y)
-error = intercalate " " ==> unwords
+warn = x ++ concatMap (' ':) y ==> unwords (x:y)
+warn = intercalate " " ==> unwords
 suggest  = concat (intersperse x y) ==> intercalate x y where _ = notEq x " "
 suggest  = concat (intersperse " " x) ==> unwords x
-error "Use any" = null (filter f x) ==> not (any f x)
-error "Use any" = filter f x == [] ==> not (any f x)
-error = filter f x /= [] ==> any f x
-error = any id ==> or
-error = all id ==> and
-error = any ((==) a) ==> elem a where note = ValidInstance "Eq" a
-error = any (== a) ==> elem a
-error = any (a ==) ==> elem a where note = ValidInstance "Eq" a
-error = all ((/=) a) ==> notElem a where note = ValidInstance "Eq" a
-error = all (/= a) ==> notElem a where note = ValidInstance "Eq" a
-error = all (a /=) ==> notElem a where note = ValidInstance "Eq" a
-error = elem True ==> or
-error = notElem False ==> and
-error = findIndex ((==) a) ==> elemIndex a
-error = findIndex (a ==) ==> elemIndex a
-error = findIndex (== a) ==> elemIndex a
-error = findIndices ((==) a) ==> elemIndices a
-error = findIndices (a ==) ==> elemIndices a
-error = findIndices (== a) ==> elemIndices a
-error = lookup b (zip l [0..]) ==> elemIndex b l
+warn "Use any" = null (filter f x) ==> not (any f x)
+warn "Use any" = filter f x == [] ==> not (any f x)
+warn = filter f x /= [] ==> any f x
+warn = any id ==> or
+warn = all id ==> and
+warn = any ((==) a) ==> elem a where note = ValidInstance "Eq" a
+warn = any (== a) ==> elem a
+warn = any (a ==) ==> elem a where note = ValidInstance "Eq" a
+warn = all ((/=) a) ==> notElem a where note = ValidInstance "Eq" a
+warn = all (/= a) ==> notElem a where note = ValidInstance "Eq" a
+warn = all (a /=) ==> notElem a where note = ValidInstance "Eq" a
+warn = elem True ==> or
+warn = notElem False ==> and
+warn = findIndex ((==) a) ==> elemIndex a
+warn = findIndex (a ==) ==> elemIndex a
+warn = findIndex (== a) ==> elemIndex a
+warn = findIndices ((==) a) ==> elemIndices a
+warn = findIndices (a ==) ==> elemIndices a
+warn = findIndices (== a) ==> elemIndices a
+warn = lookup b (zip l [0..]) ==> elemIndex b l
 suggest "Length always non-negative" = length x >= 0 ==> True
 suggest "Use null" = length x > 0 ==> not (null x) where note = IncreasesLaziness
 suggest "Use null" = length x >= 1 ==> not (null x) where note = IncreasesLaziness
-error "Take on a non-positive" = take i x ==> [] where _ = isNegZero i
-error "Drop on a non-positive" = drop i x ==> x where _ = isNegZero i
-error = last (scanl f z x) ==> foldl f z x
-error = head (scanr f z x) ==> foldr f z x
-error = iterate id ==> repeat
+warn "Take on a non-positive" = take i x ==> [] where _ = isNegZero i
+warn "Drop on a non-positive" = drop i x ==> x where _ = isNegZero i
+warn = last (scanl f z x) ==> foldl f z x
+warn = head (scanr f z x) ==> foldr f z x
+warn = iterate id ==> repeat
     where _ = noQuickCheck -- takes forever
-error = zipWith f (repeat x) ==> map (f x)
-error = zipWith f y (repeat z) ==> map (\x -> f x z) y
+warn = zipWith f (repeat x) ==> map (f x)
+warn = zipWith f y (repeat z) ==> map (\x -> f x z) y
 
 -- BY
 
-error = deleteBy (==) ==> delete
-error = groupBy (==) ==> group
-error = insertBy compare ==> insert
-error = intersectBy (==) ==> intersect
-error = maximumBy compare ==> maximum
-error = minimumBy compare ==> minimum
-error = nubBy (==) ==> nub
-error = sortBy compare ==> sort
-error = unionBy (==) ==> union
+warn = deleteBy (==) ==> delete
+warn = groupBy (==) ==> group
+warn = insertBy compare ==> insert
+warn = intersectBy (==) ==> intersect
+warn = maximumBy compare ==> maximum
+warn = minimumBy compare ==> minimum
+warn = nubBy (==) ==> nub
+warn = sortBy compare ==> sort
+warn = unionBy (==) ==> union
 
 -- FOLDS
 
-error = foldr  (>>) (return ()) ==> sequence_
+warn = foldr  (>>) (return ()) ==> sequence_
     where _ = noQuickCheck
-error = foldr  (&&) True ==> and
-error = foldl  (&&) True ==> and where note = IncreasesLaziness
-error = foldr1 (&&)  ==> and where note = RemovesError "on []"; _ = noQuickCheck
-error = foldl1 (&&)  ==> and where note = RemovesError "on []"
-error = foldr  (||) False ==> or
-error = foldl  (||) False ==> or where note = IncreasesLaziness
-error = foldr1 (||)  ==> or where note = RemovesError "on []"
-error = foldl1 (||)  ==> or where note = RemovesError "on []"
-error = foldl  (+) 0 ==> sum
-error = foldr  (+) 0 ==> sum
-error = foldl1 (+)   ==> sum where note = RemovesError "on []"
-error = foldr1 (+)   ==> sum where note = RemovesError "on []"
-error = foldl  (*) 1 ==> product
-error = foldr  (*) 1 ==> product
-error = foldl1 (*)   ==> product where note = RemovesError "on []"
-error = foldr1 (*)   ==> product where note = RemovesError "on []"
-error = foldl1 max   ==> maximum
-error = foldr1 max   ==> maximum
-error = foldl1 min   ==> minimum
-error = foldr1 min   ==> minimum
-error = foldr mplus mzero ==> msum
+warn = foldr  (&&) True ==> and
+warn = foldl  (&&) True ==> and where note = IncreasesLaziness
+warn = foldr1 (&&)  ==> and where note = RemovesError "on []"; _ = noQuickCheck
+warn = foldl1 (&&)  ==> and where note = RemovesError "on []"
+warn = foldr  (||) False ==> or
+warn = foldl  (||) False ==> or where note = IncreasesLaziness
+warn = foldr1 (||)  ==> or where note = RemovesError "on []"
+warn = foldl1 (||)  ==> or where note = RemovesError "on []"
+warn = foldl  (+) 0 ==> sum
+warn = foldr  (+) 0 ==> sum
+warn = foldl1 (+)   ==> sum where note = RemovesError "on []"
+warn = foldr1 (+)   ==> sum where note = RemovesError "on []"
+warn = foldl  (*) 1 ==> product
+warn = foldr  (*) 1 ==> product
+warn = foldl1 (*)   ==> product where note = RemovesError "on []"
+warn = foldr1 (*)   ==> product where note = RemovesError "on []"
+warn = foldl1 max   ==> maximum
+warn = foldr1 max   ==> maximum
+warn = foldl1 min   ==> minimum
+warn = foldr1 min   ==> minimum
+warn = foldr mplus mzero ==> msum
     where _ = noQuickCheck
 
 -- FUNCTION
 
-error = (\x -> x) ==> id
-error = (\x y -> x) ==> const
-error = (\(x,y) -> y) ==> snd
-error = (\(x,y) -> x) ==> fst
+warn = (\x -> x) ==> id
+warn = (\x y -> x) ==> const
+warn = (\(x,y) -> y) ==> snd
+warn = (\(x,y) -> x) ==> fst
 suggest "Use curry" = (\x y -> f (x,y)) ==> curry f
 suggest "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where note = IncreasesLaziness
-error "Redundant $" = (($) . f) ==> f
-error "Redundant $" = (f $) ==> f
+warn "Redundant $" = (($) . f) ==> f
+warn "Redundant $" = (f $) ==> f
 suggest  = (\x -> y) ==> const y where _ = isAtom y && not (isWildcard y)
-error "Redundant flip" = flip f x y ==> f y x where _ = isApp original
+warn "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 suggest  = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
-error "Evaluate" = id x ==> x
-error "Redundant id" = id . x ==> x
-error "Redundant id" = x . id ==> x
+warn "Evaluate" = id x ==> x
+warn "Redundant id" = id . x ==> x
+warn "Redundant id" = x . id ==> x
 
 -- CHAR
 
-error = a >= 'a' && a <= 'z' ==> isAsciiLower a
-error = a >= 'A' && a <= 'Z' ==> isAsciiUpper a
-error = a >= '0' && a <= '9' ==> isDigit a
-error = a >= '0' && a <= '7' ==> isOctDigit a
-error = isLower a || isUpper a ==> isAlpha a
-error = isUpper a || isLower a ==> isAlpha a
+warn = a >= 'a' && a <= 'z' ==> isAsciiLower a
+warn = a >= 'A' && a <= 'Z' ==> isAsciiUpper a
+warn = a >= '0' && a <= '9' ==> isDigit a
+warn = a >= '0' && a <= '7' ==> isOctDigit a
+warn = isLower a || isUpper a ==> isAlpha a
+warn = isUpper a || isLower a ==> isAlpha a
 
 -- BOOL
 
-error "Redundant ==" = x == True ==> x
+warn "Redundant ==" = x == True ==> x
 suggest  "Redundant ==" = x == False ==> not x
-error "Redundant ==" = True == a ==> a
+warn "Redundant ==" = True == a ==> a
 suggest  "Redundant ==" = False == a ==> not a
-error "Redundant /=" = a /= True ==> not a
+warn "Redundant /=" = a /= True ==> not a
 suggest  "Redundant /=" = a /= False ==> a
-error "Redundant /=" = True /= a ==> not a
+warn "Redundant /=" = True /= a ==> not a
 suggest  "Redundant /=" = False /= a ==> a
-error "Redundant if" = (if a then x else x) ==> x where note = IncreasesLaziness
-error "Redundant if" = (if a then True else False) ==> a
-error "Redundant if" = (if a then False else True) ==> not a
-error "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then t else f
-error "Redundant if" = (if a then (if b then t else f) else f) ==> if a && b then t else f
-error "Redundant if" = (if x then True else y) ==> x || y where _ = notEq y False
-error "Redundant if" = (if x then y else False) ==> x && y where _ = notEq y True
+warn "Redundant if" = (if a then x else x) ==> x where note = IncreasesLaziness
+warn "Redundant if" = (if a then True else False) ==> a
+warn "Redundant if" = (if a then False else True) ==> not a
+warn "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then t else f
+warn "Redundant if" = (if a then (if b then t else f) else f) ==> if a && b then t else f
+warn "Redundant if" = (if x then True else y) ==> x || y where _ = notEq y False
+warn "Redundant if" = (if x then y else False) ==> x && y where _ = notEq y True
 suggest "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
 suggest "Use if" = case a of {False -> f; True -> t} ==> if a then t else f
 suggest "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
@@ -266,17 +266,17 @@ suggest = or [x, y] ==> x || y
 suggest = or [x, y, z] ==> x || y || z
 suggest = and [x, y] ==> x && y
 suggest = and [x, y, z] ==> x && y && z
-error "Redundant if" = (if x then False else y) ==> not x && y where _ = notEq y True
-error "Redundant if" = (if x then y else True) ==> not x || y where _ = notEq y False
-error "Redundant not" = not (not x) ==> x
--- error "Too strict if" = (if c then f x else f y) ==> f (if c then x else y) where note = IncreasesLaziness
+warn "Redundant if" = (if x then False else y) ==> not x && y where _ = notEq y True
+warn "Redundant if" = (if x then y else True) ==> not x || y where _ = notEq y False
+warn "Redundant not" = not (not x) ==> x
+-- warn "Too strict if" = (if c then f x else f y) ==> f (if c then x else y) where note = IncreasesLaziness
 -- also breaks types, see #87
 
 -- ARROW
 
-error = id *** g ==> second g
-error = f *** id ==> first f
-error = zip (map f x) (map g x) ==> map (f Control.Arrow.&&& g) x
+warn = id *** g ==> second g
+warn = f *** id ==> first f
+warn = zip (map f x) (map g x) ==> map (f Control.Arrow.&&& g) x
 suggest = (\(x,y) -> (f x, g y)) ==> f Control.Arrow.*** g
 suggest = (\x -> (f x, g x)) ==> f Control.Arrow.&&& g
 suggest = (\(x,y) -> (f x,y)) ==> Control.Arrow.first f
@@ -286,78 +286,78 @@ suggest "Redundant pair" = (fst x, snd x) ==>  x where note = DecreasesLaziness
 
 -- FUNCTOR
 
-error "Functor law" = fmap f (fmap g x) ==> fmap (f . g) x where _ = noQuickCheck
-error "Functor law" = f <$> g <$> x ==> f . g <$> x where _ = noQuickCheck
-error "Functor law" = fmap id ==> id where _ = noQuickCheck
-error "Functor law" = id <$> x ==> x where _ = noQuickCheck
+warn "Functor law" = fmap f (fmap g x) ==> fmap (f . g) x where _ = noQuickCheck
+warn "Functor law" = f <$> g <$> x ==> f . g <$> x where _ = noQuickCheck
+warn "Functor law" = fmap id ==> id where _ = noQuickCheck
+warn "Functor law" = id <$> x ==> x where _ = noQuickCheck
 suggest = fmap f $ x ==> f Control.Applicative.<$> x
     where _ = (isApp x || isAtom x) && noQuickCheck
 
 -- MONAD
 
-error "Monad law, left identity" = return a >>= f ==> f a where _ = noQuickCheck
-error "Monad law, left identity" = f =<< return a ==> f a where _ = noQuickCheck
-error "Monad law, right identity" = m >>= return ==> m where _ = noQuickCheck
-error "Monad law, right identity" = return =<< m ==> m where _ = noQuickCheck
+warn "Monad law, left identity" = return a >>= f ==> f a where _ = noQuickCheck
+warn "Monad law, left identity" = f =<< return a ==> f a where _ = noQuickCheck
+warn "Monad law, right identity" = m >>= return ==> m where _ = noQuickCheck
+warn "Monad law, right identity" = return =<< m ==> m where _ = noQuickCheck
 suggest = m >>= return . f ==> Control.Monad.liftM f m where _ = noQuickCheck -- cannot be fmap, because is in Functor not Monad
 suggest = return . f =<< m ==> Control.Monad.liftM f m where _ = noQuickCheck
-error = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
-error = (if x then y else return ()) ==> Control.Monad.when x y where _ = isAtom y && noQuickCheck
-error = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
-error = (if x then return () else y) ==> Control.Monad.unless x y where _ = isAtom y && noQuickCheck
-error = sequence (map f x) ==> mapM f x where _ = noQuickCheck
-error = sequence_ (map f x) ==> mapM_ f x where _ = noQuickCheck
+warn = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
+warn = (if x then y else return ()) ==> Control.Monad.when x y where _ = isAtom y && noQuickCheck
+warn = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
+warn = (if x then return () else y) ==> Control.Monad.unless x y where _ = isAtom y && noQuickCheck
+warn = sequence (map f x) ==> mapM f x where _ = noQuickCheck
+warn = sequence_ (map f x) ==> mapM_ f x where _ = noQuickCheck
 suggest = flip mapM ==> Control.Monad.forM where _ = noQuickCheck
 suggest = flip mapM_ ==> Control.Monad.forM_ where _ = noQuickCheck
 suggest = flip forM ==> mapM where _ = noQuickCheck
 suggest = flip forM_ ==> mapM_ where _ = noQuickCheck
-error = when (not x) ==> unless x where _ = noQuickCheck
-error = x >>= id ==> Control.Monad.join x where _ = noQuickCheck
-error = id =<< x ==> Control.Monad.join x where _ = noQuickCheck
-error = liftM f (liftM g x) ==> liftM (f . g) x where _ = noQuickCheck
+warn = when (not x) ==> unless x where _ = noQuickCheck
+warn = x >>= id ==> Control.Monad.join x where _ = noQuickCheck
+warn = id =<< x ==> Control.Monad.join x where _ = noQuickCheck
+warn = liftM f (liftM g x) ==> liftM (f . g) x where _ = noQuickCheck
 suggest = a >> return () ==> Control.Monad.void a
     where _ = (isAtom a || isApp a) && noQuickCheck
-error = fmap (const ()) ==> Control.Monad.void where _ = noQuickCheck
-error = const () <$> x ==> Control.Monad.void x where _ = noQuickCheck
-error = flip (>=>) ==> (<=<) where _ = noQuickCheck
-error = flip (<=<) ==> (>=>) where _ = noQuickCheck
-error = flip (>>=) ==> (=<<) where _ = noQuickCheck
-error = flip (=<<) ==> (>>=) where _ = noQuickCheck
+warn = fmap (const ()) ==> Control.Monad.void where _ = noQuickCheck
+warn = const () <$> x ==> Control.Monad.void x where _ = noQuickCheck
+warn = flip (>=>) ==> (<=<) where _ = noQuickCheck
+warn = flip (<=<) ==> (>=>) where _ = noQuickCheck
+warn = flip (>>=) ==> (=<<) where _ = noQuickCheck
+warn = flip (=<<) ==> (>>=) where _ = noQuickCheck
 suggest = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = noQuickCheck
 suggest = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = noQuickCheck
-error = a >> forever a ==> forever a where _ = noQuickCheck
+warn = a >> forever a ==> forever a where _ = noQuickCheck
 suggest = liftM2 id ==> ap where _ = noQuickCheck
-error = mapM (uncurry f) (zip l m) ==> zipWithM f l m where _ = noQuickCheck
+warn = mapM (uncurry f) (zip l m) ==> zipWithM f l m where _ = noQuickCheck
 
 -- STATE MONAD
 
-error = fst (runState x y) ==> evalState x y where _ = noQuickCheck
-error = snd (runState x y) ==> execState x y where _ = noQuickCheck
+warn = fst (runState x y) ==> evalState x y where _ = noQuickCheck
+warn = snd (runState x y) ==> execState x y where _ = noQuickCheck
 
 -- MONAD LIST
 
-error = liftM unzip (mapM f x) ==> Control.Monad.mapAndUnzipM f x where _ = noQuickCheck
-error = sequence (zipWith f x y) ==> Control.Monad.zipWithM f x y where _ = noQuickCheck
-error = sequence_ (zipWith f x y) ==> Control.Monad.zipWithM_ f x y where _ = noQuickCheck
-error = sequence (replicate n x) ==> Control.Monad.replicateM n x where _ = noQuickCheck
-error = sequence_ (replicate n x) ==> Control.Monad.replicateM_ n x where _ = noQuickCheck
-error = mapM f (replicate n x) ==> Control.Monad.replicateM n (f x) where _ = noQuickCheck
-error = mapM_ f (replicate n x) ==> Control.Monad.replicateM_ n (f x) where _ = noQuickCheck
-error = mapM f (map g x) ==> mapM (f . g) x where _ = noQuickCheck
-error = mapM_ f (map g x) ==> mapM_ (f . g) x where _ = noQuickCheck
-error = mapM id ==> sequence where _ = noQuickCheck
-error = mapM_ id ==> sequence_ where _ = noQuickCheck
+warn = liftM unzip (mapM f x) ==> Control.Monad.mapAndUnzipM f x where _ = noQuickCheck
+warn = sequence (zipWith f x y) ==> Control.Monad.zipWithM f x y where _ = noQuickCheck
+warn = sequence_ (zipWith f x y) ==> Control.Monad.zipWithM_ f x y where _ = noQuickCheck
+warn = sequence (replicate n x) ==> Control.Monad.replicateM n x where _ = noQuickCheck
+warn = sequence_ (replicate n x) ==> Control.Monad.replicateM_ n x where _ = noQuickCheck
+warn = mapM f (replicate n x) ==> Control.Monad.replicateM n (f x) where _ = noQuickCheck
+warn = mapM_ f (replicate n x) ==> Control.Monad.replicateM_ n (f x) where _ = noQuickCheck
+warn = mapM f (map g x) ==> mapM (f . g) x where _ = noQuickCheck
+warn = mapM_ f (map g x) ==> mapM_ (f . g) x where _ = noQuickCheck
+warn = mapM id ==> sequence where _ = noQuickCheck
+warn = mapM_ id ==> sequence_ where _ = noQuickCheck
 
 -- APPLICATIVE / TRAVERSABLE
 
-error = flip traverse ==> for where _ = noQuickCheck
-error = flip for ==> traverse where _ = noQuickCheck
-error = flip traverse_ ==> for_ where _ = noQuickCheck
-error = flip for_ ==> traverse_ where _ = noQuickCheck
-error = foldr (*>) (pure ()) ==> sequenceA_ where _ = noQuickCheck
-error = foldr (<|>) empty ==> asum where _ = noQuickCheck
-error = liftA2 (flip ($)) ==> (<**>) where _ = noQuickCheck
-error = Just <$> a <|> pure Nothing ==> optional a where _ = noQuickCheck
+warn = flip traverse ==> for where _ = noQuickCheck
+warn = flip for ==> traverse where _ = noQuickCheck
+warn = flip traverse_ ==> for_ where _ = noQuickCheck
+warn = flip for_ ==> traverse_ where _ = noQuickCheck
+warn = foldr (*>) (pure ()) ==> sequenceA_ where _ = noQuickCheck
+warn = foldr (<|>) empty ==> asum where _ = noQuickCheck
+warn = liftA2 (flip ($)) ==> (<**>) where _ = noQuickCheck
+warn = Just <$> a <|> pure Nothing ==> optional a where _ = noQuickCheck
 
 
 -- LIST COMP
@@ -367,40 +367,40 @@ suggest "Redundant list comprehension" = [x | x <- y] ==> y where _ = isVar x
 
 -- SEQ
 
-error "Redundant seq" = x `seq` x ==> x
-error "Redundant $!" = id $! x ==> x
-error "Redundant seq" = x `seq` y ==> y where _ = isWHNF x
-error "Redundant $!" = f $! x ==> f x where _ = isWHNF x
-error "Redundant evaluate" = evaluate x ==> return x where _ = isWHNF x
+warn "Redundant seq" = x `seq` x ==> x
+warn "Redundant $!" = id $! x ==> x
+warn "Redundant seq" = x `seq` y ==> y where _ = isWHNF x
+warn "Redundant $!" = f $! x ==> f x where _ = isWHNF x
+warn "Redundant evaluate" = evaluate x ==> return x where _ = isWHNF x
 
 -- MAYBE
 
-error = maybe x id ==> Data.Maybe.fromMaybe x
-error = maybe False (const True) ==> Data.Maybe.isJust
-error = maybe True (const False) ==> Data.Maybe.isNothing
-error = not (isNothing x) ==> isJust x
-error = not (isJust x) ==> isNothing x
-error = maybe [] (:[]) ==> maybeToList
-error = catMaybes (map f x) ==> mapMaybe f x
+warn = maybe x id ==> Data.Maybe.fromMaybe x
+warn = maybe False (const True) ==> Data.Maybe.isJust
+warn = maybe True (const False) ==> Data.Maybe.isNothing
+warn = not (isNothing x) ==> isJust x
+warn = not (isJust x) ==> isNothing x
+warn = maybe [] (:[]) ==> maybeToList
+warn = catMaybes (map f x) ==> mapMaybe f x
 suggest = (case x of Nothing -> y; Just a -> a)  ==> fromMaybe y x
-error = (if isNothing x then y else f (fromJust x)) ==> maybe y f x
-error = (if isJust x then f (fromJust x) else y) ==> maybe y f x
-error = maybe Nothing (Just . f) ==> fmap f
+warn = (if isNothing x then y else f (fromJust x)) ==> maybe y f x
+warn = (if isJust x then f (fromJust x) else y) ==> maybe y f x
+warn = maybe Nothing (Just . f) ==> fmap f
 suggest = map fromJust . filter isJust  ==>  Data.Maybe.catMaybes
-error  = x == Nothing  ==>  isNothing x
-error  = Nothing == x  ==>  isNothing x
-error  = x /= Nothing  ==>  Data.Maybe.isJust x
-error  = Nothing /= x  ==>  Data.Maybe.isJust x
-error = concatMap (maybeToList . f) ==> Data.Maybe.mapMaybe f
-error = concatMap maybeToList ==> catMaybes
-error = maybe n Just x ==> Control.Monad.mplus x n
+warn = x == Nothing  ==>  isNothing x
+warn = Nothing == x  ==>  isNothing x
+warn = x /= Nothing  ==>  Data.Maybe.isJust x
+warn = Nothing /= x  ==>  Data.Maybe.isJust x
+warn = concatMap (maybeToList . f) ==> Data.Maybe.mapMaybe f
+warn = concatMap maybeToList ==> catMaybes
+warn = maybe n Just x ==> Control.Monad.mplus x n
 suggest = (case x of Just a -> a; Nothing -> y)  ==> fromMaybe y x
-error = (if isNothing x then y else fromJust x) ==> fromMaybe y x
-error = (if isJust x then fromJust x else y) ==> fromMaybe y x
-error = isJust x && (fromJust x == y) ==> x == Just y
-error = mapMaybe f (map g x) ==> mapMaybe (f . g) x
-error = fromMaybe a (fmap f x) ==> maybe a f x
-error = mapMaybe id ==> catMaybes
+warn = (if isNothing x then y else fromJust x) ==> fromMaybe y x
+warn = (if isJust x then fromJust x else y) ==> fromMaybe y x
+warn = isJust x && (fromJust x == y) ==> x == Just y
+warn = mapMaybe f (map g x) ==> mapMaybe (f . g) x
+warn = fromMaybe a (fmap f x) ==> maybe a f x
+warn = mapMaybe id ==> catMaybes
 suggest = [x | Just x <- a] ==> Data.Maybe.catMaybes a
 suggest = (case m of Nothing -> Nothing; Just x -> x) ==> Control.Monad.join m
 suggest = maybe Nothing id ==> join
@@ -408,9 +408,9 @@ suggest "Too strict maybe" = maybe (f x) (f . g) ==> f . maybe x g where note = 
 
 -- EITHER
 
-error = [a | Left a <- a] ==> lefts a
-error = [a | Right a <- a] ==> rights a
-error = either Left (Right . f) ==> fmap f
+warn = [a | Left a <- a] ==> lefts a
+warn = [a | Right a <- a] ==> rights a
+warn = either Left (Right . f) ==> fmap f
 
 -- INFIX
 
@@ -424,11 +424,11 @@ suggest "Use infix" = intersect x y ==> x `intersect` y where _ = not (isInfixAp
 
 -- MATHS
 
-error "Redundant fromIntegral" = fromIntegral x ==> x where _ = isLitInt x
-error "Redundant fromInteger" = fromInteger x ==> x where _ = isLitInt x
+warn "Redundant fromIntegral" = fromIntegral x ==> x where _ = isLitInt x
+warn "Redundant fromInteger" = fromInteger x ==> x where _ = isLitInt x
 suggest = x + negate y ==> x - y
 suggest = 0 - x ==> negate x
-error "Redundant negate" = negate (negate x) ==> x
+warn "Redundant negate" = negate (negate x) ==> x
 suggest = log y / log x ==> logBase x y
 suggest = sin x / cos x ==> tan x
 suggest = n `rem` 2 == 0 ==> even n
@@ -453,68 +453,68 @@ suggest = Control.Exception.bracket b (const a) (const t) ==> Control.Exception.
 suggest = Control.Exception.bracket (openFile x y) hClose ==> withFile x y
 suggest = Control.Exception.bracket (openBinaryFile x y) hClose ==> withBinaryFile x y
 suggest = throw (ErrorCall a) ==> error a
-error = toException NonTermination ==> nonTermination
-error = toException NestedAtomically ==> nestedAtomically
+warn = toException NonTermination ==> nonTermination
+warn = toException NestedAtomically ==> nestedAtomically
 
 -- WEAK POINTERS
 
-error = mkWeak a a b ==> mkWeakPtr a b
-error = mkWeak a (a, b) c ==> mkWeakPair a b c
+warn = mkWeak a a b ==> mkWeakPtr a b
+warn = mkWeak a (a, b) c ==> mkWeakPair a b c
 
 -- FOLDABLE
 
-error "Use Foldable.forM_" = (case m of Nothing -> return (); Just x -> f x) ==> Data.Foldable.forM_ m f
+warn "Use Foldable.forM_" = (case m of Nothing -> return (); Just x -> f x) ==> Data.Foldable.forM_ m f
     where _ = noQuickCheck
-error "Use Foldable.forM_" = when (isJust m) (f (fromJust m)) ==> Data.Foldable.forM_ m f
+warn "Use Foldable.forM_" = when (isJust m) (f (fromJust m)) ==> Data.Foldable.forM_ m f
     where _ = noQuickCheck
 
 -- EVALUATE
 
 -- TODO: These should be moved in to HSE\Evaluate.hs and applied
 --       through a special evaluate hint mechanism
-error "Evaluate" = True && x ==> x
-error "Evaluate" = False && x ==> False
-error "Evaluate" = True || x ==> True
-error "Evaluate" = False || x ==> x
-error "Evaluate" = not True ==> False
-error "Evaluate" = not False ==> True
-error "Evaluate" = Nothing >>= k ==> Nothing
-error "Evaluate" = k =<< Nothing ==> Nothing
-error "Evaluate" = either f g (Left x) ==> f x
-error "Evaluate" = either f g (Right y) ==> g y
-error "Evaluate" = fst (x,y) ==> x
-error "Evaluate" = snd (x,y) ==> y
-error "Evaluate" = f (fst p) (snd p) ==> uncurry f p
-error "Evaluate" = init [x] ==> []
-error "Evaluate" = null [] ==> True
-error "Evaluate" = length [] ==> 0
-error "Evaluate" = foldl f z [] ==> z
-error "Evaluate" = foldr f z [] ==> z
-error "Evaluate" = foldr1 f [x] ==> x
-error "Evaluate" = scanr f z [] ==> [z]
-error "Evaluate" = scanr1 f [] ==> []
-error "Evaluate" = scanr1 f [x] ==> [x]
-error "Evaluate" = take n [] ==> [] where note = IncreasesLaziness
-error "Evaluate" = drop n [] ==> [] where note = IncreasesLaziness
-error "Evaluate" = takeWhile p [] ==> []
-error "Evaluate" = dropWhile p [] ==> []
-error "Evaluate" = span p [] ==> ([],[])
-error "Evaluate" = lines "" ==> []
-error "Evaluate" = unwords [] ==> ""
-error "Evaluate" = x - 0 ==> x
-error "Evaluate" = x * 1 ==> x
-error "Evaluate" = x / 1 ==> x
-error "Evaluate" = concat [a] ==> a
-error "Evaluate" = concat [] ==> []
-error "Evaluate" = zip [] [] ==> []
-error "Evaluate" = const x y ==> x
+warn "Evaluate" = True && x ==> x
+warn "Evaluate" = False && x ==> False
+warn "Evaluate" = True || x ==> True
+warn "Evaluate" = False || x ==> x
+warn "Evaluate" = not True ==> False
+warn "Evaluate" = not False ==> True
+warn "Evaluate" = Nothing >>= k ==> Nothing
+warn "Evaluate" = k =<< Nothing ==> Nothing
+warn "Evaluate" = either f g (Left x) ==> f x
+warn "Evaluate" = either f g (Right y) ==> g y
+warn "Evaluate" = fst (x,y) ==> x
+warn "Evaluate" = snd (x,y) ==> y
+warn "Evaluate" = f (fst p) (snd p) ==> uncurry f p
+warn "Evaluate" = init [x] ==> []
+warn "Evaluate" = null [] ==> True
+warn "Evaluate" = length [] ==> 0
+warn "Evaluate" = foldl f z [] ==> z
+warn "Evaluate" = foldr f z [] ==> z
+warn "Evaluate" = foldr1 f [x] ==> x
+warn "Evaluate" = scanr f z [] ==> [z]
+warn "Evaluate" = scanr1 f [] ==> []
+warn "Evaluate" = scanr1 f [x] ==> [x]
+warn "Evaluate" = take n [] ==> [] where note = IncreasesLaziness
+warn "Evaluate" = drop n [] ==> [] where note = IncreasesLaziness
+warn "Evaluate" = takeWhile p [] ==> []
+warn "Evaluate" = dropWhile p [] ==> []
+warn "Evaluate" = span p [] ==> ([],[])
+warn "Evaluate" = lines "" ==> []
+warn "Evaluate" = unwords [] ==> ""
+warn "Evaluate" = x - 0 ==> x
+warn "Evaluate" = x * 1 ==> x
+warn "Evaluate" = x / 1 ==> x
+warn "Evaluate" = concat [a] ==> a
+warn "Evaluate" = concat [] ==> []
+warn "Evaluate" = zip [] [] ==> []
+warn "Evaluate" = const x y ==> x
 
 -- COMPLEX
 
 {-
 -- these would be a good idea, but we have not yet proven them and they seem to have side conditions
-error "Use isPrefixOf" = take (length t) s == t ==> t `Data.List.isPrefixOf` s
-error "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i >= length t) && (t `Data.List.isPrefixOf` s))
+warn "Use isPrefixOf" = take (length t) s == t ==> t `Data.List.isPrefixOf` s
+warn "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i >= length t) && (t `Data.List.isPrefixOf` s))
     where _ = (isList t || isLit t) && isPos i
 -}
 
@@ -588,7 +588,7 @@ yes x = case x of {False -> a ; _ -> b} -- if x then b else a
 no = const . ok . toResponse $ "saved"
 yes = case x z of Nothing -> y z; Just pat -> pat -- fromMaybe (y z) (x z)
 yes = if p then s else return () -- Control.Monad.when p s
-error = a $$$$ b $$$$ c ==> a . b $$$$$ c
+warn = a $$$$ b $$$$ c ==> a . b $$$$$ c
 yes = when (not . null $ asdf) -- unless (null asdf)
 yes = id 1 -- 1
 yes = case concat (map f x) of [] -> [] -- concatMap f x
