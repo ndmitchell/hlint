@@ -9,6 +9,8 @@ error = UnQual a (Symbol b x) ==> toNamed x
 error = UnQual a (Ident  b x) ==> toNamed x
 error = idea Warning ==> warn
 error = idea Suggestion ==> suggest
+error = ideaN Warning ==> warnN
+error = ideaN Suggestion ==> suggestN
 
 
 -- deliberately creates an Ident with "...", which should be a symbol
