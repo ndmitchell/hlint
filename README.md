@@ -199,6 +199,7 @@ Ignore directives can also be written in the hint files:
 * `error = MyModule.myFunction` - any hint in the function `MyModule.myFunction` is an error.
 * `error "Use concatMap"` - the hint to use `concatMap` is an error.
 * `warn "Use concatMap"` - the hint to use `concatMap` is a warning.
+* `suggest "Use concatMap"` - the hint to use `concatMap` is a suggestion.
 
 These directives are applied in the order they are given, with later hints overriding earlier ones.
 
