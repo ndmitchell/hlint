@@ -76,8 +76,8 @@ warn = last (sortBy f x) ==> maximumBy f x
 warn "Avoid reverse" = reverse (sort x) ==> sortBy (flip compare) x
 warn "Avoid reverse" = reverse (sortBy f x) ==> sortBy (flip f) x
     where _ = isCompare f
-suggest = flip (g `on` h) ==> flip g `on` h
-suggest = (f `on` g) `on` h ==> f `on` (g . h)
+hint = flip (g `on` h) ==> flip g `on` h
+hint = (f `on` g) `on` h ==> f `on` (g . h)
 
 
 -- READ/SHOW
@@ -85,17 +85,17 @@ suggest = (f `on` g) `on` h ==> f `on` (g . h)
 warn = showsPrec 0 x "" ==> show x
 warn = readsPrec 0 ==> reads
 warn = showsPrec 0 ==> shows
-suggest = showIntAtBase 16 intToDigit ==> showHex
-suggest = showIntAtBase 8 intToDigit ==> showOct
+hint = showIntAtBase 16 intToDigit ==> showHex
+hint = showIntAtBase 8 intToDigit ==> showOct
 
 -- LIST
 
 warn = concat (map f x) ==> concatMap f x
 warn = concat (fmap f x) ==> concatMap f x
-suggest = concat [a, b] ==> a ++ b
-suggest "Use map once" = map f (map g x) ==> map (f . g) x
-suggest "Fuse concatMap/map" = concatMap f (map g x) ==> concatMap (f . g) x
-suggest = x !! 0 ==> head x
+hint = concat [a, b] ==> a ++ b
+hint "Use map once" = map f (map g x) ==> map (f . g) x
+hint "Fuse concatMap/map" = concatMap f (map g x) ==> concatMap (f . g) x
+hint = x !! 0 ==> head x
 warn = take n (repeat x) ==> replicate n x
     where _ = noQuickCheck -- takes too long
 warn = map f (replicate n x) ==> replicate n (f x)
@@ -130,18 +130,18 @@ warn = or (map p x) ==> any p x
 warn = and (map p x) ==> all p x
 warn = zipWith (,) ==> zip
 warn = zipWith3 (,,) ==> zip3
-suggest = length x == 0 ==> null x where note = IncreasesLaziness
-suggest  = x == [] ==> null x
-suggest  "Use null" = length x /= 0 ==> not (null x) where note = IncreasesLaziness
-suggest  "Use :" = (\x -> [x]) ==> (:[])
+hint = length x == 0 ==> null x where note = IncreasesLaziness
+hint = x == [] ==> null x
+hint "Use null" = length x /= 0 ==> not (null x) where note = IncreasesLaziness
+hint "Use :" = (\x -> [x]) ==> (:[])
 warn = map (uncurry f) (zip x y) ==> zipWith f x y
-suggest  = map f (zip x y) ==> zipWith (curry f) x y where _ = isVar f
+hint = map f (zip x y) ==> zipWith (curry f) x y where _ = isVar f
 warn = not (elem x y) ==> notElem x y
-suggest  = foldr f z (map g x) ==> foldr (f . g) z x
+hint = foldr f z (map g x) ==> foldr (f . g) z x
 warn = x ++ concatMap (' ':) y ==> unwords (x:y)
 warn = intercalate " " ==> unwords
-suggest  = concat (intersperse x y) ==> intercalate x y where _ = notEq x " "
-suggest  = concat (intersperse " " x) ==> unwords x
+hint = concat (intersperse x y) ==> intercalate x y where _ = notEq x " "
+hint = concat (intersperse " " x) ==> unwords x
 warn "Use any" = null (filter f x) ==> not (any f x)
 warn "Use any" = filter f x == [] ==> not (any f x)
 warn = filter f x /= [] ==> any f x
@@ -162,9 +162,9 @@ warn = findIndices ((==) a) ==> elemIndices a
 warn = findIndices (a ==) ==> elemIndices a
 warn = findIndices (== a) ==> elemIndices a
 warn = lookup b (zip l [0..]) ==> elemIndex b l
-suggest "Length always non-negative" = length x >= 0 ==> True
-suggest "Use null" = length x > 0 ==> not (null x) where note = IncreasesLaziness
-suggest "Use null" = length x >= 1 ==> not (null x) where note = IncreasesLaziness
+hint "Length always non-negative" = length x >= 0 ==> True
+hint "Use null" = length x > 0 ==> not (null x) where note = IncreasesLaziness
+hint "Use null" = length x >= 1 ==> not (null x) where note = IncreasesLaziness
 warn "Take on a non-positive" = take i x ==> [] where _ = isNegZero i
 warn "Drop on a non-positive" = drop i x ==> x where _ = isNegZero i
 warn = last (scanl f z x) ==> foldl f z x
@@ -219,13 +219,13 @@ warn = (\x -> x) ==> id
 warn = (\x y -> x) ==> const
 warn = (\(x,y) -> y) ==> snd
 warn = (\(x,y) -> x) ==> fst
-suggest "Use curry" = (\x y -> f (x,y)) ==> curry f
-suggest "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where note = IncreasesLaziness
+hint "Use curry" = (\x y -> f (x,y)) ==> curry f
+hint "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where note = IncreasesLaziness
 warn "Redundant $" = (($) . f) ==> f
 warn "Redundant $" = (f $) ==> f
-suggest  = (\x -> y) ==> const y where _ = isAtom y && not (isWildcard y)
+hint = (\x -> y) ==> const y where _ = isAtom y && not (isWildcard y)
 warn "Redundant flip" = flip f x y ==> f y x where _ = isApp original
-suggest  = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
+hint = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
 warn "Evaluate" = id x ==> x
 warn "Redundant id" = id . x ==> x
 warn "Redundant id" = x . id ==> x
@@ -242,13 +242,13 @@ warn = isUpper a || isLower a ==> isAlpha a
 -- BOOL
 
 warn "Redundant ==" = x == True ==> x
-suggest  "Redundant ==" = x == False ==> not x
+hint "Redundant ==" = x == False ==> not x
 warn "Redundant ==" = True == a ==> a
-suggest  "Redundant ==" = False == a ==> not a
+hint "Redundant ==" = False == a ==> not a
 warn "Redundant /=" = a /= True ==> not a
-suggest  "Redundant /=" = a /= False ==> a
+hint "Redundant /=" = a /= False ==> a
 warn "Redundant /=" = True /= a ==> not a
-suggest  "Redundant /=" = False /= a ==> a
+hint "Redundant /=" = False /= a ==> a
 warn "Redundant if" = (if a then x else x) ==> x where note = IncreasesLaziness
 warn "Redundant if" = (if a then True else False) ==> a
 warn "Redundant if" = (if a then False else True) ==> not a
@@ -256,16 +256,16 @@ warn "Redundant if" = (if a then t else (if b then t else f)) ==> if a || b then
 warn "Redundant if" = (if a then (if b then t else f) else f) ==> if a && b then t else f
 warn "Redundant if" = (if x then True else y) ==> x || y where _ = notEq y False
 warn "Redundant if" = (if x then y else False) ==> x && y where _ = notEq y True
-suggest "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
-suggest "Use if" = case a of {False -> f; True -> t} ==> if a then t else f
-suggest "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
-suggest "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
-suggest "Redundant if" = (if c then (True, x) else (False, x)) ==> (c, x) where note = IncreasesLaziness
-suggest "Redundant if" = (if c then (False, x) else (True, x)) ==> (not c, x) where note = IncreasesLaziness
-suggest = or [x, y] ==> x || y
-suggest = or [x, y, z] ==> x || y || z
-suggest = and [x, y] ==> x && y
-suggest = and [x, y, z] ==> x && y && z
+hint "Use if" = case a of {True -> t; False -> f} ==> if a then t else f
+hint "Use if" = case a of {False -> f; True -> t} ==> if a then t else f
+hint "Use if" = case a of {True -> t; _ -> f} ==> if a then t else f
+hint "Use if" = case a of {False -> f; _ -> t} ==> if a then t else f
+hint "Redundant if" = (if c then (True, x) else (False, x)) ==> (c, x) where note = IncreasesLaziness
+hint "Redundant if" = (if c then (False, x) else (True, x)) ==> (not c, x) where note = IncreasesLaziness
+hint = or [x, y] ==> x || y
+hint = or [x, y, z] ==> x || y || z
+hint = and [x, y] ==> x && y
+hint = and [x, y, z] ==> x && y && z
 warn "Redundant if" = (if x then False else y) ==> not x && y where _ = notEq y True
 warn "Redundant if" = (if x then y else True) ==> not x || y where _ = notEq y False
 warn "Redundant not" = not (not x) ==> x
@@ -277,12 +277,12 @@ warn "Redundant not" = not (not x) ==> x
 warn = id *** g ==> second g
 warn = f *** id ==> first f
 warn = zip (map f x) (map g x) ==> map (f Control.Arrow.&&& g) x
-suggest = (\(x,y) -> (f x, g y)) ==> f Control.Arrow.*** g
-suggest = (\x -> (f x, g x)) ==> f Control.Arrow.&&& g
-suggest = (\(x,y) -> (f x,y)) ==> Control.Arrow.first f
-suggest = (\(x,y) -> (x,f y)) ==> Control.Arrow.second f
-suggest = (f (fst x), g (snd x)) ==> (f Control.Arrow.*** g) x
-suggest "Redundant pair" = (fst x, snd x) ==>  x where note = DecreasesLaziness
+hint = (\(x,y) -> (f x, g y)) ==> f Control.Arrow.*** g
+hint = (\x -> (f x, g x)) ==> f Control.Arrow.&&& g
+hint = (\(x,y) -> (f x,y)) ==> Control.Arrow.first f
+hint = (\(x,y) -> (x,f y)) ==> Control.Arrow.second f
+hint = (f (fst x), g (snd x)) ==> (f Control.Arrow.*** g) x
+hint "Redundant pair" = (fst x, snd x) ==>  x where note = DecreasesLaziness
 
 -- FUNCTOR
 
@@ -290,7 +290,7 @@ warn "Functor law" = fmap f (fmap g x) ==> fmap (f . g) x where _ = noQuickCheck
 warn "Functor law" = f <$> g <$> x ==> f . g <$> x where _ = noQuickCheck
 warn "Functor law" = fmap id ==> id where _ = noQuickCheck
 warn "Functor law" = id <$> x ==> x where _ = noQuickCheck
-suggest = fmap f $ x ==> f Control.Applicative.<$> x
+hint = fmap f $ x ==> f Control.Applicative.<$> x
     where _ = (isApp x || isAtom x) && noQuickCheck
 
 -- MONAD
@@ -299,23 +299,23 @@ warn "Monad law, left identity" = return a >>= f ==> f a where _ = noQuickCheck
 warn "Monad law, left identity" = f =<< return a ==> f a where _ = noQuickCheck
 warn "Monad law, right identity" = m >>= return ==> m where _ = noQuickCheck
 warn "Monad law, right identity" = return =<< m ==> m where _ = noQuickCheck
-suggest = m >>= return . f ==> Control.Monad.liftM f m where _ = noQuickCheck -- cannot be fmap, because is in Functor not Monad
-suggest = return . f =<< m ==> Control.Monad.liftM f m where _ = noQuickCheck
+hint = m >>= return . f ==> Control.Monad.liftM f m where _ = noQuickCheck -- cannot be fmap, because is in Functor not Monad
+hint = return . f =<< m ==> Control.Monad.liftM f m where _ = noQuickCheck
 warn = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
 warn = (if x then y else return ()) ==> Control.Monad.when x y where _ = isAtom y && noQuickCheck
 warn = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
 warn = (if x then return () else y) ==> Control.Monad.unless x y where _ = isAtom y && noQuickCheck
 warn = sequence (map f x) ==> mapM f x where _ = noQuickCheck
 warn = sequence_ (map f x) ==> mapM_ f x where _ = noQuickCheck
-suggest = flip mapM ==> Control.Monad.forM where _ = noQuickCheck
-suggest = flip mapM_ ==> Control.Monad.forM_ where _ = noQuickCheck
-suggest = flip forM ==> mapM where _ = noQuickCheck
-suggest = flip forM_ ==> mapM_ where _ = noQuickCheck
+hint = flip mapM ==> Control.Monad.forM where _ = noQuickCheck
+hint = flip mapM_ ==> Control.Monad.forM_ where _ = noQuickCheck
+hint = flip forM ==> mapM where _ = noQuickCheck
+hint = flip forM_ ==> mapM_ where _ = noQuickCheck
 warn = when (not x) ==> unless x where _ = noQuickCheck
 warn = x >>= id ==> Control.Monad.join x where _ = noQuickCheck
 warn = id =<< x ==> Control.Monad.join x where _ = noQuickCheck
 warn = liftM f (liftM g x) ==> liftM (f . g) x where _ = noQuickCheck
-suggest = a >> return () ==> Control.Monad.void a
+hint = a >> return () ==> Control.Monad.void a
     where _ = (isAtom a || isApp a) && noQuickCheck
 warn = fmap (const ()) ==> Control.Monad.void where _ = noQuickCheck
 warn = const () <$> x ==> Control.Monad.void x where _ = noQuickCheck
@@ -323,10 +323,10 @@ warn = flip (>=>) ==> (<=<) where _ = noQuickCheck
 warn = flip (<=<) ==> (>=>) where _ = noQuickCheck
 warn = flip (>>=) ==> (=<<) where _ = noQuickCheck
 warn = flip (=<<) ==> (>>=) where _ = noQuickCheck
-suggest = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = noQuickCheck
-suggest = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = noQuickCheck
+hint = (\x -> f x >>= g) ==> f Control.Monad.>=> g where _ = noQuickCheck
+hint = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = noQuickCheck
 warn = a >> forever a ==> forever a where _ = noQuickCheck
-suggest = liftM2 id ==> ap where _ = noQuickCheck
+hint = liftM2 id ==> ap where _ = noQuickCheck
 warn = mapM (uncurry f) (zip l m) ==> zipWithM f l m where _ = noQuickCheck
 
 -- STATE MONAD
@@ -362,8 +362,8 @@ warn = Just <$> a <|> pure Nothing ==> optional a where _ = noQuickCheck
 
 -- LIST COMP
 
-suggest "Use list comprehension" = (if b then [x] else []) ==> [x | b]
-suggest "Redundant list comprehension" = [x | x <- y] ==> y where _ = isVar x
+hint "Use list comprehension" = (if b then [x] else []) ==> [x | b]
+hint "Redundant list comprehension" = [x | x <- y] ==> y where _ = isVar x
 
 -- SEQ
 
@@ -382,11 +382,11 @@ warn = not (isNothing x) ==> isJust x
 warn = not (isJust x) ==> isNothing x
 warn = maybe [] (:[]) ==> maybeToList
 warn = catMaybes (map f x) ==> mapMaybe f x
-suggest = (case x of Nothing -> y; Just a -> a)  ==> fromMaybe y x
+hint = (case x of Nothing -> y; Just a -> a)  ==> fromMaybe y x
 warn = (if isNothing x then y else f (fromJust x)) ==> maybe y f x
 warn = (if isJust x then f (fromJust x) else y) ==> maybe y f x
 warn = maybe Nothing (Just . f) ==> fmap f
-suggest = map fromJust . filter isJust  ==>  Data.Maybe.catMaybes
+hint = map fromJust . filter isJust  ==>  Data.Maybe.catMaybes
 warn = x == Nothing  ==>  isNothing x
 warn = Nothing == x  ==>  isNothing x
 warn = x /= Nothing  ==>  Data.Maybe.isJust x
@@ -394,17 +394,17 @@ warn = Nothing /= x  ==>  Data.Maybe.isJust x
 warn = concatMap (maybeToList . f) ==> Data.Maybe.mapMaybe f
 warn = concatMap maybeToList ==> catMaybes
 warn = maybe n Just x ==> Control.Monad.mplus x n
-suggest = (case x of Just a -> a; Nothing -> y)  ==> fromMaybe y x
+hint = (case x of Just a -> a; Nothing -> y)  ==> fromMaybe y x
 warn = (if isNothing x then y else fromJust x) ==> fromMaybe y x
 warn = (if isJust x then fromJust x else y) ==> fromMaybe y x
 warn = isJust x && (fromJust x == y) ==> x == Just y
 warn = mapMaybe f (map g x) ==> mapMaybe (f . g) x
 warn = fromMaybe a (fmap f x) ==> maybe a f x
 warn = mapMaybe id ==> catMaybes
-suggest = [x | Just x <- a] ==> Data.Maybe.catMaybes a
-suggest = (case m of Nothing -> Nothing; Just x -> x) ==> Control.Monad.join m
-suggest = maybe Nothing id ==> join
-suggest "Too strict maybe" = maybe (f x) (f . g) ==> f . maybe x g where note = IncreasesLaziness
+hint = [x | Just x <- a] ==> Data.Maybe.catMaybes a
+hint = (case m of Nothing -> Nothing; Just x -> x) ==> Control.Monad.join m
+hint = maybe Nothing id ==> join
+hint "Too strict maybe" = maybe (f x) (f . g) ==> f . maybe x g where note = IncreasesLaziness
 
 -- EITHER
 
@@ -414,45 +414,45 @@ warn = either Left (Right . f) ==> fmap f
 
 -- INFIX
 
-suggest "Use infix" = elem x y ==> x `elem` y where _ = not (isInfixApp original) && not (isParen result)
-suggest "Use infix" = notElem x y ==> x `notElem` y where _ = not (isInfixApp original) && not (isParen result)
-suggest "Use infix" = isInfixOf x y ==> x `isInfixOf` y where _ = not (isInfixApp original) && not (isParen result)
-suggest "Use infix" = isSuffixOf x y ==> x `isSuffixOf` y where _ = not (isInfixApp original) && not (isParen result)
-suggest "Use infix" = isPrefixOf x y ==> x `isPrefixOf` y where _ = not (isInfixApp original) && not (isParen result)
-suggest "Use infix" = union x y ==> x `union` y where _ = not (isInfixApp original) && not (isParen result)
-suggest "Use infix" = intersect x y ==> x `intersect` y where _ = not (isInfixApp original) && not (isParen result)
+hint "Use infix" = elem x y ==> x `elem` y where _ = not (isInfixApp original) && not (isParen result)
+hint "Use infix" = notElem x y ==> x `notElem` y where _ = not (isInfixApp original) && not (isParen result)
+hint "Use infix" = isInfixOf x y ==> x `isInfixOf` y where _ = not (isInfixApp original) && not (isParen result)
+hint "Use infix" = isSuffixOf x y ==> x `isSuffixOf` y where _ = not (isInfixApp original) && not (isParen result)
+hint "Use infix" = isPrefixOf x y ==> x `isPrefixOf` y where _ = not (isInfixApp original) && not (isParen result)
+hint "Use infix" = union x y ==> x `union` y where _ = not (isInfixApp original) && not (isParen result)
+hint "Use infix" = intersect x y ==> x `intersect` y where _ = not (isInfixApp original) && not (isParen result)
 
 -- MATHS
 
 warn "Redundant fromIntegral" = fromIntegral x ==> x where _ = isLitInt x
 warn "Redundant fromInteger" = fromInteger x ==> x where _ = isLitInt x
-suggest = x + negate y ==> x - y
-suggest = 0 - x ==> negate x
+hint = x + negate y ==> x - y
+hint = 0 - x ==> negate x
 warn "Redundant negate" = negate (negate x) ==> x
-suggest = log y / log x ==> logBase x y
-suggest = sin x / cos x ==> tan x
-suggest = n `rem` 2 == 0 ==> even n
-suggest = n `rem` 2 /= 0 ==> odd n
-suggest = not (even x) ==> odd x
-suggest = not (odd x) ==> even x
-suggest = x ** 0.5 ==> sqrt x
-suggest "Use 1" = x ^ 0 ==> 1
-suggest = round (x - 0.5) ==> floor x
+hint = log y / log x ==> logBase x y
+hint = sin x / cos x ==> tan x
+hint = n `rem` 2 == 0 ==> even n
+hint = n `rem` 2 /= 0 ==> odd n
+hint = not (even x) ==> odd x
+hint = not (odd x) ==> even x
+hint = x ** 0.5 ==> sqrt x
+hint "Use 1" = x ^ 0 ==> 1
+hint = round (x - 0.5) ==> floor x
 
 -- CONCURRENT
 
-suggest = mapM_ (writeChan a) ==> writeList2Chan a
+hint = mapM_ (writeChan a) ==> writeList2Chan a
 
 -- EXCEPTION
 
-suggest = flip Control.Exception.catch ==> handle
-suggest = flip handle ==> Control.Exception.catch
-suggest = flip (catchJust p) ==> handleJust p
-suggest = flip (handleJust p) ==> catchJust p
-suggest = Control.Exception.bracket b (const a) (const t) ==> Control.Exception.bracket_ b a t
-suggest = Control.Exception.bracket (openFile x y) hClose ==> withFile x y
-suggest = Control.Exception.bracket (openBinaryFile x y) hClose ==> withBinaryFile x y
-suggest = throw (ErrorCall a) ==> error a
+hint = flip Control.Exception.catch ==> handle
+hint = flip handle ==> Control.Exception.catch
+hint = flip (catchJust p) ==> handleJust p
+hint = flip (handleJust p) ==> catchJust p
+hint = Control.Exception.bracket b (const a) (const t) ==> Control.Exception.bracket_ b a t
+hint = Control.Exception.bracket (openFile x y) hClose ==> withFile x y
+hint = Control.Exception.bracket (openBinaryFile x y) hClose ==> withBinaryFile x y
+hint = throw (ErrorCall a) ==> error a
 warn = toException NonTermination ==> nonTermination
 warn = toException NestedAtomically ==> nestedAtomically
 
@@ -520,7 +520,7 @@ warn "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i >= length t) && (t `Data.
 
 {-
 -- clever hint, but not actually a good idea
-suggest = (do a <- f; g a) ==> f >>= g
+hint = (do a <- f; g a) ==> f >>= g
     where _ = (isAtom f || isApp f)
 -}
 
