@@ -1,6 +1,5 @@
 # HLint [![Hackage version](https://img.shields.io/hackage/v/hlint.svg?label=Hackage)](https://hackage.haskell.org/package/hlint) [![Stackage version](https://www.stackage.org/package/hlint/badge/lts?label=Stackage)](https://www.stackage.org/package/hlint) [![Linux Build Status](https://img.shields.io/travis/ndmitchell/hlint.svg?label=Linux%20build)](https://travis-ci.org/ndmitchell/hlint) [![Windows Build Status](https://img.shields.io/appveyor/ci/ndmitchell/hlint.svg?label=Windows%20build)](https://ci.appveyor.com/project/ndmitchell/hlint)
 
-
 HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. You can try HLint online at [lpaste.net](http://lpaste.net/) - suggestions are shown at the bottom. This document is structured as follows:
 
 * [Installing and running HLint](#installing-and-running-hlint)
@@ -30,29 +29,29 @@ Once HLint is installed, run hlint source where source is either a Haskell file,
 
     $ hlint darcs-2.1.2
 
-    darcs-2.1.2\src\CommandLine.lhs:94:1: Error: Use concatMap
+    darcs-2.1.2\src\CommandLine.lhs:94:1: Warning: Use concatMap
     Found:
       concat $ map escapeC s
     Why not:
       concatMap escapeC s
 
-    darcs-2.1.2\src\CommandLine.lhs:103:1: Warning: Use fewer brackets
+    darcs-2.1.2\src\CommandLine.lhs:103:1: Suggestion: Use fewer brackets
     Found:
       ftable ++ (map (\ (c, x) -> (toUpper c, urlEncode x)) ftable)
     Why not:
       ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable
 
-    darcs-2.1.2\src\Darcs\Patch\Test.lhs:306:1: Error: Use a more efficient monadic variant
+    darcs-2.1.2\src\Darcs\Patch\Test.lhs:306:1: Warning: Use a more efficient monadic variant
     Found:
       mapM (delete_line (fn2fp f) line) old
     Why not:
       mapM_ (delete_line (fn2fp f) line) old
 
-    ... lots more suggestions ...
+    ... lots more hints ...
 
-Each suggestion says which file/line the suggestion relates to, how serious the issue is, a description of the issue, what it found, and what you might want to replace it with. In the case of the first hint, it has suggested that instead of applying `concat` and `map` separately, it would be better to use the combination function `concatMap`.
+Each hint says which file/line the hint relates to, how serious an issue it is, a description of the hint, what it found, and what you might want to replace it with. In the case of the first hint, it has suggested that instead of applying `concat` and `map` separately, it would be better to use the combination function `concatMap`.
 
-The first suggestion is marked as an error, because using `concatMap` in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always. Reasons that a hint might be a warning include requiring an additional import, something not everyone agrees on, and functions only available in more recent versions of the base library.
+The first hint is marked as an warning, because using `concatMap` in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always. Reasons that a hint might be a suggestion include requiring an additional import, something not everyone agrees on, and functions only available in more recent versions of the base library.
 
 **Bug reports:** The suggested replacement should be equivalent - please report all incorrect suggestions not mentioned as known limitations.
 
@@ -89,7 +88,7 @@ HLint enables most Haskell extensions, disabling only those which steal too much
 
 ### Emacs Integration
 
-Emacs integration has been provided by [Alex Ott](http://xtalk.msk.su/~ott/). The integration is similar to compilation-mode, allowing navigation between errors. The script is at [hs-lint.el](https://github.com/ndmitchell/hlint/blob/master/data/hs-lint.el), and a copy is installed locally in the data directory. To use, add the following code to the Emacs init file:
+Emacs integration has been provided by [Alex Ott](http://xtalk.msk.su/~ott/). The integration is similar to compilation-mode, allowing navigation between errors. The script is at [hs-lint.el](https://raw.githubusercontent.com/ndmitchell/hlint/master/data/hs-lint.el), and a copy is installed locally in the data directory. To use, add the following code to the Emacs init file:
 
     (require 'hs-lint)
     (defun my-haskell-mode-hook ()
@@ -98,7 +97,7 @@ Emacs integration has been provided by [Alex Ott](http://xtalk.msk.su/~ott/). Th
 
 ### GHCi Integration
 
-GHCi integration has been provided by Gwern Branwen. The integration allows running `:hlint` from the GHCi prompt. The script is at [hlint.ghci](http://community.haskell.org/~ndm/darcs/hlint/data/hlint.ghci), and a copy is installed locally in the data directory. To use, add the contents to your [GHCi startup file](http://www.haskell.org/ghc/docs/latest/html/users_guide/ghci-dot-files.html).
+GHCi integration has been provided by Gwern Branwen. The integration allows running `:hlint` from the GHCi prompt. The script is at [hlint.ghci](https://raw.githubusercontent.com/ndmitchell/hlint/master/data/hlint.ghci), and a copy is installed locally in the data directory. To use, add the contents to your [GHCi startup file](http://www.haskell.org/ghc/docs/latest/html/users_guide/ghci-dot-files.html).
 
 ### Parallel Operation
 
@@ -119,7 +118,7 @@ By default, HLint uses the current locale encoding. The encoding can be overridd
 
 ## FAQ
 
-### Why are suggestions not applied recursively?
+### Why are hints not applied recursively?
 
 Consider:
 
@@ -152,16 +151,17 @@ Most hints are perfect substitutions, and these are displayed without any notes.
 
 * __Increases laziness__ - for example `foldl (&&) True` suggests `and` including this note. The new code will work on infinite lists, while the old code would not. Increasing laziness is usually a good idea.
 * __Decreases laziness__ - for example `(fst a, snd a)` suggests a including this note. On evaluation the new code will raise an error if a is an error, while the old code would produce a pair containing two error values. Only a small number of hints decrease laziness, and anyone relying on the laziness of the original code would be advised to include a comment.
-* __Removes error__ - for example foldr1 (&&) suggests and including the note "Removes error on []". The new code will produce `True` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment. 
+* __Removes error__ - for example `foldr1 (&&)` suggests and including the note `Removes error on []`. The new code will produce `True` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment. 
 
-### What is the difference between error and warning?
+### What is the difference between error/warning/suggestion?
 
 Every hint has a severity level:
 
-* __Error__ - for example `concat (map f x)` suggests `concatMap f x` as an "error" severity hint. From a style point of view, you should always replace a combination of `concat` and `map` with `concatMap`. Note that both expressions are equivalent - HLint is reporting an error in style, not an actual error in the code.
-* __Warning__ - for example `x !! 0` suggests head x as a "warning" severity hint. Typically head is a simpler way of expressing the first element of a list, especially if you are treating the list inductively. However, in the expression `f (x !! 4) (x !! 0) (x !! 7)`, replacing the middle argument with `head` makes it harder to follow the pattern, and is probably a bad idea. Warning hints are often worthwhile, but should not be applied blindly.
+* __Error__ - by default only used for parse errors. 
+* __Warning__ - for example `concat (map f x)` suggests `concatMap f x` as a "warning" severity hint. From a style point of view, you should always replace a combination of `concat` and `map` with `concatMap`.
+* __Suggestion__ - for example `x !! 0` suggests `head x` as a "suggestion" severity hint. Typically `head` is a simpler way of expressing the first element of a list, especially if you are treating the list inductively. However, in the expression `f (x !! 4) (x !! 0) (x !! 7)`, replacing the middle argument with `head` makes it harder to follow the pattern, and is probably a bad idea. Suggestion hints are often worthwhile, but should not be applied blindly.
 
-The difference between error and warning is one of personal taste, typically my personal taste. If you already have a well developed sense of Haskell style, you should ignore the difference. If you are a beginner Haskell programmer you may wish to focus on error hints before warning hints.
+The difference between warning and suggestion is one of personal taste, typically my personal taste. If you already have a well developed sense of Haskell style, you should ignore the difference. If you are a beginner Haskell programmer you may wish to focus on warning hints before suggestion hints.
 
 ## Customizing the hints
 
@@ -187,8 +187,9 @@ Some of the hints are subjective, and some users believe they should be ignored.
 * `{-# ANN module "HLint: ignore Eta reduce" #-}` - ignore all eta reduction suggestions in this module (use `module` literally, not the name of the module).
 * `{-# ANN myFunction "HLint: ignore" #-}` - don't give any hints in the function `myFunction`.
 * `{-# ANN myFunction "HLint: error" #-}` - any hint in the function `myFunction` is an error.
-* `{-# ANN module "HLint: error Use concatMap" #-}` - the hint to use concatMap is an error.
-* `{-# ANN module "HLint: warn Use concatMap" #-}` - the hint to use concatMap is a warning.
+* `{-# ANN module "HLint: error Use concatMap" #-}` - the hint to use `concatMap` is an error.
+* `{-# ANN module "HLint: warn Use concatMap" #-}` - the hint to use `concatMap` is a warning.
+* `{-# ANN module "HLint: suggest Use concatMap" #-}` - the hint to use `concatMap` is a suggestion.
 
 Ignore directives can also be written in the hint files:
 
@@ -205,9 +206,9 @@ These directives are applied in the order they are given, with later hints overr
 
 The hint suggesting `concatMap` is defined as:
 
-    error = concat (map f x) ==> concatMap f x
+    warn = concat (map f x) ==> concatMap f x
 
-The line can be read as replace `concat (map f x)` with `concatMap f x`. All single-letter variables are treated as substitution parameters. For examples of more complex hints see the supplied hints file. In general, hints should not be given in point free style, as this reduces the power of the matching. Hints may start with `error` or `warn` to denote how severe they are by default. If you come up with interesting hints, please submit them for inclusion.
+The line can be read as replace `concat (map f x)` with `concatMap f x`. All single-letter variables are treated as substitution parameters. For examples of more complex hints see the supplied hints file. In general, hints should not be given in point free style, as this reduces the power of the matching. Hints may start with `error`, `warn` or `suggest` to denote how severe they are by default. In addition, `hint` is a synonym for `suggest`. If you come up with interesting hints, please submit them for inclusion.
 
 You can search for possible hints to add from a source file with the `--find` flag, for example:
 
