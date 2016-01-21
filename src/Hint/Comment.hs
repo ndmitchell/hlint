@@ -27,12 +27,12 @@ pragmas = words $
 
 commentHint :: Comment -> [Idea]
 commentHint c@(Comment True span s)
-    | "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [suggest "Fix pragma markup" c $ '#':s]
-    | name `elem` pragmas = [suggest "Use pragma syntax" c $ "# " ++ trim s ++ " #"]
+    | "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" c $ '#':s]
+    | name `elem` pragmas = [grab "Use pragma syntax" c $ "# " ++ trim s ++ " #"]
         where name = takeWhile (\x -> isAlphaNum x || x == '_') $ dropWhile isSpace s
 commentHint _ = []
 
-suggest :: String -> Comment -> String -> Idea
-suggest msg (Comment typ pos s1) s2 = rawIdea Warning msg pos (f s1) (Just $ f s2) [] refact
+grab :: String -> Comment -> String -> Idea
+grab msg (Comment typ pos s1) s2 = rawIdea Warning msg pos (f s1) (Just $ f s2) [] refact
     where f s = if typ then "{-" ++ s ++ "-}" else "--" ++ s
           refact = [ModifyComment (toRefactSrcSpan pos) (f s2)]
