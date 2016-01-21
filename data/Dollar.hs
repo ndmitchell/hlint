@@ -1,7 +1,7 @@
 
 module HLint.Dollar where
 
-error = a $ b $ c ==> a . b $ c
+warn = a $ b $ c ==> a . b $ c
 
 {-
 <TEST>
