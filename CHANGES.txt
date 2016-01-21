@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #207, make sure you close file handles
     #205, add hint compare x y == EQ and /=
     #204, add hint concatMap id ==> concat
     #202, include refactorings is --json output
