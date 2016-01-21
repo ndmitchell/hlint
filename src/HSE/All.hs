@@ -14,7 +14,6 @@ import HSE.Scope as X
 import HSE.FreeVars as X
 import Util
 import CmdLine
-import Control.Exception
 import Data.Char
 import Data.List.Extra
 import Data.Maybe
@@ -78,7 +77,6 @@ parseModuleEx flags file str = do
                 let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
                         ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
                         _ -> context (srcLine sl) ppstr
-                Control.Exception.evaluate $ length pe -- if we fail to parse, we may be keeping the file handle alive
                 return $ Left $ ParseError sl msg pe
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
