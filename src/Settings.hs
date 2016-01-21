@@ -25,13 +25,16 @@ defaultHintName = "Use alternative"
 -- | How severe an issue is.
 data Severity
     = Ignore -- ^ The issue has been explicitly ignored and will usually be hidden (pass @--show@ on the command line to see ignored ideas).
-    | Warning -- ^ Warnings are things that some people may consider improvements, but some may not.
-    | Error -- ^ Errors are suggestions that are nearly always a good idea to apply.
+    | Suggestion -- ^ Suggestions are things that some people may consider improvements, but some may not.
+    | Warning -- ^ Warnings are suggestions that are nearly always a good idea to apply.
+    | Error -- ^ Available as a setting for the user.
       deriving (Eq,Ord,Show,Read,Bounded,Enum)
 
 getSeverity :: String -> Maybe Severity
 getSeverity "ignore" = Just Ignore
 getSeverity "warn" = Just Warning
+getSeverity "suggest" = Just Suggestion
+getSeverity "suggestion" = Just Suggestion
 getSeverity "warning" = Just Warning
 getSeverity "error"  = Just Error
 getSeverity "hint"  = Just Error
