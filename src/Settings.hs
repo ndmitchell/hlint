@@ -37,7 +37,7 @@ getSeverity "warning" = Just Warning
 getSeverity "suggest" = Just Suggestion
 getSeverity "suggestion" = Just Suggestion
 getSeverity "error" = Just Error
-getSeverity "hint"  = Just Error
+getSeverity "hint" = Just Suggestion
 getSeverity _ = Nothing
 
 
