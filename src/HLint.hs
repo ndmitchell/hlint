@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
-module HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity(..)) where
+module HLint(hlint) where
 
 import Control.Applicative
 import Control.Monad.Extra
@@ -32,33 +32,7 @@ import Parallel
 import HSE.All
 
 
--- | A suggestion - the @Show@ instance is of particular use.
-newtype Suggestion = Suggestion {fromSuggestion :: Idea}
-                     deriving (Eq,Ord)
-
-instance Show Suggestion where
-    show = show . fromSuggestion
-
--- | From a suggestion, extract the file location it refers to.
-suggestionLocation :: Suggestion -> SrcLoc
-suggestionLocation = getPointLoc . ideaSpan . fromSuggestion
-
-
--- | From a suggestion, determine how severe it is.
-suggestionSeverity :: Suggestion -> Severity
-suggestionSeverity = ideaSeverity . fromSuggestion
-
-
-
--- | This function takes a list of command line arguments, and returns the given suggestions.
---   To see a list of arguments type @hlint --help@ at the console.
---   This function writes to the stdout/stderr streams, unless @--quiet@ is specified.
---
---   As an example:
---
--- > do hints <- hlint ["src", "--ignore=Use map","--quiet"]
--- >    when (length hints > 3) $ error "Too many hints!"
-hlint :: [String] -> IO [Suggestion]
+hlint :: [String] -> IO [Idea]
 hlint args = do
     cmd <- getCmd args
     case cmd of
@@ -105,7 +79,7 @@ hlintGrep cmd@CmdGrep{..} = do
          else
             runGrep cmdPattern flags files
 
-hlintMain :: Cmd -> IO [Suggestion]
+hlintMain :: Cmd -> IO [Idea]
 hlintMain cmd@CmdMain{..} = do
     encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
     let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
@@ -118,7 +92,7 @@ hlintMain cmd@CmdMain{..} = do
          withTempFile (\t ->  runHlintMain cmd (Just t) flags)
      else runHlintMain cmd Nothing flags
 
-runHlintMain :: Cmd -> Maybe FilePath -> ParseFlags -> IO [Suggestion]
+runHlintMain :: Cmd -> Maybe FilePath -> ParseFlags -> IO [Idea]
 runHlintMain cmd@CmdMain{..} fp flags = do
   files <- concatMapM (resolveFile cmd fp) cmdFiles
   if null files
@@ -135,7 +109,7 @@ readAllSettings cmd@CmdMain{..} flags = do
     return $ settings1 ++ settings2 ++ settings3
 
 
-runHints :: Cmd -> ParseFlags -> IO [Suggestion]
+runHints :: Cmd -> ParseFlags -> IO [Idea]
 runHints cmd@CmdMain{..} flags = do
     let outStrLn = whenNormal . putStrLn
     settings <- readAllSettings cmd flags
@@ -177,7 +151,7 @@ runHints cmd@CmdMain{..} flags = do
                 outStrLn $
                     (let i = length showideas in if i == 0 then "No suggestions" else show i ++ " suggestion" ++ ['s' | i/=1]) ++
                     (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
-    return $ map Suggestion showideas
+    return showideas
 
 runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
 runRefactoring rpath fin hints opts =  do
