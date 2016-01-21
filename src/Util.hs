@@ -2,7 +2,7 @@
 
 module Util(
     defaultExtensions,
-    Encoding, defaultEncoding, readFileEncoding, readEncoding, useEncoding,
+    Encoding, defaultEncoding, readFileEncoding', readEncoding, useEncoding,
     gzip, universeParentBi, descendIndex,
     exitMessage
     ) where
@@ -12,7 +12,7 @@ import Control.Exception
 import Data.Char
 import Data.List
 import System.Exit
-import System.IO.Extra hiding (readFileEncoding)
+import System.IO.Extra hiding (readFileEncoding')
 import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
@@ -35,11 +35,15 @@ defaultEncoding = utf8
 useEncoding :: Handle -> Encoding -> IO ()
 useEncoding = hSetEncoding
 
-readFileEncoding :: Encoding -> FilePath -> IO String
-readFileEncoding enc file = do
-    h <- if file == "-" then return stdin else openFile file ReadMode
+readFileEncoding' :: Encoding -> FilePath -> IO String
+readFileEncoding' enc "-" = do
+    useEncoding stdin enc
+    getContents
+readFileEncoding' enc file = withFile file ReadMode $ \h -> do
     useEncoding h enc
-    hGetContents h
+    s <- hGetContents h
+    evaluate $ length s
+    return s
 
 
 -- | Create an encoding from a string, or throw an error if the encoding is not known.

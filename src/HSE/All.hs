@@ -66,7 +66,7 @@ data ParseError = ParseError
 --   The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
 parseModuleEx flags file str = do
-        str <- maybe (readFileEncoding (encoding flags) file) return str
+        str <- maybe (readFileEncoding' (encoding flags) file) return str
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
         case parseFileContentsWithComments (mode flags) ppstr of
