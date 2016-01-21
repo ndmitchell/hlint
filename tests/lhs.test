@@ -25,7 +25,7 @@ BUG 331
 module
 \end{code}
 OUTPUT
-tests/lhs-line-numbers2.lhs:11:1: Suggestion: Parse error: EOF
+tests/lhs-line-numbers2.lhs:11:1: Error: Parse error: EOF
 Found:
     \end{code}
 
