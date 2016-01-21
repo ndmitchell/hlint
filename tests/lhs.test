@@ -11,7 +11,7 @@ Found:
 Why not:
   1 : [2, 3]
 
-1 suggestion
+1 issue
 
 ---------------------------------------------------------------------
 RUN tests/lhs-line-numbers2.lhs
@@ -31,4 +31,4 @@ Found:
 
   >
 
-1 suggestion
+1 issue

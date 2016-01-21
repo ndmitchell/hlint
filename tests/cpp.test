@@ -11,7 +11,7 @@ Found:
 Why not:
   print "Hello"
 
-1 suggestion
+1 issue
 
 ---------------------------------------------------------------------
 RUN -XNoCPP tests/cpp-none.hs
@@ -21,7 +21,7 @@ FILE tests/cpp-none.hs
 main = print "Hello"
 EXIT 0
 OUTPUT
-No suggestions
+No issues
 
 ---------------------------------------------------------------------
 RUN --cpp-simple tests/cpp-simple.hs
@@ -30,7 +30,7 @@ FILE tests/cpp-simple.hs
 
 main = print "Hello"
 OUTPUT
-No suggestions
+No issues
 
 ---------------------------------------------------------------------
 RUN --cpp-file=tests/cabal_macros.h tests/cpp-file.hs
@@ -42,4 +42,4 @@ import Network.Wai
 import Network.Wai.Internal
 #endif
 OUTPUT
-No suggestions
+No issues

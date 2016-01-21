@@ -14,7 +14,7 @@ import Data.Typeable (Typeable)
 newtype A f = A f
   deriving (Foldable, Functor, Traversable, Typeable)
 OUTPUT
-No suggestions
+No issues
 
 ---------------------------------------------------------------------
 RUN tests/note.hs
@@ -38,7 +38,7 @@ Why not:
   null xs
 Note: increases laziness
 
-2 suggestions
+2 issues
 
 ---------------------------------------------------------------------
 RUN tests/brackets.hs
@@ -51,7 +51,7 @@ Found:
 Why not:
   fromMaybe (-1.0) x
 
-1 suggestion
+1 issue
 
 ---------------------------------------------------------------------
 RUN tests/typesig-ignore.hs
@@ -63,4 +63,4 @@ module Foo where
 foobar :: [Char]
 foobar = []
 OUTPUT
-No suggestions (1 ignored)
+No issues (1 ignored)
