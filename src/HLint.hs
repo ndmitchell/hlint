@@ -149,7 +149,7 @@ runHints cmd@CmdMain{..} flags = do
                     writeReport cmdDataDir x showideas
             unless cmdNoSummary $
                 outStrLn $
-                    (let i = length showideas in if i == 0 then "No issues" else show i ++ " issue" ++ ['s' | i/=1]) ++
+                    (let i = length showideas in if i == 0 then "No hints" else show i ++ " hint" ++ ['s' | i/=1]) ++
                     (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
     return showideas
 

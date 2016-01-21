@@ -18,7 +18,7 @@ Found:
 Why not:
   map (f . g)
 
-2 issues
+2 hints
 
 ---------------------------------------------------------------------
 RUN tests/directory --extension=lhs
@@ -29,4 +29,4 @@ Found:
 Why not:
   map (f . g)
 
-1 issue
+1 hint

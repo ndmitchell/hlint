@@ -3,4 +3,4 @@ RUN "--ignore=Parse error" tests/ignore-parse-error.hs
 FILE tests/ignore-parse-error.hs
 where
 OUTPUT
-No issues (1 ignored)
+No hints (1 ignored)
