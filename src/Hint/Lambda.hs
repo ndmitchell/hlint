@@ -94,7 +94,7 @@ lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) 
               -- Replace Decl (toSS $ reform pats bod) s2 t2]]
             ]]
         where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) Nothing]
-              gen ps b = uncurry reform . fromLambda . Lambda an ps $ b
+              gen ps = uncurry reform . fromLambda . Lambda an ps
               (finalpats, body) = fromLambda . Lambda an pats $ bod
               (pats2, bod2) = etaReduce pats bod
               template fps b = prettyPrint $ reform (zipWith munge ['a'..'z'] fps) (toNamed "body")
