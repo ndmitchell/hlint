@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #193, don't warn on a -> (b -> c), it's sometimes sensible
     #182, make parse errors severity Error
     #181, warn on otherwise in a pattern variable
     #163, eta reduce fun x = f $ x
