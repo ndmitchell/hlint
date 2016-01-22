@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #182, make parse errors severity Error
     #181, warn on otherwise in a pattern variable
     #163, eta reduce fun x = f $ x
     #132, don't ever suggest liftM
