@@ -32,6 +32,18 @@ import Parallel
 import HSE.All
 
 
+-- | This function takes a list of command line arguments, and returns the given hints.
+--   To see a list of arguments type @hlint --help@ at the console.
+--   This function writes to the stdout/stderr streams, unless @--quiet@ is specified.
+--
+--   As an example:
+--
+-- > do hints <- hlint ["src", "--ignore=Use map","--quiet"]
+-- >    when (length hints > 3) $ error "Too many hints!"
+--
+--   /Warning:/ The flags provided by HLint are relatively stable, but do not have the same
+--   API stability guarantees as the rest of the strongly-typed API. Do not run this function
+--   on a your server with untrusted input.
 hlint :: [String] -> IO [Idea]
 hlint args = do
     cmd <- getCmd args

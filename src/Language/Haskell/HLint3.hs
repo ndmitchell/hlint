@@ -3,7 +3,9 @@
 -- | /WARNING: This module represents the evolving second version of the HLint API./
 --   /It will be renamed to drop the "3" in the next major version./
 --
---   This module provides a way to apply HLint hints. As an example of approximating the @hlint@ experience:
+--   This module provides a way to apply HLint hints. If you want to just run @hlint@ in-process
+--   and collect the results see 'hlint'. If you want to approximate the @hlint@ experience with
+--   a more structured API try:
 --
 -- @
 -- (flags, classify, hint) <- 'autoSettings'
@@ -11,7 +13,7 @@
 -- print $ 'applyHints' classify hint [m]
 -- @
 module Language.Haskell.HLint3(
-    applyHints,
+    hlint, applyHints,
     -- * Idea data type
     Idea(..), Severity(..), Note(..),
     -- * Settings
@@ -30,6 +32,7 @@ module Language.Haskell.HLint3(
 import Settings hiding (findSettings)
 import Idea
 import Apply
+import HLint
 import Hint.Type
 import Hint.All
 import CmdLine

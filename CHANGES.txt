@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #208, add an hlint function to the HLint3 API
     #1, warn about unused DefaultSignatures extension
     #137, add -XHaskell2010 and fix -XHaskell98
     Allow checking even if a function has different arities
