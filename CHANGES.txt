@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #132, don't ever suggest liftM
     #99, downgrade built in hints, Error => Warning => Suggestion
     #99, add a Suggestion level severity
     #207, make sure you close file handles

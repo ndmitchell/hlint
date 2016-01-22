@@ -299,8 +299,9 @@ warn "Monad law, left identity" = return a >>= f ==> f a where _ = noQuickCheck
 warn "Monad law, left identity" = f =<< return a ==> f a where _ = noQuickCheck
 warn "Monad law, right identity" = m >>= return ==> m where _ = noQuickCheck
 warn "Monad law, right identity" = return =<< m ==> m where _ = noQuickCheck
-hint = m >>= return . f ==> Control.Monad.liftM f m where _ = noQuickCheck -- cannot be fmap, because is in Functor not Monad
-hint = return . f =<< m ==> Control.Monad.liftM f m where _ = noQuickCheck
+warn = liftM ==> fmap
+hint = m >>= return . f ==> fmap f m where _ = noQuickCheck -- cannot be fmap, because is in Functor not Monad
+hint = return . f =<< m ==> fmap f m where _ = noQuickCheck
 warn = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
 warn = (if x then y else return ()) ==> Control.Monad.when x y where _ = isAtom y && noQuickCheck
 warn = (if x then return () else y) ==> Control.Monad.unless x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
@@ -314,7 +315,6 @@ hint = flip forM_ ==> mapM_ where _ = noQuickCheck
 warn = when (not x) ==> unless x where _ = noQuickCheck
 warn = x >>= id ==> Control.Monad.join x where _ = noQuickCheck
 warn = id =<< x ==> Control.Monad.join x where _ = noQuickCheck
-warn = liftM f (liftM g x) ==> liftM (f . g) x where _ = noQuickCheck
 hint = a >> return () ==> Control.Monad.void a
     where _ = (isAtom a || isApp a) && noQuickCheck
 warn = fmap (const ()) ==> Control.Monad.void where _ = noQuickCheck
@@ -336,7 +336,7 @@ warn = snd (runState x y) ==> execState x y where _ = noQuickCheck
 
 -- MONAD LIST
 
-warn = liftM unzip (mapM f x) ==> Control.Monad.mapAndUnzipM f x where _ = noQuickCheck
+warn = fmap unzip (mapM f x) ==> Control.Monad.mapAndUnzipM f x where _ = noQuickCheck
 warn = sequence (zipWith f x y) ==> Control.Monad.zipWithM f x y where _ = noQuickCheck
 warn = sequence_ (zipWith f x y) ==> Control.Monad.zipWithM_ f x y where _ = noQuickCheck
 warn = sequence (replicate n x) ==> Control.Monad.replicateM n x where _ = noQuickCheck
@@ -547,7 +547,7 @@ yes = not . (a /=) -- (a ==)
 yes = not . (/= a) -- (== a)
 yes = if a then 1 else if b then 1 else 2 -- if a || b then 1 else 2
 no  = if a then 1 else if b then 3 else 2
-yes = a >>= return . bob -- Control.Monad.liftM bob a
+yes = a >>= return . bob -- fmap bob a
 yes = (x !! 0) + (x !! 2) -- head x
 yes = if b < 42 then [a] else [] -- [a | b < 42]
 no  = take n (foo xs) == "hello"
