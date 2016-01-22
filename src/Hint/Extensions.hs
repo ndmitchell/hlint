@@ -63,6 +63,10 @@ newtype Micro = Micro Int deriving Generic -- {-# LANGUAGE DeriveGeneric #-}
 f :: Int -> (# Int, Int #)
 {-# LANGUAGE UnboxedTuples #-} \
 f :: x -> (x, x); f x = (x, x) --
+{-# LANGUAGE DefaultSignatures #-} \
+class Val a where; val :: a --
+{-# LANGUAGE DefaultSignatures #-} \
+class Val a where; val :: a; default val :: Int
 </TEST>
 -}
 
