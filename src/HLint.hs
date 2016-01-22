@@ -46,7 +46,8 @@ hlintHSE c@CmdHSE{..} = do
     v <- getVerbosity
     forM_ cmdFiles $ \x -> do
         putStrLn $ "Parse result of " ++ x ++ ":"
-        res <- parseFileWithExts (cmdExtensions c) x
+        let (lang,exts) = cmdExtensions c
+        res <- parseFileWithMode defaultParseMode{baseLanguage=lang, extensions=exts} x
         case res of
             x@ParseFailed{} -> print x
             ParseOk m -> case v of
@@ -69,7 +70,9 @@ hlintTest cmd@CmdTest{..} =
 hlintGrep :: Cmd -> IO ()
 hlintGrep cmd@CmdGrep{..} = do
     encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
-    let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
+    let (lang,exts) = cmdExtensions cmd
+    let flags = parseFlagsSetLanguage lang $ parseFlagsSetExtensions exts $
+                defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles then
         exitWithHelp
      else do
@@ -82,7 +85,9 @@ hlintGrep cmd@CmdGrep{..} = do
 hlintMain :: Cmd -> IO [Idea]
 hlintMain cmd@CmdMain{..} = do
     encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
-    let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
+    let (lang,exts) = cmdExtensions cmd
+    let flags = parseFlagsSetLanguage lang $ parseFlagsSetExtensions exts $
+                defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
         mapM_ (putStrLn . fst <=< findSettings2 flags) hints >> return []

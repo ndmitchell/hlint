@@ -13,7 +13,9 @@ import System.Exit
 import System.FilePath
 import System.IO
 import Language.Preprocessor.Cpphs
+import Language.Haskell.Exts(defaultParseMode, baseLanguage)
 import Language.Haskell.Exts.Extension
+import Data.Maybe
 import System.Environment
 import System.Info.Extra
 
@@ -182,14 +184,14 @@ mode = cmdArgsMode $ modes
 cmdHintFiles :: Cmd -> IO [FilePath]
 cmdHintFiles cmd = mapM (getHintFile $ cmdDataDir cmd) $ cmdGivenHints cmd ++ ["HLint" | null (cmdGivenHints cmd) && null (cmdWithHints cmd)]
 
-cmdExtensions :: Cmd -> [Extension]
+cmdExtensions :: Cmd -> (Language, [Extension])
 cmdExtensions = getExtensions . cmdLanguage
 
 
 cmdCpp :: Cmd -> CppFlags
 cmdCpp cmd
     | cmdCppSimple cmd = CppSimple
-    | EnableExtension CPP `elem` cmdExtensions cmd = Cpphs defaultCpphsOptions
+    | EnableExtension CPP `elem` snd (cmdExtensions cmd) = Cpphs defaultCpphsOptions
         {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi cmd}
         ,includes = cmdCppInclude cmd
         ,preInclude = cmdCppFile cmd
@@ -266,9 +268,13 @@ getHintFile dataDir x = do
             if b then return x else f o xs
 
 
-getExtensions :: [String] -> [Extension]
-getExtensions = foldl f defaultExtensions
+getExtensions :: [String] -> (Language, [Extension])
+getExtensions args = (lang, foldl f (if null langs then defaultExtensions else []) exts)
     where
+        lang = if null langs then baseLanguage defaultParseMode else fromJust $ lookup (last langs) ls
+        (langs, exts) = partition (isJust . flip lookup ls) args
+        ls = [(show x, x) | x <- knownLanguages]
+
         f a "Haskell98" = []
         f a ('N':'o':x) | Just x <- readExtension x = delete x a
         f a x | Just x <- readExtension x = x : delete x a
