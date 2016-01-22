@@ -138,6 +138,7 @@ used UnboxedTuples = has (not . isBoxed)
 used PackageImports = hasS (isJust . importPkg)
 used QuasiQuotes = hasS isQuasiQuote
 used ViewPatterns = hasS isPViewPat
+used DefaultSignatures = hasS isClsDefSig
 used DeriveDataTypeable = hasDerive ["Data","Typeable"]
 used DeriveFunctor = hasDerive ["Functor"]
 used DeriveFoldable = hasDerive ["Foldable"]

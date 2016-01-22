@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #1, warn about unused DefaultSignatures extension
     #137, add -XHaskell2010 and fix -XHaskell98
     Allow checking even if a function has different arities
     #193, don't warn on a -> (b -> c), it's sometimes sensible
