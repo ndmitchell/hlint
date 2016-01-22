@@ -74,8 +74,7 @@ argsSettings args = do
             -- FIXME: Two things that could be supported (but aren't) are 'cmdGivenHints' and 'cmdWithHints'.
             (fixities, classify, hints) <- findSettings (readSettingsFile $ Just cmdDataDir) Nothing
             encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
-            let (lang, exts) = cmdExtensions cmd
-            let flags = parseFlagsSetLanguage lang $ parseFlagsSetExtensions exts $ parseFlagsAddFixities fixities $
+            let flags = parseFlagsSetLanguage (cmdExtensions cmd) $ parseFlagsAddFixities fixities $
                         defaultParseFlags{cppFlags = cmdCpp cmd, encoding = encoding}
             let ignore = [Classify Ignore x "" "" | x <- cmdIgnore]
             return (flags, classify ++ ignore, resolveHints hints)

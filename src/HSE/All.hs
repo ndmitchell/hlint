@@ -2,7 +2,7 @@
 module HSE.All(
     module X,
     ParseFlags(..), defaultParseFlags,
-    parseFlagsAddFixities, parseFlagsSetExtensions, parseFlagsSetLanguage,
+    parseFlagsAddFixities, parseFlagsSetLanguage,
     parseModuleEx, ParseError(..)
     ) where
 
@@ -43,11 +43,8 @@ parseFlagsAddFixities :: [Fixity] -> ParseFlags -> ParseFlags
 parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = Just $ fx ++ fromMaybe [] (fixities hse)}}
     where hse = hseFlags x
 
-parseFlagsSetLanguage :: Language -> ParseFlags -> ParseFlags
-parseFlagsSetLanguage l x = x{hseFlags=(hseFlags x){baseLanguage = l}}
-
-parseFlagsSetExtensions :: [Extension] -> ParseFlags -> ParseFlags
-parseFlagsSetExtensions es x = x{hseFlags=(hseFlags x){extensions = es}}
+parseFlagsSetLanguage :: (Language, [Extension]) -> ParseFlags -> ParseFlags
+parseFlagsSetLanguage (l, es) x = x{hseFlags=(hseFlags x){baseLanguage = l, extensions = es}}
 
 
 runCpp :: CppFlags -> FilePath -> String -> IO String

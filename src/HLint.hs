@@ -70,8 +70,7 @@ hlintTest cmd@CmdTest{..} =
 hlintGrep :: Cmd -> IO ()
 hlintGrep cmd@CmdGrep{..} = do
     encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
-    let (lang,exts) = cmdExtensions cmd
-    let flags = parseFlagsSetLanguage lang $ parseFlagsSetExtensions exts $
+    let flags = parseFlagsSetLanguage (cmdExtensions cmd) $
                 defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles then
         exitWithHelp
@@ -85,8 +84,7 @@ hlintGrep cmd@CmdGrep{..} = do
 hlintMain :: Cmd -> IO [Idea]
 hlintMain cmd@CmdMain{..} = do
     encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
-    let (lang,exts) = cmdExtensions cmd
-    let flags = parseFlagsSetLanguage lang $ parseFlagsSetExtensions exts $
+    let flags = parseFlagsSetLanguage (cmdExtensions cmd) $
                 defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
