@@ -31,7 +31,8 @@ data ParseFlags = ParseFlags
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags utf8 NoCpp defaultParseMode{fixities=Just baseFixities, ignoreLinePragmas=False, extensions=defaultExtensions}
+defaultParseFlags = ParseFlags utf8 NoCpp
+    defaultParseMode{fixities=Just baseFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
