@@ -1,5 +1,7 @@
 Changelog for HLint
 
+    #99, downgrade built in hints, Error => Warning => Suggestion
+    #99, add a Suggestion level severity
     #207, make sure you close file handles
     #205, add hint compare x y == EQ and /=
     #204, add hint concatMap id ==> concat
