@@ -30,8 +30,10 @@ foo = case v of !(Just x) -> x -- (Just x)
 foo = case v of !(x : xs) -> x -- (x:xs)
 foo = case v of !1 -> x -- 1
 foo = case v of !x -> x
+foo = case v of !(I# x) -> y -- (I# x)
 foo = let ~x = 1 in y -- x
 foo = let ~(x:xs) = y in z
+foo = let !x = undefined in y
 </TEST>
 -}
 
