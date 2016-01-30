@@ -77,7 +77,8 @@ instance Brackets Type_ where
 
     needBracket i parent child
         | isAtom child = False
-        | TyFun{} <- parent, i == 1, TyFun{} <- child = False
+-- a -> (b -> c) is not a required bracket, but useful for documentation about arity etc.
+--        | TyFun{} <- parent, i == 1, TyFun{} <- child = False
         | TyFun{} <- parent, TyApp{} <- child = False
         | TyTuple{} <- parent = False
         | TyList{} <- parent = False

@@ -24,7 +24,6 @@ main = do f; (print x) -- @Suggestion do f print x
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
-foo :: Int -> (Int -> Int) -- @Suggestion Int -> Int -> Int
 foo :: (Maybe Int) -> a -- @Suggestion Maybe Int -> a
 instance Named (DeclHead S)
 data Foo = Foo {foo :: (Maybe Foo)} -- @Suggestion foo :: Maybe Foo

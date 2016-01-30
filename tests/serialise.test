@@ -21,7 +21,7 @@ foo = (+1)
 bar x = foo x
 baz = getLine >>= return . map toUpper
 OUTPUT
-[("tests/serialise-two.hs:2:1: Warning: Eta reduce\nFound:\n  bar x = foo x\nWhy not:\n  bar = foo\n",[]),("tests/serialise-two.hs:3:7: Suggestion: Use liftM\nFound:\n  getLine >>= return . map toUpper\nWhy not:\n  Control.Monad.liftM (map toUpper) getLine\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [("f",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),("m",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = "Control.Monad.liftM (f) m"}])]
+[("tests/serialise-two.hs:2:1: Warning: Eta reduce\nFound:\n  bar x = foo x\nWhy not:\n  bar = foo\n",[]),("tests/serialise-two.hs:3:7: Suggestion: Use fmap\nFound:\n  getLine >>= return . map toUpper\nWhy not:\n  fmap (map toUpper) getLine\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [("f",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),("m",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = "fmap (f) m"}])]
 
 
 ---------------------------------------------------------------------

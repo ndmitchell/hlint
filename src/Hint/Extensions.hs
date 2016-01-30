@@ -63,6 +63,10 @@ newtype Micro = Micro Int deriving Generic -- {-# LANGUAGE DeriveGeneric #-}
 f :: Int -> (# Int, Int #)
 {-# LANGUAGE UnboxedTuples #-} \
 f :: x -> (x, x); f x = (x, x) --
+{-# LANGUAGE DefaultSignatures #-} \
+class Val a where; val :: a --
+{-# LANGUAGE DefaultSignatures #-} \
+class Val a where; val :: a; default val :: Int
 </TEST>
 -}
 
@@ -138,6 +142,7 @@ used UnboxedTuples = has (not . isBoxed)
 used PackageImports = hasS (isJust . importPkg)
 used QuasiQuotes = hasS isQuasiQuote
 used ViewPatterns = hasS isPViewPat
+used DefaultSignatures = hasS isClsDefSig
 used DeriveDataTypeable = hasDerive ["Data","Typeable"]
 used DeriveFunctor = hasDerive ["Functor"]
 used DeriveFoldable = hasDerive ["Foldable"]

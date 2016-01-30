@@ -1,7 +1,8 @@
 
 module HSE.All(
     module X,
-    ParseFlags(..), defaultParseFlags, parseFlagsAddFixities, parseFlagsSetExtensions,
+    ParseFlags(..), defaultParseFlags,
+    parseFlagsAddFixities, parseFlagsSetLanguage,
     parseModuleEx, ParseError(..)
     ) where
 
@@ -31,7 +32,8 @@ data ParseFlags = ParseFlags
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags utf8 NoCpp defaultParseMode{fixities=Just baseFixities, ignoreLinePragmas=False, extensions=defaultExtensions}
+defaultParseFlags = ParseFlags utf8 NoCpp
+    defaultParseMode{fixities=Just baseFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
@@ -41,8 +43,8 @@ parseFlagsAddFixities :: [Fixity] -> ParseFlags -> ParseFlags
 parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = Just $ fx ++ fromMaybe [] (fixities hse)}}
     where hse = hseFlags x
 
-parseFlagsSetExtensions :: [Extension] -> ParseFlags -> ParseFlags
-parseFlagsSetExtensions es x = x{hseFlags=(hseFlags x){extensions = es}}
+parseFlagsSetLanguage :: (Language, [Extension]) -> ParseFlags -> ParseFlags
+parseFlagsSetLanguage (l, es) x = x{hseFlags=(hseFlags x){baseLanguage = l, extensions = es}}
 
 
 runCpp :: CppFlags -> FilePath -> String -> IO String

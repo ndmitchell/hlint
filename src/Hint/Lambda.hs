@@ -29,6 +29,8 @@ fun x y z = f x y z -- fun = f
 fun x y z = f x x y z -- fun x = f x x
 fun x y z = f g z -- fun x y = f g
 fun mr = y mr
+fun x = f . g $ x -- fun = f . g
+f = foo (\y -> g x . h $ y) -- g x . h
 f = foo ((*) x) -- (x *)
 f = (*) x
 f = foo (flip op x) -- (`op` x)
@@ -92,7 +94,7 @@ lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) 
               -- Replace Decl (toSS $ reform pats bod) s2 t2]]
             ]]
         where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) Nothing]
-              gen ps b = uncurry reform . fromLambda . Lambda an ps $ b
+              gen ps = uncurry reform . fromLambda . Lambda an ps
               (finalpats, body) = fromLambda . Lambda an pats $ bod
               (pats2, bod2) = etaReduce pats bod
               template fps b = prettyPrint $ reform (zipWith munge ['a'..'z'] fps) (toNamed "body")
@@ -112,6 +114,7 @@ etaReduce :: [Pat_] -> Exp_ -> ([Pat_], Exp_)
 etaReduce ps (App _ x (Var _ (UnQual _ (Ident _ y))))
     | ps /= [], PVar _ (Ident _ p) <- last ps, p == y, p /= "mr", y `notElem` vars x
     = etaReduce (init ps) x
+etaReduce ps (InfixApp a x (isDol -> True) y) = etaReduce ps (App a x y)
 etaReduce ps x = (ps,x)
 
 

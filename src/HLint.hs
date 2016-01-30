@@ -32,6 +32,18 @@ import Parallel
 import HSE.All
 
 
+-- | This function takes a list of command line arguments, and returns the given hints.
+--   To see a list of arguments type @hlint --help@ at the console.
+--   This function writes to the stdout/stderr streams, unless @--quiet@ is specified.
+--
+--   As an example:
+--
+-- > do hints <- hlint ["src", "--ignore=Use map","--quiet"]
+-- >    when (length hints > 3) $ error "Too many hints!"
+--
+--   /Warning:/ The flags provided by HLint are relatively stable, but do not have the same
+--   API stability guarantees as the rest of the strongly-typed API. Do not run this function
+--   on a your server with untrusted input.
 hlint :: [String] -> IO [Idea]
 hlint args = do
     cmd <- getCmd args
@@ -46,7 +58,8 @@ hlintHSE c@CmdHSE{..} = do
     v <- getVerbosity
     forM_ cmdFiles $ \x -> do
         putStrLn $ "Parse result of " ++ x ++ ":"
-        res <- parseFileWithExts (cmdExtensions c) x
+        let (lang,exts) = cmdExtensions c
+        res <- parseFileWithMode defaultParseMode{baseLanguage=lang, extensions=exts} x
         case res of
             x@ParseFailed{} -> print x
             ParseOk m -> case v of
@@ -69,7 +82,8 @@ hlintTest cmd@CmdTest{..} =
 hlintGrep :: Cmd -> IO ()
 hlintGrep cmd@CmdGrep{..} = do
     encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
-    let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
+    let flags = parseFlagsSetLanguage (cmdExtensions cmd) $
+                defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles then
         exitWithHelp
      else do
@@ -82,7 +96,8 @@ hlintGrep cmd@CmdGrep{..} = do
 hlintMain :: Cmd -> IO [Idea]
 hlintMain cmd@CmdMain{..} = do
     encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
-    let flags = parseFlagsSetExtensions (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
+    let flags = parseFlagsSetLanguage (cmdExtensions cmd) $
+                defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
         mapM_ (putStrLn . fst <=< findSettings2 flags) hints >> return []

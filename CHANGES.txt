@@ -1,5 +1,16 @@
 Changelog for HLint
 
+    #208, add an hlint function to the HLint3 API
+    #1, warn about unused DefaultSignatures extension
+    #137, add -XHaskell2010 and fix -XHaskell98
+    Allow checking even if a function has different arities
+    #193, don't warn on a -> (b -> c), it's sometimes sensible
+    #182, make parse errors severity Error
+    #181, warn on otherwise in a pattern variable
+    #163, eta reduce fun x = f $ x
+    #132, don't ever suggest liftM
+    #99, downgrade built in hints, Error => Warning => Suggestion
+    #99, add a Suggestion level severity
     #207, make sure you close file handles
     #205, add hint compare x y == EQ and /=
     #204, add hint concatMap id ==> concat

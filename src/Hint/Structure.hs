@@ -34,6 +34,7 @@ foo = case v of !(I# x) -> y -- (I# x)
 foo = let ~x = 1 in y -- x
 foo = let ~(x:xs) = y in z
 foo = let !x = undefined in y
+foo otherwise = 1 -- _
 </TEST>
 -}
 
@@ -155,6 +156,7 @@ patHint o@(PIrrPat _ x) | f x = [warn "Redundant irrefutable pattern" o x [r]]
           f PVar{} = True
           f _ = False
           r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
+patHint o@(PVar _ v) | prettyPrint v == "otherwise" = [warn "Used otherwise as a pattern" o (PWildCard an) []]
 patHint _ = []
 
 

@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
-module Hint.Util where
+module Hint.Util(niceLambda, simplifyExp, niceLambdaR) where
 
 import HSE.All
 import Data.List.Extra
@@ -26,6 +26,11 @@ niceLambdaR xs (Lambda _ [] x) = niceLambdaR xs x
 
 -- \ -> e ==> e
 niceLambdaR [] x = (x, const [])
+
+-- \vs v -> e $ v ==> \vs -> e
+niceLambdaR (unsnoc -> Just (vs, v)) (InfixApp _ e (isDol -> True) (view -> Var_ v2))
+    | v == v2, vars e `disjoint` [v]
+    = niceLambdaR vs e
 
 -- \xs -> e xs ==> e
 niceLambdaR xs (fromAppsWithLoc -> e) | map view xs2 == map Var_ xs, vars e2 `disjoint` xs, not $ null e2 =
