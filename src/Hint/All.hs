@@ -40,7 +40,7 @@ data HintBuiltin =
 builtin :: HintBuiltin -> Hint
 builtin x = case x of
     HintList       -> decl listHint
-    HintListRec   -> decl listRecHint
+    HintListRec    -> decl listRecHint
     HintMonad      -> decl monadHint
     HintLambda     -> decl lambdaHint
     HintBracket    -> decl bracketHint
