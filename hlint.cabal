@@ -1,4 +1,4 @@
-cabal-version:      >= 1.6
+cabal-version:      >= 1.8
 build-type:         Simple
 name:               hlint
 version:            1.9.26
@@ -112,13 +112,9 @@ library
 
 
 executable hlint
-    build-depends:      base
-    hs-source-dirs:     src
-    main-is:            Main.hs
+    build-depends:      base, hlint
+    main-is:            src/Main.hs
 
     ghc-options:        -fno-warn-overlapping-patterns -rtsopts
     if flag(threaded)
         ghc-options:    -threaded
-
-    if !flag(gpl)
-        cpp-options: -DGPL_SCARES_ME
