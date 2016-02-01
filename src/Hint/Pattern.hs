@@ -34,6 +34,12 @@ foo = case v of !(I# x) -> y -- (I# x)
 foo = let ~x = 1 in y -- x
 foo = let ~(x:xs) = y in z
 foo = let !x = undefined in y
+foo = let !(I# x) = 4 in x
+foo = let !(Just x) = Nothing in 3
+foo = 1 where f !False = 2 -- False
+foo = 1 where !False = True
+foo = 1 where g (Just !True) = Nothing -- True
+foo = 1 where Just !True = Nothing
 foo otherwise = 1 -- _
 </TEST>
 -}
@@ -54,8 +60,13 @@ import qualified Refact.Types as R (RType(Pattern, Match), SrcSpan)
 patternHint :: DeclHint
 patternHint _ _ x =
     concatMap (uncurry hints . swap) (asPattern x) ++
-    concatMap patHint (universeBi x) ++
+    -- PatBind (used in Let and Where) contains lazy-by-default patterns, everything else is strict
+    concatMap (patHint False) (universeBi [p | PatBind _ p _ _ <- universe x]) ++
+    concatMap (patHint True) (universeBi $ transform noPatBind x) ++
     concatMap expHint (universeBi x)
+    where
+        noPatBind (PatBind a _ b c) = PatBind a (PWildCard a) b c
+        noPatBind x = x
 
 
 hints :: (String -> Pattern -> [Refactoring R.SrcSpan] -> Idea) -> Pattern -> [Idea]
@@ -134,11 +145,12 @@ asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
         alt o@(Alt a pat rhs bind) = [(Pattern a R.Match [pat] rhs bind, \msg (Pattern _ _ [pat] rhs bind) rs -> suggest msg o (Alt a pat rhs bind) [])]
 
 
-patHint :: Pat_ -> [Idea]
-patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args =
+patHint :: Bool -> Pat_ -> [Idea]
+patHint strict o@(PApp _ name args) | length args >= 3 && all isPWildCard args =
   [suggest "Use record patterns" o (PRec an name []) [Replace R.Pattern (toSS o) [] (prettyPrint $ PRec an name [])] ]
+patHint strict o@(PVar _ v) | prettyPrint v == "otherwise" = [warn "Used otherwise as a pattern" o (PWildCard an) []]
 
-patHint o@(PBangPat _ x) | f x = [warn "Redundant bang pattern" o x [r]]
+patHint strict o@(PBangPat _ x) | strict, f x = [warn "Redundant bang pattern" o x [r]]
     where f (PParen _ x) = f x
           f (PAsPat _ _ x) = f x
           f PLit{} = True
@@ -146,15 +158,14 @@ patHint o@(PBangPat _ x) | f x = [warn "Redundant bang pattern" o x [r]]
           f PInfixApp{} = True
           f _ = False
           r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
-patHint o@(PIrrPat _ x) | f x = [warn "Redundant irrefutable pattern" o x [r]]
+patHint strict o@(PIrrPat _ x) | f x = [warn "Redundant irrefutable pattern" o x [r]]
     where f (PParen _ x) = f x
           f (PAsPat _ _ x) = f x
           f PWildCard{} = True
           f PVar{} = True
           f _ = False
           r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
-patHint o@(PVar _ v) | prettyPrint v == "otherwise" = [warn "Used otherwise as a pattern" o (PWildCard an) []]
-patHint _ = []
+patHint _ _ = []
 
 
 expHint :: Exp_ -> [Idea]
