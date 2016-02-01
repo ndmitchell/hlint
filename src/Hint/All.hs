@@ -19,7 +19,7 @@ import Hint.Monad
 import Hint.Lambda
 import Hint.Bracket
 import Hint.Naming
-import Hint.Structure
+import Hint.Pattern
 import Hint.Import
 import Hint.Pragma
 import Hint.Extensions
@@ -31,7 +31,7 @@ import Hint.Unsafe
 --   This list is likely to grow over time.
 data HintBuiltin =
     HintList | HintListRec | HintMonad | HintLambda |
-    HintBracket | HintNaming | HintStructure | HintImport |
+    HintBracket | HintNaming | HintPattern | HintImport |
     HintPragma | HintExtensions | HintUnsafe | HintDuplicate |
     HintComment
     deriving (Show,Eq,Ord,Bounded,Enum)
@@ -45,7 +45,7 @@ builtin x = case x of
     HintLambda     -> decl lambdaHint
     HintBracket    -> decl bracketHint
     HintNaming     -> decl namingHint
-    HintStructure  -> decl structureHint
+    HintPattern    -> decl patternHint
     HintImport     -> modu importHint
     HintPragma     -> modu pragmaHint
     HintExtensions -> modu extensionsHint

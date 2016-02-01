@@ -39,7 +39,7 @@ foo otherwise = 1 -- _
 -}
 
 
-module Hint.Structure(structureHint) where
+module Hint.Pattern(patternHint) where
 
 import Hint.Type
 import Data.Function
@@ -51,8 +51,8 @@ import Refact.Types hiding (RType(Pattern, Match))
 import qualified Refact.Types as R (RType(Pattern, Match), SrcSpan)
 
 
-structureHint :: DeclHint
-structureHint _ _ x =
+patternHint :: DeclHint
+patternHint _ _ x =
     concatMap (uncurry hints . swap) (asPattern x) ++
     concatMap patHint (universeBi x) ++
     concatMap expHint (universeBi x)
