@@ -115,6 +115,6 @@ executable hlint
     build-depends:      base, hlint
     main-is:            src/Main.hs
 
-    ghc-options:        -fno-warn-overlapping-patterns -rtsopts
+    ghc-options:        -rtsopts
     if flag(threaded)
         ghc-options:    -threaded
