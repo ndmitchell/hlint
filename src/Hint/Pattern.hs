@@ -134,9 +134,6 @@ asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
         alt o@(Alt a pat rhs bind) = [(Pattern a R.Match [pat] rhs bind, \msg (Pattern _ _ [pat] rhs bind) rs -> suggest msg o (Alt a pat rhs bind) [])]
 
 
-
--- Should these hints be in the same module? They are less structure, and more about pattern matching
--- Or perhaps the entire module should be renamed Pattern, since it's all about patterns
 patHint :: Pat_ -> [Idea]
 patHint o@(PApp _ name args) | length args >= 3 && all isPWildCard args =
   [suggest "Use record patterns" o (PRec an name []) [Replace R.Pattern (toSS o) [] (prettyPrint $ PRec an name [])] ]
