@@ -172,16 +172,21 @@ hasDerive want m = any (`elem` want) $ new ++ dat
 -- | What is derived on newtype, and on data type
 --   'deriving' declarations may be on either, so we approximate as both newtype and data
 derives :: Module_ -> ([String],[String])
-derives = concatUnzip . map f . childrenBi
+derives m = concatUnzip $ map decl (childrenBi m) ++ map idecl (childrenBi m)
     where
-        f :: Decl_ -> ([String], [String])
-        f (DataDecl _ dn _ _ _ ds) = g dn ds
-        f (GDataDecl _ dn _ _ _ _ ds) = g dn ds
-        f (DataInsDecl _ dn _ _ ds) = g dn ds
-        f (GDataInsDecl _ dn _ _ _ ds) = g dn ds
-        f (DerivDecl _ _ hd) = (xs, xs) -- don't know whether this was on newtype or not
+        idecl :: InstDecl S -> ([String], [String])
+        idecl (InsData _ dn _ _ ds) = g dn ds
+        idecl (InsGData _ dn _ _ _ ds) = g dn ds
+        idecl _ = ([], [])
+
+        decl :: Decl_ -> ([String], [String])
+        decl (DataDecl _ dn _ _ _ ds) = g dn ds
+        decl (GDataDecl _ dn _ _ _ _ ds) = g dn ds
+        decl (DataInsDecl _ dn _ _ ds) = g dn ds
+        decl (GDataInsDecl _ dn _ _ _ ds) = g dn ds
+        decl (DerivDecl _ _ hd) = (xs, xs) -- don't know whether this was on newtype or not
             where xs = [ir hd]
-        f _ = ([], [])
+        decl _ = ([], [])
 
         g dn ds = if isNewType dn then (xs,[]) else ([],xs)
             where xs = maybe [] (map ir . fromDeriving) ds

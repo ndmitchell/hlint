@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #215, spot newtype deriving inside classes
 1.9.27
     #203, avoid recompiling everything twice
     #213, don't suggest removing bang patterns on let
