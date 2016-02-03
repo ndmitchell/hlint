@@ -59,6 +59,8 @@ deriving instance Functor Bar
 deriving instance Show Bar -- {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-} \
 newtype Micro = Micro Int deriving Generic -- {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-} \
+instance Class Int where {newtype MyIO a = MyIO a deriving NewClass}
 {-# LANGUAGE UnboxedTuples #-} \
 f :: Int -> (# Int, Int #)
 {-# LANGUAGE UnboxedTuples #-} \
