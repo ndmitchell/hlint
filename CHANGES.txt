@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Put warnings before suggestions in the HTML report
 1.9.28
     #215, spot newtype deriving inside classes
 1.9.27

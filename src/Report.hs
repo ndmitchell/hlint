@@ -27,9 +27,9 @@ writeReport :: FilePath -> FilePath -> [Idea] -> IO ()
 writeReport dataDir file ideas = writeTemplate dataDir inner file
     where
         generateIds :: [String] -> [(String,Int)] -- sorted by name
-        generateIds = map (head &&& length) . group . sort
-        files = generateIds $ map (srcSpanFilename . ideaSpan) ideas
-        hints = generateIds $ map hintName ideas
+        generateIds = map (head &&& length) . group -- must be already sorted
+        files = generateIds $ sort $ map (srcSpanFilename . ideaSpan) ideas
+        hints = generateIds $ map hintName $ sortOn (negate . fromEnum . ideaSeverity &&& hintName) ideas
         hintName x = show (ideaSeverity x) ++ ": " ++ ideaHint x
 
         inner = [("VERSION",['v' : showVersion version]),("CONTENT",content),
