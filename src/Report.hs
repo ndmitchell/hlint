@@ -4,7 +4,7 @@ module Report(writeReport) where
 
 import Idea
 import Data.Tuple.Extra
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Data.Version
 import System.FilePath
