@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.29
     #219, add warnings about foldable methods on tuple
     Put warnings before suggestions in the HTML report
 1.9.28
