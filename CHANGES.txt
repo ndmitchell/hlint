@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.30
     #220, fix incorrect hints of foldr/foldl on a tuple accumulator
 1.9.29
     #219, add warnings about foldable methods on tuple
