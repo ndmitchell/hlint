@@ -529,7 +529,7 @@ warn "Using concat on tuple"  = concat      (x,b) ==> b
 warn "Using and on tuple"     = and         (x,b) ==> b
 warn "Using or on tuple"      = or          (x,b) ==> b
 warn "Using any on tuple"     = any     f   (x,b) ==> f b
-warn "Using all on tuple"     = all     f (  x,b) ==> f b
+warn "Using all on tuple"     = all     f   (x,b) ==> f b
 
 warn "Using foldr on tuple"   = foldr   f z (x,y,b) ==> f b z
 warn "Using foldr' on tuple"  = foldr'  f z (x,y,b) ==> f b z
