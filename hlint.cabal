@@ -46,7 +46,7 @@ flag gpl
 library
     build-depends:
         base == 4.*, process, filepath, directory, containers,
-        transformers >= 0.0,
+        transformers,
         cpphs >= 1.18.1,
         cmdargs >= 0.10,
         haskell-src-exts >= 1.17 && < 1.18,
