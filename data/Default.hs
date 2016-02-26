@@ -511,45 +511,45 @@ warn "Evaluate" = const x y ==> x
 
 -- FOLDABLE + TUPLES
 
-warn "Using foldr on tuple"   = foldr   f (x,b) z ==> f b z
-warn "Using foldr' on tuple"  = foldr'  f (x,b) z ==> f b z
-warn "Using foldl on tuple"   = foldl   f (x,b) z ==> f z b
-warn "Using foldl' on tuple"  = foldl'  f (x,b) z ==> f z b
-warn "Using foldMap on tuple" = foldMap f (x,b)   ==> f b
-warn "Using foldr1 on tuple"  = foldr1  f (x,b)   ==> b
-warn "Using foldl1 on tuple"  = foldl1  f (x,b)   ==> b
-warn "Using elem on tuple"    = elem    x (x,b)   ==> x == b
-warn "Using fold on tuple"    = fold      (x,b)   ==> b
-warn "Using toList on tuple"  = toList    (x,b)   ==> b
-warn "Using maximum on tuple" = maximum   (x,b)   ==> b
-warn "Using minimum on tuple" = minimum   (x,b)   ==> b
-warn "Using sum on tuple"     = sum       (x,b)   ==> b
-warn "Using product on tuple" = product   (x,b)   ==> b
-warn "Using concat on tuple"  = concat    (x,b)   ==> b
-warn "Using and on tuple"     = and       (x,b)   ==> b
-warn "Using or on tuple"      = or        (x,b)   ==> b
-warn "Using any on tuple"     = any     f (x,b)   ==> f b
-warn "Using all on tuple"     = all     f (x,b)   ==> f b
+warn "Using foldr on tuple"   = foldr   f z (x,b) ==> f b z
+warn "Using foldr' on tuple"  = foldr'  f z (x,b) ==> f b z
+warn "Using foldl on tuple"   = foldl   f z (x,b) ==> f z b
+warn "Using foldl' on tuple"  = foldl'  f z (x,b) ==> f z b
+warn "Using foldMap on tuple" = foldMap f   (x,b) ==> f b
+warn "Using foldr1 on tuple"  = foldr1  f   (x,b) ==> b
+warn "Using foldl1 on tuple"  = foldl1  f   (x,b) ==> b
+warn "Using elem on tuple"    = elem    e   (x,b) ==> e == b
+warn "Using fold on tuple"    = fold        (x,b) ==> b
+warn "Using toList on tuple"  = toList      (x,b) ==> b
+warn "Using maximum on tuple" = maximum     (x,b) ==> b
+warn "Using minimum on tuple" = minimum     (x,b) ==> b
+warn "Using sum on tuple"     = sum         (x,b) ==> b
+warn "Using product on tuple" = product     (x,b) ==> b
+warn "Using concat on tuple"  = concat      (x,b) ==> b
+warn "Using and on tuple"     = and         (x,b) ==> b
+warn "Using or on tuple"      = or          (x,b) ==> b
+warn "Using any on tuple"     = any     f   (x,b) ==> f b
+warn "Using all on tuple"     = all     f (  x,b) ==> f b
 
-warn "Using foldr on tuple"   = foldr   f (x,y,b) z ==> f b z
-warn "Using foldr' on tuple"  = foldr'  f (x,y,b) z ==> f b z
-warn "Using foldl on tuple"   = foldl   f (x,y,b) z ==> f z b
-warn "Using foldl' on tuple"  = foldl'  f (x,y,b) z ==> f z b
-warn "Using foldMap on tuple" = foldMap f (x,y,b)   ==> f b
-warn "Using foldr1 on tuple"  = foldr1  f (x,y,b)   ==> b
-warn "Using foldl1 on tuple"  = foldl1  f (x,y,b)   ==> b
-warn "Using elem on tuple"    = elem    x (x,y,b)   ==> x == b
-warn "Using fold on tuple"    = fold      (x,y,b)   ==> b
-warn "Using toList on tuple"  = toList    (x,y,b)   ==> b
-warn "Using maximum on tuple" = maximum   (x,y,b)   ==> b
-warn "Using minimum on tuple" = minimum   (x,y,b)   ==> b
-warn "Using sum on tuple"     = sum       (x,y,b)   ==> b
-warn "Using product on tuple" = product   (x,y,b)   ==> b
-warn "Using concat on tuple"  = concat    (x,y,b)   ==> b
-warn "Using and on tuple"     = and       (x,y,b)   ==> b
-warn "Using or on tuple"      = or        (x,y,b)   ==> b
-warn "Using any on tuple"     = any     f (x,y,b)   ==> f b
-warn "Using all on tuple"     = all     f (x,y,b)   ==> f b
+warn "Using foldr on tuple"   = foldr   f z (x,y,b) ==> f b z
+warn "Using foldr' on tuple"  = foldr'  f z (x,y,b) ==> f b z
+warn "Using foldl on tuple"   = foldl   f z (x,y,b) ==> f z b
+warn "Using foldl' on tuple"  = foldl'  f z (x,y,b) ==> f z b
+warn "Using foldMap on tuple" = foldMap f   (x,y,b)   ==> f b
+warn "Using foldr1 on tuple"  = foldr1  f   (x,y,b)   ==> b
+warn "Using foldl1 on tuple"  = foldl1  f   (x,y,b)   ==> b
+warn "Using elem on tuple"    = elem    e   (x,y,b)   ==> e == b
+warn "Using fold on tuple"    = fold        (x,y,b)   ==> b
+warn "Using toList on tuple"  = toList      (x,y,b)   ==> b
+warn "Using maximum on tuple" = maximum     (x,y,b)   ==> b
+warn "Using minimum on tuple" = minimum     (x,y,b)   ==> b
+warn "Using sum on tuple"     = sum         (x,y,b)   ==> b
+warn "Using product on tuple" = product     (x,y,b)   ==> b
+warn "Using concat on tuple"  = concat      (x,y,b)   ==> b
+warn "Using and on tuple"     = and         (x,y,b)   ==> b
+warn "Using or on tuple"      = or          (x,y,b)   ==> b
+warn "Using any on tuple"     = any     f   (x,y,b)   ==> f b
+warn "Using all on tuple"     = all     f   (x,y,b)   ==> f b
 
 warn "Using null on tuple"   = null x   ==> False where _ = isTuple x
 warn "Using length on tuple" = length x ==> 1     where _ = isTuple x
