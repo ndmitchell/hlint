@@ -41,6 +41,7 @@ foo = 1 where !False = True
 foo = 1 where g (Just !True) = Nothing -- True
 foo = 1 where Just !True = Nothing
 foo otherwise = 1 -- _
+foo ~x = y -- x
 </TEST>
 -}
 
