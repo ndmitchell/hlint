@@ -42,6 +42,7 @@ foo = 1 where g (Just !True) = Nothing -- True
 foo = 1 where Just !True = Nothing
 foo otherwise = 1 -- _
 foo ~x = y -- x
+{-# LANGUAGE Strict #-} foo ~x = y
 </TEST>
 -}
 
@@ -59,15 +60,17 @@ import qualified Refact.Types as R (RType(Pattern, Match), SrcSpan)
 
 
 patternHint :: DeclHint
-patternHint _ _ x =
+patternHint _ modu x =
     concatMap (uncurry hints . swap) (asPattern x) ++
     -- PatBind (used in Let and Where) contains lazy-by-default patterns, everything else is strict
-    concatMap (patHint False) (universeBi [p | PatBind _ p _ _ <- universe x]) ++
-    concatMap (patHint True) (universeBi $ transform noPatBind x) ++
+    concatMap (patHint strict False) (universeBi [p | PatBind _ p _ _ <- universe x]) ++
+    concatMap (patHint strict True) (universeBi $ transform noPatBind x) ++
     concatMap expHint (universeBi x)
     where
         noPatBind (PatBind a _ b c) = PatBind a (PWildCard a) b c
         noPatBind x = x
+
+        strict = "Strict" `elem` [n | LanguagePragma _ ns <- modulePragmas modu, Ident _ n <- ns]
 
 
 hints :: (String -> Pattern -> [Refactoring R.SrcSpan] -> Idea) -> Pattern -> [Idea]
@@ -146,12 +149,14 @@ asPattern x = concatMap decl (universeBi x) ++ concatMap alt (universeBi x)
         alt o@(Alt a pat rhs bind) = [(Pattern a R.Match [pat] rhs bind, \msg (Pattern _ _ [pat] rhs bind) rs -> suggest msg o (Alt a pat rhs bind) [])]
 
 
-patHint :: Bool -> Pat_ -> [Idea]
-patHint strict o@(PApp _ name args) | length args >= 3 && all isPWildCard args =
+-- First Bool is if Strict is a language extension
+-- Second Bool is if this pattern in this context is going to be evaluated strictly
+patHint :: Bool -> Bool -> Pat_ -> [Idea]
+patHint lang strict o@(PApp _ name args) | length args >= 3 && all isPWildCard args =
   [suggest "Use record patterns" o (PRec an name []) [Replace R.Pattern (toSS o) [] (prettyPrint $ PRec an name [])] ]
-patHint strict o@(PVar _ v) | prettyPrint v == "otherwise" = [warn "Used otherwise as a pattern" o (PWildCard an) []]
+patHint lang strict o@(PVar _ v) | prettyPrint v == "otherwise" = [warn "Used otherwise as a pattern" o (PWildCard an) []]
 
-patHint strict o@(PBangPat _ x) | strict, f x = [warn "Redundant bang pattern" o x [r]]
+patHint lang strict o@(PBangPat _ x) | strict, f x = [warn "Redundant bang pattern" o x [r]]
     where f (PParen _ x) = f x
           f (PAsPat _ _ x) = f x
           f PLit{} = True
@@ -159,14 +164,14 @@ patHint strict o@(PBangPat _ x) | strict, f x = [warn "Redundant bang pattern" o
           f PInfixApp{} = True
           f _ = False
           r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
-patHint strict o@(PIrrPat _ x) | f x = [warn "Redundant irrefutable pattern" o x [r]]
+patHint False strict o@(PIrrPat _ x) | f x = [warn "Redundant irrefutable pattern" o x [r]]
     where f (PParen _ x) = f x
           f (PAsPat _ _ x) = f x
           f PWildCard{} = True
           f PVar{} = True
           f _ = False
           r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
-patHint _ _ = []
+patHint _ _ _ = []
 
 
 expHint :: Exp_ -> [Idea]
