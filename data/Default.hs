@@ -328,6 +328,8 @@ hint = (\x -> f =<< g x) ==> f Control.Monad.<=< g where _ = noQuickCheck
 warn = a >> forever a ==> forever a where _ = noQuickCheck
 hint = liftM2 id ==> ap where _ = noQuickCheck
 warn = mapM (uncurry f) (zip l m) ==> zipWithM f l m where _ = noQuickCheck
+warn = mapM_ (void . f) ==> mapM_ f
+warn = forM_ x (void . f) ==> forM_ x f
 
 -- STATE MONAD
 
