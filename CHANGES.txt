@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #229, add void/mapM_/forM_ hints
 1.9.31
     #222, don't suggest removing ~ if the Strict extension is on
 1.9.30
