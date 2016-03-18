@@ -329,7 +329,13 @@ warn = a >> forever a ==> forever a where _ = noQuickCheck
 hint = liftM2 id ==> ap where _ = noQuickCheck
 warn = mapM (uncurry f) (zip l m) ==> zipWithM f l m where _ = noQuickCheck
 warn = mapM_ (void . f) ==> mapM_ f
+warn = mapM_ (void f) ==> mapM_ f
 warn = forM_ x (void . f) ==> forM_ x f
+warn = forM_ x (void f) ==> forM_ x f
+warn = void (mapM f x) ==> mapM_ f x
+warn = void (forM x f) ==> forM_ x f
+warn = void . mapM f ==> mapM_ f
+warn = void . forM x ==> forM_ x
 
 -- STATE MONAD
 
