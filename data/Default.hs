@@ -334,8 +334,6 @@ warn = forM_ x (void . f) ==> forM_ x f
 warn = forM_ x (void f) ==> forM_ x f
 warn = void (mapM f x) ==> mapM_ f x
 warn = void (forM x f) ==> forM_ x f
-warn = void . mapM f ==> mapM_ f
-warn = void . forM x ==> forM_ x
 
 -- STATE MONAD
 
