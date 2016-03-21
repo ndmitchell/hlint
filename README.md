@@ -209,7 +209,7 @@ The hint suggesting `concatMap` is defined as:
 
     warn = concat (map f x) ==> concatMap f x
 
-The line can be read as replace `concat (map f x)` with `concatMap f x`. All single-letter variables are treated as substitution parameters. For examples of more complex hints see the supplied hints file. In general, hints should not be given in point free style, as this reduces the power of the matching. Hints may start with `error`, `warn` or `suggest` to denote how severe they are by default. In addition, `hint` is a synonym for `suggest`. If you come up with interesting hints, please submit them for inclusion.
+This line can be read as replace `concat (map f x)` with `concatMap f x`. All single-letter variables are treated as substitution parameters. For examples of more complex hints see the supplied hints file. This hint will automatically match `concat . map f` and `concat $ map f x`, so there is no need to give eta-reduced variants of the hints. Hints may start with `error`, `warn` or `suggest` to denote how severe they are by default. In addition, `hint` is a synonym for `suggest`. If you come up with interesting hints, please submit them for inclusion.
 
 You can search for possible hints to add from a source file with the `--find` flag, for example:
 
