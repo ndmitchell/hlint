@@ -56,6 +56,9 @@ main = do a += b . c; return $ a . b
 -- annotations
 main = 1; {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 main = 1; {-# ANN module (1 + (2)) #-} -- 2
+
+-- special cases (from esqueleto, see #224)
+main = operate <$> (select $ from $ \user -> return $ user ^. UserEmail)
 </TEST>
 -}
 
