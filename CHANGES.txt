@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #224, treat select $ specially, as per esqueleto conventions
     #231, don't modify qualification on substitutions
     #229, add void/mapM_/forM_ hints
 1.9.31

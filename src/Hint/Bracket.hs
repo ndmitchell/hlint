@@ -134,6 +134,7 @@ dollar = concatMap f . universe
               ++
               [suggest "Move brackets to avoid $" x (t y) [r] |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
               ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
+              ,not $ a1 ~= "select" -- special case for esqueleto, see #224
               , let y = App an a1 (Paren an a2)
               , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]
 
