@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
-module HSE.Util where
+module HSE.Util(module HSE.Util) where
 
 import Control.Monad
 import Data.List

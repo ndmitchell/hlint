@@ -1,6 +1,9 @@
 {-# LANGUAGE PatternGuards, TypeSynonymInstances, FlexibleInstances #-}
 
-module HSE.Bracket where
+module HSE.Bracket(
+    Brackets(..),
+    paren, transformBracket, rebracket1, appsBracket
+    ) where
 
 import HSE.Type
 import HSE.Util

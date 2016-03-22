@@ -1,4 +1,4 @@
-module Refact where
+module Refact(toRefactSrcSpan, toSS) where
 
 import qualified Refact.Types as R
 import HSE.All

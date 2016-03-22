@@ -1,6 +1,10 @@
 {-# LANGUAGE ViewPatterns, MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
 
-module HSE.Match where
+module HSE.Match(
+    View(..), Named(..),
+    (~=), isSym,
+    App2(..), PVar_(..), Var_(..), PApp_(..)
+    ) where
 
 import Data.Char
 import HSE.Type

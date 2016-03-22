@@ -1,5 +1,5 @@
 
-module Main where
+module Main(main) where
 
 import Language.Haskell.HLint3
 import Control.Monad
