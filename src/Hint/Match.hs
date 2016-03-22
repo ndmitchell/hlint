@@ -104,9 +104,11 @@ matchIdea s decl HintRule{..} parent x = do
     let nm a b = scopeMatch (hintRuleScope,a) (s,b)
     u <- unifyExp nm True hintRuleLHS x
     u <- check u
+    -- need to check free vars before unqualification, but after subst (with e)
+    -- need to unqualify before substitution (with res)
     let e = subst u hintRuleRHS
         template = substT u hintRuleRHS
-    let res = addBracket parent $ unqualify hintRuleScope s u $ performEval e
+        res = addBracket parent $ performEval $ subst u $ unqualify hintRuleScope s u hintRuleRHS
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables
@@ -301,6 +303,7 @@ unqualify from to subs = transformBi f
     where
         f (Qual _ (ModuleName _ [m]) x) | Just y <- fromNamed <$> lookup [m] subs
             = if null y then UnQual an x else Qual an (ModuleName an y) x
+        f x@(UnQual _ (Ident _ s)) | isUnifyVar s = x
         f x = scopeMove (from,x) to
 
 
