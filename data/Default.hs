@@ -730,5 +730,8 @@ import qualified Data.Text.Lazy as DTL \
 main = DTL.concat $ map (`DTL.snoc` '-') [DTL.pack "one", DTL.pack "two", DTL.pack "three"]
 import Text.Blaze.Html5.Attributes as A \
 main = A.id (stringValue id')
+import Prelude((==)) \
+import qualified Prelude as P \
+main = P.length xs == 0 -- P.null xs
 </TEST>
 -}
