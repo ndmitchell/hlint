@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.32
     #53, require cpphs-1.20.1, has important fixes
     #224, treat select $ specially, as per esqueleto conventions
     #231, don't modify qualification on substitutions
