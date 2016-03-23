@@ -47,7 +47,7 @@ library
     build-depends:
         base == 4.*, process, filepath, directory, containers,
         transformers,
-        cpphs >= 1.18.1,
+        cpphs >= 1.20.1,
         cmdargs >= 0.10,
         haskell-src-exts >= 1.17 && < 1.18,
         uniplate >= 1.5,
