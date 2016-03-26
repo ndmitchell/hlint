@@ -399,7 +399,7 @@ warn = x /= Nothing  ==>  Data.Maybe.isJust x
 warn = Nothing /= x  ==>  Data.Maybe.isJust x
 warn = concatMap (maybeToList . f) ==> Data.Maybe.mapMaybe f
 warn = concatMap maybeToList ==> catMaybes
-warn = maybe n Just x ==> Control.Monad.mplus x n
+warn = maybe n Just x ==> x Control.Applicative.<|> n
 hint = (case x of Just a -> a; Nothing -> y)  ==> fromMaybe y x
 warn = (if isNothing x then y else fromJust x) ==> fromMaybe y x
 warn = (if isJust x then fromJust x else y) ==> fromMaybe y x
