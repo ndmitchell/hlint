@@ -1,14 +1,13 @@
 
 module Hint.All(
     Hint(..), HintBuiltin(..), DeclHint, ModuHint,
-    resolveHints, hintRules, resolveBuiltin, builtinHints
+    resolveHints, hintRules, builtinHints
     ) where
 
 import Data.Monoid
 import Settings
 import Data.Either
 import Data.List
-import Data.Maybe
 import Hint.Type
 import Prelude
 
@@ -67,10 +66,6 @@ builtinHints = [(drop 4 $ show h, resolveHints [Left h]) | h <- [minBound .. max
 resolveHints :: [Either HintBuiltin HintRule] -> Hint
 resolveHints xs = mconcat $ mempty{hintDecl=readMatch rights} : map builtin (nub lefts)
     where (lefts,rights) = partitionEithers xs
-
-resolveBuiltin :: [String] -> [Hint]
-resolveBuiltin builtin = map f $ nub $ concat [if x == "All" then map fst builtinHints else [x] | x <- builtin]
-    where f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x builtinHints
 
 hintRules :: [HintRule] -> Hint
 hintRules = resolveHints . map Right

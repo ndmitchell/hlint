@@ -38,6 +38,7 @@ import CmdLine
 import Paths_hlint
 
 import Control.Applicative
+import Data.Maybe
 import Data.Monoid
 import Data.Tuple.Extra
 import Data.List.Extra
@@ -48,6 +49,11 @@ import Prelude
 -- | Get the Cabal configured data directory of HLint
 getHLintDataDir :: IO FilePath
 getHLintDataDir = getDataDir
+
+resolveBuiltin :: [String] -> [Hint]
+resolveBuiltin builtin = map f $ nub $ concat [if x == "All" then map fst builtinHints else [x] | x <- builtin]
+    where f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x builtinHints
+
 
 -- | The function produces a tuple containg 'ParseFlags' (for 'parseModuleEx'), and 'Classify' and 'Hint' for 'applyHints'.
 --   It approximates the normal HLint configuration steps, roughly:
