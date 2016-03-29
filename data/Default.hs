@@ -374,6 +374,7 @@ hint "Redundant list comprehension" = [x | x <- y] ==> y where _ = isVar x
 -- SEQ
 
 warn "Redundant seq" = x `seq` x ==> x
+warn "Redundant seq" = join seq ==> id
 warn "Redundant $!" = id $! x ==> x
 warn "Redundant seq" = x `seq` y ==> y where _ = isWHNF x
 warn "Redundant $!" = f $! x ==> f x where _ = isWHNF x
