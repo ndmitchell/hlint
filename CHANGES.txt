@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #234, warn about join seq
     #232, suggest <|> instead of mplus in a few cases
 1.9.32
     #53, require cpphs-1.20.1, has important fixes
