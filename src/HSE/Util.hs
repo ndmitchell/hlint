@@ -98,6 +98,7 @@ isPViewPat PViewPat{} = True; isPViewPat _ = False
 isParComp ParComp{} = True; isParComp _ = False
 isPatTypeSig PatTypeSig{} = True; isPatTypeSig _ = False
 isQuasiQuote QuasiQuote{} = True; isQuasiQuote _ = False
+isTyQuasiQuote TyQuasiQuote{} = True; isTyQuasiQuote _ = False
 isSpliceDecl SpliceDecl{} = True; isSpliceDecl _ = False
 isNewType NewType{} = True; isNewType _ = False
 isRecStmt RecStmt{} = True; isRecStmt _ = False
