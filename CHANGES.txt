@@ -1,6 +1,5 @@
 Changelog for HLint
 
-    #237, fix incorrect quasi quotes extension warning
     #234, warn about join seq
     #232, suggest <|> instead of mplus in a few cases
 1.9.32
