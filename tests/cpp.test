@@ -33,12 +33,42 @@ OUTPUT
 No hints
 
 ---------------------------------------------------------------------
-RUN --cpp-file=tests/cabal_macros.h tests/cpp-file.hs
-FILE tests/cabal_macros.h
-#define MIN_VERSION_wai(a,b,c) 1
-FILE tests/cpp-file.hs
+RUN tests/cpp-file1.hs
+FILE tests/cpp-file1.hs
 import Network.Wai
 #if MIN_VERSION_wai(2, 0, 0)
+import Network.Wai.Internal
+#endif
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN --cpp-file=tests/cabal_macros.h tests/cpp-file2.hs
+FILE tests/cabal_macros.h
+#define MIN_VERSION_wai(a,b,c) 1
+FILE tests/cpp-file2.hs
+import Network.Wai
+#if MIN_VERSION_wai(2, 0, 0)
+import Network.Wai.Internal
+#endif
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN --cpp-simple tests/cpp-file3.hs
+FILE tests/cpp-file3.hs
+import Network.Wai
+#if MIN_VERSION_wai(2, 0, 0)
+import Network.Wai.Internal
+#endif
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN --cpp-simple tests/cpp-file4.hs
+FILE tests/cpp-file4.hs
+import Network.Wai
+#if defined(MIN_VERSION_wai) && MIN_VERSION_wai(2, 0, 0)
 import Network.Wai.Internal
 #endif
 OUTPUT
