@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards, TypeSynonymInstances, FlexibleInstances #-}
+{-# OPTIONS_GHC -fno-warn-overlapping-patterns -fno-warn-incomplete-patterns #-}
 
 module HSE.Bracket(
     Brackets(..),
