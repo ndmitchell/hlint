@@ -225,7 +225,6 @@ warn "Redundant $" = (($) . f) ==> f
 warn "Redundant $" = (f $) ==> f
 hint = (\x -> y) ==> const y where _ = isAtom y && not (isWildcard y)
 warn "Redundant flip" = flip f x y ==> f y x where _ = isApp original
-hint = (\a b -> g (f a) (f b)) ==> g `Data.Function.on` f
 warn "Evaluate" = id x ==> x
 warn "Redundant id" = id . x ==> x
 warn "Redundant id" = x . id ==> x

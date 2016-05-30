@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #240, remove type-incorrect "on" hint
     #234, warn about join seq
     #232, suggest <|> instead of mplus in a few cases
 1.9.32
