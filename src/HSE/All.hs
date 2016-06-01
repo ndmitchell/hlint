@@ -21,6 +21,8 @@ import Data.Maybe
 import Language.Preprocessor.Cpphs
 import qualified Data.Map as Map
 import System.IO
+import Data.Functor
+import Prelude
 
 
 -- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
