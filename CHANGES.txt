@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #154, fix some incorrect line numbers in literate Haskell
     #161, fix literate Haskell and CPP
 1.9.33
     #240, remove type-incorrect "on" hint
