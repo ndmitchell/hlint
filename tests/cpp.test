@@ -51,8 +51,15 @@ import Network.Wai
 #if MIN_VERSION_wai(2, 0, 0)
 import Network.Wai.Internal
 #endif
+foo = map f . map g
 OUTPUT
-No hints
+tests/cpp-file2.hs:5:7: Suggestion: Use map once
+Found:
+  map f . map g
+Why not:
+  map (f . g)
+
+1 hint
 
 ---------------------------------------------------------------------
 RUN --cpp-simple tests/cpp-file3.hs
