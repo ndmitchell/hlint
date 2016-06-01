@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.34
     #154, fix some incorrect line numbers in literate Haskell
     #161, fix literate Haskell and CPP
 1.9.33
