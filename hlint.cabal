@@ -52,7 +52,7 @@ library
         haskell-src-exts >= 1.17 && < 1.18,
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
-        extra >= 0.5,
+        extra >= 1.4.9,
         refact >= 0.3
 
     if flag(gpl)
