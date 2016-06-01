@@ -50,7 +50,7 @@ parseFlagsSetLanguage (l, es) x = x{hseFlags=(hseFlags x){baseLanguage = l, exte
 runCpp :: CppFlags -> FilePath -> String -> IO String
 runCpp NoCpp _ x = return x
 runCpp CppSimple _ x = return $ unlines [if "#" `isPrefixOf` trimStart x then "" else x | x <- lines x]
-runCpp (Cpphs o) file x = runCpphs o file x
+runCpp (Cpphs o) file x = drop 1 . dropWhile (/= '\n') <$> runCpphs o file x
 
 
 ---------------------------------------------------------------------

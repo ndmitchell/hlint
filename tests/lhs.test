@@ -5,7 +5,7 @@ BUG 331
 
 > main = print ([1] ++ [2, 3])
 OUTPUT
-tests/lhs-line-numbers.lhs:4:17: Suggestion: Use :
+tests/lhs-line-numbers.lhs:3:17: Suggestion: Use :
 Found:
   [1] ++ [2, 3]
 Why not:
@@ -25,10 +25,23 @@ BUG 331
 module
 \end{code}
 OUTPUT
-tests/lhs-line-numbers2.lhs:11:1: Error: Parse error: EOF
+tests/lhs-line-numbers2.lhs:10:1: Error: Parse error: EOF
 Found:
     \end{code}
 
   >
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/lhs-first-line.lhs
+FILE tests/lhs-first-line.lhs
+> main = print ([1] ++ [2, 3])
+OUTPUT
+tests/lhs-first-line.lhs:1:17: Suggestion: Use :
+Found:
+  [1] ++ [2, 3]
+Why not:
+  1 : [2, 3]
 
 1 hint
