@@ -97,7 +97,7 @@ Emacs integration has been provided by [Alex Ott](http://xtalk.msk.su/~ott/). Th
 
 ### GHCi Integration
 
-GHCi integration has been provided by Gwern Branwen. The integration allows running `:hlint` from the GHCi prompt. The script is at [hlint.ghci](https://raw.githubusercontent.com/ndmitchell/hlint/master/data/hlint.ghci), and a copy is installed locally in the data directory. To use, add the contents to your [GHCi startup file](http://www.haskell.org/ghc/docs/latest/html/users_guide/ghci-dot-files.html).
+GHCi integration has been provided by Gwern Branwen. The integration allows running `:hlint` from the GHCi prompt. The script is at [hlint.ghci](https://raw.githubusercontent.com/ndmitchell/hlint/master/data/hlint.ghci), and a copy is installed locally in the data directory. To use, add the contents to your [GHCi startup file](https://www.haskell.org/ghc/docs/latest/html/users_guide/ghci.html#the-ghci-and-haskeline-files).
 
 ### Parallel Operation
 
