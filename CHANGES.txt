@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #243, update hlint.ghci to work with modern GHC
     Require extra-1.4.9
 1.9.34
     #154, fix some incorrect line numbers in literate Haskell
