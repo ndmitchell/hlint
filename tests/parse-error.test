@@ -4,3 +4,18 @@ FILE tests/ignore-parse-error.hs
 where
 OUTPUT
 No hints (1 ignored)
+
+---------------------------------------------------------------------
+RUN tests/ignore-parse-error2.hs
+FILE tests/ignore-parse-error2.hs
+module Foo where
+
+where
+OUTPUT
+tests/ignore-parse-error2.hs:3:1: Error: Parse error: where
+Found:
+    module Foo where
+
+  > where
+
+1 hint
