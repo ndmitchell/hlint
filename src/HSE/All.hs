@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 
 module HSE.All(
     module X,
@@ -52,7 +53,11 @@ parseFlagsSetLanguage (l, es) x = x{hseFlags=(hseFlags x){baseLanguage = l, exte
 runCpp :: CppFlags -> FilePath -> String -> IO String
 runCpp NoCpp _ x = return x
 runCpp CppSimple _ x = return $ unlines [if "#" `isPrefixOf` trimStart x then "" else x | x <- lines x]
-runCpp (Cpphs o) file x = snd . line1 <$> runCpphs o file x
+runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
+    where
+        -- LINE pragmas always inserted when locations=True
+        dropLine (line1 -> (a,b)) | "{-# LINE " `isPrefixOf` a = b
+        dropLine x = x
 
 
 ---------------------------------------------------------------------
