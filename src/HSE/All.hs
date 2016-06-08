@@ -81,6 +81,7 @@ parseModuleEx flags file str = do
             ParseOk (x, cs) -> return $ Right (applyFixity fixity x, cs)
             ParseFailed sl msg -> do
                 -- figure out the best line number to grab context from, by reparsing
+                -- but not generating {-# LINE #-} pragmas
                 flags <- return $ parseFlagsNoLocations flags
                 ppstr2 <- runCpp (cppFlags flags) file str
                 let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
