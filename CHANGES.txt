@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.35
     #245, fix parse error reports
     #243, update hlint.ghci to work with modern GHC
     Require extra-1.4.9
