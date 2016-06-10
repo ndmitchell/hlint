@@ -69,6 +69,7 @@ resolveBuiltin builtin = map f $ nub $ concat [if x == "All" then map fst builti
 autoSettings :: IO (ParseFlags, [Classify], Hint)
 autoSettings = getHLintDataDir >>= autoSettings'
 
+-- | Like 'autoSettings' but with a custom data directory.
 autoSettings' :: FilePath -> IO (ParseFlags, [Classify], Hint)
 autoSettings' dataDir = do
     (builtin, matches) <- first resolveBuiltin <$> findSettings dataDir (dataDir </> "HLint.hs") Nothing

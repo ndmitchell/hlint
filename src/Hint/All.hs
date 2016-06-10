@@ -62,10 +62,11 @@ builtin x = case x of
 builtinHints :: [(String, Hint)]
 builtinHints = [(drop 4 $ show h, resolveHints [Left h]) | h <- [minBound .. maxBound]]
 
--- | Transform a list of 'HintRule' into a 'Hint'.
+-- | Transform a list of 'HintBuiltin' or 'HintRule' into a 'Hint'.
 resolveHints :: [Either HintBuiltin HintRule] -> Hint
 resolveHints xs = mconcat $ mempty{hintDecl=readMatch rights} : map builtin (nub lefts)
     where (lefts,rights) = partitionEithers xs
 
+-- | Transform a list of 'HintRule' into a 'Hint'.
 hintRules :: [HintRule] -> Hint
 hintRules = resolveHints . map Right

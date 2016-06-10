@@ -42,6 +42,7 @@ parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
     where f x = x{boolopts = (boolopts x){locations=False}}
 
+-- | Given some fixities, add them to the existing fixities in 'ParseFlags'.
 parseFlagsAddFixities :: [Fixity] -> ParseFlags -> ParseFlags
 parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = Just $ fx ++ fromMaybe [] (fixities hse)}}
     where hse = hseFlags x
