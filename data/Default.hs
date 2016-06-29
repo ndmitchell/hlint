@@ -162,6 +162,8 @@ warn = findIndices ((==) a) ==> elemIndices a
 warn = findIndices (a ==) ==> elemIndices a
 warn = findIndices (== a) ==> elemIndices a
 warn = lookup b (zip l [0..]) ==> elemIndex b l
+hint = elem x [y] ==> x == y where note = ValidInstance "Eq" a
+hint = notElem x [y] ==> x /= y where note = ValidInstance "Eq" a
 hint "Length always non-negative" = length x >= 0 ==> True
 hint "Use null" = length x > 0 ==> not (null x) where note = IncreasesLaziness
 hint "Use null" = length x >= 1 ==> not (null x) where note = IncreasesLaziness
