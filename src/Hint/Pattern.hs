@@ -5,7 +5,7 @@
 
 <TEST>
 yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
-x `yes` y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
+x `yes` y = if a then b else if c then d else e -- x `yes` y ; | a = b ; | c = d ; | otherwise = e
 no x y = if a then b else c
 -- foo b | c <- f b = c -- foo (f -> c) = c
 -- foo x y b z | c:cs <- f g b = c -- foo x y (f g -> c:cs) z = c

@@ -49,7 +49,7 @@ library
         transformers,
         cpphs >= 1.20.1,
         cmdargs >= 0.10,
-        haskell-src-exts >= 1.17 && < 1.18,
+        haskell-src-exts >= 1.18 && < 1.19,
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
         extra >= 1.4.9,

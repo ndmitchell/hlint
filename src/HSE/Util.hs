@@ -7,7 +7,6 @@ import Data.List
 import Data.Maybe
 import System.FilePath
 import HSE.Type
-import Language.Haskell.Exts.Annotated.Simplify(sQName, sAssoc)
 import Prelude
 
 
@@ -150,6 +149,8 @@ isLexeme Con{} = True
 isLexeme Lit{} = True
 isLexeme _ = False
 
+isAssocLeft AssocLeft{} = True; isAssocLeft _ = False
+isAssocNone AssocNone{} = True; isAssocNone _ = False
 
 isWHNF :: Exp_ -> Bool
 isWHNF Con{} = True
@@ -312,7 +313,7 @@ eqMaybe _ _ = False
 -- FIXITIES
 
 getFixity :: Decl a -> [Fixity]
-getFixity (InfixDecl sl a mp ops) = [Fixity (sAssoc a) (fromMaybe 9 mp) (sQName $ UnQual sl $ f op) | op <- ops]
+getFixity (InfixDecl sl a mp ops) = [Fixity (void a) (fromMaybe 9 mp) (UnQual () $ void $ f op) | op <- ops]
     where f (VarOp _ x) = x
           f (ConOp _ x) = x
 getFixity _ = []

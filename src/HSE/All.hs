@@ -128,8 +128,8 @@ cheapFixities fixs = descendBi (transform f)
         ask = askFixity fixs
 
         f o@(InfixApp s1 (InfixApp s2 x op1 y) op2 z)
-                | p1 == p2 && (a1 /= a2 || a1 == AssocNone) = o -- Ambiguous infix expression!
-                | p1 > p2 || p1 == p2 && (a1 == AssocLeft || a2 == AssocNone) = o
+                | p1 == p2 && (a1 /= a2 || isAssocNone a1) = o -- Ambiguous infix expression!
+                | p1 > p2 || p1 == p2 && (isAssocLeft a1 || isAssocNone a2) = o
                 | otherwise = InfixApp s1 x op1 (f $ InfixApp s1 y op2 z)
             where
                 (a1,p1) = ask op1
@@ -137,7 +137,7 @@ cheapFixities fixs = descendBi (transform f)
         f x = x
 
 
-askFixity :: [Fixity] -> QOp S -> (Assoc, Int)
-askFixity xs = \k -> Map.findWithDefault (AssocLeft, 9) (fromNamed k) mp
+askFixity :: [Fixity] -> QOp S -> (Assoc (), Int)
+askFixity xs = \k -> Map.findWithDefault (AssocLeft (), 9) (fromNamed k) mp
     where
-        mp = Map.fromList [(s,(a,p)) | Fixity a p x <- xs, let s = fromNamed x, s /= ""]
+        mp = Map.fromList [(s,(a,p)) | Fixity a p x <- xs, let s = fromNamed $ fmap (const an) x, s /= ""]

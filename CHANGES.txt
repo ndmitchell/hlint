@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Require haskell-src-exts-1.18
     #249, suggest avoiding elem on singletons
 1.9.35
     #245, fix parse error reports
