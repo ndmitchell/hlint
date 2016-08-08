@@ -228,6 +228,7 @@ warn "Redundant $" = (f $) ==> f
 hint = (\x -> y) ==> const y where _ = isAtom y && not (isWildcard y)
 warn "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 warn "Evaluate" = id x ==> x
+    where _ = not (isTypeApp x)
 warn "Redundant id" = id . x ==> x
 warn "Redundant id" = x . id ==> x
 
@@ -707,6 +708,8 @@ foo = (\a -> Foo {..}) 1
 foo = zipWith SymInfo [0 ..] (repeat ty) -- map (\ x -> SymInfo x ty) [0 ..]
 f rec = rec
 mean x = fst $ foldl (\(m, n) x' -> (m+(x'-m)/(n+1),n+1)) (0,0) x
+foo = id @Int
+foo = id 12 -- 12
 
 import Prelude \
 yes = flip mapM -- Control.Monad.forM
