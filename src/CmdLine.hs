@@ -17,7 +17,7 @@ import Language.Haskell.Exts(defaultParseMode, baseLanguage)
 import Language.Haskell.Exts.Extension
 import Data.Maybe
 import System.Environment
-import System.Info.Extra
+import qualified System.Info.Extra as Info
 
 import Util
 import Paths_hlint
@@ -66,7 +66,7 @@ data ColorMode
 
 
 instance Default ColorMode where
-  def = if isWindows then Never else Auto
+  def = if Info.isWindows then Never else Auto
 
 
 data Cmd
