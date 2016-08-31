@@ -43,6 +43,9 @@ foo = 1 where Just !True = Nothing
 foo otherwise = 1 -- _
 foo ~x = y -- x
 {-# LANGUAGE Strict #-} foo ~x = y
+foo !(x, y) = x -- (x, y)
+foo ![x] = x -- [x]
+foo !Bar { bar = x } = x -- Bar { bar = x }
 </TEST>
 -}
 
