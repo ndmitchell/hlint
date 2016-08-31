@@ -46,6 +46,7 @@ foo ~x = y -- x
 foo !(x, y) = x -- (x, y)
 foo ![x] = x -- [x]
 foo !Bar { bar = x } = x -- Bar { bar = x }
+l !(() :: ()) = x -- (() :: ())
 </TEST>
 -}
 
@@ -168,6 +169,7 @@ patHint lang strict o@(PBangPat _ x) | strict, f x = [warn "Redundant bang patte
           f PTuple{} = True
           f PList{} = True
           f PRec{} = True
+          f (PatTypeSig _ x _) = f x
           f _ = False
           r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
 patHint False strict o@(PIrrPat _ x) | f x = [warn "Redundant irrefutable pattern" o x [r]]
