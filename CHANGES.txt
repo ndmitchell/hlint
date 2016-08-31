@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #257, better bang pattern hints
 1.9.37
     #255, don't suggest id @Int ==> @Int
     #252, avoid clashes with GHCJS in the interim
