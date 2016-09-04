@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #237, fix incorrect quasi quotes extension warning
     #257, better bang pattern hints
 1.9.37
     #255, don't suggest id @Int ==> @Int
