@@ -1,4 +1,4 @@
-cabal-version:      >= 1.8
+cabal-version:      >= 1.18
 build-type:         Simple
 name:               hlint
 version:            1.9.37
@@ -44,6 +44,7 @@ flag gpl
     description: Use GPL libraries, specifically hscolour
 
 library
+    default-language:   Haskell2010
     build-depends:
         base == 4.*, process, filepath, directory, containers,
         transformers,
@@ -112,6 +113,7 @@ library
 
 
 executable hlint
+    default-language:   Haskell2010
     build-depends:      base, hlint
     main-is:            src/Main.hs
 
