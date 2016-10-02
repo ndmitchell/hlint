@@ -68,7 +68,7 @@ autoSettings = do
 
 -- | A version of 'autoSettings' which respects some of the arguments supported by HLint.
 --   If arguments unrecognised by HLint are used it will result in an error.
---   Arugments which have no representation in the return type are silently ignored.
+--   Arguments which have no representation in the return type are silently ignored.
 argsSettings :: [String] -> IO (ParseFlags, [Classify], Hint)
 argsSettings args = do
     cmd <- getCmd args
