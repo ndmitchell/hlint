@@ -115,7 +115,7 @@ data Cmd
         }
     | CmdTest
         {cmdProof :: [FilePath]          -- ^ a proof script to check against
-        ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
+        ,cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
         ,cmdDataDir :: FilePath          -- ^ the data directory
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
