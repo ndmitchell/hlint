@@ -132,7 +132,10 @@ runHints cmd@CmdMain{..} flags = do
     ideas <- if cmdCross
         then applyHintFiles flags settings cmdFiles
         else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
-    let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
+    onlyIdeas <- if not (null cmdOnly)
+        then return [i | i <- ideas, ideaHint i `elem` cmdOnly]
+        else return ideas
+    let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) onlyIdeas
     usecolour <- cmdUseColour cmd
     showItem <- if usecolour then showANSI else return show
     if cmdJson
