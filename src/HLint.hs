@@ -128,48 +128,61 @@ runHints :: Cmd -> ParseFlags -> IO [Idea]
 runHints cmd@CmdMain{..} flags = do
     let outStrLn = whenNormal . putStrLn
     settings <- readAllSettings cmd flags
-
-    ideas <- if cmdCross
-        then applyHintFiles flags settings cmdFiles
-        else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
-    onlyIdeas <- if not (null cmdOnly)
-        then return [i | i <- ideas, ideaHint i `elem` cmdOnly]
-        else return ideas
-    let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) onlyIdeas
-    usecolour <- cmdUseColour cmd
-    showItem <- if usecolour then showANSI else return show
+    ideas <- getIdeas cmd settings flags
+    let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
     if cmdJson
         then putStrLn . showIdeasJson $ showideas
         else if cmdSerialise then do
           hSetBuffering stdout NoBuffering
           print $ map (show &&& ideaRefactoring) showideas
         else if cmdRefactor then
-          case cmdFiles of
-            [file] -> do
-              -- Ensure that we can find the executable
-              path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
-              -- writeFile "hlint.refact"
-              let hints =  show $ map (show &&& ideaRefactoring) showideas
-              withTempFile $ \f -> do
-                writeFile f hints
-                runRefactoring path file f cmdRefactorOptions
-                -- Exit with the exit code from 'refactor'
-                >>= exitWith
-            _ -> error "Refactor flag can only be used with an individual file"
-
+          handleRefactoring showideas cmdFiles cmd
         else do
+            usecolour <- cmdUseColour cmd
+            showItem <- if usecolour then showANSI else return show
             mapM_ (outStrLn . showItem) showideas
-            if null showideas then
-                when (cmdReports /= []) $ outStrLn "Skipping writing reports"
-             else
-                forM_ cmdReports $ \x -> do
-                    outStrLn $ "Writing report to " ++ x ++ " ..."
-                    writeReport cmdDataDir x showideas
-            unless cmdNoSummary $
-                outStrLn $
-                    (let i = length showideas in if i == 0 then "No hints" else show i ++ " hint" ++ ['s' | i/=1]) ++
-                    (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
+            handleReporting showideas hideideas cmd
     return showideas
+
+getIdeas :: Cmd -> [Setting] -> ParseFlags -> IO [Idea]
+getIdeas cmd@CmdMain{..} settings flags = do
+  ideas <- if cmdCross
+    then applyHintFiles flags settings cmdFiles
+    else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
+  onlyIdeas <- if not (null cmdOnly)
+    then return [i | i <- ideas, ideaHint i `elem` cmdOnly]
+    else return ideas
+  return onlyIdeas
+
+handleRefactoring :: [Idea] -> [String] -> Cmd -> IO ()
+handleRefactoring showideas files cmd@CmdMain{..} =
+  case cmdFiles of
+    [file] -> do
+      -- Ensure that we can find the executable
+      path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
+      -- writeFile "hlint.refact"
+      let hints =  show $ map (show &&& ideaRefactoring) showideas
+      withTempFile $ \f -> do
+        writeFile f hints
+        runRefactoring path file f cmdRefactorOptions
+        -- Exit with the exit code from 'refactor'
+        >>= exitWith
+    _ -> error "Refactor flag can only be used with an individual file"
+
+
+handleReporting :: [Idea] -> [Idea] -> Cmd -> IO ()
+handleReporting showideas hideideas cmd@CmdMain{..} = do
+  let outStrLn = whenNormal . putStrLn
+  if null showideas then
+    when (cmdReports /= []) $ outStrLn "Skipping writing reports"
+  else
+    forM_ cmdReports $ \x -> do
+      outStrLn $ "Writing report to " ++ x ++ " ..."
+      writeReport cmdDataDir x showideas
+  unless cmdNoSummary $
+    outStrLn $
+      (let i = length showideas in if i == 0 then "No hints" else show i ++ " hint" ++ ['s' | i/=1]) ++
+      (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
 
 runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
 runRefactoring rpath fin hints opts =  do
