@@ -149,10 +149,9 @@ getIdeas cmd@CmdMain{..} settings flags = do
   ideas <- if cmdCross
     then applyHintFiles flags settings cmdFiles
     else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
-  onlyIdeas <- if not (null cmdOnly)
-    then return [i | i <- ideas, ideaHint i `elem` cmdOnly]
-    else return ideas
-  return onlyIdeas
+  return $ if not (null cmdOnly)
+    then [i | i <- ideas, ideaHint i `elem` cmdOnly]
+    else ideas
 
 handleRefactoring :: [Idea] -> [String] -> Cmd -> IO ()
 handleRefactoring showideas files cmd@CmdMain{..} =
