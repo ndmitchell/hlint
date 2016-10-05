@@ -1,4 +1,4 @@
-# HLint [![Hackage version](https://img.shields.io/hackage/v/hlint.svg?label=Hackage)](https://hackage.haskell.org/package/hlint) [![Stackage version](https://www.stackage.org/package/hlint/badge/lts?label=Stackage)](https://www.stackage.org/package/hlint) [![Linux Build Status](https://img.shields.io/travis/ndmitchell/hlint.svg?label=Linux%20build)](https://travis-ci.org/ndmitchell/hlint) [![Windows Build Status](https://img.shields.io/appveyor/ci/ndmitchell/hlint.svg?label=Windows%20build)](https://ci.appveyor.com/project/ndmitchell/hlint)
+# HLint [![Hackage version](https://img.shields.io/hackage/v/hlint.svg?label=Hackage)](https://hackage.haskell.org/package/hlint) [![Stackage version](https://www.stackage.org/package/hlint/badge/lts?label=Stackage)](https://www.stackage.org/package/hlint) [![Linux Build Status](https://img.shields.io/travis/ndmitchell/hlint.svg?label=Linux%20build)](https://travis-ci.org/ndmitchell/hlint) [![Windows Build Status](https://img.shields.io/appveyor/ci/ndmitchell/hlint.svg?label=Windows%20build)](https://ci.appveyor.com/project/ndmitchell/hlint) [![Chat on Gitter](https://badges.gitter.im/gitterHQ/gitterHQ.github.io.svg)](https://gitter.im/hlint/Lobby)
 
 HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. You can try HLint online at [lpaste.net](http://lpaste.net/) - suggestions are shown at the bottom. This document is structured as follows:
 
@@ -151,13 +151,13 @@ Most hints are perfect substitutions, and these are displayed without any notes.
 
 * __Increases laziness__ - for example `foldl (&&) True` suggests `and` including this note. The new code will work on infinite lists, while the old code would not. Increasing laziness is usually a good idea.
 * __Decreases laziness__ - for example `(fst a, snd a)` suggests a including this note. On evaluation the new code will raise an error if a is an error, while the old code would produce a pair containing two error values. Only a small number of hints decrease laziness, and anyone relying on the laziness of the original code would be advised to include a comment.
-* __Removes error__ - for example `foldr1 (&&)` suggests and including the note `Removes error on []`. The new code will produce `True` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment. 
+* __Removes error__ - for example `foldr1 (&&)` suggests and including the note `Removes error on []`. The new code will produce `True` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment.
 
 ### What is the difference between error/warning/suggestion?
 
 Every hint has a severity level:
 
-* __Error__ - by default only used for parse errors. 
+* __Error__ - by default only used for parse errors.
 * __Warning__ - for example `concat (map f x)` suggests `concatMap f x` as a "warning" severity hint. From a style point of view, you should always replace a combination of `concat` and `map` with `concatMap`.
 * __Suggestion__ - for example `x !! 0` suggests `head x` as a "suggestion" severity hint. Typically `head` is a simpler way of expressing the first element of a list, especially if you are treating the list inductively. However, in the expression `f (x !! 4) (x !! 0) (x !! 7)`, replacing the middle argument with `head` makes it harder to follow the pattern, and is probably a bad idea. Suggestion hints are often worthwhile, but should not be applied blindly.
 
