@@ -9,7 +9,7 @@ no = f (x x)
 yes = (foo) -- foo
 yes = (foo bar) -- @Suggestion foo bar
 yes = foo (bar) -- @Warning bar
-yes = foo ((x x)) -- @Warning (x x)
+yes = foo ((x x)) -- @Suggestion (x x)
 yes = (f x) ||| y -- @Suggestion f x ||| y
 yes = if (f x) then y else z -- @Suggestion if f x then y else z
 yes = if x then (f y) else z -- @Suggestion if x then f y else z
@@ -20,6 +20,7 @@ yes = C { f = (e h) } -- @Suggestion C {f = e h}
 yes = \ x -> (x && x) -- @Suggestion \x -> x && x
 no = \(x -> y) -> z
 yes = (`foo` (bar baz)) -- @Suggestion (`foo` bar baz)
+yes = f ((x)) -- @Warning x
 main = do f; (print x) -- @Suggestion do f print x
 
 -- type bracket reduction
@@ -31,7 +32,7 @@ data Foo = Foo {foo :: (Maybe Foo)} -- @Suggestion foo :: Maybe Foo
 -- pattern bracket reduction
 foo (x:xs) = 1
 foo (True) = 1 -- @Warning True
-foo ((True)) = 1 -- @Warning (True)
+foo ((True)) = 1 -- @Warning True
 foo (A{}) = True -- A{}
 f x = case x of (Nothing) -> 1; _ -> 2 -- Nothing
 
@@ -93,7 +94,12 @@ tyConToRtype _      = Expr
 findType :: (Data a) => a -> RType
 findType = tyConToRtype . dataTypeName . dataTypeOf
 
-
+-- Just if at least one paren was removed
+-- Nothing if zero parens were removed
+remParens :: Brackets a => a -> Maybe a
+remParens = fmap go . remParen
+  where
+    go e = maybe e go (remParen e)
 
 bracket :: (Data (a S), Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
 bracket bad = f Nothing
@@ -102,9 +108,9 @@ bracket bad = f Nothing
 
         -- f (Maybe (index, parent, gen)) child
         f :: (Data (a S), Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
-        f Just{} o@(remParen -> Just x) | isAtom x = bracketError msg o x : g x
-        f Nothing o@(remParen -> Just x) | bad || isAtom x = (if isAtom x then bracketError else bracketWarning) msg o x : g x
-        f (Just (i,o,gen)) v@(remParen -> Just x) | not $ needBracket i o x =
+        f Just{} o@(remParens -> Just x) | isAtom x = bracketError msg o x : g x
+        f Nothing o@(remParens -> Just x) | bad || isAtom x = (if isAtom x then bracketError else bracketWarning) msg o x : g x
+        f (Just (i,o,gen)) v@(remParens -> Just x) | not $ needBracket i o x =
           suggest msg o (gen x) [r] : g x
           where
             typ = findType v
