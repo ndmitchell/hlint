@@ -1,4 +1,5 @@
 /dist/
 /.hpc/
 /.stack-work/
+/issues/
 stack.yaml
