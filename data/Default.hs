@@ -708,6 +708,7 @@ foo = (\a -> Foo {..}) 1
 foo = zipWith SymInfo [0 ..] (repeat ty) -- map (\ x -> SymInfo x ty) [0 ..]
 f rec = rec
 mean x = fst $ foldl (\(m, n) x' -> (m+(x'-m)/(n+1),n+1)) (0,0) x
+{-# LANGUAGE TypeApplications #-} \
 foo = id @Int
 foo = id 12 -- 12
 
