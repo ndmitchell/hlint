@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #262, add rules to detect redundant castPtr calls
     Detect unused TypeApplications extension
     #277, don't enable TypeApplications extension by default
     Allow haskell-src-exts-1.19

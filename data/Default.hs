@@ -465,6 +465,16 @@ hint = throw (ErrorCall a) ==> error a
 warn = toException NonTermination ==> nonTermination
 warn = toException NestedAtomically ==> nestedAtomically
 
+-- STOREABLE/PTR
+
+hint = castPtr nullPtr ==> nullPtr
+hint = castPtr (castPtr x) ==> castPtr x
+hint = plusPtr (castPtr x) ==> plusPtr x
+hint = minusPtr (castPtr x) ==> minusPtr x
+hint = minusPtr x (castPtr y) ==> minusPtr x y
+hint = peekByteOff (castPtr x) ==> peekByteOff x
+hint = pokeByteOff (castPtr x) ==> pokeByteOff x
+
 -- WEAK POINTERS
 
 warn = mkWeak a a b ==> mkWeakPtr a b
