@@ -5,7 +5,7 @@ HLint is a tool for suggesting possible improvements to Haskell code. These sugg
 * [Installing and running HLint](#installing-and-running-hlint)
 * [FAQ](#faq)
 * [Customizing the hints](#customizing-the-hints)
-* [Extending the HLint Code Base](#extending-the-hlint-code-base)
+* [Hacking HLint](#hacking-hlint)
 
 ### Acknowledgements
 
@@ -222,22 +222,24 @@ You can search for possible hints to add from a source file with the `--find` fl
 
 These hints are suitable for inclusion in a custom hint file. You can also include Haskell fixity declarations in a hint file, and these will also be extracted. If you pass only `--find` flags then the hints will be written out, if you also pass files/folders to check, then the found hints will be automatically used when checking.
 
-## Extending the HLint Code Base
+## Hacking HLint
 
 ### Tests
 
 Tests can be run either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `stack --exec hlint test`.
-New tests can be added directly to source and hint files by adding annotations bracketed in `<TEST></TEST>` code comment blocks:
+
+New tests for individual hints can be added directly to source and hint files by adding annotations bracketed in `<TEST></TEST>` code comment blocks. As some examples:
 
 ```haskell
 {-
-    Prefer zipFrom
+    Tests to check the zipFrom hint works
 
 <TEST>
 zip [1..length x] x -- zipFrom 1 x
+zip [1..length y] x
+zip [1..length x] x -- ??? @Warning
 </TEST>
 -}
 ```
 
-The general syntax has to conform to `lhs -- rhs` with `lhs` being the expression you expect to be rewritten as `rhs` (with `???` as `rhs` indicating you expect a warning without a particular suggestion).
-You can verify a test's severity category by manually specifying `@`-severity tags as shown in the example.
+The general syntax is `lhs -- rhs` with `lhs` being the expression you expect to be rewritten as `rhs`. The absence of `rhs` means you expect no hints to fire. In addition `???` lets you assert a warning without a particular suggestion, while `@` tags require a specific severity -- both these features are used less commonly.
