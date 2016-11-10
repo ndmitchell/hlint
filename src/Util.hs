@@ -133,4 +133,5 @@ badExtensions =
     ,UnboxedTuples -- breaks (#) lens operator
     ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
     ,DoRec, RecursiveDo -- breaks rec
+    ,TypeApplications -- HSE fails on @ patterns
     ]
