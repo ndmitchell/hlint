@@ -95,6 +95,7 @@ isPFieldWildcard PFieldWildcard{} = True; isPFieldWildcard _ = False
 isFieldWildcard FieldWildcard{} = True; isFieldWildcard _ = False
 isPViewPat PViewPat{} = True; isPViewPat _ = False
 isParComp ParComp{} = True; isParComp _ = False
+isTypeApp TypeApp{} = True; isTypeApp _ = False
 isPatTypeSig PatTypeSig{} = True; isPatTypeSig _ = False
 isQuasiQuote QuasiQuote{} = True; isQuasiQuote _ = False
 isTyQuasiQuote TyQuasiQuote{} = True; isTyQuasiQuote _ = False

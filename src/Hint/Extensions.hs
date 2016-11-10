@@ -69,6 +69,10 @@ f :: x -> (x, x); f x = (x, x) --
 class Val a where; val :: a --
 {-# LANGUAGE DefaultSignatures #-} \
 class Val a where; val :: a; default val :: Int
+{-# LANGUAGE TypeApplications #-} \
+foo = id --
+{-# LANGUAGE TypeApplications #-} \
+foo = id @Int
 </TEST>
 -}
 
@@ -120,6 +124,7 @@ used RecursiveDo = hasS isMDo & hasS isRecStmt
 used ParallelListComp = hasS isParComp
 used FunctionalDependencies = hasT (un :: FunDep S)
 used ImplicitParams = hasT (un :: IPName S)
+used TypeApplications = hasS isTypeApp
 used EmptyDataDecls = hasS f
     where f (DataDecl _ _ _ _ [] _) = True
           f (GDataDecl _ _ _ _ _ [] _) = True
