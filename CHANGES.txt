@@ -1,6 +1,6 @@
 Changelog for HLint
 
-    #277, disable TypeApplication by default
+    #277, don't enable TypeApplications extension by default
     Allow haskell-src-exts-1.19
     #276, remove multiple redundant parens in one go
     #160, add a --only CLI option
