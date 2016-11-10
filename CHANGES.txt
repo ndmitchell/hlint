@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Allow haskell-src-exts-1.19
     #276, remove multiple redundant parens in one go
     #160, add a --only CLI option
     #237, fix incorrect quasi quotes extension warning
