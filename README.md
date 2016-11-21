@@ -226,7 +226,7 @@ These hints are suitable for inclusion in a custom hint file. You can also inclu
 
 ### Tests
 
-Tests can be run either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `stack --exec hlint test`.
+Tests can be run either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `stack exec hlint test`.
 
 New tests for individual hints can be added directly to source and hint files by adding annotations bracketed in `<TEST></TEST>` code comment blocks. As some examples:
 
