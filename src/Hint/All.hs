@@ -25,6 +25,7 @@ import Hint.Extensions
 import Hint.Duplicate
 import Hint.Comment
 import Hint.Unsafe
+import Hint.NewType
 
 -- | A list of the builtin hints wired into HLint.
 --   This list is likely to grow over time.
@@ -32,7 +33,7 @@ data HintBuiltin =
     HintList | HintListRec | HintMonad | HintLambda |
     HintBracket | HintNaming | HintPattern | HintImport |
     HintPragma | HintExtensions | HintUnsafe | HintDuplicate |
-    HintComment
+    HintComment | HintNewType
     deriving (Show,Eq,Ord,Bounded,Enum)
 
 
@@ -51,6 +52,7 @@ builtin x = case x of
     HintUnsafe     -> modu unsafeHint
     HintDuplicate  -> mods duplicateHint
     HintComment    -> comm commentHint
+    HintNewType    -> decl newtypeHint
     where
         decl x = mempty{hintDecl=x}
         modu x = mempty{hintModule=x}
