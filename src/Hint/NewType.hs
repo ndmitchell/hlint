@@ -31,5 +31,5 @@ newtypeHintDecl d@(DataDecl sp (DataType dtA) ctx dclH
                  (RecDecl _ _ [_]) -> wrn
                  _ -> []
   where suggestion = DataDecl sp (NewType dtA) ctx dclH [qcD] der
-        wrn = [warnN "Found data declaration with only one field" d suggestion]
+        wrn = [(suggestN "Use newtype for data declaration with one field" d suggestion){ideaNote = [DecreasesLaziness]}]
 newtypeHintDecl _ = []
