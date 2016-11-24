@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.38
     #279, suggest newtype instead of data
     #262, add rules to detect redundant castPtr calls
     Detect unused TypeApplications extension
