@@ -99,6 +99,7 @@ library
         Hint.Match
         Hint.Monad
         Hint.Naming
+        Hint.NewType
         Hint.Pattern
         Hint.Pragma
         Hint.Type
