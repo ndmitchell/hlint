@@ -302,6 +302,7 @@ warn "Monad law, left identity" = f =<< return a ==> f a where _ = noQuickCheck
 warn "Monad law, right identity" = m >>= return ==> m where _ = noQuickCheck
 warn "Monad law, right identity" = return =<< m ==> m where _ = noQuickCheck
 warn = liftM ==> fmap
+warn = liftA ==> fmap
 hint = m >>= return . f ==> fmap f m where _ = noQuickCheck -- cannot be fmap, because is in Functor not Monad
 hint = return . f =<< m ==> fmap f m where _ = noQuickCheck
 warn = (if x then y else return ()) ==> Control.Monad.when x $ _noParen_ y where _ = not (isAtom y) && noQuickCheck
