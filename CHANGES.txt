@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.39
     #287, don't incorrectly suggest newtype
 1.9.38
     #279, suggest newtype instead of data
