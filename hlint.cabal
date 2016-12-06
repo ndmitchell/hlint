@@ -37,10 +37,12 @@ source-repository head
 
 flag threaded
     default: True
+    manual: True
     description: Build with support for multithreaded execution
 
 flag gpl
     default: True
+    manual: True
     description: Use GPL libraries, specifically hscolour
 
 library
