@@ -6,7 +6,7 @@ import System.Process.Extra
 
 main :: IO ()
 main = do
-    retry 3 $ system_ "cabal install QuickCheck"
+    -- retry 3 $ system_ "cabal install QuickCheck"
     -- FIXME: Temporarily disabled due to GHC 7.10 issues
     system_ "hlint test +RTS -K1K" --typecheck --quickcheck
     (time,_) <- duration $ system_ "hlint src --hint=misc/HLint_Hints.hs +RTS -K1K"
