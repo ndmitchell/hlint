@@ -3,6 +3,8 @@
 module Idea(module Idea, Note(..), showNotes, Severity(..)) where
 
 import Data.List.Extra
+import Data.Char
+import Numeric
 import HSE.All
 import Settings
 import HsColour
@@ -26,21 +28,27 @@ data Idea = Idea
 
 showIdeaJson :: Idea -> String
 showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = wrap . intercalate "," . map mkPair $
-    [("module", show ideaModule)
-    ,("decl", show ideaDecl)
-    ,("severity", show . show $ ideaSeverity)
-    ,("hint", show ideaHint)
-    ,("file", show srcSpanFilename)
+    [("module", str ideaModule)
+    ,("decl", str ideaDecl)
+    ,("severity", str $ show ideaSeverity)
+    ,("hint", str ideaHint)
+    ,("file", str srcSpanFilename)
     ,("startLine", show srcSpanStartLine)
     ,("startColumn", show srcSpanStartColumn)
     ,("endLine", show srcSpanEndLine)
     ,("endColumn", show srcSpanEndColumn)
-    ,("from", show ideaFrom)
-    ,("to", maybe "null" show ideaTo)
-    ,("note", show $ map (show . show) ideaNote)
-    ,("refactorings", show . show $ ideaRefactoring)
+    ,("from", str ideaFrom)
+    ,("to", maybe "null" str ideaTo)
+    ,("note", show $ map (str . show) ideaNote)
+    ,("refactorings", str $ show ideaRefactoring)
     ]
   where
+    str x = "\"" ++ concatMap f x ++ "\""
+        where f '\"' = "\\\""
+              f '\\' = "\\\\"
+              f '\n' = "\\n"
+              f x | not $ isAscii x = "\\u" ++ takeEnd 4 ("0000" ++ showHex (ord x) "")
+              f x = [x]
     mkPair (k, v) = show k ++ ":" ++ v
     wrap x = "{" ++ x ++ "}"
 
