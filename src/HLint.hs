@@ -130,18 +130,18 @@ runHints cmd@CmdMain{..} flags = do
     settings <- readAllSettings cmd flags
     ideas <- getIdeas cmd settings flags
     let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
-    if cmdJson
-        then putStrLn . showIdeasJson $ showideas
-        else if cmdSerialise then do
-          hSetBuffering stdout NoBuffering
-          print $ map (show &&& ideaRefactoring) showideas
-        else if cmdRefactor then
-          handleRefactoring showideas cmdFiles cmd
-        else do
-            usecolour <- cmdUseColour cmd
-            showItem <- if usecolour then showANSI else return show
-            mapM_ (outStrLn . showItem) showideas
-            handleReporting showideas hideideas cmd
+    if cmdJson then
+        putStrLn $ showIdeasJson showideas
+     else if cmdSerialise then do
+        hSetBuffering stdout NoBuffering
+        print $ map (show &&& ideaRefactoring) showideas
+     else if cmdRefactor then
+        handleRefactoring showideas cmdFiles cmd
+     else do
+        usecolour <- cmdUseColour cmd
+        showItem <- if usecolour then showANSI else return show
+        mapM_ (outStrLn . showItem) showideas
+        handleReporting showideas hideideas cmd
     return showideas
 
 getIdeas :: Cmd -> [Setting] -> ParseFlags -> IO [Idea]
