@@ -1,5 +1,6 @@
 Changelog for HLint
 
+1.9.40
     #293, fix the JSON format of the output
 1.9.39
     #287, don't incorrectly suggest newtype
