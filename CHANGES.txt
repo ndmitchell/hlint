@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #292, add fst/snd . unzip ==> map fst/snd
     Don't suggest module export trick, breaks Haddock
 1.9.40
     #293, fix the JSON format of the output

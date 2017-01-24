@@ -383,6 +383,11 @@ warn "Redundant seq" = x `seq` y ==> y where _ = isWHNF x
 warn "Redundant $!" = f $! x ==> f x where _ = isWHNF x
 warn "Redundant evaluate" = evaluate x ==> return x where _ = isWHNF x
 
+-- TUPLE
+
+warn = fst (unzip x) ==> map fst x
+warn = snd (unzip x) ==> map snd x
+
 -- MAYBE
 
 warn = maybe x id ==> Data.Maybe.fromMaybe x
