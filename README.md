@@ -102,7 +102,7 @@ GHCi integration has been provided by Gwern Branwen. The integration allows runn
 
 ### Parallel Operation
 
-To run HLint on n processors append the flags `+RTS -Nn`, as described in the [GHC user manual](http://www.haskell.org/ghc/docs/latest/html/users_guide/runtime-control.html). HLint will usually perform fastest if n is equal to the number of physical processors.
+To run HLint on 4 processors append the flags `-j4`. HLint will usually perform fastest if n is equal to the number of physical processors, which can be done with `-j` alone.
 
 If your version of GHC does not support the GHC threaded runtime then install with the command: `cabal install --flags="-threaded"`
 

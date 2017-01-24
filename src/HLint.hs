@@ -6,8 +6,10 @@ module HLint(hlint) where
 import Control.Applicative
 import Control.Monad.Extra
 import Control.Exception
+import Control.Concurrent.Extra
 import System.Console.CmdArgs.Verbosity
 import Data.List
+import GHC.Conc
 import System.Exit
 import System.IO.Extra
 import Data.Tuple.Extra
@@ -126,23 +128,25 @@ readAllSettings cmd@CmdMain{..} flags = do
 
 runHints :: Cmd -> ParseFlags -> IO [Idea]
 runHints cmd@CmdMain{..} flags = do
-    let outStrLn = whenNormal . putStrLn
-    settings <- readAllSettings cmd flags
-    ideas <- getIdeas cmd settings flags
-    let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
-    if cmdJson then
-        putStrLn $ showIdeasJson showideas
-     else if cmdSerialise then do
-        hSetBuffering stdout NoBuffering
-        print $ map (show &&& ideaRefactoring) showideas
-     else if cmdRefactor then
-        handleRefactoring showideas cmdFiles cmd
-     else do
-        usecolour <- cmdUseColour cmd
-        showItem <- if usecolour then showANSI else return show
-        mapM_ (outStrLn . showItem) showideas
-        handleReporting showideas hideideas cmd
-    return showideas
+    j <- if cmdThreads == 0 then getNumProcessors else return cmdThreads
+    withNumCapabilities j $ do
+        let outStrLn = whenNormal . putStrLn
+        settings <- readAllSettings cmd flags
+        ideas <- getIdeas cmd settings flags
+        let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
+        if cmdJson then
+            putStrLn $ showIdeasJson showideas
+         else if cmdSerialise then do
+            hSetBuffering stdout NoBuffering
+            print $ map (show &&& ideaRefactoring) showideas
+         else if cmdRefactor then
+            handleRefactoring showideas cmdFiles cmd
+         else do
+            usecolour <- cmdUseColour cmd
+            showItem <- if usecolour then showANSI else return show
+            mapM_ (outStrLn . showItem) showideas
+            handleReporting showideas hideideas cmd
+        return showideas
 
 getIdeas :: Cmd -> [Setting] -> ParseFlags -> IO [Idea]
 getIdeas cmd@CmdMain{..} settings flags = do

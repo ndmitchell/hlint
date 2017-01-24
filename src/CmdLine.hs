@@ -76,6 +76,7 @@ data Cmd
         ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
         ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
         ,cmdColor :: ColorMode           -- ^ color the result
+        ,cmdThreads :: Int              -- ^ Numbmer of threads to use, 0 = whatever GHC has
         ,cmdIgnore :: [String]           -- ^ the hints to ignore
         ,cmdShowAll :: Bool              -- ^ display all skipped items
         ,cmdExtension :: [String]        -- ^ extensions
@@ -137,6 +138,7 @@ mode = cmdArgsMode $ modes
         ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
         ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
         ,cmdColor = nam "colour" &= name "color" &= opt Always &= typ "always/never/auto" &= help "Color output (requires ANSI terminal; auto means on when $TERM is supported; by itself, selects always)"
+        ,cmdThreads = 1 &= name "threads" &= name "j" &= opt (0 :: Int) &= help "Number of threads to use (-j for all)"
         ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
         ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
         ,cmdExtension = nam "extension" &= typ "EXT" &= help "File extensions to search (default hs/lhs)"
