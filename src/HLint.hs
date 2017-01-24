@@ -111,8 +111,8 @@ runHlintMain :: Cmd -> Maybe FilePath -> ParseFlags -> IO [Idea]
 runHlintMain cmd@CmdMain{..} fp flags = do
   files <- concatMapM (resolveFile cmd fp) cmdFiles
   if null files
-    then error "No files found"
-    else runHints cmd{cmdFiles=files} flags
+      then error "No files found"
+      else runHints cmd{cmdFiles=files} flags
 
 {-# ANN readAllSettings "HLint: ignore Use let" #-}
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
@@ -146,66 +146,64 @@ runHints cmd@CmdMain{..} flags = do
 
 getIdeas :: Cmd -> [Setting] -> ParseFlags -> IO [Idea]
 getIdeas cmd@CmdMain{..} settings flags = do
-  ideas <- if cmdCross
-    then applyHintFiles flags settings cmdFiles
-    else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
-  return $ if not (null cmdOnly)
-    then [i | i <- ideas, ideaHint i `elem` cmdOnly]
-    else ideas
+    ideas <- if cmdCross
+        then applyHintFiles flags settings cmdFiles
+        else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
+    return $ if not (null cmdOnly)
+        then [i | i <- ideas, ideaHint i `elem` cmdOnly]
+        else ideas
 
 handleRefactoring :: [Idea] -> [String] -> Cmd -> IO ()
 handleRefactoring showideas files cmd@CmdMain{..} =
-  case cmdFiles of
-    [file] -> do
-      -- Ensure that we can find the executable
-      path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
-      -- writeFile "hlint.refact"
-      let hints =  show $ map (show &&& ideaRefactoring) showideas
-      withTempFile $ \f -> do
-        writeFile f hints
-        runRefactoring path file f cmdRefactorOptions
-        -- Exit with the exit code from 'refactor'
-        >>= exitWith
-    _ -> error "Refactor flag can only be used with an individual file"
+    case cmdFiles of
+        [file] -> do
+            -- Ensure that we can find the executable
+            path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
+            -- writeFile "hlint.refact"
+            let hints =  show $ map (show &&& ideaRefactoring) showideas
+            withTempFile $ \f -> do
+                writeFile f hints
+                exitWith =<< runRefactoring path file f cmdRefactorOptions
+        _ -> error "Refactor flag can only be used with an individual file"
 
 
 handleReporting :: [Idea] -> [Idea] -> Cmd -> IO ()
 handleReporting showideas hideideas cmd@CmdMain{..} = do
-  let outStrLn = whenNormal . putStrLn
-  if null showideas then
-    when (cmdReports /= []) $ outStrLn "Skipping writing reports"
-  else
-    forM_ cmdReports $ \x -> do
-      outStrLn $ "Writing report to " ++ x ++ " ..."
-      writeReport cmdDataDir x showideas
-  unless cmdNoSummary $
-    outStrLn $
-      (let i = length showideas in if i == 0 then "No hints" else show i ++ " hint" ++ ['s' | i/=1]) ++
-      (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
+    let outStrLn = whenNormal . putStrLn
+    if null showideas then
+        when (cmdReports /= []) $ outStrLn "Skipping writing reports"
+     else
+        forM_ cmdReports $ \x -> do
+            outStrLn $ "Writing report to " ++ x ++ " ..."
+            writeReport cmdDataDir x showideas
+    unless cmdNoSummary $
+        outStrLn $
+            (let i = length showideas in if i == 0 then "No hints" else show i ++ " hint" ++ ['s' | i/=1]) ++
+            (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
 
 runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
 runRefactoring rpath fin hints opts =  do
-  let args = [fin, "-v0"] ++ words opts ++ ["--refact-file", hints]
-  (_, _, _, phand) <- createProcess $ proc rpath args
-  try $ hSetBuffering stdin LineBuffering :: IO (Either IOException ())
-  hSetBuffering stdout LineBuffering
-  -- Propagate the exit code from the spawn process
-  waitForProcess phand
+    let args = [fin, "-v0"] ++ words opts ++ ["--refact-file", hints]
+    (_, _, _, phand) <- createProcess $ proc rpath args
+    try $ hSetBuffering stdin LineBuffering :: IO (Either IOException ())
+    hSetBuffering stdout LineBuffering
+    -- Propagate the exit code from the spawn process
+    waitForProcess phand
 
 checkRefactor :: Maybe FilePath -> IO FilePath
 checkRefactor rpath = do
-  let excPath = fromMaybe "refactor" rpath
-  mexc <- findExecutable excPath
-  case mexc of
-    Just exc ->  do
-      vers <- readP_to_S parseVersion . tail <$> readProcess exc ["--version"] ""
-      case vers of
-        [] -> putStrLn "Unabled to determine version of refactor" >> return exc
-        (last -> (version, _)) -> if versionBranch version >= [0,1,0,0]
-                                    then return exc
-                                    else error "Your version of refactor is too old, please upgrade to the latest version"
-    Nothing ->  error $ unlines [ "Could not find refactor"
-                                , "Tried with: " ++ excPath ]
+    let excPath = fromMaybe "refactor" rpath
+    mexc <- findExecutable excPath
+    case mexc of
+        Just exc ->  do
+            vers <- readP_to_S parseVersion . tail <$> readProcess exc ["--version"] ""
+            case vers of
+                [] -> putStrLn "Unabled to determine version of refactor" >> return exc
+                (last -> (version, _)) ->
+                    if versionBranch version >= [0,1,0,0]
+                        then return exc
+                        else error "Your version of refactor is too old, please upgrade to the latest version"
+        Nothing -> error $ unlines [ "Could not find refactor", "Tried with: " ++ excPath ]
 
 evaluateList :: [a] -> IO [a]
 evaluateList xs = length xs `seq` return xs
