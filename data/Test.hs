@@ -105,10 +105,6 @@ zip [1..length x] x -- zipFrom 1 x
 {-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-} \
 {-# LANGUAGE RecordWildCards #-} -- @Ignore ???
 
-{-# ANN module "HLint: ignore Use import/export shortcut" #-} \
-module ABCD(module A, module B, module C) where \
-import A; import B; import C -- @Ignore ???
-
 {-# ANN lam "HLint: ignore Redundant lambda" #-} \
 lam = \x -> x x x -- @Ignore ???
 
