@@ -8,7 +8,7 @@ module HSE.All(
     ) where
 
 import HSE.Util as X
-import HSE.Evaluate as X
+import HSE.Reduce as X
 import HSE.Type as X
 import HSE.Bracket as X
 import HSE.Match as X

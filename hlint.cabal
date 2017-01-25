@@ -83,9 +83,9 @@ library
         Refact
         HSE.All
         HSE.Bracket
-        HSE.Evaluate
         HSE.FreeVars
         HSE.Match
+        HSE.Reduce
         HSE.Scope
         HSE.Type
         HSE.Util

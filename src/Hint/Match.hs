@@ -292,7 +292,7 @@ checkDefine _ _ _ = True
 
 -- if it has _eval_ do evaluation on it
 performEval :: Exp_ -> Exp_
-performEval (App _ e x) | e ~= "_eval_" = evaluate x
+performEval (App _ e x) | e ~= "_eval_" = reduce x
 performEval x = x
 
 
