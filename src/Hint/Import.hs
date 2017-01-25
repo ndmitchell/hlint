@@ -52,7 +52,7 @@ import Prelude
 importHint :: ModuHint
 importHint _ x = concatMap (wrap . snd) (groupSort
                  [((fromNamed $ importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]) ++
-                 concatMap (\x -> hierarchy x ++ reduce1 x) (universeBi x)
+                 concatMap (\x -> hierarchy x ++ combine1 x) (universeBi x)
 
 
 wrap :: [ImportDecl S] -> [Idea]
@@ -70,13 +70,13 @@ simplify (x:xs) = case simplifyHead x xs of
 
 simplifyHead :: ImportDecl S -> [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
 simplifyHead x [] = Nothing
-simplifyHead x (y:ys) = case reduce x y of
+simplifyHead x (y:ys) = case combine x y of
     Nothing -> first (y:) <$> simplifyHead x ys
     Just (xy, rs) -> Just (xy : ys, rs)
 
 
-reduce :: ImportDecl S -> ImportDecl S -> Maybe (ImportDecl S, [Refactoring R.SrcSpan])
-reduce x y | qual, as, specs = Just (x, [Delete Import (toSS y)])
+combine :: ImportDecl S -> ImportDecl S -> Maybe (ImportDecl S, [Refactoring R.SrcSpan])
+combine x y | qual, as, specs = Just (x, [Delete Import (toSS y)])
            | qual, as, Just (ImportSpecList _ False xs) <- importSpecs x, Just (ImportSpecList _ False ys) <- importSpecs y = let newImp = x{importSpecs = Just $ ImportSpecList an False $ nub_ $ xs ++ ys}
             in Just (newImp, [ Replace Import (toSS x)  [] (prettyPrint newImp)
                              , Delete Import (toSS y) ] )
@@ -94,14 +94,14 @@ reduce x y | qual, as, specs = Just (x, [Delete Import (toSS y)])
         ass = mapMaybe importAs [x,y]
         specs = importSpecs x `eqMaybe` importSpecs y
 
-reduce _ _ = Nothing
+combine _ _ = Nothing
 
 
-reduce1 :: ImportDecl S -> [Idea]
-reduce1 i@ImportDecl{..}
+combine1 :: ImportDecl S -> [Idea]
+combine1 i@ImportDecl{..}
     | Just (dropAnn importModule) == fmap dropAnn importAs
     = [suggest "Redundant as" i i{importAs=Nothing} [RemoveAsKeyword (toSS i)]]
-reduce1 _ = []
+combine1 _ = []
 
 
 newNames = let (*) = flip (,) in
