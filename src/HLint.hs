@@ -210,4 +210,6 @@ checkRefactor rpath = do
         Nothing -> error $ unlines [ "Could not find refactor", "Tried with: " ++ excPath ]
 
 evaluateList :: [a] -> IO [a]
-evaluateList xs = length xs `seq` return xs
+evaluateList xs = do
+    evaluate $ length xs
+    return xs
