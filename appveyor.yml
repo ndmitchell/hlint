@@ -16,6 +16,6 @@ test_script:
 - stack init
 - stack setup > nul
 - echo "" | stack --no-terminal build
-- set UNIPLATE_VERBOSE=2
+- set UNIPLATE_VERBOSE=-1
 - stack exec -- hlint test
 - stack exec -- hlint src
