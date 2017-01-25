@@ -152,7 +152,7 @@ getIdeas :: Cmd -> [Setting] -> ParseFlags -> IO [Idea]
 getIdeas cmd@CmdMain{..} settings flags = do
     ideas <- if cmdCross
         then applyHintFiles flags settings cmdFiles
-        else concat <$> parallel [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
+        else concat <$> parallel cmdThreads [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
     return $ if not (null cmdOnly)
         then [i | i <- ideas, ideaHint i `elem` cmdOnly]
         else ideas
