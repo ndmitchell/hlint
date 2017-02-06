@@ -44,7 +44,7 @@ import Data.List.Extra
 import Data.Maybe
 import Data.Data
 import Unsafe.Coerce
-import Settings
+import Config.Type
 import Hint.Type
 import Control.Monad
 import Data.Tuple.Extra

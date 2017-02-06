@@ -11,7 +11,7 @@ import System.Exit
 import System.FilePath
 
 import Paths_hlint
-import Settings
+import Config.Type
 import HSE.All
 import Test.Util
 

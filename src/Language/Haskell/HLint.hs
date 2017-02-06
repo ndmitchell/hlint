@@ -8,7 +8,7 @@ This module provides a library interface to HLint, strongly modelled on the comm
 module Language.Haskell.HLint(hlint, Suggestion, suggestionLocation, suggestionSeverity, Severity(..)) where
 
 import qualified HLint
-import Settings
+import Config.Type
 import Idea
 import HSE.All
 

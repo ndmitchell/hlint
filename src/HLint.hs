@@ -22,7 +22,8 @@ import System.Directory
 import Text.ParserCombinators.ReadP
 
 import CmdLine
-import Settings
+import Config.Type
+import Config.Haskell
 import Report
 import Idea
 import Apply

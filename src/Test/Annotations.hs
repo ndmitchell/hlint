@@ -9,7 +9,7 @@ import Data.List.Extra
 import Data.Maybe
 import Data.Function
 
-import Settings
+import Config.Type
 import Idea
 import Apply
 import HSE.All

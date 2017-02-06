@@ -10,7 +10,8 @@ import System.FilePath
 import Data.Functor
 import Prelude
 
-import Settings
+import Config.Type
+import Config.Haskell
 import CmdLine
 import HSE.All
 import Hint.All

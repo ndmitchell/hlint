@@ -76,11 +76,12 @@ library
         HLint
         HsColour
         Idea
-        Settings
         Report
         Util
         Parallel
         Refact
+        Config.Haskell
+        Config.Type
         HSE.All
         HSE.Bracket
         HSE.FreeVars

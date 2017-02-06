@@ -29,7 +29,8 @@ module Language.Haskell.HLint3(
     parseModuleEx, defaultParseFlags, parseFlagsAddFixities, ParseError(..), ParseFlags(..), CppFlags(..)
     ) where
 
-import Settings hiding (findSettings)
+import Config.Type
+import Config.Haskell as Settings hiding (findSettings)
 import Idea
 import Apply
 import HLint

@@ -10,7 +10,8 @@ import Data.Either
 import Data.List.Extra
 import Data.Maybe
 import Data.Ord
-import Settings
+import Config.Type
+import Config.Haskell
 import Idea
 import Prelude
 

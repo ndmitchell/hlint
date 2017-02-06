@@ -6,7 +6,7 @@ import Data.List.Extra
 import Data.Char
 import Numeric
 import HSE.All
-import Settings
+import Config.Type
 import HsColour
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R

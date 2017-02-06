@@ -12,7 +12,7 @@ import Data.List
 import Data.Maybe
 import Data.Function
 import System.FilePath
-import Settings
+import Config.Type
 import HSE.All
 import Prelude
 

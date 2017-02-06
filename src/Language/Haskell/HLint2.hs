@@ -28,7 +28,8 @@ module Language.Haskell.HLint2(
     Encoding, defaultEncoding, readEncoding, useEncoding
     ) where
 
-import Settings
+import Config.Type
+import Config.Haskell
 import Idea
 import Apply
 import Hint.Type

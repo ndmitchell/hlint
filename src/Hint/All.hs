@@ -5,7 +5,7 @@ module Hint.All(
     ) where
 
 import Data.Monoid
-import Settings
+import Config.Type
 import Data.Either
 import Data.List
 import Hint.Type
