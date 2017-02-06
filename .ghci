@@ -61,8 +61,8 @@ let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " 
 :{
 :def scope \x -> return $ unlines
         [_ghci_make "scope" "-O -eventlog"
-        ,":!.hpc\\scope\\hlint.exe src +RTS -ls -N" ++ _ghci_number 2 x
-        ,":!start /b threadscope hlint.exe.eventlog"]
+        ,":!.hpc\\scope\\hlint.exe src +RTS -ls -RTS " ++ x
+        ,":!start /b threadscope hlint.eventlog"]
 :}
 
 :{
