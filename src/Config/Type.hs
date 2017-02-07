@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards, ViewPatterns #-}
 
 module Config.Type(
     Severity(..), Classify(..), HintRule(..), Note(..), Setting(..),
