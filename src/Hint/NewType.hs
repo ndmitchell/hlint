@@ -23,14 +23,9 @@ newtypeHint :: DeclHint
 newtypeHint _ _ = newtypeHintDecl
 
 newtypeHintDecl :: Decl_ -> [Idea]
-newtypeHintDecl d@(DataDecl sp (DataType dtA) ctx dclH
-                   [qcD@(QualConDecl _ tvb _ cd)] der) =
-  case tvb of
-    Just _  -> []
-    Nothing -> case cd of
-                 ConDecl _ _ [_] -> wrn
-                 RecDecl _ _ [FieldDecl _ [_] _] -> wrn
-                 _ -> []
-  where suggestion = DataDecl sp (NewType dtA) ctx dclH [qcD] der
-        wrn = [(suggestN "Use newtype instead of data" d suggestion){ideaNote = [DecreasesLaziness]}]
+newtypeHintDecl d@(DataDecl sp (DataType dtA) ctx dclH [qcD@(QualConDecl _ Nothing _ cd)] der)
+    | ConDecl _ _ [_] <- cd = wrn
+    | RecDecl _ _ [FieldDecl _ [_] _] <- cd = wrn
+    where suggestion = DataDecl sp (NewType dtA) ctx dclH [qcD] der
+          wrn = [(suggestN "Use newtype instead of data" d suggestion){ideaNote = [DecreasesLaziness]}]
 newtypeHintDecl _ = []
