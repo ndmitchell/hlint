@@ -82,6 +82,7 @@ library
         Config.Compute
         Config.Haskell
         Config.Type
+        Config.Yaml
         HSE.All
         HSE.Bracket
         HSE.FreeVars
