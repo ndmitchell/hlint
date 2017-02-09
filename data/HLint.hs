@@ -504,8 +504,6 @@ warn "Use Foldable.forM_" = when (isJust m) (f (fromJust m)) ==> Data.Foldable.f
 
 -- EVALUATE
 
--- TODO: These should be moved in to HSE\Evaluate.hs and applied
---       through a special evaluate hint mechanism
 warn "Evaluate" = True && x ==> x
 warn "Evaluate" = False && x ==> False
 warn "Evaluate" = True || x ==> True
@@ -587,21 +585,6 @@ warn "Using all on tuple"     = all     f   (x,y,b)   ==> f b
 
 warn "Using null on tuple"   = null x   ==> False where _ = isTuple x
 warn "Using length on tuple" = length x ==> 1     where _ = isTuple x
-
--- COMPLEX
-
-{-
--- these would be a good idea, but we have not yet proven them and they seem to have side conditions
-warn "Use isPrefixOf" = take (length t) s == t ==> t `Data.List.isPrefixOf` s
-warn "Use isPrefixOf" = (take i s == t) ==> _eval_ ((i >= length t) && (t `Data.List.isPrefixOf` s))
-    where _ = (isList t || isLit t) && isPos i
--}
-
-{-
--- clever hint, but not actually a good idea
-hint = (do a <- f; g a) ==> f >>= g
-    where _ = (isAtom f || isApp f)
--}
 
 test = hints named test are to allow people to put test code within hint files
 testPrefix = and any prefix also works
