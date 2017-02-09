@@ -7,6 +7,7 @@ import Config.Type
 import Data.Yaml
 import Data.Either
 import Data.Maybe
+import Data.List.Extra
 import qualified Data.Text as T
 import qualified Data.Vector as V
 import qualified Data.ByteString.Char8 as BS
@@ -34,14 +35,7 @@ data Group = Group
     {groupName :: String
     ,groupEnabled :: Bool
     ,groupImports :: [Either String (ImportDecl S)] -- Left for package imports
-    ,groupRules :: [Rule]
-    } deriving Show
-
-data Rule = Rule
-    {ruleSeverity :: Severity
-    ,ruleLhs :: Exp_
-    ,ruleRhs :: Exp_
-    ,ruleNote :: String
+    ,groupRules :: [HintRule] -- with scope set to mempty
     } deriving Show
 
 
@@ -84,16 +78,23 @@ asGroup x
             | Just x <- T.stripPrefix "package " x = Left $ T.unpack x
             | otherwise = Right $ parseSnippet parseImportDecl $ T.unpack x
 
-asRule :: Value -> Rule
+asRule :: Value -> HintRule
 asRule (Object (Map.toList -> [(severity, Object x)]))
     | Just sev <- getSeverity $ T.unpack severity
     , Just lhs <- Map.lookup "lhs" x
     , Just rhs <- Map.lookup "rhs" x
-    , String note <- Map.lookupDefault (String "") "note" x
-    = Rule sev (asExp lhs) (asExp rhs) (T.unpack note)
+    , note <- Map.lookup "note" x
+    = HintRule sev "Rule name" mempty (asExp lhs) (asExp rhs) Nothing (maybeToList $ fmap (asNote . T.unpack . unString) note)
     where
         asExp = parseSnippet parseExp . T.unpack . unString
 asRule x = error $ show x
+
+asNote :: String -> Note
+asNote "IncreasesLaziness" = IncreasesLaziness
+asNote "DecreasesLaziness" = DecreasesLaziness
+asNote (word1 -> ("RemovesError",x)) = RemovesError x
+asNote (word1 -> ("ValidInstance",x)) = uncurry ValidInstance $ word1 x
+asNote x = Note x
 
 
 ---------------------------------------------------------------------
@@ -108,8 +109,7 @@ asSettings xs = concat $ map f groups
 
         f Group{..}
             | Map.lookup groupName groupMap == Just False = []
-            | otherwise = [SettingMatchExp $ HintRule ruleSeverity "Rule name" scope ruleLhs ruleRhs Nothing []
-                          | Rule{..} <- groupRules]
+            | otherwise = [SettingMatchExp r{hintRuleScope=scope} | r <- groupRules]
             where scope = asScope packageMap groupImports
 
 asScope :: Map.HashMap String [ImportDecl S] -> [Either String (ImportDecl S)] -> Scope
