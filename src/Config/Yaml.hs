@@ -48,6 +48,14 @@ data Rule = Rule
 ---------------------------------------------------------------------
 -- YAML TO DATA TYPE
 
+parseSnippet :: (String -> ParseResult a) -> String -> a
+parseSnippet parser x = case parser x of
+    ParseOk v -> v
+    ParseFailed loc s -> error $ "Failed to parse " ++ s ++ ", when parsing:\n" ++ x
+
+unString (String x) = x
+unString x = error $ "Expected a String, but got " ++ show x
+
 asConfig :: Value -> [Either Package Group]
 asConfig (Object x)
     | "package" `Map.member` x = [Left $ asPackage x]
@@ -61,7 +69,7 @@ asPackage x
     , Map.size x == 2
     = Package (T.unpack name) $ map asModule $ V.toList modules
     where
-        asModule (String x) = fromParseResult $ parseImportDecl $ T.unpack x
+        asModule (String x) = parseSnippet parseImportDecl $ T.unpack x
 
 asGroup :: Map.HashMap T.Text Value -> Group
 asGroup x
@@ -74,7 +82,7 @@ asGroup x
     where
         asImport (String x)
             | Just x <- T.stripPrefix "package " x = Left $ T.unpack x
-            | otherwise = Right $ fromParseResult $ parseImportDecl $ T.unpack x
+            | otherwise = Right $ parseSnippet parseImportDecl $ T.unpack x
 
 asRule :: Value -> Rule
 asRule (Object (Map.toList -> [(severity, Object x)]))
@@ -84,7 +92,7 @@ asRule (Object (Map.toList -> [(severity, Object x)]))
     , String note <- Map.lookupDefault (String "") "note" x
     = Rule sev (asExp lhs) (asExp rhs) (T.unpack note)
     where
-        asExp (String x) = fromParseResult $ parseExp $ T.unpack x
+        asExp = parseSnippet parseExp . T.unpack . unString
 asRule x = error $ show x
 
 
