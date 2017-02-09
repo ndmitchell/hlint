@@ -3,14 +3,13 @@
     but then Cabal will always use it in preference to the
     auto-generated one.
 -}
-{-# OPTIONS_GHC -w #-}
 
 module Paths_hlint where
 
-import Data.Version(Version(..))
+import Data.Version.Extra
 
 version :: Version
-version = Version {versionBranch = [0,0], versionTags = []}
+version =  makeVersion [0,0]
 
 getDataDir :: IO FilePath
 getDataDir = return "data"
