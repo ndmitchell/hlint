@@ -99,7 +99,7 @@ guessName lhs rhs
     | otherwise = defaultHintName
     where
         (ls, rs) = both f (lhs, rhs)
-        f = filter (not . isUnifyVar) . map fromName . childrenS
+        f = filter (not . isUnifyVar) . map (\x -> fromNamed (x :: Name S)) . childrenS
 
 
 asNote :: String -> Note
