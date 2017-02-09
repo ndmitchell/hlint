@@ -86,6 +86,7 @@ module Hint.Extensions(extensionsHint) where
 import Hint.Type
 import Data.Maybe
 import Data.List.Extra
+import Data.Ratio
 import Refact.Types
 
 
@@ -120,6 +121,7 @@ noNewtypeDeriving = ["Read","Show","Data","Typeable","Generic","Generic1"]
 
 usedExt :: Extension -> Module_ -> Bool
 usedExt (EnableExtension x) = used x
+usedExt (UnknownExtension "NumDecimals") = hasS isWholeFrac
 usedExt _ = const True
 
 
@@ -223,3 +225,8 @@ hasS test = any test . universeBi
 
 has f = any f . universeBi
 
+-- Only whole number fractions are permitted by NumDecimals extension.
+-- Anything not-whole raises an error.
+isWholeFrac :: Literal S -> Bool
+isWholeFrac (Frac _ v _) = denominator v == 1
+isWholeFrac _ = False
