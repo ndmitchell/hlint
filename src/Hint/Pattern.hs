@@ -139,7 +139,7 @@ asGuards (If _ a b c) = (a, b) : asGuards c
 asGuards x = [(toNamed "otherwise", x)]
 
 
-data Pattern = Pattern SrcSpanInfo R.RType [Pat_] (Rhs S) (Maybe (Binds S))
+data Pattern = Pattern S R.RType [Pat_] (Rhs S) (Maybe (Binds S))
 
 -- Invariant: Number of patterns may not change
 asPattern :: Decl_ -> [(Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)]

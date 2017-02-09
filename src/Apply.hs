@@ -39,7 +39,7 @@ applyHintFiles flags s files = do
 --   When given multiple modules at once this function attempts to find hints between modules,
 --   which is slower and often pointless (by default HLint passes modules singularly, using
 --   @--cross@ to pass all modules together).
-applyHints :: [Classify] -> Hint -> [(Module SrcSpanInfo, [Comment])] -> [Idea]
+applyHints :: [Classify] -> Hint -> [(Module_, [Comment])] -> [Idea]
 applyHints cls hints_ ms = concat $
     [ map (classify $ cls ++ mapMaybe readPragma (universeBi m)) $
         order "" (hintModule hints nm m) `merge`

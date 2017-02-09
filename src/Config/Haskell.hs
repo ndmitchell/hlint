@@ -41,13 +41,13 @@ readSettings2 dataDir files hints = do
     (builtin,mods) <- fmap partitionEithers $ concatMapM (readHints dataDir) $ map Right files ++ map Left hints
     return $ map Builtin builtin ++ concatMap moduleSettings_ mods
 
-moduleSettings_ :: Module SrcSpanInfo -> [Setting]
+moduleSettings_ :: Module_ -> [Setting]
 moduleSettings_ m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
                        [AnnPragma l x | AnnModulePragma l x <- modulePragmas m] ++ moduleDecls m
 
 -- | Given a module containing HLint settings information return the 'Classify' rules and the 'HintRule' expressions.
 --   Any fixity declarations will be discarded, but any other unrecognised elements will result in an exception.
-readSettings :: Module SrcSpanInfo -> ([Classify], [HintRule])
+readSettings :: Module_ -> ([Classify], [HintRule])
 readSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
     where xs = moduleSettings_ m
 
@@ -68,7 +68,7 @@ readHints datadir x = do
 -- 1. A list of modules containing hints, suitable for processing with 'readSettings'.
 --
 --   Any parse failures will result in an exception.
-findSettings :: FilePath -> FilePath -> Maybe String -> IO ([String], [Module SrcSpanInfo])
+findSettings :: FilePath -> FilePath -> Maybe String -> IO ([String], [Module_])
 findSettings dataDir file contents = do
     let flags = addInfix defaultParseFlags
     res <- parseModuleEx flags file contents

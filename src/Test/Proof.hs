@@ -79,7 +79,7 @@ classifyMissing :: Theorem -> String
 classifyMissing Theorem{original = Just HintRule{..}}
     | _:_ <- [v :: Exp_ | v@Case{} <- universeBi (hintRuleLHS,hintRuleRHS)] = "case"
     | _:_ <- [v :: Exp_ | v@ListComp{} <- universeBi (hintRuleLHS,hintRuleRHS)] = "list-comp"
-    | v:_ <- mapMaybe (`lookup` missingFuncs) [prettyPrint (v :: Name SrcSpanInfo) | v <- universeBi (hintRuleLHS,hintRuleRHS)] = v
+    | v:_ <- mapMaybe (`lookup` missingFuncs) [prettyPrint (v :: Name S) | v <- universeBi (hintRuleLHS,hintRuleRHS)] = v
 classifyMissing _ = "?unknown"
 
 

@@ -13,9 +13,9 @@ type CrossHint = [(Scope, Module_)] -> [Idea]
 
 -- | Functions to generate hints, combined using the 'Monoid' instance.
 data Hint = Hint
-    {hintModules :: [(Scope, Module SrcSpanInfo)] -> [Idea] -- ^ Given a list of modules (and their scope information) generate some 'Idea's.
-    ,hintModule :: Scope -> Module SrcSpanInfo -> [Idea] -- ^ Given a single module and its scope information generate some 'Idea's.
-    ,hintDecl :: Scope -> Module SrcSpanInfo -> Decl SrcSpanInfo -> [Idea]
+    {hintModules :: [(Scope, Module_)] -> [Idea] -- ^ Given a list of modules (and their scope information) generate some 'Idea's.
+    ,hintModule :: Scope -> Module_ -> [Idea] -- ^ Given a single module and its scope information generate some 'Idea's.
+    ,hintDecl :: Scope -> Module_ -> Decl_ -> [Idea]
         -- ^ Given a declaration (with a module and scope) generate some 'Idea's.
         --   This function will be partially applied with one module/scope, then used on multiple 'Decl' values.
     ,hintComment :: Comment -> [Idea] -- ^ Given a comment generate some 'Idea's.

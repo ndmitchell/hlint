@@ -32,7 +32,7 @@ newtypeHintDecl x
 newtypeHintDecl _ = []
 
 
-singleSimpleField :: Decl_ -> Maybe (DataOrNew SrcSpanInfo, Type_, DataOrNew SrcSpanInfo -> Type_ -> Decl_)
+singleSimpleField :: Decl_ -> Maybe (DataOrNew S, Type_, DataOrNew S -> Type_ -> Decl_)
 singleSimpleField (DataDecl x1 dt x2 x3 [QualConDecl y1 Nothing y2 ctor] x4)
     | Just (t, ft) <- f ctor = Just (dt, t, \dt t -> DataDecl x1 dt x2 x3 [QualConDecl y1 Nothing y2 $ ft t] x4)
     where

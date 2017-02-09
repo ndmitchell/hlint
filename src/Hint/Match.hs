@@ -165,7 +165,7 @@ nmOp nm  _ _ = False
 unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe [(String,Exp_)]
 unify nm root x y | Just x <- cast x = unifyExp nm root x (unsafeCoerce y)
                   | Just x <- cast x = unifyPat nm x (unsafeCoerce y)
-                  | Just (x :: SrcSpanInfo) <- cast x = Just []
+                  | Just (x :: S) <- cast x = Just []
                   | otherwise = unifyDef nm x y
 
 
