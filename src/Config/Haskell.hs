@@ -2,8 +2,9 @@
 
 module Config.Haskell(
     readPragma,
-    findSettings, readSettings,
-    readSettings2, findSettings2, addInfix
+    addInfix,
+    findSettings2,
+    readSettings, readSettings2
     ) where
 
 import Data.Monoid
