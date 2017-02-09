@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards, GeneralizedNewtypeDeriving #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module Config.Yaml(readFileConfigYaml) where
 
@@ -9,6 +8,7 @@ import Data.Either
 import Data.Maybe
 import Data.List.Extra
 import Data.Tuple.Extra
+import Control.Monad
 import Control.Exception
 import qualified Data.Text as T
 import qualified Data.Vector as V
@@ -20,6 +20,8 @@ import Data.Monoid
 import Prelude
 
 
+-- | Read a config file in YAML format. Takes a filename, and optionally the contents.
+--   Fails if the YAML doesn't parse or isn't valid HLint YAML
 readFileConfigYaml :: FilePath -> Maybe String -> IO [Setting]
 readFileConfigYaml file contents = do
     val <- case contents of
@@ -49,66 +51,137 @@ data Group = Group
 
 
 ---------------------------------------------------------------------
+-- YAML PARSING LIBRARY
+
+data Val = Val 
+    Value -- the actual value I'm focused on
+    [(String, Value)] -- the path of values I followed (for error messages)
+
+newVal :: Value -> Val
+newVal x = Val x [("root", x)]
+
+getVal :: Val -> Value
+getVal (Val x _) = x
+
+addVal :: String -> Value -> Val -> Val
+addVal key v (Val focus path) = Val v $ (key,v) : path
+
+-- | Failed when parsing some value, give an informative error message.
+parseFail :: Val -> String -> Parser a
+parseFail (Val focus path) msg = fail $
+    "Error when decoding YAML, " ++ msg ++ "\n" ++
+    "Along path: " ++ unwords steps ++ "\n" ++
+    "When at: " ++ fst (word1 $ show focus) ++ "\n" ++
+    -- aim to show a smallish but relevant context
+    dotDot (fromMaybe (encode focus) $ listToMaybe $ dropWhile (\x -> BS.length x > 250) $ map encode contexts)
+    where
+        (steps, contexts) = unzip $ reverse path
+        dotDot x = let (a,b) = BS.splitAt 250 x in BS.unpack a ++ (if BS.null b then "..." else "")
+
+parseArray :: Val -> Parser [Val]
+parseArray v@(getVal -> Array xs) = return $ zipWith (\i x -> addVal (show i) x v) [0..] $ V.toList xs
+parseArray v = return [v]
+
+parseObject :: Val -> Parser (Map.HashMap T.Text Value)
+parseObject (getVal -> Object x) = return x
+parseObject v = parseFail v "Expected an Object"
+
+parseString :: Val -> Parser String
+parseString (getVal -> String x) = return $ T.unpack x
+parseString v = parseFail v "Expected a String"
+
+parseBool :: Val -> Parser Bool
+parseBool (getVal -> Bool b) = return b
+parseBool v = parseFail v "Expected a Bool"
+
+parseField :: String -> Val -> Parser Val
+parseField s v = do
+    x <- parseFieldOpt s v
+    case x of
+        Nothing -> parseFail v $ "Expected a field named " ++ s
+        Just v -> return v
+
+parseFieldOpt :: String -> Val -> Parser (Maybe Val)
+parseFieldOpt s v = do
+    mp <- parseObject v
+    case Map.lookup (T.pack s) mp of
+        Nothing -> return Nothing
+        Just x -> return $ Just $ addVal s x v
+
+allowFields :: Val -> [String] -> Parser ()
+allowFields v allow = do
+    mp <- parseObject v
+    let bad = map T.unpack (Map.keys mp) \\ allow
+    when (bad /= []) $
+        parseFail v $ "Not allowed keys: " ++ unwords bad
+
+parseHSE :: (String -> ParseResult v) -> Val -> Parser v
+parseHSE parser v = do
+    x <- parseString v
+    case parser x of
+        ParseOk x -> return x
+        ParseFailed loc s -> parseFail v $ "Failed to parse " ++ s ++ ", when parsing:\n  " ++ x
+
+
+---------------------------------------------------------------------
 -- YAML TO DATA TYPE
 
-failJSON :: Value -> String -> Parser a
-failJSON x s = fail $ s ++ "\n" ++ BS.unpack (BS.take 200 $ encode x)
-
 instance FromJSON TopLevel where
-    parseJSON (Array xs) = mconcat <$> mapM parseJSON (V.toList xs)
-    parseJSON (Object x)
-        | "package" `Map.member` x = TopLevel . return . Left <$> parseJSON (Object x)
-        | "group" `Map.member` x = TopLevel . return . Right <$> parseJSON (Object x)
-    parseJSON x = failJSON x "Expected objects containing 'package' or 'group'"
+    parseJSON x = parseTopLevel $ newVal x
 
-instance FromJSON Package where
-    parseJSON (Object x) = return $ asPackage x
+parseTopLevel :: Val -> Parser TopLevel
+parseTopLevel v = do
+    vs <- parseArray v
+    fmap TopLevel $ forM vs $ \v -> do
+        mp <- parseObject v
+        case () of
+            _ | "package" `Map.member` mp -> Left <$> parsePackage v
+              | "group" `Map.member` mp -> Right <$> parseGroup v
+              | otherwise -> parseFail v "Expecting an object with a 'package' or 'group' key"
 
-instance FromJSON Group where
-    parseJSON (Object x) = return $ asGroup x
+parsePackage :: Val -> Parser Package
+parsePackage v = do
+    allowFields v ["package","modules"]
+    packageName <- parseField "package" v >>= parseString
+    packageModules <- parseField "modules" v >>= parseArray >>= mapM (parseHSE parseImportDecl)
+    return Package{..}
 
-parseSnippet :: (String -> ParseResult a) -> String -> a
-parseSnippet parser x = case parser x of
-    ParseOk v -> v
-    ParseFailed loc s -> error $ "Failed to parse " ++ s ++ ", when parsing:\n" ++ x
-
-unString (String x) = T.unpack x
-unString x = error $ "Expected a String, but got " ++ show x
-
-asPackage :: Map.HashMap T.Text Value -> Package
-asPackage x
-    | Just (String name) <- Map.lookup "package" x
-    , Just (Array modules) <- Map.lookup "modules" x
-    , Map.size x == 2
-    = Package (T.unpack name) $ map asModule $ V.toList modules
+parseGroup :: Val -> Parser Group
+parseGroup v = do
+    allowFields v ["group","enabled","imports","rules"]
+    groupName <- parseField "group" v >>= parseString
+    groupEnabled <- parseFieldOpt "enabled" v >>= maybe (return True) parseBool
+    groupImports <- parseFieldOpt "imports" v >>= maybe (return []) (parseArray >=> mapM parseImport)
+    groupRules <- parseField "rules" v >>= parseArray >>= mapM parseRule
+    return Group{..}
     where
-        asModule (String x) = parseSnippet parseImportDecl $ T.unpack x
+        parseImport v = do
+            x <- parseString v
+            case word1 x of
+                ("package", x) -> return $ Left x
+                _ -> Right <$> parseHSE parseImportDecl v
 
-asGroup :: Map.HashMap T.Text Value -> Group
-asGroup x
-    | Just (String name) <- Map.lookup "group" x
-    , Just (Bool enabled) <- Map.lookup "enabled" x
-    , Just (Array imports) <- Map.lookup "imports" x
-    , Just (Array rules) <- Map.lookup "rules" x
-    , Map.size x == 4
-    = Group (T.unpack name) enabled (map asImport $ V.toList imports) (map asRule $ V.toList rules)
-    where
-        asImport (String x)
-            | Just x <- T.stripPrefix "package " x = Left $ T.unpack x
-            | otherwise = Right $ parseSnippet parseImportDecl $ T.unpack x
+parseRule :: Val -> Parser HintRule
+parseRule v = do
+    (hintRuleSeverity, v) <- parseSeverityKey v
+    allowFields v ["lhs","rhs","note","name","side"]
+    hintRuleLHS <- parseField "lhs" v >>= parseHSE parseExp
+    hintRuleRHS <- parseField "rhs" v >>= parseHSE parseExp
+    hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (parseArray >=> mapM (fmap asNote . parseString))
+    hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName hintRuleLHS hintRuleRHS) parseString
+    hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap Just . parseHSE parseExp)
+    let hintRuleScope = mempty
+    return HintRule{..}
 
-asRule :: Value -> HintRule
-asRule (Object (Map.toList -> [(severity, Object x)]))
-    | Just sev <- getSeverity $ T.unpack severity
-    , Just lhs <- asExp <$> Map.lookup "lhs" x
-    , Just rhs <- asExp <$> Map.lookup "rhs" x
-    , note <- asNote . unString <$> Map.lookup "note" x
-    , name <- maybe (guessName lhs rhs) unString $ Map.lookup "name" x
-    , side <- asExp <$> Map.lookup "side" x
-    = HintRule sev name mempty lhs rhs side (maybeToList note)
-    where
-        asExp = parseSnippet parseExp . unString
-asRule x = error $ show x
+parseSeverityKey :: Val -> Parser (Severity, Val)
+parseSeverityKey v = do
+    mp <- parseObject v
+    case Map.keys mp of
+        [T.unpack -> s]
+            | Just sev <- getSeverity s -> (,) sev <$> parseField s v
+            | otherwise -> parseFail v $ "Key should be a severity (e.g. warn/error/suggest) but got " ++ s
+        _ -> parseFail v $ "Expected exactly one key but got " ++ show (Map.size mp)
+
 
 guessName :: Exp_ -> Exp_ -> String
 guessName lhs rhs
@@ -148,3 +221,4 @@ asScope packages xs = scopeCreate $ Module an Nothing [] (concatMap f xs) []
     where
         f (Right x) = [x]
         f (Left x) | Just pkg <- Map.lookup x packages = pkg
+                   | otherwise = error $ "asScope failed to do lookup, " ++ x
