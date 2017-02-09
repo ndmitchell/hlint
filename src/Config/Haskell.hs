@@ -4,7 +4,7 @@ module Config.Haskell(
     readPragma,
     addInfix,
     readSetting,
-    readSettings, readSettings2
+    readSettings
     ) where
 
 import HSE.All
@@ -32,44 +32,11 @@ addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
 ---------------------------------------------------------------------
 -- READ A SETTINGS FILE
 
--- Given a list of hint files to start from
--- Return the list of settings commands
-readSettings2 :: [FilePath] -> [String] -> IO [Setting]
-readSettings2 files hints = do
-    mods <- mapM readHints $ map Right files ++ map Left hints
-    return $ concatMap moduleSettings_ mods
-
-moduleSettings_ :: Module_ -> [Setting]
-moduleSettings_ m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
-                       [AnnPragma l x | AnnModulePragma l x <- modulePragmas m] ++ moduleDecls m
-
 -- | Given a module containing HLint settings information return the 'Classify' rules and the 'HintRule' expressions.
 --   Any fixity declarations will be discarded, but any other unrecognised elements will result in an exception.
 readSettings :: Module_ -> [Setting]
-readSettings = moduleSettings_
-
-
-readHints :: Either String FilePath -> IO Module_
-readHints x = case x of
-    Left src -> findSettingsFiles "CommandLine" (Just src)
-    Right file -> findSettingsFiles file Nothing
-
-
--- | Given the data directory (where the @hlint@ data files reside, see 'getHLintDataDir'),
---   and a filename to read, and optionally that file's contents, produce a pair containing:
---
--- 1. Builtin hints to use, e.g. @"List"@, which should be resolved using 'builtinHints'.
---
--- 1. A list of modules containing hints, suitable for processing with 'readSettings'.
---
---   Any parse failures will result in an exception.
-findSettingsFiles :: FilePath -> Maybe String -> IO Module_
-findSettingsFiles file contents = do
-    let flags = addInfix defaultParseFlags
-    res <- parseModuleEx flags file contents
-    case res of
-        Left (ParseError sl msg err) -> exitMessage $ "Parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
-        Right (m, _) -> return m
+readSettings m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
+                       [AnnPragma l x | AnnModulePragma l x <- modulePragmas m] ++ moduleDecls m
 
 
 readSetting :: Scope -> Decl_ -> [Setting]
