@@ -156,6 +156,7 @@ used DeriveFoldable = hasDerive ["Foldable"]
 used DeriveTraversable = hasDerive ["Traversable"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
 used GeneralizedNewtypeDeriving = any (`notElem` noNewtypeDeriving) . fst . derives
+used LambdaCase = hasS isLCase
 used Arrows = hasS f
     where f Proc{} = True
           f LeftArrApp{} = True

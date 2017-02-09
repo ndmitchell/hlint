@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #300, warn when LambdaCase extension is unused
     #301, when suggesting newtype remove strictness annotations
     #297, better testing that there isn't a performance regression
     #167, add -j flag for number of threads
