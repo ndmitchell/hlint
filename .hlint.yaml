@@ -1,5 +1,7 @@
 
 # Hints that apply only to the HLint source code
+#####################################################################
+## HINTS
 
 - error: {lhs: QVarOp a (UnQual b x), rhs: toNamed x}
 - error: {lhs: QConOp a (UnQual b x), rhs: toNamed x}
@@ -12,6 +14,10 @@
 - error: {lhs: idea Suggestion, rhs: suggest}
 - error: {lhs: ideaN Warning, rhs: warnN}
 - error: {lhs: ideaN Suggestion, rhs: suggestN}
+
+
+#####################################################################
+## IGNORES
 
 # deliberately creates an Ident with "...", which should be a symbol
 - ignore: {name: Use toNamed, within: Hint.Naming.shorten}
