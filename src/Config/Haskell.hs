@@ -76,13 +76,7 @@ findSettingsFiles dataDir file contents = do
     res <- parseModuleEx flags file contents
     case res of
         Left (ParseError sl msg err) -> exitMessage $ "Parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
-        Right (m, _) -> do
-            ys <- sequence [f $ fromNamed $ importModule i | i <- moduleImports m, importPkg i `elem` [Just "hint", Just "hlint"]]
-            return $ concatUnzip $ ([],[m]) : ys
-    where
-        f x | Just x <- "HLint.Builtin." `stripPrefix` x = return ([x],[])
-            | Just x <- "HLint." `stripPrefix` x = findSettingsFiles dataDir (dataDir </> x <.> "hs") Nothing
-            | otherwise = findSettingsFiles dataDir (x <.> "hs") Nothing
+        Right (m, _) -> return ([],[m])
 
 
 readSetting :: Scope -> Decl_ -> [Setting]

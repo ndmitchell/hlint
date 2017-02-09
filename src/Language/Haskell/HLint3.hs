@@ -110,18 +110,9 @@ findSettings load start = do
         Left (ParseError sl msg err) ->
             error $ "Settings parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
         Right (m, _) -> do
-            imported <- sequence [f $ fromNamed $ importModule i | i <- moduleImports m, importPkg i `elem` [Just "hint", Just "hlint"]]
             let (classify, rules) = Settings.readSettings m
             let fixities = getFixity =<< moduleDecls m
-            return $ concatUnzip3 $ (fixities,classify,map Right rules ++ map Left [minBound..maxBound]) : imported
-    where
-        builtins =  [(drop 4 $ show h, h :: HintBuiltin) | h <- [minBound .. maxBound]]
-
-        f x | x == "HLint.Builtin.All" = return ([], [], map Left [minBound..maxBound])
-        f x | Just x <- "HLint.Builtin." `stripPrefix` x = case lookup x builtins of
-                Just x -> return ([], [], [Left x])
-                Nothing -> error $ "Unknown builtin hints: HLint.Builtin." ++ x
-            | otherwise = findSettings load (Just x)
+            return (fixities,classify,map Right rules ++ map Left [minBound..maxBound])
 
 
 -- | Snippet from the documentation, if this changes, update the documentation
