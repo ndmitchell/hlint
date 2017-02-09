@@ -29,7 +29,7 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
     useSrc <- return $ hasSrc && null files
     testFiles <- if files /= [] then return files else do
         xs <- getDirectoryContents dataDir
-        return [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint" `isPrefixOf` takeBaseName x]
+        return [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint_" `isPrefixOf` takeBaseName x]
     testFiles <- forM testFiles $ \file -> (,) file <$> readSettings2 dataDir [file] []
     let wrap msg act = putStr (msg ++ " ") >> act >> putStrLn ""
 
