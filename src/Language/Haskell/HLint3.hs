@@ -30,7 +30,7 @@ module Language.Haskell.HLint3(
     ) where
 
 import Config.Type
-import Config.Haskell as Settings hiding (findSettings)
+import Config.All
 import Idea
 import Apply
 import HLint
@@ -104,16 +104,10 @@ readSettingsFile dir x
 findSettings :: (String -> IO (FilePath, Maybe String)) -> Maybe String -> IO ([Fixity], [Classify], [Either HintBuiltin HintRule])
 findSettings load start = do
     (file,contents) <- load $ fromMaybe "HLint.HLint" start
-    let flags = addInfix defaultParseFlags
-    res <- parseModuleEx flags file contents
-    case res of
-        Left (ParseError sl msg err) ->
-            error $ "Settings parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
-        Right (m, _) -> do
-            let xs = Settings.readSettings m
-            return ([x | Infix x <- xs]
-                   ,[x | SettingClassify x <- xs]
-                   ,[Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])
+    xs <- readFileConfig file contents
+    return ([x | Infix x <- xs]
+           ,[x | SettingClassify x <- xs]
+           ,[Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])
 
 
 -- | Snippet from the documentation, if this changes, update the documentation

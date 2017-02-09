@@ -78,6 +78,7 @@ library
         Util
         Parallel
         Refact
+        Config.All
         Config.Haskell
         Config.Type
         HSE.All
