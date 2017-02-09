@@ -109,6 +109,7 @@ isRecStmt RecStmt{} = True; isRecStmt _ = False
 isClsDefSig ClsDefSig{} = True; isClsDefSig _ = False
 isTyBang TyBang{} = True; isTyBang _ = False
 isLCase LCase{} = True; isLCase _ = False
+isTupleSection TupleSection{} = True; isTupleSection _ = False
 
 isSection LeftSection{} = True
 isSection RightSection{} = True

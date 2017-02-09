@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #302, detect unused TupleSections extension
 1.9.41
     #299, warn in some cases when NumDecimals extension is unused
     #300, warn when LambdaCase extension is unused

@@ -83,6 +83,10 @@ foo = 12.3e2
 foo = id --
 {-# LANGUAGE NumDecimals #-} \
 foo = 12.345e2 --
+{-# LANGUAGE TupleSections #-} \
+main = map (,1,2) xs
+{-# LANGUAGE TupleSections #-} \
+main = id --
 </TEST>
 -}
 
@@ -169,6 +173,7 @@ used DeriveTraversable = hasDerive ["Traversable"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
 used GeneralizedNewtypeDeriving = any (`notElem` noNewtypeDeriving) . fst . derives
 used LambdaCase = hasS isLCase
+used TupleSections = hasS isTupleSection
 used Arrows = hasS f
     where f Proc{} = True
           f LeftArrApp{} = True
