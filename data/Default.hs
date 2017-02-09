@@ -226,6 +226,7 @@ hint "Use uncurry" = (\(x,y) -> f x y) ==> uncurry f where note = IncreasesLazin
 warn "Redundant $" = (($) . f) ==> f
 warn "Redundant $" = (f $) ==> f
 hint = (\x -> y) ==> const y where _ = isAtom y && not (isWildcard y)
+    -- isWildcard because some people like to put brackets round them even though they are atomic
 warn "Redundant flip" = flip f x y ==> f y x where _ = isApp original
 warn "Evaluate" = id x ==> x
     where _ = not (isTypeApp x)
@@ -651,6 +652,8 @@ yes = foo (elem x y) -- x `elem` y
 no  = x `elem` y
 no  = elem 1 [] : []
 test a = foo (\x -> True) -- const True
+test a = foo (\_ -> True) -- const True
+test a = foo (\x -> x) -- id
 h a = flip f x (y z) -- f (y z) x
 h a = flip f x $ y z
 yes x = case x of {True -> a ; False -> b} -- if x then a else b
