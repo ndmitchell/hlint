@@ -176,7 +176,8 @@ errorOn val msg = exitMessage $
 ---------------------------------------------------------------------
 -- FIND SETTINGS IN A SOURCE FILE
 
--- find definitions in a source file
+-- | Given a source file, guess some hints that might apply.
+--   Returns the text of the hints (if you want to save it down) along with the settings to be used.
 findSettings2 :: ParseFlags -> FilePath -> IO (String, [Setting])
 findSettings2 flags file = do
     x <- parseModuleEx flags file Nothing
