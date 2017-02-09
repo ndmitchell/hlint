@@ -8,7 +8,7 @@ import Data.Either
 import Data.Maybe
 import Data.List.Extra
 import Data.Tuple.Extra
-import Control.Monad
+import Control.Monad.Extra
 import Control.Exception
 import qualified Data.Text as T
 import qualified Data.Vector as V
@@ -46,7 +46,7 @@ data Group = Group
     {groupName :: String
     ,groupEnabled :: Bool
     ,groupImports :: [Either String (ImportDecl S)] -- Left for package imports
-    ,groupRules :: [HintRule] -- with scope set to mempty
+    ,groupRules :: [Either HintRule Classify] -- HintRule has scope set to mempty
     } deriving Show
 
 
@@ -137,22 +137,23 @@ parseTopLevel v = do
         case () of
             _ | "package" `Map.member` mp -> Left <$> parsePackage v
               | "group" `Map.member` mp -> Right <$> parseGroup v
-              | otherwise -> parseFail v "Expecting an object with a 'package' or 'group' key"
+              | [s] <- Map.keys mp, isJust $ getSeverity $ T.unpack s -> Right . ruleToGroup <$> parseRule v
+              | otherwise -> parseFail v "Expecting an object with a 'package' or 'group' key, or a hint"
 
 parsePackage :: Val -> Parser Package
 parsePackage v = do
-    allowFields v ["package","modules"]
     packageName <- parseField "package" v >>= parseString
     packageModules <- parseField "modules" v >>= parseArray >>= mapM (parseHSE parseImportDecl)
+    allowFields v ["package","modules"]
     return Package{..}
 
 parseGroup :: Val -> Parser Group
 parseGroup v = do
-    allowFields v ["group","enabled","imports","rules"]
     groupName <- parseField "group" v >>= parseString
     groupEnabled <- parseFieldOpt "enabled" v >>= maybe (return True) parseBool
     groupImports <- parseFieldOpt "imports" v >>= maybe (return []) (parseArray >=> mapM parseImport)
-    groupRules <- parseField "rules" v >>= parseArray >>= mapM parseRule
+    groupRules <- parseField "rules" v >>= parseArray >>= concatMapM parseRule
+    allowFields v ["group","enabled","imports","rules"]
     return Group{..}
     where
         parseImport v = do
@@ -161,17 +162,26 @@ parseGroup v = do
                 ("package", x) -> return $ Left x
                 _ -> Right <$> parseHSE parseImportDecl v
 
-parseRule :: Val -> Parser HintRule
+ruleToGroup :: [Either HintRule Classify] -> Group
+ruleToGroup = Group "" True []
+
+parseRule :: Val -> Parser [Either HintRule Classify]
 parseRule v = do
-    (hintRuleSeverity, v) <- parseSeverityKey v
-    allowFields v ["lhs","rhs","note","name","side"]
-    hintRuleLHS <- parseField "lhs" v >>= parseHSE parseExp
-    hintRuleRHS <- parseField "rhs" v >>= parseHSE parseExp
-    hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (parseArray >=> mapM (fmap asNote . parseString))
-    hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName hintRuleLHS hintRuleRHS) parseString
-    hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap Just . parseHSE parseExp)
-    let hintRuleScope = mempty
-    return HintRule{..}
+    (severity, v) <- parseSeverityKey v
+    isRule <- isJust <$> parseFieldOpt "lhs" v
+    if isRule then do
+        hintRuleLHS <- parseField "lhs" v >>= parseHSE parseExp
+        hintRuleRHS <- parseField "rhs" v >>= parseHSE parseExp
+        hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (parseArray >=> mapM (fmap asNote . parseString))
+        hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName hintRuleLHS hintRuleRHS) parseString
+        hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap Just . parseHSE parseExp)
+        allowFields v ["lhs","rhs","note","name","side"]
+        let hintRuleScope = mempty
+        return [Left HintRule{hintRuleSeverity=severity, ..}]
+     else do
+        classifyHint <- parseField "name" v
+        within <- parseFieldOpt "within" v
+        error "Don't know how to parse classification yet"
 
 parseSeverityKey :: Val -> Parser (Severity, Val)
 parseSeverityKey v = do
@@ -213,7 +223,7 @@ asSettings (TopLevel xs) = concatMap f groups
 
         f Group{..}
             | Map.lookup groupName groupMap == Just False = []
-            | otherwise = [SettingMatchExp r{hintRuleScope=scope} | r <- groupRules]
+            | otherwise = map (either (\r -> SettingMatchExp r{hintRuleScope=scope}) SettingClassify) groupRules
             where scope = asScope packageMap groupImports
 
 asScope :: Map.HashMap String [ImportDecl S] -> [Either String (ImportDecl S)] -> Scope
