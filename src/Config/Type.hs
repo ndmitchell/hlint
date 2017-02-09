@@ -1,13 +1,24 @@
 
 module Config.Type(
     Severity(..), Classify(..), HintRule(..), Note(..), Setting(..),
-    defaultHintName, isUnifyVar, showNotes,
+    defaultHintName, isUnifyVar, showNotes, getSeverity,
     ) where
 
 import HSE.All
 import Data.Char
 import Data.List.Extra
 import Prelude
+
+
+getSeverity :: String -> Maybe Severity
+getSeverity "ignore" = Just Ignore
+getSeverity "warn" = Just Warning
+getSeverity "warning" = Just Warning
+getSeverity "suggest" = Just Suggestion
+getSeverity "suggestion" = Just Suggestion
+getSeverity "error" = Just Error
+getSeverity "hint" = Just Suggestion
+getSeverity _ = Nothing
 
 
 defaultHintName :: String

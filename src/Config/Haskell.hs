@@ -14,17 +14,6 @@ import Util
 import Prelude
 
 
-getSeverity :: String -> Maybe Severity
-getSeverity "ignore" = Just Ignore
-getSeverity "warn" = Just Warning
-getSeverity "warning" = Just Warning
-getSeverity "suggest" = Just Suggestion
-getSeverity "suggestion" = Just Suggestion
-getSeverity "error" = Just Error
-getSeverity "hint" = Just Suggestion
-getSeverity _ = Nothing
-
-
 addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
 
 
