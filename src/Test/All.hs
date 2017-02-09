@@ -55,5 +55,5 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
 
 testNames :: [Setting] -> IO ()
 testNames  hints = sequence_
-    [ failed ["No name for the hint " ++ prettyPrint (hintRuleLHS x)]
-    | SettingMatchExp x@HintRule{} <- hints, hintRuleName x == defaultHintName]
+    [ failed ["No name for the hint " ++ prettyPrint hintRuleLHS ++ " ==> " ++ prettyPrint hintRuleRHS]
+    | SettingMatchExp x@HintRule{..} <- hints, hintRuleName == defaultHintName]
