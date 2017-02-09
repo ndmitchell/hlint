@@ -1,8 +1,9 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
 module Config.Haskell(
+    readPragma,
     findSettings, readSettings,
-    readSettings2, readPragma, findSettings2, addInfix
+    readSettings2, findSettings2, addInfix
     ) where
 
 import Data.Monoid
@@ -102,7 +103,8 @@ readSetting s x@InfixDecl{} = map Infix $ getFixity x
 readSetting s x = errorOn x "bad hint"
 
 
--- return Nothing if it is not an HLint pragma, otherwise all the settings
+-- | Read an {-# ANN #-} pragma and determine if it is intended for HLint.
+--   Return Nothing if it is not an HLint pragma, otherwise what it means.
 readPragma :: Annotation S -> Maybe Classify
 readPragma o = case o of
     Ann _ name x -> f (fromNamed name) x
