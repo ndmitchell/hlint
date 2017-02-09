@@ -8,6 +8,7 @@ import Data.Yaml
 import Data.Either
 import Data.Maybe
 import Data.List.Extra
+import Data.Tuple.Extra
 import qualified Data.Text as T
 import qualified Data.Vector as V
 import qualified Data.ByteString.Char8 as BS
@@ -47,7 +48,7 @@ parseSnippet parser x = case parser x of
     ParseOk v -> v
     ParseFailed loc s -> error $ "Failed to parse " ++ s ++ ", when parsing:\n" ++ x
 
-unString (String x) = x
+unString (String x) = T.unpack x
 unString x = error $ "Expected a String, but got " ++ show x
 
 asConfig :: Value -> [Either Package Group]
@@ -81,13 +82,24 @@ asGroup x
 asRule :: Value -> HintRule
 asRule (Object (Map.toList -> [(severity, Object x)]))
     | Just sev <- getSeverity $ T.unpack severity
-    , Just lhs <- Map.lookup "lhs" x
-    , Just rhs <- Map.lookup "rhs" x
-    , note <- Map.lookup "note" x
-    = HintRule sev "Rule name" mempty (asExp lhs) (asExp rhs) Nothing (maybeToList $ fmap (asNote . T.unpack . unString) note)
+    , Just lhs <- asExp <$> Map.lookup "lhs" x
+    , Just rhs <- asExp <$> Map.lookup "rhs" x
+    , note <- asNote . unString <$> Map.lookup "note" x
+    , name <- maybe (guessName lhs rhs) unString $ Map.lookup "name" x
+    = HintRule sev name mempty lhs rhs Nothing (maybeToList note)
     where
-        asExp = parseSnippet parseExp . T.unpack . unString
+        asExp = parseSnippet parseExp . unString
 asRule x = error $ show x
+
+guessName :: Exp_ -> Exp_ -> String
+guessName lhs rhs
+    | n:_ <- rs \\ ls = "Use " ++ n
+    | n:_ <- ls \\ rs = "Redundant " ++ n
+    | otherwise = defaultHintName
+    where
+        (ls, rs) = both f (lhs, rhs)
+        f = filter (not . isUnifyVar) . map fromName . childrenS
+
 
 asNote :: String -> Note
 asNote "IncreasesLaziness" = IncreasesLaziness
