@@ -3,7 +3,7 @@
 module Config.Haskell(
     readPragma,
     addInfix,
-    findSettings2,
+    findSettings,
     readSettings, readSettings2
     ) where
 
@@ -57,8 +57,8 @@ readSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
 readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
 readHints datadir x = do
     (builtin,ms) <- case x of
-        Left src -> findSettings datadir "CommandLine" (Just src)
-        Right file -> findSettings datadir file Nothing
+        Left src -> findSettingsFiles datadir "CommandLine" (Just src)
+        Right file -> findSettingsFiles datadir file Nothing
     return $ map Left builtin ++ map Right ms
 
 
@@ -70,8 +70,8 @@ readHints datadir x = do
 -- 1. A list of modules containing hints, suitable for processing with 'readSettings'.
 --
 --   Any parse failures will result in an exception.
-findSettings :: FilePath -> FilePath -> Maybe String -> IO ([String], [Module_])
-findSettings dataDir file contents = do
+findSettingsFiles :: FilePath -> FilePath -> Maybe String -> IO ([String], [Module_])
+findSettingsFiles dataDir file contents = do
     let flags = addInfix defaultParseFlags
     res <- parseModuleEx flags file contents
     case res of
@@ -81,8 +81,8 @@ findSettings dataDir file contents = do
             return $ concatUnzip $ ([],[m]) : ys
     where
         f x | Just x <- "HLint.Builtin." `stripPrefix` x = return ([x],[])
-            | Just x <- "HLint." `stripPrefix` x = findSettings dataDir (dataDir </> x <.> "hs") Nothing
-            | otherwise = findSettings dataDir (x <.> "hs") Nothing
+            | Just x <- "HLint." `stripPrefix` x = findSettingsFiles dataDir (dataDir </> x <.> "hs") Nothing
+            | otherwise = findSettingsFiles dataDir (x <.> "hs") Nothing
 
 
 readSetting :: Scope -> Decl_ -> [Setting]
@@ -178,8 +178,8 @@ errorOn val msg = exitMessage $
 
 -- | Given a source file, guess some hints that might apply.
 --   Returns the text of the hints (if you want to save it down) along with the settings to be used.
-findSettings2 :: ParseFlags -> FilePath -> IO (String, [Setting])
-findSettings2 flags file = do
+findSettings :: ParseFlags -> FilePath -> IO (String, [Setting])
+findSettings flags file = do
     x <- parseModuleEx flags file Nothing
     case x of
         Left (ParseError sl msg _) ->

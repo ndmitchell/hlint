@@ -103,7 +103,7 @@ hlintMain cmd@CmdMain{..} = do
                 defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
     if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
-        mapM_ (putStrLn . fst <=< findSettings2 flags) hints >> return []
+        mapM_ (putStrLn . fst <=< findSettings flags) hints >> return []
      else if null cmdFiles then
         exitWithHelp
      else if cmdRefactor then
@@ -122,7 +122,7 @@ readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
 readAllSettings cmd@CmdMain{..} flags = do
     files <- cmdHintFiles cmd
     settings1 <- readSettings2 cmdDataDir files cmdWithHints
-    settings2 <- concatMapM (fmap snd . findSettings2 flags) cmdFindHints
+    settings2 <- concatMapM (fmap snd . findSettings flags) cmdFindHints
     settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
     return $ settings1 ++ settings2 ++ settings3
 
