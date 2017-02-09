@@ -23,9 +23,17 @@ newtypeHint :: DeclHint
 newtypeHint _ _ = newtypeHintDecl
 
 newtypeHintDecl :: Decl_ -> [Idea]
-newtypeHintDecl d@(DataDecl sp (DataType dtA) ctx dclH [qcD@(QualConDecl _ Nothing _ cd)] der)
-    | ConDecl _ _ [_] <- cd = wrn
-    | RecDecl _ _ [FieldDecl _ [_] _] <- cd = wrn
-    where suggestion = DataDecl sp (NewType dtA) ctx dclH [qcD] der
-          wrn = [(suggestN "Use newtype instead of data" d suggestion){ideaNote = [DecreasesLaziness]}]
+newtypeHintDecl x
+    | Just (DataType s, t, f) <- singleSimpleField x
+    = [(suggestN "Use newtype instead of data" x $ f (NewType s) t){ideaNote = [DecreasesLaziness]}]
 newtypeHintDecl _ = []
+
+
+singleSimpleField :: Decl_ -> Maybe (DataOrNew SrcSpanInfo, Type_, DataOrNew SrcSpanInfo -> Type_ -> Decl_)
+singleSimpleField (DataDecl x1 dt x2 x3 [QualConDecl y1 Nothing y2 ctor] x4)
+    | Just (t, ft) <- f ctor = Just (dt, t, \dt t -> DataDecl x1 dt x2 x3 [QualConDecl y1 Nothing y2 $ ft t] x4)
+    where
+        f (ConDecl x1 x2 [t]) = Just (t, \t -> ConDecl x1 x2 [t])
+        f (RecDecl x1 x2 [FieldDecl y1 [y2] t]) = Just (t, \t -> RecDecl x1 x2 [FieldDecl y1 [y2] t])
+        f _ = Nothing
+singleSimpleField _ = Nothing
