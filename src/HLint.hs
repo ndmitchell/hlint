@@ -1,5 +1,4 @@
 {-# LANGUAGE RecordWildCards, ViewPatterns #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module HLint(hlint) where
 
