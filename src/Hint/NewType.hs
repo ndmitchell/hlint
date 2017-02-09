@@ -25,7 +25,8 @@ newtypeHint _ _ = newtypeHintDecl
 newtypeHintDecl :: Decl_ -> [Idea]
 newtypeHintDecl x
     | Just (DataType s, t, f) <- singleSimpleField x
-    = [(suggestN "Use newtype instead of data" x $ f (NewType s) t){ideaNote = [DecreasesLaziness]}]
+    = [(suggestN "Use newtype instead of data" x $ f (NewType s) $ fromTyBang t)
+            {ideaNote = [DecreasesLaziness | not $ isTyBang t]}]
 newtypeHintDecl _ = []
 
 

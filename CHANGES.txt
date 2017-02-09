@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #301, when suggesting newtype remove strictness annotations
     #297, better testing that there isn't a performance regression
     #167, add -j flag for number of threads
     #292, add fst/snd . unzip ==> map fst/snd
