@@ -86,7 +86,8 @@ asRule (Object (Map.toList -> [(severity, Object x)]))
     , Just rhs <- asExp <$> Map.lookup "rhs" x
     , note <- asNote . unString <$> Map.lookup "note" x
     , name <- maybe (guessName lhs rhs) unString $ Map.lookup "name" x
-    = HintRule sev name mempty lhs rhs Nothing (maybeToList note)
+    , side <- asExp <$> Map.lookup "side" x
+    = HintRule sev name mempty lhs rhs side (maybeToList note)
     where
         asExp = parseSnippet parseExp . unString
 asRule x = error $ show x
