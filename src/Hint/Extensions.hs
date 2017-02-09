@@ -77,6 +77,12 @@ foo = id @Int
 foo = id --
 {-# LANGUAGE LambdaCase #-} \
 foo = \case () -> ()
+{-# LANGUAGE NumDecimals #-} \
+foo = 12.3e2
+{-# LANGUAGE NumDecimals #-} \
+foo = id --
+{-# LANGUAGE NumDecimals #-} \
+foo = 12.345e2 --
 </TEST>
 -}
 
