@@ -119,7 +119,6 @@ runHlintMain cmd@CmdMain{..} fp flags = do
       then error "No files found"
       else runHints cmd{cmdFiles=files} flags
 
-{-# ANN readAllSettings "HLint: ignore Use let" #-}
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
 readAllSettings cmd@CmdMain{..} flags = do
     files <- cmdHintFiles cmd

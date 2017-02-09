@@ -21,7 +21,6 @@ import Test.Translate
 import System.IO.Extra
 
 
-{-# ANN test "HLint: ignore Use let" #-}
 test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
 test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTests $ do
     hasSrc <- doesFileExist "hlint.cabal"
