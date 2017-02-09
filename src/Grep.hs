@@ -1,7 +1,9 @@
 
 module Grep(runGrep) where
 
-import Language.Haskell.HLint2
+import Hint.All
+import Apply
+import Config.Type
 import HSE.All
 import Control.Monad
 import Data.List
