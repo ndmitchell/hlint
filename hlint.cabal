@@ -79,6 +79,7 @@ library
         Parallel
         Refact
         Config.All
+        Config.Compute
         Config.Haskell
         Config.Type
         HSE.All
