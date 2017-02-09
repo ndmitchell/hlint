@@ -174,9 +174,9 @@ mode = cmdArgsMode $ modes
         ,cmdTempDir = nam_ "tempdir" &= help "Where to put temporary files (not cleaned up)"
         } &= explicit &= name "test"
         &= details ["HLint gives hints on how to improve Haskell code."
-                 ,""
-                 ,"To check all Haskell files in 'src' and generate a report type:"
-                 ,"  hlint src --report"]
+                   ,""
+                   ,"To check all Haskell files in 'src' and generate a report type:"
+                   ,"  hlint src --report"]
     ,CmdHSE
         {} &= explicit &= name "hse"
     ] &= program "hlint" &= verbosity
