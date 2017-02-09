@@ -38,9 +38,9 @@ addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
 
 -- Given a list of hint files to start from
 -- Return the list of settings commands
-readSettings2 :: FilePath -> [FilePath] -> [String] -> IO [Setting]
-readSettings2 dataDir files hints = do
-    mods <- mapM (readHints dataDir) $ map Right files ++ map Left hints
+readSettings2 :: [FilePath] -> [String] -> IO [Setting]
+readSettings2 files hints = do
+    mods <- mapM readHints $ map Right files ++ map Left hints
     return $ concatMap moduleSettings_ mods
 
 moduleSettings_ :: Module_ -> [Setting]
@@ -54,10 +54,10 @@ readSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
     where xs = moduleSettings_ m
 
 
-readHints :: FilePath -> Either String FilePath -> IO Module_
-readHints datadir x = case x of
-    Left src -> findSettingsFiles datadir "CommandLine" (Just src)
-    Right file -> findSettingsFiles datadir file Nothing
+readHints :: Either String FilePath -> IO Module_
+readHints x = case x of
+    Left src -> findSettingsFiles "CommandLine" (Just src)
+    Right file -> findSettingsFiles file Nothing
 
 
 -- | Given the data directory (where the @hlint@ data files reside, see 'getHLintDataDir'),
@@ -68,8 +68,8 @@ readHints datadir x = case x of
 -- 1. A list of modules containing hints, suitable for processing with 'readSettings'.
 --
 --   Any parse failures will result in an exception.
-findSettingsFiles :: FilePath -> FilePath -> Maybe String -> IO Module_
-findSettingsFiles dataDir file contents = do
+findSettingsFiles :: FilePath -> Maybe String -> IO Module_
+findSettingsFiles file contents = do
     let flags = addInfix defaultParseFlags
     res <- parseModuleEx flags file contents
     case res of
