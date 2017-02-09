@@ -1,6 +1,4 @@
 
-import "hint" HLint.HLint
-
 -- Hints that apply only to the HLint source code
 
 error = QVarOp a (UnQual b x) ==> toNamed x
