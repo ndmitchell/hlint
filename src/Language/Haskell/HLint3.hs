@@ -110,9 +110,10 @@ findSettings load start = do
         Left (ParseError sl msg err) ->
             error $ "Settings parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
         Right (m, _) -> do
-            let (classify, rules) = Settings.readSettings m
-            let fixities = getFixity =<< moduleDecls m
-            return (fixities,classify,map Right rules ++ map Left [minBound..maxBound])
+            let xs = Settings.readSettings m
+            return ([x | Infix x <- xs]
+                   ,[x | SettingClassify x <- xs]
+                   ,[Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])
 
 
 -- | Snippet from the documentation, if this changes, update the documentation

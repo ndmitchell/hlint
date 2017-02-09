@@ -49,9 +49,8 @@ moduleSettings_ m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquat
 
 -- | Given a module containing HLint settings information return the 'Classify' rules and the 'HintRule' expressions.
 --   Any fixity declarations will be discarded, but any other unrecognised elements will result in an exception.
-readSettings :: Module_ -> ([Classify], [HintRule])
-readSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
-    where xs = moduleSettings_ m
+readSettings :: Module_ -> [Setting]
+readSettings = moduleSettings_
 
 
 readHints :: Either String FilePath -> IO Module_
