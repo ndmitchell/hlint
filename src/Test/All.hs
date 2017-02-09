@@ -28,7 +28,8 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
     useSrc <- return $ hasSrc && null files
     testFiles <- if files /= [] then return files else do
         xs <- getDirectoryContents dataDir
-        return [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint_" `isPrefixOf` takeBaseName x]
+        return [dataDir </> x | x <- xs, takeExtension x `elem` [".hs",".yml",".yaml"]
+                              , not $ "HLint_" `isPrefixOf` takeBaseName x]
     testFiles <- forM testFiles $ \file -> do
         hints <- readFileConfig file Nothing
         return (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
