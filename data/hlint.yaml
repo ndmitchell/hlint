@@ -39,7 +39,6 @@
   enabled: true
   imports:
   - package base
-  - import Data.List as X
   rules:
 
   # I/O
