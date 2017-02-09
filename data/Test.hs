@@ -5,9 +5,6 @@
 --        things without them overlapping
 module HLint.Test where
 
-import "hint" HLint.Builtin.All
-
-
 error = Prelude.readFile ==> bad
 
 error = (x :: Int) ==> (x :: Int32)

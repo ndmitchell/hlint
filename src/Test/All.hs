@@ -7,7 +7,6 @@ import Control.Monad
 import Data.List
 import System.Directory
 import System.FilePath
-import Data.Functor
 import Prelude
 
 import Config.Type
@@ -30,7 +29,9 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
     testFiles <- if files /= [] then return files else do
         xs <- getDirectoryContents dataDir
         return [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint_" `isPrefixOf` takeBaseName x]
-    testFiles <- forM testFiles $ \file -> (,) file <$> readSettings2 [file] []
+    testFiles <- forM testFiles $ \file -> do
+        hints <- readSettings2 [file] []
+        return (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
     let wrap msg act = putStr (msg ++ " ") >> act >> putStrLn ""
 
     putStrLn "Testing"
