@@ -5,7 +5,7 @@ module Config.Haskell(
     addInfix,
     readSetting,
     readSettings,
-    readFileConfig
+    readFileConfigHaskell
     ) where
 
 import HSE.All
@@ -33,8 +33,8 @@ addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
 ---------------------------------------------------------------------
 -- READ A SETTINGS FILE
 
-readFileConfig :: FilePath -> Maybe String -> IO [Setting]
-readFileConfig file contents = do
+readFileConfigHaskell :: FilePath -> Maybe String -> IO [Setting]
+readFileConfigHaskell file contents = do
     let flags = addInfix defaultParseFlags
     res <- parseModuleEx flags file contents
     case res of
