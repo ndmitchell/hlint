@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards, GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module Config.Yaml(readFileConfigYaml) where
@@ -9,6 +9,7 @@ import Data.Either
 import Data.Maybe
 import Data.List.Extra
 import Data.Tuple.Extra
+import Control.Exception
 import qualified Data.Text as T
 import qualified Data.Vector as V
 import qualified Data.ByteString.Char8 as BS
@@ -22,13 +23,17 @@ import Prelude
 readFileConfigYaml :: FilePath -> Maybe String -> IO [Setting]
 readFileConfigYaml file contents = do
     val <- case contents of
-        Nothing -> decodeFile file
-        Just src -> return $ decode $ BS.pack src
-    return $ asSettings $ asConfig $ fromJust val
+        Nothing -> decodeFileEither file
+        Just src -> return $ decodeEither' $ BS.pack src
+    case val of
+        Left e -> fail $ "Failed to read YAML configuration file " ++ file ++ "\n  " ++ displayException e
+        Right v -> return $ asSettings v
 
 
 ---------------------------------------------------------------------
 -- YAML DATA TYPE
+
+newtype TopLevel = TopLevel [Either Package Group] deriving Monoid
 
 data Package = Package
     {packageName :: String
@@ -46,6 +51,22 @@ data Group = Group
 ---------------------------------------------------------------------
 -- YAML TO DATA TYPE
 
+failJSON :: Value -> String -> Parser a
+failJSON x s = fail $ s ++ "\n" ++ BS.unpack (BS.take 200 $ encode x)
+
+instance FromJSON TopLevel where
+    parseJSON (Array xs) = mconcat <$> mapM parseJSON (V.toList xs)
+    parseJSON (Object x)
+        | "package" `Map.member` x = TopLevel . return . Left <$> parseJSON (Object x)
+        | "group" `Map.member` x = TopLevel . return . Right <$> parseJSON (Object x)
+    parseJSON x = failJSON x "Expected objects containing 'package' or 'group'"
+
+instance FromJSON Package where
+    parseJSON (Object x) = return $ asPackage x
+
+instance FromJSON Group where
+    parseJSON (Object x) = return $ asGroup x
+
 parseSnippet :: (String -> ParseResult a) -> String -> a
 parseSnippet parser x = case parser x of
     ParseOk v -> v
@@ -53,12 +74,6 @@ parseSnippet parser x = case parser x of
 
 unString (String x) = T.unpack x
 unString x = error $ "Expected a String, but got " ++ show x
-
-asConfig :: Value -> [Either Package Group]
-asConfig (Object x)
-    | "package" `Map.member` x = [Left $ asPackage x]
-    | "group" `Map.member` x = [Right $ asGroup x]
-asConfig (Array x) = concatMap asConfig $ V.toList x
 
 asPackage :: Map.HashMap T.Text Value -> Package
 asPackage x
@@ -116,8 +131,8 @@ asNote x = Note x
 ---------------------------------------------------------------------
 -- SETTINGS
 
-asSettings :: [Either Package Group] -> [Setting]
-asSettings xs = concatMap f groups
+asSettings :: TopLevel -> [Setting]
+asSettings (TopLevel xs) = concatMap f groups
     where
         (packages, groups) = partitionEithers xs
         packageMap = Map.fromListWith (++) [(packageName, packageModules) | Package{..} <- packages]
