@@ -73,6 +73,10 @@ class Val a where; val :: a; default val :: Int
 foo = id --
 {-# LANGUAGE TypeApplications #-} \
 foo = id @Int
+{-# LANGUAGE LambdaCase #-} \
+foo = id --
+{-# LANGUAGE LambdaCase #-} \
+foo = \case () -> ()
 </TEST>
 -}
 
