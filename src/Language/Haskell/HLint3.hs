@@ -113,7 +113,7 @@ findSettings load start = do
             imported <- sequence [f $ fromNamed $ importModule i | i <- moduleImports m, importPkg i `elem` [Just "hint", Just "hlint"]]
             let (classify, rules) = Settings.readSettings m
             let fixities = getFixity =<< moduleDecls m
-            return $ concatUnzip3 $ (fixities,classify,map Right rules) : imported
+            return $ concatUnzip3 $ (fixities,classify,map Right rules ++ map Left [minBound..maxBound]) : imported
     where
         builtins =  [(drop 4 $ show h, h :: HintBuiltin) | h <- [minBound .. maxBound]]
 

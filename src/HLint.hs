@@ -28,6 +28,7 @@ import Report
 import Idea
 import Apply
 import Test.All
+import Hint.All
 import Grep
 import Test.Proof
 import Util
@@ -151,6 +152,7 @@ runHints cmd@CmdMain{..} flags = do
 
 getIdeas :: Cmd -> [Setting] -> ParseFlags -> IO [Idea]
 getIdeas cmd@CmdMain{..} settings flags = do
+    settings <- return $ settings ++ map (Builtin . fst) builtinHints
     ideas <- if cmdCross
         then applyHintFiles flags settings cmdFiles
         else concat <$> parallel cmdThreads [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
