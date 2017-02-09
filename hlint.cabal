@@ -15,7 +15,6 @@ homepage:           https://github.com/ndmitchell/hlint#readme
 bug-reports:        https://github.com/ndmitchell/hlint/issues
 data-dir:           data
 data-files:
-    Default.hs
     Generalise.hs
     Dollar.hs
     HLint.hs
