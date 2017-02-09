@@ -186,7 +186,7 @@ mode = cmdArgsMode $ modes
         nam_ xs = def &= explicit &= name xs
 
 cmdHintFiles :: Cmd -> IO [FilePath]
-cmdHintFiles cmd = mapM (getHintFile $ cmdDataDir cmd) $ cmdGivenHints cmd ++ ["HLint" | null (cmdGivenHints cmd) && null (cmdWithHints cmd)]
+cmdHintFiles cmd = mapM (getHintFile $ cmdDataDir cmd) $ cmdGivenHints cmd ++ ["hlint.yaml" | null (cmdGivenHints cmd) && null (cmdWithHints cmd)]
 
 cmdExtensions :: Cmd -> (Language, [Extension])
 cmdExtensions = getExtensions . cmdLanguage
