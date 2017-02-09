@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module Config.Yaml(readFileConfigYaml) where
 
