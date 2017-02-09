@@ -70,6 +70,10 @@ fromTyParen :: Type s -> Type s
 fromTyParen (TyParen _ x) = fromTyParen x
 fromTyParen x = x
 
+fromTyBang :: Type s -> Type s
+fromTyBang (TyBang _ _ _ x) = x
+fromTyBang x = x
+
 fromDeriving :: Deriving s -> [InstRule s]
 fromDeriving (Deriving _ x) = x
 
@@ -103,6 +107,7 @@ isSpliceDecl SpliceDecl{} = True; isSpliceDecl _ = False
 isNewType NewType{} = True; isNewType _ = False
 isRecStmt RecStmt{} = True; isRecStmt _ = False
 isClsDefSig ClsDefSig{} = True; isClsDefSig _ = False
+isTyBang TyBang{} = True; isTyBang _ = False
 
 isSection LeftSection{} = True
 isSection RightSection{} = True
