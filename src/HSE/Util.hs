@@ -108,6 +108,7 @@ isNewType NewType{} = True; isNewType _ = False
 isRecStmt RecStmt{} = True; isRecStmt _ = False
 isClsDefSig ClsDefSig{} = True; isClsDefSig _ = False
 isTyBang TyBang{} = True; isTyBang _ = False
+isLCase LCase{} = True; isLCase _ = False
 
 isSection LeftSection{} = True
 isSection RightSection{} = True
