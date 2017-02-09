@@ -1,5 +1,28 @@
 
 # Hints that apply only to the HLint source code
+
+#####################################################################
+## RESTRICTIONS
+
+# - extensions:
+#   - allow: [DeriveDataTypeable, GeneralizedNewtypeDeriving, NoMonomorphismRestriction, OverloadedStrings]
+#   - allow: [PatternGuards, Rank2Types, RecordWildCards, ScopedTypeVariables, ViewPatterns]
+#   - allow: [ExistentialQuantification, MultiParamTypeClasses]
+#   - allow: [FlexibleContexts, FlexibleInstances]
+#   - {allow: CPP, within: HsColour} # so it can be disabled to avoid GPL code
+#
+# - flags:
+#   - {allow: [-fno-warn-missing-fields, -fno-cse, -O0], within: CmdLine} # for cmdargs
+#
+# - modules:
+#   - {allow: Data.Set, qualified: Set}
+#   - {allow: Data.Map, qualified: Map}
+#
+# - functions:
+#   - {allow: unsafeInterleaveIO, within: Parallel}
+#   - {allow: unsafePerformIO, within: [Util.exitMessage, Test.Util.ref]}
+
+
 #####################################################################
 ## HINTS
 
