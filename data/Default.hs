@@ -176,6 +176,14 @@ warn = iterate id ==> repeat
 warn = zipWith f (repeat x) ==> map (f x)
 warn = zipWith f y (repeat z) ==> map (\x -> f x z) y
 
+-- TRAVERSABLES
+
+warn = sequenceA (map f x) ==> traverse f x
+warn = sequenceA (fmap f x) ==> traverse f x
+warn = sequence (fmap f x) ==> traverse f x
+warn = sequenceA_ (map f x) ==> traverse_ f x
+warn = sequenceA_ (fmap f x) ==> traverse_ f x
+
 -- BY
 
 warn = deleteBy (==) ==> delete

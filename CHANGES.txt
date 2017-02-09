@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #290, add hints suggesting traverse/traverse_
     #303, detect unused OverloadedStrings extension
     #302, detect unused TupleSections extension
 1.9.41
