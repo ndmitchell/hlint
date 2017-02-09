@@ -27,7 +27,7 @@ readFileConfigYaml file contents = do
 
 data Package = Package
     {packageName :: String
-    ,packageModules :: [Module_]
+    ,packageModules :: [ImportDecl S]
     } deriving Show
 
 data Group = Group
@@ -61,7 +61,7 @@ asPackage x
     , Map.size x == 2
     = Package (T.unpack name) $ map asModule $ V.toList modules
     where
-        asModule (String x) = fromParseResult $ parseModule $ T.unpack x ++ " where"
+        asModule (String x) = fromParseResult $ parseImportDecl $ T.unpack x
 
 asGroup :: Map.HashMap T.Text Value -> Group
 asGroup x
@@ -104,5 +104,8 @@ asSettings xs = concat $ map f groups
                           | Rule{..} <- groupRules]
             where scope = asScope packageMap groupImports
 
-asScope :: Map.HashMap String [Module_] -> [Either String (ImportDecl S)] -> Scope
-asScope _ _ = scopeCreate $ fromParseResult $ parseModule "module Example where"
+asScope :: Map.HashMap String [ImportDecl S] -> [Either String (ImportDecl S)] -> Scope
+asScope packages xs = scopeCreate $ Module an Nothing [] (concatMap f xs) []
+    where
+        f (Right x) = [x]
+        f (Left x) | Just pkg <- Map.lookup x packages = pkg
