@@ -110,6 +110,7 @@ isClsDefSig ClsDefSig{} = True; isClsDefSig _ = False
 isTyBang TyBang{} = True; isTyBang _ = False
 isLCase LCase{} = True; isLCase _ = False
 isTupleSection TupleSection{} = True; isTupleSection _ = False
+isString String{} = True; isString _ = False
 
 isSection LeftSection{} = True
 isSection RightSection{} = True

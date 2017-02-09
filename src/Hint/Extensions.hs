@@ -87,6 +87,10 @@ foo = 12.345e2 --
 main = map (,1,2) xs
 {-# LANGUAGE TupleSections #-} \
 main = id --
+{-# LANGUAGE OverloadedStrings #-} \
+main = "test"
+{-# LANGUAGE OverloadedStrings #-} \
+main = id --
 </TEST>
 -}
 
@@ -174,6 +178,7 @@ used DeriveGeneric = hasDerive ["Generic","Generic1"]
 used GeneralizedNewtypeDeriving = any (`notElem` noNewtypeDeriving) . fst . derives
 used LambdaCase = hasS isLCase
 used TupleSections = hasS isTupleSection
+used OverloadedStrings = hasS isString
 used Arrows = hasS f
     where f Proc{} = True
           f LeftArrApp{} = True
