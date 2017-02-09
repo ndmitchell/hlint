@@ -300,10 +300,10 @@
 
   # MONAD
 
-  - warn: {lhs: return a >>= f, rhs: f a, name: Monad law, left identity}
-  - warn: {lhs: f =<< return a, rhs: f a, name: Monad law, left identity}
-  - warn: {lhs: m >>= return, rhs: m, name: Monad law, right identity}
-  - warn: {lhs: return =<< m, rhs: m, name: Monad law, right identity}
+  - warn: {lhs: return a >>= f, rhs: f a, name: "Monad law, left identity"}
+  - warn: {lhs: f =<< return a, rhs: f a, name: "Monad law, left identity"}
+  - warn: {lhs: m >>= return, rhs: m, name: "Monad law, right identity"}
+  - warn: {lhs: return =<< m, rhs: m, name: "Monad law, right identity"}
   - warn: {lhs: liftM, rhs: fmap}
   - warn: {lhs: liftA, rhs: fmap}
   - hint: {lhs: m >>= return . f, rhs: fmap f m}
@@ -506,24 +506,24 @@
   - warn: {lhs: either f g (Left x), rhs: f x, name: Evaluate}
   - warn: {lhs: either f g (Right y), rhs: g y, name: Evaluate}
   - warn: {lhs: "fst (x,y)", rhs: x, name: Evaluate}
-  - warn: {lhs: "snd (x,y)", rhs: y, name: Evaluate}
+  - warn: {lhs: "snd (x,y)", rhs: "y", name: Evaluate}
   - warn: {lhs: f (fst p) (snd p), rhs: uncurry f p, name: Evaluate}
   - warn: {lhs: "init [x]", rhs: "[]", name: Evaluate}
   - warn: {lhs: "null []", rhs: "True", name: Evaluate}
-  - warn: {lhs: "length []", rhs: 0, name: Evaluate}
+  - warn: {lhs: "length []", rhs: "0", name: Evaluate}
   - warn: {lhs: "foldl f z []", rhs: z, name: Evaluate}
   - warn: {lhs: "foldr f z []", rhs: z, name: Evaluate}
   - warn: {lhs: "foldr1 f [x]", rhs: x, name: Evaluate}
   - warn: {lhs: "scanr f z []", rhs: "[z]", name: Evaluate}
   - warn: {lhs: "scanr1 f []", rhs: "[]", name: Evaluate}
-  - warn: {lhs: "scanr1 f [x]", rhs: [x], name: Evaluate}
+  - warn: {lhs: "scanr1 f [x]", rhs: "[x]", name: Evaluate}
   - warn: {lhs: "take n []", rhs: "[]", note: IncreasesLaziness, name: Evaluate}
   - warn: {lhs: "drop n []", rhs: "[]", note: IncreasesLaziness, name: Evaluate}
   - warn: {lhs: "takeWhile p []", rhs: "[]", name: Evaluate}
   - warn: {lhs: "dropWhile p []", rhs: "[]", name: Evaluate}
   - warn: {lhs: "span p []", rhs: "([],[])", name: Evaluate}
   - warn: {lhs: lines "", rhs: "[]", name: Evaluate}
-  - warn: {lhs: "unwords []", rhs: "", name: Evaluate}
+  - warn: {lhs: "unwords []", rhs: "\"\"", name: Evaluate}
   - warn: {lhs: x - 0, rhs: x, name: Evaluate}
   - warn: {lhs: x * 1, rhs: x, name: Evaluate}
   - warn: {lhs: x / 1, rhs: x, name: Evaluate}
