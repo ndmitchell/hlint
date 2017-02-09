@@ -3,6 +3,7 @@
 
 module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFiles, cmdUseColour, exitWithHelp, resolveFile) where
 
+import Control.Monad.Extra
 import Data.Char
 import Data.List
 import System.Console.ANSI(hSupportsANSI)
@@ -185,8 +186,25 @@ mode = cmdArgsMode $ modes
         nam xs = nam_ xs &= name [head xs]
         nam_ xs = def &= explicit &= name xs
 
+-- | Where should we find the configuration files?
+--   * If someone passes cmdWithHints, only look at files they explicitly request
+--   * If someone passes an explicit hint name, automatically merge in data/hlint.yaml
 cmdHintFiles :: Cmd -> IO [FilePath]
-cmdHintFiles cmd = mapM (getHintFile $ cmdDataDir cmd) $ cmdGivenHints cmd ++ ["hlint.yaml" | null (cmdGivenHints cmd) && null (cmdWithHints cmd)]
+cmdHintFiles cmd = do
+    let explicit = [cmdDataDir cmd </> "hlint.yaml" | null $ cmdWithHints cmd] ++ cmdGivenHints cmd
+    bad <- filterM (notM . doesFileExist) explicit
+    when (bad /= []) $
+        fail $ unlines $ "Failed to find requested hint files:" : map ("  "++) bad
+    if cmdWithHints cmd /= [] then return explicit else do
+        -- we follow the stylish-haskell config file search policy
+        -- 1) current directory or its ancestors; 2) home directory
+        curdir <- getCurrentDirectory
+        home <- getHomeDirectory
+        b <- doesFileExist ".hlint.yaml"
+        implicit <- findM doesFileExist $ map (</> ".hlint.yaml") $ ancestors curdir ++ [home]
+        return $ explicit ++ maybeToList implicit
+    where
+        ancestors = init . map joinPath . reverse . inits . splitPath
 
 cmdExtensions :: Cmd -> (Language, [Extension])
 cmdExtensions = getExtensions . cmdLanguage
@@ -256,20 +274,6 @@ getModule path exts x | not (any isSpace x) && all isMod xs = f exts
             b <- doesFileExist s
             if b then return $ Just s else f xs
 getModule _ _ _ = return Nothing
-
-
-getHintFile :: FilePath -> FilePath -> IO FilePath
-getHintFile _ "-" = return "-"
-getHintFile dataDir x = do
-        let poss = nub $ concat [x : [x <.> "hs" | takeExtension x /= ".hs"] | x <- [x,dataDir </> x]]
-        f poss poss
-    where
-        f o [] = error $ unlines $ [
-            "Couldn't find file: " ++ x,
-            "Tried with:"] ++ map ("  "++) o
-        f o (x:xs) = do
-            b <- doesFileExist x
-            if b then return x else f o xs
 
 
 getExtensions :: [String] -> (Language, [Extension])

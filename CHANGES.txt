@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Look for nearby .hlint.yaml files to supply configuration
     Support YAML configuration files
     #308, don't suggest newtype for unboxed types
     Remove the import "hint" feature for hint inclusion
