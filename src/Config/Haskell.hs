@@ -2,9 +2,7 @@
 
 module Config.Haskell(
     readPragma,
-    addInfix,
     readSetting,
-    readSettings,
     readFileConfigHaskell
     ) where
 
