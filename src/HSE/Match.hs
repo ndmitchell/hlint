@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE ViewPatterns, MultiParamTypeClasses, FlexibleInstances #-}
 
 module HSE.Match(
     View(..), Named(..),

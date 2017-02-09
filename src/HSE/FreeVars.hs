@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module HSE.FreeVars(FreeVars, freeVars, vars, varss, pvars) where
 
