@@ -40,8 +40,8 @@ addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
 -- Return the list of settings commands
 readSettings2 :: FilePath -> [FilePath] -> [String] -> IO [Setting]
 readSettings2 dataDir files hints = do
-    (builtin,mods) <- fmap partitionEithers $ concatMapM (readHints dataDir) $ map Right files ++ map Left hints
-    return $ map Builtin builtin ++ concatMap moduleSettings_ mods
+    mods <- mapM (readHints dataDir) $ map Right files ++ map Left hints
+    return $ concatMap moduleSettings_ mods
 
 moduleSettings_ :: Module_ -> [Setting]
 moduleSettings_ m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
@@ -54,12 +54,10 @@ readSettings m = ([x | SettingClassify x <- xs], [x | SettingMatchExp x <- xs])
     where xs = moduleSettings_ m
 
 
-readHints :: FilePath -> Either String FilePath -> IO [Either String Module_]
-readHints datadir x = do
-    (builtin,ms) <- case x of
-        Left src -> findSettingsFiles datadir "CommandLine" (Just src)
-        Right file -> findSettingsFiles datadir file Nothing
-    return $ map Left builtin ++ map Right ms
+readHints :: FilePath -> Either String FilePath -> IO Module_
+readHints datadir x = case x of
+    Left src -> findSettingsFiles datadir "CommandLine" (Just src)
+    Right file -> findSettingsFiles datadir file Nothing
 
 
 -- | Given the data directory (where the @hlint@ data files reside, see 'getHLintDataDir'),
@@ -70,13 +68,13 @@ readHints datadir x = do
 -- 1. A list of modules containing hints, suitable for processing with 'readSettings'.
 --
 --   Any parse failures will result in an exception.
-findSettingsFiles :: FilePath -> FilePath -> Maybe String -> IO ([String], [Module_])
+findSettingsFiles :: FilePath -> FilePath -> Maybe String -> IO Module_
 findSettingsFiles dataDir file contents = do
     let flags = addInfix defaultParseFlags
     res <- parseModuleEx flags file contents
     case res of
         Left (ParseError sl msg err) -> exitMessage $ "Parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
-        Right (m, _) -> return ([],[m])
+        Right (m, _) -> return m
 
 
 readSetting :: Scope -> Decl_ -> [Setting]
