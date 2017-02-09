@@ -4,7 +4,8 @@ module Config.Haskell(
     readPragma,
     addInfix,
     readSetting,
-    readSettings
+    readSettings,
+    readFileConfig
     ) where
 
 import HSE.All
@@ -31,6 +32,16 @@ addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
 
 ---------------------------------------------------------------------
 -- READ A SETTINGS FILE
+
+readFileConfig :: FilePath -> Maybe String -> IO [Setting]
+readFileConfig file contents = do
+    let flags = addInfix defaultParseFlags
+    res <- parseModuleEx flags file contents
+    case res of
+        Left (ParseError sl msg err) ->
+            error $ "Config parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
+        Right (m, _) -> return $ readSettings m
+
 
 -- | Given a module containing HLint settings information return the 'Classify' rules and the 'HintRule' expressions.
 --   Any fixity declarations will be discarded, but any other unrecognised elements will result in an exception.
