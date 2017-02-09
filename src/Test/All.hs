@@ -10,7 +10,7 @@ import System.FilePath
 import Prelude
 
 import Config.Type
-import Config.Haskell
+import Config.All
 import CmdLine
 import HSE.All
 import Hint.All
@@ -30,7 +30,7 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
         xs <- getDirectoryContents dataDir
         return [dataDir </> x | x <- xs, takeExtension x == ".hs", not $ "HLint_" `isPrefixOf` takeBaseName x]
     testFiles <- forM testFiles $ \file -> do
-        hints <- readSettings2 [file] []
+        hints <- readFileConfig file Nothing
         return (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
     let wrap msg act = putStr (msg ++ " ") >> act >> putStrLn ""
 
