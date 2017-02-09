@@ -144,7 +144,7 @@ HLint knows the fixities for all the operators in the base library, but no other
 
 ### How can I use `--with` or `--hint` with the default hints?
 
-HLint does not use the default set of hints if custom hints are specified on the command line using `--with` or `--hint`. To include the default hints either pass `--hint=HLint` on the command line, or add import `"hint" HLint.HLint` in one of the hint files you specify with `--hint`.
+HLint does not use the default set of hints if custom hints are specified on the command line using `--with` or `--hint`. To include the default hints pass `--hint=HLint` on the command line.
 
 ### Why do I sometimes get a "Note" with my hint?
 
@@ -176,10 +176,7 @@ By default, HLint will use the `HLint.hs` file either from the current working d
 * __Dollar__ - suggests the replacement `a $ b $ c` with `a . b $ c`. This hint is especially popular on the [\#haskell IRC channel](http://www.haskell.org/haskellwiki/IRC_channel).
 * __Generalise__ - suggests replacing specific variants of functions (i.e. `map`) with more generic functions (i.e. `fmap`).
 
-As an example, to check the file `Example.hs` with both the default hints and the dollar hint, I could type: `hlint Example.hs --hint=Default --hint=Dollar`. Alternatively, I could create the file `HLint.hs` in the working directory and give it the contents:
-
-    import "hint" HLint.Default
-    import "hint" HLint.Dollar
+As an example, to check the file `Example.hs` with both the default hints and the dollar hint, I could type: `hlint Example.hs --hint=Default --hint=Dollar`.
 
 ### Ignoring hints
 
