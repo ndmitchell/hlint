@@ -17,7 +17,7 @@ Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/is
 
 * HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope.
 * The presence of `seq` may cause some hints (i.e. eta-reduction) to change the semantics of a program.
-* Either the monomorphism restriction, or rank-2 types, may cause transformed programs to require type signatures to be manually inserted.
+* Some transformed programs may require additional type signatures, particularly if the transformations trigger the monomorphism restriction or involve rank-2 types.
 * The `RebindableSyntax` extension can cause HLint to suggest incorrect changes.
 * HLint turns on many language extensions so it can parse more documents, occasionally some break otherwise legal syntax - e.g. `{-#INLINE foo#-}` doesn't work with `MagicHash`. These extensions can be disabled with `-XNoMagicHash`.
 
