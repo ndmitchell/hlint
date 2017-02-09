@@ -114,7 +114,7 @@ asNote x = Note x
 -- SETTINGS
 
 asSettings :: [Either Package Group] -> [Setting]
-asSettings xs = concat $ map f groups
+asSettings xs = concatMap f groups
     where
         (packages, groups) = partitionEithers xs
         packageMap = Map.fromListWith (++) [(packageName, packageModules) | Package{..} <- packages]
