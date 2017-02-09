@@ -5,6 +5,8 @@ module Config.Compute(computeSettings) where
 import HSE.All
 import Config.Type
 import Config.Haskell
+import Data.Monoid
+import Prelude
 
 
 -- | Given a source file, guess some hints that might apply.
