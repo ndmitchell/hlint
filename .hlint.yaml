@@ -1,0 +1,21 @@
+
+# Hints that apply only to the HLint source code
+
+- error: {lhs: QVarOp a (UnQual b x), rhs: toNamed x}
+- error: {lhs: QConOp a (UnQual b x), rhs: toNamed x}
+- error: {lhs: UnQual a (Symbol b x), rhs: toNamed x}
+- error: {lhs: UnQual a (Ident  b x), rhs: toNamed x}
+- error: {lhs: Var a (toNamed x), rhs: toNamed x}
+- error: {lhs: Con a (toNamed x), rhs: toNamed x}
+
+- error: {lhs: idea Warning, rhs: warn}
+- error: {lhs: idea Suggestion, rhs: suggest}
+- error: {lhs: ideaN Warning, rhs: warnN}
+- error: {lhs: ideaN Suggestion, rhs: suggestN}
+
+# deliberately creates an Ident with "...", which should be a symbol
+- ignore: {name: Use toNamed, within: Hint.Naming.shorten}
+# would require module cycles
+- ignore: {name: Use toNamed, within: HSE.Util}
+# doesn't fit with the other statements
+- ignore: {name: Use let, within: [HLint, Test.All]}

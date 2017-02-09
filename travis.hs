@@ -9,5 +9,5 @@ main = do
     -- retry 3 $ system_ "cabal install QuickCheck"
     -- FIXME: Temporarily disabled due to GHC 7.10 issues
     system_ "hlint test +RTS -K1K" --typecheck --quickcheck
-    (time,_) <- duration $ system_ "UNIPLATE_VERBOSE=-1 hlint src --hint=misc/HLint_Hints.hs +RTS -K1K"
+    (time,_) <- duration $ system_ "UNIPLATE_VERBOSE=-1 hlint src --hint=.hlint.yaml +RTS -K1K"
     putStrLn $ "Running HLint on self took " ++ showDuration time
