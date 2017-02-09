@@ -13,6 +13,8 @@ data S a = forall b . Show b => S b
 data Color a = Red a | Green a | Blue a
 data Pair a b = Pair a b
 data Foo = Bar
+data X = Y {-# UNPACK #-} !Int -- newtype X = Y Int
+data A = A {b :: !C} -- newtype A = A {b :: C}
 </TEST>
 -}
 module Hint.NewType (newtypeHint) where
