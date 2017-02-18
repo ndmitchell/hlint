@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts, TupleSections #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts #-}
 
 {-
     Find and match:

@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections, PatternGuards, RecordWildCards #-}
+{-# LANGUAGE PatternGuards, RecordWildCards #-}
 
 -- | /WARNING: This module represents the evolving second version of the HLint API./
 --   /It will be renamed to drop the "3" in the next major version./
