@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, ViewPatterns #-}
 
 module HSE.Util(module HSE.Util) where
 
@@ -177,6 +177,12 @@ isWHNF _ = False
 
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
+
+isKindHash :: Type_ -> Bool
+isKindHash (TyParen _ x) = isKindHash x
+isKindHash (TyApp _ x _) = isKindHash x
+isKindHash (TyCon _ (fromQual -> Ident _ s)) = "#" `isSuffixOf`  s
+isKindHash _ = False
 
 
 getEquations :: Decl s -> [Decl s]
