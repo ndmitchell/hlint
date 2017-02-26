@@ -4,8 +4,7 @@ module Util(
     defaultExtensions,
     Encoding, defaultEncoding, readFileEncoding', readEncoding, useEncoding,
     gzip, universeParentBi, descendIndex,
-    exitMessage,
-    isUnboxedTyCon
+    exitMessage
     ) where
 
 import Control.Monad.Trans.State
@@ -19,7 +18,6 @@ import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.Operations
 import Language.Haskell.Exts.Extension
-import Language.Haskell.Exts.Syntax
 
 
 ---------------------------------------------------------------------
@@ -137,20 +135,3 @@ badExtensions =
     ,DoRec, RecursiveDo -- breaks rec
     ,TypeApplications -- HSE fails on @ patterns
     ]
-
----------------------------------------------------------------------
--- LANGUAGE.HASKELL.EXTS.SYNTAX
-
-isUnboxedTyCon :: Type l -> Bool
-isUnboxedTyCon (TyParen _ t) = isUnboxedTyCon t
-isUnboxedTyCon (TyApp _ (TyCon _ qname) _) = not (null name) || last name == '#'
-  where name = case qname of
-          Qual _ _ n -> nameString n
-          UnQual _ n -> nameString n
-          _ -> ""
-
-        nameString :: Name l -> String
-        nameString (Ident _ n) = n
-        nameString (Symbol _ n) = n
-isUnboxedTyCon _ = False
-
