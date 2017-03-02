@@ -14,6 +14,9 @@ import qualified Data.Vector as V
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.HashMap.Strict as Map
 import HSE.All hiding (Rule, String)
+import Data.Functor
+import Data.Monoid
+import Prelude
 
 
 readFileConfigYaml :: FilePath -> Maybe String -> IO [Setting]
