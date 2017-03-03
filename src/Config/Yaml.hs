@@ -58,7 +58,7 @@ asConfig :: Value -> [Either Package Group]
 asConfig (Object x)
     | "package" `Map.member` x = [Left $ asPackage x]
     | "group" `Map.member` x = [Right $ asGroup x]
-asConfig (Array x) = concatMap asConfig x
+asConfig (Array x) = concatMap asConfig $ V.toList x
 
 asPackage :: Map.HashMap T.Text Value -> Package
 asPackage x
