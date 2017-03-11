@@ -9,7 +9,7 @@ import Data.Maybe
 import Data.List.Extra
 import Data.Tuple.Extra
 import Control.Monad.Extra
-import Control.Exception
+import Control.Exception.Extra
 import qualified Data.Text as T
 import qualified Data.Vector as V
 import qualified Data.ByteString.Char8 as BS
