@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module Test.All(test) where
 
