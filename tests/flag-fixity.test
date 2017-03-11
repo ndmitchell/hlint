@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------
-RUN "--with=infixr 5 !:" --hint=HLint tests/flag-fixity.hs
+RUN "--with=infixr 5 !:" tests/flag-fixity.hs
 FILE tests/flag-fixity.hs
 foo x = Nothing !: Just x : []
 OUTPUT

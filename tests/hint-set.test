@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------
-RUN tests/with-append.hs --hint=Generalise
+RUN tests/with-append.hs --hint=data/Generalise.hs
 FILE tests/with-append.hs
 main = a ++ b
 
