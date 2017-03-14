@@ -22,6 +22,9 @@
 #   - {allow: unsafeInterleaveIO, within: Parallel}
 #   - {allow: unsafePerformIO, within: [Util.exitMessage, Test.Util.ref]}
 
+- warn: {name: Use explicit module export list}
+- ignore: {name: Use explicit module export list, within: HSE.Util}
+
 
 #####################################################################
 ## HINTS
