@@ -1,4 +1,8 @@
-module Hint.Type(module Hint.Type, module Export) where
+
+module Hint.Type(
+    DeclHint, ModuHint, CrossHint, Hint(..),
+    module Export
+    ) where
 
 import Data.Monoid
 import HSE.All  as Export

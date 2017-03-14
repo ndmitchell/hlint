@@ -4,7 +4,7 @@
     auto-generated one.
 -}
 
-module Paths_hlint where
+module Paths_hlint(version, getDataDir) where
 
 import Data.Version.Extra
 

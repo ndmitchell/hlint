@@ -1,10 +1,15 @@
 
-module HSE.Type(module HSE.Type, module Export) where
+module HSE.Type(
+    S,
+    Module_, Decl_, Exp_, Pat_, Type_,
+    module HSE,
+    module Uniplate
+    ) where
 
 -- Almost all from the Annotated module, but the fixity resolution from Annotated
 -- uses the unannotated Assoc enumeration, so export that instead
-import Language.Haskell.Exts as Export hiding (parse, loc, paren)
-import Data.Generics.Uniplate.Data as Export
+import Language.Haskell.Exts as HSE hiding (parse, loc, paren)
+import Data.Generics.Uniplate.Data as Uniplate
 
 type S = SrcSpanInfo
 type Module_ = Module S

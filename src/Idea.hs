@@ -1,6 +1,13 @@
 {-# LANGUAGE RecordWildCards, NoMonomorphismRestriction #-}
 
-module Idea(module Idea, Note(..), showNotes, Severity(..)) where
+module Idea(
+    Idea(..),
+    rawIdea, idea, suggest, warn, ignore,
+    rawIdeaN, suggestN, warnN,
+    showIdeasJson, showANSI,
+    Note(..), showNotes,
+    Severity(..)
+    ) where
 
 import Data.List.Extra
 import Data.Char
