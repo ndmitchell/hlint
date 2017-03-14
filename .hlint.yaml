@@ -42,8 +42,6 @@
 #####################################################################
 ## IGNORES
 
-# deliberately creates an Ident with "...", which should be a symbol
-- ignore: {name: Use toNamed, within: Hint.Naming.shorten}
 # would require module cycles
 - ignore: {name: Use toNamed, within: HSE.Util}
 # doesn't fit with the other statements

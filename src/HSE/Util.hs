@@ -13,6 +13,9 @@ import Prelude
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER
 
+ellipses :: QName S
+ellipses = UnQual an $ Ident an "..." -- Must be an Ident, not a Symbol
+
 opExp :: QOp S -> Exp_
 opExp (QVarOp s op) = Var s op
 opExp (QConOp s op) = Con s op

@@ -59,7 +59,7 @@ shorten x = case x of
     PatBind a b c _ -> f (PatBind a b) c
     x -> x
     where
-        dots = Var an $ UnQual an $ Ident an "..." -- Must be an Ident, not a Symbol
+        dots = Var an ellipses
         f cont (UnGuardedRhs _ _) = cont (UnGuardedRhs an dots) Nothing
         f cont (GuardedRhss _ _) = cont (GuardedRhss an [GuardedRhs an [Qualifier an dots] dots]) Nothing
 
