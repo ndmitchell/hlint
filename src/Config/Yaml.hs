@@ -179,9 +179,9 @@ parseRule v = do
         let hintRuleScope = mempty
         return [Left HintRule{hintRuleSeverity=severity, ..}]
      else do
-        name <- parseField "name" v >>= parseString
+        names <- parseFieldOpt "name" v >>= maybe (return []) (parseArray >=> mapM parseString)
         within <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
-        return [Right $ Classify severity name a b | (a,b) <- within]
+        return [Right $ Classify severity n a b | (a,b) <- within, n <- ["" | null names] ++ names]
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
 parseWithin v = do
