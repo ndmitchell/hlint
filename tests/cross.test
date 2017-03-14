@@ -2,7 +2,7 @@
 RUN tests/cross.hs1 tests/cross.hs2 --cross
 FILE tests/cross.hs1
 
-module B where
+module B(bar) where
 
 
 bar = 1
@@ -13,7 +13,7 @@ bar = 1
 
 FILE tests/cross.hs2
         
-module A where
+module A(foo) where
 
 foo = 1
     where

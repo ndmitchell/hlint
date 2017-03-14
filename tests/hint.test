@@ -5,7 +5,7 @@ FILE tests/newtype-derive.hs
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-module Test where
+module Test(A) where
 
 import Data.Foldable (Foldable)
 import Data.Traversable (Traversable)
@@ -21,7 +21,7 @@ RUN tests/note.hs
 FILE tests/note.hs
 {-# LANGUAGE RecordWildCards #-}
 
-module Sample where
+module Sample(test) where
 
 test xs = length xs == 0
 OUTPUT
@@ -57,7 +57,7 @@ Why not:
 RUN tests/typesig-ignore.hs
 FILE tests/typesig-ignore.hs
 -- Bug #563
-module Foo where
+module Foo(foobar) where
 {-# ANN foobar "HLint: ignore Use String" #-}
 
 foobar :: [Char]
