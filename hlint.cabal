@@ -97,6 +97,7 @@ library
         Hint.Bracket
         Hint.Comment
         Hint.Duplicate
+        Hint.Export
         Hint.Extensions
         Hint.Import
         Hint.Lambda
