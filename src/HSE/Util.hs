@@ -313,6 +313,9 @@ notElem_ x = not . elem_ x
 nub_ :: (Annotated f, Eq (f ())) => [f S] -> [f S]
 nub_ = nubBy (=~=)
 
+delete_ :: (Annotated f, Eq (f ())) => f S -> [f S] -> [f S]
+delete_ = deleteBy (=~=)
+
 intersect_ :: (Annotated f, Eq (f ())) => [f S] -> [f S] -> [f S]
 intersect_ = intersectBy (=~=)
 
