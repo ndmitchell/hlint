@@ -230,7 +230,7 @@ settingsFromConfigYaml configs = concatMap f groups
         xs = concat [x | ConfigYaml x <- configs]
         (packages, groups) = partitionEithers xs
         packageMap = Map.fromListWith (++) [(packageName, packageModules) | Package{..} <- packages]
-        groupMap = Map.fromListWith (\old new -> new) [(groupName, groupEnabled) | Group{..} <- groups]
+        groupMap = Map.fromListWith (\new old -> new) [(groupName, groupEnabled) | Group{..} <- groups]
 
         f Group{..}
             | Map.lookup groupName groupMap == Just False = []
