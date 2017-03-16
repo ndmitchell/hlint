@@ -93,4 +93,3 @@ data Setting
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show
-
