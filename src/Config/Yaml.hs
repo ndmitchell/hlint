@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards, GeneralizedNewtypeDeriving, TupleSections #-}
 
 module Config.Yaml(
     ConfigYaml,
@@ -143,28 +143,28 @@ instance FromJSON ConfigYaml where
 parseConfigYaml :: Val -> Parser ConfigYaml
 parseConfigYaml v = do
     vs <- parseArray v
-    fmap ConfigYaml $ forM vs $ \v -> do
-        mp <- parseObject v
-        case () of
-            _ | "package" `Map.member` mp -> Left <$> parsePackage v
-              | "group" `Map.member` mp -> Right <$> parseGroup v
-              | [s] <- Map.keys mp, isJust $ getSeverity $ T.unpack s -> Right . ruleToGroup <$> parseRule v
-              | otherwise -> parseFail v "Expecting an object with a 'package' or 'group' key, or a hint"
+    fmap ConfigYaml $ forM vs $ \o@v -> do
+        (s, v) <- parseObject1 v
+        case s of
+            "package" -> Left <$> parsePackage v
+            "group" -> Right <$> parseGroup v
+            _ | isJust $ getSeverity s -> Right . ruleToGroup <$> parseRule o
+            _ -> parseFail v "Expecting an object with a 'package' or 'group' key, or a hint"
 
 parsePackage :: Val -> Parser Package
 parsePackage v = do
-    packageName <- parseField "package" v >>= parseString
+    packageName <- parseField "name" v >>= parseString
     packageModules <- parseField "modules" v >>= parseArray >>= mapM (parseHSE parseImportDecl)
-    allowFields v ["package","modules"]
+    allowFields v ["name","modules"]
     return Package{..}
 
 parseGroup :: Val -> Parser Group
 parseGroup v = do
-    groupName <- parseField "group" v >>= parseString
+    groupName <- parseField "name" v >>= parseString
     groupEnabled <- parseFieldOpt "enabled" v >>= maybe (return True) parseBool
     groupImports <- parseFieldOpt "imports" v >>= maybe (return []) (parseArray >=> mapM parseImport)
     groupRules <- parseFieldOpt "rules" v >>= maybe (return []) parseArray >>= concatMapM parseRule
-    allowFields v ["group","enabled","imports","rules"]
+    allowFields v ["name","enabled","imports","rules"]
     return Group{..}
     where
         parseImport v = do
