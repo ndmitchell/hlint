@@ -152,7 +152,7 @@ parseGroup v = do
     groupName <- parseField "group" v >>= parseString
     groupEnabled <- parseFieldOpt "enabled" v >>= maybe (return True) parseBool
     groupImports <- parseFieldOpt "imports" v >>= maybe (return []) (parseArray >=> mapM parseImport)
-    groupRules <- parseField "rules" v >>= parseArray >>= concatMapM parseRule
+    groupRules <- parseFieldOpt "rules" v >>= maybe (return []) parseArray >>= concatMapM parseRule
     allowFields v ["group","enabled","imports","rules"]
     return Group{..}
     where
