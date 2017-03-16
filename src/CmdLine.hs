@@ -189,20 +189,22 @@ mode = cmdArgsMode $ modes
 -- | Where should we find the configuration files?
 --   * If someone passes cmdWithHints, only look at files they explicitly request
 --   * If someone passes an explicit hint name, automatically merge in data/hlint.yaml
+--   We want more important hints to go last, since they override
 cmdHintFiles :: Cmd -> IO [FilePath]
 cmdHintFiles cmd = do
-    let explicit = [cmdDataDir cmd </> "hlint.yaml" | null $ cmdWithHints cmd] ++ cmdGivenHints cmd
-    bad <- filterM (notM . doesFileExist) explicit
+    let explicit1 = [cmdDataDir cmd </> "hlint.yaml" | null $ cmdWithHints cmd]
+    let explicit2 = cmdGivenHints cmd
+    bad <- filterM (notM . doesFileExist) $ explicit1 ++ explicit2
     when (bad /= []) $
         fail $ unlines $ "Failed to find requested hint files:" : map ("  "++) bad
-    if cmdWithHints cmd /= [] then return explicit else do
+    if cmdWithHints cmd /= [] then return $ explicit1 ++ explicit2 else do
         -- we follow the stylish-haskell config file search policy
         -- 1) current directory or its ancestors; 2) home directory
         curdir <- getCurrentDirectory
         home <- getHomeDirectory
         b <- doesFileExist ".hlint.yaml"
         implicit <- findM doesFileExist $ map (</> ".hlint.yaml") $ ancestors curdir ++ [home]
-        return $ explicit ++ maybeToList implicit
+        return $ explicit1 ++ maybeToList implicit ++ explicit2
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
 
