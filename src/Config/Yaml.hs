@@ -103,6 +103,9 @@ parseString :: Val -> Parser String
 parseString (getVal -> String x) = return $ T.unpack x
 parseString v = parseFail v "Expected a String"
 
+parseArrayString :: Val -> Parser [String]
+parseArrayString = parseArray >=> mapM parseString
+
 parseBool :: Val -> Parser Bool
 parseBool (getVal -> Bool b) = return b
 parseBool v = parseFail v "Expected a Bool"
@@ -185,14 +188,14 @@ parseRule v = do
     if isRule then do
         hintRuleLHS <- parseField "lhs" v >>= parseHSE parseExp
         hintRuleRHS <- parseField "rhs" v >>= parseHSE parseExp
-        hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (parseArray >=> mapM (fmap asNote . parseString))
+        hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (fmap (map asNote) . parseArrayString)
         hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName hintRuleLHS hintRuleRHS) parseString
         hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap Just . parseHSE parseExp)
         allowFields v ["lhs","rhs","note","name","side"]
         let hintRuleScope = mempty
         return [Left HintRule{hintRuleSeverity=severity, ..}]
      else do
-        names <- parseFieldOpt "name" v >>= maybe (return []) (parseArray >=> mapM parseString)
+        names <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
         within <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
         return [Right $ Classify severity n a b | (a,b) <- within, n <- ["" | null names] ++ names]
 
