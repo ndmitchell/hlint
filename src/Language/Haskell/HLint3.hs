@@ -104,7 +104,7 @@ readSettingsFile dir x
 findSettings :: (String -> IO (FilePath, Maybe String)) -> Maybe String -> IO ([Fixity], [Classify], [Either HintBuiltin HintRule])
 findSettings load start = do
     (file,contents) <- load $ fromMaybe "HLint.HLint" start
-    xs <- readFileConfig file contents
+    xs <- readFilesConfig [(file,contents)]
     return ([x | Infix x <- xs]
            ,[x | SettingClassify x <- xs]
            ,[Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])

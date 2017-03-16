@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards, GeneralizedNewtypeDeriving #-}
 
-module Config.Yaml(readFileConfigYaml) where
+module Config.Yaml(
+    ConfigYaml,
+    readFileConfigYaml,
+    settingsFromConfigYaml
+    ) where
 
 import Config.Type
 import Data.Yaml
@@ -22,14 +26,14 @@ import Prelude
 
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
 --   Fails if the YAML doesn't parse or isn't valid HLint YAML
-readFileConfigYaml :: FilePath -> Maybe String -> IO [Setting]
+readFileConfigYaml :: FilePath -> Maybe String -> IO ConfigYaml
 readFileConfigYaml file contents = do
     val <- case contents of
         Nothing -> decodeFileEither file
         Just src -> return $ decodeEither' $ BS.pack src
     case val of
         Left e -> fail $ "Failed to read YAML configuration file " ++ file ++ "\n  " ++ displayException e
-        Right v -> return $ settingsFromConfigYaml [v]
+        Right v -> return v
 
 
 ---------------------------------------------------------------------

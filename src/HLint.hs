@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE RecordWildCards, ViewPatterns, TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module HLint(hlint) where
@@ -77,7 +77,7 @@ hlintTest :: Cmd -> IO ()
 hlintTest cmd@CmdTest{..} =
     if not $ null cmdProof then do
         files <- cmdHintFiles cmd
-        s <- concatMapM (`readFileConfig` Nothing) files
+        s <- readFilesConfig $ map (,Nothing) files
         let reps = if cmdReports == ["report.html"] then ["report.txt"] else cmdReports
         mapM_ (proof reps s) cmdProof
      else do
@@ -122,11 +122,10 @@ runHlintMain cmd@CmdMain{..} fp flags = do
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
 readAllSettings cmd@CmdMain{..} flags = do
     files <- cmdHintFiles cmd
-    settings1 <- concatMapM (`readFileConfig` Nothing) files
-    settings2 <- concatMapM (readFileConfig "CommandLine.hs" . Just) cmdWithHints
-    settings3 <- concatMapM (fmap snd . computeSettings flags) cmdFindHints
-    settings4 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
-    return $ settings1 ++ settings2 ++ settings3 ++ settings4
+    settings1 <- readFilesConfig $ map (,Nothing) files ++ [("CommandLine.hs",Just x) | x <- cmdWithHints]
+    settings2 <- concatMapM (fmap snd . computeSettings flags) cmdFindHints
+    settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
+    return $ settings1 ++ settings2 ++ settings3
 
 
 runHints :: Cmd -> ParseFlags -> IO [Idea]

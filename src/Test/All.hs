@@ -30,7 +30,7 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
         return [dataDir </> x | x <- xs, takeExtension x `elem` [".hs",".yml",".yaml"]
                               , not $ "HLint_" `isPrefixOf` takeBaseName x]
     testFiles <- forM testFiles $ \file -> do
-        hints <- readFileConfig file Nothing
+        hints <- readFilesConfig [(file, Nothing)]
         return (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
     let wrap msg act = putStr (msg ++ " ") >> act >> putStrLn ""
 

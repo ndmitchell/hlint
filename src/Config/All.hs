@@ -1,5 +1,5 @@
 
-module Config.All(readFileConfig) where
+module Config.All(readFilesConfig) where
 
 import Config.Type
 import Config.Haskell
@@ -8,8 +8,10 @@ import Data.List.Extra
 import System.FilePath
 
 
-readFileConfig :: FilePath -> Maybe String -> IO [Setting]
-readFileConfig file
-    | ext `elem` [".yml",".yaml"] = readFileConfigYaml file
-    | otherwise = readFileConfigHaskell file
-    where ext = lower $ takeExtension file
+readFilesConfig :: [(FilePath, Maybe String)] -> IO [Setting]
+readFilesConfig files = do
+        yaml <- mapM (uncurry readFileConfigYaml) yaml
+        haskell <- mapM (uncurry readFileConfigHaskell) haskell
+        return $ concat haskell ++ settingsFromConfigYaml yaml
+    where
+        (yaml, haskell) = partition (\(x,_) -> lower (takeExtension x) `elem` [".yml",".yaml"]) files
