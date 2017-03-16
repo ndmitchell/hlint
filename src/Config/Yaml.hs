@@ -39,7 +39,9 @@ readFileConfigYaml file contents = do
 ---------------------------------------------------------------------
 -- YAML DATA TYPE
 
-newtype ConfigYaml = ConfigYaml [Either Package Group] deriving Monoid
+newtype ConfigYaml = ConfigYaml [ConfigItem] deriving Monoid
+
+data ConfigItem = ConfigPackage Package | ConfigGroup Group
 
 data Package = Package
     {packageName :: String
@@ -146,9 +148,9 @@ parseConfigYaml v = do
     fmap ConfigYaml $ forM vs $ \o@v -> do
         (s, v) <- parseObject1 v
         case s of
-            "package" -> Left <$> parsePackage v
-            "group" -> Right <$> parseGroup v
-            _ | isJust $ getSeverity s -> Right . ruleToGroup <$> parseRule o
+            "package" -> ConfigPackage <$> parsePackage v
+            "group" -> ConfigGroup <$> parseGroup v
+            _ | isJust $ getSeverity s -> ConfigGroup . ruleToGroup <$> parseRule o
             _ -> parseFail v "Expecting an object with a 'package' or 'group' key, or a hint"
 
 parsePackage :: Val -> Parser Package
@@ -234,10 +236,10 @@ asNote x = Note x
 -- SETTINGS
 
 settingsFromConfigYaml :: [ConfigYaml] -> [Setting]
-settingsFromConfigYaml configs = concatMap f groups
+settingsFromConfigYaml (mconcat -> ConfigYaml configs) = concatMap f groups
     where
-        xs = concat [x | ConfigYaml x <- configs]
-        (packages, groups) = partitionEithers xs
+        packages = [x | ConfigPackage x <- configs]
+        groups = [x | ConfigGroup x <- configs]
         packageMap = Map.fromListWith (++) [(packageName, packageModules) | Package{..} <- packages]
         groupMap = Map.fromListWith (\new old -> new) [(groupName, groupEnabled) | Group{..} <- groups]
 
