@@ -35,7 +35,7 @@ readFileConfigYaml file contents = do
 ---------------------------------------------------------------------
 -- YAML DATA TYPE
 
-newtype TopLevel = TopLevel [Either Package Group] deriving Monoid
+newtype ConfigYaml = ConfigYaml [Either Package Group] deriving Monoid
 
 data Package = Package
     {packageName :: String
@@ -126,13 +126,13 @@ parseHSE parser v = do
 ---------------------------------------------------------------------
 -- YAML TO DATA TYPE
 
-instance FromJSON TopLevel where
-    parseJSON x = parseTopLevel $ newVal x
+instance FromJSON ConfigYaml where
+    parseJSON x = parseConfigYaml $ newVal x
 
-parseTopLevel :: Val -> Parser TopLevel
-parseTopLevel v = do
+parseConfigYaml :: Val -> Parser ConfigYaml
+parseConfigYaml v = do
     vs <- parseArray v
-    fmap TopLevel $ forM vs $ \v -> do
+    fmap ConfigYaml $ forM vs $ \v -> do
         mp <- parseObject v
         case () of
             _ | "package" `Map.member` mp -> Left <$> parsePackage v
@@ -224,8 +224,8 @@ asNote x = Note x
 ---------------------------------------------------------------------
 -- SETTINGS
 
-asSettings :: TopLevel -> [Setting]
-asSettings (TopLevel xs) = concatMap f groups
+asSettings :: ConfigYaml -> [Setting]
+asSettings (ConfigYaml xs) = concatMap f groups
     where
         (packages, groups) = partitionEithers xs
         packageMap = Map.fromListWith (++) [(packageName, packageModules) | Package{..} <- packages]
