@@ -29,7 +29,7 @@ readFileConfigYaml file contents = do
         Just src -> return $ decodeEither' $ BS.pack src
     case val of
         Left e -> fail $ "Failed to read YAML configuration file " ++ file ++ "\n  " ++ displayException e
-        Right v -> return $ asSettings v
+        Right v -> return $ settingsFromConfigYaml [v]
 
 
 ---------------------------------------------------------------------
@@ -224,9 +224,10 @@ asNote x = Note x
 ---------------------------------------------------------------------
 -- SETTINGS
 
-asSettings :: ConfigYaml -> [Setting]
-asSettings (ConfigYaml xs) = concatMap f groups
+settingsFromConfigYaml :: [ConfigYaml] -> [Setting]
+settingsFromConfigYaml configs = concatMap f groups
     where
+        xs = concat [x | ConfigYaml x <- configs]
         (packages, groups) = partitionEithers xs
         packageMap = Map.fromListWith (++) [(packageName, packageModules) | Package{..} <- packages]
         groupMap = Map.fromListWith (\old new -> new) [(groupName, groupEnabled) | Group{..} <- groups]
