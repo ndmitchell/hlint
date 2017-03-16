@@ -90,6 +90,13 @@ parseObject :: Val -> Parser (Map.HashMap T.Text Value)
 parseObject (getVal -> Object x) = return x
 parseObject v = parseFail v "Expected an Object"
 
+parseObject1 :: Val -> Parser (String, Val)
+parseObject1 v = do
+    mp <- parseObject v
+    case Map.keys mp of
+        [T.unpack -> s] -> (s,) <$> parseField s v
+        _ -> parseFail v $ "Expected exactly one key but got " ++ show (Map.size mp)
+
 parseString :: Val -> Parser String
 parseString (getVal -> String x) = return $ T.unpack x
 parseString v = parseFail v "Expected a String"
@@ -199,12 +206,10 @@ parseWithin v = do
 
 parseSeverityKey :: Val -> Parser (Severity, Val)
 parseSeverityKey v = do
-    mp <- parseObject v
-    case Map.keys mp of
-        [T.unpack -> s]
-            | Just sev <- getSeverity s -> (,) sev <$> parseField s v
-            | otherwise -> parseFail v $ "Key should be a severity (e.g. warn/error/suggest) but got " ++ s
-        _ -> parseFail v $ "Expected exactly one key but got " ++ show (Map.size mp)
+    (s, v) <- parseObject1 v
+    case getSeverity s of
+        Just sev -> return (sev, v)
+        _ -> parseFail v $ "Key should be a severity (e.g. warn/error/suggest) but got " ++ s
 
 
 guessName :: Exp_ -> Exp_ -> String
