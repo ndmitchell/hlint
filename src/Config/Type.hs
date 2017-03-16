@@ -1,7 +1,8 @@
 
 module Config.Type(
     Severity(..), Classify(..), HintRule(..), Note(..), Setting(..),
-    defaultHintName, isUnifyVar, showNotes, getSeverity,
+    Restrict(..), RestrictType(..),
+    defaultHintName, isUnifyVar, showNotes, getSeverity, getRestrictType
     ) where
 
 import HSE.All
@@ -20,6 +21,12 @@ getSeverity "error" = Just Error
 getSeverity "hint" = Just Suggestion
 getSeverity _ = Nothing
 
+getRestrictType :: String -> Maybe RestrictType
+getRestrictType "modules" = Just RestrictModule
+getRestrictType "extensions" = Just RestrictExtension
+getRestrictType "flags" = Just RestrictFlag
+getRestrictType "functions" = Just RestrictFunction
+getRestrictType _ = Nothing
 
 defaultHintName :: String
 defaultHintName = "Use alternative"
@@ -87,9 +94,20 @@ data HintRule = HintRule
     }
     deriving Show
 
+data RestrictType = RestrictModule | RestrictExtension | RestrictFlag | RestrictFunction deriving (Show,Eq)
+
+data Restrict = Restrict
+    {restrictType :: RestrictType
+    ,restrictAllow :: [String]
+    ,restrictDeny :: [String]
+    ,restrictAs :: [String] -- for RestrictModule only, what you can import it as
+    ,restrictWithin :: [(String, String)]
+    } deriving Show
+
 data Setting
     = SettingClassify Classify
     | SettingMatchExp HintRule
+    | SettingRestrict Restrict
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show
