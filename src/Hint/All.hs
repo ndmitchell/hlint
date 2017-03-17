@@ -56,10 +56,10 @@ builtin x = case x of
     HintComment    -> comm commentHint
     HintNewType    -> decl newtypeHint
     where
-        decl x = mempty{hintDecl=x}
-        modu x = mempty{hintModule=x}
-        mods x = mempty{hintModules=x}
-        comm x = mempty{hintComment=x}
+        decl x = mempty{hintDecl=const x}
+        modu x = mempty{hintModule=const x}
+        mods x = mempty{hintModules=const x}
+        comm x = mempty{hintComment=const x}
 
 
 -- | A list of builtin hints, currently including entries such as @\"List\"@ and @\"Bracket\"@.
@@ -68,7 +68,7 @@ builtinHints = [(drop 4 $ show h, builtin h) | h <- [minBound .. maxBound]]
 
 -- | Transform a list of 'HintBuiltin' or 'HintRule' into a 'Hint'.
 resolveHints :: [Either HintBuiltin HintRule] -> Hint
-resolveHints xs = mconcat $ mempty{hintDecl=readMatch rights} : map builtin (nub lefts)
+resolveHints xs = mconcat $ mempty{hintDecl=const $ readMatch rights} : map builtin (nub lefts)
     where (lefts,rights) = partitionEithers xs
 
 -- | Transform a list of 'HintRule' into a 'Hint'.

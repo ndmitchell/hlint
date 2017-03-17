@@ -5,6 +5,7 @@ module Hint.Type(
     ) where
 
 import Data.Monoid
+import Config.Type
 import HSE.All  as Export
 import Idea     as Export
 import Prelude
@@ -17,15 +18,18 @@ type CrossHint = [(Scope, Module_)] -> [Idea]
 
 -- | Functions to generate hints, combined using the 'Monoid' instance.
 data Hint = Hint
-    {hintModules :: [(Scope, Module_)] -> [Idea] -- ^ Given a list of modules (and their scope information) generate some 'Idea's.
-    ,hintModule :: Scope -> Module_ -> [Idea] -- ^ Given a single module and its scope information generate some 'Idea's.
-    ,hintDecl :: Scope -> Module_ -> Decl_ -> [Idea]
+    {hintModules :: [Setting] -> [(Scope, Module_)] -> [Idea] -- ^ Given a list of modules (and their scope information) generate some 'Idea's.
+    ,hintModule :: [Setting] -> Scope -> Module_ -> [Idea] -- ^ Given a single module and its scope information generate some 'Idea's.
+    ,hintDecl :: [Setting] -> Scope -> Module_ -> Decl_ -> [Idea]
         -- ^ Given a declaration (with a module and scope) generate some 'Idea's.
         --   This function will be partially applied with one module/scope, then used on multiple 'Decl' values.
-    ,hintComment :: Comment -> [Idea] -- ^ Given a comment generate some 'Idea's.
+    ,hintComment :: [Setting] -> Comment -> [Idea] -- ^ Given a comment generate some 'Idea's.
     }
 
 instance Monoid Hint where
-    mempty = Hint (const []) (\_ _ -> []) (\_ _ _ -> []) (const [])
-    mappend (Hint x1 x2 x3 x4) (Hint y1 y2 y3 y4) =
-        Hint (\a -> x1 a ++ y1 a) (\a b -> x2 a b ++ y2 a b) (\a b c -> x3 a b c ++ y3 a b c) (\a -> x4 a ++ y4 a)
+    mempty = Hint (\_ _ -> []) (\_ _ _ -> []) (\_ _ _ _ -> []) (\_ _ -> [])
+    mappend (Hint x1 x2 x3 x4) (Hint y1 y2 y3 y4) = Hint
+        (\a b -> x1 a b ++ y1 a b)
+        (\a b c -> x2 a b c ++ y2 a b c)
+        (\a b c d -> x3 a b c d ++ y3 a b c d)
+        (\a b -> x4 a b ++ y4 a b)

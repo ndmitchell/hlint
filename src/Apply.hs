@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 
 module Apply(applyHints, applyHintFile, applyHintFiles) where
 
@@ -5,6 +6,7 @@ import Control.Applicative
 import Data.Monoid
 import HSE.All
 import Hint.All
+import Hint.Type
 import Data.Tuple.Extra
 import Data.Either
 import Data.List.Extra
@@ -12,7 +14,6 @@ import Data.Maybe
 import Data.Ord
 import Config.Type
 import Config.Haskell
-import Idea
 import Prelude
 
 
@@ -40,25 +41,29 @@ applyHintFiles flags s files = do
 --   which is slower and often pointless (by default HLint passes modules singularly, using
 --   @--cross@ to pass all modules together).
 applyHints :: [Classify] -> Hint -> [(Module_, [Comment])] -> [Idea]
-applyHints cls hints_ ms = concat $
+applyHints cs = applyHintsReal $ map SettingClassify cs
+
+applyHintsReal :: [Setting] -> Hint -> [(Module_, [Comment])] -> [Idea]
+applyHintsReal settings hints_ ms = concat $
     [ map (classify $ cls ++ mapMaybe readPragma (universeBi m)) $
-        order "" (hintModule hints nm m) `merge`
+        order "" (hintModule hints settings nm m) `merge`
         concat [order (fromNamed d) $ decHints d | d <- moduleDecls m] `merge`
-        concat [order "" $ hintComment hints c | c <- cs]
+        concat [order "" $ hintComment hints settings c | c <- cs]
     | (nm,(m,cs)) <- mns
-    , let decHints = hintDecl hints nm m -- partially apply
+    , let decHints = hintDecl hints settings nm m -- partially apply
     , let order n = map (\i -> i{ideaModule=moduleName m, ideaDecl=n}) . sortBy (comparing ideaSpan)
     , let merge = mergeBy (comparing ideaSpan)] ++
-    [map (classify cls) (hintModules hints $ map (second fst) mns)]
+    [map (classify cls) (hintModules hints settings $ map (second fst) mns)]
     where
+        cls = [x | SettingClassify x <- settings]
         mns = map (scopeCreate . fst &&& id) ms
         hints = (if length ms <= 1 then noModules else id) hints_
-        noModules h = h{hintModules = const []} `mappend` mempty{hintModule = \a b -> hintModules h [(a,b)]}
+        noModules h = h{hintModules = \_ _ -> []} `mappend` mempty{hintModule = \s a b -> hintModules h s [(a,b)]}
 
 
 -- | Given a list of settings (a way to classify) and a list of hints, run them over a list of modules.
 executeHints :: [Setting] -> [(Module_, [Comment])] -> [Idea]
-executeHints s = applyHints [x | SettingClassify x <- s] (allHints s)
+executeHints s = applyHintsReal s (allHints s)
 
 
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
