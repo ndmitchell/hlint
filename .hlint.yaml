@@ -23,7 +23,6 @@
 #   - {allow: unsafePerformIO, within: [Util.exitMessage, Test.Util.ref]}
 
 - warn: {name: Use explicit module export list}
-- ignore: {name: Use explicit module export list, within: HSE.Util}
 
 
 #####################################################################
@@ -49,3 +48,7 @@
 - ignore: {name: Use toNamed, within: HSE.Util}
 # doesn't fit with the other statements
 - ignore: {name: Use let, within: [HLint, Test.All]}
+# would be a lot of is/from exports
+- ignore: {name: Use explicit module export list, within: HSE.Util}
+# this const has meaingful argument names
+- ignore: {name: Use const, within: Config.Yaml}
