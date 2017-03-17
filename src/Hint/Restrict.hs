@@ -13,10 +13,9 @@ import Prelude
 -- FIXME: The settings should be partially applied, but that's hard to orchestrate right now
 restrictHint :: [Setting] -> ModuHint
 restrictHint settings scope m =
-        maybe [] (checkFlags modu pragmas) (Map.lookup RestrictFlag restrict)
+        checkPragmas modu (modulePragmas m) restrict
     where
         modu = moduleName m
-        pragmas = modulePragmas m
         restrict = restrictions settings
 
 ---------------------------------------------------------------------
@@ -40,12 +39,22 @@ restrictions settings = Map.map f $ Map.fromListWith (++) [(restrictType x, [x])
 ---------------------------------------------------------------------
 -- CHECKS
 
-checkFlags :: String -> [ModulePragma S] -> (Bool, Map.Map String RestrictItem) -> [Idea]
-checkFlags modu xs mp =
-    [ warn "Avoid restricted flags" o (OptionsPragma s t $ unwords good) []
-    | o@(OptionsPragma s t x) <- xs, let (good, bad) = partition isGood $ words x, not $ null bad]
+checkPragmas :: String -> [ModulePragma S] -> Map.Map RestrictType (Bool, Map.Map String RestrictItem) -> [Idea]
+checkPragmas modu xs mps = f RestrictFlag "flags" onFlags ++ f RestrictExtension "extensions" onExtensions
     where
-        isGood x = case Map.lookup x $ snd mp of
-            Nothing -> fst mp
-            Just RestrictItem{..} | null riWithin -> True
-                                  | otherwise -> (modu,"") `elem` riWithin
+        f tag name sel =
+            [ (\w -> if null good then w{ideaTo=Nothing} else w) w{ideaNote=[Note "may break the code"]}
+            | Just mp <- [Map.lookup tag mps]
+            , o <- xs, Just (xs, regen) <- [sel o]
+            , let (good, bad) = partition (isGood mp) xs, not $ null bad
+            , let w = warn ("Avoid restricted " ++ name) o (regen good) []]
+
+        onFlags (OptionsPragma s t x) = Just (words x, OptionsPragma s t . unwords)
+        onFlags _ = Nothing
+
+        onExtensions (LanguagePragma s xs) = Just (map fromNamed xs, LanguagePragma (s :: S) . map toNamed)
+        onExtensions _ = Nothing
+
+        isGood (def, mp) x = case Map.lookup x mp of
+            Nothing -> def
+            Just RestrictItem{..} -> any (\(a,b) -> (a == modu || a == "") && b == "") riWithin
