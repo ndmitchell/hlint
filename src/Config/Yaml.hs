@@ -202,12 +202,18 @@ parseRule v = do
 
 parseRestrict :: RestrictType -> Val -> Parser Restrict
 parseRestrict restrictType v = do
-    restrictAllow <- parseFieldOpt "allow" v >>= maybe (return []) parseArrayString
-    restrictDeny <- parseFieldOpt "deny" v >>= maybe (return []) parseArrayString
-    restrictWithin <- parseFieldOpt "within" v >>= maybe (return []) (parseArray >=> concatMapM parseWithin)
-    restrictAs <- parseFieldOpt "as" v >>= maybe (return []) parseArrayString
-    allowFields v $ ["as" | restrictType == RestrictModule] ++ ["allow","deny","within"]
-    return Restrict{..}
+    def <- parseFieldOpt "default" v
+    case def of
+        Just def -> do
+            b <- parseBool def
+            allowFields v ["default"]
+            return $ Restrict restrictType b [] [] []
+        Nothing -> do
+            restrictName <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
+            restrictWithin <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
+            restrictAs <- parseFieldOpt "as" v >>= maybe (return []) parseArrayString
+            allowFields v $ ["as" | restrictType == RestrictModule] ++ ["name","within"]
+            return Restrict{restrictDefault=True,..}
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
 parseWithin v = do

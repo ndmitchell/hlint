@@ -94,12 +94,12 @@ data HintRule = HintRule
     }
     deriving Show
 
-data RestrictType = RestrictModule | RestrictExtension | RestrictFlag | RestrictFunction deriving (Show,Eq)
+data RestrictType = RestrictModule | RestrictExtension | RestrictFlag | RestrictFunction deriving (Show,Eq,Ord)
 
 data Restrict = Restrict
     {restrictType :: RestrictType
-    ,restrictAllow :: [String]
-    ,restrictDeny :: [String]
+    ,restrictDefault :: Bool
+    ,restrictName :: [String]
     ,restrictAs :: [String] -- for RestrictModule only, what you can import it as
     ,restrictWithin :: [(String, String)]
     } deriving Show
