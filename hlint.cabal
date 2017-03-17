@@ -109,6 +109,7 @@ library
         Hint.NewType
         Hint.Pattern
         Hint.Pragma
+        Hint.Restrict
         Hint.Type
         Hint.Unsafe
         Hint.Util

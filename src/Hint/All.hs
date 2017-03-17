@@ -22,6 +22,7 @@ import Hint.Pattern
 import Hint.Import
 import Hint.Export
 import Hint.Pragma
+import Hint.Restrict
 import Hint.Extensions
 import Hint.Duplicate
 import Hint.Comment
@@ -33,7 +34,7 @@ import Hint.NewType
 data HintBuiltin =
     HintList | HintListRec | HintMonad | HintLambda |
     HintBracket | HintNaming | HintPattern | HintImport | HintExport |
-    HintPragma | HintExtensions | HintUnsafe | HintDuplicate |
+    HintPragma | HintExtensions | HintUnsafe | HintDuplicate | HintRestrict |
     HintComment | HintNewType
     deriving (Show,Eq,Ord,Bounded,Enum)
 
@@ -55,6 +56,7 @@ builtin x = case x of
     HintDuplicate  -> mods duplicateHint
     HintComment    -> comm commentHint
     HintNewType    -> decl newtypeHint
+    HintRestrict   -> mempty{hintModule=restrictHint}
     where
         decl x = mempty{hintDecl=const x}
         modu x = mempty{hintModule=const x}
