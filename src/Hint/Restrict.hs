@@ -15,7 +15,8 @@ import Prelude
 restrictHint :: [Setting] -> ModuHint
 restrictHint settings scope m =
         checkPragmas modu (modulePragmas m) restrict ++
-        maybe [] (checkImports modu $ moduleImports m) (Map.lookup RestrictModule restrict)
+        maybe [] (checkImports modu $ moduleImports m) (Map.lookup RestrictModule restrict) ++
+        maybe [] (checkFunctions modu $ moduleDecls m) (Map.lookup RestrictFunction restrict)
     where
         modu = moduleName m
         restrict = restrictions settings
@@ -74,4 +75,14 @@ checkImports modu imp (def, mp) =
     , let allowImport = within modu "" ri
     , let allowQual = maybe True (\x -> null riAs || fromModuleName x `elem` riAs) importAs
     , not allowImport || not allowQual
+    ]
+
+
+checkFunctions :: String -> [Decl_] -> (Bool, Map.Map String RestrictItem) -> [Idea]
+checkFunctions modu decls (def, mp) =
+    [ ideaMayBreak $ ideaNoTo $ warn "Avoid restricted function" x x []
+    | d <- decls
+    , let dname = fromNamed d
+    , x@Var{} <- universeBi d
+    , not $ maybe def (within modu dname) $ Map.lookup (fromNamed x) mp
     ]
