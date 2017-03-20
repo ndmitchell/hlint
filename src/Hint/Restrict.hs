@@ -40,6 +40,9 @@ restrictions settings = Map.map f $ Map.fromListWith (++) [(restrictType x, [x])
 ideaMayBreak w = w{ideaNote=[Note "may break the code"]}
 ideaNoTo w = w{ideaTo=Nothing}
 
+within :: String -> String -> RestrictItem -> Bool
+within modu func RestrictItem{..} = any (\(a,b) -> (a == modu || a == "") && (b == func || b == "")) riWithin
+
 ---------------------------------------------------------------------
 -- CHECKS
 
@@ -58,19 +61,17 @@ checkPragmas modu xs mps = f RestrictFlag "flags" onFlags ++ f RestrictExtension
         onExtensions (LanguagePragma s xs) = Just (map fromNamed xs, LanguagePragma (s :: S) . map toNamed)
         onExtensions _ = Nothing
 
-        isGood (def, mp) x = case Map.lookup x mp of
-            Nothing -> def
-            Just RestrictItem{..} -> any (\(a,b) -> (a == modu || a == "") && b == "") riWithin
+        isGood (def, mp) x = maybe def (within modu "") $ Map.lookup x mp
 
 
 checkImports :: String -> [ImportDecl S] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkImports modu imp (def, mp) =
     [ ideaMayBreak $ if not allowImport
       then ideaNoTo $ warn "Avoid restricted module" i i []
-      else warn "Avoid restricted qualification" i i{importAs=fmap (ModuleName an) $ listToMaybe riAs} []
+      else warn "Avoid restricted qualification" i i{importAs=ModuleName an <$> listToMaybe riAs} []
     | i@ImportDecl{..} <- imp
-    , let RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def]) (fromModuleName importModule) mp
-    , let allowImport = any (\(a,b) -> (a == modu || a == "") && b == "") riWithin
-    , let allowQual = maybe True (\x -> fromModuleName x `elem` riAs) importAs
+    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def]) (fromModuleName importModule) mp
+    , let allowImport = within modu "" ri
+    , let allowQual = maybe True (\x -> null riAs || fromModuleName x `elem` riAs) importAs
     , not allowImport || not allowQual
     ]
