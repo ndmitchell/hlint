@@ -18,6 +18,7 @@ import Hint.Type
 import Data.List
 import Data.Maybe
 import Data.Monoid
+import Control.Applicative
 import Prelude
 
 
