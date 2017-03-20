@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 
 module Apply(applyHints, applyHintFile, applyHintFiles) where
 
