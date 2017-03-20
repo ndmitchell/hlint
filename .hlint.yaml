@@ -4,23 +4,31 @@
 #####################################################################
 ## RESTRICTIONS
 
-# - extensions:
-#   - allow: [DeriveDataTypeable, GeneralizedNewtypeDeriving, NoMonomorphismRestriction, OverloadedStrings]
-#   - allow: [PatternGuards, Rank2Types, RecordWildCards, ScopedTypeVariables, ViewPatterns]
-#   - allow: [ExistentialQuantification, MultiParamTypeClasses]
-#   - allow: [FlexibleContexts, FlexibleInstances]
-#   - {allow: CPP, within: HsColour} # so it can be disabled to avoid GPL code
-#
-# - flags:
-#   - {allow: [-fno-warn-missing-fields, -fno-cse, -O0], within: CmdLine} # for cmdargs
-#
-# - modules:
-#   - {allow: Data.Set, qualified: Set}
-#   - {allow: Data.Map, qualified: Map}
-#
-# - functions:
-#   - {allow: unsafeInterleaveIO, within: Parallel}
-#   - {allow: unsafePerformIO, within: [Util.exitMessage, Test.Util.ref]}
+- extensions:
+  - default: false
+  - name: [DeriveDataTypeable, GeneralizedNewtypeDeriving, NoMonomorphismRestriction, OverloadedStrings]
+  - name: [PatternGuards, Rank2Types, RecordWildCards, ScopedTypeVariables, ViewPatterns, TupleSections]
+  - name: [ExistentialQuantification, MultiParamTypeClasses]
+  - name: [FlexibleContexts, FlexibleInstances]
+  - {name: CPP, within: HsColour} # so it can be disabled to avoid GPL code
+
+- flags:
+  - default: false
+  - {name: [-fno-warn-missing-fields, -fno-cse, -O0], within: CmdLine} # for cmdargs
+  - {name: [-fno-warn-incomplete-patterns, -fno-warn-overlapping-patterns]} # the pattern match checker is not very good
+
+- modules:
+  - {name: [Data.Set, Data.HashSet], as: Set}
+  - {name: [Data.Map, Data.HashMap.Strict, Data.HashMap.Lazy], as: Map}
+  - {name: Control.Arrow, within: []}
+
+- functions:
+  - {name: unsafeInterleaveIO, within: Parallel}
+  - {name: unsafePerformIO, within: [Util.exitMessage, Test.Util.ref]}
+
+
+#####################################################################
+## OTHER HINTS
 
 - warn: {name: Use explicit module export list}
 
