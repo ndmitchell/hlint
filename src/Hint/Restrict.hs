@@ -6,6 +6,7 @@ import qualified Data.Map as Map
 import Config.Type
 import Hint.Type
 import Data.List
+import Data.Maybe
 import Data.Monoid
 import Prelude
 
@@ -13,7 +14,8 @@ import Prelude
 -- FIXME: The settings should be partially applied, but that's hard to orchestrate right now
 restrictHint :: [Setting] -> ModuHint
 restrictHint settings scope m =
-        checkPragmas modu (modulePragmas m) restrict
+        checkPragmas modu (modulePragmas m) restrict ++
+        maybe [] (checkImports modu $ moduleImports m) (Map.lookup RestrictModule restrict)
     where
         modu = moduleName m
         restrict = restrictions settings
@@ -59,3 +61,16 @@ checkPragmas modu xs mps = f RestrictFlag "flags" onFlags ++ f RestrictExtension
         isGood (def, mp) x = case Map.lookup x mp of
             Nothing -> def
             Just RestrictItem{..} -> any (\(a,b) -> (a == modu || a == "") && b == "") riWithin
+
+
+checkImports :: String -> [ImportDecl S] -> (Bool, Map.Map String RestrictItem) -> [Idea]
+checkImports modu imp (def, mp) =
+    [ ideaMayBreak $ if not allowImport
+      then ideaNoTo $ warn "Avoid restricted module" i i []
+      else warn "Avoid restricted qualification" i i{importAs=fmap (ModuleName an) $ listToMaybe riAs} []
+    | i@ImportDecl{..} <- imp
+    , let RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def]) (fromModuleName importModule) mp
+    , let allowImport = any (\(a,b) -> (a == modu || a == "") && b == "") riWithin
+    , let allowQual = maybe True (\x -> fromModuleName x `elem` riAs) importAs
+    , not allowImport || not allowQual
+    ]
