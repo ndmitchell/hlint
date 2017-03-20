@@ -40,7 +40,7 @@ import IO as X -- import System.IO as X; import System.IO.Error as X; import Con
 module Hint.Import(importHint) where
 
 import Control.Applicative
-import Control.Arrow
+import Data.Tuple.Extra
 import Hint.Type
 import Refact.Types hiding (ModuleName)
 import qualified Refact.Types as R
