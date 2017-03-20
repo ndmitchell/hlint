@@ -35,6 +35,8 @@ restrictions settings = Map.map f $ Map.fromListWith (++) [(restrictType x, [x])
         f rs = (all restrictDefault rs
                ,Map.fromListWith (<>) [(s, RestrictItem restrictAs restrictWithin) | Restrict{..} <- rs, s <- restrictName])
 
+ideaMayBreak w = w{ideaNote=[Note "may break the code"]}
+ideaNoTo w = w{ideaTo=Nothing}
 
 ---------------------------------------------------------------------
 -- CHECKS
@@ -43,11 +45,10 @@ checkPragmas :: String -> [ModulePragma S] -> Map.Map RestrictType (Bool, Map.Ma
 checkPragmas modu xs mps = f RestrictFlag "flags" onFlags ++ f RestrictExtension "extensions" onExtensions
     where
         f tag name sel =
-            [ (\w -> if null good then w{ideaTo=Nothing} else w) w{ideaNote=[Note "may break the code"]}
+            [ (if null good then ideaNoTo else id) $ ideaMayBreak $ warn ("Avoid restricted " ++ name) o (regen good) []
             | Just mp <- [Map.lookup tag mps]
             , o <- xs, Just (xs, regen) <- [sel o]
-            , let (good, bad) = partition (isGood mp) xs, not $ null bad
-            , let w = warn ("Avoid restricted " ++ name) o (regen good) []]
+            , let (good, bad) = partition (isGood mp) xs, not $ null bad]
 
         onFlags (OptionsPragma s t x) = Just (words x, OptionsPragma s t . unwords)
         onFlags _ = Nothing
