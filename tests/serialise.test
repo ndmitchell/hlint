@@ -33,7 +33,7 @@ OUTPUT
 
 
 ---------------------------------------------------------------------
-RUN tests/serialise-four.hs --serialise
+RUN tests/serialise-four.hs --serialise --with= --hint=data/hlint.yaml
 FILE tests/serialise-four.hs
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE CPP #-}

@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------
-RUN tests/newtype-derive.hs
+RUN tests/newtype-derive.hs --with= --hint=data/hlint.yaml
 FILE tests/newtype-derive.hs
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
