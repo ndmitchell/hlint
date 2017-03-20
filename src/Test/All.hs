@@ -35,8 +35,11 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
     let wrap msg act = putStr (msg ++ " ") >> act >> putStrLn ""
 
     putStrLn "Testing"
+    config <- readFilesConfig [(".hlint.yaml",Nothing)]
     when useSrc $ wrap "Source annotations" $
-        forM_ builtinHints $ \(name,_) -> do progress; testAnnotations [Builtin name] $ "src/Hint" </> name <.> "hs"
+        forM_ builtinHints $ \(name,_) -> do
+            progress
+            testAnnotations (Builtin name : if name == "Restrict" then config else []) $ "src/Hint" </> name <.> "hs"
     when useSrc $ wrap "Input/outputs" $ testInputOutput main
 
     wrap "Hint names" $ mapM_ (\x -> do progress; testNames $ snd x) testFiles
