@@ -2,6 +2,16 @@
 
 module Hint.Restrict(restrictHint) where
 
+{-
+-- These tests rely on the .hlint.yaml file in the root
+<TEST>
+foo = unsafePerformIO --
+module Util where otherFunc = unsafePerformIO $ print 1 --
+module Util where exitMessage = unsafePerformIO $ print 1
+foo = unsafePerformOI
+</TEST>
+-}
+
 import qualified Data.Map as Map
 import Config.Type
 import Hint.Type
