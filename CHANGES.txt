@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add configurable restrictions
     Suggest using an export list on modules
     Look for nearby .hlint.yaml files to supply configuration
     Support YAML configuration files
