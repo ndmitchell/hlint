@@ -41,7 +41,10 @@ readFileConfigYaml file contents = do
 
 newtype ConfigYaml = ConfigYaml [ConfigItem] deriving Monoid
 
-data ConfigItem = ConfigPackage Package | ConfigGroup Group | ConfigRestrict [Restrict]
+data ConfigItem
+    = ConfigPackage Package
+    | ConfigGroup Group
+    | ConfigSetting [Setting]
 
 data Package = Package
     {packageName :: String
@@ -154,7 +157,7 @@ parseConfigYaml v = do
             "package" -> ConfigPackage <$> parsePackage v
             "group" -> ConfigGroup <$> parseGroup v
             _ | isJust $ getSeverity s -> ConfigGroup . ruleToGroup <$> parseRule o
-            _ | Just r <- getRestrictType s -> ConfigRestrict <$> (parseArray v >>= mapM (parseRestrict r))
+            _ | Just r <- getRestrictType s -> ConfigSetting . map SettingRestrict <$> (parseArray v >>= mapM (parseRestrict r))
             _ -> parseFail v "Expecting an object with a 'package' or 'group' key, a hint or a restriction"
 
 parsePackage :: Val -> Parser Package
@@ -255,11 +258,11 @@ asNote x = Note x
 -- SETTINGS
 
 settingsFromConfigYaml :: [ConfigYaml] -> [Setting]
-settingsFromConfigYaml (mconcat -> ConfigYaml configs) = map SettingRestrict restrict ++ concatMap f groups
+settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f groups
     where
         packages = [x | ConfigPackage x <- configs]
         groups = [x | ConfigGroup x <- configs]
-        restrict = concat [x | ConfigRestrict x <- configs]
+        settings = concat [x | ConfigSetting x <- configs]
         packageMap = Map.fromListWith (++) [(packageName, packageModules) | Package{..} <- packages]
         groupMap = Map.fromListWith (\new old -> new) [(groupName, groupEnabled) | Group{..} <- groups]
 
