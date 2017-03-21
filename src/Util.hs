@@ -2,16 +2,13 @@
 
 module Util(
     defaultExtensions,
-    Encoding, defaultEncoding, readFileEncoding',
     gzip, universeParentBi, descendIndex,
     exitMessage
     ) where
 
 import Control.Monad.Trans.State
-import Control.Exception
 import Data.List
 import System.Exit
-import System.IO.Extra hiding (readFileEncoding')
 import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
@@ -21,29 +18,6 @@ import Language.Haskell.Exts.Extension
 
 ---------------------------------------------------------------------
 -- SYSTEM.IO
-
--- | An 'Encoding' represents how characters are stored in a file. Created with
---   'defaultEncoding' or 'readEncoding' and used with 'useEncoding'.
-type Encoding = TextEncoding
-
--- | The system default encoding.
-defaultEncoding :: Encoding
-defaultEncoding = utf8
-
--- | Apply an encoding to a 'Handle'.
-useEncoding :: Handle -> Encoding -> IO ()
-useEncoding = hSetEncoding
-
-readFileEncoding' :: Encoding -> FilePath -> IO String
-readFileEncoding' enc "-" = do
-    useEncoding stdin enc
-    getContents
-readFileEncoding' enc file = withFile file ReadMode $ \h -> do
-    useEncoding h enc
-    s <- hGetContents h
-    evaluate $ length s
-    return s
-
 
 exitMessage :: String -> a
 exitMessage msg = unsafePerformIO $ do
