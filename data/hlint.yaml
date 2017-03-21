@@ -57,6 +57,8 @@
     - warn: {lhs: hWaitForInput a 0, rhs: hReady a}
     - warn: {lhs: hPutStrLn a (show b), rhs: hPrint a b}
     - warn: {lhs: hIsEOF stdin, rhs: isEOF}
+    - warn: {lhs: withFile f m (\h -> hPutStr h x), rhs: writeFile file x}
+    - warn: {lhs: withFile f m (\h -> hPutStrLn h x), rhs: writeFile file (x ++ "\n")}
 
     # EXIT
 
