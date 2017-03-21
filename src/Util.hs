@@ -1,4 +1,4 @@
-{-# LANGUAGE ExistentialQuantification, Rank2Types, PatternGuards #-}
+{-# LANGUAGE ExistentialQuantification, Rank2Types #-}
 
 module Util(
     defaultExtensions,
