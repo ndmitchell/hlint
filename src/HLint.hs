@@ -32,7 +32,6 @@ import Test.All
 import Hint.All
 import Grep
 import Test.Proof
-import Util
 import Parallel
 import HSE.All
 
@@ -86,9 +85,8 @@ hlintTest cmd@CmdTest{..} =
 
 hlintGrep :: Cmd -> IO ()
 hlintGrep cmd@CmdGrep{..} = do
-    encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
     let flags = parseFlagsSetLanguage (cmdExtensions cmd) $
-                defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
+                defaultParseFlags{cppFlags=cmdCpp cmd}
     if null cmdFiles then
         exitWithHelp
      else do
@@ -100,9 +98,8 @@ hlintGrep cmd@CmdGrep{..} = do
 
 hlintMain :: Cmd -> IO [Idea]
 hlintMain cmd@CmdMain{..} = do
-    encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
     let flags = parseFlagsSetLanguage (cmdExtensions cmd) $
-                defaultParseFlags{cppFlags=cmdCpp cmd, encoding=encoding}
+                defaultParseFlags{cppFlags=cmdCpp cmd}
     if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
         mapM_ (putStrLn . fst <=< computeSettings flags) hints >> return []

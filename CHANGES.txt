@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Remove the --encoding/--utf8 options, always use UTF8
     #311, suggest writeFile instead of withFile/hPutStr
     Add configurable restrictions
     Suggest using an export list on modules

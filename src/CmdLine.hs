@@ -82,8 +82,6 @@ data Cmd
         ,cmdShowAll :: Bool              -- ^ display all skipped items
         ,cmdExtension :: [String]        -- ^ extensions
         ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
-        ,cmdUtf8 :: Bool
-        ,cmdEncoding :: String         -- ^ the text encoding
         ,cmdCross :: Bool                -- ^ work between source files, applies to hints such as duplicate code between modules
         ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
         ,cmdDataDir :: FilePath          -- ^ the data directory
@@ -107,8 +105,6 @@ data Cmd
         ,cmdPattern :: String
         ,cmdExtension :: [String]        -- ^ extensions
         ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
-        ,cmdUtf8 :: Bool
-        ,cmdEncoding :: String         -- ^ the text encoding
         ,cmdPath :: [String]
         ,cmdCppDefine :: [String]
         ,cmdCppInclude :: [FilePath]
@@ -144,8 +140,6 @@ mode = cmdArgsMode $ modes
         ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
         ,cmdExtension = nam "extension" &= typ "EXT" &= help "File extensions to search (default hs/lhs)"
         ,cmdLanguage = nam_ "language" &= name "X" &= typ "EXTENSION" &= help "Language extensions (Arrows, NoCPP)"
-        ,cmdUtf8 = nam "utf8" &= help "Use UTF-8 text encoding"
-        ,cmdEncoding = nam_ "encoding" &= typ "ENCODING" &= help "Choose the text encoding"
         ,cmdCross = nam_ "cross" &= help "Work between modules"
         ,cmdFindHints = nam "find" &= typFile &= help "Find hints in a Haskell file"
         ,cmdDataDir = nam "datadir" &= typDir &= help "Override the data directory"

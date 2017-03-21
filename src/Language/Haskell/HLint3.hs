@@ -37,8 +37,6 @@ import HLint
 import Hint.Type
 import Hint.All
 import CmdLine
-import Util
-import System.IO
 import Paths_hlint
 
 import Data.List.Extra
@@ -77,9 +75,8 @@ argsSettings args = do
         CmdMain{..} -> do
             -- FIXME: Two things that could be supported (but aren't) are 'cmdGivenHints' and 'cmdWithHints'.
             (fixities, classify, hints) <- findSettings (readSettingsFile $ Just cmdDataDir) Nothing
-            encoding <- if cmdUtf8 then return utf8 else readEncoding cmdEncoding
             let flags = parseFlagsSetLanguage (cmdExtensions cmd) $ parseFlagsAddFixities fixities $
-                        defaultParseFlags{cppFlags = cmdCpp cmd, encoding = encoding}
+                        defaultParseFlags{cppFlags = cmdCpp cmd}
             let ignore = [Classify Ignore x "" "" | x <- cmdIgnore]
             return (flags, classify ++ ignore, resolveHints hints)
         _ -> error "Can only invoke autoSettingsArgs with the root process"
