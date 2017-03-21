@@ -2,14 +2,13 @@
 
 module Util(
     defaultExtensions,
-    Encoding, defaultEncoding, readFileEncoding', readEncoding, useEncoding,
+    Encoding, defaultEncoding, readFileEncoding',
     gzip, universeParentBi, descendIndex,
     exitMessage
     ) where
 
 import Control.Monad.Trans.State
 import Control.Exception
-import Data.Char
 import Data.List
 import System.Exit
 import System.IO.Extra hiding (readFileEncoding')
@@ -44,44 +43,6 @@ readFileEncoding' enc file = withFile file ReadMode $ \h -> do
     s <- hGetContents h
     evaluate $ length s
     return s
-
-
--- | Create an encoding from a string, or throw an error if the encoding is not known.
---   Accepts many encodings including @locale@, @utf-8@ and all those supported by the
---   GHC @mkTextEncoding@ function.
-readEncoding :: String -> IO Encoding
--- GHC's mkTextEncoding function is fairly poor - it doesn't support lots of fun things,
--- so we fake them up, and then try mkTextEncoding last
-readEncoding "" = return defaultEncoding
-readEncoding enc
-        | Just e <- lookup (f enc) [(f a, b) | (as,b) <- encs, a <- as] = return e
-        | otherwise = do
-            res <- try $ mkTextEncoding enc :: IO (Either SomeException TextEncoding)
-            case res of
-                Right e -> return e
-                Left _ -> do
-                    let (a,b) = splitAt 2 $ map (head . fst) encs
-                    putStr $ unlines
-                        ["Error: Unknown text encoding argument, " ++ enc
-                        ,"Possible values:"
-                        ,"  " ++ unwords a
-                        ,"  " ++ unwords b
-                        ,"  and anything accepted by System.IO.mkTextEncoding"]
-                    exitWith $ ExitFailure 1
-    where
-        f = map toLower . filter (`notElem` "-_ ")
-
-        encs = let a*b = (words a, b)
-               in ["ISO8859-1 8859-1 ISO8859 8859 LATIN LATIN1" * latin1
-                  ,"LOCALE" * localeEncoding
-                  ,"UTF-8" * utf8
-                  ,"UTF-8BOM" * utf8_bom
-                  ,"UTF-16" * utf16
-                  ,"UTF-16LE" * utf16le
-                  ,"UTF-16BE" * utf16be
-                  ,"UTF-32" * utf16
-                  ,"UTF-32LE" * utf16le
-                  ,"UTF-32BE" * utf16be]
 
 
 exitMessage :: String -> a
