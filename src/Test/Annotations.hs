@@ -32,7 +32,6 @@ testAnnotations setting file = do
                     Nothing -> null ideas
                     Just x -> length ideas == 1 &&
                               seq (length (show ideas)) True && -- force, mainly for hpc
-                              (isJust (ideaTo $ head ideas) || null x) && -- detects parse failure
                               match x (head ideas)
             let bad =
                     [failed $
