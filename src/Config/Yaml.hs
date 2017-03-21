@@ -156,6 +156,7 @@ parseConfigYaml v = do
         case s of
             "package" -> ConfigPackage <$> parsePackage v
             "group" -> ConfigGroup <$> parseGroup v
+            "arguments" -> ConfigSetting . map SettingArgument <$> parseArrayString v
             _ | isJust $ getSeverity s -> ConfigGroup . ruleToGroup <$> parseRule o
             _ | Just r <- getRestrictType s -> ConfigSetting . map SettingRestrict <$> (parseArray v >>= mapM (parseRestrict r))
             _ -> parseFail v "Expecting an object with a 'package' or 'group' key, a hint or a restriction"
