@@ -28,14 +28,13 @@ import Prelude
 
 -- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
 data ParseFlags = ParseFlags
-    {encoding :: TextEncoding -- ^ How the file is read in (defaults to 'utf8').
-    ,cppFlags :: CppFlags -- ^ How the file is preprocessed (defaults to 'NoCpp').
+    {cppFlags :: CppFlags -- ^ How the file is preprocessed (defaults to 'NoCpp').
     ,hseFlags :: ParseMode -- ^ How the file is parsed (defaults to all fixities in the @base@ package and most non-conflicting extensions).
     }
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags utf8 NoCpp
+defaultParseFlags = ParseFlags NoCpp
     defaultParseMode{fixities=Just baseFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
@@ -75,7 +74,7 @@ data ParseError = ParseError
 --   The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module_, [Comment]))
 parseModuleEx flags file str = do
-        str <- maybe (readFileEncoding' (encoding flags) file) return str
+        str <- maybe (readFileEncoding' defaultEncoding file) return str
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
         case parseFileContentsWithComments (mode flags) ppstr of
