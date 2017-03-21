@@ -21,7 +21,7 @@ import Data.List.Extra
 import Data.Maybe
 import Language.Preprocessor.Cpphs
 import qualified Data.Map as Map
-import System.IO
+import System.IO.Extra
 import Data.Functor
 import Prelude
 
@@ -74,7 +74,7 @@ data ParseError = ParseError
 --   The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module_, [Comment]))
 parseModuleEx flags file str = do
-        str <- maybe (readFileEncoding' defaultEncoding file) return str
+        str <- maybe (readFileUTF8' file) return str
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
         case parseFileContentsWithComments (mode flags) ppstr of

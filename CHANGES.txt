@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Remove the ability to pass the file on stdin using - as the file
     Remove encoding from ParseFlags
     Remove the --encoding/--utf8 options, always use UTF8
     #311, suggest writeFile instead of withFile/hPutStr
