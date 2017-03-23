@@ -52,7 +52,7 @@ hlint :: [String] -> IO [Idea]
 hlint args = do
     cmd <- getCmd args
     case cmd of
-        CmdMain{} -> do xs <- hlintMain cmd; return $ if cmdNoExitCode cmd then [] else xs
+        CmdMain{} -> do xs <- hlintMain args cmd; return $ if cmdNoExitCode cmd then [] else xs
         CmdGrep{} -> hlintGrep cmd >> return []
         CmdHSE{}  -> hlintHSE  cmd >> return []
         CmdTest{} -> hlintTest cmd >> return []
@@ -99,36 +99,38 @@ hlintGrep cmd@CmdGrep{..} = do
          else
             runGrep cmdPattern (cmdParseFlags cmd) files
 
-hlintMain :: Cmd -> IO [Idea]
-hlintMain cmd@CmdMain{..} = do
+hlintMain :: [String] -> Cmd -> IO [Idea]
+hlintMain args cmd@CmdMain{..} = do
     if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
         mapM_ (putStrLn . fst <=< computeSettings (cmdParseFlags cmd)) hints >> return []
      else if null cmdFiles then
         exitWithHelp
      else if cmdRefactor then
-         withTempFile (\t ->  runHlintMain cmd (Just t))
-     else runHlintMain cmd Nothing
+         withTempFile (\t -> runHlintMain args cmd (Just t))
+     else runHlintMain args cmd Nothing
 
-runHlintMain :: Cmd -> Maybe FilePath -> IO [Idea]
-runHlintMain cmd@CmdMain{..} fp = do
+runHlintMain :: [String] -> Cmd -> Maybe FilePath -> IO [Idea]
+runHlintMain args cmd@CmdMain{..} fp = do
   files <- concatMapM (resolveFile cmd fp) cmdFiles
   if null files
       then error "No files found"
-      else runHints cmd{cmdFiles=files}
+      else runHints args cmd{cmdFiles=files}
 
-readAllSettings :: Cmd -> IO (Cmd, [Setting])
-readAllSettings cmd@CmdMain{..} = do
+readAllSettings :: [String] -> Cmd -> IO (Cmd, [Setting])
+readAllSettings args1 cmd@CmdMain{..} = do
     files <- cmdHintFiles cmd
     settings1 <- readFilesConfig $ map (,Nothing) files ++ [("CommandLine.hs",Just x) | x <- cmdWithHints]
+    let args2 = [x | SettingArgument x <- settings1]
+    cmd@CmdMain{..} <- if null args2 then return cmd else getCmd $ args1 ++ args2
     settings2 <- concatMapM (fmap snd . computeSettings (cmdParseFlags cmd)) cmdFindHints
     settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
     return (cmd, settings1 ++ settings2 ++ settings3)
 
 
-runHints :: Cmd -> IO [Idea]
-runHints cmd@CmdMain{..} = do
-    (cmd@CmdMain{..}, settings) <- readAllSettings cmd
+runHints :: [String] -> Cmd -> IO [Idea]
+runHints args cmd@CmdMain{..} = do
+    (cmd@CmdMain{..}, settings) <- readAllSettings args cmd
     j <- if cmdThreads == 0 then getNumProcessors else return cmdThreads
     withNumCapabilities j $ do
         let outStrLn = whenNormal . putStrLn
