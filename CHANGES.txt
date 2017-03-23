@@ -6,7 +6,7 @@ Changelog for HLint
     Remove encoding from ParseFlags
     Remove the --encoding/--utf8 options, always use UTF8
     #311, suggest writeFile instead of withFile/hPutStr
-    Add configurable restrictions
+    #288, add configurable restrictions
     Suggest using an export list on modules
     Look for nearby .hlint.yaml files to supply configuration
     Support YAML configuration files
