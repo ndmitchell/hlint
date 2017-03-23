@@ -85,10 +85,11 @@ hlintTest cmd@CmdTest{..} =
         failed <- test cmd (\args -> do errs <- hlint args; unless (null errs) $ exitWith $ ExitFailure 1) cmdDataDir cmdGivenHints
         when (failed > 0) exitFailure
 
+cmdParseFlags :: Cmd -> ParseFlags
+cmdParseFlags cmd = parseFlagsSetLanguage (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd}
+
 hlintGrep :: Cmd -> IO ()
 hlintGrep cmd@CmdGrep{..} = do
-    let flags = parseFlagsSetLanguage (cmdExtensions cmd) $
-                defaultParseFlags{cppFlags=cmdCpp cmd}
     if null cmdFiles then
         exitWithHelp
      else do
@@ -96,20 +97,18 @@ hlintGrep cmd@CmdGrep{..} = do
         if null files then
             error "No files found"
          else
-            runGrep cmdPattern flags files
+            runGrep cmdPattern (cmdParseFlags cmd) files
 
 hlintMain :: Cmd -> IO [Idea]
 hlintMain cmd@CmdMain{..} = do
-    let flags = parseFlagsSetLanguage (cmdExtensions cmd) $
-                defaultParseFlags{cppFlags=cmdCpp cmd}
     if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
-        mapM_ (putStrLn . fst <=< computeSettings flags) hints >> return []
+        mapM_ (putStrLn . fst <=< computeSettings (cmdParseFlags cmd)) hints >> return []
      else if null cmdFiles then
         exitWithHelp
      else if cmdRefactor then
-         withTempFile (\t ->  runHlintMain cmd (Just t) flags)
-     else runHlintMain cmd Nothing flags
+         withTempFile (\t ->  runHlintMain cmd (Just t) (cmdParseFlags cmd))
+     else runHlintMain cmd Nothing (cmdParseFlags cmd)
 
 runHlintMain :: Cmd -> Maybe FilePath -> ParseFlags -> IO [Idea]
 runHlintMain cmd@CmdMain{..} fp flags = do
