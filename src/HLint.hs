@@ -107,15 +107,15 @@ hlintMain cmd@CmdMain{..} = do
      else if null cmdFiles then
         exitWithHelp
      else if cmdRefactor then
-         withTempFile (\t ->  runHlintMain cmd (Just t) (cmdParseFlags cmd))
-     else runHlintMain cmd Nothing (cmdParseFlags cmd)
+         withTempFile (\t ->  runHlintMain cmd (Just t))
+     else runHlintMain cmd Nothing
 
-runHlintMain :: Cmd -> Maybe FilePath -> ParseFlags -> IO [Idea]
-runHlintMain cmd@CmdMain{..} fp flags = do
+runHlintMain :: Cmd -> Maybe FilePath -> IO [Idea]
+runHlintMain cmd@CmdMain{..} fp = do
   files <- concatMapM (resolveFile cmd fp) cmdFiles
   if null files
       then error "No files found"
-      else runHints cmd{cmdFiles=files} flags
+      else runHints cmd{cmdFiles=files} $ cmdParseFlags cmd
 
 readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
 readAllSettings cmd@CmdMain{..} flags = do
