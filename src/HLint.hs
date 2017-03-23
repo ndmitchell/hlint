@@ -128,10 +128,10 @@ readAllSettings cmd@CmdMain{..} = do
 
 runHints :: Cmd -> IO [Idea]
 runHints cmd@CmdMain{..} = do
+    settings <- readAllSettings cmd
     j <- if cmdThreads == 0 then getNumProcessors else return cmdThreads
     withNumCapabilities j $ do
         let outStrLn = whenNormal . putStrLn
-        settings <- readAllSettings cmd
         ideas <- getIdeas cmd settings
         let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
         if cmdJson then
