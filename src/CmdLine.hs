@@ -1,7 +1,11 @@
 {-# LANGUAGE PatternGuards, RecordWildCards, DeriveDataTypeable #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields -fno-cse -O0 #-}
 
-module CmdLine(Cmd(..), cmdCpp, CppFlags(..), getCmd, cmdExtensions, cmdHintFiles, cmdUseColour, exitWithHelp, resolveFile) where
+module CmdLine(
+    Cmd(..), getCmd,
+    CppFlags(..), cmdCpp, cmdExtensions, cmdHintFiles, cmdUseColour,
+    exitWithHelp, resolveFile
+    ) where
 
 import Control.Monad.Extra
 import Data.Char
