@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Add maybe False (== x) ==> (== Just x) hint, plus for /=
     Remove the ability to pass the file on stdin using - as the file
     Remove encoding from ParseFlags
     Remove the --encoding/--utf8 options, always use UTF8

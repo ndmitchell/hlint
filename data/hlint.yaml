@@ -399,6 +399,8 @@
     - warn: {lhs: maybe x id, rhs: Data.Maybe.fromMaybe x}
     - warn: {lhs: maybe False (const True), rhs: Data.Maybe.isJust}
     - warn: {lhs: maybe True (const False), rhs: Data.Maybe.isNothing}
+    - warn: {lhs: maybe False (== x), rhs: (== Just x)}
+    - warn: {lhs: maybe True (/= x), rhs: (/= Just x)}
     - warn: {lhs: not (isNothing x), rhs: isJust x}
     - warn: {lhs: not (isJust x), rhs: isNothing x}
     - warn: {lhs: "maybe [] (:[])", rhs: maybeToList}
