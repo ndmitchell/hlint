@@ -63,6 +63,8 @@ hlintHSE c@CmdHSE{..} = do
     forM_ cmdFiles $ \x -> do
         putStrLn $ "Parse result of " ++ x ++ ":"
         let (lang,exts) = cmdExtensions c
+        -- We deliberately don't use HSE.All here to avoid any bugs in HLint
+        -- polluting our bug reports (which is the main use of HSE)
         res <- parseFileWithMode defaultParseMode{baseLanguage=lang, extensions=exts} x
         case res of
             x@ParseFailed{} -> print x
