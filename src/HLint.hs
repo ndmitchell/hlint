@@ -115,24 +115,24 @@ runHlintMain cmd@CmdMain{..} fp = do
   files <- concatMapM (resolveFile cmd fp) cmdFiles
   if null files
       then error "No files found"
-      else runHints cmd{cmdFiles=files} $ cmdParseFlags cmd
+      else runHints cmd{cmdFiles=files}
 
-readAllSettings :: Cmd -> ParseFlags -> IO [Setting]
-readAllSettings cmd@CmdMain{..} flags = do
+readAllSettings :: Cmd -> IO [Setting]
+readAllSettings cmd@CmdMain{..} = do
     files <- cmdHintFiles cmd
     settings1 <- readFilesConfig $ map (,Nothing) files ++ [("CommandLine.hs",Just x) | x <- cmdWithHints]
-    settings2 <- concatMapM (fmap snd . computeSettings flags) cmdFindHints
+    settings2 <- concatMapM (fmap snd . computeSettings (cmdParseFlags cmd)) cmdFindHints
     settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
     return $ settings1 ++ settings2 ++ settings3
 
 
-runHints :: Cmd -> ParseFlags -> IO [Idea]
-runHints cmd@CmdMain{..} flags = do
+runHints :: Cmd -> IO [Idea]
+runHints cmd@CmdMain{..} = do
     j <- if cmdThreads == 0 then getNumProcessors else return cmdThreads
     withNumCapabilities j $ do
         let outStrLn = whenNormal . putStrLn
-        settings <- readAllSettings cmd flags
-        ideas <- getIdeas cmd settings flags
+        settings <- readAllSettings cmd
+        ideas <- getIdeas cmd settings
         let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
         if cmdJson then
             putStrLn $ showIdeasJson showideas
@@ -148,9 +148,10 @@ runHints cmd@CmdMain{..} flags = do
             handleReporting showideas hideideas cmd
         return showideas
 
-getIdeas :: Cmd -> [Setting] -> ParseFlags -> IO [Idea]
-getIdeas cmd@CmdMain{..} settings flags = do
+getIdeas :: Cmd -> [Setting] -> IO [Idea]
+getIdeas cmd@CmdMain{..} settings = do
     settings <- return $ settings ++ map (Builtin . fst) builtinHints
+    let flags = cmdParseFlags cmd
     ideas <- if cmdCross
         then applyHintFiles flags settings cmdFiles
         else concat <$> parallel cmdThreads [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
