@@ -117,18 +117,18 @@ runHlintMain cmd@CmdMain{..} fp = do
       then error "No files found"
       else runHints cmd{cmdFiles=files}
 
-readAllSettings :: Cmd -> IO [Setting]
+readAllSettings :: Cmd -> IO (Cmd, [Setting])
 readAllSettings cmd@CmdMain{..} = do
     files <- cmdHintFiles cmd
     settings1 <- readFilesConfig $ map (,Nothing) files ++ [("CommandLine.hs",Just x) | x <- cmdWithHints]
     settings2 <- concatMapM (fmap snd . computeSettings (cmdParseFlags cmd)) cmdFindHints
     settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
-    return $ settings1 ++ settings2 ++ settings3
+    return (cmd, settings1 ++ settings2 ++ settings3)
 
 
 runHints :: Cmd -> IO [Idea]
 runHints cmd@CmdMain{..} = do
-    settings <- readAllSettings cmd
+    (cmd@CmdMain{..}, settings) <- readAllSettings cmd
     j <- if cmdThreads == 0 then getNumProcessors else return cmdThreads
     withNumCapabilities j $ do
         let outStrLn = whenNormal . putStrLn
