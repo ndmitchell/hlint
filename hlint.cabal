@@ -16,6 +16,7 @@ bug-reports:        https://github.com/ndmitchell/hlint/issues
 data-dir:           data
 data-files:
     hlint.yaml
+    default.yaml
     Generalise.hs
     Dollar.hs
     HLint.hs
