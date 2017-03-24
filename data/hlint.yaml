@@ -590,8 +590,16 @@
     imports:
     - package base
     rules:
-    - warn: {lhs: liftM, rhs: fmap}
     - warn: {lhs: map, rhs: fmap}
+    - warn: {lhs: a ++ b, rhs: a <> b}
+
+- group:
+    name: dollar
+    enabled: false
+    imports:
+    - package base
+    rules:
+    - warn: {lhs: a $ b $ c, rhs: a . b $ c}
 
 
 # <TEST>
