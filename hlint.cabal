@@ -17,9 +17,6 @@ data-dir:           data
 data-files:
     hlint.yaml
     default.yaml
-    Generalise.hs
-    Dollar.hs
-    HLint.hs
     Test.hs
     report_template.html
     hs-lint.el
