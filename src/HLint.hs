@@ -19,6 +19,7 @@ import Data.Version.Extra
 import System.Process.Extra
 import Data.Maybe
 import System.Directory
+import System.FilePath
 
 import CmdLine
 import Config.All
@@ -99,8 +100,11 @@ hlintGrep cmd@CmdGrep{..} = do
             runGrep cmdPattern (cmdParseFlags cmd) files
 
 hlintMain :: [String] -> Cmd -> IO [Idea]
-hlintMain args cmd@CmdMain{..} = do
-    if null cmdFiles && not (null cmdFindHints) then do
+hlintMain args cmd@CmdMain{..} =
+    if cmdDefault then do
+        putStr =<< readFile (cmdDataDir </> "default.yaml")
+        return []
+     else if null cmdFiles && not (null cmdFindHints) then do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
         mapM_ (putStrLn . fst <=< computeSettings (cmdParseFlags cmd)) hints >> return []
      else if null cmdFiles then

@@ -89,6 +89,7 @@ data Cmd
         ,cmdCross :: Bool                -- ^ work between source files, applies to hints such as duplicate code between modules
         ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
         ,cmdDataDir :: FilePath          -- ^ the data directory
+        ,cmdDefault :: Bool              -- ^ Print a default file to stdout
         ,cmdPath :: [String]
         ,cmdCppDefine :: [String]
         ,cmdCppInclude :: [FilePath]
@@ -146,7 +147,8 @@ mode = cmdArgsMode $ modes
         ,cmdLanguage = nam_ "language" &= name "X" &= typ "EXTENSION" &= help "Language extensions (Arrows, NoCPP)"
         ,cmdCross = nam_ "cross" &= help "Work between modules"
         ,cmdFindHints = nam "find" &= typFile &= help "Find hints in a Haskell file"
-        ,cmdDataDir = nam "datadir" &= typDir &= help "Override the data directory"
+        ,cmdDataDir = nam_ "datadir" &= typDir &= help "Override the data directory"
+        ,cmdDefault = nam "default" &= help "Print a default file to stdout"
         ,cmdPath = nam "path" &= help "Directory in which to search for files"
         ,cmdCppDefine = nam_ "cpp-define" &= typ "NAME[=VALUE]" &= help "CPP #define"
         ,cmdCppInclude = nam_ "cpp-include" &= typDir &= help "CPP include path"
