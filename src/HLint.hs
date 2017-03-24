@@ -15,11 +15,10 @@ import System.IO.Extra
 import Data.Tuple.Extra
 import Prelude
 
-import Data.Version
+import Data.Version.Extra
 import System.Process.Extra
 import Data.Maybe
 import System.Directory
-import Text.ParserCombinators.ReadP
 
 import CmdLine
 import Config.All
@@ -204,13 +203,10 @@ checkRefactor rpath = do
     mexc <- findExecutable excPath
     case mexc of
         Just exc ->  do
-            vers <- readP_to_S parseVersion . tail <$> readProcess exc ["--version"] ""
-            case vers of
-                [] -> putStrLn "Unabled to determine version of refactor" >> return exc
-                (last -> (version, _)) ->
-                    if versionBranch version >= [0,1,0,0]
-                        then return exc
-                        else error "Your version of refactor is too old, please upgrade to the latest version"
+            ver <- readVersion . tail <$> readProcess exc ["--version"] ""
+            if versionBranch ver >= [0,1,0,0]
+                then return exc
+                else error "Your version of refactor is too old, please upgrade to the latest version"
         Nothing -> error $ unlines [ "Could not find refactor", "Tried with: " ++ excPath ]
 
 evaluateList :: [a] -> IO [a]
