@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ViewPatterns, TupleSections #-}
+{-# LANGUAGE RecordWildCards, TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module HLint(hlint) where
@@ -89,7 +89,7 @@ cmdParseFlags :: Cmd -> ParseFlags
 cmdParseFlags cmd = parseFlagsSetLanguage (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd}
 
 hlintGrep :: Cmd -> IO ()
-hlintGrep cmd@CmdGrep{..} = do
+hlintGrep cmd@CmdGrep{..} =
     if null cmdFiles then
         exitWithHelp
      else do
@@ -100,18 +100,19 @@ hlintGrep cmd@CmdGrep{..} = do
             runGrep cmdPattern (cmdParseFlags cmd) files
 
 hlintMain :: [String] -> Cmd -> IO [Idea]
-hlintMain args cmd@CmdMain{..} =
-    if cmdDefault then do
+hlintMain args cmd@CmdMain{..}
+    | cmdDefault = do
         putStr =<< readFile (cmdDataDir </> "default.yaml")
         return []
-     else if null cmdFiles && not (null cmdFindHints) then do
+    | null cmdFiles && not (null cmdFindHints) = do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
         mapM_ (putStrLn . fst <=< computeSettings (cmdParseFlags cmd)) hints >> return []
-     else if null cmdFiles then
+    | null cmdFiles =
         exitWithHelp
-     else if cmdRefactor then
-         withTempFile (\t -> runHlintMain args cmd (Just t))
-     else runHlintMain args cmd Nothing
+    | cmdRefactor =
+        withTempFile $ runHlintMain args cmd . Just
+    | otherwise =
+        runHlintMain args cmd Nothing
 
 runHlintMain :: [String] -> Cmd -> Maybe FilePath -> IO [Idea]
 runHlintMain args cmd@CmdMain{..} fp = do
