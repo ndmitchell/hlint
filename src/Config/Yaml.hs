@@ -146,7 +146,7 @@ parseHSE parser v = do
 -- YAML TO DATA TYPE
 
 instance FromJSON ConfigYaml where
-    parseJSON Null = pure mempty
+    parseJSON Null = return mempty
     parseJSON x = parseConfigYaml $ newVal x
 
 parseConfigYaml :: Val -> Parser ConfigYaml
