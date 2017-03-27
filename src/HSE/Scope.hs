@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 
 module HSE.Scope(
     Scope, scopeCreate, scopeImports,
@@ -64,14 +65,14 @@ scopeMatch (a, x) (b, y) = unqual x =~= unqual y && not (null $ possModules a x 
 -- | Given a name in a scope, and a new scope, create a name for the new scope that will refer
 --   to the same thing. If the resulting name is ambiguous, it picks a plausible candidate.
 scopeMove :: (Scope, QName S) -> Scope -> QName S
-scopeMove (a, x) (Scope b)
-    | isSpecial x = x
+scopeMove (a, x@(fromQual -> Just name)) (Scope b)
     | null imps = head $ real ++ [x]
     | any (not . importQualified) imps = unqual x
-    | otherwise = Qual an (head $ mapMaybe importAs imps ++ map importModule imps) $ fromQual x
+    | otherwise = Qual an (head $ mapMaybe importAs imps ++ map importModule imps) name
     where
-        real = [Qual an (ModuleName an m) $ fromQual x | m <- possModules a x]
+        real = [Qual an (ModuleName an m) name | m <- possModules a x]
         imps = [i | r <- real, i <- b, possImport i r]
+scopeMove (_, x) _ = x
 
 
 -- which modules could a name possibly lie in

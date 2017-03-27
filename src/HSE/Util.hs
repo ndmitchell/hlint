@@ -128,10 +128,10 @@ unqual :: QName S -> QName S
 unqual (Qual an _ x) = UnQual an x
 unqual x = x
 
-fromQual :: QName S -> Name S
-fromQual (Qual _ _ x) = x
-fromQual (UnQual _ x) = x
-fromQual x = error $ "HSE.Util.fromQual, not a name: " ++ prettyPrint x
+fromQual :: QName S -> Maybe (Name S)
+fromQual (Qual _ _ x) = Just x
+fromQual (UnQual _ x) = Just x
+fromQual _ = Nothing
 
 isSpecial :: QName S -> Bool
 isSpecial Special{} = True; isSpecial _ = False
@@ -184,7 +184,7 @@ isWHNF _ = False
 isKindHash :: Type_ -> Bool
 isKindHash (TyParen _ x) = isKindHash x
 isKindHash (TyApp _ x _) = isKindHash x
-isKindHash (TyCon _ (fromQual -> Ident _ s)) = "#" `isSuffixOf`  s
+isKindHash (TyCon _ (fromQual -> Just (Ident _ s))) = "#" `isSuffixOf`  s
 isKindHash _ = False
 
 
