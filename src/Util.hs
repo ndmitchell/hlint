@@ -3,7 +3,7 @@
 module Util(
     defaultExtensions,
     gzip, universeParentBi, descendIndex,
-    exitMessage
+    exitMessage, exitMessageImpure
     ) where
 
 import Control.Monad.Trans.State
@@ -20,10 +20,13 @@ import Language.Haskell.Exts.Extension
 ---------------------------------------------------------------------
 -- SYSTEM.IO
 
-exitMessage :: String -> a
-exitMessage msg = unsafePerformIO $ do
+exitMessage :: String -> IO a
+exitMessage msg = do
     hPutStrLn stderr msg
     exitWith $ ExitFailure 1
+
+exitMessageImpure :: String -> a
+exitMessageImpure = unsafePerformIO . exitMessage
 
 
 ---------------------------------------------------------------------

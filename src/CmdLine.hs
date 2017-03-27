@@ -28,7 +28,6 @@ import Util
 import Paths_hlint
 import Data.Version
 
-
 getCmd :: [String] -> IO Cmd
 getCmd args = withArgs (map f args) $ automatic =<< cmdArgsRun mode
     where f x = if x == "-?" || x == "--help" then "--help=all" else x

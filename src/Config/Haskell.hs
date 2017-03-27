@@ -119,7 +119,7 @@ getNames _ _ = []
 
 
 errorOn :: (Annotated ast, Pretty (ast S)) => ast S -> String -> b
-errorOn val msg = exitMessage $
+errorOn val msg = exitMessageImpure $
     showSrcLoc (getPointLoc $ ann val) ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     prettyPrint val
