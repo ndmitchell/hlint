@@ -139,20 +139,20 @@ runHints args cmd@CmdMain{..} = do
     withNumCapabilities j $ do
         let outStrLn = whenNormal . putStrLn
         ideas <- getIdeas cmd settings
-        let (showideas,hideideas) = partition (\i -> cmdShowAll || ideaSeverity i /= Ignore) ideas
+        ideas <- return $ if cmdShowAll then ideas else  filter (\i -> ideaSeverity i /= Ignore) ideas
         if cmdJson then
-            putStrLn $ showIdeasJson showideas
+            putStrLn $ showIdeasJson ideas
          else if cmdSerialise then do
             hSetBuffering stdout NoBuffering
-            print $ map (show &&& ideaRefactoring) showideas
+            print $ map (show &&& ideaRefactoring) ideas
          else if cmdRefactor then
-            handleRefactoring showideas cmdFiles cmd
+            handleRefactoring ideas cmdFiles cmd
          else do
             usecolour <- cmdUseColour cmd
             showItem <- if usecolour then showANSI else return show
-            mapM_ (outStrLn . showItem) showideas
-            handleReporting showideas hideideas cmd
-        return showideas
+            mapM_ (outStrLn . showItem) ideas
+            handleReporting ideas cmd
+        return ideas
 
 getIdeas :: Cmd -> [Setting] -> IO [Idea]
 getIdeas cmd@CmdMain{..} settings = do
@@ -166,21 +166,21 @@ getIdeas cmd@CmdMain{..} settings = do
         else ideas
 
 handleRefactoring :: [Idea] -> [String] -> Cmd -> IO ()
-handleRefactoring showideas files cmd@CmdMain{..} =
+handleRefactoring ideas files cmd@CmdMain{..} =
     case cmdFiles of
         [file] -> do
             -- Ensure that we can find the executable
             path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
             -- writeFile "hlint.refact"
-            let hints =  show $ map (show &&& ideaRefactoring) showideas
+            let hints =  show $ map (show &&& ideaRefactoring) ideas
             withTempFile $ \f -> do
                 writeFile f hints
                 exitWith =<< runRefactoring path file f cmdRefactorOptions
         _ -> error "Refactor flag can only be used with an individual file"
 
 
-handleReporting :: [Idea] -> [Idea] -> Cmd -> IO ()
-handleReporting showideas hideideas cmd@CmdMain{..} = do
+handleReporting :: [Idea] -> Cmd -> IO ()
+handleReporting showideas cmd@CmdMain{..} = do
     let outStrLn = whenNormal . putStrLn
     if null showideas then
         when (cmdReports /= []) $ outStrLn "Skipping writing reports"
@@ -188,10 +188,9 @@ handleReporting showideas hideideas cmd@CmdMain{..} = do
         forM_ cmdReports $ \x -> do
             outStrLn $ "Writing report to " ++ x ++ " ..."
             writeReport cmdDataDir x showideas
-    unless cmdNoSummary $
-        outStrLn $
-            (let i = length showideas in if i == 0 then "No hints" else show i ++ " hint" ++ ['s' | i/=1]) ++
-            (let i = length hideideas in if i == 0 then "" else " (" ++ show i ++ " ignored)")
+    unless cmdNoSummary $ do
+        let n = length showideas
+        outStrLn $ if n == 0 then "No hints" else show n ++ " hint" ++ ['s' | n/=1]
 
 runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
 runRefactoring rpath fin hints opts =  do

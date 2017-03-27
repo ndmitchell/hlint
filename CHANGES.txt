@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Don't say how many hints were ignored
     Add a --default flag
     #314, allow arguments in YAML configuration files
     Add maybe False (== x) ==> (== Just x) hint, plus for /=

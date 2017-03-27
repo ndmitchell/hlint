@@ -63,4 +63,4 @@ module Foo(foobar) where
 foobar :: [Char]
 foobar = []
 OUTPUT
-No hints (1 ignored)
+No hints
