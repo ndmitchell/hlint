@@ -9,6 +9,7 @@ module Util(
 import Control.Monad.Trans.State
 import Data.List
 import System.Exit
+import System.IO
 import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
@@ -21,7 +22,7 @@ import Language.Haskell.Exts.Extension
 
 exitMessage :: String -> a
 exitMessage msg = unsafePerformIO $ do
-    putStrLn msg
+    hPutStrLn stderr msg
     exitWith $ ExitFailure 1
 
 
