@@ -244,7 +244,7 @@ getFile :: [FilePath] -> [String] -> Maybe FilePath -> FilePath -> IO [FilePath]
 getFile path _ (Just tmpfile) "-" =
   getContents >>= writeFile tmpfile >> return [tmpfile]
 getFile path _ Nothing "-" = return ["-"]
-getFile [] exts _ file = error $ "Couldn't find file: " ++ file
+getFile [] exts _ file = exitMessage $ "Couldn't find file: " ++ file
 getFile (p:ath) exts t file = do
     isDir <- doesDirectoryExist $ p <\> file
     if isDir then do
