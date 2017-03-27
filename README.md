@@ -23,9 +23,9 @@ Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/is
 
 ## Installing and running HLint
 
-Installation follows the standard pattern of any Haskell library or program, type `cabal update` to update your local hackage database, then `cabal install hlint` to install HLint.
+Installation follows the standard pattern of any Haskell library or program: type `cabal update` to update your local hackage database, then `cabal install hlint` to install HLint.
 
-Once HLint is installed, run hlint source where source is either a Haskell file, or a directory containing Haskell files. A directory will be searched recursively for any files ending with .hs or .lhs. For example, running HLint over darcs would give:
+Once HLint is installed, run `hlint source` where `source` is either a Haskell file, or a directory containing Haskell files. A directory will be searched recursively for any files ending with `.hs` or `.lhs`. For example, running HLint over darcs would give:
 
 
     $ hlint darcs-2.1.2
@@ -85,7 +85,7 @@ HLint can generate a lot of information, making it difficult to search for parti
 
 ### Language Extensions
 
-HLint enables most Haskell extensions, disabling only those which steal too much syntax (currently Arrows, TransformListComp, XmlSyntax and RegularPatterns). Individual extensions can be enabled or disabled with, for instance, `-XArrows`, or `-XNoMagicHash`. The flag `-XHaskell98` selects Haskell 98 compatibility.
+HLint enables most Haskell extensions, disabling only those which steal too much syntax (currently Arrows, TransformListComp, XmlSyntax and RegularPatterns). Individual extensions can be enabled or disabled with, for instance, `-XArrows`, or `-XNoMagicHash`. The flag `-XHaskell2010` selects Haskell 2010 compatibility.
 
 ### Emacs Integration
 
@@ -113,10 +113,6 @@ HLint runs the [cpphs C preprocessor](http://hackage.haskell.org/package/cpphs) 
 * HLint will only check one branch of an `#if`, based on which macros have been defined.
 * Any missing `#include` files will produce a warning on the console, but no information in the reports.
 
-### Unicode support
-
-By default, HLint uses the current locale encoding. The encoding can be overridden with either `--utf8` or `--encoding=value`. For descriptions of some valid [encodings see the mkTextEncoding documentation](http://haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#v%3AmkTextEncoding).
-
 ## FAQ
 
 ### Why are hints not applied recursively?
@@ -142,9 +138,9 @@ HLint doesn't suggest optimisations, it suggests code improvements - the intenti
 
 HLint knows the fixities for all the operators in the base library, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file, or passing them on the command line. For example, pass `--with=infixr 5 !@%$`, or put all the fixity declarations in a file and pass `--hint=fixities.hs`. You can also use [--find](https://rawgithub.com/ndmitchell/hlint/master/hlint.htm#find) to automatically produce a list of fixity declarations in a file.
 
-### How can I use `--with` or `--hint` with the default hints?
+### Which hints are used?
 
-HLint does not use the default set of hints if custom hints are specified on the command line using `--with` or `--hint`. To include the default hints pass `--hint=HLint` on the command line.
+HLint uses the `hlint.yaml` file it ships with by default (containing things like the `concatMap` hint above), along with with the first `.hlint.yaml` file it finds in the current directory or any parent thereof. To include other hints, pass `--hint=filename.yaml`. If you pass any `--with` hint you will need to explicitly add any `--hint` flags required.
 
 ### Why do I sometimes get a "Note" with my hint?
 
@@ -166,17 +162,16 @@ The difference between warning and suggestion is one of personal taste, typicall
 
 ## Customizing the hints
 
-Many of the hints that are applied by HLint are contained in Haskell source files which are installed in the data directory by Cabal. These files may be edited, to add library specific knowledge, to include hints that may have been missed, or to ignore unwanted hints.
+To customize the hints given by HLint, create a file `.hlint.yaml` in the root of your project. For a suitable default run:
 
-### Choosing a package of hints
+    hlint --default > .hlint.yaml
 
-By default, HLint will use the `HLint.hs` file either from the current working directory, or from the data directory. Alternatively, hint files can be specified with the `--hint` flag. HLint comes with a number of hint packages:
+This default configuration contains lots of examples, including:
 
-* __Default__ - these are the hints that are used by default, covering most of the base libraries.
-* __Dollar__ - suggests the replacement `a $ b $ c` with `a . b $ c`. This hint is especially popular on the [\#haskell IRC channel](http://www.haskell.org/haskellwiki/IRC_channel).
-* __Generalise__ - suggests replacing specific variants of functions (i.e. `map`) with more generic functions (i.e. `fmap`).
-
-As an example, to check the file `Example.hs` with both the default hints and the dollar hint, I could type: `hlint Example.hs --hint=Default --hint=Dollar`.
+* Adding command line arguments to all runs, e.g. `--color` or `-XNoMagicHash`.
+* Ignoring certain hints, perhaps within certain modules/functions.
+* Restricting use of GHC flags/extensions/functions, e.g. banning `Arrows` and `unsafePerformIO`.
+* Adding additional project-specific hints.
 
 ### Ignoring hints
 
@@ -185,29 +180,25 @@ Some of the hints are subjective, and some users believe they should be ignored.
 * `{-# ANN module "HLint: ignore Eta reduce" #-}` - ignore all eta reduction suggestions in this module (use `module` literally, not the name of the module).
 * `{-# ANN myFunction "HLint: ignore" #-}` - don't give any hints in the function `myFunction`.
 * `{-# ANN myFunction "HLint: error" #-}` - any hint in the function `myFunction` is an error.
-* `{-# ANN module "HLint: error Use concatMap" #-}` - the hint to use `concatMap` is an error.
-* `{-# ANN module "HLint: warn Use concatMap" #-}` - the hint to use `concatMap` is a warning.
-* `{-# ANN module "HLint: suggest Use concatMap" #-}` - the hint to use `concatMap` is a suggestion.
+* `{-# ANN module "HLint: error Use concatMap" #-}` - the hint to use `concatMap` is an error (you may also use `warn` or `suggest` in place of `error` for other severity levels).
 
 Ignore directives can also be written in the hint files:
 
-* `ignore "Eta reduce"` - suppress all eta reduction suggestions.
-* `ignore "Eta reduce" = MyModule1 MyModule2` - suppress eta reduction hints in the `MyModule1` and `MyModule2` modules.
-* `ignore = MyModule.myFunction` - don't give any hints in the function `MyModule.myFunction`.
-* `error = MyModule.myFunction` - any hint in the function `MyModule.myFunction` is an error.
-* `error "Use concatMap"` - the hint to use `concatMap` is an error.
-* `warn "Use concatMap"` - the hint to use `concatMap` is a warning.
-* `suggest "Use concatMap"` - the hint to use `concatMap` is a suggestion.
+* `- ignore: {name: Eta reduce}` - suppress all eta reduction suggestions.
+* `- ignore: {name: Eta reduce, within: [MyModule1, MyModule2]}` - suppress eta reduction hints in the `MyModule1` and `MyModule2` modules.
+* `- ignore: {within: MyModule.myFunction}` - don't give any hints in the function `MyModule.myFunction`.
+* `- error: {within: MyModule.myFunction}` - any hint in the function `MyModule.myFunction` is an error.
+* `- error: {name: Use concatMap}` - the hint to use `concatMap` is an error (you may also use `warn` or `suggest` in place of `error` for other severity levels).
 
 These directives are applied in the order they are given, with later hints overriding earlier ones.
 
 ### Adding hints
 
-The hint suggesting `concatMap` is defined as:
+The hint suggesting `concatMap` can be defined as:
 
-    warn = concat (map f x) ==> concatMap f x
+    - warn: {lhs: concat (map f x), rhs: concatMap f x}
 
-This line can be read as replace `concat (map f x)` with `concatMap f x`. All single-letter variables are treated as substitution parameters. For examples of more complex hints see the supplied hints file. This hint will automatically match `concat . map f` and `concat $ map f x`, so there is no need to give eta-reduced variants of the hints. Hints may start with `error`, `warn` or `suggest` to denote how severe they are by default. In addition, `hint` is a synonym for `suggest`. If you come up with interesting hints, please submit them for inclusion.
+This line can be read as replace `concat (map f x)` with `concatMap f x`. All single-letter variables are treated as substitution parameters. For examples of more complex hints see the supplied `hlint.yaml` file in the data directory. This hint will automatically match `concat . map f` and `concat $ map f x`, so there is no need to give eta-reduced variants of the hints. Hints may tagged with `error`, `warn` or `suggest` to denote how severe they are by default. In addition, `hint` is a synonym for `suggest`. If you come up with interesting hints, please submit them for inclusion.
 
 You can search for possible hints to add from a source file with the `--find` flag, for example:
 
@@ -221,9 +212,7 @@ These hints are suitable for inclusion in a custom hint file. You can also inclu
 
 ## Hacking HLint
 
-### Tests
-
-Tests can be run either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `stack exec hlint test`.
+Contributions to HLint are most welcome, following [my standard contribution guidelines](https://github.com/ndmitchell/neil/blob/master/README.md#contributions). You can run the tests either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `stack exec hlint test`.
 
 New tests for individual hints can be added directly to source and hint files by adding annotations bracketed in `<TEST></TEST>` code comment blocks. As some examples:
 
