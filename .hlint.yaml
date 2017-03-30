@@ -24,7 +24,7 @@
 
 - functions:
   - {name: unsafeInterleaveIO, within: Parallel}
-  - {name: unsafePerformIO, within: [Util.exitMessage, Test.Util.ref]}
+  - {name: unsafePerformIO, within: [Util.exitMessageImpure, Test.Util.ref]}
 
 
 #####################################################################
