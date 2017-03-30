@@ -7,7 +7,7 @@ module Hint.Restrict(restrictHint) where
 <TEST>
 foo = unsafePerformIO --
 module Util where otherFunc = unsafePerformIO $ print 1 --
-module Util where exitMessage = unsafePerformIO $ print 1
+module Util where exitMessageImpure = unsafePerformIO $ print 1
 foo = unsafePerformOI
 </TEST>
 -}
