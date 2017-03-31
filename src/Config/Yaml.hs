@@ -158,6 +158,7 @@ parseConfigYaml v = do
             "package" -> ConfigPackage <$> parsePackage v
             "group" -> ConfigGroup <$> parseGroup v
             "arguments" -> ConfigSetting . map SettingArgument <$> parseArrayString v
+            "fixity" -> ConfigSetting <$> parseFixity v
             _ | isJust $ getSeverity s -> ConfigGroup . ruleToGroup <$> parseRule o
             _ | Just r <- getRestrictType s -> ConfigSetting . map SettingRestrict <$> (parseArray v >>= mapM (parseRestrict r))
             _ -> parseFail v "Expecting an object with a 'package' or 'group' key, a hint or a restriction"
@@ -168,6 +169,12 @@ parsePackage v = do
     packageModules <- parseField "modules" v >>= parseArray >>= mapM (parseHSE parseImportDecl)
     allowFields v ["name","modules"]
     return Package{..}
+
+parseFixity :: Val -> Parser [Setting]
+parseFixity v = parseArray v >>= concatMapM (parseHSE parseDecl >=> f)
+    where
+        f x@InfixDecl{} = pure $ map Infix $ getFixity x
+        f _ = parseFail v "Expected fixity declaration"
 
 parseGroup :: Val -> Parser Group
 parseGroup v = do
