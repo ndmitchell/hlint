@@ -173,7 +173,7 @@ parsePackage v = do
 parseFixity :: Val -> Parser [Setting]
 parseFixity v = parseArray v >>= concatMapM (parseHSE parseDecl >=> f)
     where
-        f x@InfixDecl{} = pure $ map Infix $ getFixity x
+        f x@InfixDecl{} = return $ map Infix $ getFixity x
         f _ = parseFail v "Expected fixity declaration"
 
 parseGroup :: Val -> Parser Group
