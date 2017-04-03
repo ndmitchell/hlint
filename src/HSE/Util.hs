@@ -128,7 +128,7 @@ unqual :: QName S -> QName S
 unqual (Qual an _ x) = UnQual an x
 unqual x = x
 
-fromQual :: QName S -> Maybe (Name S)
+fromQual :: QName a -> Maybe (Name a)
 fromQual (Qual _ _ x) = Just x
 fromQual (UnQual _ x) = Just x
 fromQual _ = Nothing
@@ -339,3 +339,6 @@ getFixity (InfixDecl sl a mp ops) = [Fixity (void a) (fromMaybe 9 mp) (UnQual ()
     where f (VarOp _ x) = x
           f (ConOp _ x) = x
 getFixity _ = []
+
+toInfixDecl :: Fixity -> Decl ()
+toInfixDecl (Fixity a b c) = InfixDecl () a (Just b) $ maybeToList $ VarOp () <$> fromQual c
