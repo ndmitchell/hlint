@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 
 -- | Given a file, guess settings from it by looking at the hints.
 module Config.Compute(computeSettings) where
@@ -16,13 +17,18 @@ computeSettings flags file = do
     x <- parseModuleEx flags file Nothing
     case x of
         Left (ParseError sl msg _) ->
-            return ("-- Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
+            return ("# Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
         Right (m, _) -> do
             let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
-                s = unlines $ ["-- hints found in " ++ file] ++ map prettyPrint xs ++ ["-- no hints found" | null xs]
                 r = concatMap (readSetting mempty) xs
+                s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting r ++ ["# no hints found" | null xs]
             return (s,r)
 
+renderSetting :: Setting -> [String]
+renderSetting (SettingMatchExp HintRule{..}) =
+    ["- warn: {lhs: " ++ show (prettyPrint hintRuleLHS) ++ ", rhs: " ++ show (prettyPrint hintRuleRHS) ++ "}"]
+renderSetting (Infix x) = ["- infix: " ++ show (prettyPrint (toInfixDecl x))]
+renderSetting _ = []
 
 findSetting :: (Name S -> QName S) -> Decl_ -> [Decl_]
 findSetting qual (InstDecl _ _ _ (Just xs)) = concatMap (findSetting qual) [x | InsDecl _ x <- xs]

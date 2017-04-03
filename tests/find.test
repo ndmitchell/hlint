@@ -10,6 +10,8 @@ import Control.Monad.Trans.State
 import Data.Char
 import Data.Function
 
+infixr 4 %^&, `wheeeee`
+
 listM' :: Monad m => [a] -> m [a]
 listM' x = length x `seq` return x
 
@@ -25,20 +27,12 @@ isRight = not . isLeft
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
 
-exitMessage :: String -> a
-exitMessage msg = unsafePerformIO $ do
-    putStrLn msg
-    exitWith $ ExitFailure 1
-
 defaultExtensions = knownExtensions \\ badExtensions
 OUTPUT
--- hints found in tests/find.hs
-warn = length a `seq` return a ==> listM' a
-warn = not (null a) ==> notNull a
-warn = not (isLeft a) ==> isRight a
-warn
-  = unsafePerformIO
-      (do putStrLn a
-          exitWith (ExitFailure 1))
-      ==> exitMessage a
-warn = knownExtensions \\ badExtensions ==> defaultExtensions
+# hints found in tests/find.hs
+- infix: "infixr 4 %^&"
+- infix: "infixr 4 `wheeeee`"
+- warn: {lhs: "length a `seq` return a", rhs: "listM' a"}
+- warn: {lhs: "not (null a)", rhs: "notNull a"}
+- warn: {lhs: "not (isLeft a)", rhs: "isRight a"}
+- warn: {lhs: "knownExtensions \\\\ badExtensions", rhs: "defaultExtensions"}
