@@ -204,9 +204,9 @@ You can search for possible hints to add from a source file with the `--find` fl
 
     $ hlint --find=src/Utils.hs
     -- hints found in src/Util.hs
-    warn = null (intersect a b) ==> disjoint a b
-    warn = dropWhile isSpace ==> trimStart
-    infixr 5 !:
+    - warn: {lhs: "null (intersect a b)", rhs: "disjoint a b"}
+    - warn: {lhs: "dropWhile isSpace", rhs: "trimStart"}
+    - fixity: "infixr 5 !:"
 
 These hints are suitable for inclusion in a custom hint file. You can also include Haskell fixity declarations in a hint file, and these will also be extracted. If you pass only `--find` flags then the hints will be written out, if you also pass files/folders to check, then the found hints will be automatically used when checking.
 
