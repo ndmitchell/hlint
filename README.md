@@ -173,6 +173,8 @@ This default configuration contains lots of examples, including:
 * Restricting use of GHC flags/extensions/functions, e.g. banning `Arrows` and `unsafePerformIO`.
 * Adding additional project-specific hints.
 
+You can see the output of `--default` [here](https://github.com/ndmitchell/hlint/blob/master/data/default.yaml).
+
 ### Ignoring hints
 
 Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for suppressing certain hints. Ignore directives can either be written as pragmas in the file being analysed, or in the hint files. Examples of pragmas are:
@@ -209,6 +211,10 @@ You can search for possible hints to add from a source file with the `--find` fl
     - fixity: "infixr 5 !:"
 
 These hints are suitable for inclusion in a custom hint file. You can also include Haskell fixity declarations in a hint file, and these will also be extracted. If you pass only `--find` flags then the hints will be written out, if you also pass files/folders to check, then the found hints will be automatically used when checking.
+
+### More Advanced Hints
+
+Hints can specify more advanced aspects, with names and side conditions. To see examples and descriptions of these features look at [the default hint file](https://github.com/ndmitchell/hlint/blob/master/data/hlint.yaml) and [the hint interpretation module comments](https://github.com/ndmitchell/hlint/blob/master/src/Hint/Match.hs).
 
 ## Hacking HLint
 
