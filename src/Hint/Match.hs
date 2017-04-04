@@ -43,7 +43,6 @@ import Control.Applicative
 import Data.List.Extra
 import Data.Maybe
 import Data.Data
-import Unsafe.Coerce
 import Config.Type
 import Hint.Type
 import Control.Monad
