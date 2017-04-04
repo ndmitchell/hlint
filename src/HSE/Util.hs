@@ -7,6 +7,7 @@ import Data.List
 import Data.Maybe
 import System.FilePath
 import HSE.Type
+import Data.Functor
 import Prelude
 
 
