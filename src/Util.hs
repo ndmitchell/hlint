@@ -37,6 +37,8 @@ data Box = forall a . Data a => Box a
 gzip :: Data a => (forall b . Data b => b -> b -> c) -> a -> a -> Maybe [c]
 gzip f x y | toConstr x /= toConstr y = Nothing
            | otherwise = Just $ zipWith op (gmapQ Box x) (gmapQ Box y)
+         -- unsafeCoerce is safe because gmapQ on the same constr gives the same fields
+         -- in the same order
     where op (Box x) (Box y) = f x (unsafeCoerce y)
 
 
