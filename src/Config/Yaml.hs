@@ -39,12 +39,13 @@ readFileConfigYaml file contents = do
 ---------------------------------------------------------------------
 -- YAML DATA TYPE
 
-newtype ConfigYaml = ConfigYaml [ConfigItem] deriving Monoid
+newtype ConfigYaml = ConfigYaml [ConfigItem] deriving (Monoid,Show)
 
 data ConfigItem
     = ConfigPackage Package
     | ConfigGroup Group
     | ConfigSetting [Setting]
+      deriving Show
 
 data Package = Package
     {packageName :: String
