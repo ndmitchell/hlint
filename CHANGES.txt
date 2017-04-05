@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #319, add a hint \x -> f <$> g x ==> fmap f . g
     Don't say how many hints were ignored
     Add a --default flag
     #314, allow arguments in YAML configuration files

@@ -301,6 +301,7 @@
     - warn: {lhs: fmap id, rhs: id, name: Functor law}
     - warn: {lhs: id <$> x, rhs: x, name: Functor law}
     - hint: {lhs: fmap f $ x, rhs: f Control.Applicative.<$> x, side: isApp x || isAtom x}
+    - hint: {lhs: \x -> a <$> b x, rhs: fmap a . b}
 
     # MONAD
 
