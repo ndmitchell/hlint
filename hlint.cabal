@@ -27,7 +27,7 @@ data-files:
 extra-doc-files:
     README.md
     CHANGES.txt
-tested-with:        GHC==8.0.2, GHC==7.10.3, GHC==7.8.4, GHC==7.6.3
+tested-with:        GHC==8.0.2, GHC==7.10.3, GHC==7.8.4, GHC==7.6.3, GHC==7.4.2
 
 source-repository head
     type:     git
@@ -56,6 +56,10 @@ library
         ansi-terminal >= 0.6.2,
         extra >= 1.4.9,
         refact >= 0.3
+
+    -- Workaround for https://github.com/malcolmwallace/cpphs/issues/9
+    if impl(ghc < 7.6)
+        build-depends: cpphs < 1.20.4
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
