@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #320, still read ./HLint.hs if it exists
 2.0
     #319, add a hint \x -> f <$> g x ==> fmap f . g
     Don't say how many hints were ignored

@@ -204,7 +204,9 @@ cmdHintFiles cmd = do
         curdir <- getCurrentDirectory
         home <- getHomeDirectory
         b <- doesFileExist ".hlint.yaml"
-        implicit <- findM doesFileExist $ map (</> ".hlint.yaml") $ ancestors curdir ++ [home]
+        implicit <- findM doesFileExist $
+            "HLint.hs" : -- the default in HLint 1.*
+            map (</> ".hlint.yaml") (ancestors curdir ++ [home]) -- to match Stylish Haskell
         return $ explicit1 ++ maybeToList implicit ++ explicit2
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
