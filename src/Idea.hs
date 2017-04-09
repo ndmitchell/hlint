@@ -46,7 +46,7 @@ showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = wrap . intercalate ",
     ,("endColumn", show srcSpanEndColumn)
     ,("from", str ideaFrom)
     ,("to", maybe "null" str ideaTo)
-    ,("note", show $ map (str . show) ideaNote)
+    ,("note", "[" ++ intercalate "," (map (str . show) ideaNote) ++ "]")
     ,("refactorings", str $ show ideaRefactoring)
     ]
   where

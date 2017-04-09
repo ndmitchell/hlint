@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #324, remove double escaping in note for --json
     #322, fix the YAML syntax in default.yaml
 2.0.1
     #320, still read ./HLint.hs if it exists
