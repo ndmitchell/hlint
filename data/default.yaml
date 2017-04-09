@@ -15,7 +15,7 @@
 #
 # - extensions:
 #   - default: false # all extension are banned by default
-#   - name: PatternGuards, ViewPatterns # only these listed extensions can be used
+#   - name: [PatternGuards, ViewPatterns] # only these listed extensions can be used
 #   - {name: CPP, within: CrossPlatform} # CPP can only be used in a given module
 #
 # - flags:
@@ -32,7 +32,7 @@
 # Add custom hints for this project
 #
 # Will suggest replacing "wibbleMany [myvar]" with "wibbleOne myvar"
-# - error: {lhs: wibbleMany [x], rhs: wibbleOne x}
+# - error: {lhs: "wibbleMany [x]", rhs: wibbleOne x}
 
 
 # Turn on hints that are off by default
