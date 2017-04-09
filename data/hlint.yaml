@@ -150,12 +150,12 @@
     - warn: {lhs: "filter f x /= []", rhs: any f x}
     - warn: {lhs: any id, rhs: or}
     - warn: {lhs: all id, rhs: and}
-    - warn: {lhs: any ((==) a), rhs: elem a, note: ValidInstance "Eq" a}
+    - warn: {lhs: any ((==) a), rhs: elem a, note: ValidInstance Eq a}
     - warn: {lhs: any (== a), rhs: elem a}
-    - warn: {lhs: any (a ==), rhs: elem a, note: ValidInstance "Eq" a}
-    - warn: {lhs: all ((/=) a), rhs: notElem a, note: ValidInstance "Eq" a}
-    - warn: {lhs: all (/= a), rhs: notElem a, note: ValidInstance "Eq" a}
-    - warn: {lhs: all (a /=), rhs: notElem a, note: ValidInstance "Eq" a}
+    - warn: {lhs: any (a ==), rhs: elem a, note: ValidInstance Eq a}
+    - warn: {lhs: all ((/=) a), rhs: notElem a, note: ValidInstance Eq a}
+    - warn: {lhs: all (/= a), rhs: notElem a, note: ValidInstance Eq a}
+    - warn: {lhs: all (a /=), rhs: notElem a, note: ValidInstance Eq a}
     - warn: {lhs: elem True, rhs: or}
     - warn: {lhs: notElem False, rhs: and}
     - warn: {lhs: findIndex ((==) a), rhs: elemIndex a}
@@ -165,8 +165,8 @@
     - warn: {lhs: findIndices (a ==), rhs: elemIndices a}
     - warn: {lhs: findIndices (== a), rhs: elemIndices a}
     - warn: {lhs: "lookup b (zip l [0..])", rhs: elemIndex b l}
-    - hint: {lhs: "elem x [y]", rhs: x == y, note: ValidInstance "Eq" a}
-    - hint: {lhs: "notElem x [y]", rhs: x /= y, note: ValidInstance "Eq" a}
+    - hint: {lhs: "elem x [y]", rhs: x == y, note: ValidInstance Eq a}
+    - hint: {lhs: "notElem x [y]", rhs: x /= y, note: ValidInstance Eq a}
     - hint: {lhs: length x >= 0, rhs: "True", name: Length always non-negative}
     - hint: {lhs: length x > 0, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - hint: {lhs: length x >= 1, rhs: not (null x), note: IncreasesLaziness, name: Use null}
