@@ -1,5 +1,6 @@
 Changelog for HLint
 
+2.0.2
     #323, try and avoid malformatted JSON
     #324, use `backticks` in notes
     #324, remove double escaping in note for --json
