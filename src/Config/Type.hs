@@ -64,7 +64,7 @@ instance Show Note where
     show IncreasesLaziness = "increases laziness"
     show DecreasesLaziness = "decreases laziness"
     show (RemovesError x) = "removes error " ++ x
-    show (ValidInstance x y) = "requires a valid " ++ x ++ " instance for " ++ y
+    show (ValidInstance x y) = "requires a valid `" ++ x ++ "` instance for `" ++ y ++ "`"
     show (Note x) = x
 
 

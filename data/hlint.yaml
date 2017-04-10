@@ -203,20 +203,20 @@
     - warn: {lhs: foldr  (>>) (return ()), rhs: sequence_}
     - warn: {lhs: foldr  (&&) True, rhs: and}
     - warn: {lhs: foldl  (&&) True, rhs: and, note: IncreasesLaziness}
-    - warn: {lhs: foldr1 (&&) , rhs: and, note: "RemovesError on []"}
-    - warn: {lhs: foldl1 (&&) , rhs: and, note: "RemovesError on []"}
+    - warn: {lhs: foldr1 (&&) , rhs: and, note: "RemovesError on `[]`"}
+    - warn: {lhs: foldl1 (&&) , rhs: and, note: "RemovesError on `[]`"}
     - warn: {lhs: foldr  (||) False, rhs: or}
     - warn: {lhs: foldl  (||) False, rhs: or, note: IncreasesLaziness}
-    - warn: {lhs: foldr1 (||) , rhs: or, note: "RemovesError on []"}
-    - warn: {lhs: foldl1 (||) , rhs: or, note: "RemovesError on []"}
+    - warn: {lhs: foldr1 (||) , rhs: or, note: "RemovesError on `[]`"}
+    - warn: {lhs: foldl1 (||) , rhs: or, note: "RemovesError on `[]`"}
     - warn: {lhs: foldl  (+) 0, rhs: sum}
     - warn: {lhs: foldr  (+) 0, rhs: sum}
-    - warn: {lhs: foldl1 (+)  , rhs: sum, note: "RemovesError on []"}
-    - warn: {lhs: foldr1 (+)  , rhs: sum, note: "RemovesError on []"}
+    - warn: {lhs: foldl1 (+)  , rhs: sum, note: "RemovesError on `[]`"}
+    - warn: {lhs: foldr1 (+)  , rhs: sum, note: "RemovesError on `[]`"}
     - warn: {lhs: foldl  (*) 1, rhs: product}
     - warn: {lhs: foldr  (*) 1, rhs: product}
-    - warn: {lhs: foldl1 (*)  , rhs: product, note: "RemovesError on []"}
-    - warn: {lhs: foldr1 (*)  , rhs: product, note: "RemovesError on []"}
+    - warn: {lhs: foldl1 (*)  , rhs: product, note: "RemovesError on `[]`"}
+    - warn: {lhs: foldr1 (*)  , rhs: product, note: "RemovesError on `[]`"}
     - warn: {lhs: foldl1 max  , rhs: maximum}
     - warn: {lhs: foldr1 max  , rhs: maximum}
     - warn: {lhs: foldl1 min  , rhs: minimum}
