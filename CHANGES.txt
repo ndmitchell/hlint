@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #323, try and avoid malformatted JSON
     #324, use `backticks` in notes
     #324, remove double escaping in note for --json
     #322, fix the YAML syntax in default.yaml

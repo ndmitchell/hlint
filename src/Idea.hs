@@ -54,7 +54,8 @@ showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = wrap . intercalate ",
         where f '\"' = "\\\""
               f '\\' = "\\\\"
               f '\n' = "\\n"
-              f x | not $ isAscii x = "\\u" ++ takeEnd 4 ("0000" ++ showHex (ord x) "")
+              f '\r' = "\\r"
+              f x | isControl x || not (isAscii x) = "\\u" ++ takeEnd 4 ("0000" ++ showHex (ord x) "")
               f x = [x]
     mkPair (k, v) = show k ++ ":" ++ v
     wrap x = "{" ++ x ++ "}"
