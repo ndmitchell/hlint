@@ -3,7 +3,9 @@
 
 module Test.All(test) where
 
+import Control.Exception
 import Control.Monad
+import Data.Char
 import Data.List
 import System.Directory
 import System.FilePath
@@ -35,6 +37,7 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
     let wrap msg act = putStr (msg ++ " ") >> act >> putStrLn ""
 
     putStrLn "Testing"
+    checkCommentedYaml $ dataDir </> "default.yaml"
     config <- readFilesConfig [(".hlint.yaml",Nothing)]
     when useSrc $ wrap "Source annotations" $
         forM_ builtinHints $ \(name,_) -> do
@@ -59,3 +62,11 @@ testNames :: [Setting] -> IO ()
 testNames  hints = sequence_
     [ failed ["No name for the hint " ++ prettyPrint hintRuleLHS ++ " ==> " ++ prettyPrint hintRuleRHS]
     | SettingMatchExp x@HintRule{..} <- hints, hintRuleName == defaultHintName]
+
+checkCommentedYaml :: FilePath -> IO ()
+checkCommentedYaml file = do
+    src <- lines <$> readFile' file
+    let src2 = [x | x <- src, Just x <- [stripPrefix "# " x], not $ all isAlpha $ take 1 x]
+    e <- readFilesConfig [(file, Just $ unlines src2)]
+    void $ evaluate $ length e
+
