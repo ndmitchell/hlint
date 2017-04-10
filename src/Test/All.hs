@@ -9,6 +9,7 @@ import Data.Char
 import Data.List
 import System.Directory
 import System.FilePath
+import Data.Functor
 import Prelude
 
 import Config.Type
