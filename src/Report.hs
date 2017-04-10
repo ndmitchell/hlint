@@ -57,10 +57,15 @@ writeIdea cls Idea{..} =
         Just to ->
             ["Why not" ++ (if to == "" then " remove it." else "") ++ "<br/>"
             ,hsColourHTML to]) ++
-    [let n = showNotes ideaNote in if n /= "" then "<span class='note'>Note: " ++ n ++ "</span>" else ""
+    [let n = showNotes ideaNote in if n /= "" then "<span class='note'>Note: " ++ writeNote n ++ "</span>" else ""
     ,"</div>"
     ,""]
 
+-- Unescaped, but may have `backticks` for code
+writeNote :: String -> String
+writeNote = f . splitOn "`"
+    where f (a:b:c) = escapeHTML a ++ "<tt>" ++ escapeHTML b ++ "</tt>" ++ f c
+          f xs = concatMap escapeHTML xs
 
 escapeHTML :: String -> String
 escapeHTML = concatMap f
