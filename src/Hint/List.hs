@@ -49,7 +49,6 @@ listComp :: Exp_ -> [Idea]
 listComp o@(ListComp a e xs)
     | "False" `elem` cons = [suggest "Short-circuited list comprehension" o (List an []) []]
     | "True" `elem` cons = [suggest "Redundant True guards" o o2 []]
-    | otherwise = error $ show cons
     where
         o2 = ListComp a e $ filter ((/= Just "True") . qualCon) xs
         cons = mapMaybe qualCon xs
