@@ -3,7 +3,7 @@
 module HSE.Match(
     View(..), Named(..),
     (~=), isSym,
-    App2(..), PVar_(..), Var_(..), PApp_(..)
+    App2(App2), PVar_(PVar_), Var_(Var_), PApp_(PApp_)
     ) where
 
 import Data.Char
