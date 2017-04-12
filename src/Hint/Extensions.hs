@@ -92,6 +92,12 @@ main = id --
 main = "test"
 {-# LANGUAGE OverloadedStrings #-} \
 main = id --
+{-# LANGUAGE DeriveAnyClass #-} \
+main = id --
+{-# LANGUAGE DeriveAnyClass #-} \
+data Foo = Foo deriving Bob
+{-# LANGUAGE DeriveAnyClass #-} \
+data Foo a = Foo a deriving (Eq,Data,Functor) --
 </TEST>
 -}
 
@@ -138,11 +144,17 @@ noGeneralizedNewtypeDeriving =
     delete "Enum" deriveHaskell ++ -- Enum can't always be derived on a newtype
     deriveGenerics -- Generics stuff can't newtype derive since it has the ctor in it
 
+-- | Classes that can't require DeriveAnyClass
+noDeriveAnyClass = deriveHaskell ++ deriveGenerics ++ deriveCategory
+
 
 usedExt :: Extension -> Module_ -> Bool
 usedExt (EnableExtension x) = used x
 usedExt (UnknownExtension "NumDecimals") = hasS isWholeFrac
 usedExt (UnknownExtension "DeriveLift") = hasDerive ["Lift"]
+usedExt (UnknownExtension "DeriveAnyClass") =
+    any (`notElem` noDeriveAnyClass) .
+    (\Derives{..} -> derivesNewType ++ derivesData) . derives
 usedExt _ = const True
 
 
