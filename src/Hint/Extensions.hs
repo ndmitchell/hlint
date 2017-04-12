@@ -109,6 +109,8 @@ import Data.Maybe
 import Data.List.Extra
 import Data.Ratio
 import Refact.Types
+import Data.Monoid
+import Prelude
 
 
 extensionsHint :: ModuHint
