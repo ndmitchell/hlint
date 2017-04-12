@@ -57,10 +57,6 @@ library
         extra >= 1.4.9,
         refact >= 0.3
 
-    -- Workaround for https://github.com/malcolmwallace/cpphs/issues/9
-    if impl(ghc < 7.6)
-        build-depends: cpphs < 1.20.4
-
     if flag(gpl)
         build-depends: hscolour >= 1.21
     else
