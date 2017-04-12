@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Remove redundant parts from list comprehensions, e.g. [a | True]
     #326, fix up the bounds on the eta-reduce hint
 2.0.2
     #323, try and avoid malformatted JSON

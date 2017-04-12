@@ -21,14 +21,16 @@ data Yes = Yes (Maybe [Char]) -- Maybe String
 yes = y :: [Char] -> a -- String -> a
 instance C [Char]
 foo = [a b] ++ xs -- a b : xs
+foo = [myexpr | True, a] -- [myexpr | a]
+foo = [myexpr | False] -- []
 </TEST>
 -}
-
 
 module Hint.List(listHint) where
 
 import Control.Applicative
 import Hint.Type
+import Data.Maybe
 import Prelude
 import Refact.Types
 
@@ -37,7 +39,23 @@ listHint :: DeclHint
 listHint _ _ = listDecl
 
 listDecl :: Decl_ -> [Idea]
-listDecl x = concatMap (listExp False) (childrenBi x) ++ stringType x ++ concatMap listPat (childrenBi x)
+listDecl x =
+    concatMap (listExp False) (childrenBi x) ++
+    stringType x ++
+    concatMap listPat (childrenBi x) ++
+    concatMap listComp (universeBi x)
+
+listComp :: Exp_ -> [Idea]
+listComp o@(ListComp a e xs)
+    | "False" `elem` cons = [suggest "Short-circuited list comprehension" o (List an []) []]
+    | "True" `elem` cons = [suggest "Redundant True guards" o o2 []]
+    | otherwise = error $ show cons
+    where
+        o2 = ListComp a e $ filter ((/= Just "True") . qualCon) xs
+        cons = mapMaybe qualCon xs
+        qualCon (QualStmt _ (Qualifier _ (Con _ x))) = Just $ fromNamed x
+        qualCon _ = Nothing
+listComp _ = []
 
 -- boolean = are you in a ++ chain
 listExp :: Bool -> Exp_ -> [Idea]
