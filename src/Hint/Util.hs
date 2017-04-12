@@ -37,7 +37,7 @@ niceLambdaR xs (fromAppsWithLoc -> e) | map view xs2 == map Var_ xs, vars e2 `di
     (apps e2, \s -> [Replace Expr s [("x", pos)] "x"])
     where (e',xs') = splitAt (length e - length xs) e
           (e2, xs2) = (map fst e', map fst xs')
-          pos      = toRefactSrcSpan . toSrcSpan $ snd (last e')
+          pos      = toRefactSrcSpan . srcInfoSpan $ snd (last e')
 
 -- \x y -> x + y ==> (+)
 niceLambdaR [x,y] (InfixApp _ (view -> Var_ x1) (opExp -> op) (view -> Var_ y1))
@@ -71,7 +71,7 @@ niceLambdaR [x] y | Just (z, subts) <- factor y, x `notElem` vars z = (z, \s -> 
         factor _ = Nothing
         mkRefact :: [S] -> R.SrcSpan -> Refactoring R.SrcSpan
         mkRefact subts s =
-          let tempSubts = zipWith (\a b -> ([a], toRefactSrcSpan . toSrcSpan $ b)) ['a' .. 'z'] subts
+          let tempSubts = zipWith (\a b -> ([a], toRefactSrcSpan $ srcInfoSpan b)) ['a' .. 'z'] subts
               template = dotApps (map (toNamed . fst) tempSubts)
           in Replace Expr s tempSubts (prettyPrint template)
 

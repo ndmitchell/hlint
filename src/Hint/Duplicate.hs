@@ -37,7 +37,7 @@ dupes ys =
         "Reduce duplication" p1
         (unlines $ map (prettyPrint . fmap (const p1)) xs)
         (Just $ "Combine with " ++ showSrcLoc (getPointLoc p2)) []
-    | (p1,p2,xs) <- duplicateOrdered 3 $ map (map (toSrcSpan . ann &&& dropAnn)) ys]
+    | (p1,p2,xs) <- duplicateOrdered 3 $ map (map (srcInfoSpan . ann &&& dropAnn)) ys]
 
 
 ---------------------------------------------------------------------

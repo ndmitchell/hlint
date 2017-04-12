@@ -10,6 +10,4 @@ toRefactSrcSpan ss = R.SrcSpan (srcSpanStartLine ss)
                                (srcSpanEndColumn ss)
 
 toSS :: Annotated a => a S -> R.SrcSpan
-toSS = toRefactSrcSpan . toSrcSpan . ann
-
-
+toSS = toRefactSrcSpan . srcInfoSpan . ann

@@ -68,16 +68,16 @@ pragmaIdea :: PragmaIdea -> Idea
 pragmaIdea pidea =
   case pidea of
     SingleComment old new ->
-      mkIdea (toSrcSpan . ann $ old)
+      mkIdea (srcInfoSpan . ann $ old)
         (prettyPrint old) (Just $ prettyPrint new) []
         [ModifyComment (toSS old) (prettyPrint new)]
     MultiComment repl delete new ->
-      mkIdea (toSrcSpan . ann $ repl)
+      mkIdea (srcInfoSpan . ann $ repl)
         (f [repl, delete]) (Just $ prettyPrint new) []
         [ ModifyComment (toSS repl) (prettyPrint new)
         , ModifyComment (toSS delete) ""]
     OptionsToComment old new r ->
-      mkIdea (toSrcSpan . ann . head $ old)
+      mkIdea (srcInfoSpan . ann . head $ old)
         (f old) (Just $ f new) []
         r
     where

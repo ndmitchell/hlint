@@ -102,7 +102,7 @@ hints gen (Pattern l rtype pat (UnGuardedRhs d bod) bind)
           template = fromMaybe "" $ ideaTo (gen "" (Pattern l rtype (map toString patSubts) (GuardedRhss d templateGuards) bind) [])
           f :: [Either a (String, R.SrcSpan)] -> [(String, R.SrcSpan)]
           f = rights
-          refactoring = Replace rtype (toRefactSrcSpan . toSrcSpan $ l) (f patSubts ++ f guardSubts ++ f exprSubts) template
+          refactoring = Replace rtype (toRefactSrcSpan $ srcInfoSpan l) (f patSubts ++ f guardSubts ++ f exprSubts) template
 
 {-
 -- Do not suggest view patterns, they aren't something everyone likes sufficiently
