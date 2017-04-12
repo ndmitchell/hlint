@@ -136,6 +136,7 @@ noNewtypeDeriving = ["Read","Show","Data","Typeable","Generic","Generic1"]
 usedExt :: Extension -> Module_ -> Bool
 usedExt (EnableExtension x) = used x
 usedExt (UnknownExtension "NumDecimals") = hasS isWholeFrac
+usedExt (UnknownExtension "DeriveLift") = hasDerive ["Lift"]
 usedExt _ = const True
 
 
