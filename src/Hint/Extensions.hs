@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 {-
     Suggest removal of unnecessary extensions
     i.e. They have {-# LANGUAGE RecursiveDo #-} but no mdo keywords
@@ -176,7 +177,9 @@ used DeriveFunctor = hasDerive ["Functor"]
 used DeriveFoldable = hasDerive ["Foldable"]
 used DeriveTraversable = hasDerive ["Traversable"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
-used GeneralizedNewtypeDeriving = any (`notElem` noNewtypeDeriving) . fst . derives
+used GeneralizedNewtypeDeriving =
+    any (`notElem` noNewtypeDeriving) .
+    (\Derives{..} -> derivesNewType ++ derivesStandalone) . derives
 used LambdaCase = hasS isLCase
 used TupleSections = hasS isTupleSection
 used OverloadedStrings = hasS isString
@@ -196,30 +199,39 @@ used x = usedExt $ UnknownExtension $ show x
 
 
 hasDerive :: [String] -> Module_ -> Bool
-hasDerive want m = any (`elem` want) $ new ++ dat
-    where (new,dat) = derives m
+hasDerive want m = any (`elem` want) $ derivesNewType ++ derivesData ++ derivesStandalone
+    where Derives{..} = derives m
 
+
+data Derives = Derives
+    {derivesNewType :: [String]
+    ,derivesData :: [String]
+    ,derivesStandalone :: [String]
+    }
+instance Monoid Derives where
+    mempty = Derives [] [] []
+    mappend (Derives x1 x2 x3) (Derives y1 y2 y3) =
+        Derives (x1++y1) (x2++y2) (x3++y3)
 
 -- | What is derived on newtype, and on data type
 --   'deriving' declarations may be on either, so we approximate as both newtype and data
-derives :: Module_ -> ([String],[String])
-derives m = concatUnzip $ map decl (childrenBi m) ++ map idecl (childrenBi m)
+derives :: Module_ -> Derives
+derives m = mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
     where
-        idecl :: InstDecl S -> ([String], [String])
+        idecl :: InstDecl S -> Derives
         idecl (InsData _ dn _ _ ds) = g dn ds
         idecl (InsGData _ dn _ _ _ ds) = g dn ds
-        idecl _ = ([], [])
+        idecl _ = mempty
 
-        decl :: Decl_ -> ([String], [String])
+        decl :: Decl_ -> Derives
         decl (DataDecl _ dn _ _ _ ds) = g dn ds
         decl (GDataDecl _ dn _ _ _ _ ds) = g dn ds
         decl (DataInsDecl _ dn _ _ ds) = g dn ds
         decl (GDataInsDecl _ dn _ _ _ ds) = g dn ds
-        decl (DerivDecl _ _ hd) = (xs, xs) -- don't know whether this was on newtype or not
-            where xs = [ir hd]
-        decl _ = ([], [])
+        decl (DerivDecl _ _ hd) = mempty{derivesStandalone=[ir hd]}
+        decl _ = mempty
 
-        g dn ds = if isNewType dn then (xs,[]) else ([],xs)
+        g dn ds = if isNewType dn then mempty{derivesNewType=xs} else mempty{derivesData=xs}
             where xs = maybe [] (map ir . fromDeriving) ds
 
         ir (IRule _ _ _ x) = ih x
