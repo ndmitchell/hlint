@@ -85,7 +85,7 @@ lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatM
 
 
 lambdaDecl :: Decl_ -> [Idea]
-lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) bind]))
+lambdaDecl (toFunBind -> o@(FunBind loc1 [Match _ name pats (UnGuardedRhs loc2 bod) bind]))
     | isNothing bind, isLambda $ fromParen bod, null (universeBi pats :: [Exp_]) =
       [warn "Redundant lambda" o (gen pats bod) [Replace Decl (toSS o) s1 t1]]
     | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
@@ -94,6 +94,7 @@ lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) 
               -- Replace Decl (toSS $ reform pats bod) s2 t2]]
             ]]
         where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) Nothing]
+              loc = setSpanInfoEnd loc1 $ srcSpanEnd $ srcInfoSpan loc2
               gen ps = uncurry reform . fromLambda . Lambda an ps
               (finalpats, body) = fromLambda . Lambda an pats $ bod
               (pats2, bod2) = etaReduce pats bod
@@ -108,6 +109,8 @@ lambdaDecl (toFunBind -> o@(FunBind loc [Match _ name pats (UnGuardedRhs _ bod) 
               --t2 = template pats2 bod2
 
 lambdaDecl _ = []
+
+setSpanInfoEnd ssi (line, col) = ssi{srcInfoSpan = (srcInfoSpan ssi){srcSpanEndLine=line, srcSpanEndColumn=col}}
 
 
 etaReduce :: [Pat_] -> Exp_ -> ([Pat_], Exp_)
