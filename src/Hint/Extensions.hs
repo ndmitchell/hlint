@@ -129,9 +129,14 @@ warnings old new | wildcards `elem` old && wildcards `notElem` new = [Note "you 
 warnings _ _ = []
 
 
--- | Classes that don't work with newtype deriving
-noNewtypeDeriving :: [String]
-noNewtypeDeriving = ["Read","Show","Data","Typeable","Generic","Generic1"]
+deriveHaskell = ["Eq","Ord","Enum","Ix","Bounded","Read","Show"]
+deriveGenerics = ["Data","Typeable","Generic","Generic1","Lift"]
+deriveCategory = ["Functor","Foldable","Traversable"]
+
+-- | Classes that can't require newtype deriving
+noGeneralizedNewtypeDeriving =
+    delete "Enum" deriveHaskell ++ -- Enum can't always be derived on a newtype
+    deriveGenerics -- Generics stuff can't newtype derive since it has the ctor in it
 
 
 usedExt :: Extension -> Module_ -> Bool
@@ -178,7 +183,7 @@ used DeriveFoldable = hasDerive ["Foldable"]
 used DeriveTraversable = hasDerive ["Traversable"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
 used GeneralizedNewtypeDeriving =
-    any (`notElem` noNewtypeDeriving) .
+    any (`notElem` noGeneralizedNewtypeDeriving) .
     (\Derives{..} -> derivesNewType ++ derivesStandalone) . derives
 used LambdaCase = hasS isLCase
 used TupleSections = hasS isTupleSection
