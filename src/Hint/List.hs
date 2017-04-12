@@ -140,5 +140,4 @@ stringType x = case x of
         g e@(fromTyParen -> x) = [suggest "Use String" x (transform f x)
                                     rs | not . null $ rs]
             where f x = if x =~= typeListChar then typeString else x
-                  toSS = toRefactSrcSpan . toSrcSpan . ann
                   rs = [Replace Type (toSS t) [] (prettyPrint typeString) | t <- universe x, t =~= typeListChar]
