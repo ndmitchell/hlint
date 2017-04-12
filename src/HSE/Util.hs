@@ -87,7 +87,6 @@ isVar Var{} = True; isVar _ = False
 isCon Con{} = True; isCon _ = False
 isApp App{} = True; isApp _ = False
 isInfixApp InfixApp{} = True; isInfixApp _ = False
-isList List{} = True; isList _ = False
 isAnyApp x = isApp x || isInfixApp x
 isParen Paren{} = True; isParen _ = False
 isIf If{} = True; isIf _ = False
