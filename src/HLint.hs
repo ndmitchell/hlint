@@ -8,7 +8,7 @@ import Control.Monad.Extra
 import Control.Exception
 import Control.Concurrent.Extra
 import System.Console.CmdArgs.Verbosity
-import Data.List
+import Data.List.Extra
 import GHC.Conc
 import System.Exit
 import System.IO.Extra
@@ -99,10 +99,23 @@ hlintGrep cmd@CmdGrep{..} =
          else
             runGrep cmdPattern (cmdParseFlags cmd) files
 
+withVerbosity :: Verbosity -> IO a -> IO a
+withVerbosity new act = do
+    old <- getVerbosity
+    (setVerbosity new >> act) `finally` setVerbosity old
+
 hlintMain :: [String] -> Cmd -> IO [Idea]
 hlintMain args cmd@CmdMain{..}
     | cmdDefault = do
-        putStr =<< readFile (cmdDataDir </> "default.yaml")
+        ideas <- if null cmdFiles then return [] else withVerbosity Quiet $
+            runHlintMain args cmd{cmdJson=False,cmdSerialise=False,cmdRefactor=False} Nothing
+        let bad = nubOrd $ map ideaHint ideas
+        src <- readFile $ cmdDataDir </> "default.yaml"
+        if null bad then putStr src else do
+            let group1:groups = splitOn ["",""] $ lines src
+            let group2 = "# Warnings currently triggered by your code" :
+                         ["- ignore: {name: " ++ show x ++ "}" | x <- bad]
+            putStr $ unlines $ intercalate ["",""] $ group1:group2:groups
         return []
     | null cmdFiles && not (null cmdFindHints) = do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints

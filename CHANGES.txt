@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    --default adds ignores for any warnings it finds
 2.0.3
     #312, suggest removing the DeriveAnyClass extension
     Suggest removing the DeriveLift extension
