@@ -33,6 +33,9 @@ data Idea = Idea
     }
     deriving (Eq,Ord)
 
+-- I don't use aeson here for 2 reasons:
+-- 1) Aeson doesn't esape unicode characters, and I want to (allows me to ignore encoding)
+-- 2) I want to control the format so it's slightly human readable as well
 showIdeaJson :: Idea -> String
 showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = wrap . intercalate "," . map mkPair $
     [("module", str ideaModule)
