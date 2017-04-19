@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, RecordWildCards, DeriveDataTypeable #-}
+{-# LANGUAGE PatternGuards, DeriveDataTypeable #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields -fno-cse -O0 #-}
 
 module CmdLine(
