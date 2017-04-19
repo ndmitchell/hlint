@@ -10,14 +10,13 @@ import System.Process
 import System.Exit
 import System.FilePath
 
-import Paths_hlint
 import Config.Type
 import HSE.All
 import Test.Util
 
 
-runMains :: FilePath -> [String] -> IO ()
-runMains tmpdir xs = (if tmpdir == "" then withTempDir else ($ tmpdir)) $ \dir -> do
+runMains :: FilePath -> FilePath -> [String] -> IO ()
+runMains datadir tmpdir xs = (if tmpdir == "" then withTempDir else ($ tmpdir)) $ \dir -> do
     ms <- forM (zip [1..] xs) $ \(i,x) -> do
         let m = "I" ++ show i
         writeFile (dir </> m <.> "hs") $ replace "module Main" ("module " ++ m) x
@@ -26,21 +25,20 @@ runMains tmpdir xs = (if tmpdir == "" then withTempDir else ($ tmpdir)) $ \dir -
         ["import qualified " ++ m | m <- ms] ++
         ["main = do"] ++
         ["    " ++ m ++ ".main" | m <- ms]
-    dat <- getDataDir
-    res <- system $ "runhaskell -i" ++ dir ++ " -i" ++ dat ++ " Main"
+    res <- system $ "runhaskell -i" ++ dir ++ " -i" ++ datadir ++ " Main"
     replicateM_ (length xs) $ tested $ res == ExitSuccess
 
 
 -- | Given a set of hints, do all the HintRule hints type check
-testTypeCheck :: FilePath -> [[Setting]] -> IO ()
+testTypeCheck :: FilePath -> FilePath -> [[Setting]] -> IO ()
 testTypeCheck = wrap toTypeCheck
 
 -- | Given a set of hints, do all the HintRule hints satisfy QuickCheck
-testQuickCheck :: FilePath -> [[Setting]] -> IO ()
+testQuickCheck :: FilePath -> FilePath -> [[Setting]] -> IO ()
 testQuickCheck = wrap toQuickCheck
 
-wrap :: ([HintRule] -> [String]) -> FilePath -> [[Setting]] -> IO ()
-wrap f tmpdir hints = runMains tmpdir [unlines $ body [x | SettingMatchExp x <- xs] | xs <- hints]
+wrap :: ([HintRule] -> [String]) -> FilePath -> FilePath -> [[Setting]] -> IO ()
+wrap f datadir tmpdir hints = runMains datadir tmpdir [unlines $ body [x | SettingMatchExp x <- xs] | xs <- hints]
     where
         body xs =
             ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules, ScopedTypeVariables, DeriveDataTypeable #-}"
