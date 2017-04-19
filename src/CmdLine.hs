@@ -35,19 +35,15 @@ getCmd args = withArgs (map f args) $ automatic =<< cmdArgsRun mode
 
 
 automatic :: Cmd -> IO Cmd
-automatic CmdMain{..} = do
-    cmdDataDir <- if cmdDataDir == "" then getDataDir else return cmdDataDir
-    cmdPath <- return $ if null cmdPath then ["."] else cmdPath
-    cmdExtension <- return $ if null cmdExtension then ["hs", "lhs"] else cmdExtension
-    return CmdMain{..}
-automatic CmdGrep{..} = do
-    cmdPath <- return $ if null cmdPath then ["."] else cmdPath
-    cmdExtension <- return $ if null cmdExtension then ["hs", "lhs"] else cmdExtension
-    return CmdGrep{..}
-automatic CmdTest{..} = do
-    cmdDataDir <- if cmdDataDir == "" then getDataDir else return cmdDataDir
-    return CmdTest{..}
-automatic x = return x
+automatic cmd = case cmd of
+    CmdMain{} -> dataDir $ path $ extension cmd
+    CmdGrep{} -> return $ path $ extension cmd
+    CmdTest{} -> dataDir cmd
+    _ -> return cmd
+    where
+        path cmd = if null $ cmdPath cmd then cmd{cmdPath=["."]} else cmd
+        extension cmd = if null $ cmdExtension cmd then cmd{cmdExtension=["hs","lhs"]} else cmd
+        dataDir cmd = if cmdDataDir cmd == "" then do x <- getDataDir; return cmd{cmdDataDir=x} else return cmd
 
 
 exitWithHelp :: IO a
