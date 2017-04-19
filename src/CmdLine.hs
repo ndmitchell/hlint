@@ -43,7 +43,14 @@ automatic cmd = case cmd of
     where
         path cmd = if null $ cmdPath cmd then cmd{cmdPath=["."]} else cmd
         extension cmd = if null $ cmdExtension cmd then cmd{cmdExtension=["hs","lhs"]} else cmd
-        dataDir cmd = if cmdDataDir cmd == "" then do x <- getDataDir; return cmd{cmdDataDir=x} else return cmd
+        dataDir cmd
+            | cmdDataDir cmd  /= "" = return cmd
+            | otherwise = do
+                x <- getDataDir
+                b <- doesDirectoryExist x
+                if b then return cmd{cmdDataDir=x} else do
+                    exe <- getExecutablePath
+                    return cmd{cmdDataDir = takeDirectory exe </> "data"}
 
 
 exitWithHelp :: IO a
