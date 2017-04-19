@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    If the datadir is missing use data/ relative to the executable
     Fix test mode to obey --datadir
 2.0.4
     --default adds ignores for any warnings it finds
