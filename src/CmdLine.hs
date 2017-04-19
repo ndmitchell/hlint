@@ -21,7 +21,7 @@ import Language.Preprocessor.Cpphs
 import Language.Haskell.Exts(defaultParseMode, baseLanguage)
 import Language.Haskell.Exts.Extension
 import Data.Maybe
-import System.Environment
+import System.Environment.Extra
 import System.Info.Extra
 
 import Util
