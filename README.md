@@ -64,11 +64,9 @@ On the CI you should then run `hlint .` (or `hlint src` if you only want to chec
 
 **Appveyor:** As a simplified setup, you can add the following statements to your `.appveyor.yml`:
 
-```
-- set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
-- curl -ohlint.bat -L --insecure https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.bat
-- hlint .
-```
+    - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
+    - curl -ohlint.bat -L --insecure https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.bat
+    - hlint .
 
 The `PATH` modification ensures `curl` is available on Appveyor. The second statement fetches a driver shell script from the `hlint` repo and names it `hlint.bat`. The final statement executes `hlint.bat` with whatever arguments you desire. Internally, `hlint.bat` fetches a binary release from GitHub, unpacks it, and runs it. This process should be considerably quicker than installing HLint from source.
 
