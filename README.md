@@ -56,6 +56,22 @@ The first hint is marked as an warning, because using `concatMap` in preference 
 
 **Bug reports:** The suggested replacement should be equivalent - please report all incorrect suggestions not mentioned as known limitations.
 
+### Running with Continuous Integration
+
+Before running HLint on your continuous integration (CI) server, you should first ensure there are no existing hints. One way to achieve that is to ignore existing hints by running `hlint . --default > .hlint.yaml` and checking in the resulting `.hlint.yaml`.
+
+On the CI you should then run `hlint .` (or `hlint src` if you only want to check a single directory).
+
+**Appveyor:** As a simplified setup, you can add the following statements to your `.appveyor.yml`:
+
+```
+- set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
+- curl -ohlint.bat -L --insecure https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.bat
+- hlint .
+```
+
+The `PATH` modification ensures `curl` is available on Appveyor. The second statement fetches a driver shell script from the `hlint` repo and names it `hlint.bat`. The final statement executes `hlint.bat` with whatever arguments you desire. Internally, `hlint.bat` fetches a binary release from GitHub, unpacks it, and runs it. This process should be considerably quicker than installing HLint from source.
+
 ### Automatically Applying Hints
 
 By supplying the `--refactor` flag hlint can automatically apply most
