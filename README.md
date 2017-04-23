@@ -70,6 +70,12 @@ On the CI you should then run `hlint .` (or `hlint src` if you only want to chec
 
 The `PATH` modification ensures `curl` is available on Appveyor. The second statement fetches a driver shell script from the `hlint` repo and names it `hlint.bat`. The final statement executes `hlint.bat` with whatever arguments you desire. Internally, `hlint.bat` fetches a binary release from GitHub, unpacks it, and runs it. This process should be considerably quicker than installing HLint from source.
 
+**Travis:** As a simplified setup, you can execute the following command:
+
+    wget https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh -O - --quiet | sh -s .
+
+To change the arguments `hlint` is run with modify the final `.` argument.
+
 ### Automatically Applying Hints
 
 By supplying the `--refactor` flag hlint can automatically apply most
