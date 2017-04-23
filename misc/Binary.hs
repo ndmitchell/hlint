@@ -31,7 +31,7 @@ main = withTempDir $ \tdir -> do
                 system_ $ "zip -r " ++ zname ++ " " ++ vname
             else
                 system_ $ "tar -czvf " ++ zname ++ " " ++ vname
-    let res = "dist/ver" </> zname
+    let res = "dist/bin" </> zname
     createDirectoryIfMissing True $ takeDirectory res
     copyFile (tdir </> "bin" </> zname) res
     putStrLn $ "Completed, produced " ++ res
