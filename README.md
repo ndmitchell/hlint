@@ -60,21 +60,21 @@ The first hint is marked as an warning, because using `concatMap` in preference 
 
 Before running HLint on your continuous integration (CI) server, you should first ensure there are no existing hints. One way to achieve that is to ignore existing hints by running `hlint . --default > .hlint.yaml` and checking in the resulting `.hlint.yaml`.
 
-On the CI you should then run `hlint .` (or `hlint src` if you only want to check a single directory).
+On the CI you should then run `hlint .` (or `hlint src` if you only want to check the `src` directory). To avoid the cost of compilation you may wish to fetch the [latest HLint binary release](https://github.com/ndmitchell/hlint/releases/latest). For certain CI environments there are helper scripts to do that.
 
-**Appveyor:** As a simplified setup, you can add the following statements to your `.appveyor.yml`:
-
-    - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
-    - curl -ohlint.bat -L --insecure https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.bat
-    - hlint .
-
-The `PATH` modification ensures `curl` is available on Appveyor. The second statement fetches a driver shell script from the `hlint` repo and names it `hlint.bat`. The final statement executes `hlint.bat` with whatever arguments you desire. Internally, `hlint.bat` fetches a binary release from GitHub, unpacks it, and runs it. This process should be considerably quicker than installing HLint from source.
-
-**Travis:** As a simplified setup, you can execute the following command:
+**Travis:** Execute the following command:
 
     wget https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh -O - --quiet | sh -s .
 
-To change the arguments `hlint` is run with modify the final `.` argument.
+The arguments after `-s` are passed to `hlint`, so modify the final `.` if you want other arguments.
+
+**Appveyor:** Add the following statements to `.appveyor.yml`:
+
+    - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
+    - curl -ohlint.bat -L https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.bat
+    - hlint .
+
+The `PATH` modification ensures `curl` is available on Appveyor. The final statement executes `hlint.bat` with whatever arguments you desire.
 
 ### Automatically Applying Hints
 
