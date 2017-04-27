@@ -1,0 +1,7 @@
+# Weeder configuration file
+# https://github.com/ndmitchell/weeder
+##########################
+
+- message:
+  - name: Weeds exported
+  - module: HSE.Util
