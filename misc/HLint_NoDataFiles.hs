@@ -4,7 +4,6 @@
 -- Running this script should report two errors
 
 import Data.List
-import Data.List
 import Language.Haskell.HLint
 import Language.Haskell.TH.Syntax
 import Network.HTTP
@@ -23,5 +22,5 @@ hints = $(do
 
 main :: IO ()
 main = do
-    x <- hlint $ ["NoDataFiles.hs", "--quiet", "--with=" ++ hints]
+    x <- hlint ["NoDataFiles.hs", "--quiet", "--with=" ++ hints]
     putStr $ unlines $ map show x

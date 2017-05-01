@@ -8,4 +8,5 @@ env:
  - GHCVER=head
 
 script:
+ - export HLINT_ARGUMENTS=src
  - wget https://raw.github.com/ndmitchell/neil/master/travis.sh -O - --no-check-certificate --quiet | sh
