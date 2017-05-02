@@ -74,7 +74,7 @@ parseModuleApply flags s file src = do
         Left (ParseError sl msg ctxt) -> do
             i <- return $ rawIdeaN Error "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
             i <- return $ classify [x | SettingClassify x <- s] i
-            return $ Left i{ideaHint = if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg}
+            return $ Left i
 
 
 -- | Find which hints a list of settings implies.

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #333, simplify labels on Parse error, makes it easier to ignore
 2.0.5
     If the datadir is missing use data/ relative to the executable
     Fix test mode to obey --datadir
