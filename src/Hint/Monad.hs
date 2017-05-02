@@ -30,6 +30,9 @@ yes = do case a of {_ -> forM x y; x:xs -> forM x xs}; return () -- case a of _ 
 foldM_ f a xs = foldM f a xs >> return ()
 folder f a xs = foldM f a xs >> return () -- foldM_ f a xs
 yes = mapM async ds >>= mapM wait >> return () -- mapM async ds >>= mapM_ wait
+main = "wait" ~> do f a $ sleep 10
+main = f $ do g a $ sleep 10 -- g a $ sleep 10
+main = do f a $ sleep 10 -- f a $ sleep 10
 </TEST>
 -}
 
@@ -57,12 +60,17 @@ monadExp decl (parent, x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         Do _ xs -> [warn "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
                    [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
-                   [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"] | [Qualifier _ y] <- [xs]] ++
+                   [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"]
+                        | [Qualifier _ y] <- [xs], not $ doOperator parent y] ++
                    [suggest "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
                    concat [f x | Qualifier _ x <- init xs]
         _ -> []
     where
         f x = [warn ("Use " ++ name) x y r  | Just (name,y, r) <- [monadCall x], fromNamed decl /= name]
+
+-- Sometimes people write a * do a + b, to avoid brackets
+doOperator (Just (1, InfixApp _ _ op _)) InfixApp{} | not $ isDol op = True
+doOperator _ _ = False
 
 middle :: (b -> d) -> (a, b, c) -> (a, d, c)
 middle f (a,b,c) = (a, f b, c)

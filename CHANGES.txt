@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Do statements are not redundant if they change an operator parse
     #333, simplify labels on Parse error, makes it easier to ignore
 2.0.5
     If the datadir is missing use data/ relative to the executable
