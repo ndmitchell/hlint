@@ -12,7 +12,7 @@ module Foo where
 
 where
 OUTPUT
-tests/ignore-parse-error2.hs:3:1: Error: Parse error: where
+tests/ignore-parse-error2.hs:3:1: Error: Parse error
 Found:
     module Foo where
 

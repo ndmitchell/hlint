@@ -28,7 +28,7 @@ RUN tests/json-parse-error.hs --json
 FILE tests/json-parse-error.hs
 ©
 OUTPUT
-[{"module":"","decl":"","severity":"Error","hint":"Parse error: \u00a9","file":"tests/json-parse-error.hs","startLine":1,"startColumn":1,"endLine":1,"endColumn":1,"from":"  \u00a9\n  \n> \n","to":null,"note":[],"refactorings":"[]"}]
+[{"module":"","decl":"","severity":"Error","hint":"Parse error","file":"tests/json-parse-error.hs","startLine":1,"startColumn":1,"endLine":1,"endColumn":1,"from":"  \u00a9\n  \n> \n","to":null,"note":[],"refactorings":"[]"}]
 
 ---------------------------------------------------------------------
 RUN tests/json-note.hs --json
