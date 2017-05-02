@@ -59,7 +59,8 @@ library
         ansi-terminal >= 0.6.2,
         extra >= 1.6.6,
         refact >= 0.3,
-        aeson >= 1.1.2.0
+        aeson >= 1.1.2.0,
+        filepattern >= 0.1.1
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
