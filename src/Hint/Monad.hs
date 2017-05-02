@@ -50,10 +50,10 @@ badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM"]
 
 
 monadHint :: DeclHint
-monadHint _ _ d = concatMap (monadExp d) $ universeBi d
+monadHint _ _ d = concatMap (monadExp d) $ universeParentExp d
 
-monadExp :: Decl_ -> Exp_ -> [Idea]
-monadExp decl x = case x of
+monadExp :: Decl_ -> (Maybe (Int, Exp_), Exp_) -> [Idea]
+monadExp decl (parent, x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         Do _ xs -> [warn "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
                    [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
