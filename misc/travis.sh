@@ -1,2 +1,2 @@
 #!/bin/sh
-curl --location --silent https://raw.github.com/ndmitchell/neil/master/misc/travis.sh | sh -s -- hlint $*
+curl -sL https://raw.github.com/ndmitchell/neil/master/misc/travis.sh | sh -s -- hlint $*
