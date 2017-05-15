@@ -242,7 +242,11 @@ cmdUseColour cmd = case cmdColor cmd of
 x <\> y = x </> y
 
 
-resolveFile :: Cmd -> Maybe FilePath -> FilePath -> IO [FilePath]
+resolveFile
+    :: Cmd
+    -> Maybe FilePath -- ^ Temporary file
+    -> FilePath       -- ^ File to resolve, may be "-" for stdin
+    -> IO [FilePath]
 resolveFile cmd = getFile (cmdPath cmd) (cmdExtension cmd)
 
 

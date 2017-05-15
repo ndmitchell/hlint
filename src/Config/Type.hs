@@ -108,7 +108,7 @@ data Setting
     = SettingClassify Classify
     | SettingMatchExp HintRule
     | SettingRestrict Restrict
-    | SettingArgument String
+    | SettingArgument String -- ^ Extra command-line argument
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show
