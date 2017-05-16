@@ -1,5 +1,6 @@
 Changelog for HLint
 
+2.0.7
     #340, fix for directory arguments in the .hlint.yaml
 2.0.6
     Do statements are not redundant if they change an operator parse
