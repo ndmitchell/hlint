@@ -128,11 +128,17 @@ hlintMain args cmd@CmdMain{..}
         runHlintMain args cmd Nothing
 
 runHlintMain :: [String] -> Cmd -> Maybe FilePath -> IO [Idea]
-runHlintMain args cmd@CmdMain{..} fp = do
-  files <- concatMapM (resolveFile cmd fp) cmdFiles
-  if null files
-      then error "No files found"
-      else runHints args cmd{cmdFiles=files}
+runHlintMain args cmd tmpFile = do
+    (cmd, settings) <- readAllSettings args cmd
+    runHints args settings =<< resolveFiles cmd tmpFile
+
+resolveFiles :: Cmd -> Maybe FilePath -> IO Cmd
+resolveFiles cmd@CmdMain{..} tmpFile = do
+    files <- concatMapM (resolveFile cmd tmpFile) cmdFiles
+    if null files
+        then error "No files found"
+        else pure cmd { cmdFiles = files }
+resolveFiles cmd _ = pure cmd
 
 readAllSettings :: [String] -> Cmd -> IO (Cmd, [Setting])
 readAllSettings args1 cmd@CmdMain{..} = do
@@ -144,10 +150,8 @@ readAllSettings args1 cmd@CmdMain{..} = do
     settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
     return (cmd, settings1 ++ settings2 ++ settings3)
 
-
-runHints :: [String] -> Cmd -> IO [Idea]
-runHints args cmd@CmdMain{..} = do
-    (cmd@CmdMain{..}, settings) <- readAllSettings args cmd
+runHints :: [String] -> [Setting] -> Cmd -> IO [Idea]
+runHints args settings cmd@CmdMain{..} = do
     j <- if cmdThreads == 0 then getNumProcessors else return cmdThreads
     withNumCapabilities j $ do
         let outStrLn = whenNormal . putStrLn
