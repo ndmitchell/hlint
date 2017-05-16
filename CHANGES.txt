@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #340, fix for directory arguments in the .hlint.yaml
 2.0.6
     Do statements are not redundant if they change an operator parse
     #333, simplify labels on Parse error, makes it easier to ignore
