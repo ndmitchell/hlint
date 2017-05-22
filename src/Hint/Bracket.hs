@@ -101,13 +101,13 @@ remParens = fmap go . remParen
   where
     go e = maybe e go (remParen e)
 
-bracket :: (Data (a S), Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
+bracket :: (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
 bracket bad = f Nothing
     where
         msg = "Redundant bracket"
 
         -- f (Maybe (index, parent, gen)) child
-        f :: (Data (a S), Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
+        f :: (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
         f Just{} o@(remParens -> Just x) | isAtom x = bracketError msg o x : g x
         f Nothing o@(remParens -> Just x) | bad || isAtom x = (if isAtom x then bracketError else bracketWarning) msg o x : g x
         f (Just (i,o,gen)) v@(remParens -> Just x) | not $ needBracket i o x =
@@ -117,7 +117,7 @@ bracket bad = f Nothing
             r = Replace typ (toSS v) [("x", toSS x)] "x"
         f _ x = g x
 
-        g :: (Data (a S), Uniplate (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
+        g :: (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
 
 bracketWarning msg o x =

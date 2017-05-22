@@ -39,6 +39,7 @@ module Hint.Naming(namingHint) where
 
 import Hint.Type
 import Data.List
+import Data.Data
 import Data.Char
 import Data.Maybe
 import qualified Data.Set as Set
@@ -102,7 +103,7 @@ suggestName x
         g [] = []
 
 
-replaceNames :: Biplate a (Name S) => [(String,String)] -> a -> a
+replaceNames :: Data a => [(String,String)] -> a -> a
 replaceNames rep = descendBi f
     where f (Ident _ x) = Ident an $ fromMaybe x $ lookup x rep
           f x = x
