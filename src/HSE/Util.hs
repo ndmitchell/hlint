@@ -5,6 +5,7 @@ module HSE.Util(module HSE.Util) where
 import Control.Monad
 import Data.List
 import Data.Maybe
+import Data.Data hiding (Fixity)
 import System.FilePath
 import HSE.Type
 import Data.Functor
@@ -261,15 +262,15 @@ transformAppsM f x = f =<< descendAppsM (transformAppsM f) x
 ---------------------------------------------------------------------
 -- UNIPLATE FUNCTIONS
 
-universeS :: Biplate x (f S) => x -> [f S]
+universeS :: (Data x, Data (f S)) => x -> [f S]
 universeS = universeBi
 
-childrenS :: Biplate x (f S) => x -> [f S]
+childrenS :: (Data x, Data (f S)) => x -> [f S]
 childrenS = childrenBi
 
 
 -- return the parent along with the child
-universeParentExp :: Biplate a Exp_ => a -> [(Maybe (Int, Exp_), Exp_)]
+universeParentExp :: Data a => a -> [(Maybe (Int, Exp_), Exp_)]
 universeParentExp xs = concat [(Nothing, x) : f x | x <- childrenBi xs]
     where f p = concat [(Just (i,p), c) : f c | (i,c) <- zip [0..] $ children p]
 
