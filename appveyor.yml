@@ -1,22 +1,8 @@
-# cache:
-# - "c:\\sr" # stack root, short paths == less problems
-
 build: off
-
-before_test:
-- set PATH=C:\Program Files\Git\mingw64\bin;%PATH% # for curl
-- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
-- 7z x stack.zip stack.exe
-
-clone_folder: "c:\\project"
-environment:
-  global:
-    STACK_ROOT: "c:\\sr"
+cache: "c:\\sr -> appveyor.yml"
 
 test_script:
-- stack init
-- stack setup > nul
-- echo "" | stack --no-terminal build
+- ps: Invoke-Expression (Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/neil/master/appveyor.ps1')
 - set UNIPLATE_VERBOSE=-1
 - stack exec -- hlint test
 - stack exec -- hlint src
