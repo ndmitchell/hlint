@@ -7,3 +7,6 @@ test_script:
 - set UNIPLATE_VERBOSE=-1
 - stack exec -- hlint test
 - stack exec -- hlint src
+# Test the documented way of running it in appveyor
+- $Script = Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.ps1'
+- Invoke-Command ([Scriptblock]::Create($Script.Content)) -ArgumentList @(--version)
