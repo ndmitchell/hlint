@@ -8,4 +8,4 @@ test_script:
 - stack exec -- hlint test
 - stack exec -- hlint src
 # Test the documented way of running it in appveyor
-- Invoke-Command ([Scriptblock]::Create((Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.ps1').Content)) -ArgumentList @(--version)
+- ps: Invoke-Command ([Scriptblock]::Create((Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.ps1').Content)) -ArgumentList @(--version)
