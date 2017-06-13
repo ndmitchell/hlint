@@ -68,13 +68,11 @@ On the CI you should then run `hlint .` (or `hlint src` if you only want to chec
 
 The arguments after `-s` are passed to `hlint`, so modify the final `.` if you want other arguments.
 
-**Appveyor:** Add the following statements to `.appveyor.yml`:
+**Appveyor:** Add the following statement to `.appveyor.yml`:
 
-    - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
-    - curl -ohlint.bat -L https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.bat
-    - hlint .
+    - ps: Invoke-Command ([Scriptblock]::Create((Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.ps1').Content)) -ArgumentList @('.')
 
-The `PATH` modification ensures `curl` is available on Appveyor. The final statement executes `hlint.bat` with whatever arguments you desire.
+The arguments inside `@()` are passed to `hlint`, so add new arguments surrounded by `'`, space separated - e.g. `@('.' '--report')`.
 
 ### Automatically Applying Hints
 
