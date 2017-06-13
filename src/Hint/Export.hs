@@ -19,7 +19,7 @@ exportHint :: ModuHint
 exportHint _ (Module _ (Just o@(ModuleHead a name warning exports)) _ _ _)
     | Nothing <- exports =
         let o2 = ModuleHead a name warning $ Just $ ExportSpecList a [EModuleContents a name]
-        in [(warn "Use module export list" o o2 []){ideaNote = [Note "An explicit list is usually better"]}]
+        in [(ignore "Use module export list" o o2 []){ideaNote = [Note "An explicit list is usually better"]}]
     | Just (ExportSpecList _ xs) <- exports, EModuleContents a name `elem_` xs =
         let o2 = ModuleHead a name warning $ Just $ ExportSpecList a $ EVar a ellipses : delete_ (EModuleContents a name) xs
         in [ignore "Use explicit module export list" o o2 []]
