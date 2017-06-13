@@ -1,5 +1,6 @@
 Changelog for HLint
 
+2.0.9
     #346, don't suggest explicit export lists
     #344, fix the API so it works with hlint.yaml by default
 2.0.8
