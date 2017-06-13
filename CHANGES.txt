@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #344, fix the API so it works with hlint.yaml by default
 2.0.8
     #342, add back support for - to mean stdin
 2.0.7

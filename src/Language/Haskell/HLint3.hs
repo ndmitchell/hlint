@@ -90,6 +90,9 @@ argsSettings args = do
 --   argument, and all other files relative to the current directory.
 readSettingsFile :: Maybe FilePath -> String -> IO (FilePath, Maybe String)
 readSettingsFile dir x
+    | takeExtension x `elem` [".yml",".yaml"] = do
+        dir <- maybe getHLintDataDir return dir
+        return (dir </> x, Nothing)
     | Just x <- "HLint." `stripPrefix` x = do
         dir <- maybe getHLintDataDir return dir
         return (dir </> x <.> "hs", Nothing)
@@ -97,10 +100,10 @@ readSettingsFile dir x
 
 
 -- | Given a function to load a module (typically 'readSettingsFile'), and a module to start from
---   (defaults to @HLint.HLint@) find the information from all settings files.
+--   (defaults to @hlint.yaml@) find the information from all settings files.
 findSettings :: (String -> IO (FilePath, Maybe String)) -> Maybe String -> IO ([Fixity], [Classify], [Either HintBuiltin HintRule])
 findSettings load start = do
-    (file,contents) <- load $ fromMaybe "HLint.HLint" start
+    (file,contents) <- load $ fromMaybe "hlint.yaml" start
     xs <- readFilesConfig [(file,contents)]
     return ([x | Infix x <- xs]
            ,[x | SettingClassify x <- xs]
