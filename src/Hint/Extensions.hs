@@ -98,6 +98,10 @@ main = id --
 data Foo = Foo deriving Bob
 {-# LANGUAGE DeriveAnyClass #-} \
 data Foo a = Foo a deriving (Eq,Data,Functor) --
+{-# LANGUAGE MagicHash #-} \
+foo# = id
+{-# LANGUAGE MagicHash #-} \
+foo = id --
 </TEST>
 -}
 
@@ -213,6 +217,9 @@ used Arrows = hasS f
 used TransformListComp = hasS f
     where f QualStmt{} = False
           f _ = True
+used MagicHash = hasS f
+    where f (Ident _ s) = "#" `isSuffixOf` s
+          f _ = False
 
 -- for forwards compatibility, if things ever get added to the extension enumeration
 used x = usedExt $ UnknownExtension $ show x
