@@ -11,6 +11,7 @@
 
 <TEST>
 yes = do mapM print a; return b -- mapM_ print a
+yes = do _ <- mapM print a; return b -- mapM_ print a
 no = mapM print a
 no = do foo ; mapM print a
 yes = do (bar+foo) -- (bar+foo)
@@ -29,6 +30,7 @@ yes = do if a then forM x y else sequence z q; return () -- if a then forM_ x y 
 yes = do case a of {_ -> forM x y; x:xs -> forM x xs}; return () -- case a of _ -> forM_ x y ; x:xs -> forM_ x xs
 foldM_ f a xs = foldM f a xs >> return ()
 folder f a xs = foldM f a xs >> return () -- foldM_ f a xs
+folder f a xs = foldM f a xs >>= \_ -> return () -- foldM_ f a xs
 yes = mapM async ds >>= mapM wait >> return () -- mapM async ds >>= mapM_ wait
 main = "wait" ~> do f a $ sleep 10
 main = f $ do g a $ sleep 10 -- g a $ sleep 10
@@ -58,12 +60,14 @@ monadHint _ _ d = concatMap (monadExp d) $ universeParentExp d
 monadExp :: Decl_ -> (Maybe (Int, Exp_), Exp_) -> [Idea]
 monadExp decl (parent, x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
+        (view -> App2 op x1 (view -> LamConst1 _)) | op ~= ">>=" -> f x1
         Do _ xs -> [warn "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
                    [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
                    [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"]
                         | [Qualifier _ y] <- [xs], not $ doOperator parent y] ++
                    [suggest "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
-                   concat [f x | Qualifier _ x <- init xs]
+                   concat [f x | Qualifier _ x <- init xs] ++
+                   concat [f x | Generator _ (PWildCard _) x <- init xs]
         _ -> []
     where
         f x = [warn ("Use " ++ name) x y r  | Just (name,y, r) <- [monadCall x], fromNamed decl /= name]
