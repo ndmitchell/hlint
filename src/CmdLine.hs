@@ -17,6 +17,7 @@ import System.Directory.Extra
 import System.Exit
 import System.FilePath
 import System.IO
+import System.Process(readProcess)
 import Language.Preprocessor.Cpphs
 import Language.Haskell.Exts(defaultParseMode, baseLanguage)
 import Language.Haskell.Exts.Extension
@@ -36,13 +37,13 @@ getCmd args = withArgs (map f args) $ automatic =<< cmdArgsRun mode
 
 automatic :: Cmd -> IO Cmd
 automatic cmd = case cmd of
-    CmdMain{} -> dataDir $ path $ extension cmd
-    CmdGrep{} -> return $ path $ extension cmd
+    CmdMain{} -> dataDir =<< path =<< git =<< extension cmd
+    CmdGrep{} -> path =<< extension cmd
     CmdTest{} -> dataDir cmd
     _ -> return cmd
     where
-        path cmd = if null $ cmdPath cmd then cmd{cmdPath=["."]} else cmd
-        extension cmd = if null $ cmdExtension cmd then cmd{cmdExtension=["hs","lhs"]} else cmd
+        path cmd = return $ if null $ cmdPath cmd then cmd{cmdPath=["."]} else cmd
+        extension cmd = return $ if null $ cmdExtension cmd then cmd{cmdExtension=["hs","lhs"]} else cmd
         dataDir cmd
             | cmdDataDir cmd  /= "" = return cmd
             | otherwise = do
@@ -51,6 +52,17 @@ automatic cmd = case cmd of
                 if b then return cmd{cmdDataDir=x} else do
                     exe <- getExecutablePath
                     return cmd{cmdDataDir = takeDirectory exe </> "data"}
+        git cmd
+            | cmdGit cmd = do
+                mgit <- findExecutable "git"
+                case mgit of
+                    Nothing -> error "Could not find git"
+                    Just git -> do
+                        let args = ["ls-files", "--cached", "--others", "--exclude-standard"] ++
+                                   map ("*." ++) (cmdExtension cmd)
+                        files <- readProcess git args ""
+                        return cmd{cmdFiles = cmdFiles cmd ++ lines files}
+            | otherwise = return cmd
 
 
 exitWithHelp :: IO a
@@ -84,6 +96,7 @@ data Cmd
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
         ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
+        ,cmdGit :: Bool                  -- ^ use git ls-files to find files
         ,cmdColor :: ColorMode           -- ^ color the result
         ,cmdThreads :: Int              -- ^ Numbmer of threads to use, 0 = whatever GHC has
         ,cmdIgnore :: [String]           -- ^ the hints to ignore
@@ -143,6 +156,7 @@ mode = cmdArgsMode $ modes
         ,cmdReports = nam "report" &= opt "report.html" &= typFile &= help "Generate a report in HTML"
         ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
         ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
+        ,cmdGit = nam "git" &= help "Run on files tracked by git"
         ,cmdColor = nam "colour" &= name "color" &= opt Always &= typ "always/never/auto" &= help "Color output (requires ANSI terminal; auto means on when $TERM is supported; by itself, selects always)"
         ,cmdThreads = 1 &= name "threads" &= name "j" &= opt (0 :: Int) &= help "Number of threads to use (-j for all)"
         ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
