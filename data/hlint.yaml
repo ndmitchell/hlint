@@ -424,6 +424,7 @@
     - warn: {lhs: isJust x && (fromJust x == y), rhs: x == Just y}
     - warn: {lhs: mapMaybe f (map g x), rhs: mapMaybe (f . g) x}
     - warn: {lhs: fromMaybe a (fmap f x), rhs: maybe a f x}
+    - warn: {lhs: fromMaybe a (f <$> x), rhs: maybe a f x}
     - warn: {lhs: mapMaybe id, rhs: catMaybes}
     - hint: {lhs: "[x | Just x <- a]", rhs: Data.Maybe.catMaybes a}
     - hint: {lhs: case m of Nothing -> Nothing; Just x -> x, rhs: Control.Monad.join m}
