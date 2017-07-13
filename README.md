@@ -74,6 +74,15 @@ The arguments after `-s` are passed to `hlint`, so modify the final `.` if you w
 
 The arguments inside `@()` are passed to `hlint`, so add new arguments surrounded by `'`, space separated - e.g. `@('.' '--report')`.
 
+### Integrations
+
+HLint is integrated into lots of places:
+
+* Lots of editors have HLint plugins (quite a few have more than one HLint plugin).
+* HLint is part of the multiple editor plugins [ghc-mod](https://hackage.haskell.org/package/ghc-mod) and [Intero](https://github.com/commercialhaskell/intero).
+* [Code Climate](https://docs.codeclimate.com/v1.0/docs/hlint) is a CI for analysis which integrates HLint.
+* [Danger](http://allocinit.io/haskell/danger-and-hlint/) can be used to automatically comment on pull requests with HLint suggestions.
+
 ### Automatically Applying Hints
 
 By supplying the `--refactor` flag hlint can automatically apply most
