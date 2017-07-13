@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #338, warn about things imported hidden but not used
     #337, add --git flag to only check files in git
     #353, suggest _ <- mapM to mapM_
     #357, warn on unnecessary use of MagicHash
