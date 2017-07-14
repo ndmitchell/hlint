@@ -2,7 +2,7 @@ Changelog for HLint
 
     #352, suggest maybe for fromMaybe d (f <$> x)
     #338, warn about things imported hidden but not used
-    #337, add --git flag to only check files in git
+    #337, add --git flag to additionally check files in git
     #353, suggest _ <- mapM to mapM_
     #357, warn on unnecessary use of MagicHash
 2.0.9
