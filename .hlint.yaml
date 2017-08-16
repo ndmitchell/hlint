@@ -10,7 +10,7 @@
 - extensions:
   - default: false
   - name: [DeriveDataTypeable, GeneralizedNewtypeDeriving, NoMonomorphismRestriction, OverloadedStrings]
-  - name: [PatternGuards, Rank2Types, RecordWildCards, ScopedTypeVariables, ViewPatterns, TupleSections]
+  - name: [PatternGuards, Rank2Types, RecordWildCards, ScopedTypeVariables, ViewPatterns, TupleSections, LambdaCase]
   - name: [ExistentialQuantification, MultiParamTypeClasses]
   - name: [FlexibleContexts, FlexibleInstances]
   - {name: CPP, within: HsColour} # so it can be disabled to avoid GPL code
