@@ -71,9 +71,7 @@ instance Show Idea where
 
 
 showANSI :: IO (Idea -> String)
-showANSI = do
-    f <- hsColourConsole
-    return $ showEx f
+showANSI = showEx <$> hsColourConsole
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $

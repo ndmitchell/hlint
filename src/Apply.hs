@@ -71,10 +71,8 @@ parseModuleApply flags s file src = do
     res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case res of
         Right m -> return $ Right m
-        Left (ParseError sl msg ctxt) -> do
-            i <- return $ rawIdeaN Error "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
-            i <- return $ classify [x | SettingClassify x <- s] i
-            return $ Left i
+        Left (ParseError sl msg ctxt) ->
+            return $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
 
 
 -- | Find which hints a list of settings implies.

@@ -17,9 +17,7 @@ import Language.Haskell.HsColour.CSS as CSS
 
 
 hsColourConsole :: IO (String -> String)
-hsColourConsole = do
-    prefs <- readColourPrefs
-    return $ TTY.hscolour prefs
+hsColourConsole = TTY.hscolour <$> readColourPrefs
 
 hsColourHTML :: String -> String
 hsColourHTML = CSS.hscolour False 1
