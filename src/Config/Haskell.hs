@@ -23,8 +23,7 @@ addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
 readFileConfigHaskell :: FilePath -> Maybe String -> IO [Setting]
 readFileConfigHaskell file contents = do
     let flags = addInfix defaultParseFlags
-    res <- parseModuleEx flags file contents
-    case res of
+    parseModuleEx flags file contents >>= \ case
         Left (ParseError sl msg err) ->
             error $ "Config parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
         Right (m, _) -> return $ readSettings m

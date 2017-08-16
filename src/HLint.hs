@@ -65,8 +65,7 @@ hlintHSE c@CmdHSE{..} = do
         let (lang,exts) = cmdExtensions c
         -- We deliberately don't use HSE.All here to avoid any bugs in HLint
         -- polluting our bug reports (which is the main use of HSE)
-        res <- parseFileWithMode defaultParseMode{baseLanguage=lang, extensions=exts} x
-        case res of
+        parseFileWithMode defaultParseMode{baseLanguage=lang, extensions=exts} x >>= \ case
             x@ParseFailed{} -> print x
             ParseOk m -> case v of
                 Loud -> print m
@@ -219,10 +218,9 @@ runRefactoring rpath fin hints opts =  do
     waitForProcess phand
 
 checkRefactor :: Maybe FilePath -> IO FilePath
-checkRefactor rpath = do
+checkRefactor rpath =
     let excPath = fromMaybe "refactor" rpath
-    mexc <- findExecutable excPath
-    case mexc of
+    in findExecutable excPath >>= \ case
         Just exc ->  do
             ver <- readVersion . tail <$> readProcess exc ["--version"] ""
             if versionBranch ver >= [0,1,0,0]

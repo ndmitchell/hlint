@@ -21,11 +21,9 @@ runGrep patt flags files = do
                           replicate (srcColumn sl - 1) ' ' ++ "^"
     let scope = scopeCreate $ Module an Nothing [] [] []
     let rule = hintRules [HintRule Suggestion "grep" scope exp (Tuple an Boxed []) Nothing []]
-    forM_ files $ \file -> do
-        res <- parseModuleEx flags file Nothing
-        case res of
-            Left (ParseError sl msg ctxt) ->
-                print $ rawIdeaN Error (if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg) (mkSrcSpan sl sl) ctxt Nothing []
-            Right m ->
-                forM_ (applyHints [] rule [m]) $ \i ->
-                    print i{ideaHint="", ideaTo=Nothing}
+    forM_ files $ \file -> parseModuleEx flags file Nothing >>= \ case
+        Left (ParseError sl msg ctxt) ->
+            print $ rawIdeaN Error (if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg) (mkSrcSpan sl sl) ctxt Nothing []
+        Right m ->
+            forM_ (applyHints [] rule [m]) $ \i ->
+                print i{ideaHint="", ideaTo=Nothing}

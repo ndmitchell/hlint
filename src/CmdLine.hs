@@ -53,15 +53,13 @@ automatic cmd = case cmd of
                     exe <- getExecutablePath
                     return cmd{cmdDataDir = takeDirectory exe </> "data"}
         git cmd
-            | cmdGit cmd = do
-                mgit <- findExecutable "git"
-                case mgit of
-                    Nothing -> error "Could not find git"
-                    Just git -> do
-                        let args = ["ls-files", "--cached", "--others", "--exclude-standard"] ++
-                                   map ("*." ++) (cmdExtension cmd)
-                        files <- readProcess git args ""
-                        return cmd{cmdFiles = cmdFiles cmd ++ lines files}
+            | cmdGit cmd = findExecutable "git" >>= \ case
+                Nothing -> error "Could not find git"
+                Just git -> do
+                    let args = ["ls-files", "--cached", "--others", "--exclude-standard"] ++
+                               map ("*." ++) (cmdExtension cmd)
+                    files <- readProcess git args ""
+                    return cmd{cmdFiles = cmdFiles cmd ++ lines files}
             | otherwise = return cmd
 
 
@@ -279,11 +277,9 @@ getFile (p:ath) exts t file = do
      else do
         isFil <- doesFileExist $ p <\> file
         if isFil then return [p <\> file]
-         else do
-            res <- getModule p exts file
-            case res of
-                Just x -> return [x]
-                Nothing -> getFile ath exts t file
+         else getModule p exts file >>= \ case
+            Just x -> return [x]
+            Nothing -> getFile ath exts t file
 
 
 getModule :: FilePath -> [String] -> FilePath -> IO (Maybe FilePath)

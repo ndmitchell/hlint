@@ -13,16 +13,14 @@ import Prelude
 -- | Given a source file, guess some hints that might apply.
 --   Returns the text of the hints (if you want to save it down) along with the settings to be used.
 computeSettings :: ParseFlags -> FilePath -> IO (String, [Setting])
-computeSettings flags file = do
-    x <- parseModuleEx flags file Nothing
-    case x of
-        Left (ParseError sl msg _) ->
-            return ("# Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
-        Right (m, _) -> do
-            let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
-                r = concatMap (readSetting mempty) xs
-                s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting r ++ ["# no hints found" | null xs]
-            return (s,r)
+computeSettings flags file = parseModuleEx flags file Nothing >>= \ case
+    Left (ParseError sl msg _) ->
+        return ("# Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
+    Right (m, _) -> do
+        let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
+            r = concatMap (readSetting mempty) xs
+            s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting r ++ ["# no hints found" | null xs]
+        return (s,r)
 
 renderSetting :: Setting -> [String]
 renderSetting (SettingMatchExp HintRule{..}) =

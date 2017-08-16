@@ -37,10 +37,8 @@ parallelN j xs = do
     let throwE x = throw (x :: SomeException)
     parallel1 $ map (fmap (either throwE id) . takeMVar) ms
     where
-        f chan = do
-            v <- readChan chan
-            case v of
-                Nothing -> return ()
-                Just (m,x) -> do
-                    putMVar m =<< try x
-                    f chan
+        f chan = readChan chan >>= \ case
+            Nothing -> return ()
+            Just (m,x) -> do
+                putMVar m =<< try x
+                f chan

@@ -67,12 +67,10 @@ executeHints s = applyHintsReal s (allHints s)
 
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
 parseModuleApply :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO (Either Idea (Module_, [Comment]))
-parseModuleApply flags s file src = do
-    res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
-    case res of
-        Right m -> return $ Right m
-        Left (ParseError sl msg ctxt) ->
-            return $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
+parseModuleApply flags s file src = parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src >>= \ case
+    Right m -> return $ Right m
+    Left (ParseError sl msg ctxt) ->
+        return $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
 
 
 -- | Find which hints a list of settings implies.

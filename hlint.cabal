@@ -45,6 +45,7 @@ flag gpl
 
 library
     default-language:   Haskell2010
+    default-extensions: LambdaCase
     build-depends:
         base == 4.*, process, filepath, directory, containers,
         unordered-containers, yaml, vector, text, bytestring,

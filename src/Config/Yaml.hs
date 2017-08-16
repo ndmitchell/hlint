@@ -27,11 +27,10 @@ import Prelude
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
 --   Fails if the YAML doesn't parse or isn't valid HLint YAML
 readFileConfigYaml :: FilePath -> Maybe String -> IO ConfigYaml
-readFileConfigYaml file contents = do
-    val <- case contents of
-        Nothing -> decodeFileEither file
-        Just src -> return $ decodeEither' $ BS.pack src
-    case val of
+readFileConfigYaml file contents =
+    (case contents of
+         Nothing -> decodeFileEither file
+         Just src -> return $ decodeEither' $ BS.pack src) >>= \ case
         Left e -> fail $ "Failed to read YAML configuration file " ++ file ++ "\n  " ++ displayException e
         Right v -> return v
 
@@ -115,11 +114,9 @@ parseBool (getVal -> Bool b) = return b
 parseBool v = parseFail v "Expected a Bool"
 
 parseField :: String -> Val -> Parser Val
-parseField s v = do
-    x <- parseFieldOpt s v
-    case x of
-        Nothing -> parseFail v $ "Expected a field named " ++ s
-        Just v -> return v
+parseField s v = parseFieldOpt s v >>= \ case
+    Nothing -> parseFail v $ "Expected a field named " ++ s
+    Just v -> return v
 
 parseFieldOpt :: String -> Val -> Parser (Maybe Val)
 parseFieldOpt s v = do
@@ -214,29 +211,25 @@ parseRule v = do
         return [Right $ Classify severity n a b | (a,b) <- within, n <- ["" | null names] ++ names]
 
 parseRestrict :: RestrictType -> Val -> Parser Restrict
-parseRestrict restrictType v = do
-    def <- parseFieldOpt "default" v
-    case def of
-        Just def -> do
-            b <- parseBool def
-            allowFields v ["default"]
-            return $ Restrict restrictType b [] [] []
-        Nothing -> do
-            restrictName <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
-            restrictWithin <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
-            restrictAs <- parseFieldOpt "as" v >>= maybe (return []) parseArrayString
-            allowFields v $ ["as" | restrictType == RestrictModule] ++ ["name","within"]
-            return Restrict{restrictDefault=True,..}
+parseRestrict restrictType v = parseFieldOpt "default" v >>= \ case
+    Just def -> do
+        b <- parseBool def
+        allowFields v ["default"]
+        return $ Restrict restrictType b [] [] []
+    Nothing -> do
+        restrictName <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
+        restrictWithin <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
+        restrictAs <- parseFieldOpt "as" v >>= maybe (return []) parseArrayString
+        allowFields v $ ["as" | restrictType == RestrictModule] ++ ["name","within"]
+        return Restrict{restrictDefault=True,..}
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
-parseWithin v = do
-    x <- parseHSE parseExp v
-    case x of
-        Var _ (UnQual _ name) -> return [("",fromNamed name)]
-        Var _ (Qual _ (ModuleName _ mod) name) -> return [(mod, fromNamed name)]
-        Con _ (UnQual _ name) -> return [(fromNamed name,""),("",fromNamed name)]
-        Con _ (Qual _ (ModuleName _ mod) name) -> return [(mod ++ "." ++ fromNamed name,""),(mod,fromNamed name)]
-        _ -> parseFail v "Bad classification rule"
+parseWithin v = parseHSE parseExp v >>= \ case
+    Var _ (UnQual _ name) -> return [("",fromNamed name)]
+    Var _ (Qual _ (ModuleName _ mod) name) -> return [(mod, fromNamed name)]
+    Con _ (UnQual _ name) -> return [(fromNamed name,""),("",fromNamed name)]
+    Con _ (Qual _ (ModuleName _ mod) name) -> return [(mod ++ "." ++ fromNamed name,""),(mod,fromNamed name)]
+    _ -> parseFail v "Bad classification rule"
 
 parseSeverityKey :: Val -> Parser (Severity, Val)
 parseSeverityKey v = do
