@@ -66,6 +66,7 @@ foo a b c = bar (flux ++ quux) c where flux = c
 yes = foo (\x -> Just x) -- @Warning Just
 foo = bar (\x -> (x `f`)) -- f
 baz = bar (\x -> (x +)) -- (+)
+yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b
 </TEST>
 -}
 
@@ -142,6 +143,7 @@ lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats 
       munge ident p@(PWildCard _) = p
       munge ident p = PVar (ann p) (Ident (ann p) [ident])
       subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS pats)
+lambdaExp p o@(Lambda _ [view -> PVar_ u] (Case _ (view -> Var_ v) alts)) | u == v = [suggestN "Use λ-case" o $ LCase an alts]
 lambdaExp _ _ = []
 
 
