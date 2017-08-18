@@ -11,6 +11,9 @@ hsColourHTML = id
 
 #else
 
+import Data.Functor
+import Prelude
+
 import Language.Haskell.HsColour.TTY as TTY
 import Language.Haskell.HsColour.Colourise
 import Language.Haskell.HsColour.CSS as CSS

@@ -9,6 +9,7 @@ module Idea(
     Severity(..)
     ) where
 
+import Data.Functor
 import Data.List.Extra
 import Data.Char
 import Numeric
@@ -17,6 +18,7 @@ import Config.Type
 import HsColour
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
+import Prelude
 
 
 -- | An idea suggest by a 'Hint'.
