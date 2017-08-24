@@ -33,10 +33,10 @@ import Prelude
 vars :: (FreeVars a, LocType a ~ S) => a -> [String]
 freeVars :: (FreeVars a, LocType a ~ S) => a -> Set String
 varss, pvars :: (AllVars a, LocType a ~ S) => a -> [String]
-vars  x = fmap show . Set.toList . X.freeVars          $ x
-varss x = fmap show . Set.toList . X.free . X.allVars  $ x
-pvars x = fmap show . Set.toList . X.bound . X.allVars $ x
-freeVars x = Set.map show . X.freeVars $ x
+vars  = fmap show . Set.toList . X.freeVars
+varss = fmap show . Set.toList . X.free . X.allVars
+pvars = fmap show . Set.toList . X.bound . X.allVars
+freeVars = Set.map show . X.freeVars
 
 -- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
 data ParseFlags = ParseFlags
