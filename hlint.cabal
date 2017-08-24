@@ -51,7 +51,9 @@ library
         transformers,
         cpphs >= 1.20.1,
         cmdargs >= 0.10,
+        data-default >= 0.7,
         haskell-src-exts >= 1.18 && < 1.20,
+        haskell-src-exts-util,
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
         extra >= 1.4.9,
@@ -84,8 +86,6 @@ library
         Config.Type
         Config.Yaml
         HSE.All
-        HSE.Bracket
-        HSE.FreeVars
         HSE.Match
         HSE.Reduce
         HSE.Scope

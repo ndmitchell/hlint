@@ -3,6 +3,7 @@
 module HSE.Util(module HSE.Util) where
 
 import Control.Monad
+import Data.Default
 import Data.List
 import Data.Maybe
 import Data.Data hiding (Fixity)
@@ -296,6 +297,8 @@ an = toSrcInfo nullSrcLoc [] nullSrcLoc
 dropAnn :: Functor f => f s -> f ()
 dropAnn = void
 
+instance Default SrcSpanInfo where
+  def = an
 
 ---------------------------------------------------------------------
 -- SRCLOC EQUALITY
