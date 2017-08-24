@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -30,9 +29,9 @@ import System.IO.Extra
 import Data.Functor
 import Prelude
 
-vars :: (FreeVars a, LocType a ~ S) => a -> [String]
-freeVars :: (FreeVars a, LocType a ~ S) => a -> Set String
-varss, pvars :: (AllVars a, LocType a ~ S) => a -> [String]
+vars :: (FreeVars a, Show(LocType a)) => a -> [String]
+freeVars :: (FreeVars a, Show(LocType a)) => a -> Set String
+varss, pvars :: (AllVars a, Show(LocType a)) => a -> [String]
 vars  = fmap show . Set.toList . X.freeVars
 varss = fmap show . Set.toList . X.free . X.allVars
 pvars = fmap show . Set.toList . X.bound . X.allVars
