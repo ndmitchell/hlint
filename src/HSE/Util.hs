@@ -3,7 +3,6 @@
 module HSE.Util(module HSE.Util) where
 
 import Control.Monad
-import Data.Default
 import Data.List
 import Data.Maybe
 import Data.Data hiding (Fixity)
