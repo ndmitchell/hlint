@@ -29,13 +29,13 @@ import System.IO.Extra
 import Data.Functor
 import Prelude
 
-vars :: (FreeVars a, Show(LocType a)) => a -> [String]
-freeVars :: (FreeVars a, Show(LocType a)) => a -> Set String
-varss, pvars :: (AllVars a, Show(LocType a)) => a -> [String]
-vars  = fmap show . Set.toList . X.freeVars
-varss = fmap show . Set.toList . X.free . X.allVars
-pvars = fmap show . Set.toList . X.bound . X.allVars
-freeVars = Set.map show . X.freeVars
+vars :: FreeVars a => a -> [String]
+freeVars :: FreeVars a => a -> Set String
+varss, pvars :: AllVars a => a -> [String]
+vars  = Set.toList . Set.map prettyPrint . X.freeVars
+varss = Set.toList . Set.map prettyPrint . X.free . X.allVars
+pvars = Set.toList . Set.map prettyPrint . X.bound . X.allVars
+freeVars = Set.map prettyPrint . X.freeVars
 
 -- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
 data ParseFlags = ParseFlags
