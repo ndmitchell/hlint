@@ -1,30 +1,41 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module HSE.All(
     module X,
     ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
-    parseModuleEx, ParseError(..)
+    parseModuleEx, ParseError(..),
+    freeVars, vars, varss, pvars
     ) where
 
+import Language.Haskell.Exts.Util hiding (freeVars, Vars(..))
+import qualified Language.Haskell.Exts.Util as X
 import HSE.Util as X
 import HSE.Reduce as X
 import HSE.Type as X
-import HSE.Bracket as X
 import HSE.Match as X
 import HSE.Scope as X
-import HSE.FreeVars as X
 import Util
 import CmdLine
 import Data.Char
 import Data.List.Extra
 import Data.Maybe
 import Language.Preprocessor.Cpphs
+import Data.Set (Set)
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import System.IO.Extra
 import Data.Functor
 import Prelude
 
+vars :: FreeVars a => a -> [String]
+freeVars :: FreeVars a => a -> Set String
+varss, pvars :: AllVars a => a -> [String]
+vars  = Set.toList . Set.map prettyPrint . X.freeVars
+varss = Set.toList . Set.map prettyPrint . X.free . X.allVars
+pvars = Set.toList . Set.map prettyPrint . X.bound . X.allVars
+freeVars = Set.map prettyPrint . X.freeVars
 
 -- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
 data ParseFlags = ParseFlags
