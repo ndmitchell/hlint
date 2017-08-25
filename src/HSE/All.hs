@@ -9,7 +9,7 @@ module HSE.All(
     freeVars, vars, varss, pvars
     ) where
 
-import Language.Haskell.Exts.Util hiding (freeVars, allVars, Vars(..))
+import Language.Haskell.Exts.Util hiding (freeVars, Vars(..))
 import qualified Language.Haskell.Exts.Util as X
 import HSE.Util as X
 import HSE.Reduce as X
