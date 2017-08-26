@@ -56,7 +56,8 @@ library
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
         extra >= 1.4.9,
-        refact >= 0.3
+        refact >= 0.3,
+        aeson >= 1.1.2.0
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
@@ -79,6 +80,7 @@ library
         Util
         Parallel
         Refact
+        CC
         Config.All
         Config.Compute
         Config.Haskell
@@ -122,6 +124,19 @@ executable hlint
     default-language:   Haskell2010
     build-depends:      base, hlint
     main-is:            src/Main.hs
+
+    ghc-options:        -rtsopts
+    if flag(threaded)
+        ghc-options:    -threaded
+
+executable cc-engine
+    default-language:   Haskell2010
+    build-depends:      base
+                      , aeson
+                      , bytestring
+                      , process
+    main-is:            engine.hs
+    hs-source-dirs:     cc
 
     ghc-options:        -rtsopts
     if flag(threaded)

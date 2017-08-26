@@ -1,0 +1,6 @@
+engines:
+  hlint:
+    enabled: true
+
+exclude_paths:
+  - data/HLint_TypeCheck.hs
