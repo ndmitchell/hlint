@@ -30,12 +30,6 @@ MAINTAINER Pat Brisbin <pbrisbin@gmail.com>
 
 ENV LANG en_US.UTF-8
 
-# Install jq, for reading /config.json
-RUN \
-  curl -L -O "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" && \
-  chmod +x jq-linux64 && \
-  mv jq-linux64 /usr/bin/jq
-
 # Executables from build stage
 COPY --from=builder /root/.local/bin/hlint /usr/bin/hlint
 COPY --from=builder /root/.local/bin/cc-engine /usr/bin/engine
