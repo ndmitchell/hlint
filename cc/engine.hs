@@ -3,6 +3,7 @@ module Main where
 
 import Data.Aeson
 import Data.List (isSuffixOf)
+import Data.Maybe (fromMaybe)
 import System.Process (callProcess)
 import System.IO (hPutStrLn, stderr)
 
@@ -16,7 +17,10 @@ data Config = Config
 instance FromJSON Config where
     parseJSON = withObject "Config" $ \o -> Config
         <$> o .: "include_paths"
-        <*> pure [] -- TODO: optional config.flags
+        <*> do
+            mc <- o .:? "config"
+            mf <- maybe (pure Nothing) (.:? "flags") mc
+            pure $ fromMaybe [] mf
 
 main :: IO ()
 main = do
