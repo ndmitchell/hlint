@@ -32,7 +32,7 @@ main = do
         Right c -> return $ cExtraFlags c ++ filter include (cIncludePaths c)
 
     callProcess "hlint" $
-        ["--datadir"
+        [ "--datadir"
         , "/opt/hlint"
         , "--json-cc"
         , "--no-exit-code"
