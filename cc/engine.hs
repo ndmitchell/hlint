@@ -15,6 +15,42 @@ data Config = Config
     }
 
 instance FromJSON Config where
+    -- Given a source tree:
+    --
+    -- > ./
+    -- >   a.hs
+    -- >   b.hs
+    -- >   c/
+    -- >     d.hs
+    --
+    -- And .codeclimate.yml:
+    --
+    -- > engines:
+    -- >   hlint:
+    -- >     enabled: true
+    -- >     config:
+    -- >       flags:
+    -- >         - --foo
+    -- >         - --bar
+    -- >
+    -- > exclude_paths:
+    -- >   - b.hs
+    --
+    -- We will find a /config.json like:
+    --
+    -- > {
+    -- >   "include_paths": [
+    -- >     "a.hs",
+    -- >     "c/"
+    -- >   ],
+    -- >   "config": {
+    -- >     "flags": [
+    -- >       "--foo",
+    -- >       "--bar",
+    -- >     ]
+    -- >   }
+    -- > }
+    --
     parseJSON = withObject "Config" $ \o -> Config
         <$> o .: "include_paths"
         <*> do
