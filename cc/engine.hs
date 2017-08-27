@@ -60,20 +60,23 @@ instance FromJSON Config where
 
 main :: IO ()
 main = do
-    ec <- eitherDecode <$> C8.readFile "/config.json"
-    options <- case ec of
-        Left ex -> do
-            hPutStrLn stderr $ "Ignoring invalid /config.json: " ++ ex
-            return ["."]
-        Right c -> return $ cExtraFlags c ++ filter include (cIncludePaths c)
+    c <- readConfig "/config.json"
 
     callProcess "hlint" $
-        [ "--datadir"
-        , "/opt/hlint"
+        [ "--datadir", "/opt/hlint"
         , "--json-cc"
         , "--no-exit-code"
-        ] ++ options
+        ]
+        ++ cExtraFlags c
+        ++ filter include (cIncludePaths c)
 
   where
     include :: FilePath -> Bool
     include p = any (`isSuffixOf` p) ["/", ".hs", ".lhs"]
+
+readConfig :: FilePath -> IO Config
+readConfig fp = either err return . eitherDecode =<< C8.readFile fp
+  where
+    err e = do
+        hPutStrLn stderr $ "Ignoring invalid /config.json: " ++ e
+        return $ Config ["."] []
