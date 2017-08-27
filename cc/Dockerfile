@@ -20,7 +20,7 @@ COPY ./src /src/src
 COPY ./data /src/data
 COPY ./cc/engine.hs /src/cc/engine.hs
 COPY ./LICENSE /src/LICENSE
-RUN stack install
+RUN stack install --flag hlint:cc
 
 #
 # Runtime
