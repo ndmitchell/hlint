@@ -39,6 +39,5 @@ main = do
         ] ++ options
 
   where
-    -- Return true for directories as well, so they are included
     include :: FilePath -> Bool
     include p = any (`isSuffixOf` p) ["/", ".hs", ".lhs"]
