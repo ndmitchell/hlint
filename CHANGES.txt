@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #366, avoid the github API for prebuilt hlint, is rate limited
     #352, suggest maybe for fromMaybe d (f <$> x)
     #338, warn about things imported hidden but not used
     #337, add --git flag to additionally check files in git
