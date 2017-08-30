@@ -3,4 +3,5 @@
 dist/
 
 cc/*
-!cc/engine.hs
+!cc/*.cabal
+!cc/*.hs

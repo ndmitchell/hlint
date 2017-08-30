@@ -10,17 +10,25 @@ ENV PATH /root/.local/bin:$PATH
 RUN mkdir -p /src
 WORKDIR /src
 
+# Install appropriate GHC
 COPY stack.yaml /src/
 RUN stack setup
 
+# Install HLint
 COPY hlint.cabal /src/
 RUN stack install --dependencies-only
-
 COPY ./src /src/src
 COPY ./data /src/data
-COPY ./cc/engine.hs /src/cc/engine.hs
 COPY ./LICENSE /src/LICENSE
-RUN stack install --flag hlint:cc
+RUN stack install
+
+# Install CC/Engine executable
+RUN mkdir -p /cc
+WORKDIR /cc
+COPY ./cc/engine.cabal /cc/engine.cabal
+RUN stack init && stack install --dependencies-only
+COPY ./cc/Engine.hs /cc/Engine.hs
+RUN stack install
 
 #
 # Runtime
@@ -32,8 +40,8 @@ ENV LANG en_US.UTF-8
 
 # Executables from build stage
 COPY --from=builder /root/.local/bin/hlint /usr/bin/hlint
-COPY --from=builder /root/.local/bin/cc-engine /usr/bin/engine
-COPY data /opt/hlint
+COPY --from=builder /root/.local/bin/engine /usr/bin/engine
+COPY --from=builder /src/data /opt/hlint
 
 RUN mkdir -p /code
 VOLUME /code

@@ -160,7 +160,7 @@ runHints args settings cmd@CmdMain{..} = do
         ideas <- return $ if cmdShowAll then ideas else  filter (\i -> ideaSeverity i /= Ignore) ideas
         if cmdJson then
             putStrLn $ showIdeasJson ideas
-         else if cmdJsonCC then
+         else if cmdCC then
             mapM_ (printIssue . fromIdea) ideas
          else if cmdSerialise then do
             hSetBuffering stdout NoBuffering

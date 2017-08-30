@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Main where
+module Main (main) where
 
 import Data.Aeson
 import Data.List (isSuffixOf)
@@ -64,8 +64,8 @@ main = do
 
     callProcess "hlint" $
         [ "lint"
+        , "--cc"
         , "--datadir", "/opt/hlint"
-        , "--json-cc"
         , "--no-exit-code"
         ]
         ++ cExtraFlags c

@@ -25,7 +25,7 @@ data Issue = Issue
     { issueType :: Text
     , issueCheckName :: Text
     , issueDescription :: Text
-    , issueContent :: Text -- TODO: Markdown type?
+    , issueContent :: Text
     , issueCategories :: [Text]
     , issueLocation :: Location
     , issueRemediationPoints :: Int
@@ -75,7 +75,7 @@ fromIdea Idea{..} = Issue
     { issueType = "issue"
     , issueCheckName = "HLint/" <> T.pack (camelize ideaHint)
     , issueDescription = T.pack ideaHint
-    , issueContent = content ideaFrom ideaTo
+    , issueContent = content ideaFrom ideaTo <> listNotes ideaNote
     , issueCategories = categories ideaHint
     , issueLocation = fromSrcSpan ideaSpan
     , issueRemediationPoints = points ideaSeverity
@@ -105,6 +105,13 @@ fromIdea Idea{..} = Issue
         , T.pack to
         , "```"
         ]
+
+    listNotes [] = ""
+    listNotes notes = T.unlines $
+        [ ""
+        , "Applying this change:"
+        , ""
+        ] ++ map (("* " <>) . T.pack . show) notes
 
     categories _ = ["Style"]
 
