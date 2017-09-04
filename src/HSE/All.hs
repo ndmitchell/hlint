@@ -2,7 +2,7 @@
 
 module HSE.All(
     module X,
-    ParseFlags(..), defaultParseFlags,
+    CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     parseModuleEx, ParseError(..)
     ) where
@@ -15,7 +15,6 @@ import HSE.Match as X
 import HSE.Scope as X
 import HSE.FreeVars as X
 import Util
-import CmdLine
 import Data.Char
 import Data.List.Extra
 import Data.Maybe
@@ -25,6 +24,12 @@ import System.IO.Extra
 import Data.Functor
 import Prelude
 
+
+-- | What C pre processor should be used.
+data CppFlags
+    = NoCpp -- ^ No pre processing is done.
+    | CppSimple -- ^ Lines prefixed with @#@ are stripped.
+    | Cpphs CpphsOptions -- ^ The @cpphs@ library is used.
 
 -- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
 data ParseFlags = ParseFlags

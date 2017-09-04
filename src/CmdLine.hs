@@ -19,6 +19,7 @@ import System.FilePath
 import System.IO
 import System.Process(readProcess)
 import Language.Preprocessor.Cpphs
+import HSE.All(CppFlags(..))
 import Language.Haskell.Exts(defaultParseMode, baseLanguage)
 import Language.Haskell.Exts.Extension
 import Data.Maybe
@@ -69,13 +70,6 @@ exitWithHelp :: IO a
 exitWithHelp = do
     putStr $ show $ helpText [] HelpFormatAll mode
     exitSuccess
-
-
--- | What C pre processor should be used.
-data CppFlags
-    = NoCpp -- ^ No pre processing is done.
-    | CppSimple -- ^ Lines prefixed with @#@ are stripped.
-    | Cpphs CpphsOptions -- ^ The @cpphs@ library is used.
 
 
 -- | When to colour terminal output.
