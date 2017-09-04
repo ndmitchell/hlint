@@ -78,9 +78,9 @@ library
         Util
         Parallel
         Refact
-        Config.All
         Config.Compute
         Config.Haskell
+        Config.Read
         Config.Type
         Config.Yaml
         HSE.All

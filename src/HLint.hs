@@ -22,7 +22,7 @@ import System.Directory
 import System.FilePath
 
 import CmdLine
-import Config.All
+import Config.Read
 import Config.Type
 import Config.Compute
 import Report

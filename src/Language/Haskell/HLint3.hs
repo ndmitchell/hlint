@@ -30,7 +30,7 @@ module Language.Haskell.HLint3(
     ) where
 
 import Config.Type
-import Config.All
+import Config.Read
 import Idea
 import Apply
 import HLint
