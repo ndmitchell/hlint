@@ -296,7 +296,6 @@ an = toSrcInfo nullSrcLoc [] nullSrcLoc
 dropAnn :: Functor f => f s -> f ()
 dropAnn = void
 
-
 ---------------------------------------------------------------------
 -- SRCLOC EQUALITY
 

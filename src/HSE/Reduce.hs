@@ -6,7 +6,7 @@ module HSE.Reduce(reduce) where
 import HSE.Match
 import HSE.Util
 import HSE.Type
-import HSE.Bracket
+import Language.Haskell.Exts.Util
 
 
 reduce :: Exp_ -> Exp_
