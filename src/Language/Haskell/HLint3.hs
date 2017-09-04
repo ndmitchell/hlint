@@ -34,7 +34,7 @@ import Config.All
 import Idea
 import Apply
 import HLint
-import Hint.Type
+import HSE.All
 import Hint.All
 import CmdLine
 import Paths_hlint
