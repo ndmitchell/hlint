@@ -22,9 +22,7 @@ import Test.Util
 data Test = Test SrcLoc String (Maybe String)
 
 testAnnotations :: [Setting] -> FilePath -> IO ()
-testAnnotations setting file = do
-    tests <- parseTestFile file
-    mapM_ f tests
+testAnnotations setting file = parseTestFile file >>= mapM_ f
     where
         f (Test loc inp out) = do
             ideas <- applyHintFile defaultParseFlags setting file $ Just inp

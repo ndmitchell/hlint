@@ -68,5 +68,4 @@ checkCommentedYaml :: FilePath -> IO ()
 checkCommentedYaml file = do
     src <- lines <$> readFile' file
     let src2 = [x | x <- src, Just x <- [stripPrefix "# " x], not $ all (\x -> isAlpha x || x == '$') $ take 1 x]
-    e <- readFilesConfig [(file, Just $ unlines src2)]
-    void $ evaluate $ length e
+    readFilesConfig [(file, Just $ unlines src2)] >>= void . evaluate . length
