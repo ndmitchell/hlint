@@ -295,7 +295,7 @@ nullSrcSpan = def
 an :: SrcSpanInfo
 an = def
 
-dropAnn :: Functor f => f s -> f ()
+dropAnn :: Functor f => f SrcSpanInfo -> f ()
 dropAnn = void
 
 ---------------------------------------------------------------------
