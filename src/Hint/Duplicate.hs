@@ -60,7 +60,7 @@ add pos (v:vs) (Dupe p mp) = Dupe p $ Map.insertWith f v (add pos vs $ Dupe pos 
 
 
 duplicateOrdered :: Ord val => Int -> [[(SrcSpan,val)]] -> [(SrcSpan,SrcSpan,[val])]
-duplicateOrdered threshold xs = concat $ concat $ snd $ mapAccumL f (Dupe nullSrcSpan Map.empty) xs
+duplicateOrdered threshold xs = concat $ concat $ snd $ mapAccumL f (Dupe def Map.empty) xs
     where
         f d xs = second overlaps $ mapAccumL (g pos) d $ takeWhile ((>= threshold) . length) $ tails xs
             where pos = Map.fromList $ zip (map fst xs) [0..]

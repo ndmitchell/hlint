@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts, ViewPatterns #-}
 
-module HSE.Util(module HSE.Util) where
+module HSE.Util(module HSE.Util, def) where
 
 import Control.Monad
 import Data.Default
@@ -285,12 +285,6 @@ showSrcLoc (SrcLoc file line col) = take 1 file ++ f (drop 1 file) ++ ":" ++ sho
     where f (x:y:zs) | isPathSeparator x && isPathSeparator y = f $ x:zs
           f (x:xs) = x : f xs
           f [] = []
-
-nullSrcLoc :: SrcLoc
-nullSrcLoc = def
-
-nullSrcSpan :: SrcSpan
-nullSrcSpan = def
 
 an :: SrcSpanInfo
 an = def
