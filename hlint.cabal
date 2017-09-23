@@ -48,7 +48,7 @@ library
     build-depends:
         base == 4.*, process, filepath, directory, containers,
         unordered-containers, yaml, vector, text, bytestring,
-        transformers,
+        transformers, data-default,
         cpphs >= 1.20.1,
         cmdargs >= 0.10,
         haskell-src-exts >= 1.18 && < 1.20,
