@@ -302,6 +302,10 @@
     - warn: {lhs: id <$> x, rhs: x, name: Functor law}
     - hint: {lhs: fmap f $ x, rhs: f Control.Applicative.<$> x, side: isApp x || isAtom x}
     - hint: {lhs: \x -> a <$> b x, rhs: fmap a . b}
+    - hint: {lhs: x *> pure y, rhs: x Data.Functor.$> y}
+    - hint: {lhs: x *> return y, rhs: x Data.Functor.$> y}
+    - hint: {lhs: pure x <* y, rhs: x Data.Functor.<$ y}
+    - hint: {lhs: return x <* y, rhs: x Data.Functor.<$ y}
 
     # MONAD
 
@@ -628,6 +632,10 @@
 # yes = return . bob =<< a -- bob <$> a
 # yes = m alice >>= pure . b -- b <$> m alice
 # yes = pure .b =<< m alice -- b <$> m alice
+# yes = asciiCI "hi" *> pure Hi -- asciiCI "hi" Data.Functor.$> Hi
+# yes = asciiCI "bye" *> return Bye -- asciiCI "bye" Data.Functor.$> Bye
+# yes = pure x <* y -- x Data.Functor.<$ y
+# yes = return x <* y -- x Data.Functor.<$ y
 # yes = (x !! 0) + (x !! 2) -- head x
 # yes = if b < 42 then [a] else [] -- [a | b < 42]
 # no  = take n (foo xs) == "hello"
