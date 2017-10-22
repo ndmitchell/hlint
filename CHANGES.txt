@@ -1,8 +1,8 @@
 Changelog for HLint
 
-    #395, Suggest x $> y from x *> pure y and x *> return y
-          Suggest x <$ y from pure x <* y and return x <* y
-    #393, Suggest f <$> m from m >>= pure . f and pure . f =<<
+    #395, suggest x $> y from x *> pure y and x *> return y
+    #395, suggest x <$ y from pure x <* y and return x <* y
+    #393, suggest f <$> m from m >>= pure . f and pure . f =<<
     #366, avoid the github API for prebuilt hlint, is rate limited
     #352, suggest maybe for fromMaybe d (f <$> x)
     #338, warn about things imported hidden but not used
