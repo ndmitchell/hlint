@@ -311,8 +311,8 @@
     - warn: {lhs: return =<< m, rhs: m, name: "Monad law, right identity"}
     - warn: {lhs: liftM, rhs: fmap}
     - warn: {lhs: liftA, rhs: fmap}
-    - hint: {lhs: m >>= return . f, rhs: fmap f m}
-    - hint: {lhs: return . f =<< m, rhs: fmap f m}
+    - hint: {lhs: m >>= return . f, rhs: f <$> m}
+    - hint: {lhs: return . f =<< m, rhs: f <$> m}
     - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x $ _noParen_ y, side: not (isAtom y)}
     - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x y, side: isAtom y}
     - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: isAtom y}
@@ -374,6 +374,8 @@
     - warn: {lhs: foldr (<|>) empty, rhs: asum}
     - warn: {lhs: liftA2 (flip ($)), rhs: (<**>)}
     - warn: {lhs: Just <$> a <|> pure Nothing, rhs: optional a}
+    - hint: {lhs: m >>= pure . f, rhs: f <$> m}
+    - hint: {lhs: pure . f =<< m, rhs: f <$> m}
 
 
     # LIST COMP
@@ -734,7 +736,7 @@
 # {-# LANGUAGE TypeApplications #-} \
 # foo = id @Int
 # foo = id 12 -- 12
-# 
+#
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM
 # import Control.Monad \
