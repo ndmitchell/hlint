@@ -21,7 +21,7 @@ bar x = foo x
 baz = getLine >>= return . map toUpper
 OUTPUT
 [{"module":"Main","decl":"bar","severity":"Warning","hint":"Eta reduce","file":"tests/json-two.hs","startLine":2,"startColumn":1,"endLine":2,"endColumn":14,"from":"bar x = foo x","to":"bar = foo","note":[],"refactorings":"[]"}
-,{"module":"Main","decl":"baz","severity":"Suggestion","hint":"Use fmap","file":"tests/json-two.hs","startLine":3,"startColumn":7,"endLine":3,"endColumn":39,"from":"getLine >>= return . map toUpper","to":"fmap (map toUpper) getLine","note":[],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [(\"f\",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),(\"m\",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = \"fmap (f) m\"}]"}]
+,{"module":"Main","decl":"baz","severity":"Suggestion","hint":"Use <$>","file":"tests/json-two.hs","startLine":3,"startColumn":7,"endLine":3,"endColumn":39,"from":"getLine >>= return . map toUpper","to":"map toUpper <$> getLine","note":[],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [(\"f\",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),(\"m\",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = \"f <$> m\"}]"}]
 
 ---------------------------------------------------------------------
 RUN tests/json-parse-error.hs --json
