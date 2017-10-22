@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #393, suggest fmap f m from m >>= pure . f and pure . f =<
     #366, avoid the github API for prebuilt hlint, is rate limited
     #352, suggest maybe for fromMaybe d (f <$> x)
     #338, warn about things imported hidden but not used
