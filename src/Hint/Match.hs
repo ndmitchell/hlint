@@ -42,7 +42,6 @@ module Hint.Match(readMatch) where
 import Control.Applicative
 import Data.List.Extra
 import Data.Maybe
-import Data.Monoid
 import Config.Type
 import Hint.Type
 import Control.Monad
@@ -111,7 +110,7 @@ matchIdea s decl HintRule{..} parent x = do
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables
-    guard $ checkSide hintRuleSide $ Subst [("original",x), ("result",res)] <> u
+    guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : fromSubst u
     guard $ checkDefine decl parent res
     return (res, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst u, ann pos /= an], template)
 
@@ -119,7 +118,7 @@ matchIdea s decl HintRule{..} parent x = do
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS
 
-checkSide :: Maybe Exp_ -> Subst Exp_ -> Bool
+checkSide :: Maybe Exp_ -> [(String, Exp_)] -> Bool
 checkSide x bind = maybe True f x
     where
         f (InfixApp _ x op y)
@@ -161,7 +160,7 @@ checkSide x bind = maybe True f x
 
         sub :: Exp_ -> Exp_
         sub = transform f
-            where f (view -> Var_ x) | Just y <- lookupVar x bind = y
+            where f (view -> Var_ x) | Just y <- lookup x bind = y
                   f x = x
 
 

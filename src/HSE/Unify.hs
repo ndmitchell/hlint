@@ -38,7 +38,7 @@ not . not . x ==> x
 -}
 
 module HSE.Unify(
-    Subst(..), lookupVar,
+    Subst, fromSubst, lookupVar,
     unifyExp, check,
     substitute, substT,
     ) where
@@ -92,7 +92,10 @@ substT (Subst bind) = transform g . transformBracketTemplate f
 ---------------------------------------------------------------------
 -- UNIFICATION
 
-newtype Subst a = Subst {fromSubst :: [(String, a)]}
+newtype Subst a = Subst [(String, a)]
+
+fromSubst :: Subst a -> [(String, a)]
+fromSubst (Subst xs) = xs
 
 instance Functor Subst where
     fmap f (Subst xs) = Subst $ map (second f) xs
