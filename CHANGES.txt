@@ -1,5 +1,6 @@
 Changelog for HLint
 
+2.0.10
     #377, suggest lambda case
     Add CodeClimate support
     #378, suggest map for degenerate foldr
