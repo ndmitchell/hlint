@@ -56,44 +56,14 @@ import Util
 import Prelude
 
 
--- | Descend, and if something changes then add/remove brackets appropriately in both the template
--- and the original expression.
-descendBracketTemplate :: (Exp_ -> (Bool, (Exp_, Exp_))) -> Exp_ -> Exp_
-descendBracketTemplate op x = descendIndex g x
-    where
-        g i y = if a then f i b else fst b
-            where (a, b) = op y
-
-        f i (v, y) | needBracket i x y = addParen v
-        f i (v, y) = v
-
-transformBracketTemplate :: (Exp_ -> Maybe (Exp_, Exp_)) -> Exp_ -> Exp_
-transformBracketTemplate op = fst . snd . g
-    where
-        g :: Exp_ -> (Bool, (Exp_, Exp_))
-        g = f . descendBracketTemplate g
-        f :: Exp_ -> (Bool, (Exp_, Exp_))
-        f x = maybe (False,(x, x)) ((,) True) (op x)
-
--- perform a substitution
-substT :: Subst Exp_ -> Exp_ -> Exp_
-substT (Subst bind) = transform g . transformBracketTemplate f
-    where
-        f v@(Var _ (fromNamed -> x)) | isUnifyVar x = case lookup x bind of
-                                                        Just x -> if ann x == an then  Just (x, x)
-                                                                                 else  Just (v, x)
-                                                        Nothing -> Nothing
-        f _ = Nothing
-
-        g (App _ np x) | np ~= "_noParen_" = fromParen x
-        g x = x
-
-
 ---------------------------------------------------------------------
--- UNIFICATION
+-- SUBSTITUTION DATA TYPE
 
+-- | A list of substitutions. A key may be duplicated, you need to call 'check'
+--   to ensure the substitution is valid.
 newtype Subst a = Subst [(String, a)]
 
+-- | Unpack the substitution
 fromSubst :: Subst a -> [(String, a)]
 fromSubst (Subst xs) = xs
 
@@ -109,6 +79,18 @@ instance Monoid (Subst a) where
 
 lookupVar :: String -> Subst a -> Maybe a
 lookupVar v (Subst xs) = lookup v xs
+
+
+-- check the unification is valid and simplify it
+check :: Subst Exp_ -> Maybe (Subst Exp_)
+check = fmap Subst . mapM f . groupSort . fromSubst
+    where f (x,ys) = if checkSame ys then Just (x,head ys) else Nothing
+          checkSame [] = True
+          checkSame (x:xs) = all (x =~=) xs
+
+
+---------------------------------------------------------------------
+-- UNIFICATION
 
 type NameMatch = QName S -> QName S -> Bool
 
@@ -173,19 +155,44 @@ isOther _ = True
 ---------------------------------------------------------------------
 -- SUBSTITUTION UTILITIES
 
--- check the unification is valid and simplify it
-check :: Subst Exp_ -> Maybe (Subst Exp_)
-check = fmap Subst . mapM f . groupSort . fromSubst
-    where f (x,ys) = if checkSame ys then Just (x,head ys) else Nothing
-          checkSame [] = True
-          checkSame (x:xs) = all (x =~=) xs
-
-
 -- perform a substitution
 substitute :: Subst Exp_ -> Exp_ -> Exp_
 substitute (Subst bind) = transform g . transformBracket f
     where
         f (Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
+        f _ = Nothing
+
+        g (App _ np x) | np ~= "_noParen_" = fromParen x
+        g x = x
+
+
+-- | Descend, and if something changes then add/remove brackets appropriately in both the template
+-- and the original expression.
+descendBracketTemplate :: (Exp_ -> (Bool, (Exp_, Exp_))) -> Exp_ -> Exp_
+descendBracketTemplate op x = descendIndex g x
+    where
+        g i y = if a then f i b else fst b
+            where (a, b) = op y
+
+        f i (v, y) | needBracket i x y = addParen v
+        f i (v, y) = v
+
+transformBracketTemplate :: (Exp_ -> Maybe (Exp_, Exp_)) -> Exp_ -> Exp_
+transformBracketTemplate op = fst . snd . g
+    where
+        g :: Exp_ -> (Bool, (Exp_, Exp_))
+        g = f . descendBracketTemplate g
+        f :: Exp_ -> (Bool, (Exp_, Exp_))
+        f x = maybe (False,(x, x)) ((,) True) (op x)
+
+-- perform a substitution
+substT :: Subst Exp_ -> Exp_ -> Exp_
+substT (Subst bind) = transform g . transformBracketTemplate f
+    where
+        f v@(Var _ (fromNamed -> x)) | isUnifyVar x = case lookup x bind of
+                                                        Just x -> if ann x == an then  Just (x, x)
+                                                                                 else  Just (v, x)
+                                                        Nothing -> Nothing
         f _ = Nothing
 
         g (App _ np x) | np ~= "_noParen_" = fromParen x
