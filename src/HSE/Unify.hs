@@ -1,9 +1,9 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables #-}
 
 module HSE.Unify(
-    Subst, fromSubst, validSubst,
+    Subst, fromSubst,
+    validSubst, substitute,
     unifyExp,
-    substitute
     ) where
 
 import Control.Applicative
@@ -46,6 +46,13 @@ validSubst :: (a -> a -> Bool) -> Subst a -> Maybe (Subst a)
 validSubst eq = fmap Subst . mapM f . groupSort . fromSubst
     where f (x,y:ys) | all (eq y) ys = Just (x,y)
           f _ = Nothing
+
+-- | Perform a substitution
+substitute :: Subst Exp_ -> Exp_ -> Exp_
+substitute (Subst bind) = transformBracket f
+    where
+        f (Var _ (fromNamed -> x)) = lookup x bind
+        f _ = Nothing
 
 
 ---------------------------------------------------------------------
@@ -117,14 +124,3 @@ unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe (Subst Exp_)
 unifyPat nm (PVar _ x) (PVar _ y) = Just $ Subst [(fromNamed x, toNamed $ fromNamed y)]
 unifyPat nm (PVar _ x) PWildCard{} = Just $ Subst [(fromNamed x, toNamed $ "_" ++ fromNamed x)]
 unifyPat nm x y = unifyDef nm x y
-
-
----------------------------------------------------------------------
--- SUBSTITUTION UTILITIES
-
--- | Perform a substitution
-substitute :: Subst Exp_ -> Exp_ -> Exp_
-substitute (Subst bind) = transformBracket f
-    where
-        f (Var _ (fromNamed -> x)) = lookup x bind
-        f _ = Nothing
