@@ -91,11 +91,11 @@ dotVersion _ = []
 
 findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl =
-  [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
-  | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
-  , (parent,x) <- universeParentExp decl, not $ isParen x
-  , m <- matches, Just (y,notes, subst) <- [matchIdea s decl m parent x]
-  , let r = R.Replace R.Expr (toSS x) subst (prettyPrint $ hintRuleRHS m) ]
+    [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
+    | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
+    , (parent,x) <- universeParentExp decl, not $ isParen x
+    , m <- matches, Just (y,notes, subst) <- [matchIdea s decl m parent x]
+    , let r = R.Replace R.Expr (toSS x) subst (prettyPrint $ hintRuleRHS m) ]
 
 matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_, [Note], [(String, R.SrcSpan)])
 matchIdea s decl HintRule{..} parent x = do
@@ -105,7 +105,7 @@ matchIdea s decl HintRule{..} parent x = do
     -- need to check free vars before unqualification, but after subst (with e)
     -- need to unqualify before substitution (with res)
     let e = substitute u hintRuleRHS
-        res = addBracket parent $ performNoParen $ performEval $ substitute u $ unqualify hintRuleScope s hintRuleRHS
+        res = addBracket parent $ performSpecial $ substitute u $ unqualify hintRuleScope s hintRuleRHS
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables
@@ -173,14 +173,14 @@ checkDefine _ _ _ = True
 -- TRANSFORMATION
 
 -- if it has _eval_ do evaluation on it
-performEval :: Exp_ -> Exp_
-performEval (App _ e x) | e ~= "_eval_" = reduce x
-performEval x = x
+performSpecial :: Exp_ -> Exp_
+performSpecial = transform fNoParen . fEval
+    where
+        fEval (App _ e x) | e ~= "_eval_" = reduce x
+        fEval x = x
 
-performNoParen :: Exp_ -> Exp_
-performNoParen = transform f
-    where f (App _ e x) | e ~= "_noParen_" = fromParen x
-          f x = x
+        fNoParen (App _ e x) | e ~= "_noParen_" = fromParen x
+        fNoParen x = x
 
 -- contract Data.List.foo ==> foo, if Data.List is loaded
 unqualify :: Scope -> Scope -> Exp_ -> Exp_
