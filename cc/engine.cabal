@@ -1,0 +1,21 @@
+cabal-version:      >= 1.18
+build-type:         Simple
+name:               engine
+version:            0.0.1
+category:           Development
+author:             Patrick Brisbin <pbrisbin@gmail.com>
+maintainer:         Patrick Brisbin <pbrisbin@gmail.com>
+copyright:          Neil Mitchell 2006-2017
+synopsis:           Run HLint as a Code Climate engine
+description:        Run HLint as a Code Climate engine
+homepage:           https://github.com/ndmitchell/hlint#readme
+bug-reports:        https://github.com/ndmitchell/hlint/issues
+
+executable engine
+    default-language:   Haskell2010
+    build-depends:      base
+                      , aeson
+                      , bytestring
+                      , process
+    main-is:            Engine.hs
+    ghc-options:        -rtsopts -threaded

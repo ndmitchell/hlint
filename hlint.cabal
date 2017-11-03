@@ -56,7 +56,8 @@ library
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
         extra >= 1.4.9,
-        refact >= 0.3
+        refact >= 0.3,
+        aeson >= 1.1.2.0
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
@@ -79,6 +80,7 @@ library
         Util
         Parallel
         Refact
+        CC
         Config.Compute
         Config.Haskell
         Config.Read
@@ -89,7 +91,6 @@ library
         HSE.Reduce
         HSE.Scope
         HSE.Type
-        HSE.Unify
         HSE.Util
         Hint.All
         Hint.Bracket

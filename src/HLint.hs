@@ -34,6 +34,7 @@ import Grep
 import Test.Proof
 import Parallel
 import HSE.All
+import CC
 
 
 -- | This function takes a list of command line arguments, and returns the given hints.
@@ -159,6 +160,8 @@ runHints args settings cmd@CmdMain{..} = do
         ideas <- return $ if cmdShowAll then ideas else  filter (\i -> ideaSeverity i /= Ignore) ideas
         if cmdJson then
             putStrLn $ showIdeasJson ideas
+         else if cmdCC then
+            mapM_ (printIssue . fromIdea) ideas
          else if cmdSerialise then do
             hSetBuffering stdout NoBuffering
             print $ map (show &&& ideaRefactoring) ideas
