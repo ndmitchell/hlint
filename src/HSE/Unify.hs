@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables #-}
 
 module HSE.Unify(
-    Subst, fromSubst, lookupVar,
+    Subst, fromSubst,
     unifyExp, check,
     substitute, substT,
     ) where
@@ -39,9 +39,6 @@ instance Pretty a => Show (Subst a) where
 instance Monoid (Subst a) where
     mempty = Subst []
     mappend (Subst xs) (Subst ys) = Subst $ xs ++ ys
-
-lookupVar :: String -> Subst a -> Maybe a
-lookupVar v (Subst xs) = lookup v xs
 
 
 -- check the unification is valid and simplify it
