@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #377, suggest lambda case
     Add CodeClimate support
     #378, suggest map for degenerate foldr
     #395, suggest x $> y from x *> pure y and x *> return y
