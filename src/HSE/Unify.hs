@@ -44,7 +44,7 @@ instance Monoid (Subst a) where
 -- check the unification is valid and simplify it
 validSubst :: (a -> a -> Bool) -> Subst a -> Maybe (Subst a)
 validSubst eq = fmap Subst . mapM f . groupSort . fromSubst
-    where f (x,y:ys) | all (eq y) ys = Just (x,head ys)
+    where f (x,y:ys) | all (eq y) ys = Just (x,y)
           f _ = Nothing
 
 
