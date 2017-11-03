@@ -91,6 +91,7 @@ library
         HSE.Reduce
         HSE.Scope
         HSE.Type
+        HSE.Unify
         HSE.Util
         Hint.All
         Hint.Bracket
