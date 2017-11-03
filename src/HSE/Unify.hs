@@ -88,7 +88,12 @@ unifyExp nm root (Var _ x) (Var _ y) | nm x y = Just mempty
 -- Options: match directly, and expand through .
 unifyExp nm root x@(App _ x1 x2) (App _ y1 y2) =
     liftM2 (<>) (unifyExp nm False x1 y1) (unifyExp nm False x2 y2) `mplus`
-    (do guard $ not root; InfixApp _ y11 dot y12 <- return $ fromParen y1; guard $ isDot dot; unifyExp nm root x (App an y11 (App an y12 y2)))
+    (do guard $ not root
+            -- don't expand . if at the root, otherwise you can get duplicate matches
+            -- because the matching engine auto-generates hints in dot-form
+        InfixApp _ y11 dot y12 <- return $ fromParen y1
+        guard $ isDot dot
+        unifyExp nm root x (App an y11 (App an y12 y2)))
 
 -- Options: match directly, then expand through $, then desugar infix
 unifyExp nm root x (InfixApp _ lhs2 op2 rhs2)
