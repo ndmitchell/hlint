@@ -43,6 +43,7 @@ import Control.Applicative
 import Data.List.Extra
 import Data.Maybe
 import Data.Data
+import Data.Monoid
 import Config.Type
 import Hint.Type
 import Control.Monad
@@ -98,7 +99,7 @@ findIdeas matches s _ decl =
   , m <- matches, Just (y,notes, subst, rule) <- [matchIdea s decl m parent x]
   , let r = R.Replace R.Expr (toSS x) subst (prettyPrint rule) ]
 
-matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_,[Note], [(String, R.SrcSpan)], Exp_)
+matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_, [Note], [(String, R.SrcSpan)], Exp_)
 matchIdea s decl HintRule{..} parent x = do
     let nm a b = scopeMatch (hintRuleScope,a) (s,b)
     u <- unifyExp nm True hintRuleLHS x
@@ -111,9 +112,9 @@ matchIdea s decl HintRule{..} parent x = do
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables
-    guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : u
+    guard $ checkSide hintRuleSide $ Subst [("original",x), ("result",res)] <> u
     guard $ checkDefine decl parent res
-    return (res,hintRuleNotes, [(s, toSS pos) | (s, pos) <- u, ann pos /= an], template)
+    return (res, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst u, ann pos /= an], template)
 
 
 -- | Descend, and if something changes then add/remove brackets appropriately in both the template
@@ -136,8 +137,8 @@ transformBracketTemplate op = fst . snd . g
         f x = maybe (False,(x, x)) ((,) True) (op x)
 
 -- perform a substitution
-substT :: [(String,Exp_)] -> Exp_ -> Exp_
-substT bind = transform g . transformBracketTemplate f
+substT :: Subst -> Exp_ -> Exp_
+substT (Subst bind) = transform g . transformBracketTemplate f
     where
         f v@(Var _ (fromNamed -> x)) | isUnifyVar x = case lookup x bind of
                                                         Just x -> if ann x == an then  Just (x, x)
@@ -152,6 +153,16 @@ substT bind = transform g . transformBracketTemplate f
 ---------------------------------------------------------------------
 -- UNIFICATION
 
+newtype Subst = Subst {fromSubst :: [(String, Exp_)]}
+
+instance Show Subst where
+    show (Subst xs) = unlines [a ++ " = " ++ prettyPrint b | (a,b) <- xs]
+
+instance Monoid Subst where
+    mempty = Subst []
+    mappend (Subst xs) (Subst ys) = Subst $ xs ++ ys
+
+
 type NameMatch = QName S -> QName S -> Bool
 
 nmOp :: NameMatch -> QOp S -> QOp S -> Bool
@@ -161,32 +172,32 @@ nmOp nm  _ _ = False
 
 
 -- unify a b = c, a[c] = b
-unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe [(String,Exp_)]
+unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe Subst
 unify nm root x y | Just (x,y) <- cast (x,y) = unifyExp nm root x y
                   | Just (x,y) <- cast (x,y) = unifyPat nm x y
-                  | Just (x :: S) <- cast x = Just []
+                  | Just (x :: S) <- cast x = Just mempty
                   | otherwise = unifyDef nm x y
 
 
-unifyDef :: Data a => NameMatch -> a -> a -> Maybe [(String,Exp_)]
-unifyDef nm x y = fmap concat . sequence =<< gzip (unify nm False) x y
+unifyDef :: Data a => NameMatch -> a -> a -> Maybe Subst
+unifyDef nm x y = fmap mconcat . sequence =<< gzip (unify nm False) x y
 
 
 -- App/InfixApp are analysed specially for performance reasons
 -- root = True, this is the outside of the expr
 -- do not expand out a dot at the root, since otherwise you get two matches because of readRule (Bug #570)
-unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe [(String,Exp_)]
+unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe Subst
 unifyExp nm root x y | isParen x || isParen y =
-  map (rebracket y) <$> unifyExp nm root (fromParen x) (fromParen y)
-unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v = Just [(v,y)]
-unifyExp nm root (Var _ x) (Var _ y) | nm x y = Just []
+  Subst . map (rebracket y) . fromSubst <$> unifyExp nm root (fromParen x) (fromParen y)
+unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v = Just $ Subst [(v,y)]
+unifyExp nm root (Var _ x) (Var _ y) | nm x y = Just mempty
 
 -- Hand unrolled for performance
 unifyExp nm root x@(App _ x1 x2) (App _ y1 y2) =
-    liftM2 (++) (unifyExp nm False x1 y1) (unifyExp nm False x2 y2) `mplus`
+    liftM2 (<>) (unifyExp nm False x1 y1) (unifyExp nm False x2 y2) `mplus`
     (do guard $ not root; InfixApp _ y11 dot y12 <- return $ fromParen y1; guard $ isDot dot; unifyExp nm root x (App an y11 (App an y12 y2)))
 unifyExp nm root x (InfixApp _ lhs2 op2 rhs2)
-    | InfixApp _ lhs1 op1 rhs1 <- x = guard (nmOp nm op1 op2) >> liftM2 (++) (unifyExp nm False lhs1 lhs2) (unifyExp nm False rhs1 rhs2)
+    | InfixApp _ lhs1 op1 rhs1 <- x = guard (nmOp nm op1 op2) >> liftM2 (<>) (unifyExp nm False lhs1 lhs2) (unifyExp nm False rhs1 rhs2)
     | isDol op2 = unifyExp nm root x $ App an lhs2 rhs2
     | otherwise = unifyExp nm root x $ App an (App an (opExp op2) lhs2) rhs2
 
@@ -198,9 +209,9 @@ rebracket (Paren l e') (v, e)
 rebracket e (v, e') = (v, e')
 
 
-unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe [(String,Exp_)]
-unifyPat nm (PVar _ x) (PVar _ y) = Just [(fromNamed x, toNamed $ fromNamed y)]
-unifyPat nm (PVar _ x) PWildCard{} = Just [(fromNamed x, toNamed $ "_" ++ fromNamed x)]
+unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe Subst
+unifyPat nm (PVar _ x) (PVar _ y) = Just $ Subst [(fromNamed x, toNamed $ fromNamed y)]
+unifyPat nm (PVar _ x) PWildCard{} = Just $ Subst [(fromNamed x, toNamed $ "_" ++ fromNamed x)]
 unifyPat nm x y = unifyDef nm x y
 
 
@@ -215,17 +226,17 @@ isOther _ = True
 ---------------------------------------------------------------------
 -- SUBSTITUTION UTILITIES
 
--- check the unification is valid
-check :: [(String,Exp_)] -> Maybe [(String,Exp_)]
-check = mapM f . groupSort
+-- check the unification is valid and simplify it
+check :: Subst -> Maybe Subst
+check = fmap Subst . mapM f . groupSort . fromSubst
     where f (x,ys) = if checkSame ys then Just (x,head ys) else Nothing
           checkSame [] = True
           checkSame (x:xs) = all (x =~=) xs
 
 
 -- perform a substitution
-subst :: [(String,Exp_)] -> Exp_ -> Exp_
-subst bind = transform g . transformBracket f
+subst :: Subst -> Exp_ -> Exp_
+subst (Subst bind) = transform g . transformBracket f
     where
         f (Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
         f _ = Nothing
@@ -237,8 +248,8 @@ subst bind = transform g . transformBracket f
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS
 
-checkSide :: Maybe Exp_ -> [(String,Exp_)] -> Bool
-checkSide x bind = maybe True f x
+checkSide :: Maybe Exp_ -> Subst -> Bool
+checkSide x (Subst bind) = maybe True f x
     where
         f (InfixApp _ x op y)
             | opExp op ~= "&&" = f x && f y
@@ -300,8 +311,8 @@ performEval x = x
 
 -- contract Data.List.foo ==> foo, if Data.List is loaded
 -- change X.foo => Module.foo, where X is looked up in the subst
-unqualify :: Scope -> Scope -> [(String,Exp_)] -> Exp_ -> Exp_
-unqualify from to subs = transformBi f
+unqualify :: Scope -> Scope -> Subst -> Exp_ -> Exp_
+unqualify from to (Subst subs) = transformBi f
     where
         f (Qual _ (ModuleName _ [m]) x) | Just y <- fromNamed <$> lookup [m] subs
             = if null y then UnQual an x else Qual an (ModuleName an y) x
