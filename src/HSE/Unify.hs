@@ -76,7 +76,7 @@ transformBracketTemplate op = fst . snd . g
         f x = maybe (False,(x, x)) ((,) True) (op x)
 
 -- perform a substitution
-substT :: Subst -> Exp_ -> Exp_
+substT :: Subst Exp_ -> Exp_ -> Exp_
 substT (Subst bind) = transform g . transformBracketTemplate f
     where
         f v@(Var _ (fromNamed -> x)) | isUnifyVar x = case lookup x bind of
@@ -92,16 +92,19 @@ substT (Subst bind) = transform g . transformBracketTemplate f
 ---------------------------------------------------------------------
 -- UNIFICATION
 
-newtype Subst = Subst {fromSubst :: [(String, Exp_)]}
+newtype Subst a = Subst {fromSubst :: [(String, a)]}
 
-instance Show Subst where
+instance Functor Subst where
+    fmap f (Subst xs) = Subst $ map (second f) xs
+
+instance Pretty a => Show (Subst a) where
     show (Subst xs) = unlines [a ++ " = " ++ prettyPrint b | (a,b) <- xs]
 
-instance Monoid Subst where
+instance Monoid (Subst a) where
     mempty = Subst []
     mappend (Subst xs) (Subst ys) = Subst $ xs ++ ys
 
-lookupVar :: String -> Subst -> Maybe Exp_
+lookupVar :: String -> Subst a -> Maybe a
 lookupVar v (Subst xs) = lookup v xs
 
 type NameMatch = QName S -> QName S -> Bool
@@ -113,21 +116,21 @@ nmOp nm  _ _ = False
 
 
 -- unify a b = c, a[c] = b
-unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe Subst
+unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe (Subst Exp_)
 unify nm root x y | Just (x,y) <- cast (x,y) = unifyExp nm root x y
                   | Just (x,y) <- cast (x,y) = unifyPat nm x y
                   | Just (x :: S) <- cast x = Just mempty
                   | otherwise = unifyDef nm x y
 
 
-unifyDef :: Data a => NameMatch -> a -> a -> Maybe Subst
+unifyDef :: Data a => NameMatch -> a -> a -> Maybe (Subst Exp_)
 unifyDef nm x y = fmap mconcat . sequence =<< gzip (unify nm False) x y
 
 
 -- App/InfixApp are analysed specially for performance reasons
 -- root = True, this is the outside of the expr
 -- do not expand out a dot at the root, since otherwise you get two matches because of readRule (Bug #570)
-unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe Subst
+unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe (Subst Exp_)
 unifyExp nm root x y | isParen x || isParen y =
   Subst . map (rebracket y) . fromSubst <$> unifyExp nm root (fromParen x) (fromParen y)
 unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v = Just $ Subst [(v,y)]
@@ -150,7 +153,7 @@ rebracket (Paren l e') (v, e)
 rebracket e (v, e') = (v, e')
 
 
-unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe Subst
+unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe (Subst Exp_)
 unifyPat nm (PVar _ x) (PVar _ y) = Just $ Subst [(fromNamed x, toNamed $ fromNamed y)]
 unifyPat nm (PVar _ x) PWildCard{} = Just $ Subst [(fromNamed x, toNamed $ "_" ++ fromNamed x)]
 unifyPat nm x y = unifyDef nm x y
@@ -168,7 +171,7 @@ isOther _ = True
 -- SUBSTITUTION UTILITIES
 
 -- check the unification is valid and simplify it
-check :: Subst -> Maybe Subst
+check :: Subst Exp_ -> Maybe (Subst Exp_)
 check = fmap Subst . mapM f . groupSort . fromSubst
     where f (x,ys) = if checkSame ys then Just (x,head ys) else Nothing
           checkSame [] = True
@@ -176,7 +179,7 @@ check = fmap Subst . mapM f . groupSort . fromSubst
 
 
 -- perform a substitution
-subst :: Subst -> Exp_ -> Exp_
+subst :: Subst Exp_ -> Exp_ -> Exp_
 subst (Subst bind) = transform g . transformBracket f
     where
         f (Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
