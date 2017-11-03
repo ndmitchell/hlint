@@ -124,10 +124,7 @@ unifyPat nm x y = unifyDef nm x y
 
 -- perform a substitution
 substitute :: Subst Exp_ -> Exp_ -> Exp_
-substitute (Subst bind) = transform g . transformBracket f
+substitute (Subst bind) = transformBracket f
     where
         f (Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
         f _ = Nothing
-
-        g (App _ np x) | np ~= "_noParen_" = fromParen x
-        g x = x

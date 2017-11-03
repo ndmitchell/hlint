@@ -105,7 +105,7 @@ matchIdea s decl HintRule{..} parent x = do
     -- need to check free vars before unqualification, but after subst (with e)
     -- need to unqualify before substitution (with res)
     let e = substitute u hintRuleRHS
-        res = addBracket parent $ performEval $ substitute u $ unqualify hintRuleScope s hintRuleRHS
+        res = addBracket parent $ performNoParen $ performEval $ substitute u $ unqualify hintRuleScope s hintRuleRHS
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables
@@ -177,6 +177,10 @@ performEval :: Exp_ -> Exp_
 performEval (App _ e x) | e ~= "_eval_" = reduce x
 performEval x = x
 
+performNoParen :: Exp_ -> Exp_
+performNoParen = transform f
+    where f (App _ e x) | e ~= "_noParen_" = fromParen x
+          f x = x
 
 -- contract Data.List.foo ==> foo, if Data.List is loaded
 unqualify :: Scope -> Scope -> Exp_ -> Exp_
