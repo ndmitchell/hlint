@@ -44,9 +44,8 @@ instance Monoid (Subst a) where
 -- check the unification is valid and simplify it
 validSubst :: Subst Exp_ -> Maybe (Subst Exp_)
 validSubst = fmap Subst . mapM f . groupSort . fromSubst
-    where f (x,ys) = if checkSame ys then Just (x,head ys) else Nothing
-          checkSame [] = True
-          checkSame (x:xs) = all (x =~=) xs
+    where f (x,y:ys) | all (y =~=) ys = Just (x,head ys)
+          f _ = Nothing
 
 
 ---------------------------------------------------------------------
