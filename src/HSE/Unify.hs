@@ -1,41 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards, FlexibleContexts, ScopedTypeVariables #-}
-
-{-
-The matching does a fairly simple unification between the two terms, treating
-any single letter variable on the left as a free variable. After the matching
-we substitute, transform and check the side conditions. We also "see through"
-both ($) and (.) functions on the right.
-
-TRANSFORM PATTERNS
-_eval_ - perform deep evaluation, must be used at the top of a RHS
-_noParen_ - don't bracket this particular item
-
-SIDE CONDITIONS
-(&&), (||), not - boolean connectives
-isAtom x - does x never need brackets
-isFoo x - is the root constructor of x a "Foo"
-notEq x y - are x and y not equal
-notIn xs ys - are all x variables not in ys expressions
-noTypeCheck, noQuickCheck - no semantics, a hint for testing only
-
-($) AND (.)
-We see through ($)/(.) by expanding it if nothing else matches.
-We also see through (.) by translating rules that have (.) equivalents
-to separate rules. For example:
-
-concat (map f x) ==> concatMap f x
--- we spot both these rules can eta reduce with respect to x
-concat . map f ==> concatMap f
--- we use the associativity of (.) to add
-concat . map f . x ==> concatMap f . x
--- currently 36 of 169 rules have (.) equivalents
-
-We see through (.) if the RHS is dull using id, e.g.
-
-not (not x) ==> x
-not . not ==> id
-not . not . x ==> x
--}
+{-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables #-}
 
 module HSE.Unify(
     Subst, fromSubst, lookupVar,
