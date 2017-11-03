@@ -47,12 +47,16 @@ validSubst eq = fmap Subst . mapM f . groupSort . fromSubst
     where f (x,y:ys) | all (eq y) ys = Just (x,y)
           f _ = Nothing
 
+
 -- | Perform a substitution
 substitute :: Subst Exp_ -> Exp_ -> Exp_
-substitute (Subst bind) = transformBracket f
+substitute (Subst bind) = transformBracket exp . transformBi pat
     where
-        f (Var _ (fromNamed -> x)) = lookup x bind
-        f _ = Nothing
+        exp (Var _ (fromNamed -> x)) = lookup x bind
+        exp _ = Nothing
+
+        pat (PVar _ (fromNamed -> x)) | Just y <- lookup x bind = toNamed $ fromNamed y
+        pat x = x :: Pat_
 
 
 ---------------------------------------------------------------------
