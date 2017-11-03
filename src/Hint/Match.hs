@@ -101,7 +101,7 @@ matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (E
 matchIdea s decl HintRule{..} parent x = do
     let nm a b = scopeMatch (hintRuleScope,a) (s,b)
     u <- unifyExp nm True hintRuleLHS x
-    u <- validSubst u
+    u <- validSubst (=~=) u
     -- need to check free vars before unqualification, but after subst (with e)
     -- need to unqualify before substitution (with res)
     let e = substitute u hintRuleRHS
