@@ -38,7 +38,8 @@ not . not . x ==> x
 -}
 
 module HSE.Unify(
-    Subst(..), unifyExp, check,
+    Subst(..), lookupVar,
+    unifyExp, check,
     subst, substT,
     ) where
 
@@ -100,6 +101,8 @@ instance Monoid Subst where
     mempty = Subst []
     mappend (Subst xs) (Subst ys) = Subst $ xs ++ ys
 
+lookupVar :: String -> Subst -> Maybe Exp_
+lookupVar v (Subst xs) = lookup v xs
 
 type NameMatch = QName S -> QName S -> Bool
 

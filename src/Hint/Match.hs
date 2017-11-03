@@ -120,7 +120,7 @@ matchIdea s decl HintRule{..} parent x = do
 -- SIDE CONDITIONS
 
 checkSide :: Maybe Exp_ -> Subst -> Bool
-checkSide x (Subst bind) = maybe True f x
+checkSide x bind = maybe True f x
     where
         f (InfixApp _ x op y)
             | opExp op ~= "&&" = f x && f y
@@ -161,7 +161,7 @@ checkSide x (Subst bind) = maybe True f x
 
         sub :: Exp_ -> Exp_
         sub = transform f
-            where f (view -> Var_ x) | Just y <- lookup x bind = y
+            where f (view -> Var_ x) | Just y <- lookupVar x bind = y
                   f x = x
 
 
@@ -183,9 +183,9 @@ performEval x = x
 -- contract Data.List.foo ==> foo, if Data.List is loaded
 -- change X.foo => Module.foo, where X is looked up in the subst
 unqualify :: Scope -> Scope -> Subst -> Exp_ -> Exp_
-unqualify from to (Subst subs) = transformBi f
+unqualify from to subs = transformBi f
     where
-        f (Qual _ (ModuleName _ [m]) x) | Just y <- fromNamed <$> lookup [m] subs
+        f (Qual _ (ModuleName _ [m]) x) | Just y <- fromNamed <$> lookupVar [m] subs
             = if null y then UnQual an x else Qual an (ModuleName an y) x
         f x@(UnQual _ (Ident _ s)) | isUnifyVar s = x
         f x = scopeMove (from,x) to
