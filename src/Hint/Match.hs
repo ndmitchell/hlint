@@ -94,10 +94,10 @@ findIdeas matches s _ decl =
   [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
   | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
   , (parent,x) <- universeParentExp decl, not $ isParen x
-  , m <- matches, Just (y,notes, subst, rule) <- [matchIdea s decl m parent x]
-  , let r = R.Replace R.Expr (toSS x) subst (prettyPrint rule) ]
+  , m <- matches, Just (y,notes, subst) <- [matchIdea s decl m parent x]
+  , let r = R.Replace R.Expr (toSS x) subst (prettyPrint $ hintRuleRHS m) ]
 
-matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_, [Note], [(String, R.SrcSpan)], Exp_)
+matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_, [Note], [(String, R.SrcSpan)])
 matchIdea s decl HintRule{..} parent x = do
     let nm a b = scopeMatch (hintRuleScope,a) (s,b)
     u <- unifyExp nm True hintRuleLHS x
@@ -105,14 +105,13 @@ matchIdea s decl HintRule{..} parent x = do
     -- need to check free vars before unqualification, but after subst (with e)
     -- need to unqualify before substitution (with res)
     let e = substitute u hintRuleRHS
-        template = substT u hintRuleRHS
         res = addBracket parent $ performEval $ substitute u $ unqualify hintRuleScope s hintRuleRHS
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables
     guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : fromSubst u
     guard $ checkDefine decl parent res
-    return (res, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst u, ann pos /= an], template)
+    return (res, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst u, ann pos /= an])
 
 
 ---------------------------------------------------------------------
