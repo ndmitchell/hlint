@@ -1,5 +1,5 @@
 
-module Config.All(readFilesConfig) where
+module Config.Read(readFilesConfig) where
 
 import Config.Type
 import Config.Haskell

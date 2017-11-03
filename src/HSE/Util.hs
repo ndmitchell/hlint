@@ -1,9 +1,11 @@
 {-# LANGUAGE FlexibleContexts, ViewPatterns #-}
 
-module HSE.Util(module HSE.Util) where
+module HSE.Util(module HSE.Util, def) where
 
 import Control.Monad
+import Data.Default
 import Data.List
+import Language.Haskell.Exts.Util() -- Orphan instances of Default for SrcLoc etc
 import Data.Maybe
 import Data.Data hiding (Fixity)
 import System.FilePath
@@ -284,16 +286,10 @@ showSrcLoc (SrcLoc file line col) = take 1 file ++ f (drop 1 file) ++ ":" ++ sho
           f (x:xs) = x : f xs
           f [] = []
 
-nullSrcLoc :: SrcLoc
-nullSrcLoc = SrcLoc "" 0 0
-
-nullSrcSpan :: SrcSpan
-nullSrcSpan = mkSrcSpan nullSrcLoc nullSrcLoc
-
 an :: SrcSpanInfo
-an = toSrcInfo nullSrcLoc [] nullSrcLoc
+an = def
 
-dropAnn :: Functor f => f s -> f ()
+dropAnn :: Functor f => f SrcSpanInfo -> f ()
 dropAnn = void
 
 ---------------------------------------------------------------------

@@ -13,7 +13,7 @@ import Data.Functor
 import Prelude
 
 import Config.Type
-import Config.All
+import Config.Read
 import CmdLine
 import HSE.All
 import Hint.All

@@ -5,7 +5,7 @@ import Control.Applicative
 import Data.Monoid
 import HSE.All
 import Hint.All
-import Hint.Type
+import Idea
 import Data.Tuple.Extra
 import Data.Either
 import Data.List.Extra

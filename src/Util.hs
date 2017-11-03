@@ -2,11 +2,10 @@
 
 module Util(
     defaultExtensions,
-    gzip, universeParentBi, descendIndex,
+    gzip, universeParentBi,
     exitMessage, exitMessageImpure
     ) where
 
-import Control.Monad.Trans.State
 import Data.List
 import System.Exit
 import System.IO
@@ -44,12 +43,6 @@ gzip f x y | toConstr x /= toConstr y = Nothing
 
 ---------------------------------------------------------------------
 -- DATA.GENERICS.UNIPLATE.OPERATIONS
-
-descendIndex :: Uniplate a => (Int -> a -> a) -> a -> a
-descendIndex f x = flip evalState 0 $ flip descendM x $ \y -> do
-    i <- get
-    modify (+1)
-    return $ f i y
 
 universeParent :: Uniplate a => a -> [(Maybe a, a)]
 universeParent x = (Nothing,x) : f x

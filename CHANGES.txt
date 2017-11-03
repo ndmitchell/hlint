@@ -1,5 +1,10 @@
 Changelog for HLint
 
+    #378, suggest map for degenerate foldr
+    #395, suggest x $> y from x *> pure y and x *> return y
+    #395, suggest x <$ y from pure x <* y and return x <* y
+    #393, suggest f <$> m from m >>= pure . f and pure . f =<<
+    #366, avoid the github API for prebuilt hlint, is rate limited
     #352, suggest maybe for fromMaybe d (f <$> x)
     #338, warn about things imported hidden but not used
     #337, add --git flag to additionally check files in git

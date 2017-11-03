@@ -30,11 +30,11 @@ module Language.Haskell.HLint3(
     ) where
 
 import Config.Type
-import Config.All
+import Config.Read
 import Idea
 import Apply
 import HLint
-import Hint.Type
+import HSE.All
 import Hint.All
 import CmdLine
 import Paths_hlint

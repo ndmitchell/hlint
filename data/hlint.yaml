@@ -119,6 +119,7 @@
     - warn: {lhs: foldl (++) "", rhs: concat, note: IncreasesLaziness}
     - warn: {lhs: foldl f (head x) (tail x), rhs: foldl1 f x}
     - warn: {lhs: foldr f (last x) (init x), rhs: foldr1 f x}
+    - warn: {lhs: "foldr (\\c a -> x : a) []", rhs: "map (\\c -> x)"}
     - warn: {lhs: span (not . p), rhs: break p}
     - warn: {lhs: break (not . p), rhs: span p}
     - warn: {lhs: "(takeWhile p x, dropWhile p x)", rhs: span p x}
@@ -302,6 +303,10 @@
     - warn: {lhs: id <$> x, rhs: x, name: Functor law}
     - hint: {lhs: fmap f $ x, rhs: f Control.Applicative.<$> x, side: isApp x || isAtom x}
     - hint: {lhs: \x -> a <$> b x, rhs: fmap a . b}
+    - hint: {lhs: x *> pure y, rhs: x Data.Functor.$> y}
+    - hint: {lhs: x *> return y, rhs: x Data.Functor.$> y}
+    - hint: {lhs: pure x <* y, rhs: x Data.Functor.<$ y}
+    - hint: {lhs: return x <* y, rhs: x Data.Functor.<$ y}
 
     # MONAD
 
@@ -311,8 +316,8 @@
     - warn: {lhs: return =<< m, rhs: m, name: "Monad law, right identity"}
     - warn: {lhs: liftM, rhs: fmap}
     - warn: {lhs: liftA, rhs: fmap}
-    - hint: {lhs: m >>= return . f, rhs: fmap f m}
-    - hint: {lhs: return . f =<< m, rhs: fmap f m}
+    - hint: {lhs: m >>= return . f, rhs: f <$> m}
+    - hint: {lhs: return . f =<< m, rhs: f <$> m}
     - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x $ _noParen_ y, side: not (isAtom y)}
     - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x y, side: isAtom y}
     - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: isAtom y}
@@ -374,6 +379,8 @@
     - warn: {lhs: foldr (<|>) empty, rhs: asum}
     - warn: {lhs: liftA2 (flip ($)), rhs: (<**>)}
     - warn: {lhs: Just <$> a <|> pure Nothing, rhs: optional a}
+    - hint: {lhs: m >>= pure . f, rhs: f <$> m}
+    - hint: {lhs: pure . f =<< m, rhs: f <$> m}
 
 
     # LIST COMP
@@ -622,7 +629,14 @@
 # yes = not . (/= a) -- (== a)
 # yes = if a then 1 else if b then 1 else 2 -- if a || b then 1 else 2
 # no  = if a then 1 else if b then 3 else 2
-# yes = a >>= return . bob -- fmap bob a
+# yes = a >>= return . bob -- bob <$> a
+# yes = return . bob =<< a -- bob <$> a
+# yes = m alice >>= pure . b -- b <$> m alice
+# yes = pure .b =<< m alice -- b <$> m alice
+# yes = asciiCI "hi" *> pure Hi -- asciiCI "hi" Data.Functor.$> Hi
+# yes = asciiCI "bye" *> return Bye -- asciiCI "bye" Data.Functor.$> Bye
+# yes = pure x <* y -- x Data.Functor.<$ y
+# yes = return x <* y -- x Data.Functor.<$ y
 # yes = (x !! 0) + (x !! 2) -- head x
 # yes = if b < 42 then [a] else [] -- [a | b < 42]
 # no  = take n (foo xs) == "hello"
@@ -734,7 +748,9 @@
 # {-# LANGUAGE TypeApplications #-} \
 # foo = id @Int
 # foo = id 12 -- 12
-# 
+# yes = foldr (\ curr acc -> (+ 1) curr : acc) [] -- map (\ curr -> (+ 1) curr)
+# yes = foldr (\ curr acc -> curr + curr : acc) [] -- map (\ curr -> curr + curr)
+#
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM
 # import Control.Monad \

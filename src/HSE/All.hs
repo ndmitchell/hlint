@@ -3,7 +3,7 @@
 
 module HSE.All(
     module X,
-    ParseFlags(..), defaultParseFlags,
+    CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     parseModuleEx, ParseError(..),
     freeVars, vars, varss, pvars
@@ -17,7 +17,6 @@ import HSE.Type as X
 import HSE.Match as X
 import HSE.Scope as X
 import Util
-import CmdLine
 import Data.Char
 import Data.List.Extra
 import Data.Maybe
@@ -36,6 +35,12 @@ vars  = Set.toList . Set.map prettyPrint . X.freeVars
 varss = Set.toList . Set.map prettyPrint . X.free . X.allVars
 pvars = Set.toList . Set.map prettyPrint . X.bound . X.allVars
 freeVars = Set.map prettyPrint . X.freeVars
+
+-- | What C pre processor should be used.
+data CppFlags
+    = NoCpp -- ^ No pre processing is done.
+    | CppSimple -- ^ Lines prefixed with @#@ are stripped.
+    | Cpphs CpphsOptions -- ^ The @cpphs@ library is used.
 
 -- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
 data ParseFlags = ParseFlags
