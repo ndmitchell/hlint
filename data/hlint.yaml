@@ -119,6 +119,7 @@
     - warn: {lhs: foldl (++) "", rhs: concat, note: IncreasesLaziness}
     - warn: {lhs: foldl f (head x) (tail x), rhs: foldl1 f x}
     - warn: {lhs: foldr f (last x) (init x), rhs: foldr1 f x}
+    - warn: {lhs: "foldr (\\c a -> x : a) []", rhs: "map (\\c -> x)"}
     - warn: {lhs: span (not . p), rhs: break p}
     - warn: {lhs: break (not . p), rhs: span p}
     - warn: {lhs: "(takeWhile p x, dropWhile p x)", rhs: span p x}
@@ -747,6 +748,8 @@
 # {-# LANGUAGE TypeApplications #-} \
 # foo = id @Int
 # foo = id 12 -- 12
+# yes = foldr (\ curr acc -> (+ 1) curr : acc) [] -- map (\ curr -> (+ 1) curr)
+# yes = foldr (\ curr acc -> curr + curr : acc) [] -- map (\ curr -> curr + curr)
 #
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM
