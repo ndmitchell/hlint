@@ -1,8 +1,8 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables #-}
 
 module HSE.Unify(
-    Subst, fromSubst,
-    unifyExp, check,
+    Subst, fromSubst, validSubst,
+    unifyExp,
     substitute, substT,
     ) where
 
@@ -42,8 +42,8 @@ instance Monoid (Subst a) where
 
 
 -- check the unification is valid and simplify it
-check :: Subst Exp_ -> Maybe (Subst Exp_)
-check = fmap Subst . mapM f . groupSort . fromSubst
+validSubst :: Subst Exp_ -> Maybe (Subst Exp_)
+validSubst = fmap Subst . mapM f . groupSort . fromSubst
     where f (x,ys) = if checkSame ys then Just (x,head ys) else Nothing
           checkSame [] = True
           checkSame (x:xs) = all (x =~=) xs
