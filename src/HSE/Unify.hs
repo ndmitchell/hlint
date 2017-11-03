@@ -122,9 +122,9 @@ unifyPat nm x y = unifyDef nm x y
 ---------------------------------------------------------------------
 -- SUBSTITUTION UTILITIES
 
--- perform a substitution
+-- | Perform a substitution
 substitute :: Subst Exp_ -> Exp_ -> Exp_
 substitute (Subst bind) = transformBracket f
     where
-        f (Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
+        f (Var _ (fromNamed -> x)) = lookup x bind
         f _ = Nothing
