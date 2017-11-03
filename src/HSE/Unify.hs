@@ -61,10 +61,11 @@ nmOp nm  _ _ = False
 
 -- | Unification, obeys the property that if @unify a b = s@, then @substitute s a = b@.
 unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe (Subst Exp_)
-unify nm root x y | Just (x,y) <- cast (x,y) = unifyExp nm root x y
-                  | Just (x,y) <- cast (x,y) = unifyPat nm x y
-                  | Just (x :: S) <- cast x = Just mempty
-                  | otherwise = unifyDef nm x y
+unify nm root x y
+    | Just (x,y) <- cast (x,y) = unifyExp nm root x y
+    | Just (x,y) <- cast (x,y) = unifyPat nm x y
+    | Just (x :: S) <- cast x = Just mempty
+    | otherwise = unifyDef nm x y
 
 
 unifyDef :: Data a => NameMatch -> a -> a -> Maybe (Subst Exp_)
