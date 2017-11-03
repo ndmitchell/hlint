@@ -105,9 +105,9 @@ matchIdea s decl HintRule{..} parent x = do
     u <- check u
     -- need to check free vars before unqualification, but after subst (with e)
     -- need to unqualify before substitution (with res)
-    let e = subst u hintRuleRHS
+    let e = substitute u hintRuleRHS
         template = substT u hintRuleRHS
-        res = addBracket parent $ performEval $ subst u $ unqualify hintRuleScope s u hintRuleRHS
+        res = addBracket parent $ performEval $ substitute u $ unqualify hintRuleScope s u hintRuleRHS
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables

@@ -40,7 +40,7 @@ not . not . x ==> x
 module HSE.Unify(
     Subst(..), lookupVar,
     unifyExp, check,
-    subst, substT,
+    substitute, substT,
     ) where
 
 import Control.Applicative
@@ -179,8 +179,8 @@ check = fmap Subst . mapM f . groupSort . fromSubst
 
 
 -- perform a substitution
-subst :: Subst Exp_ -> Exp_ -> Exp_
-subst (Subst bind) = transform g . transformBracket f
+substitute :: Subst Exp_ -> Exp_ -> Exp_
+substitute (Subst bind) = transform g . transformBracket f
     where
         f (Var _ (fromNamed -> x)) | isUnifyVar x = lookup x bind
         f _ = Nothing
