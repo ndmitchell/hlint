@@ -106,7 +106,7 @@ matchIdea s decl HintRule{..} parent x = do
     -- need to unqualify before substitution (with res)
     let e = substitute u hintRuleRHS
         template = substT u hintRuleRHS
-        res = addBracket parent $ performEval $ substitute u $ unqualify hintRuleScope s u hintRuleRHS
+        res = addBracket parent $ performEval $ substitute u $ unqualify hintRuleScope s hintRuleRHS
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables
@@ -180,12 +180,9 @@ performEval x = x
 
 
 -- contract Data.List.foo ==> foo, if Data.List is loaded
--- change X.foo => Module.foo, where X is looked up in the subst
-unqualify :: Scope -> Scope -> Subst Exp_ -> Exp_ -> Exp_
-unqualify from to subs = transformBi f
+unqualify :: Scope -> Scope -> Exp_ -> Exp_
+unqualify from to = transformBi f
     where
-        f (Qual _ (ModuleName _ [m]) x) | Just y <- fromNamed <$> lookupVar [m] subs
-            = if null y then UnQual an x else Qual an (ModuleName an y) x
         f x@(UnQual _ (Ident _ s)) | isUnifyVar s = x
         f x = scopeMove (from,x) to
 
