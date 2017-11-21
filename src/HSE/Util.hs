@@ -122,6 +122,14 @@ isSection LeftSection{} = True
 isSection RightSection{} = True
 isSection _ = False
 
+isPrimLiteral PrimInt{} = True
+isPrimLiteral PrimWord{} = True
+isPrimLiteral PrimFloat{} = True
+isPrimLiteral PrimDouble{} = True
+isPrimLiteral PrimChar{} = True
+isPrimLiteral PrimString{} = True
+isPrimLiteral _ = False
+
 
 allowRightSection x = x `notElem` ["-","#"]
 allowLeftSection x = x /= "#"
