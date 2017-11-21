@@ -117,6 +117,7 @@ foo = id --
 module Hint.Extensions(extensionsHint) where
 
 import Hint.Type
+import Control.Monad.Extra
 import Data.Maybe
 import Data.List.Extra
 import Data.Ratio
@@ -174,7 +175,7 @@ usedExt _ = const True
 
 
 used :: KnownExtension -> Module_ -> Bool
-used RecursiveDo = hasS isMDo & hasS isRecStmt
+used RecursiveDo = hasS isMDo ||^ hasS isRecStmt
 used ParallelListComp = hasS isParComp
 used FunctionalDependencies = hasT (un :: FunDep S)
 used ImplicitParams = hasT (un :: IPName S)
@@ -185,7 +186,7 @@ used EmptyDataDecls = hasS f
           f _ = False
 used KindSignatures = hasT (un :: Kind S)
 used BangPatterns = hasS isPBangPat
-used TemplateHaskell = hasT2 (un :: (Bracket S, Splice S)) & hasS f & hasS isSpliceDecl
+used TemplateHaskell = hasT2 (un :: (Bracket S, Splice S)) ||^ hasS f ||^ hasS isSpliceDecl
     where f VarQuote{} = True
           f TypQuote{} = True
           f _ = False
@@ -197,11 +198,11 @@ used PatternGuards = hasS f
           g _ = True
 used StandaloneDeriving = hasS isDerivDecl
 used PatternSignatures = hasS isPatTypeSig
-used RecordWildCards = hasS isPFieldWildcard & hasS isFieldWildcard
-used RecordPuns = hasS isPFieldPun & hasS isFieldPun
+used RecordWildCards = hasS isPFieldWildcard ||^ hasS isFieldWildcard
+used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun
 used UnboxedTuples = has (not . isBoxed)
 used PackageImports = hasS (isJust . importPkg)
-used QuasiQuotes = hasS isQuasiQuote & hasS isTyQuasiQuote
+used QuasiQuotes = hasS isQuasiQuote ||^ hasS isTyQuasiQuote
 used ViewPatterns = hasS isPViewPat
 used DefaultSignatures = hasS isClsDefSig
 used DeriveDataTypeable = hasDerive ["Data","Typeable"]
@@ -225,7 +226,7 @@ used Arrows = hasS f
 used TransformListComp = hasS f
     where f QualStmt{} = False
           f _ = True
-used MagicHash = \x -> hasS f x || hasS g x
+used MagicHash = hasS f ||^ hasS g
     where f (Ident _ s) = "#" `isSuffixOf` s
           f _ = False
           g (PrimInt _ _ _) = True
@@ -286,10 +287,8 @@ derives m = mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
 
 un = undefined
 
-(&) f g x = f x || g x
-
 hasT t x = not $ null (universeBi x `asTypeOf` [t])
-hasT2 ~(t1,t2) = hasT t1 & hasT t2
+hasT2 ~(t1,t2) = hasT t1 ||^ hasT t2
 
 hasS :: (Data x, Data (f S)) => (f S -> Bool) -> x -> Bool
 hasS test = any test . universeBi
