@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #405, fix false positives on MagicHash due to unboxed literals
 2.0.10
     #377, suggest lambda case
     Add CodeClimate support
