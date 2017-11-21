@@ -101,6 +101,14 @@ data Foo a = Foo a deriving (Eq,Data,Functor) --
 {-# LANGUAGE MagicHash #-} \
 foo# = id
 {-# LANGUAGE MagicHash #-} \
+main = "foo"#
+{-# LANGUAGE MagicHash #-} \
+main = 5#
+{-# LANGUAGE MagicHash #-} \
+main = 'a'#
+{-# LANGUAGE MagicHash #-} \
+main = 5.6#
+{-# LANGUAGE MagicHash #-} \
 foo = id --
 </TEST>
 -}
@@ -217,9 +225,16 @@ used Arrows = hasS f
 used TransformListComp = hasS f
     where f QualStmt{} = False
           f _ = True
-used MagicHash = hasS f
+used MagicHash = \x -> hasS f x || hasS g x
     where f (Ident _ s) = "#" `isSuffixOf` s
           f _ = False
+          g (PrimInt _ _ _) = True
+          g (PrimWord _ _ _) = True
+          g (PrimFloat _ _ _) = True
+          g (PrimDouble _ _ _) = True
+          g (PrimChar _ _ _) = True
+          g (PrimString _ _ _) = True
+          g _ = False
 
 -- for forwards compatibility, if things ever get added to the extension enumeration
 used x = usedExt $ UnknownExtension $ show x
