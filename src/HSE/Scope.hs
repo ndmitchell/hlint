@@ -41,7 +41,7 @@ instance Monoid Scope where
     mappend (Scope xs) (Scope ys) = Scope $ xs ++ ys
 
 -- | Create a 'Scope' value from a module, based on the modules imports.
-scopeCreate :: Module_ -> Scope
+scopeCreate :: Module SrcSpanInfo -> Scope
 scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
     where
         res = [x | x <- moduleImports xs, importPkg x /= Just "hint"]
