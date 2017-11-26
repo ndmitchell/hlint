@@ -74,7 +74,8 @@ argsSettings args = do
     case cmd of
         CmdMain{..} -> do
             -- FIXME: Two things that could be supported (but aren't) are 'cmdGivenHints' and 'cmdWithHints'.
-            (fixities, classify, hints) <- findSettings (readSettingsFile $ Just cmdDataDir) Nothing
+            (_,settings) <- readAllSettings args cmd
+            let (fixities, classify, hints) = splitSettings settings
             let flags = parseFlagsSetLanguage (cmdExtensions cmd) $ parseFlagsAddFixities fixities $
                         defaultParseFlags{cppFlags = cmdCpp cmd}
             let ignore = [Classify Ignore x "" "" | x <- cmdIgnore]
@@ -105,10 +106,14 @@ findSettings :: (String -> IO (FilePath, Maybe String)) -> Maybe String -> IO ([
 findSettings load start = do
     (file,contents) <- load $ fromMaybe "hlint.yaml" start
     xs <- readFilesConfig [(file,contents)]
-    return ([x | Infix x <- xs]
-           ,[x | SettingClassify x <- xs]
-           ,[Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])
+    return $ splitSettings xs
 
+-- | Split a list of 'Setting' for separate use in parsing and hint resolution
+splitSettings :: [Setting] -> ([Fixity], [Classify], [Either HintBuiltin HintRule])
+splitSettings xs =
+    ([x | Infix x <- xs]
+    ,[x | SettingClassify x <- xs]
+    ,[Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])
 
 -- | Snippet from the documentation, if this changes, update the documentation
 _docs :: IO ()

@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards, TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
-module HLint(hlint) where
+module HLint(hlint, readAllSettings) where
 
 import Control.Applicative
 import Control.Monad.Extra
