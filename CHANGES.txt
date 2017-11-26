@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #408, use the same config file logic in argsSettings as in hlint
     Don't use unexported type synonyms in the public API
     #405, fix false positives on MagicHash due to unboxed literals
 2.0.10
