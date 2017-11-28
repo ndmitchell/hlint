@@ -224,12 +224,12 @@ You can see the output of `--default` [here](https://github.com/ndmitchell/hlint
 
 Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for suppressing certain hints. Ignore directives can either be written as pragmas in the file being analysed, or in the hint files. Examples of pragmas are:
 
-* `{-# ANN module "HLint: ignore Eta reduce" #-}` - ignore all eta reduction suggestions in this module (use `module` literally, not the name of the module). Put this annotation _after_ the `import` statements at the top of your module.
+* `{-# ANN module "HLint: ignore Eta reduce" #-}` - ignore all eta reduction suggestions in this module (use `module` literally, not the name of the module). Put this annotation _after_ the `import` statements.
 * `{-# ANN myFunction "HLint: ignore" #-}` - don't give any hints in the function `myFunction`.
 * `{-# ANN myFunction "HLint: error" #-}` - any hint in the function `myFunction` is an error.
 * `{-# ANN module "HLint: error Use concatMap" #-}` - the hint to use `concatMap` is an error (you may also use `warn` or `suggest` in place of `error` for other severity levels).
 
-> **Important note about annotations** If you have the `OverloadedStrings` extension enabled, you have to manually specify the type of the annotation as `String`, else GHCi is going to complain loudly. Please look at the relevant section in the FAQs about this.
+If you have the `OverloadedStrings` extension enabled you will need to give an explicit type to the annotation, e.g. `{-# ANN myFunction ("HLint: ignore" :: String) #-}`.
 
 Ignore directives can also be written in the hint files:
 
