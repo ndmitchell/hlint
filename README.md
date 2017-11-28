@@ -229,6 +229,8 @@ Some of the hints are subjective, and some users believe they should be ignored.
 * `{-# ANN myFunction "HLint: error" #-}` - any hint in the function `myFunction` is an error.
 * `{-# ANN module "HLint: error Use concatMap" #-}` - the hint to use `concatMap` is an error (you may also use `warn` or `suggest` in place of `error` for other severity levels).
 
+> **Important note about annotations** If you have the `OverloadedStrings` extension enabled, you have to manually specify the type of the annotation as `String`, else GHCi is going to complain loudly. Please look at the relevant section in the FAQs about this.
+
 Ignore directives can also be written in the hint files:
 
 * `- ignore: {name: Eta reduce}` - suppress all eta reduction suggestions.
