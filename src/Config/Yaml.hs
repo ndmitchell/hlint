@@ -21,6 +21,7 @@ import qualified Data.HashMap.Strict as Map
 import HSE.All hiding (Rule, String)
 import Data.Functor
 import Data.Monoid
+import Util
 import Prelude
 
 
@@ -135,10 +136,10 @@ allowFields v allow = do
     when (bad /= []) $
         parseFail v $ "Not allowed keys: " ++ unwords bad
 
-parseHSE :: (String -> ParseResult v) -> Val -> Parser v
+parseHSE :: (ParseMode -> String -> ParseResult v) -> Val -> Parser v
 parseHSE parser v = do
     x <- parseString v
-    case parser x of
+    case parser defaultParseMode{extensions=defaultExtensions} x of
         ParseOk x -> return x
         ParseFailed loc s -> parseFail v $ "Failed to parse " ++ s ++ ", when parsing:\n  " ++ x
 
@@ -167,12 +168,12 @@ parseConfigYaml v = do
 parsePackage :: Val -> Parser Package
 parsePackage v = do
     packageName <- parseField "name" v >>= parseString
-    packageModules <- parseField "modules" v >>= parseArray >>= mapM (parseHSE parseImportDecl)
+    packageModules <- parseField "modules" v >>= parseArray >>= mapM (parseHSE parseImportDeclWithMode)
     allowFields v ["name","modules"]
     return Package{..}
 
 parseFixity :: Val -> Parser [Setting]
-parseFixity v = parseArray v >>= concatMapM (parseHSE parseDecl >=> f)
+parseFixity v = parseArray v >>= concatMapM (parseHSE parseDeclWithMode >=> f)
     where
         f x@InfixDecl{} = return $ map Infix $ getFixity x
         f _ = parseFail v "Expected fixity declaration"
@@ -190,7 +191,7 @@ parseGroup v = do
             x <- parseString v
             case word1 x of
                 ("package", x) -> return $ Left x
-                _ -> Right <$> parseHSE parseImportDecl v
+                _ -> Right <$> parseHSE parseImportDeclWithMode v
 
 ruleToGroup :: [Either HintRule Classify] -> Group
 ruleToGroup = Group "" True []
@@ -200,11 +201,11 @@ parseRule v = do
     (severity, v) <- parseSeverityKey v
     isRule <- isJust <$> parseFieldOpt "lhs" v
     if isRule then do
-        hintRuleLHS <- parseField "lhs" v >>= parseHSE parseExp
-        hintRuleRHS <- parseField "rhs" v >>= parseHSE parseExp
+        hintRuleLHS <- parseField "lhs" v >>= parseHSE parseExpWithMode
+        hintRuleRHS <- parseField "rhs" v >>= parseHSE parseExpWithMode
         hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (fmap (map asNote) . parseArrayString)
         hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName hintRuleLHS hintRuleRHS) parseString
-        hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap Just . parseHSE parseExp)
+        hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap Just . parseHSE parseExpWithMode)
         allowFields v ["lhs","rhs","note","name","side"]
         let hintRuleScope = mempty
         return [Left HintRule{hintRuleSeverity=severity, ..}]
@@ -230,7 +231,7 @@ parseRestrict restrictType v = do
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
 parseWithin v = do
-    x <- parseHSE parseExp v
+    x <- parseHSE parseExpWithMode v
     case x of
         Var _ (UnQual _ name) -> return [("",fromNamed name)]
         Var _ (Qual _ (ModuleName _ mod) name) -> return [(mod, fromNamed name)]

@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #411, parse the YAML file with lots of HSE extensions turned on
     #408, use the same config file logic in argsSettings as in hlint
     Don't use unexported type synonyms in the public API
     #405, fix false positives on MagicHash due to unboxed literals
