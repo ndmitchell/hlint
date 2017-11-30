@@ -1,0 +1,1 @@
+-c "ghci -fno-code -ferror-spans"
