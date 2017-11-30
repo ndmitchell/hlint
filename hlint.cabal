@@ -60,7 +60,7 @@ library
         aeson >= 1.1.2.0
 
     if flag(gpl)
-        build-depends: hscolour >= 1.21 && (< 1.24.3 || > 1.24.3)
+        build-depends: hscolour >= 1.21
     else
         cpp-options: -DGPL_SCARES_ME
 
