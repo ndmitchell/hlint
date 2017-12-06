@@ -330,7 +330,6 @@ Changelog for HLint
     #585, lots of additional list based hints
 1.8.39
     #582, don't suggest renaming with trailingHashes#
-1.8.38
     #578, treat _ bindings differently in lambdas
 1.8.37
     #575, allow cpphs-1.15
