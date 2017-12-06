@@ -1,11 +1,11 @@
 Changelog for HLint
 
-2.0.11
+2.0.11, released 2017-11-30
     #411, parse the YAML file with lots of HSE extensions turned on
     #408, use the same config file logic in argsSettings as in hlint
     Don't use unexported type synonyms in the public API
     #405, fix false positives on MagicHash due to unboxed literals
-2.0.10
+2.0.10, released 2017-11-03
     #377, suggest lambda case
     Add CodeClimate support
     #378, suggest map for degenerate foldr
@@ -18,34 +18,34 @@ Changelog for HLint
     #337, add --git flag to additionally check files in git
     #353, suggest _ <- mapM to mapM_
     #357, warn on unnecessary use of MagicHash
-2.0.9
+2.0.9, released 2017-06-13
     #346, don't suggest explicit export lists
     #344, fix the API so it works with hlint.yaml by default
-2.0.8
+2.0.8, released 2017-05-21
     #342, add back support for - to mean stdin
-2.0.7
+2.0.7, released 2017-05-16
     #340, fix for directory arguments in the .hlint.yaml
-2.0.6
+2.0.6, released 2017-05-08
     Do statements are not redundant if they change an operator parse
     #333, simplify labels on Parse error, makes it easier to ignore
-2.0.5
+2.0.5, released 2017-04-19
     If the datadir is missing use data/ relative to the executable
     Fix test mode to obey --datadir
-2.0.4
+2.0.4, released 2017-04-17
     --default adds ignores for any warnings it finds
-2.0.3
+2.0.3, released 2017-04-12
     #312, suggest removing the DeriveAnyClass extension
     Suggest removing the DeriveLift extension
     Remove redundant parts from list comprehensions, e.g. [a | True]
     #326, fix up the bounds on the eta-reduce hint
-2.0.2
+2.0.2, released 2017-04-10
     #323, try and avoid malformatted JSON
     #324, use `backticks` in notes
     #324, remove double escaping in note for --json
     #322, fix the YAML syntax in default.yaml
-2.0.1
+2.0.1, released 2017-04-07
     #320, still read ./HLint.hs if it exists
-2.0
+2.0, released 2017-04-06
     #319, add a hint \x -> f <$> g x ==> fmap f . g
     Don't say how many hints were ignored
     Add a --default flag
@@ -66,7 +66,7 @@ Changelog for HLint
     #290, add hints suggesting traverse/traverse_
     #303, detect unused OverloadedStrings extension
     #302, detect unused TupleSections extension
-1.9.41
+1.9.41, released 2017-02-09
     #299, warn in some cases when NumDecimals extension is unused
     #300, warn when LambdaCase extension is unused
     #301, when suggesting newtype remove strictness annotations
@@ -74,11 +74,11 @@ Changelog for HLint
     #167, add -j flag for number of threads
     #292, add fst/snd . unzip ==> map fst/snd
     Don't suggest module export trick, breaks Haddock
-1.9.40
+1.9.40, released 2017-01-22
     #293, fix the JSON format of the output
-1.9.39
+1.9.39, released 2016-12-04
     #287, don't incorrectly suggest newtype
-1.9.38
+1.9.38, released 2016-11-24
     #279, suggest newtype instead of data
     #262, add rules to detect redundant castPtr calls
     Detect unused TypeApplications extension
@@ -88,38 +88,38 @@ Changelog for HLint
     #160, add a --only CLI option
     #237, fix incorrect quasi quotes extension warning
     #257, better bang pattern hints
-1.9.37
+1.9.37, released 2016-08-08
     #255, don't suggest id @Int ==> @Int
     #252, avoid clashes with GHCJS in the interim
-1.9.36
+1.9.36, released 2016-07-25
     Require haskell-src-exts-1.18
     #249, suggest avoiding elem on singletons
-1.9.35
+1.9.35, released 2016-06-10
     #245, fix parse error reports
     #243, update hlint.ghci to work with modern GHC
     Require extra-1.4.9
-1.9.34
+1.9.34, released 2016-06-01
     #154, fix some incorrect line numbers in literate Haskell
     #161, fix literate Haskell and CPP
-1.9.33
+1.9.33, released 2016-05-30
     #240, remove type-incorrect "on" hint
     #234, warn about join seq
     #232, suggest <|> instead of mplus in a few cases
-1.9.32
+1.9.32, released 2016-03-23
     #53, require cpphs-1.20.1, has important fixes
     #224, treat select $ specially, as per esqueleto conventions
     #231, don't modify qualification on substitutions
     #229, add void/mapM_/forM_ hints
-1.9.31
+1.9.31, released 2016-03-01
     #222, don't suggest removing ~ if the Strict extension is on
-1.9.30
+1.9.30, released 2016-02-26
     #220, fix incorrect hints of foldr/foldl on a tuple accumulator
-1.9.29
+1.9.29, released 2016-02-25
     #219, add warnings about foldable methods on tuple
     Put warnings before suggestions in the HTML report
-1.9.28
+1.9.28, released 2016-02-04
     #215, spot newtype deriving inside classes
-1.9.27
+1.9.27, released 2016-02-01
     #203, avoid recompiling everything twice
     #213, don't suggest removing bang patterns on let
     Rename HintStructure to HintPattern
@@ -138,18 +138,18 @@ Changelog for HLint
     #205, add hint compare x y == EQ and /=
     #204, add hint concatMap id ==> concat
     #202, include refactorings is --json output
-1.9.26
+1.9.26, released 2016-01-02
     #200, fix all lint warnings
     #143, expose argsSettings
-1.9.25
+1.9.25, released 2015-11-24
     #192, fix stdin output and --refactor
-1.9.24
+1.9.24, released 2015-11-22
     #188, improve spotting redundant brackets around patterns
     #138, reenable redundant where hint
-1.9.23
+1.9.23, released 2015-11-19
     #184, require haskell-src-exts-1.17
     #183, allow test_ as a prefix
-1.9.22
+1.9.22, released 2015-10-28
     Don't suggest redundant lambda on view patterns
     Add --no-exit-code flag
     #174, don't suggest string literals
@@ -161,70 +161,70 @@ Changelog for HLint
     Extra hints for <$>
     Remove a redundant fmap hint
     #131, add =<< rules in addition to >>=
-1.9.21
+1.9.21, released 2015-05-26
     #130, ignore a BOM if it exists
     #128, don't find files starting with . when searching directories
     Suggest concat even if the [] is written ""
-1.9.20
+1.9.20, released 2015-04-21
     #122, fix the zipWith/repeat hint
-1.9.19
+1.9.19, released 2015-03-26
     #119, don't remove RecursiveDo if they use the rec statement
     Add a suggestion concatMap/map ==> concatMap
-1.9.18
+1.9.18, released 2015-03-17
     More GHC 7.10 warnings and build support
-1.9.17
+1.9.17, released 2015-02-25
     #116, support hscolour-1.21
-1.9.16
+1.9.16, released 2015-01-09
     #108, make "hlint ." work again
-1.9.15
+1.9.15, released 2015-01-03
     #106, avoid warnings with GHC 7.10
     #105, build with GHC 7.10
-1.9.14
+1.9.14, released 2014-12-24
     #649, don't suggest const for values using RecordWildCards
-1.9.13
+1.9.13, released 2014-11-30
     #97, remove the encoding bits of the API
     #98, add an HLint3 prototype API
     #93, make the --quickcheck tests work on GHC 7.8
     Add --tempdir flag to the test mode
-1.9.12
+1.9.12, released 2014-11-09
     #96, fix the --utf8 flag
     Make Encoding an alias for TextEncoding
     Default to UTF8 encoding
-1.9.11
+1.9.11, released 2014-11-07
     #95, don't suggest camel case for names containing digits
     Add a dependency on the extra package
     #92, use a new way for determining the color default
     Add a dependency on ansi-terminal
-1.9.10
+1.9.10, released 2014-10-19
     Spot unsafePerformIO without NOINLINE
-1.9.9
+1.9.9, released 2014-10-13
     #89, fix compiling the executable with --flag=-gpl
-1.9.8
+1.9.8, released 2014-10-08
     #82, don't crash on XmlHybrid modules
     #88, allow avoiding HsColour, as it is GPL licensed
     #87, don't push if down, since it can be type incorrect
-1.9.7
+1.9.7, released 2014-10-02
     #86, don't use color unless $TERM claims to support it
-1.9.6
+1.9.6, released 2014-09-30
     #85, fix the free variable matching check for lambda
     #84, suggest fmap for Either
     Make --json put each hint on a different line
     Support -X for extensions to the hse mode
-1.9.5
+1.9.5, released 2014-09-14
     Remove support for GHC 7.2
     Upgrade to haskell-src-exts-1.16
-1.9.4
+1.9.4, released 2014-08-27
     #81, fixes for GHC 7.9
     #78, add hints for list patterns
     #72, make --color the default on Linux
-1.9.3
+1.9.3, released 2014-07-28
     #73, fix multithreading and exceptions
-1.9.2
+1.9.2, released 2014-07-23
     #68, add --no-summary
-1.9.1
+1.9.1, released 2014-07-21
     #65, add flip (>>=) ==> (=<<) and the reverse
     #61, add --json flag
-1.9
+1.9, released 2014-06-30
     Remove not (isControl x) ==> isPrint (not true for '\173')
     #57, warn on invalid pragmas
     Make the API pass and require comments
@@ -237,10 +237,10 @@ Changelog for HLint
     #37, remove incorrect hint for isAlphaNum
     #45, add mapMaybe id ==> catMaybes
     #42, add some repeat hints
-1.8.61
+1.8.61, released 2014-04-14
     #40, allow haskell-src-exts-1.15
     Don't detect redundant Generics extension
-1.8.60
+1.8.60, released 2014-04-02
     #33, add --cpp-file to preinclude a file
     #34, add back --quiet flag
     #639, don't suggest evaluate, because not all Monad's are IO
@@ -250,9 +250,9 @@ Changelog for HLint
     Change to make test a separate mode
     #12, more list based suggestions
     #637, turn off QuasiQuotes by default
-1.8.59
+1.8.59, released 2014-03-13
     #27, fix up directory file searching
-1.8.58
+1.8.58, released 2014-03-11
     Move the API to Language.Haskell.HLint2
     #638, ensure $! doesn't break strictness with strict fields
     #24, don't remove DeriveFunctor even when only on a newtype
@@ -261,10 +261,10 @@ Changelog for HLint
     #635 and #18, require cpphs-1.18.1
     Switch to CmdArgs for command line parsing
     Remove -x as a synonym for --cross
-1.8.57
+1.8.57, released 2014-02-04
     #6, add a preview of an API
     #331, improve parse error locations for literate Haskell
-1.8.56
+1.8.56, released 2014-01-30
     Remove support for GHC 6.12 and below
     #317, tone down the void hint
     #16, match not . not (and reverse . reverse etc)
@@ -274,32 +274,32 @@ Changelog for HLint
     #10, add a suggestion to use unlines
     #11, add a few hints about characters
     #8, add CHANGES.txt to the Cabal package
-1.8.55
+1.8.55, released 2013-11-29
     #627, fix the UnboxedTuples extension warning
-1.8.54
+1.8.54, released 2013-11-28
     Fix a bug when suggesting const
-1.8.53
+1.8.53, released 2013-09-24
     Fix some corner cases when suggesting foldr etc.
     #517, don't introduce new free variables in a replacement
-1.8.52
+1.8.52, released 2013-09-24
     #2, Generic is not newtype derivable
-1.8.51
+1.8.51, released 2013-08-20
     Upgrade to haskell-src-exts-1.14
-1.8.50
+1.8.50, released 2013-08-18
     Eliminate upper bounds on all dependencies
     #617, fix up notIn to take account of Template Haskell variables
     #573, suggest removing various deriving language extensions
-1.8.49
+1.8.49, released 2013-07-23
     Remove ^^ ==> ** hint
     Remove a duplicate sqrt hint
     Ensure that --test failures throws an error
     Fix up the copyright year in --help
-1.8.48
+1.8.48, released 2013-07-16
     Brackets at the root of annotations are fine
     Reduce a few more lambda expressions
-1.8.47
+1.8.47, released 2013-06-28
     #613, compatibility with base-4.7
-1.8.46
+1.8.46, released 2013-06-06
     Remove incorrect isPrefixOf hints
     #586, add span/break/takeWhile/dropWhile hints
     #588, add sort/reverse hints
@@ -307,15 +307,15 @@ Changelog for HLint
     Add a hint about reverse/reverse
     Add side as an alias for _
     Add hint as an alias for error
-1.8.45
+1.8.45, released 2013-05-12
     #600, hints for unnecessary lazy annotations
-1.8.44
+1.8.44, released 2013-04-21
     #598, warn on unnecessary bang patterns
-1.8.43
+1.8.43, released 2013-01-27
     Change some hint error/warning levels
-1.8.42
+1.8.42, released 2013-01-23
     Allow cpphs-1.16
-1.8.41
+1.8.41, released 2013-01-19
     #586, add a rule for takeWhile/dropWhile ==> span
     #522, add hints for the state monad
     #499, fix up the test suite
@@ -326,58 +326,58 @@ Changelog for HLint
     Add --proof feature
     Retire the Prelude.catch hint
     Additional boolean equality hints
-1.8.40
+1.8.40, released 2013-01-06
     #585, lots of additional list based hints
-1.8.39
+1.8.39, released 2012-12-06
     #582, don't suggest renaming with trailingHashes#
     #578, treat _ bindings differently in lambdas
-1.8.37
+1.8.37, released 2012-12-01
     #575, allow cpphs-1.15
-1.8.36
+1.8.36, released 2012-11-27
     Make --with imply no default Hint files
-1.8.35
+1.8.35, released 2012-11-17
     #567, avoid duplicate hints around (.) hints
-1.8.34
+1.8.34, released 2012-11-06
     Switch license from GPL to BSD3
-1.8.33
+1.8.33, released 2012-10-23
     Lots more hints on laziness, foldable and a few others
     Use mapM_ etc in more situations, when using explicit >>=
-1.8.32
+1.8.32, released 2012-10-23
     Add notes about how to deal with imported fixites
     Add a --with flag for passing settings on the command line
     #563, make sure TypeSig hints get the right function name
     Update the copyright year to 2012
     #564, allow brackets and type signatures on annotations
     Add a note that about using !! if the index is negative
-1.8.31
+1.8.31, released 2012-08-18
     Avoid incomplete patterns when reading ANN pragmas
     #555, top-level expressions require TemplateHaskell
-1.8.30
+1.8.30, released 2012-07-11
     Add elemIndex/elemIndices hints
     Allow cpphs-1.14
     #551, allow case_ as a name with an underscore
-1.8.29
+1.8.29, released 2012-06-01
     Allow hscolor-1.20.*
     #574, add a hint to for mapM/zip ==> zipWithM
-1.8.28
+1.8.28, released 2012-04-01
     Fix a bug, >=> hint was missing check about removal of free var
-1.8.27
+1.8.27, released 2012-03-30
     Allow haskell-src-exts-1.13.*
-1.8.26
+1.8.26, released 2012-03-27
     Allow haskell-src-exts-1.12.*
     Don't suggest redundant brackets when turning ++ into :
     Add hints suggesting >=> and <=<
-1.8.25
+1.8.25, released 2012-03-25
     Update the copyright year in the Cabal file
     Allow transformers-0.3.*
-1.8.24
+1.8.24, released 2012-02-20
     #531, Make hlint.ghci well formed again
-1.8.23
+1.8.23, released 2012-02-05
     Add hints for redundant seq/evaluate using isWHNF
     #526, don't hint for return $! (x :: Int)
-1.8.22
+1.8.22, released 2012-02-04
     Add hint for $! where the RHS is not a variable
-1.8.21
+1.8.21, released 2012-01-26
     #508, add lots of hints from the base library
     #317, add hints for a >> return () to void
     Add a fromMaybe/fmap ==> maybe hint
@@ -387,45 +387,45 @@ Changelog for HLint
     When finding hints, don't abort on a parse error
     #507, add exitSuccess hint
     #505, suggest record patterns
-1.8.20
+1.8.20, released 2011-11-29
     #500, make sure eta reduction has position information
-1.8.19
+1.8.19, released 2011-11-27
     #498, eta reduce even if there is a where block
     #497, don't produce an incorrect lambda when suggesting flip
-1.8.18
+1.8.18, released 2011-11-05
     #438, use Foo.Bar to mean Foo/Bar.hs
     Add a --path command line option to say where files live
     #441, avoid bad matches due to automatically eta reducing rules
     #489, import Foo as Foo is redundant
     #481, suggest liftM instead of fmap when using the Monad laws
-1.8.17
+1.8.17, released 2011-10-01
     #479, allow - as the file to specify using stdin
-1.8.16
+1.8.16, released 2011-09-28
     #478, allow cpphs-1.13.1
     Never suggest view patterns (they aren't sufficiently better)
     Don't suggest use of Data.Ord.comparing, using `on` is better
     Only suggest elem/notElem on 3 or more items
-1.8.15
+1.8.15, released 2011-08-13
     Add --cpp-ansi to turn on ANSI compat in cpphs
-1.8.14
+1.8.14, released 2011-08-12
     #455, GHC 7.2 compatibility
     Add lots of hints from Lennart Augustsson
-1.8.13
+1.8.13, released 2011-07-05
     #302, add a backup fixity analysis, if the HSE one fails
     Fix x /= y || x /= z ==> x `notElem` [y,z], should be &&
-1.8.12
+1.8.12, released 2011-07-03
     Allow cpphs-1.12
-1.8.11
+1.8.11, released 2011-06-18
     #440, suggest removing redundant brackets under do
     #439, don't add redundant brackets under do
-1.8.10
+1.8.10, released 2011-06-12
     Upgrade to hscolour-1.19
-1.8.9
+1.8.9, released 2011-05-26
     #436, add a hint about mapMaybe/map
     Upgrade to haskell-src-exts-1.11.1
     Add a --cross flag, to detect hints between multiple modules
     #428, don't suggest using String in an instance head
-1.8.8
+1.8.8, released 2011-04-03
     #384, suggest collapsing multiple imports/exports
     #374, don't suggest the removal of necessary brackets
     #337, suggest Control.Exception.catch instead of Prelude.catch
@@ -441,31 +441,31 @@ Changelog for HLint
     #285, don't show duplicate filepath separators
     If the user enters directories containing no files then say
     Make suggesting curry/uncurry a warning instead of an error
-1.8.7
+1.8.7, released 2011-01-31
     Relax the transformers dependency, works with 0.0.* and 0.1.*
-1.8.6
+1.8.6, released 2011-01-27
     Export suggestionSeverity/Severity from the API
     Allow hint imports with "hlint", as well as the existing "hint"
-1.8.5
+1.8.5, released 2011-01-23
     Update the copyright year to 2011
     #400, support more encoding strings, give useful errors
     #401, rename the report template to report_template.html
     Replace filter f x /= [] with any f x, and 2 more similar
-1.8.4
+1.8.4, released 2011-01-12
     #308, allow haskell-src-exts-1.10.1, which parses Unicode better
     import qualified Char ==> import qualified Data.Char as Char
     #393, fix suggestion for import IO, requires more than System.IO
     #376, note that RecordWildCards implies DisambiguateRecordFields
-1.8.3
+1.8.3, released 2010-11-10
     Allow uniplate-1.6
     Switch from mtl to transformers
     #373, require haskell-src-exts-1.9.6
     Add a type signature for GHC 7
     Suggest [x | x <- xs] ==> xs, if x is a variable
-1.8.2
+1.8.2, released 2010-10-23
     #371, foo (\x -> y :: Int -> Int) is not a redundant bracket
     Add a hint to use just equality rather than isJust/fromJust
-1.8.1
+1.8.1, released 2010-10-15
     Massive speed up for files with many naming hints
     #361, keep module names when suggesting infix
     Add support for wildcard matching on module names
@@ -477,7 +477,7 @@ Changelog for HLint
     Add --cpp-simple to run a simple CPP to strip lines begining #
     Add bracketing information if the parent is a case
     Suggest intercalate
-1.8
+1.8, released 2010-09-11
     Make --test --hint=file typecheck a file for valid hints
     #347, Suggest use of otherwise, instead of True, in pattern guards
     Add hints about redundant where statements
@@ -496,14 +496,14 @@ Changelog for HLint
     #323, detect redundant brackets in field declarations
     #321, force the whole file before displaying a parse error
     Make --find more robust, fixes a potential parse error
-1.7.3
+1.7.3, released 2010-07-25
     Upgrade to hscolour-1.17
-1.7.2
+1.7.2, released 2010-06-11
     #318, match rules by expanding out (.)
     #319, don't remove lambdas on the right of infix operators
-1.7.1
+1.7.1, released 2010-06-07
     Add a --quiet flag, to supress stdout (mainly for API users)
-1.7
+1.7, released 2010-06-06
     Add support for HLint.Builtin.All
     Fix crash on (\x -> x)
     Make the library correctly honour the data directory
@@ -525,7 +525,7 @@ Changelog for HLint
     #306, make --find use the hints if there are files specified
     Upgrade to haskell-src-exts-1.9
     #303, allow fixities to be specified in hint files
-1.6.21
+1.6.21, released 2010-04-07
     #287, warn about Haskell 98 imports
     #297, add a hint to use mplus
     #288, detect redundant brackets under a lambda
@@ -536,7 +536,7 @@ Changelog for HLint
     #283, don't suggest removal of RecordWildCards
     Add some hints about concat and (++)
     #273, require haskell-src-exts >= 1.8.2
-1.6.20
+1.6.20, released 2010-02-10
     #275, add more acknowledgements (still very incomplete)
     #254, remove the foldr1/map hint
     Compress nested lambdas, \x -> \y -> ... ==> \x y -> ...
@@ -546,18 +546,18 @@ Changelog for HLint
     Add some hints to suggest elem
     Add Paths_hlint to the .cabal file, or the library doesn't link
     #271, rewrite the match engine in terms of SYB
-1.6.19
+1.6.19, released 2010-02-06
     #251, add automatic definition hunting with --find
     #268, rewrite the (.) expansion in hints to fix various bugs
     #269, replacing a case with an if should generate one hint
     Document the ANN pragmas
     Require haskell-src-exts-1.8.1
-1.6.18
+1.6.18, released 2010-02-02
     Remove a hint replacing do x <- foo; bar x with foo >>= bar
     #263, support CPP files more fully
     Upgrade to hscolour-1.16
     Upgrade to cpphs-1.11
-1.6.17
+1.6.17, released 2010-02-01
     Force cpphs-1.10, since 1.11 breaks the interface
     More hints from the Data.Maybe module
     #262, add support for the TupleSections extension
@@ -575,7 +575,7 @@ Changelog for HLint
     #236, support changing the text encoding with --encoding/--utf8
     #260, generate nicer lambdas for (($) . f)
     Add the hint (($) . f) ==> (f $)
-1.6.16
+1.6.16, released 2010-01-23
     Further performance enhancements (for details see my blog)
     Update to uniplate 1.5.* (fixes performance bug)
     Improve speed based on profiling (roughly twice as fast)
@@ -585,7 +585,7 @@ Changelog for HLint
     Remove dependency on SYB
     #234, allow TH top-level splices for ignore
     #110, add tests for ignoring commands
-1.6.15
+1.6.15, released 2010-01-12
     Upgrade to uniplate 1.4.* (fixes performance bug)
     #192, make HLint into a fairly basic library
     Add --datadir to allow running with a different data directory
@@ -595,9 +595,9 @@ Changelog for HLint
     Upgrade to haskell-src-exts 1.6.*
     Add a .ghci file snippet
     #247, Fix bug matching expressions containing position info
-1.6.14
+1.6.14, released 2010-01-05
     Upgrade to haskell-src-exts 1.5.*
-1.6.13
+1.6.13, released 2010-01-05
     #246, redundant brackets in [(...)]
     Add fold/map fusion hints
     Don't suggest namings that are already used in the module
@@ -606,7 +606,7 @@ Changelog for HLint
     Only activate the builtin hints when they are imported
     Fix matching bug, said "Use flip" on "\v -> f v . g"
     Suggest changing some pattern guards to view patterns
-1.6.12
+1.6.12, released 2009-11-06
     Fix a bug with ignored hints being written to reports
     Upgrade to haskell-src-exts 1.3.*
     #228, suggest let instead of <- return in do statements
@@ -617,26 +617,26 @@ Changelog for HLint
     #223, TemplateHaskell may allow other extensions via code
     Fix incorrect suggestion on do x <- f ; g x x
     A few small additional hints (use flip, redundant id)
-1.6.11
+1.6.11, released 2009-09-13
     Don't perform type eta reduction
-1.6.10
+1.6.10, released 2009-09-13
     Fix bug, eta reduction on chained infix operators, i.e. x#y#z
-1.6.9
+1.6.9, released 2009-09-12
     #217, don't suggest eta reduction on - or +
     Fix bug, PatternGuards under case alternatives were ignored
-1.6.8
+1.6.8, released 2009-09-07
     #213, upgrade to cpphs 1.9
     Add suggestion to replace lambda with operator sections
     Fix bug, ''Name decided TemplateHaskell was unnecessary
     HPC statistics, and increase in test coverage
     Fix bug, import A as Y; import A gave import A, missing the as Y
     Fix bug, type Foo a = Bar a a incorrectly suggested eta reduce
-1.6.7
+1.6.7, released 2009-08-31
     NOTE: #213 has not been fixed, cpphs can cause hangs
     Add threaded flag to Cabal to disable -threaded mode
     #212, fix crash
     Fix bug, incorrectly decided TemplateHaskell was unnecessary
-1.6.6
+1.6.6, released 2009-08-29
     Upgrade to hscolour 1.15
     Add a hint for using unless
     #211, add hints for unused extensions
@@ -645,8 +645,8 @@ Changelog for HLint
     #137, add cpphs support
     #189, give hints for redundant imports
     Upgrade to haskell-src-exts 1.1.*
-1.6.5
+1.6.5, released 2009-08-02
     #206, better presentation of parse errors
     #208, give the correct precedence to ==> in source files
-1.6.4
+1.6.4, released 2009-07-12
     Start of changelog
