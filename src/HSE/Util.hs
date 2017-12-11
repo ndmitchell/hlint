@@ -82,7 +82,7 @@ fromTyBang (TyBang _ _ _ x) = x
 fromTyBang x = x
 
 fromDeriving :: Deriving s -> [InstRule s]
-fromDeriving (Deriving _ x) = x
+fromDeriving (Deriving _ _ x) = x
 
 -- is* :: Exp_ -> Bool
 -- is* :: Decl_ -> Bool

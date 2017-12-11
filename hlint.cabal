@@ -51,7 +51,7 @@ library
         transformers, data-default,
         cpphs >= 1.20.1,
         cmdargs >= 0.10,
-        haskell-src-exts >= 1.18 && < 1.20,
+        haskell-src-exts >= 1.20 && < 1.21,
         haskell-src-exts-util >= 0.2.1.2,
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,

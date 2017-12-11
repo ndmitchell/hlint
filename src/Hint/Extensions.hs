@@ -264,11 +264,11 @@ derives m = mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
         decl (GDataDecl _ dn _ _ _ _ ds) = g dn ds
         decl (DataInsDecl _ dn _ _ ds) = g dn ds
         decl (GDataInsDecl _ dn _ _ _ ds) = g dn ds
-        decl (DerivDecl _ _ hd) = mempty{derivesStandalone=[ir hd]}
+        decl (DerivDecl _ _ _ hd) = mempty{derivesStandalone=[ir hd]}
         decl _ = mempty
 
         g dn ds = if isNewType dn then mempty{derivesNewType=xs} else mempty{derivesData=xs}
-            where xs = maybe [] (map ir . fromDeriving) ds
+            where xs = concatMap (map ir . fromDeriving) ds
 
         ir (IRule _ _ _ x) = ih x
         ir (IParen _ x) = ir x
