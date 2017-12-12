@@ -64,7 +64,7 @@ badExtensions =
     [Arrows -- steals proc
     ,TransformListComp -- steals the group keyword
     ,XmlSyntax, RegularPatterns -- steals a-b
-    ,UnboxedTuples -- breaks (#) lens operator
+    ,UnboxedTuples, UnboxedSums -- breaks (#) lens operator
     ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
     ,DoRec, RecursiveDo -- breaks rec
     ,TypeApplications -- HSE fails on @ patterns
