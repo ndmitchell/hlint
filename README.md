@@ -61,7 +61,7 @@ HLint usage tends to proceed in three distinct phases:
 1. Once you are happy, run `hlint . --default > .hlint.yaml`, which will generate a settings file ignoring all the hints currently outstanding. Over time you may wish to edit the list.
 1. For larger projects, add [custom hints or rules](#customizing-the-hints).
 
-Most hints are intended to be a good idea in most circumstances, but not universally - judgement is required. When contributing to someone elses project, HLint can identify pieces of code to look at, but only make changes you consider improvements - not merely to adhere to HLint rules.
+Most hints are intended to be a good idea in most circumstances, but not universally - judgement is required. When contributing to someone else's project, HLint can identify pieces of code to look at, but only make changes you consider improvements - not merely to adhere to HLint rules.
 
 ### Running with Continuous Integration
 
