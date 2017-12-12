@@ -23,28 +23,29 @@ Installation follows the standard pattern of any Haskell library or program: typ
 
 Once HLint is installed, run `hlint source` where `source` is either a Haskell file, or a directory containing Haskell files. A directory will be searched recursively for any files ending with `.hs` or `.lhs`. For example, running HLint over darcs would give:
 
+```console
+$ hlint darcs-2.1.2
 
-    $ hlint darcs-2.1.2
+darcs-2.1.2\src\CommandLine.lhs:94:1: Warning: Use concatMap
+Found:
+    concat $ map escapeC s
+Why not:
+    concatMap escapeC s
 
-    darcs-2.1.2\src\CommandLine.lhs:94:1: Warning: Use concatMap
-    Found:
-      concat $ map escapeC s
-    Why not:
-      concatMap escapeC s
+darcs-2.1.2\src\CommandLine.lhs:103:1: Suggestion: Use fewer brackets
+Found:
+    ftable ++ (map (\ (c, x) -> (toUpper c, urlEncode x)) ftable)
+Why not:
+    ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable
 
-    darcs-2.1.2\src\CommandLine.lhs:103:1: Suggestion: Use fewer brackets
-    Found:
-      ftable ++ (map (\ (c, x) -> (toUpper c, urlEncode x)) ftable)
-    Why not:
-      ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable
+darcs-2.1.2\src\Darcs\Patch\Test.lhs:306:1: Warning: Use a more efficient monadic variant
+Found:
+    mapM (delete_line (fn2fp f) line) old
+Why not:
+    mapM_ (delete_line (fn2fp f) line) old
 
-    darcs-2.1.2\src\Darcs\Patch\Test.lhs:306:1: Warning: Use a more efficient monadic variant
-    Found:
-      mapM (delete_line (fn2fp f) line) old
-    Why not:
-      mapM_ (delete_line (fn2fp f) line) old
-
-    ... lots more hints ...
+... lots more hints ...
+```
 
 Each hint says which file/line the hint relates to, how serious an issue it is, a description of the hint, what it found, and what you might want to replace it with. In the case of the first hint, it has suggested that instead of applying `concat` and `map` separately, it would be better to use the combination function `concatMap`.
 
@@ -60,13 +61,17 @@ On the CI you should then run `hlint .` (or `hlint src` if you only want to chec
 
 **Travis:** Execute the following command:
 
-    curl -sL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
+```sh
+curl -sL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
+```
 
 The arguments after `-s` are passed to `hlint`, so modify the final `.` if you want other arguments.
 
 **Appveyor:** Add the following statement to `.appveyor.yml`:
 
-    - ps: Invoke-Command ([Scriptblock]::Create((Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.ps1').Content)) -ArgumentList @('.')
+```powershell
+- ps: Invoke-Command ([Scriptblock]::Create((Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.ps1').Content)) -ArgumentList @('.')
+```
 
 The arguments inside `@()` are passed to `hlint`, so add new arguments surrounded by `'`, space separated - e.g. `@('.' '--report')`.
 
@@ -114,10 +119,12 @@ HLint enables most Haskell extensions, disabling only those which steal too much
 
 Emacs integration has been provided by [Alex Ott](http://xtalk.msk.su/~ott/). The integration is similar to compilation-mode, allowing navigation between errors. The script is at [hs-lint.el](https://raw.githubusercontent.com/ndmitchell/hlint/master/data/hs-lint.el), and a copy is installed locally in the data directory. To use, add the following code to the Emacs init file:
 
-    (require 'hs-lint)
-    (defun my-haskell-mode-hook ()
-       (local-set-key "\C-cl" 'hs-lint))
-    (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
+```guile
+(require 'hs-lint)
+(defun my-haskell-mode-hook ()
+    (local-set-key "\C-cl" 'hs-lint))
+(add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
+```
 
 ### GHCi Integration
 
@@ -142,7 +149,9 @@ HLint runs the [cpphs C preprocessor](http://hackage.haskell.org/package/cpphs) 
 
 Consider:
 
-    foo xs = concat (map op xs)
+```haskell
+foo xs = concat (map op xs)
+```
 
 This will suggest eta reduction to `concat . map op`, and then after making that change and running HLint again, will suggest use of `concatMap`. Many people wonder why HLint doesn't directly suggest `concatMap op`. There are a number of reasons:
 
@@ -188,14 +197,15 @@ The difference between warning and suggestion is one of personal taste, typicall
 Short answer: yes, it is!
 
 If the language extension `OverloadedStrings` is enabled, `ghci` may however report error messages such as:
-```
+
+```console
 Ambiguous type variable ‘t0’ arising from an annotation
 prevents the constraint ‘(Data.Data.Data t0)’ from being solved.
 ```
 
 In this case, a solution is to add the `:: String` type annotation.  For example:
 
-```
+```haskell
 {-# ANN someFunc ("HLint: ignore Use fmap" :: String) #-}
 ```
 
@@ -205,7 +215,9 @@ See discussion in [issue #372](https://github.com/ndmitchell/hlint/issues/372).
 
 To customize the hints given by HLint, create a file `.hlint.yaml` in the root of your project. For a suitable default run:
 
-    hlint --default > .hlint.yaml
+```console
+hlint --default > .hlint.yaml
+```
 
 This default configuration contains lots of examples, including:
 
@@ -241,17 +253,21 @@ These directives are applied in the order they are given, with later hints overr
 
 The hint suggesting `concatMap` can be defined as:
 
-    - warn: {lhs: concat (map f x), rhs: concatMap f x}
+```yaml
+- warn: {lhs: concat (map f x), rhs: concatMap f x}
+```
 
 This line can be read as replace `concat (map f x)` with `concatMap f x`. All single-letter variables are treated as substitution parameters. For examples of more complex hints see the supplied `hlint.yaml` file in the data directory. This hint will automatically match `concat . map f` and `concat $ map f x`, so there is no need to give eta-reduced variants of the hints. Hints may tagged with `error`, `warn` or `suggest` to denote how severe they are by default. In addition, `hint` is a synonym for `suggest`. If you come up with interesting hints, please submit them for inclusion.
 
 You can search for possible hints to add from a source file with the `--find` flag, for example:
 
-    $ hlint --find=src/Utils.hs
-    -- hints found in src/Util.hs
-    - warn: {lhs: "null (intersect a b)", rhs: "disjoint a b"}
-    - warn: {lhs: "dropWhile isSpace", rhs: "trimStart"}
-    - fixity: "infixr 5 !:"
+```console
+$ hlint --find=src/Utils.hs
+-- hints found in src/Util.hs
+- warn: {lhs: "null (intersect a b)", rhs: "disjoint a b"}
+- warn: {lhs: "dropWhile isSpace", rhs: "trimStart"}
+- fixity: "infixr 5 !:"
+```
 
 These hints are suitable for inclusion in a custom hint file. You can also include Haskell fixity declarations in a hint file, and these will also be extracted. If you pass only `--find` flags then the hints will be written out, if you also pass files/folders to check, then the found hints will be automatically used when checking.
 
