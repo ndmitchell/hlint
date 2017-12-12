@@ -1,5 +1,0 @@
-resolver: lts-9.2
-packages:
-- .
-extra-deps:
-- haskell-src-exts-util-0.2.1.2
