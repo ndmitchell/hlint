@@ -53,9 +53,17 @@ The first hint is marked as an warning, because using `concatMap` in preference 
 
 **Bug reports:** The suggested replacement should be equivalent - please report all incorrect suggestions not mentioned as known limitations.
 
-### Running with Continuous Integration
+### Suggested usage
 
-Before running HLint on your continuous integration (CI) server, you should first ensure there are no existing hints. One way to achieve that is to ignore existing hints by running `hlint . --default > .hlint.yaml` and checking in the resulting `.hlint.yaml`.
+HLint usage tends to proceed in three distinct phases:
+
+1. Initially, run `hlint . --report` to generate `report.html` containing a list of all issues HLint has found. Fix those you think are worth fixing and keep repeating.
+1. Once you are happy, run `hlint . --default > .hlint.yaml`, which will generate a settings file ignoring all the hints currently outstanding. Over time you may wish to edit the list.
+1. For larger projects, add [custom hints or rules](#customizing-the-hints).
+
+Most hints are intended to be a good idea in most circumstances, but not universally - judgement is required. When contributing to someone elses project, HLint can identify pieces of code to look at, but only make changes you consider improvements - not merely to adhere to HLint rules.
+
+### Running with Continuous Integration
 
 On the CI you should then run `hlint .` (or `hlint src` if you only want to check the `src` directory). To avoid the cost of compilation you may wish to fetch the [latest HLint binary release](https://github.com/ndmitchell/hlint/releases/latest). For certain CI environments there are helper scripts to do that.
 
