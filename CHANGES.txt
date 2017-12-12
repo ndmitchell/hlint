@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Don't suggest Control.Arrow
     Upgrade to haskell-src-exts-1.20
 2.0.11, released 2017-11-30
     #411, parse the YAML file with lots of HSE extensions turned on
