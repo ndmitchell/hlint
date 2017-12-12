@@ -7,10 +7,6 @@ HLint is a tool for suggesting possible improvements to Haskell code. These sugg
 * [Customizing the hints](#customizing-the-hints)
 * [Hacking HLint](#hacking-hlint)
 
-### Acknowledgements
-
-This program has only been made possible by the presence of the [haskell-src-exts](https://github.com/haskell-suite/haskell-src-exts) package, and many improvements have been made by [Niklas Broberg](http://www.nbroberg.se) in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott, Andy Stewart, Roman Leshchinskiy, Johannes Lippmann, Iustin Pop, Steve Purcell, Mitchell Rosen and others.
-
 ### Bugs and limitations
 
 Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/issues). There are some issues that I do not intend to fix:
@@ -282,3 +278,7 @@ zip [1..length x] x -- ??? @Warning
 ```
 
 The general syntax is `lhs -- rhs` with `lhs` being the expression you expect to be rewritten as `rhs`. The absence of `rhs` means you expect no hints to fire. In addition `???` lets you assert a warning without a particular suggestion, while `@` tags require a specific severity -- both these features are used less commonly.
+
+### Acknowledgements
+
+This program has only been made possible by the presence of the [haskell-src-exts](https://github.com/haskell-suite/haskell-src-exts) package, and many improvements have been made by [Niklas Broberg](http://www.nbroberg.se) in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott, Andy Stewart, Roman Leshchinskiy, Johannes Lippmann, Iustin Pop, Steve Purcell, Mitchell Rosen and others.
