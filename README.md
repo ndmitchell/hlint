@@ -187,8 +187,8 @@ HLint uses the `hlint.yaml` file it ships with by default (containing things lik
 Most hints are perfect substitutions, and these are displayed without any notes. However, some hints change the semantics of your program - typically in irrelevant ways - but HLint shows a warning note. HLint does not warn when assuming typeclass laws (such as `==` being symmetric). Some notes you may see include:
 
 * __Increases laziness__ - for example `foldl (&&) True` suggests `and` including this note. The new code will work on infinite lists, while the old code would not. Increasing laziness is usually a good idea.
-* __Decreases laziness__ - for example `(fst a, snd a)` suggests a including this note. On evaluation the new code will raise an error if a is an error, while the old code would produce a pair containing two error values. Only a small number of hints decrease laziness, and anyone relying on the laziness of the original code would be advised to include a comment.
-* __Removes error__ - for example `foldr1 (&&)` suggests and including the note `Removes error on []`. The new code will produce `True` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment.
+* __Decreases laziness__ - for example `(fst a, snd a)` suggests `a` including this note. On evaluation the new code will raise an error if a is an error, while the old code would produce a pair containing two error values. Only a small number of hints decrease laziness, and anyone relying on the laziness of the original code would be advised to include a comment.
+* __Removes error__ - for example `foldr1 (&&)` suggests `and` including the note `Removes error on []`. The new code will produce `True` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment.
 
 ### What is the difference between error/warning/suggestion?
 
