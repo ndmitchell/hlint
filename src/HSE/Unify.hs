@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module HSE.Unify(
     Subst, fromSubst,
@@ -10,7 +11,7 @@ import Control.Applicative
 import Data.List.Extra
 import Data.Maybe
 import Data.Data
-import Data.Monoid
+import Data.Semigroup
 import Config.Type
 import Hint.Type
 import Control.Monad
@@ -25,6 +26,7 @@ import Prelude
 -- | A list of substitutions. A key may be duplicated, you need to call 'check'
 --   to ensure the substitution is valid.
 newtype Subst a = Subst [(String, a)]
+    deriving (Semigroup, Monoid)
 
 -- | Unpack the substitution
 fromSubst :: Subst a -> [(String, a)]
@@ -35,10 +37,6 @@ instance Functor Subst where
 
 instance Pretty a => Show (Subst a) where
     show (Subst xs) = unlines [a ++ " = " ++ prettyPrint b | (a,b) <- xs]
-
-instance Monoid (Subst a) where
-    mempty = Subst []
-    mappend (Subst xs) (Subst ys) = Subst $ xs ++ ys
 
 
 -- check the unification is valid and simplify it

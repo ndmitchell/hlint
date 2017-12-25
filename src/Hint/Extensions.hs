@@ -123,7 +123,7 @@ import Data.List.Extra
 import Data.Ratio
 import Data.Data
 import Refact.Types
-import Data.Monoid
+import Data.Semigroup
 import Prelude
 
 
@@ -244,10 +244,12 @@ data Derives = Derives
     ,derivesData :: [String]
     ,derivesStandalone :: [String]
     }
+instance Semigroup Derives where
+    Derives x1 x2 x3 <> Derives y1 y2 y3 =
+        Derives (x1++y1) (x2++y2) (x3++y3)
 instance Monoid Derives where
     mempty = Derives [] [] []
-    mappend (Derives x1 x2 x3) (Derives y1 y2 y3) =
-        Derives (x1++y1) (x2++y2) (x3++y3)
+    mappend = (<>)
 
 -- | What is derived on newtype, and on data type
 --   'deriving' declarations may be on either, so we approximate as both newtype and data

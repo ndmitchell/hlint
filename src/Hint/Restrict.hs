@@ -17,7 +17,7 @@ import Config.Type
 import Hint.Type
 import Data.List
 import Data.Maybe
-import Data.Monoid
+import Data.Semigroup
 import Control.Applicative
 import Prelude
 
@@ -39,9 +39,11 @@ data RestrictItem = RestrictItem
     {riAs :: [String]
     ,riWithin :: [(String, String)]
     }
+instance Semigroup RestrictItem where
+    RestrictItem x1 x2 <> RestrictItem y1 y2 = RestrictItem (x1<>y1) (x2<>y2)
 instance Monoid RestrictItem where
     mempty = RestrictItem [] []
-    mappend (RestrictItem x1 x2) (RestrictItem y1 y2) = RestrictItem (x1<>y1) (x2<>y2)
+    mappend = (<>)
 
 restrictions :: [Setting] -> Map.Map RestrictType (Bool, Map.Map String RestrictItem)
 restrictions settings = Map.map f $ Map.fromListWith (++) [(restrictType x, [x]) | SettingRestrict x <- settings]

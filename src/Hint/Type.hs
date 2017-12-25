@@ -4,7 +4,7 @@ module Hint.Type(
     module Export
     ) where
 
-import Data.Monoid
+import Data.Semigroup
 import Config.Type
 import HSE.All  as Export
 import Idea     as Export
@@ -26,10 +26,13 @@ data Hint {- PUBLIC -} = Hint
     ,hintComment :: [Setting] -> Comment -> [Idea] -- ^ Given a comment generate some 'Idea's.
     }
 
-instance Monoid Hint where
-    mempty = Hint (\_ _ -> []) (\_ _ _ -> []) (\_ _ _ _ -> []) (\_ _ -> [])
-    mappend (Hint x1 x2 x3 x4) (Hint y1 y2 y3 y4) = Hint
+instance Semigroup Hint where
+    Hint x1 x2 x3 x4 <> Hint y1 y2 y3 y4 = Hint
         (\a b -> x1 a b ++ y1 a b)
         (\a b c -> x2 a b c ++ y2 a b c)
         (\a b c d -> x3 a b c d ++ y3 a b c d)
         (\a b -> x4 a b ++ y4 a b)
+
+instance Monoid Hint where
+    mempty = Hint (\_ _ -> []) (\_ _ _ -> []) (\_ _ _ _ -> []) (\_ _ -> [])
+    mappend = (<>)

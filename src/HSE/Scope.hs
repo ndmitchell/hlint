@@ -1,11 +1,11 @@
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns, GeneralizedNewtypeDeriving #-}
 
 module HSE.Scope(
     Scope, scopeCreate, scopeImports,
     scopeMatch, scopeMove
     ) where
 
-import Data.Monoid
+import Data.Semigroup
 import HSE.Type
 import HSE.Util
 import Data.List
@@ -34,11 +34,7 @@ if Data.List.head x ==> x, then that might match List too
 --   Note that the 'mempty' 'Scope' is not equivalent to 'scopeCreate' on an empty module,
 --   due to the implicit import of 'Prelude'.
 newtype Scope = Scope [ImportDecl S]
-             deriving Show
-
-instance Monoid Scope where
-    mempty = Scope []
-    mappend (Scope xs) (Scope ys) = Scope $ xs ++ ys
+             deriving (Show, Monoid, Semigroup)
 
 -- | Create a 'Scope' value from a module, based on the modules imports.
 scopeCreate :: Module SrcSpanInfo -> Scope
