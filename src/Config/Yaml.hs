@@ -20,7 +20,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.HashMap.Strict as Map
 import HSE.All hiding (Rule, String)
 import Data.Functor
-import Data.Monoid
+import Data.Semigroup
 import Util
 import Prelude
 
@@ -40,7 +40,7 @@ readFileConfigYaml file contents = do
 ---------------------------------------------------------------------
 -- YAML DATA TYPE
 
-newtype ConfigYaml = ConfigYaml [ConfigItem] deriving (Monoid,Show)
+newtype ConfigYaml = ConfigYaml [ConfigItem] deriving (Semigroup,Monoid,Show)
 
 data ConfigItem
     = ConfigPackage Package
@@ -64,7 +64,7 @@ data Group = Group
 ---------------------------------------------------------------------
 -- YAML PARSING LIBRARY
 
-data Val = Val 
+data Val = Val
     Value -- the actual value I'm focused on
     [(String, Value)] -- the path of values I followed (for error messages)
 
