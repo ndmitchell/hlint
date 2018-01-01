@@ -5,7 +5,7 @@ version:            0.0.1
 category:           Development
 author:             Patrick Brisbin <pbrisbin@gmail.com>
 maintainer:         Patrick Brisbin <pbrisbin@gmail.com>
-copyright:          Neil Mitchell 2006-2017
+copyright:          Neil Mitchell 2006-2018
 synopsis:           Run HLint as a Code Climate engine
 description:        Run HLint as a Code Climate engine
 homepage:           https://github.com/ndmitchell/hlint#readme
