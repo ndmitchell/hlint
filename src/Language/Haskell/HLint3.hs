@@ -105,8 +105,7 @@ readSettingsFile dir x
 findSettings :: (String -> IO (FilePath, Maybe String)) -> Maybe String -> IO ([Fixity], [Classify], [Either HintBuiltin HintRule])
 findSettings load start = do
     (file,contents) <- load $ fromMaybe "hlint.yaml" start
-    xs <- readFilesConfig [(file,contents)]
-    return $ splitSettings xs
+    splitSettings <$> readFilesConfig [(file,contents)]
 
 -- | Split a list of 'Setting' for separate use in parsing and hint resolution
 splitSettings :: [Setting] -> ([Fixity], [Classify], [Either HintBuiltin HintRule])
