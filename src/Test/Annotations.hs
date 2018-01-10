@@ -63,10 +63,9 @@ testAnnotations setting file = do
 
 
 parseTestFile :: FilePath -> IO [Test]
-parseTestFile file = do
-    src <- readFile file
+parseTestFile file =
     -- we remove all leading # symbols since Yaml only lets us do comments that way
-    return $ f False $ zip [1..] $ map (\x -> fromMaybe x $ stripPrefix "# " x) $ lines src
+    f False . zip [1..] . map (\x -> fromMaybe x $ stripPrefix "# " x) . lines <$> readFile file
     where
         open = isPrefixOf "<TEST>"
         shut = isPrefixOf "</TEST>"

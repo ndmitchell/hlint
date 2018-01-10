@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts #-}
+{-# LANGUAGE LambdaCase, ViewPatterns, PatternGuards, FlexibleContexts #-}
 
 {-
     Find and match:
@@ -20,6 +20,11 @@ yes = do bar; a <- foo; return a -- do bar; foo
 no = do bar; a <- foo; return b
 yes = do x <- bar; x -- do join bar
 no = do x <- bar; x; x
+yes = do x <- bar; return (f x) -- do f <$> bar
+yes = do x <- bar; return $ f x -- do f <$> bar
+yes = do x <- bar; return $ f (g x) -- do f . g <$> bar
+yes = do x <- bar; return (f $ g x) -- do f . g <$> bar
+no = do x <- bar; return (f x x)
 {-# LANGUAGE RecursiveDo #-}; no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
 yes = do x <- return y; foo x -- @Suggestion do let x = y; foo x
 yes = do x <- return $ y + z; foo x -- do let x = y + z; foo x
@@ -63,6 +68,7 @@ monadExp decl (parent, x) = case x of
         (view -> App2 op x1 (view -> LamConst1 _)) | op ~= ">>=" -> f x1
         Do _ xs -> [warn "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
                    [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
+                   [warn "Use fmap" x (Do an y) rs | Just (y, rs) <- [monadFmap xs]] ++
                    [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"]
                         | [Qualifier _ y] <- [xs], not $ doOperator parent y] ++
                    [suggest "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
@@ -94,6 +100,17 @@ monadCall (replaceBranches -> (bs@(_:_), gen)) | all isJust res
           rs  = concatMap (\(Just (a,b,c)) -> c) res
 monadCall x | x2:_ <- filter (x ~=) badFuncs = let x3 = x2 ++ "_" in  Just (x3, toNamed x3, [Replace Expr (toSS x) [] x3])
 monadCall _ = Nothing
+
+monadFmap :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
+monadFmap (reverse -> q@(Qualifier _ (let go = \ case App _ f x                      -> first (f:) $ go (fromParen x)
+                                                      InfixApp _ f (isDol -> True) x -> first (f:) $ go x
+                                                      x -> ([], x)
+                                      in go -> (ret:f:fs, view -> Var_ v))):g@(Generator _ (view -> PVar_ u) x):rest)
+    | ret ~= "return", u == v, v `notElem` vars (f:fs)
+    = Just (reverse (Qualifier an (InfixApp an (foldl' (flip (InfixApp an) (toNamed ".")) f fs) (toNamed "<$>") x):rest),
+            [Replace Stmt (toSS g) (("x", toSS x):zip vs (toSS <$> f:fs)) (intercalate " . " vs ++ " <$> x"), Delete Stmt (toSS q)])
+  where vs = ('f':) . show <$> [0..]
+monadFmap _ = Nothing
 
 monadReturn :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
 monadReturn (reverse -> q@(Qualifier _ (App _ ret (Var _ v))):g@(Generator _ (PVar _ p) x):rest)
