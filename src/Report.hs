@@ -15,9 +15,8 @@ import HsColour
 
 
 writeTemplate :: FilePath -> [(String,[String])] -> FilePath -> IO ()
-writeTemplate dataDir content to = do
-    src <- readFile' $ dataDir </> "report_template.html"
-    writeFile to $ unlines $ concatMap f $ lines src
+writeTemplate dataDir content to =
+    readFile' (dataDir </> "report_template.html") >>= writeFile to . unlines . concatMap f . lines
     where
         f ('$':xs) = fromMaybe ['$':xs] $ lookup xs content
         f x = [x]
