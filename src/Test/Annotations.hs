@@ -35,7 +35,7 @@ testAnnotations setting file = do
                 return res
             let good = case (out, ideas) of
                     (Nothing, Right []) -> True
-                    (Just x, Right [idea]) | length (show ideas) > 0, match x idea -> True
+                    (Just x, Right [idea]) | match x idea -> True
                     _ -> False
             let bad =
                     [failed $
