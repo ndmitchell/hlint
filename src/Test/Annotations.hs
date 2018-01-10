@@ -16,6 +16,8 @@ import Idea
 import Apply
 import HSE.All
 import Test.Util
+import Data.Functor
+import Prelude
 
 
 -- Input, Output
