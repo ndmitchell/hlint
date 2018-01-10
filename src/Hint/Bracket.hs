@@ -137,9 +137,7 @@ dollar = concatMap f . universe
     where
         f x = [suggest "Redundant $" x y [r] | InfixApp _ a d b <- [x], opExp d ~= "$"
               ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b
-              ,let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"
-                ]
-
+              ,let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"]
               ++
               [suggest "Move brackets to avoid $" x (t y) [r] |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
               ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
