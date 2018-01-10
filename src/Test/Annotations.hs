@@ -3,8 +3,10 @@
 -- | Check the <TEST> annotations within source and hint files.
 module Test.Annotations(testAnnotations) where
 
+import Control.Exception.Extra
 import Data.Tuple.Extra
 import Data.Char
+import Data.Either.Extra
 import Data.List.Extra
 import Data.Maybe
 import Data.Function
@@ -27,18 +29,20 @@ testAnnotations setting file = do
     mapM_ f tests
     where
         f (Test loc inp out) = do
-            ideas <- applyHintFile defaultParseFlags setting file $ Just inp
-            let good = case out of
-                    Nothing -> null ideas
-                    Just x -> length ideas == 1 &&
-                              seq (length (show ideas)) True && -- force, mainly for hpc
-                              match x (head ideas)
+            ideas <- try_ $ do
+                res <- applyHintFile defaultParseFlags setting file $ Just inp
+                evaluate $ length $ show res
+                return res
+            let good = case (out, ideas) of
+                    (Nothing, Right []) -> True
+                    (Just x, Right [idea]) | length (show ideas) > 0, match x idea -> True
+                    _ -> False
             let bad =
                     [failed $
                         ["TEST FAILURE (" ++ show (length ideas) ++ " hints generated)"
                         ,"SRC: " ++ showSrcLoc loc
                         ,"INPUT: " ++ inp] ++
-                        map ((++) "OUTPUT: " . show) ideas ++
+                        map ("OUTPUT: " ++) (either (return . show) (map show) ideas) ++
                         ["WANTED: " ++ fromMaybe "<failure>" out]
                         | not good] ++
                     [failed
@@ -46,7 +50,7 @@ testAnnotations setting file = do
                         ,"SRC: " ++ showSrcLoc loc
                         ,"INPUT: " ++ inp
                         ,"OUTPUT: " ++ show i]
-                        | i@Idea{..} <- ideas, let SrcLoc{..} = getPointLoc ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
+                        | i@Idea{..} <- fromRight [] ideas, let SrcLoc{..} = getPointLoc ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
             if null bad then passed else sequence_ bad
 
         match "???" _ = True
