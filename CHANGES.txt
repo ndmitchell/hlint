@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #401, suggest removing brackets for (f . g) <$> x
     Add Semigroup instances
 2.0.12, released 2017-12-12
     Don't suggest Control.Arrow

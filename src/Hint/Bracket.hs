@@ -54,6 +54,10 @@ foo = (case x of y -> z; q -> w) :: Int
 -- backup fixity resolution
 main = do a += b . c; return $ a . b
 
+-- <$> bracket tests
+yes = (foo . bar x) <$> baz q -- foo . bar x <$> baz q
+no = foo . bar x <$> baz q
+
 -- annotations
 main = 1; {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 main = 1; {-# ANN module (1 + (2)) #-} -- 2
@@ -144,6 +148,11 @@ dollar = concatMap f . universe
               ,not $ a1 ~= "select" -- special case for esqueleto, see #224
               , let y = App an a1 (Paren an a2)
               , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]
+              ++
+              -- special case of (v1 . v2) <$> v3
+              [suggest "Redundant bracket" x y []
+              | InfixApp _ (Paren _ o1@(InfixApp _ v1 (isDot -> True) v2)) o2 v3 <- [x], opExp o2 ~= "<$>"
+              , let y = InfixApp an o1 o2 v3]
 
 
 -- return both sides, and a way to put them together again
