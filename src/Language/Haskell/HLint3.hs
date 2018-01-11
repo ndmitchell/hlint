@@ -42,6 +42,8 @@ import Paths_hlint
 import Data.List.Extra
 import Data.Maybe
 import System.FilePath
+import Data.Functor
+import Prelude
 
 
 -- | Get the Cabal configured data directory of HLint.
