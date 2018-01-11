@@ -41,7 +41,7 @@ testAnnotations setting file = do
                     _ -> False
             let bad =
                     [failed $
-                        ["TEST FAILURE (" ++ show (length ideas) ++ " hints generated)"
+                        ["TEST FAILURE (" ++ show (either (const 1) length ideas) ++ " hints generated)"
                         ,"SRC: " ++ showSrcLoc loc
                         ,"INPUT: " ++ inp] ++
                         map ("OUTPUT: " ++) (either (return . show) (map show) ideas) ++
