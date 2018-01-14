@@ -68,7 +68,7 @@ monadExp decl (parent, x) = case x of
         (view -> App2 op x1 (view -> LamConst1 _)) | op ~= ">>=" -> f x1
         Do _ xs -> [warn "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
                    [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
-                   [warn "Use fmap" x (Do an y) rs | Just (y, rs) <- [monadFmap xs]] ++
+                   [warn "Use <$>" x (Do an y) rs | Just (y, rs) <- [monadFmap xs]] ++
                    [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"]
                         | [Qualifier _ y] <- [xs], not $ doOperator parent y] ++
                    [suggest "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
