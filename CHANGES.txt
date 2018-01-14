@@ -1,5 +1,6 @@
 Changelog for HLint
 
+2.0.14
     #376, apply the "use fmap" hint in fewer places
     #421, binaries available for OS X
 2.0.13, released 2018-01-12
