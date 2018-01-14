@@ -24,6 +24,7 @@ yes = do x <- bar; return (f x) -- do f <$> bar
 yes = do x <- bar; return $ f x -- do f <$> bar
 yes = do x <- bar; return $ f (g x) -- do f . g <$> bar
 yes = do x <- bar; return (f $ g x) -- do f . g <$> bar
+yes = do x <- bar $ baz; return (f $ g x)
 no = do x <- bar; return (f x x)
 {-# LANGUAGE RecursiveDo #-}; no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
 yes = do x <- return y; foo x -- @Suggestion do let x = y; foo x
@@ -106,10 +107,12 @@ monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (from
                                           go (InfixApp _ f (isDol -> True) x) = first (f:) $ go x
                                           go x = ([], x)
                                       in go -> (ret:f:fs, view -> Var_ v))):g@(Generator _ (view -> PVar_ u) x):rest)
-    | ret ~= "return", u == v, v `notElem` vars (f:fs)
+    | ret ~= "return", notDol x, u == v, v `notElem` vars (f:fs)
     = Just (reverse (Qualifier an (InfixApp an (foldl' (flip (InfixApp an) (toNamed ".")) f fs) (toNamed "<$>") x):rest),
             [Replace Stmt (toSS g) (("x", toSS x):zip vs (toSS <$> f:fs)) (intercalate " . " vs ++ " <$> x"), Delete Stmt (toSS q)])
   where vs = ('f':) . show <$> [0..]
+        notDol (InfixApp _ _ op _) = not $ isDol op
+        notDol _ = True
 monadFmap _ = Nothing
 
 monadReturn :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
