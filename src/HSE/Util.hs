@@ -5,7 +5,8 @@ module HSE.Util(module HSE.Util, def) where
 import Control.Monad
 import Data.Default
 import Data.List
-import Language.Haskell.Exts.Util() -- Orphan instances of Default for SrcLoc etc
+import Language.Haskell.Exts.Util
+import Control.Monad.Trans.State
 import Data.Maybe
 import Data.Data hiding (Fixity)
 import System.FilePath
@@ -187,6 +188,37 @@ isWHNF (ExpTypeSig _ x _) = isWHNF x
 -- other (unknown) constructors may have bang patterns in them, so approximate
 isWHNF (App _ c@Con{} _) | prettyPrint c `elem` ["Just","Left","Right"] = True
 isWHNF _ = False
+
+
+-- | Like needBracket, but with a special case for a . b . b, which
+--   was removed from haskell-src-exts-util-0.2.2
+needBracketOld :: Int -> Exp_ -> Exp_ -> Bool
+needBracketOld i parent child
+    | isDotApp parent, isDotApp child, i == 1 = False
+    | otherwise = needBracket i parent child
+
+transformBracketOld :: (Exp_ -> Maybe Exp_) -> Exp_ -> Exp_
+transformBracketOld op = snd . g
+    where
+        g = f . descendBracketOld g
+        f x = maybe (False,x) ((,) True) (op x)
+
+-- | Descend, and if something changes then add/remove brackets appropriately
+descendBracketOld :: (Exp_ -> (Bool, Exp_)) -> Exp_ -> Exp_
+descendBracketOld op x = descendIndex g x
+    where
+        g i y = if a then f i b else b
+            where (a,b) = op y
+
+        f i (Paren _ y) | not $ needBracketOld i x y = y
+        f i y           | needBracketOld i x y = addParen y
+        f _ y           = y
+
+descendIndex :: Data a => (Int -> a -> a) -> a -> a
+descendIndex f x = flip evalState 0 $ flip descendM x $ \y -> do
+    i <- get
+    modify (+1)
+    return $ f i y
 
 
 ---------------------------------------------------------------------

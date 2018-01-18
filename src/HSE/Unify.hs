@@ -48,7 +48,7 @@ validSubst eq = fmap Subst . mapM f . groupSort . fromSubst
 
 -- | Perform a substitution
 substitute :: Subst Exp_ -> Exp_ -> Exp_
-substitute (Subst bind) = transformBracket exp . transformBi pat
+substitute (Subst bind) = transformBracketOld exp . transformBi pat
     where
         exp (Var _ (fromNamed -> x)) = lookup x bind
         exp _ = Nothing

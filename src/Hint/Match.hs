@@ -191,5 +191,5 @@ unqualify from to = transformBi f
 
 
 addBracket :: Maybe (Int,Exp_) -> Exp_ -> Exp_
-addBracket (Just (i,p)) c | needBracket i p c = Paren an c
+addBracket (Just (i,p)) c | needBracketOld i p c = Paren an c
 addBracket _ x = x
