@@ -62,8 +62,10 @@ no = foo . bar x <$> baz q
 main = 1; {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 main = 1; {-# ANN module (1 + (2)) #-} -- 2
 
--- special cases (from esqueleto, see #224)
+-- special case from esqueleto, see #224
 main = operate <$> (select $ from $ \user -> return $ user ^. UserEmail)
+-- unknown fixity, see #426
+bad x = x . (x +? x . x)
 </TEST>
 -}
 

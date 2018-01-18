@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #426, don't suggest removing brackets for "x . (x +? x . x)"
     #426, better results with haskell-src-exts-util-0.2.2
 2.0.14
     #376, apply the "use fmap" hint in fewer places
