@@ -2,7 +2,7 @@ Changelog for HLint
 
     #426, don't suggest removing brackets for "x . (x +? x . x)"
     #426, better results with haskell-src-exts-util-0.2.2
-2.0.14
+2.0.14, released 2018-01-14
     #376, apply the "use fmap" hint in fewer places
     #421, binaries available for OS X
 2.0.13, released 2018-01-12
