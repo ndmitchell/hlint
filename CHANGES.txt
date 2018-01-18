@@ -1,5 +1,6 @@
 Changelog for HLint
 
+2.0.15, released 2018-01-18
     #426, don't suggest removing brackets for "x . (x +? x . x)"
     #426, better results with haskell-src-exts-util-0.2.2
 2.0.14, released 2018-01-14
