@@ -48,10 +48,38 @@ data ParseFlags = ParseFlags
     ,hseFlags :: ParseMode -- ^ How the file is parsed (defaults to all fixities in the @base@ package and most non-conflicting extensions).
     }
 
+lensFixities :: [Fixity]
+lensFixities = concat
+    -- List as provided at https://github.com/ndmitchell/hlint/issues/416
+    [infixr_ 4 ["%%@~","<%@~","%%~","<+~","<*~","<-~","<//~","<^~","<^^~","<**~"]
+    ,infix_ 4 ["%%@=","<%@=","%%=","<+=","<*=","<-=","<//=","<^=","<^^=","<**="]
+    ,infixr_ 2 ["<<~"]
+    ,infixr_ 9 ["#."]
+    ,infixl_ 8 [".#"]
+    ,infixr_ 8 ["^!","^@!"]
+    ,infixl_ 1 ["&","<&>","??"]
+    ,infixl_ 8 ["^.","^@."]
+    ,infixr_ 9 ["<.>","<.",".>"]
+    ,infixr_ 4 ["%@~",".~","+~","*~","-~","//~","^~","^^~","**~","&&~","<>~","||~","%~"]
+    ,infix_ 4 ["%@=",".=","+=","*=","-=","//=","^=","^^=","**=","&&=","<>=","||=","%="]
+    ,infixr_ 2 ["<~"]
+    ,infixr_ 2 ["`zoom`","`magnify`"]
+    ,infixl_ 8 ["^..","^?","^?!","^@..","^@?","^@?!"]
+    ,infixl_ 8 ["^#"]
+    ,infixr_ 4 ["<#~","#~","#%~","<#%~","#%%~"]
+    ,infix_ 4 ["<#=","#=","#%=","<#%=","#%%="]
+    ,infixl_ 9 [":>"]
+    ,infixr_ 4 ["</>~","<</>~","<.>~","<<.>~"]
+    ,infix_ 4 ["</>=","<</>=","<.>=","<<.>="]
+    ,infixr_ 4 [".|.~",".&.~","<.|.~","<.&.~"]
+    ,infix_ 4 [".|.=",".&.=","<.|.=","<.&.="]
+    ]
+
+
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
 defaultParseFlags = ParseFlags NoCpp
-    defaultParseMode{fixities=Just baseFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
+    defaultParseMode{fixities=Just $ baseFixities ++ lensFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
