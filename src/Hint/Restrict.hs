@@ -6,6 +6,7 @@ module Hint.Restrict(restrictHint) where
 -- These tests rely on the .hlint.yaml file in the root
 <TEST>
 foo = unsafePerformIO --
+foo = bar `unsafePerformIO` baz --
 module Util where otherFunc = unsafePerformIO $ print 1 --
 module Util where exitMessageImpure = unsafePerformIO $ print 1
 foo = unsafePerformOI
@@ -96,6 +97,6 @@ checkFunctions modu decls (def, mp) =
     [ ideaMayBreak $ ideaNoTo $ warn "Avoid restricted function" x x []
     | d <- decls
     , let dname = fromNamed d
-    , x@Var{} <- universeBi d
+    , x <- universeBi d :: [QName S]
     , not $ maybe def (within modu dname) $ Map.lookup (fromNamed x) mp
     ]
