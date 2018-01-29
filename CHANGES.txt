@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    Improve the HTML slightly
     #416, add lens fixities
 2.0.15, released 2018-01-18
     #426, don't suggest removing brackets for "x . (x +? x . x)"
