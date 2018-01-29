@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #427, don't eta reduce variables in the presence of quasi-quotes
     Improve the HTML slightly
     #416, add lens fixities
 2.0.15, released 2018-01-18

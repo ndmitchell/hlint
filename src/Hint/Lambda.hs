@@ -68,6 +68,8 @@ foo = bar (\x -> (x `f`)) -- f
 baz = bar (\x -> (x +)) -- (+)
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b
 no = blah (\ x -> case x of A -> a x; B -> b x)
+{-# LANGUAGE QuasiQuotes #-}; authOAuth2 name = authOAuth2Widget [whamlet|Login via #{name}|] name
+{-# LANGUAGE QuasiQuotes #-}; authOAuth2 = foo (\name -> authOAuth2Widget [whamlet|Login via #{name}|] name)
 </TEST>
 -}
 
@@ -118,6 +120,7 @@ setSpanInfoEnd ssi (line, col) = ssi{srcInfoSpan = (srcInfoSpan ssi){srcSpanEndL
 etaReduce :: [Pat_] -> Exp_ -> ([Pat_], Exp_)
 etaReduce ps (App _ x (Var _ (UnQual _ (Ident _ y))))
     | ps /= [], PVar _ (Ident _ p) <- last ps, p == y, p /= "mr", y `notElem` vars x
+    , not $ any isQuasiQuote $ universe x
     = etaReduce (init ps) x
 etaReduce ps (InfixApp a x (isDol -> True) y) = etaReduce ps (App a x y)
 etaReduce ps x = (ps,x)
@@ -133,7 +136,7 @@ lambdaExp p o@(Paren _ (App _ v@(Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, 
 --      subts = [("a", toSS y), ("*", toSS v)]
 lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
     [suggestN "Use section" o $ RightSection an (QVarOp an x) y]
-lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o, not $ isLambda res =
+lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o, not $ isLambda res, not $ any isQuasiQuote $ universe res =
     [(if isVar res || isCon res then warn else suggest) "Avoid lambda" o res (refact $ toSS o)]
 lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats :: [Exp_]), maybe True (not . isLambda) p =
     [suggest "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
