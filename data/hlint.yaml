@@ -795,4 +795,5 @@
 # import Prelude((==)) \
 # import qualified Prelude as P \
 # main = P.length xs == 0 -- P.null xs
+# main = hello .~ Just 12 -- hello ?~ 12
 # </TEST>
