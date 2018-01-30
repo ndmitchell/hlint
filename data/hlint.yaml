@@ -36,6 +36,12 @@
     - import Monad as Control.Monad
     - import Char as Data.Char
 
+- package:
+    name: lens
+    modules:
+    - import Control.Lens
+    - import Control.Lens.Operators
+
 - group:
     name: default
     enabled: true
@@ -592,6 +598,17 @@
     - warn: {lhs: null x  , rhs: "False", side: isTuple x, name: Using null on tuple}
     - warn: {lhs: length x, rhs: "1"    , side: isTuple x, name: Using length on tuple}
 
+- group:
+    name: lens
+    enabled: true
+    imports:
+    - package base
+    - package lens
+    rules:
+    - warn: {lhs: "a .~ Just b", rhs: "a ?~ b"}
+    - warn: {lhs: "a & (mapped %~ b)", rhs: "a <&> b"}
+    - warn: {lhs: "a <&> ((mapped . b) %~ c)", rhs: "a <&> b %~ c"}
+    - warn: {lhs: "a & (mapped .~ b)", rhs: "b <$ a"}
 
 - group:
     name: generalise
