@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #353, detect unused results from for/traverse/sequenceA
     #428, add a few rules for the lens package
     #429, spot restricted functions in infix operators
     #427, don't eta reduce variables in the presence of quasi-quotes

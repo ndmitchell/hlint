@@ -57,7 +57,7 @@ import qualified Refact.Types as R
 import Prelude
 
 
-badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM"]
+badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM","traverse","for","sequenceA"]
 
 
 monadHint :: DeclHint
