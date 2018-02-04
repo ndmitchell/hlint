@@ -75,11 +75,16 @@ lensFixities = concat
     ,infix_ 4 [".|.=",".&.=","<.|.=","<.&.="]
     ]
 
+customFixities :: [Fixity]
+customFixities =
+    infixl_ 1 ["`on`"]
+        -- see https://github.com/ndmitchell/hlint/issues/425
+        -- otherwise GTK apps using `on` at a different fixity have spurious warnings
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
 defaultParseFlags = ParseFlags NoCpp
-    defaultParseMode{fixities=Just $ baseFixities ++ lensFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
+    defaultParseMode{fixities=Just $ customFixities ++ baseFixities ++ lensFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
