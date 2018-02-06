@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #437, --json output should be finite
     #425, avoid misparsing use of Gtk2Hs `on` function
     #353, detect unused results from for/traverse/sequenceA
     #428, add a few rules for the lens package
