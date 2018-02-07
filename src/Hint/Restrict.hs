@@ -94,7 +94,7 @@ checkImports modu imp (def, mp) =
 
 checkFunctions :: String -> [Decl_] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkFunctions modu decls (def, mp) =
-    [ ideaMayBreak $ ideaNoTo $ warn "Avoid restricted function" x x []
+    [ (ideaMayBreak $ ideaNoTo $ warn "Avoid restricted function" x x []){ideaDecl = [dname]}
     | d <- decls
     , let dname = fromNamed d
     , x <- universeBi d :: [QName S]
