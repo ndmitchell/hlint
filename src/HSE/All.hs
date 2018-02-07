@@ -83,7 +83,7 @@ baseNotYetInHSE = concat
     [infixr_ 9 ["`Compose`"]
     ,infixr_ 6 ["<>"]
     ,infixr_ 5 ["<|"]
-    ,infixl_ 4 ["<$!>"]
+    ,infixl_ 4 ["<$!>","<$","$>"]
     ,infix_ 4 [":~:", ":~~:"]
     ]
 
