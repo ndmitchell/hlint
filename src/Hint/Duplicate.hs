@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ScopedTypeVariables, ViewPatterns #-}
+{-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
 
 {-
 Find bindings within a let, and lists of statements

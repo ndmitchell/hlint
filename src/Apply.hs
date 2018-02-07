@@ -50,7 +50,7 @@ applyHintsReal settings hints_ ms = concat $
         concat [order [] $ hintComment hints settings c | c <- cs]
     | (nm,(m,cs)) <- mns
     , let decHints = hintDecl hints settings nm m -- partially apply
-    , let order n = map (\i -> i{ideaModule= f $ [moduleName m] ++ ideaModule i, ideaDecl= f $ n ++ ideaDecl i}) . sortBy (comparing ideaSpan)
+    , let order n = map (\i -> i{ideaModule= f $ moduleName m : ideaModule i, ideaDecl= f $ n ++ ideaDecl i}) . sortBy (comparing ideaSpan)
     , let merge = mergeBy (comparing ideaSpan)] ++
     [map (classify cls) (hintModules hints settings $ map (second fst) mns)]
     where
