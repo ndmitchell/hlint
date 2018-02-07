@@ -39,8 +39,7 @@ data Idea = Idea
 -- 1) Aeson doesn't esape unicode characters, and I want to (allows me to ignore encoding)
 -- 2) I want to control the format so it's slightly human readable as well
 showIdeaJson :: Idea -> String
-showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = wrap . intercalate "," . map mkPair $
-    [("module", str ideaModule)
+showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = dict
     ,("decl", str ideaDecl)
     ,("severity", str $ show ideaSeverity)
     ,("hint", str ideaHint)
@@ -62,8 +61,7 @@ showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = wrap . intercalate ",
               f '\r' = "\\r"
               f x | isControl x || not (isAscii x) = "\\u" ++ takeEnd 4 ("0000" ++ showHex (ord x) "")
               f x = [x]
-    mkPair (k, v) = show k ++ ":" ++ v
-    wrap x = "{" ++ x ++ "}"
+    dict xs = "{" ++ intercalate "," [show k ++ ":" ++ v | (k,v) <- xs] ++ "}"
 
 showIdeasJson :: [Idea] -> String
 showIdeasJson ideas = "[" ++ intercalate "\n," (map showIdeaJson ideas) ++ "]"
