@@ -52,7 +52,7 @@ builtin x = case x of
     HintExport     -> modu exportHint
     HintPragma     -> modu pragmaHint
     HintExtensions -> modu extensionsHint
-    HintUnsafe     -> modu unsafeHint
+    HintUnsafe     -> decl unsafeHint
     HintDuplicate  -> mods duplicateHint
     HintComment    -> comm commentHint
     HintNewType    -> decl newtypeHint

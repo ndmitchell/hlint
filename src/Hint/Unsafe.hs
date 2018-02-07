@@ -23,13 +23,13 @@ import Data.Char
 import Refact.Types
 
 
-unsafeHint :: ModuHint
-unsafeHint _ m =
+unsafeHint :: DeclHint
+unsafeHint _ m = \d ->
         [ rawIdea Warning "Missing NOINLINE pragma" (srcInfoSpan $ ann d)
             (prettyPrint d)
             (Just $ dropWhile isSpace (prettyPrint $ gen x) ++ "\n" ++ prettyPrint d)
             [] [InsertComment (toSS d) (prettyPrint $ gen x)]
-        | d@(PatBind _ (PVar _ x) _ _) <- moduleDecls m
+        | d@(PatBind _ (PVar _ x) _ _) <- [d]
         , isUnsafeDecl d, x `notElem_` noinline]
     where
         gen x = InlineSig an False Nothing $ UnQual an x
