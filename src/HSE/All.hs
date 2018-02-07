@@ -75,6 +75,18 @@ lensFixities = concat
     ,infix_ 4 [".|.=",".&.=","<.|.=","<.&.="]
     ]
 
+-- Fixites from the `base` package which are currently
+-- missing from `haskell-src-exts`'s baseFixities.
+-- see https://github.com/haskell-suite/haskell-src-exts/pull/400
+baseNotYetInHSE :: [Fixity]
+baseNotYetInHSE = concat
+    [infixr_ 9 ["`Compose`"]
+    ,infixr_ 6 ["<>"]
+    ,infixr_ 5 ["<|"]
+    ,infixl_ 4 ["<$!>"]
+    ,infix_ 4 [":~:", ":~~:"]
+    ]
+
 customFixities :: [Fixity]
 customFixities =
     infixl_ 1 ["`on`"]
@@ -84,7 +96,7 @@ customFixities =
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
 defaultParseFlags = ParseFlags NoCpp
-    defaultParseMode{fixities=Just $ customFixities ++ baseFixities ++ lensFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
+    defaultParseMode{fixities=Just $ customFixities ++ baseFixities ++ baseNotYetInHSE ++ lensFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
