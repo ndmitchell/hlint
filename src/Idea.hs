@@ -50,7 +50,7 @@ showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = dict
     ,("endColumn", show srcSpanEndColumn)
     ,("from", str ideaFrom)
     ,("to", maybe "null" str ideaTo)
-    ,("note", "[" ++ intercalate "," (map (str . show) ideaNote) ++ "]")
+    ,("note", list (map (str . show) ideaNote))
     ,("refactorings", str $ show ideaRefactoring)
     ]
   where
@@ -62,6 +62,7 @@ showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = dict
               f x | isControl x || not (isAscii x) = "\\u" ++ takeEnd 4 ("0000" ++ showHex (ord x) "")
               f x = [x]
     dict xs = "{" ++ intercalate "," [show k ++ ":" ++ v | (k,v) <- xs] ++ "}"
+    list xs = "[" ++ intercalate "," xs ++ "]"
 
 showIdeasJson :: [Idea] -> String
 showIdeasJson ideas = "[" ++ intercalate "\n," (map showIdeaJson ideas) ++ "]"
