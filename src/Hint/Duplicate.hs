@@ -19,6 +19,7 @@ foo = a where {a = 1; b = 2; c = 3}; bar = a where {a = 1; b = 2; c = 3} -- ???
 module Hint.Duplicate(duplicateHint) where
 
 import Hint.Type
+import Data.Default
 import Data.Tuple.Extra
 import Data.List hiding (find)
 import qualified Data.Map as Map
@@ -59,7 +60,7 @@ add pos (v:vs) (Dupe p mp) = Dupe p $ Map.insertWith f v (add pos vs $ Dupe pos 
     where f new = add pos vs
 
 
-duplicateOrdered :: Ord val => Int -> [[(SrcSpan,val)]] -> [(SrcSpan,SrcSpan,[val])]
+duplicateOrdered :: (Ord pos, Default pos, Ord val) => Int -> [[(pos,val)]] -> [(pos,pos,[val])]
 duplicateOrdered threshold xs = concat $ concat $ snd $ mapAccumL f (Dupe def Map.empty) xs
     where
         f d xs = second overlaps $ mapAccumL (g pos) d $ takeWhile ((>= threshold) . length) $ tails xs
