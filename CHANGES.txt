@@ -1,5 +1,6 @@
 Changelog for HLint
 
+    #433, allow ignoring statement-level duplication hint
     #433, make hints spanning multiple modules/declarations
     #439, add more fixities for new base operators
     #437, --json output should be finite

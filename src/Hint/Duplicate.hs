@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, ScopedTypeVariables, ViewPatterns #-}
 
 {-
 Find bindings within a let, and lists of statements
@@ -12,6 +12,7 @@ main = do (do b; a; a; a); do (do c; a; a; a) -- ???
 main = do a; a; a; b; a; a; a -- ???
 main = do a; a; a; b; a; a
 foo = a where {a = 1; b = 2; c = 3}; bar = a where {a = 1; b = 2; c = 3} -- ???
+{-# ANN main "HLint: ignore Reduce duplication" #-}; main = do a; a; a; a; a; a -- @Ignore ???
 </TEST>
 -}
 
@@ -27,18 +28,22 @@ import qualified Data.Map as Map
 
 duplicateHint :: CrossHint
 duplicateHint ms =
-    dupes [y | Do _ y :: Exp S <- universeBi modu] ++
-    dupes [y | BDecls l y :: Binds S <- universeBi modu]
-    where modu = map snd ms
+    dupes [(m,d,y) | (m,d,x) <- ds, Do _ y :: Exp S <- universeBi x] ++
+    dupes [(m,d,y) | (m,d,x) <- ds, BDecls _ y :: Binds S <- universeBi x]
+    where ds = [(moduleName m, fromNamed d, d) | m <- map snd ms, d <- moduleDecls m]
 
 
+dupes :: (Pretty (f SrcSpan), Annotated f, Ord (f ())) => [(String, String, [f S])] -> [Idea]
 dupes ys =
-    [rawIdeaN
+    [(rawIdeaN
         (if length xs >= 5 then Warning else Suggestion)
         "Reduce duplication" p1
         (unlines $ map (prettyPrint . fmap (const p1)) xs)
-        (Just $ "Combine with " ++ showSrcLoc (getPointLoc p2)) []
-    | (p1,p2,xs) <- duplicateOrdered 3 $ map (map (srcInfoSpan . ann &&& dropAnn)) ys]
+        (Just $ "Combine with " ++ showSrcLoc (getPointLoc p2)) [])
+      {ideaModule = [m1,m2], ideaDecl = [d1,d2]}
+    | ((m1,d1,p1),(m2,d2,p2),xs) <- duplicateOrdered 3 $ map f ys]
+    where
+        f (m,d,xs) = [((m,d,srcInfoSpan $ ann x), dropAnn x) | x <- xs]
 
 
 ---------------------------------------------------------------------
