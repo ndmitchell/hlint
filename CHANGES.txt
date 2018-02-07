@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1, released 2018-02-07
 *   #433, make ideas span multiple modules/declarations
     #433, allow ignoring statement-level duplication hint
     #439, add more fixities for new base operators
