@@ -23,8 +23,8 @@ import Prelude
 
 -- | An idea suggest by a 'Hint'.
 data Idea = Idea
-    {ideaModule :: String -- ^ The module the idea applies to, may be @\"\"@ if the module cannot be determined or is a result of cross-module hints.
-    ,ideaDecl :: String -- ^ The declaration the idea applies to, typically the function name, but may be a type name.
+    {ideaModule :: [String] -- ^ The modules the idea is for, usually a singleton.
+    ,ideaDecl :: [String] -- ^ The declarations the idea is for, usually a singleton, typically the function name, but may be a type name.
     ,ideaSeverity :: Severity -- ^ The severity of the idea, e.g. 'Warning'.
     ,ideaHint :: String -- ^ The name of the hint that generated the idea, e.g. @\"Use reverse\"@.
     ,ideaSpan :: SrcSpan -- ^ The source code the idea relates to.
@@ -40,7 +40,8 @@ data Idea = Idea
 -- 2) I want to control the format so it's slightly human readable as well
 showIdeaJson :: Idea -> String
 showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = dict
-    ,("decl", str ideaDecl)
+    [("module", list $ map str ideaModule)
+    ,("decl", list $ map str ideaDecl)
     ,("severity", str $ show ideaSeverity)
     ,("hint", str ideaHint)
     ,("file", str srcSpanFilename)
@@ -86,8 +87,8 @@ showEx tt Idea{..} = unlines $
             where xs = lines $ tt x
 
 
-rawIdea = Idea "" ""
-rawIdeaN a b c d e f = Idea "" "" a b c d e f []
+rawIdea = Idea [] []
+rawIdeaN a b c d e f = Idea [] [] a b c d e f []
 
 idea severity hint from to = rawIdea severity hint (srcInfoSpan $ ann from) (f from) (Just $ f to) []
     where f = trimStart . prettyPrint

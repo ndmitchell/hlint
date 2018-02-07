@@ -11,7 +11,7 @@ FILE tests/json-one.hs
 foo = (+1)
 bar x = foo x
 OUTPUT
-[{"module":"Main","decl":"bar","severity":"Warning","hint":"Eta reduce","file":"tests/json-one.hs","startLine":2,"startColumn":1,"endLine":2,"endColumn":14,"from":"bar x = foo x","to":"bar = foo","note":[],"refactorings":"[]"}]
+[{"module":["Main"],"decl":["bar"],"severity":"Warning","hint":"Eta reduce","file":"tests/json-one.hs","startLine":2,"startColumn":1,"endLine":2,"endColumn":14,"from":"bar x = foo x","to":"bar = foo","note":[],"refactorings":"[]"}]
 
 ---------------------------------------------------------------------
 RUN tests/json-two.hs --json
@@ -20,15 +20,15 @@ foo = (+1)
 bar x = foo x
 baz = getLine >>= return . map toUpper
 OUTPUT
-[{"module":"Main","decl":"bar","severity":"Warning","hint":"Eta reduce","file":"tests/json-two.hs","startLine":2,"startColumn":1,"endLine":2,"endColumn":14,"from":"bar x = foo x","to":"bar = foo","note":[],"refactorings":"[]"}
-,{"module":"Main","decl":"baz","severity":"Suggestion","hint":"Use <$>","file":"tests/json-two.hs","startLine":3,"startColumn":7,"endLine":3,"endColumn":39,"from":"getLine >>= return . map toUpper","to":"map toUpper <$> getLine","note":[],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [(\"f\",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),(\"m\",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = \"f <$> m\"}]"}]
+[{"module":["Main"],"decl":["bar"],"severity":"Warning","hint":"Eta reduce","file":"tests/json-two.hs","startLine":2,"startColumn":1,"endLine":2,"endColumn":14,"from":"bar x = foo x","to":"bar = foo","note":[],"refactorings":"[]"}
+,{"module":["Main"],"decl":["baz"],"severity":"Suggestion","hint":"Use <$>","file":"tests/json-two.hs","startLine":3,"startColumn":7,"endLine":3,"endColumn":39,"from":"getLine >>= return . map toUpper","to":"map toUpper <$> getLine","note":[],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [(\"f\",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),(\"m\",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = \"f <$> m\"}]"}]
 
 ---------------------------------------------------------------------
 RUN tests/json-parse-error.hs --json
 FILE tests/json-parse-error.hs
 ©
 OUTPUT
-[{"module":"","decl":"","severity":"Error","hint":"Parse error","file":"tests/json-parse-error.hs","startLine":1,"startColumn":1,"endLine":1,"endColumn":1,"from":"  \u00a9\n  \n> \n","to":null,"note":[],"refactorings":"[]"}]
+[{"module":[],"decl":[],"severity":"Error","hint":"Parse error","file":"tests/json-parse-error.hs","startLine":1,"startColumn":1,"endLine":1,"endColumn":1,"from":"  \u00a9\n  \n> \n","to":null,"note":[],"refactorings":"[]"}]
 
 ---------------------------------------------------------------------
 RUN tests/json-note.hs --json
@@ -36,5 +36,5 @@ FILE tests/json-note.hs
 foo = any (a ==)
 bar = foldl (&&) True
 OUTPUT
-[{"module":"Main","decl":"foo","severity":"Warning","hint":"Use elem","file":"tests/json-note.hs","startLine":1,"startColumn":7,"endLine":1,"endColumn":17,"from":"any (a ==)","to":"elem a","note":["requires a valid `Eq` instance for `a`"],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 1, startCol = 7, endLine = 1, endCol = 17}, subts = [(\"a\",SrcSpan {startLine = 1, startCol = 12, endLine = 1, endCol = 13})], orig = \"elem a\"}]"}
-,{"module":"Main","decl":"bar","severity":"Warning","hint":"Use and","file":"tests/json-note.hs","startLine":2,"startColumn":7,"endLine":2,"endColumn":22,"from":"foldl (&&) True","to":"and","note":["increases laziness"],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 2, startCol = 7, endLine = 2, endCol = 22}, subts = [], orig = \"and\"}]"}]
+[{"module":["Main"],"decl":["foo"],"severity":"Warning","hint":"Use elem","file":"tests/json-note.hs","startLine":1,"startColumn":7,"endLine":1,"endColumn":17,"from":"any (a ==)","to":"elem a","note":["requires a valid `Eq` instance for `a`"],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 1, startCol = 7, endLine = 1, endCol = 17}, subts = [(\"a\",SrcSpan {startLine = 1, startCol = 12, endLine = 1, endCol = 13})], orig = \"elem a\"}]"}
+,{"module":["Main"],"decl":["bar"],"severity":"Warning","hint":"Use and","file":"tests/json-note.hs","startLine":2,"startColumn":7,"endLine":2,"endColumn":22,"from":"foldl (&&) True","to":"and","note":["increases laziness"],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 2, startCol = 7, endLine = 2, endCol = 22}, subts = [], orig = \"and\"}]"}]

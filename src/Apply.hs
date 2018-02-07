@@ -45,12 +45,12 @@ applyHints cs = applyHintsReal $ map SettingClassify cs
 applyHintsReal :: [Setting] -> Hint -> [(Module_, [Comment])] -> [Idea]
 applyHintsReal settings hints_ ms = concat $
     [ map (classify $ cls ++ mapMaybe readPragma (universeBi m)) $
-        order "" (hintModule hints settings nm m) `merge`
-        concat [order (fromNamed d) $ decHints d | d <- moduleDecls m] `merge`
-        concat [order "" $ hintComment hints settings c | c <- cs]
+        order [] (hintModule hints settings nm m) `merge`
+        concat [order [fromNamed d] $ decHints d | d <- moduleDecls m] `merge`
+        concat [order [] $ hintComment hints settings c | c <- cs]
     | (nm,(m,cs)) <- mns
     , let decHints = hintDecl hints settings nm m -- partially apply
-    , let order n = map (\i -> i{ideaModule=moduleName m, ideaDecl=n}) . sortBy (comparing ideaSpan)
+    , let order n = map (\i -> i{ideaModule=[moduleName m], ideaDecl=n}) . sortBy (comparing ideaSpan)
     , let merge = mergeBy (comparing ideaSpan)] ++
     [map (classify cls) (hintModules hints settings $ map (second fst) mns)]
     where
@@ -88,6 +88,6 @@ classify xs i =  let s = foldl' (f i) (ideaSeverity i) xs in s `seq` i{ideaSever
     where
         -- figure out if we need to change the severity
         f :: Idea -> Severity -> Classify -> Severity
-        f i r c | classifyHint c ~= ideaHint i && classifyModule c ~= ideaModule i && classifyDecl c ~= ideaDecl i = classifySeverity c
+        f i r c | classifyHint c ~= [ideaHint i] && classifyModule c ~= ideaModule i && classifyDecl c ~= ideaDecl i = classifySeverity c
                 | otherwise = r
-        x ~= y = null x || x == y
+        x ~= y = null x || x `elem` y
