@@ -338,6 +338,10 @@
     - warn: {lhs: when (not x), rhs: unless x}
     - warn: {lhs: x >>= id, rhs: Control.Monad.join x}
     - warn: {lhs: id =<< x, rhs: Control.Monad.join x}
+    - warn: {lhs: id =<< x, rhs: Control.Monad.join x}
+    - warn: {lhs: id =<< x, rhs: Control.Monad.join x}
+    - hint: {lhs: join (f <$> x), rhs: f =<< x}
+    - hint: {lhs: join (fmap f x), rhs: f =<< x}
     - hint: {lhs: a >> return (), rhs: Control.Monad.void a, side: isAtom a || isApp a}
     - warn: {lhs: fmap (const ()), rhs: Control.Monad.void}
     - warn: {lhs: const () <$> x, rhs: Control.Monad.void x}
