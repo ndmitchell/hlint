@@ -13,17 +13,16 @@ description:
     HLint gives suggestions on how to improve your source code.
 homepage:           https://github.com/ndmitchell/hlint#readme
 bug-reports:        https://github.com/ndmitchell/hlint/issues
-data-dir:           data
 data-files:
-    hlint.yaml
-    default.yaml
-    Test.hs
-    report_template.html
-    hs-lint.el
-    hlint.1
-    hlint.ghci
-    HLint_QuickCheck.hs
-    HLint_TypeCheck.hs
+    data/hlint.yaml
+    data/default.yaml
+    data/Test.hs
+    data/report_template.html
+    data/hs-lint.el
+    data/hlint.1
+    data/hlint.ghci
+    data/HLint_QuickCheck.hs
+    data/HLint_TypeCheck.hs
 extra-doc-files:
     README.md
     CHANGES.txt
