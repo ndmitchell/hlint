@@ -25,7 +25,7 @@ runMains datadir tmpdir xs = (if tmpdir == "" then withTempDir else ($ tmpdir)) 
         ["import qualified " ++ m | m <- ms] ++
         ["main = do"] ++
         ["    " ++ m ++ ".main" | m <- ms]
-    res <- system $ "runhaskell -i" ++ dir ++ " -i" ++ datadir ++ " Main"
+    res <- system $ "runhaskell -i" ++ dir ++ " -i" ++ datadir ++ "/data Main"
     replicateM_ (length xs) $ tested $ res == ExitSuccess
 
 
