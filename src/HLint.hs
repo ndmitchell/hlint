@@ -111,7 +111,7 @@ hlintMain args cmd@CmdMain{..}
         ideas <- if null cmdFiles then return [] else withVerbosity Quiet $
             runHlintMain args cmd{cmdJson=False,cmdSerialise=False,cmdRefactor=False} Nothing
         let bad = nubOrd $ map ideaHint ideas
-        src <- readFile $ cmdDataDir </> "data/default.yaml"
+        src <- readFile $ cmdDataDir </> "default.yaml"
         if null bad then putStr src else do
             let group1:groups = splitOn ["",""] $ lines src
             let group2 = "# Warnings currently triggered by your code" :

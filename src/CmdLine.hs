@@ -49,10 +49,10 @@ automatic cmd = case cmd of
             | cmdDataDir cmd  /= "" = return cmd
             | otherwise = do
                 x <- getDataDir
-                b <- doesDirectoryExist $ x </> "data"
+                b <- doesDirectoryExist x
                 if b then return cmd{cmdDataDir=x} else do
                     exe <- getExecutablePath
-                    return cmd{cmdDataDir = takeDirectory exe}
+                    return cmd{cmdDataDir = takeDirectory exe </> "data"}
         git cmd
             | cmdGit cmd = do
                 mgit <- findExecutable "git"
