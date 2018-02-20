@@ -638,6 +638,17 @@
     - warn: {lhs: a ++ b, rhs: a <> b}
 
 - group:
+    name: generalise-for-conciseness
+    enabled: false
+    imports:
+    - package base
+    rules:
+    - warn: {lhs: maybe mempty, rhs: foldMap}
+    - warn: {lhs: either (const mempty), rhs: foldMap}
+    - warn: {lhs: Data.Maybe.fromMaybe mempty, rhs: Data.Foldable.fold}
+    - warn: {lhs: Data.Either.fromRight mempty, rhs: Data.Foldable.fold}
+
+- group:
     name: dollar
     enabled: false
     imports:
