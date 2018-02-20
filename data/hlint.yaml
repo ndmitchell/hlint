@@ -524,6 +524,9 @@
     - warn: {lhs: fmap f get, rhs: gets f}
     - warn: {lhs: f <$> ask, rhs: asks f}
     - warn: {lhs: fmap f ask, rhs: asks f}
+    - warn: {lhs: fst (runState m s), rhs: evalState m s}
+    - warn: {lhs: snd (runState m s), rhs: execState m s}
+
     # EVALUATE
 
     - warn: {lhs: True && x, rhs: x, name: Evaluate}
