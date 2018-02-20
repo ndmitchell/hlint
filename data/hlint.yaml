@@ -519,6 +519,11 @@
     - warn: {lhs: case m of Nothing -> return (); Just x -> f x, rhs: Data.Foldable.forM_ m f}
     - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.forM_ m f}
 
+    # STATE MONAD
+    - warn: {lhs: f <$> get, rhs: gets f}
+    - warn: {lhs: fmap f get, rhs: gets f}
+    - warn: {lhs: f <$> ask, rhs: asks f}
+    - warn: {lhs: fmap f ask, rhs: asks f}
     # EVALUATE
 
     - warn: {lhs: True && x, rhs: x, name: Evaluate}
