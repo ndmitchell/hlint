@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #424, suggest Foldable.forM_ in a few more places
     #445, add suggestions for reader/state monad
     #443, suggest join (x <$> y) ==> x =<< y
 2.1, released 2018-02-07
