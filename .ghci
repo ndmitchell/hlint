@@ -1,21 +1,21 @@
 :set -fwarn-incomplete-patterns
 :set -fwarn-unused-binds -fwarn-unused-imports -fwarn-orphans
 :set -isrc
-:load src\Main.hs src\Paths.hs src\Language\Haskell\HLint.hs src\Language\Haskell\HLint3.hs
+:load src/Main.hs src/Paths.hs src/Language/Haskell/HLint.hs src/Language/Haskell/HLint3.hs
 
 :def test const $ return ":main test"
 :def testfull const $ return ":main test --typecheck --quickcheck"
-:def gen const $ return ":!runhaskell data\\HLint_Gen.hs"
+:def gen const $ return ":!runhaskell data/HLint_Gen.hs"
 
 :{
 let _ghci_make dir flags = ":!" ++
         "(if not exist .hpc mkdir .hpc) && " ++
-        "(if not exist .hpc\\" ++ dir ++ " mkdir .hpc\\" ++ dir ++ ") && " ++
+        "(if not exist .hpc/" ++ dir ++ " mkdir .hpc/" ++ dir ++ ") && " ++
         "ghc -threaded -rtsopts --make -isrc -i. src/Paths.hs src/Main.hs -w -odir .hpc/"++dir++" -hidir .hpc/"++dir++" -o .hpc/"++dir++"/hlint "++flags
 :}
 let _ghci_number def val = show $ case val of "" -> def; x -> read x
 let _ghci_make_profile x = let level = _ghci_number 1 x in _ghci_make ("prof" ++ level) ("-O" ++ level ++ " -prof -auto-all -caf-all")
-let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " ++ args
+let _ghci_run_profile x args = ":!.hpc/prof" ++ _ghci_number 1 x ++ "/hlint " ++ args
 
 
 :{
@@ -27,13 +27,13 @@ let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " 
 :def hpc const $ return $ unlines
         [_ghci_make "hpc" "-fhpc"
         ,":!del hlint.tix"
-        ,":!.hpc\\hpc\\hlint --test"
-        ,":!.hpc\\hpc\\hlint src --report=.hpc\\hlint-report.html +RTS -N2"
-        ,":!.hpc\\hpc\\hlint data --report=.hpc\\hlint-report.html +RTS -N2"
+        ,":!.hpc/hpc/hlint --test"
+        ,":!.hpc/hpc/hlint src --report=.hpc/hlint-report.html +RTS -N2"
+        ,":!.hpc/hpc/hlint data --report=.hpc/hlint-report.html +RTS -N2"
         ,":!hpc.exe markup hlint.tix --destdir=.hpc"
         ,":!hpc.exe report hlint.tix"
         ,":!del hlint.tix"
-        ,":!start .hpc\\hpc_index_fun.html"]
+        ,":!start .hpc/hpc_index_fun.html"]
 :}
 
 :{
@@ -54,14 +54,14 @@ let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " 
 :{
 :def bench \x -> return $ unlines
         [_ghci_make "bench" "-O"
-        ,":!ptime .hpc\\bench\\hlint src " ++ x
+        ,":!ptime .hpc/bench/hlint src " ++ x
         ,":!echo."]
 :}
 
 :{
 :def scope \x -> return $ unlines
         [_ghci_make "scope" "-O -eventlog"
-        ,":!.hpc\\scope\\hlint.exe src +RTS -ls -RTS " ++ x
+        ,":!.hpc/scope/hlint.exe src +RTS -ls -RTS " ++ x
         ,":!start /b threadscope hlint.eventlog"]
 :}
 
@@ -74,7 +74,7 @@ let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " 
 :{
 :def docs const $ return $ unlines
         [":docs_"
-        ,":!start dist\\doc\\html\\hlint\\Language-Haskell-HLint.html"]
+        ,":!start dist/doc/html/hlint/Language-Haskell-HLint.html"]
 :}
 
 :{
