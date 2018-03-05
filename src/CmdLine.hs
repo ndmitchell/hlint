@@ -90,6 +90,7 @@ data Cmd
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
         ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
+        ,cmdWithGroups :: [String]       -- ^ groups that are given on the command line
         ,cmdGit :: Bool                  -- ^ use git ls-files to find files
         ,cmdColor :: ColorMode           -- ^ color the result
         ,cmdThreads :: Int              -- ^ Numbmer of threads to use, 0 = whatever GHC has
@@ -151,6 +152,7 @@ mode = cmdArgsMode $ modes
         ,cmdReports = nam "report" &= opt "report.html" &= typFile &= help "Generate a report in HTML"
         ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
         ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
+        ,cmdWithGroups = nam_ "with-group" &= typ "GROUP" &= help "Extra hint groups to use"
         ,cmdGit = nam "git" &= help "Run on files tracked by git"
         ,cmdColor = nam "colour" &= name "color" &= opt Always &= typ "always/never/auto" &= help "Color output (requires ANSI terminal; auto means on when $TERM is supported; by itself, selects always)"
         ,cmdThreads = 1 &= name "threads" &= name "j" &= opt (0 :: Int) &= help "Number of threads to use (-j for all)"
