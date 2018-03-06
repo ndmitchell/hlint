@@ -1,0 +1,22 @@
+---------------------------------------------------------------------
+FILE tests/flag-with-group.hs
+foo = map (+1) . maybe mempty reverse
+RUN "--with-group=generalise" tests/flag-with-group.hs
+OUTPUT
+tests/flag-with-group.hs:1:7: Warning: Use fmap
+Found:
+  map
+Why not:
+  fmap
+
+1 hint
+---------------------------------------------------------------------
+RUN "--with-group=generalise-for-conciseness" tests/flag-with-group.hs
+OUTPUT
+tests/flag-with-group.hs:1:18: Warning: Use foldMap
+Found:
+  maybe mempty
+Why not:
+  foldMap
+
+1 hint

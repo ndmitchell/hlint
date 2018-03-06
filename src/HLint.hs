@@ -144,12 +144,23 @@ resolveFiles cmd _ = pure cmd
 readAllSettings :: [String] -> Cmd -> IO (Cmd, [Setting])
 readAllSettings args1 cmd@CmdMain{..} = do
     files <- cmdHintFiles cmd
-    settings1 <- readFilesConfig $ map (,Nothing) files ++ [("CommandLine.hs",Just x) | x <- cmdWithHints]
+    settings1 <-
+        readFilesConfig $
+        map (,Nothing) files
+        ++ [("CommandLine.hs",Just x) | x <- cmdWithHints]
+        ++ [("CommandLine.yaml",Just (enableGroup x)) | x <- cmdWithGroups]
     let args2 = [x | SettingArgument x <- settings1]
     cmd@CmdMain{..} <- if null args2 then return cmd else getCmd $ args1 ++ args2
     settings2 <- concatMapM (fmap snd . computeSettings (cmdParseFlags cmd)) cmdFindHints
     settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
     return (cmd, settings1 ++ settings2 ++ settings3)
+    where
+        enableGroup groupName =
+            unlines
+            ["- group:"
+            ,"    name: " ++ groupName
+            ,"    enabled: true"
+            ]
 
 runHints :: [String] -> [Setting] -> Cmd -> IO [Idea]
 runHints args settings cmd@CmdMain{..} = do
