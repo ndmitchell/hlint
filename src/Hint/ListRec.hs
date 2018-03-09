@@ -18,6 +18,7 @@ f (x:xs) = x + 1 : f xs ; f [] = [] -- f xs = map (+ 1) xs
 f z (x:xs) = f (z*x) xs ; f z [] = z -- f z xs = foldl (*) z xs
 f a (x:xs) b = x + a + b : f a xs b ; f a [] b = [] -- f a xs b = map (\ x -> x + a + b) xs
 f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax -- f xs a = foldM (+) a xs
+f (x:xs) a = a + x >>= \fax -> f xs fax ; f [] a = pure a -- f xs a = foldM (+) a xs
 foos [] x = x; foos (y:ys) x = foo y $ foos ys x -- foos ys x = foldr foo x ys
 f [] y = y; f (x:xs) y = f xs $ g x y -- f xs y = foldl (flip g) y xs
 f [] y = y; f (x : xs) y = let z = g x y in f xs z -- f xs y = foldl (flip g) y xs
@@ -93,7 +94,7 @@ matchListRec o@(ListCase vs nil (x,xs,cons))
     = Just $ (,,) "foldl" Suggestion $ appsBracket
         [toNamed "foldl", niceLambda [v,x] lhs, toNamed v, toNamed xs]
 
-    | [v] <- vs, App _ ret res <- nil, ret ~= "return", res ~= "()" || view res == Var_ v
+    | [v] <- vs, App _ ret res <- nil, isReturn ret, res ~= "()" || view res == Var_ v
     , [Generator _ (view -> PVar_ b1) e, Qualifier _ (fromParen -> App _ r (view -> Var_ b2))] <- asDo cons
     , b1 == b2, r == recursive, xs `notElem` vars e
     , name <- "foldM" ++ ['_' | res ~= "()"]

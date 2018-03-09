@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #453, allow pure in a few Monad hints as well as return
     #451, add --with-group command line option
     #424, suggest Foldable.forM_ in a few more places
     #445, add suggestions for reader/state monad

@@ -22,6 +22,7 @@ yes = do x <- bar; x -- do join bar
 no = do x <- bar; x; x
 yes = do x <- bar; return (f x) -- do f <$> bar
 yes = do x <- bar; return $ f x -- do f <$> bar
+yes = do x <- bar; pure $ f x -- do f <$> bar
 yes = do x <- bar; return $ f (g x) -- do f . g <$> bar
 yes = do x <- bar; return (f $ g x) -- do f . g <$> bar
 yes = do x <- bar $ baz; return (f $ g x)
@@ -107,7 +108,7 @@ monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (from
                                           go (InfixApp _ f (isDol -> True) x) = first (f:) $ go x
                                           go x = ([], x)
                                       in go -> (ret:f:fs, view -> Var_ v))):g@(Generator _ (view -> PVar_ u) x):rest)
-    | ret ~= "return" || ret ~= "pure", notDol x, u == v, null rest, v `notElem` vars (f:fs)
+    | isReturn ret, notDol x, u == v, null rest, v `notElem` vars (f:fs)
     = Just (reverse (Qualifier an (InfixApp an (foldl' (flip (InfixApp an) (toNamed ".")) f fs) (toNamed "<$>") x):rest),
             [Replace Stmt (toSS g) (("x", toSS x):zip vs (toSS <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSS q)])
   where vs = ('f':) . show <$> [0..]
@@ -117,7 +118,7 @@ monadFmap _ = Nothing
 
 monadReturn :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
 monadReturn (reverse -> q@(Qualifier _ (App _ ret (Var _ v))):g@(Generator _ (PVar _ p) x):rest)
-    | ret ~= "return", fromNamed v == fromNamed p
+    | isReturn ret, fromNamed v == fromNamed p
     = Just (reverse (Qualifier an x : rest),
             [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)])
 monadReturn _ = Nothing
@@ -152,5 +153,5 @@ monadLet xs = if null rs then Nothing else Just (ys, rs)
 
 fromRet (Paren _ x) = fromRet x
 fromRet (InfixApp _ x y z) | opExp y ~= "$" = fromRet $ App an x z
-fromRet (App _ x y) | x ~= "return" = Just y
+fromRet (App _ x y) | isReturn x = Just y
 fromRet _ = Nothing

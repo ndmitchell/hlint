@@ -168,6 +168,10 @@ dotApps [] = error "HSE.Util.dotApps, does not work on an empty list"
 dotApps [x] = x
 dotApps (x:xs) = dotApp x (dotApps xs)
 
+isReturn :: Exp_ -> Bool
+-- Allow both pure and return, as they have the same semantics
+isReturn (Var _ (UnQual _ (Ident _ x))) = x == "return" || x == "pure"
+isReturn _ = False
 
 isLexeme Var{} = True
 isLexeme Con{} = True
