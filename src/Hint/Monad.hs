@@ -107,7 +107,7 @@ monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (from
                                           go (InfixApp _ f (isDol -> True) x) = first (f:) $ go x
                                           go x = ([], x)
                                       in go -> (ret:f:fs, view -> Var_ v))):g@(Generator _ (view -> PVar_ u) x):rest)
-    | ret ~= "return", notDol x, u == v, null rest, v `notElem` vars (f:fs)
+    | ret ~= "return" || ret ~= "pure", notDol x, u == v, null rest, v `notElem` vars (f:fs)
     = Just (reverse (Qualifier an (InfixApp an (foldl' (flip (InfixApp an) (toNamed ".")) f fs) (toNamed "<$>") x):rest),
             [Replace Stmt (toSS g) (("x", toSS x):zip vs (toSS <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSS q)])
   where vs = ('f':) . show <$> [0..]
