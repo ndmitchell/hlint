@@ -48,7 +48,8 @@ library
     build-depends:
         base == 4.*, process, filepath, directory, containers,
         unordered-containers, vector, text, bytestring,
-        transformers, data-default,
+        transformers,
+        data-default >= 0.3,
         cpphs >= 1.20.1,
         cmdargs >= 0.10,
         yaml >= 0.5.0,
