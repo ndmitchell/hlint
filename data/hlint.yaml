@@ -379,6 +379,7 @@
     - warn: {lhs: mapM_ f (map g x), rhs: mapM_ (f . g) x}
     - warn: {lhs: mapM id, rhs: sequence}
     - warn: {lhs: mapM_ id, rhs: sequence_}
+    - warn: {lhs: sequence (return a), rhs: return <$> a}
 
     # APPLICATIVE / TRAVERSABLE
 
@@ -392,6 +393,7 @@
     - warn: {lhs: Just <$> a <|> pure Nothing, rhs: optional a}
     - hint: {lhs: m >>= pure . f, rhs: f <$> m}
     - hint: {lhs: pure . f =<< m, rhs: f <$> m}
+    - warn: {lhs: sequenceA (pure a), rhs: pure <$> a}
 
 
     # LIST COMP
@@ -638,6 +640,7 @@
     rules:
     - warn: {lhs: map, rhs: fmap}
     - warn: {lhs: a ++ b, rhs: a <> b}
+    - warn: {lhs: "sequence [a]", rhs: "pure <$> a"}
 
 - group:
     name: generalise-for-conciseness
