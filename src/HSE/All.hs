@@ -101,7 +101,11 @@ customFixities =
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags NoCpp defaultParseMode{fixities=Just $ customFixities ++ baseFixities ++ baseNotYetInHSE ++ lensFixities ++ hspecFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
+defaultParseFlags = ParseFlags NoCpp defaultParseMode
+    {fixities = Just $ customFixities ++ baseFixities ++ baseNotYetInHSE ++ lensFixities ++ hspecFixities
+    ,ignoreLinePragmas = False
+    ,ignoreFunctionArity = True
+    ,extensions = defaultExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
