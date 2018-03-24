@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, RecordWildCards #-}
+{-# LANGUAGE PatternGuards, RecordWildCards, ViewPatterns #-}
 
 -- | Check the <TEST> annotations within source and hint files.
 module Test.Annotations(testAnnotations) where
@@ -56,9 +56,8 @@ testAnnotations setting file = do
             if null bad then passed else sequence_ bad
 
         match "???" _ = True
-        match x y | "@" `isPrefixOf` x = a == show (ideaSeverity y) && match (trimStart b) y
-            where (a,b) = break isSpace $ tail x
-        match x y = on (==) norm (fromMaybe "" $ ideaTo y) x
+        match (word1 -> ('@':sev, msg)) i = sev == show (ideaSeverity i) && match msg i
+        match msg i = on (==) norm (fromMaybe "" $ ideaTo i) msg
 
         -- FIXME: Should use a better check for expected results
         norm = filter $ \x -> not (isSpace x) && x /= ';'
