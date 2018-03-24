@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #457, suggest turning on LambdaCase if necessary
     #457, add RequiresExtension note
     #454, add fixities for the HSpec `should*` functions
     #455, add some more sequence hints

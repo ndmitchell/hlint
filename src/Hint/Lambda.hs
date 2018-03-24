@@ -148,7 +148,7 @@ lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats 
       munge ident p = PVar (ann p) (Ident (ann p) [ident])
       subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS pats)
 lambdaExp p o@(Lambda _ [view -> PVar_ u] (Case _ (view -> Var_ v) alts))
-    | u == v, u `notElem` vars alts = [suggestN "Use lambda-case" o $ LCase an alts]
+    | u == v, u `notElem` vars alts = [(suggestN "Use lambda-case" o $ LCase an alts){ideaNote=[RequiresExtension "LambdaCase"]}]
 lambdaExp _ _ = []
 
 
