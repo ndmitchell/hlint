@@ -29,7 +29,7 @@ tests/note.hs:1:1: Warning: Unused LANGUAGE pragma
 Found:
   {-# LANGUAGE RecordWildCards #-}
 Why not remove it.
-Note: you may need to add DisambiguateRecordFields
+Note: may require `{-# LANGUAGE DisambiguateRecordFields #-}` adding to the top of the file
 
 tests/note.hs:5:11: Suggestion: Use null
 Found:

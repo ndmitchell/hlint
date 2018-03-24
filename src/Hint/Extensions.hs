@@ -31,7 +31,10 @@ data Set (cxt :: * -> *) a = Set [a]
 {-# LANGUAGE RecordWildCards #-} \
 record field = Record{..}
 {-# LANGUAGE RecordWildCards #-} \
-record = 1 --
+record = 1 -- @Note may require `{-# LANGUAGE DisambiguateRecordFields #-}` adding to the top of the file
+{-# LANGUAGE RecordWildCards #-} \
+{-# LANGUAGE DisambiguateRecordFields #-} \
+record = 1 -- @NoNote
 {-# LANGUAGE UnboxedTuples #-} \
 record = 1 --
 {-# LANGUAGE TemplateHaskell #-} \
@@ -146,7 +149,7 @@ minimalExtensions x es = nub $ concatMap f es
 
 
 -- RecordWildCards implies DisambiguateRecordFields, but most people probably don't want it
-warnings old new | wildcards `elem` old && wildcards `notElem` new = [Note "you may need to add DisambiguateRecordFields"]
+warnings old new | wildcards `elem` old && wildcards `notElem` new = [RequiresExtension "DisambiguateRecordFields"]
     where wildcards = EnableExtension RecordWildCards
 warnings _ _ = []
 
