@@ -47,6 +47,9 @@ modulePragmas :: Module_ -> [ModulePragma S]
 modulePragmas (Module _ _ x _ _) = x
 modulePragmas _ = [] -- XmlPage/XmlHybrid
 
+moduleExtensions :: Module_ -> [Name S]
+moduleExtensions x = concat [y | LanguagePragma _ y <- modulePragmas x]
+
 fromModuleName :: ModuleName S -> String
 fromModuleName (ModuleName _ x) = x
 

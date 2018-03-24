@@ -13,6 +13,7 @@ import Data.Maybe
 import Data.Ord
 import Config.Type
 import Config.Haskell
+import qualified Data.HashSet as Set
 import Prelude
 
 
@@ -44,7 +45,7 @@ applyHints cs = applyHintsReal $ map SettingClassify cs
 
 applyHintsReal :: [Setting] -> Hint -> [(Module_, [Comment])] -> [Idea]
 applyHintsReal settings hints_ ms = concat $
-    [ map (classify $ cls ++ mapMaybe readPragma (universeBi m)) $
+    [ map (classify (cls ++ mapMaybe readPragma (universeBi m)) . removeRequiresExtensionNotes m) $
         order [] (hintModule hints settings nm m) `merge`
         concat [order [fromNamed d] $ decHints d | d <- moduleDecls m] `merge`
         concat [order [] $ hintComment hints settings c | c <- cs]
@@ -60,6 +61,13 @@ applyHintsReal settings hints_ ms = concat $
         hints = (if length ms <= 1 then noModules else id) hints_
         noModules h = h{hintModules = \_ _ -> []} `mappend` mempty{hintModule = \s a b -> hintModules h s [(a,b)]}
 
+-- If the hint has said you RequiresExtension Foo, but Foo is enabled, drop the note
+removeRequiresExtensionNotes :: Module_ -> Idea -> Idea
+removeRequiresExtensionNotes m = \x -> x{ideaNote = filter keep $ ideaNote x}
+    where
+        exts = Set.fromList $ map fromNamed $ moduleExtensions m
+        keep (RequiresExtension x) = not $ x `Set.member` exts
+        keep _ = True
 
 -- | Given a list of settings (a way to classify) and a list of hints, run them over a list of modules.
 executeHints :: [Setting] -> [(Module_, [Comment])] -> [Idea]
