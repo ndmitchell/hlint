@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #454, add fixities for the HSpec `should*` functions
     #455, add some more sequence hints
     #453, allow pure in a few Monad hints as well as return
     #451, add --with-group command line option

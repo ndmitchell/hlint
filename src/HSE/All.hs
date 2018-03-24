@@ -75,6 +75,12 @@ lensFixities = concat
     ,infix_ 4 [".|.=",".&.=","<.|.=","<.&.="]
     ]
 
+hspecFixities :: [Fixity]
+hspecFixities =
+    infix_ 1 ["`shouldBe`","`shouldSatisfy`","`shouldStartWith`","`shouldEndWith`","`shouldContain`","`shouldMatchList`"
+             ,"`shouldReturn`","`shouldNotBe`","`shouldNotSatisfy`","`shouldNotContain`","`shouldNotReturn`","`shouldThrow`"]
+
+
 -- Fixites from the `base` package which are currently
 -- missing from `haskell-src-exts`'s baseFixities.
 -- see https://github.com/haskell-suite/haskell-src-exts/pull/400
@@ -95,8 +101,7 @@ customFixities =
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags NoCpp
-    defaultParseMode{fixities=Just $ customFixities ++ baseFixities ++ baseNotYetInHSE ++ lensFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
+defaultParseFlags = ParseFlags NoCpp defaultParseMode{fixities=Just $ customFixities ++ baseFixities ++ baseNotYetInHSE ++ lensFixities ++ hspecFixities, ignoreLinePragmas=False, ignoreFunctionArity=True, extensions=defaultExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
