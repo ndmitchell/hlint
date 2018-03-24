@@ -57,6 +57,7 @@ data Note
     | RemovesError String -- ^ The replacement removes errors, for example replacing @foldr1 (+)@ with @sum@ removes an error on @[]@, and might contain the text @\"on []\"@.
     | ValidInstance String String -- ^ The replacement assumes standard type class lemmas, a hint with the note @ValidInstance \"Eq\" \"x\"@ might only be valid if
                                   --   the @x@ variable has a reflexive @Eq@ instance.
+    | RequiresExtension String -- ^ The replacement requires this extension to be available.
     | Note String -- ^ An arbitrary note.
       deriving (Eq,Ord)
 
@@ -65,6 +66,7 @@ instance Show Note where
     show DecreasesLaziness = "decreases laziness"
     show (RemovesError x) = "removes error " ++ x
     show (ValidInstance x y) = "requires a valid `" ++ x ++ "` instance for `" ++ y ++ "`"
+    show (RequiresExtension x) = "may require `{-# LANGUAGE " ++ x ++ " #-}` adding to the top of the file"
     show (Note x) = x
 
 

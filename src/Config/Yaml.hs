@@ -262,6 +262,7 @@ asNote "IncreasesLaziness" = IncreasesLaziness
 asNote "DecreasesLaziness" = DecreasesLaziness
 asNote (word1 -> ("RemovesError",x)) = RemovesError x
 asNote (word1 -> ("ValidInstance",x)) = uncurry ValidInstance $ word1 x
+asNote (word1 -> ("RequiresExtension",x)) = RequiresExtension x
 asNote x = Note x
 
 

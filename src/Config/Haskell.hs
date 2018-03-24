@@ -88,6 +88,7 @@ readSide = foldl f (Nothing,[])
               [con -> Just "DecreasesLaziness"] -> [DecreasesLaziness]
               [con -> Just "RemovesError",fromString -> Just a] -> [RemovesError a]
               [con -> Just "ValidInstance",fromString -> Just a,var -> Just b] -> [ValidInstance a b]
+              [con -> Just "RequiresExtension",con -> Just a] -> [RequiresExtension a]
               _ -> errorOn x "bad note"
 
           con :: Exp_ -> Maybe String
