@@ -10,21 +10,22 @@ module CmdLine(
 import Control.Monad.Extra
 import Data.Char
 import Data.List
-import System.Console.ANSI(hSupportsANSI)
-import System.Console.CmdArgs.Implicit
-import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
-import System.Directory.Extra
-import System.Exit
-import System.FilePath
-import System.IO
-import System.Process(readProcess)
-import Language.Preprocessor.Cpphs
+import Data.Maybe
 import HSE.All(CppFlags(..))
 import Language.Haskell.Exts(defaultParseMode, baseLanguage)
 import Language.Haskell.Exts.Extension
-import Data.Maybe
+import Language.Preprocessor.Cpphs
+import System.Console.ANSI(hSupportsANSI)
+import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
+import System.Console.CmdArgs.Implicit
+import System.Directory.Extra
 import System.Environment.Extra
+import System.Exit
+import System.FilePath
+import System.IO
+import System.IO.Error(catchIOError)
 import System.Info.Extra
+import System.Process(readProcess)
 
 import Util
 import Paths_hlint
@@ -217,11 +218,12 @@ cmdHintFiles cmd = do
         -- we follow the stylish-haskell config file search policy
         -- 1) current directory or its ancestors; 2) home directory
         curdir <- getCurrentDirectory
-        home <- getHomeDirectory
+        -- Ignores home directory when it isn't present.
+        home <- catchIOError ((:[]) <$> getHomeDirectory) (const $ pure [])
         b <- doesFileExist ".hlint.yaml"
         implicit <- findM doesFileExist $
             "HLint.hs" : -- the default in HLint 1.*
-            map (</> ".hlint.yaml") (ancestors curdir ++ [home]) -- to match Stylish Haskell
+            map (</> ".hlint.yaml") (ancestors curdir ++ home) -- to match Stylish Haskell
         return $ explicit1 ++ maybeToList implicit ++ explicit2
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
