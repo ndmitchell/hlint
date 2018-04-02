@@ -11,6 +11,7 @@ import Control.Monad.Extra
 import Data.Char
 import Data.List
 import Data.Maybe
+import Data.Functor
 import HSE.All(CppFlags(..))
 import Language.Haskell.Exts(defaultParseMode, baseLanguage)
 import Language.Haskell.Exts.Extension
@@ -23,13 +24,14 @@ import System.Environment.Extra
 import System.Exit
 import System.FilePath
 import System.IO
-import System.IO.Error(catchIOError)
+import System.IO.Error
 import System.Info.Extra
-import System.Process(readProcess)
+import System.Process
 
 import Util
 import Paths_hlint
 import Data.Version
+import Prelude
 
 
 getCmd :: [String] -> IO Cmd
