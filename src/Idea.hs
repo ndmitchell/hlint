@@ -11,8 +11,6 @@ module Idea(
 
 import Data.Functor
 import Data.List.Extra
-import Data.Char
-import Numeric
 import HSE.All
 import Config.Type
 import HsColour
@@ -55,13 +53,7 @@ showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = dict
     ,("refactorings", str $ show ideaRefactoring)
     ]
   where
-    str x = "\"" ++ concatMap f x ++ "\""
-        where f '\"' = "\\\""
-              f '\\' = "\\\\"
-              f '\n' = "\\n"
-              f '\r' = "\\r"
-              f x | isControl x || not (isAscii x) = "\\u" ++ takeEnd 4 ("0000" ++ showHex (ord x) "")
-              f x = [x]
+    str x = "\"" ++ escapeJSON x ++ "\""
     dict xs = "{" ++ intercalate "," [show k ++ ":" ++ v | (k,v) <- xs] ++ "}"
     list xs = "[" ++ intercalate "," xs ++ "]"
 

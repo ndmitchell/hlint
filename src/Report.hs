@@ -66,11 +66,3 @@ writeNote :: String -> String
 writeNote = f . splitOn "`"
     where f (a:b:c) = escapeHTML a ++ "<tt>" ++ escapeHTML b ++ "</tt>" ++ f c
           f xs = concatMap escapeHTML xs
-
-escapeHTML :: String -> String
-escapeHTML = concatMap f
-    where
-        f '>' = "&gt;"
-        f '<' = "&lt;"
-        f '&' = "&amp;"
-        f x = [x]
