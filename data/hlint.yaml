@@ -122,6 +122,8 @@
     - warn: {lhs: isPrefixOf (reverse x) (reverse y), rhs: isSuffixOf x y}
     - warn: {lhs: "foldr (++) []", rhs: concat}
     - warn: {lhs: foldr (++) "", rhs: concat}
+    - warn: {lhs: "foldr ((++) . f) []", rhs: concatMap f}
+    - warn: {lhs: foldr ((++) . f) "", rhs: concatMap f}
     - warn: {lhs: "foldl (++) []", rhs: concat, note: IncreasesLaziness}
     - warn: {lhs: foldl (++) "", rhs: concat, note: IncreasesLaziness}
     - warn: {lhs: foldl f (head x) (tail x), rhs: foldl1 f x}
