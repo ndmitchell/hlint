@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #407, don't error on unknown extensions on the command line
     Require extra-1.6.6
     #462, ignore home directory when it isn't present
 2.1.1, released 2018-03-24

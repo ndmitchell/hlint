@@ -314,7 +314,7 @@ getExtensions args = (lang, foldl f (if null langs then defaultExtensions else [
         f a "Haskell98" = []
         f a ('N':'o':x) | Just x <- readExtension x = delete x a
         f a x | Just x <- readExtension x = x : delete x a
-        f a x = exitMessageImpure $ "Unknown extension: " ++ x
+        f a x = UnknownExtension x : delete (UnknownExtension x) a
 
 
 readExtension :: String -> Maybe Extension
