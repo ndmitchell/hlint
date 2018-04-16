@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.2, released 2018-04-16
     #407, don't error on unknown extensions on the command line
     Require extra-1.6.6
     #464, add more hints for concatMap
