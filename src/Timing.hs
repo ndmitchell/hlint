@@ -7,7 +7,7 @@ module Timing(
 
 import qualified Data.HashMap.Strict as Map
 import Control.Exception
-import Data.IORef
+import Data.IORef.Extra
 import Data.Tuple.Extra
 import Data.List.Extra
 import System.Time.Extra
