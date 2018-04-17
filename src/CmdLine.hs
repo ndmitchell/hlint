@@ -181,7 +181,7 @@ mode = cmdArgsMode $ modes
         ,cmdSerialise = nam_ "serialise" &= help "Serialise hint data for consumption by apply-refact"
         ,cmdRefactor = nam_ "refactor" &= help "Automatically invoke `refactor` to apply hints"
         ,cmdRefactorOptions = nam_ "refactor-options" &= typ "OPTIONS" &= help "Options to pass to the `refactor` executable"
-        , cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
+        ,cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
         } &= auto &= explicit &= name "lint"
     ,CmdGrep
         {cmdFiles = def &= args &= typ "FILE/DIR"
