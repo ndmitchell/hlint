@@ -87,7 +87,7 @@ parseModuleApply flags s file src = do
 -- | Find which hints a list of settings implies.
 allHints :: [Setting] -> Hint
 allHints xs = mconcat $ hintRules [x | SettingMatchExp x <- xs] : map f builtin
-    where builtin = nub $ concat [if x == "All" then map fst builtinHints else [x] | Builtin x <- xs]
+    where builtin = nubOrd $ concat [if x == "All" then map fst builtinHints else [x] | Builtin x <- xs]
           f x = fromMaybe (error $ "Unknown builtin hints: HLint.Builtin." ++ x) $ lookup x builtinHints
 
 

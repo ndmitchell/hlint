@@ -38,7 +38,7 @@ runMutator# = 1
 module Hint.Naming(namingHint) where
 
 import Hint.Type
-import Data.List
+import Data.List.Extra
 import Data.Data
 import Data.Char
 import Data.Maybe
@@ -50,7 +50,7 @@ namingHint _ modu = naming $ Set.fromList [x | Ident _ x <- universeS modu]
 
 naming :: Set.Set String -> Decl_ -> [Idea]
 naming seen x = [suggestN "Use camelCase" x2 (replaceNames res x2) | not $ null res]
-    where res = [(n,y) | n <- nub $ getNames x, Just y <- [suggestName n], not $ y `Set.member` seen]
+    where res = [(n,y) | n <- nubOrd $ getNames x, Just y <- [suggestName n], not $ y `Set.member` seen]
           x2 = shorten x
 
 

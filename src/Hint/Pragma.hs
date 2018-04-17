@@ -29,7 +29,7 @@
 module Hint.Pragma(pragmaHint) where
 
 import Hint.Type
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Refact.Types
 import qualified Refact.Types as R
@@ -50,7 +50,7 @@ optToPragma x lang =
                  , let r = mkRefact old new ns]
 
         ls = concat [map fromNamed n | LanguagePragma _ n <- lang]
-        ns2 = nub (concat ns) \\ ls
+        ns2 = nubOrd (concat ns) \\ ls
 
         ys = [LanguagePragma an (map toNamed ns2) | ns2 /= []] ++ catMaybes new
         mkRefact :: ModulePragma S -> Maybe (ModulePragma S) -> [String] -> Refactoring R.SrcSpan

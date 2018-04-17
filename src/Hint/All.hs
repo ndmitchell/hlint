@@ -7,7 +7,7 @@ module Hint.All(
 import Data.Monoid
 import Config.Type
 import Data.Either
-import Data.List
+import Data.List.Extra
 import Hint.Type
 import Prelude
 
@@ -70,7 +70,7 @@ builtinHints = [(drop 4 $ show h, builtin h) | h <- [minBound .. maxBound]]
 
 -- | Transform a list of 'HintBuiltin' or 'HintRule' into a 'Hint'.
 resolveHints :: [Either HintBuiltin HintRule] -> Hint
-resolveHints xs = mconcat $ mempty{hintDecl=const $ readMatch rights} : map builtin (nub lefts)
+resolveHints xs = mconcat $ mempty{hintDecl=const $ readMatch rights} : map builtin (nubOrd lefts)
     where (lefts,rights) = partitionEithers xs
 
 -- | Transform a list of 'HintRule' into a 'Hint'.

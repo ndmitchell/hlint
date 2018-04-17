@@ -8,7 +8,7 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.State
 import Data.Char
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Data.Function
 import System.FilePath
@@ -26,6 +26,9 @@ data Theorem = Theorem
 instance Eq Theorem where
     t1 == t2 = lemma t1 == lemma t2
 
+instance Ord Theorem where
+    compare t1 t2 = compare (lemma t1) (lemma t2)
+
 instance Show Theorem where
     show Theorem{..} = location ++ ":\n" ++ maybe "" f original ++ lemma ++ "\n"
         where f HintRule{..} = "(* " ++ prettyPrint hintRuleLHS ++ " ==> " ++ prettyPrint hintRuleRHS ++ " *)\n"
@@ -33,7 +36,7 @@ instance Show Theorem where
 proof :: [FilePath] -> [Setting] -> FilePath -> IO ()
 proof reports hints thy = do
     got <- isabelleTheorems (takeFileName thy) <$> readFile thy
-    let want = nub $ hintTheorems hints
+    let want = nubOrd $ hintTheorems hints
     let unused = got \\ want
     let missing = want \\ got
     let reasons = map (\x -> (fst $ head x, map snd x)) $ groupBy ((==) `on` fst) $

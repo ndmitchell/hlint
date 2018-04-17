@@ -29,6 +29,7 @@
   - {name: unsafeInterleaveIO, within: Parallel}
   - {name: unsafePerformIO, within: [Util.exitMessageImpure, Test.Util.ref]}
   - {name: unsafeCoerce, within: [Util.gzip]}
+  - {name: nub, within: []}
 
 
 #####################################################################

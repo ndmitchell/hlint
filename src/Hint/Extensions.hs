@@ -144,7 +144,7 @@ extensionsHint _ x = [rawIdea Warning "Unused LANGUAGE pragma" (srcInfoSpan sl)
 
 
 minimalExtensions :: Module_ -> [Extension] -> [Extension]
-minimalExtensions x es = nub $ concatMap f es
+minimalExtensions x es = nubOrd $ concatMap f es
     where f e = [e | usedExt e x]
 
 
