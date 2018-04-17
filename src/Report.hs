@@ -10,6 +10,7 @@ import Data.Version
 import System.FilePath
 import System.IO.Extra
 import HSE.All
+import Timing
 import Paths_hlint
 import HsColour
 
@@ -24,7 +25,7 @@ writeTemplate dataDir content to = do
 
 
 writeReport :: FilePath -> FilePath -> [Idea] -> IO ()
-writeReport dataDir file ideas = writeTemplate dataDir inner file
+writeReport dataDir file ideas = timedIO "Report" file $ writeTemplate dataDir inner file
     where
         generateIds :: [String] -> [(String,Int)] -- sorted by name
         generateIds = map (head &&& length) . group -- must be already sorted
