@@ -2,6 +2,7 @@
 
 module Util(
     defaultExtensions,
+    forceList,
     gzip, universeParentBi,
     exitMessage, exitMessageImpure
     ) where
@@ -14,6 +15,13 @@ import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.Operations
 import Language.Haskell.Exts.Extension
+
+
+---------------------------------------------------------------------
+-- CONTROL.DEEPSEQ
+
+forceList :: [a] -> [a]
+forceList xs = length xs `seq` xs
 
 
 ---------------------------------------------------------------------
