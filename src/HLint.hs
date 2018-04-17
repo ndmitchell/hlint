@@ -12,6 +12,7 @@ import Data.List.Extra
 import GHC.Conc
 import System.Exit
 import System.IO.Extra
+import System.Time.Extra
 import Data.Tuple.Extra
 import Prelude
 
@@ -31,6 +32,7 @@ import Apply
 import Test.All
 import Hint.All
 import Grep
+import Timing
 import Test.Proof
 import Parallel
 import HSE.All
@@ -53,7 +55,13 @@ hlint :: [String] -> IO [Idea]
 hlint args = do
     cmd <- getCmd args
     case cmd of
-        CmdMain{} -> do xs <- hlintMain args cmd; return $ if cmdNoExitCode cmd then [] else xs
+        CmdMain{} -> do
+            startTimings
+            (time, xs) <- duration $ hlintMain args cmd
+            when (cmdTiming cmd) $ do
+                printTimings
+                putStrLn $ "Took " ++ showDuration time
+            return $ if cmdNoExitCode cmd then [] else xs
         CmdGrep{} -> hlintGrep cmd >> return []
         CmdHSE{}  -> hlintHSE  cmd >> return []
         CmdTest{} -> hlintTest cmd >> return []
