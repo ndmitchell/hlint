@@ -84,6 +84,7 @@ library
         Util
         Parallel
         Refact
+        Timing
         CC
         Config.Compute
         Config.Haskell

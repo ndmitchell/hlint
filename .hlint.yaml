@@ -27,7 +27,7 @@
 
 - functions:
   - {name: unsafeInterleaveIO, within: Parallel}
-  - {name: unsafePerformIO, within: [Util.exitMessageImpure, Test.Util.ref]}
+  - {name: unsafePerformIO, within: [Util.exitMessageImpure, Test.Util.ref, Timing]}
   - {name: unsafeCoerce, within: [Util.gzip]}
   - {name: nub, within: []}
 
