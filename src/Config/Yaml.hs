@@ -21,6 +21,7 @@ import qualified Data.HashMap.Strict as Map
 import HSE.All hiding (Rule, String)
 import Data.Functor
 import Data.Semigroup
+import Timing
 import Util
 import Prelude
 
@@ -28,7 +29,7 @@ import Prelude
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
 --   Fails if the YAML doesn't parse or isn't valid HLint YAML
 readFileConfigYaml :: FilePath -> Maybe String -> IO ConfigYaml
-readFileConfigYaml file contents = do
+readFileConfigYaml file contents = timedIO "Config" file $ do
     val <- case contents of
         Nothing -> decodeFileEither file
         Just src -> return $ decodeEither' $ BS.pack src

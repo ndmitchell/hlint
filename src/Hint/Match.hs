@@ -47,6 +47,8 @@ import Hint.Type
 import Control.Monad
 import Data.Tuple.Extra
 import HSE.Unify
+import Util
+import Timing
 import qualified Data.Set as Set
 import Prelude
 import qualified Refact.Types as R
@@ -90,7 +92,7 @@ dotVersion _ = []
 -- PERFORM THE MATCHING
 
 findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
-findIdeas matches s _ decl =
+findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
     [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
     | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
     , (parent,x) <- universeParentExp decl, not $ isParen x

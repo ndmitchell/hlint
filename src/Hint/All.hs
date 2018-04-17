@@ -9,6 +9,8 @@ import Config.Type
 import Data.Either
 import Data.List.Extra
 import Hint.Type
+import Timing
+import Util
 import Prelude
 
 import Hint.Match
@@ -58,11 +60,11 @@ builtin x = case x of
     HintNewType    -> decl newtypeHint
     HintRestrict   -> mempty{hintModule=restrictHint}
     where
-        decl x = mempty{hintDecl=const x}
-        modu x = mempty{hintModule=const x}
-        mods x = mempty{hintModules=const x}
-        comm x = mempty{hintComment=const x}
-
+        wrap = timed "Hint" (drop 4 $ show x) . forceList
+        decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}
+        modu f = mempty{hintModule=const $ \a b -> wrap $ f a b}
+        mods f = mempty{hintModules=const $ \a -> wrap $ f a}
+        comm f = mempty{hintComment=const $ \a -> wrap $ f a}
 
 -- | A list of builtin hints, currently including entries such as @\"List\"@ and @\"Bracket\"@.
 builtinHints :: [(String, Hint)]
