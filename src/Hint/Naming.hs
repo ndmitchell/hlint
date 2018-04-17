@@ -16,7 +16,7 @@
 data Yes = Foo | Bar'Test -- data Yes = Foo | BarTest
 data Yes = Bar | Test_Bar -- data Yes = Bar | TestBar
 data No = a :::: b
-data Yes = Foo {bar_cap :: Int} -- data Yes = Foo{barCap :: Int}
+data Yes = Foo {bar_cap :: Int}
 data No = FOO | BarBAR | BarBBar
 yes_foo = yes_foo + yes_foo -- yesFoo = ...
 no = 1 where yes_foo = 2
