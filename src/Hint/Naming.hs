@@ -81,7 +81,7 @@ getNames x = case x of
 
         f (ConDecl _ x _) = [x]
         f (InfixConDecl _ _ x _) = [x]
-        f (RecDecl _ x ys) = x : concat [y | FieldDecl _ y _ <- ys]
+        f (RecDecl _ x _) = [x]
 
 
 suggestName :: String -> Maybe String
