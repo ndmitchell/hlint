@@ -5,7 +5,7 @@ module Timing(
     printTimings
     ) where
 
-import qualified Data.Map.Strict as Map
+import qualified Data.HashMap.Strict as Map
 import Control.Exception
 import Data.IORef
 import Data.Tuple.Extra
@@ -26,7 +26,7 @@ useTimings :: Bool
 useTimings = unsafePerformIO $ readIORef useTimingsRef
 
 {-# NOINLINE timings #-}
-timings :: IORef (Map.Map (Category, Item) Seconds)
+timings :: IORef (Map.HashMap (Category, Item) Seconds)
 timings = unsafePerformIO $ newIORef Map.empty
 
 {-# NOINLINE timed #-}
