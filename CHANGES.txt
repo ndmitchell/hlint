@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.3, released 2018-04-18
     Improve the performance of the camelCase hint
     Don't suggest camelCase for record fields
     Add a --timing flag to detect what is slow
