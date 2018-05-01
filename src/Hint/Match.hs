@@ -65,7 +65,7 @@ readMatch settings = findIdeas (concatMap readRule settings)
 
 
 readRule :: HintRule -> [HintRule]
-readRule (m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn -> hintRuleRHS), hintRuleSide=(fmap fmapAn -> hintRuleSide)}) =
+readRule m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn -> hintRuleRHS), hintRuleSide=(fmap fmapAn -> hintRuleSide)} =
     (:) m{hintRuleLHS=hintRuleLHS,hintRuleSide=hintRuleSide,hintRuleRHS=hintRuleRHS} $ do
         (l,v1) <- dotVersion hintRuleLHS
         (r,v2) <- dotVersion hintRuleRHS
