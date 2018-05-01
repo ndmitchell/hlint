@@ -121,6 +121,8 @@ isTyBang TyBang{} = True; isTyBang _ = False
 isLCase LCase{} = True; isLCase _ = False
 isTupleSection TupleSection{} = True; isTupleSection _ = False
 isString String{} = True; isString _ = False
+isRecUpdate RecUpdate{} = True; isRecUpdate _ = False
+isRecConstr RecConstr{} = True; isRecConstr _ = False
 
 isSection LeftSection{} = True
 isSection RightSection{} = True

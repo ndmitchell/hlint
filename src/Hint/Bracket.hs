@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns, ScopedTypeVariables #-}
 {-
 Raise an error if you are bracketing an atom, or are enclosed be a list bracket
 
@@ -42,7 +42,7 @@ yes = split "to" $ names -- split "to" names
 yes = white $ keysymbol -- white keysymbol
 yes = operator foo $ operator -- operator foo operator
 no = operator foo $ operator bar
-yes = return $ Record{a=b} -- return Record{a=b}
+yes = return $ Record{a=b}
 
 -- $/bracket rotation tests
 yes = (b $ c d) ++ e -- b (c d) ++ e
@@ -66,6 +66,10 @@ main = 1; {-# ANN module (1 + (2)) #-} -- 2
 main = operate <$> (select $ from $ \user -> return $ user ^. UserEmail)
 -- unknown fixity, see #426
 bad x = x . (x +? x . x)
+-- special case people don't like to warn on
+special = foo $ f{x=1}
+special = foo $ Rec{x=1}
+special = foo (f{x=1})
 </TEST>
 -}
 
@@ -79,9 +83,9 @@ import Refact.Types
 
 bracketHint :: DeclHint
 bracketHint _ _ x =
-    concatMap (\x -> bracket True x ++ dollar x) (childrenBi (descendBi annotations x) :: [Exp_]) ++
-    concatMap (bracket False) (childrenBi x :: [Type_]) ++
-    concatMap (bracket False) (childrenBi x :: [Pat_]) ++
+    concatMap (\x -> bracket isPartialAtom True x ++ dollar x) (childrenBi (descendBi annotations x) :: [Exp_]) ++
+    concatMap (bracket (const False) False) (childrenBi x :: [Type_]) ++
+    concatMap (bracket (const False) False) (childrenBi x :: [Pat_]) ++
     concatMap fieldDecl (childrenBi x)
     where
         -- Brackets at the roots of annotations are fine, so we strip them
@@ -89,6 +93,9 @@ bracketHint _ _ x =
         annotations = descendBi $ \x -> case (x :: Exp_) of
             Paren _ x -> x
             x -> x
+
+isPartialAtom :: Exp_ -> Bool
+isPartialAtom x = isRecConstr x || isRecUpdate x
 
 -- Dirty, should add to Brackets type class I think
 tyConToRtype :: String -> RType
@@ -107,16 +114,16 @@ remParens = fmap go . remParen
   where
     go e = maybe e go (remParen e)
 
-bracket :: (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => Bool -> a S -> [Idea]
-bracket bad = f Nothing
+bracket :: forall a . (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => (a S -> Bool) -> Bool -> a S -> [Idea]
+bracket isPartialAtom root = f Nothing
     where
         msg = "Redundant bracket"
 
         -- f (Maybe (index, parent, gen)) child
         f :: (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
-        f Just{} o@(remParens -> Just x) | isAtom x = bracketError msg o x : g x
-        f Nothing o@(remParens -> Just x) | bad || isAtom x = (if isAtom x then bracketError else bracketWarning) msg o x : g x
-        f (Just (i,o,gen)) v@(remParens -> Just x) | not $ needBracket i o x =
+        f Just{} o@(remParens -> Just x) | isAtom x, not $ isPartialAtom x = bracketError msg o x : g x
+        f Nothing o@(remParens -> Just x) | root || isAtom x = (if isAtom x then bracketError else bracketWarning) msg o x : g x
+        f (Just (i,o,gen)) v@(remParens -> Just x) | not $ needBracket i o x, not $ isPartialAtom x =
           suggest msg o (gen x) [r] : g x
           where
             typ = findType v
@@ -142,7 +149,7 @@ dollar :: Exp_ -> [Idea]
 dollar = concatMap f . universe
     where
         f x = [suggest "Redundant $" x y [r] | InfixApp _ a d b <- [x], opExp d ~= "$"
-              ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b
+              ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b, not $ isPartialAtom b
               ,let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"]
               ++
               [suggest "Move brackets to avoid $" x (t y) [r] |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
