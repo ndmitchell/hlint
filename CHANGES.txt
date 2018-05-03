@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #477, don't warn about unit_ as tasty-discover recommends it
 2.1.4, released 2018-05-01
     Don't warn about redundant $ for a $ b{c=d}
 2.1.3, released 2018-04-18
