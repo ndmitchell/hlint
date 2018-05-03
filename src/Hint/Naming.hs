@@ -87,7 +87,7 @@ getNames x = case x of
 suggestName :: String -> Maybe String
 suggestName x
     | isSym x || good || not (any isLower x) || any isDigit x ||
-        any (`isPrefixOf` x) ["prop_","case_","test_"] = Nothing
+        any (`isPrefixOf` x) ["prop_","case_","unit_","test_"] = Nothing
     | otherwise = Just $ f x
     where
         good = all isAlphaNum $ drp '_' $ drp '#' $ drp '\'' $ reverse $ drp '_' x
