@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 {-
     Suggest removal of unnecessary extensions
     i.e. They have {-# LANGUAGE RecursiveDo #-} but no mdo keywords
@@ -113,6 +112,8 @@ main = 'a'#
 main = 5.6#
 {-# LANGUAGE MagicHash #-} \
 foo = id --
+{-# LANGUAGE GeneralizedNewtypeDeriving #-} \
+newtype X = X Int deriving newtype Show
 </TEST>
 -}
 
@@ -159,21 +160,19 @@ deriveGenerics = ["Data","Typeable","Generic","Generic1","Lift"]
 deriveCategory = ["Functor","Foldable","Traversable"]
 
 -- | Classes that can't require newtype deriving
-noGeneralizedNewtypeDeriving =
+noDeriveNewtype =
     delete "Enum" deriveHaskell ++ -- Enum can't always be derived on a newtype
     deriveGenerics -- Generics stuff can't newtype derive since it has the ctor in it
 
--- | Classes that can't require DeriveAnyClass
-noDeriveAnyClass = deriveHaskell ++ deriveGenerics ++ deriveCategory
+-- | Classes that can appear as stock, and can't appear as anyclass
+deriveStock = deriveHaskell ++ deriveGenerics ++ deriveCategory
 
 
 usedExt :: Extension -> Module_ -> Bool
 usedExt (EnableExtension x) = used x
 usedExt (UnknownExtension "NumDecimals") = hasS isWholeFrac
 usedExt (UnknownExtension "DeriveLift") = hasDerive ["Lift"]
-usedExt (UnknownExtension "DeriveAnyClass") =
-    any (`notElem` noDeriveAnyClass) .
-    (\Derives{..} -> derivesNewType ++ derivesData) . derives
+usedExt (UnknownExtension "DeriveAnyClass") = not . null . derivesAnyclass . derives
 usedExt _ = const True
 
 
@@ -213,9 +212,7 @@ used DeriveFunctor = hasDerive ["Functor"]
 used DeriveFoldable = hasDerive ["Foldable"]
 used DeriveTraversable = hasDerive ["Traversable"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
-used GeneralizedNewtypeDeriving =
-    any (`notElem` noGeneralizedNewtypeDeriving) .
-    (\Derives{..} -> derivesNewType ++ derivesStandalone) . derives
+used GeneralizedNewtypeDeriving = not . null . derivesNewtype . derives
 used LambdaCase = hasS isLCase
 used TupleSections = hasS isTupleSection
 used OverloadedStrings = hasS isString
@@ -238,14 +235,15 @@ used x = usedExt $ UnknownExtension $ show x
 
 
 hasDerive :: [String] -> Module_ -> Bool
-hasDerive want m = any (`elem` want) $ derivesNewType ++ derivesData ++ derivesStandalone
-    where Derives{..} = derives m
+hasDerive want = any (`elem` want) . derivesStock . derives
 
 
+-- Derivations can be implemented using any one of 3 strategies, so for each derivation
+-- add it to all the strategies that might plausibly implement it
 data Derives = Derives
-    {derivesNewType :: [String]
-    ,derivesData :: [String]
-    ,derivesStandalone :: [String]
+    {derivesStock :: [String]
+    ,derivesAnyclass :: [String]
+    ,derivesNewtype :: [String]
     }
 instance Semigroup Derives where
     Derives x1 x2 x3 <> Derives y1 y2 y3 =
@@ -253,6 +251,18 @@ instance Semigroup Derives where
 instance Monoid Derives where
     mempty = Derives [] [] []
     mappend = (<>)
+
+addDerives :: Maybe (DataOrNew S) -> Maybe (DerivStrategy S) -> [String] -> Derives
+addDerives _ (Just s) xs = case s of
+    DerivStock{} -> mempty{derivesStock = xs}
+    DerivAnyclass{} -> mempty{derivesAnyclass = xs}
+    DerivNewtype{} -> mempty{derivesNewtype = xs}
+addDerives nt _ xs = mempty
+    {derivesStock = stock
+    ,derivesAnyclass = other
+    ,derivesNewtype = if maybe True isNewType nt then filter (`notElem` noDeriveNewtype) xs else []}
+    where (stock, other) = partition (`elem` deriveStock) xs
+
 
 -- | What is derived on newtype, and on data type
 --   'deriving' declarations may be on either, so we approximate as both newtype and data
@@ -269,11 +279,10 @@ derives m = mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
         decl (GDataDecl _ dn _ _ _ _ ds) = g dn ds
         decl (DataInsDecl _ dn _ _ ds) = g dn ds
         decl (GDataInsDecl _ dn _ _ _ ds) = g dn ds
-        decl (DerivDecl _ _ _ hd) = mempty{derivesStandalone=[ir hd]}
+        decl (DerivDecl _ strategy _ hd) = addDerives Nothing strategy [ir hd]
         decl _ = mempty
 
-        g dn ds = if isNewType dn then mempty{derivesNewType=xs} else mempty{derivesData=xs}
-            where xs = concatMap (map ir . fromDeriving) ds
+        g dn ds = mconcat [addDerives (Just dn) strategy $ map ir rules | Deriving _ strategy rules <- ds]
 
         ir (IRule _ _ _ x) = ih x
         ir (IParen _ x) = ir x
