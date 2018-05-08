@@ -10,12 +10,12 @@ ENV PATH /root/.local/bin:$PATH
 RUN mkdir -p /src
 WORKDIR /src
 
-# Install appropriate GHC
-COPY stack.yaml /src/
+# Initialize package/stack
+COPY hlint.cabal /src/
+RUN stack init
 RUN stack setup
 
 # Install HLint
-COPY hlint.cabal /src/
 RUN stack install --dependencies-only
 COPY ./src /src/src
 COPY ./data /src/data
