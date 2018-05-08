@@ -121,7 +121,7 @@ HLint can generate a lot of information, making it difficult to search for parti
 
 ### Language Extensions
 
-HLint enables most Haskell extensions, disabling only those which steal too much syntax (currently Arrows, TransformListComp, XmlSyntax and RegularPatterns). Individual extensions can be enabled or disabled with, for instance, `-XArrows`, or `-XNoMagicHash`. The flag `-XHaskell2010` selects Haskell 2010 compatibility.
+HLint enables most Haskell extensions, disabling only those which steal too much syntax (currently Arrows, TransformListComp, XmlSyntax and RegularPatterns). Individual extensions can be enabled or disabled with, for instance, `-XArrows`, or `-XNoMagicHash`. The flag `-XHaskell2010` selects Haskell 2010 compatibility. You can also pass them via `.hlint.yaml` file. For example: `- arguments: [-XQuasiQuotes]`.
 
 ### Emacs Integration
 
