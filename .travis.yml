@@ -7,7 +7,7 @@ matrix:
   - env: GHCVER=7.10.3
   - env: GHCVER=8.0.2
   - env: GHCVER=8.2.2
-  - env: GHCVER=8.4.2
+  - env: GHCVER=8.4.3
   - env: GHCVER=head
   - os: osx
 
