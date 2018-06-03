@@ -89,8 +89,10 @@
     - warn: {lhs: last (sort x), rhs: maximum x}
     - warn: {lhs: head (sortBy f x), rhs: minimumBy f x, side: isCompare f}
     - warn: {lhs: last (sortBy f x), rhs: maximumBy f x, side: isCompare f}
-    - warn: {lhs: reverse (sort x), rhs: sortBy (flip compare) x, name: Avoid reverse}
     - warn: {lhs: reverse (sortBy f x), rhs: sortBy (flip f) x, name: Avoid reverse, side: isCompare f}
+    - warn: {lhs: sortBy (comparing (flip f)), rhs: sortOn (Down . f)}
+    - warn: {lhs: reverse (sortOn f x), rhs: sortOn (Data.Ord.Down . f) x, name: Avoid reverse}
+    - warn: {lhs: reverse (sort x), rhs: sortOn Data.Ord.Down x, name: Avoid reverse}
     - hint: {lhs: flip (g `on` h), rhs: flip g `on` h, name: Move flip}
     - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h)}
 

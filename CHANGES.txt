@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #468, suggest using sortOn/Down
     #458, document the restriction feature
     #494, don't suggest newtype for unboxed tuples
     #488, avoid warning about more test prefixes
