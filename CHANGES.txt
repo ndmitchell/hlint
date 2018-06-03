@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #494, don't suggest newtype for unboxed tuples
     #488, avoid warning about more test prefixes
 2.1.5, released 2018-05-05
     #478, take account of deriving strategies for extension use

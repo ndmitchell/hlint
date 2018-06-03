@@ -16,6 +16,7 @@ data Foo = Bar
 data X = Y {-# UNPACK #-} !Int -- newtype X = Y Int
 data A = A {b :: !C} -- newtype A = A {b :: C}
 data A = A Int#
+{-# LANGUAGE UnboxedTuples #-}; data WithAnn x = WithAnn (# Ann, x #)
 data A = A () -- newtype A = A ()
 </TEST>
 -}

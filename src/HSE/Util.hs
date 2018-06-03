@@ -234,6 +234,8 @@ isKindHash :: Type_ -> Bool
 isKindHash (TyParen _ x) = isKindHash x
 isKindHash (TyApp _ x _) = isKindHash x
 isKindHash (TyCon _ (fromQual -> Just (Ident _ s))) = "#" `isSuffixOf`  s
+isKindHash (TyTuple _ Unboxed _) = True
+isKindHash TyUnboxedSum{} = True
 isKindHash _ = False
 
 
