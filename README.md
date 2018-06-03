@@ -279,9 +279,36 @@ $ hlint --find=src/Utils.hs
 
 These hints are suitable for inclusion in a custom hint file. You can also include Haskell fixity declarations in a hint file, and these will also be extracted. If you pass only `--find` flags then the hints will be written out, if you also pass files/folders to check, then the found hints will be automatically used when checking.
 
-### More Advanced Hints
-
 Hints can specify more advanced aspects, with names and side conditions. To see examples and descriptions of these features look at [the default hint file](https://github.com/ndmitchell/hlint/blob/master/data/hlint.yaml) and [the hint interpretation module comments](https://github.com/ndmitchell/hlint/blob/master/src/Hint/Match.hs).
+
+### Restricting items
+
+HLint can restrict what Haskell code is allowed, which is particularly useful for larger projects which wish to enforce coding standards - there is a short example in the [HLint repo itself](https://github.com/ndmitchell/hlint/blob/master/.hlint.yaml#L10-L32). As an example of restricting extensions:
+
+```yaml
+- extensions:
+  - default: false
+  - name: [DeriveDataTypeable, GeneralizedNewtypeDeriving]
+  - {name: CPP, within: CompatLayer}
+```
+
+The above block declares that GHC extensions are not allowed by default, apart from `DeriveDataTypeable` and `GeneralizedNewtypeDeriving` which are available everywhere. The `CPP` extension is only allowed in the module `CompatLayer`. Much like `extensions`, you can use `flags` to limit the `GHC_OPTIONS` flags that are allowed to occur. You can also ban certain functions:
+
+```yaml
+- functions:
+  - {name: nub, within: []}
+  - {name: unsafePerformIO, within: CompatLayer}
+```
+
+This declares that the `nub` function can't be used in any modules, and thus is banned from the code. That's probably a good idea, as most people should use an alternative that isn't _O(n^2)_ (e.g. [`nubOrd`](https://hackage.haskell.org/package/extra/docs/Data-List-Extra.html#v:nubOrd)). We also whitelist where `unsafePerformIO` can occur, ensuring that there can be a centrally reviewed location to declare all such instances. Finally, we can restrict the use of modules with:
+
+```yaml
+- modules:
+  - {name: [Data.Set, Data.HashSet], as: Set}
+  - {name: Control.Arrow, within: []}
+```
+
+This fragment requires that all imports of `Set` must be `qualified Data.Set as Set`, enforcing consistency. It also ensures the module `Control.Arrow` can't be used anywhere.
 
 ## Hacking HLint
 
