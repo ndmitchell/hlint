@@ -529,6 +529,7 @@
     - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.forM_ m f}
 
     # STATE MONAD
+
     - warn: {lhs: f <$> Control.Monad.State.get, rhs: gets f}
     - warn: {lhs: fmap f  Control.Monad.State.get, rhs: gets f}
     - warn: {lhs: f <$> Control.Monad.Reader.ask, rhs: asks f}
