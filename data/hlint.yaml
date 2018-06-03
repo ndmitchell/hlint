@@ -491,6 +491,7 @@
     # CONCURRENT
 
     - hint: {lhs: mapM_ (writeChan a), rhs: writeList2Chan a}
+    - error: {lhs: atomically (readTVar x), rhs: readTVarIO x}
 
     # EXCEPTION
 
