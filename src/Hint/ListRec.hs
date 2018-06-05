@@ -33,7 +33,6 @@ import Hint.Type
 import Hint.Util
 import Data.List.Extra
 import Data.Maybe
-import Data.Ord
 import Data.Either.Extra
 import Control.Monad
 import Refact.Types hiding (RType(Match))
@@ -119,7 +118,7 @@ findCase x = do
     Branch name1 ps1 p1 c1 b1 <- findBranch x1
     Branch name2 ps2 p2 c2 b2 <- findBranch x2
     guard (name1 == name2 && ps1 == ps2 && p1 == p2)
-    [(BNil, b1), (BCons x xs, b2)] <- return $ sortBy (comparing fst) [(c1,b1), (c2,b2)]
+    [(BNil, b1), (BCons x xs, b2)] <- return $ sortOn fst [(c1,b1), (c2,b2)]
     b2 <- transformAppsM (delCons name1 p1 xs) b2
     (ps,b2) <- return $ eliminateArgs ps1 b2
 
