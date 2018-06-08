@@ -68,17 +68,18 @@ monadExp :: Decl_ -> (Maybe (Int, Exp_), Exp_) -> [Idea]
 monadExp decl (parent, x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         (view -> App2 op x1 (view -> LamConst1 _)) | op ~= ">>=" -> f x1
-        Do _ xs -> [warn "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
-                   [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
-                   [warn "Use <$>" x (Do an y) rs | Just (y, rs) <- [monadFmap xs]] ++
-                   [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"]
-                        | [Qualifier _ y] <- [xs], not $ doOperator parent y] ++
-                   [suggest "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
-                   concat [f x | Qualifier _ x <- init xs] ++
-                   concat [f x | Generator _ (PWildCard _) x <- init xs]
+        Do _ xs ->
+            [warn "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
+            [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
+            [warn "Use <$>" x (Do an y) rs | Just (y, rs) <- [monadFmap xs]] ++
+            [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"]
+                | [Qualifier _ y] <- [xs], not $ doOperator parent y] ++
+            [suggest "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
+            concat [f x | Qualifier _ x <- init xs] ++
+            concat [f x | Generator _ (PWildCard _) x <- init xs]
         _ -> []
     where
-        f x = [warn ("Use " ++ name) x y r  | Just (name,y, r) <- [monadCall x], fromNamed decl /= name]
+        f x = [warn ("Use " ++ name) x y r  | Just (name,y, r) <- [monadNoResult x], fromNamed decl /= name]
 
 -- Sometimes people write a * do a + b, to avoid brackets
 doOperator (Just (1, InfixApp _ _ op _)) InfixApp{} | not $ isDol op = True
@@ -90,18 +91,18 @@ middle f (a,b,c) = (a, f b, c)
 
 -- see through Paren and down if/case etc
 -- return the name to use in the hint, and the revised expression
-monadCall :: Exp_ -> Maybe (String,Exp_, [Refactoring R.SrcSpan])
-monadCall (Paren l x) = middle (Paren l) <$> monadCall x
-monadCall (App l x y) = middle (\x -> App l x y) <$> monadCall x
-monadCall (InfixApp l x op y)
-    | isDol op = middle (\x -> InfixApp l x op y) <$> monadCall x
-    | op ~= ">>=" = middle (InfixApp l x op) <$> monadCall y
-monadCall (replaceBranches -> (bs@(_:_), gen)) | all isJust res
+monadNoResult :: Exp_ -> Maybe (String,Exp_, [Refactoring R.SrcSpan])
+monadNoResult (Paren l x) = middle (Paren l) <$> monadNoResult x
+monadNoResult (App l x y) = middle (\x -> App l x y) <$> monadNoResult x
+monadNoResult (InfixApp l x op y)
+    | isDol op = middle (\x -> InfixApp l x op y) <$> monadNoResult x
+    | op ~= ">>=" = middle (InfixApp l x op) <$> monadNoResult y
+monadNoResult (replaceBranches -> (bs@(_:_), gen)) | all isJust res
     = Just ("Use simple functions", gen $ map (\(Just (a,b,c)) -> b) res, rs)
-    where res = map monadCall bs
+    where res = map monadNoResult bs
           rs  = concatMap (\(Just (a,b,c)) -> c) res
-monadCall x | x2:_ <- filter (x ~=) badFuncs = let x3 = x2 ++ "_" in  Just (x3, toNamed x3, [Replace Expr (toSS x) [] x3])
-monadCall _ = Nothing
+monadNoResult x | x2:_ <- filter (x ~=) badFuncs = let x3 = x2 ++ "_" in  Just (x3, toNamed x3, [Replace Expr (toSS x) [] x3])
+monadNoResult _ = Nothing
 
 monadFmap :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
 monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (fromParen x)
