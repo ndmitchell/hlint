@@ -68,8 +68,8 @@ monadExp :: Decl_ -> (Maybe (Int, Exp_), Exp_) -> [Idea]
 monadExp decl (parent, x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         (view -> App2 op x1 (view -> LamConst1 _)) | op ~= ">>=" -> f x1
-        Do _ xs ->
-            monadReturn x xs ++
+        Do an xs ->
+            monadReturn (Do an) xs ++
             [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
             [warn "Use <$>" x (Do an y) rs | Just (y, rs) <- [monadFmap xs]] ++
             [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"]
@@ -118,12 +118,13 @@ monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (from
 monadFmap _ = Nothing
 
 -- Suggest removing a return
-monadReturn :: Exp_ -> [Stmt S] -> [Idea]
+monadReturn :: ([Stmt S] -> Exp_) -> [Stmt S] -> [Idea]
 -- do ...; a <- ...; return a
-monadReturn o (reverse -> q@(Qualifier _ (fromRet -> Just (Var _ v))):g@(Generator _ (PVar _ p) x):rest)
+monadReturn wrap o@[g@(Generator _ (PVar _ p) x), q@(Qualifier _ (fromRet -> Just (Var _ v)))]
     | fromNamed v == fromNamed p
-    = [warn "Redundant return" o (Do an (reverse (Qualifier an x : rest))) $
+    = [warn "Redundant return" (wrap o) (wrap [Qualifier an x]) $
             [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)]]
+monadReturn wrap (x:xs) = monadReturn (wrap . (x :)) xs
 monadReturn _ _ = []
 
 monadJoin :: [Stmt S] -> String -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
