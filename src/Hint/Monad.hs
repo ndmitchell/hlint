@@ -127,7 +127,7 @@ monadStep wrap o@(Qualifier _ (fromRet -> Just _):x:xs) =
 -- do a <- $1; return a ==> do $1
 monadStep wrap o@[g@(Generator _ (PVar _ p) x), q@(Qualifier _ (fromRet -> Just (Var _ v)))]
     | fromNamed v == fromNamed p
-    = [warn "Redundant return" (wrap o) (wrap [Qualifier an x]) $
+    = [warn "Redundant return" (wrap o) (wrap [Qualifier an x])
             [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)]]
 
 -- do x <- $1; x; $2  ==> do join $1; $2
