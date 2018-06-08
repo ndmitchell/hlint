@@ -336,6 +336,8 @@
     - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x y, side: isAtom y}
     - warn: {lhs: sequence (map f x), rhs: mapM f x}
     - warn: {lhs: sequence_ (map f x), rhs: mapM_ f x}
+    - warn: {lhs: sequence (fmap f x), rhs: mapM f x}
+    - warn: {lhs: sequence_ (fmap f x), rhs: mapM_ f x}
     - hint: {lhs: flip mapM, rhs: Control.Monad.forM}
     - hint: {lhs: flip mapM_, rhs: Control.Monad.forM_}
     - hint: {lhs: flip forM, rhs: mapM}
