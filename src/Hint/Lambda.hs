@@ -68,6 +68,8 @@ foo = bar (\x -> (x `f`)) -- f
 baz = bar (\x -> (x +)) -- (+)
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b
 no = blah (\ x -> case x of A -> a x; B -> b x)
+yes = blah (\ x -> (y, x, z+q)) -- (y, , z+q)
+yes = blah (\ x -> (y, x, z+x))
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 name = authOAuth2Widget [whamlet|Login via #{name}|] name
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 = foo (\name -> authOAuth2Widget [whamlet|Login via #{name}|] name)
 </TEST>
@@ -149,6 +151,10 @@ lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats 
       subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS pats)
 lambdaExp p o@(Lambda _ [view -> PVar_ u] (Case _ (view -> Var_ v) alts))
     | u == v, u `notElem` vars alts = [(suggestN "Use lambda-case" o $ LCase an alts){ideaNote=[RequiresExtension "LambdaCase"]}]
+lambdaExp p o@(Lambda _ [view -> PVar_ u] (Tuple _ boxed xs))
+    | ([yes],no) <- partition (~= u) xs, u `notElem` concatMap vars no
+    = [(suggestN "Use tuple-section" o $ TupleSection an boxed [if x ~= u then Nothing else Just x | x <- xs])
+        {ideaNote=[RequiresExtension "TupleSections"]}]
 lambdaExp _ _ = []
 
 
