@@ -69,11 +69,10 @@ monadExp :: Decl_ -> (Maybe (Int, Exp_), Exp_) -> [Idea]
 monadExp decl (parent, x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         (view -> App2 op x1 (view -> LamConst1 _)) | op ~= ">>=" -> f x1
+        Do an [Qualifier _ y] -> [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"] | not $ doOperator parent y]
         Do an xs ->
             monadSteps (Do an) xs ++
             [warn "Use <$>" x (Do an y) rs | Just (y, rs) <- [monadFmap xs]] ++
-            [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"]
-                | [Qualifier _ y] <- [xs], not $ doOperator parent y] ++
             [suggest "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
             concat [f x | Qualifier _ x <- init xs] ++
             concat [f x | Generator _ (PWildCard _) x <- init xs]
