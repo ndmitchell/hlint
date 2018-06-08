@@ -105,6 +105,7 @@ monadNoResult (replaceBranches -> (bs@(_:_), gen)) | all isJust res
 monadNoResult x | x2:_ <- filter (x ~=) badFuncs = let x3 = x2 ++ "_" in  Just (x3, toNamed x3, [Replace Expr (toSS x) [] x3])
 monadNoResult _ = Nothing
 
+
 monadFmap :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
 monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (fromParen x)
                                           go (InfixApp _ f (isDol -> True) x) = first (f:) $ go x
@@ -118,6 +119,7 @@ monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (from
         notDol _ = True
 monadFmap _ = Nothing
 
+
 -- Suggest removing a return
 monadReturn :: ([Stmt S] -> Exp_) -> [Stmt S] -> [Idea]
 -- do ...; a <- ...; return a
@@ -125,10 +127,12 @@ monadReturn wrap o@[g@(Generator _ (PVar _ p) x), q@(Qualifier _ (fromRet -> Jus
     | fromNamed v == fromNamed p
     = [warn "Redundant return" (wrap o) (wrap [Qualifier an x]) $
             [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)]]
+-- do ...; return x; ...
 monadReturn wrap o@(Qualifier _ (fromRet -> Just _):x:xs) =
     [warn "Redundant return" (wrap o) (wrap $ x:xs) [Delete Stmt (toSS (head o))]]
 monadReturn wrap (x:xs) = monadReturn (wrap . (x :)) xs
 monadReturn _ _ = []
+
 
 monadJoin :: [Stmt S] -> String -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
 monadJoin (g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Var_ v)):xs) (c:cs)
