@@ -359,9 +359,7 @@
     - hint: {lhs: liftM2 id, rhs: ap}
     - warn: {lhs: mapM (uncurry f) (zip l m), rhs: zipWithM f l m}
     - warn: {lhs: mapM_ (void . f), rhs: mapM_ f}
-    - warn: {lhs: mapM_ (void f), rhs: mapM_ f}
     - warn: {lhs: forM_ x (void . f), rhs: forM_ x f}
-    - warn: {lhs: forM_ x (void f), rhs: forM_ x f}
     - warn: {lhs: void (mapM f x), rhs: mapM_ f x}
     - warn: {lhs: void (forM x f), rhs: forM_ x f}
 
