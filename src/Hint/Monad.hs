@@ -43,6 +43,10 @@ main = "wait" ~> do f a $ sleep 10
 main = f $ do g a $ sleep 10 -- g a $ sleep 10
 main = do f a $ sleep 10 -- f a $ sleep 10
 main = do foo x; return 3; bar z -- do foo x; bar z
+main = void $ forM_ f xs -- forM_ f xs
+main = void $ forM f xs -- void $ forM_ f xs
+main = do _ <- forM_ f xs; bar -- do forM_ f xs; bar
+main = do bar; forM_ f xs; return () -- do bar; forM_ f xs
 </TEST>
 -}
 
@@ -69,6 +73,8 @@ monadExp :: Decl_ -> (Maybe (Int, Exp_), Exp_) -> [Idea]
 monadExp (fromNamed -> decl) (parent, x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         (view -> App2 op x1 (view -> LamConst1 _)) | op ~= ">>=" -> f x1
+        App an op x | op ~= "void" -> seenVoid (App an op) x
+        InfixApp an op dol x | op ~= "void", isDol dol -> seenVoid (InfixApp an op dol) x
         Do an [Qualifier _ y] -> [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"] | not $ doOperator parent y]
         Do an xs ->
             monadSteps (Do an) xs ++
@@ -76,12 +82,23 @@ monadExp (fromNamed -> decl) (parent, x) = case x of
             concat [f x | Qualifier _ x <- init xs] ++
             concat [f x | Generator _ (PWildCard _) x <- init xs]
         _ -> []
-    where f = monadNoResult decl id
+    where
+        f = monadNoResult decl id
+        seenVoid wrap x = monadNoResult decl wrap x ++ [warn "Redundant void" (wrap x) x [] | returnsUnit x]
+
 
 
 -- Sometimes people write a * do a + b, to avoid brackets
 doOperator (Just (1, InfixApp _ _ op _)) InfixApp{} | not $ isDol op = True
 doOperator _ _ = False
+
+
+returnsUnit :: Exp_ -> Bool
+returnsUnit (Paren _ x) = returnsUnit x
+returnsUnit (App _ x _) = returnsUnit x
+returnsUnit (InfixApp _ x op _) | isDol op = returnsUnit x
+returnsUnit (Var _ x) = any (x ~=) $ map (++ "_") badFuncs
+returnsUnit _ = False
 
 
 -- see through Paren and down if/case etc
@@ -118,6 +135,16 @@ monadStep wrap o@(g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Va
     | p == v && v `notElem` varss xs
     = [warn "Use join" (wrap o) (wrap $ Qualifier an (rebracket1 $ App an (toNamed "join") x):xs) r]
     where r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete Stmt (toSS q)]
+
+-- do _ <- <return ()>; $1 ==> do <return ()>; $1
+monadStep wrap o@(Generator an PWildCard{} x:rest)
+    | returnsUnit x
+    = [warn "Redundant variable capture" (wrap o) (wrap $ Qualifier an x : rest) []]
+
+-- do <return ()>; return ()
+monadStep wrap o@[Qualifier an x, Qualifier _ (fromRet -> Just unit)]
+    | returnsUnit x, unit ~= "()"
+    = [warn "Redundant return" (wrap o) (wrap $ take 1 o) []]
 
 -- do x <- $1; return $ f $ g x ==> f . g <$> x
 monadStep wrap
