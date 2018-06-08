@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    Warn about returns in the middle of do blocks
     #471, suggest readTVarIO
     #468, suggest using sortOn/Down
     #458, document the restriction feature

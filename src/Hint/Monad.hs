@@ -42,6 +42,7 @@ yes = mapM async ds >>= mapM wait >> return () -- mapM async ds >>= mapM_ wait
 main = "wait" ~> do f a $ sleep 10
 main = f $ do g a $ sleep 10 -- g a $ sleep 10
 main = do f a $ sleep 10 -- f a $ sleep 10
+main = do foo x; return 3; bar z -- do foo x; bar z
 </TEST>
 -}
 
@@ -124,6 +125,8 @@ monadReturn wrap o@[g@(Generator _ (PVar _ p) x), q@(Qualifier _ (fromRet -> Jus
     | fromNamed v == fromNamed p
     = [warn "Redundant return" (wrap o) (wrap [Qualifier an x]) $
             [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)]]
+monadReturn wrap o@(Qualifier _ (fromRet -> Just _):x:xs) =
+    [warn "Redundant return" (wrap o) (wrap $ x:xs) [Delete Stmt (toSS (head o))]]
 monadReturn wrap (x:xs) = monadReturn (wrap . (x :)) xs
 monadReturn _ _ = []
 
