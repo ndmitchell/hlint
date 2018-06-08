@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    Make use of <$> more general, but in simpler cases
     Warn about returns in the middle of do blocks
     #471, suggest readTVarIO
     #468, suggest using sortOn/Down

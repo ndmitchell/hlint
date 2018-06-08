@@ -72,7 +72,6 @@ monadExp decl (parent, x) = case x of
         Do an [Qualifier _ y] -> [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"] | not $ doOperator parent y]
         Do an xs ->
             monadSteps (Do an) xs ++
-            [warn "Use <$>" x (Do an y) rs | Just (y, rs) <- [monadFmap xs]] ++
             [suggest "Use let" x (Do an y) rs | Just (y, rs) <- [monadLet xs]] ++
             concat [f x | Qualifier _ x <- init xs] ++
             concat [f x | Generator _ (PWildCard _) x <- init xs]
@@ -104,20 +103,6 @@ monadNoResult x | x2:_ <- filter (x ~=) badFuncs = let x3 = x2 ++ "_" in  Just (
 monadNoResult _ = Nothing
 
 
-monadFmap :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
-monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (fromParen x)
-                                          go (InfixApp _ f (isDol -> True) x) = first (f:) $ go x
-                                          go x = ([], x)
-                                      in go -> (ret:f:fs, view -> Var_ v))):g@(Generator _ (view -> PVar_ u) x):rest)
-    | isReturn ret, notDol x, u == v, null rest, v `notElem` vars (f:fs)
-    = Just (reverse (Qualifier an (InfixApp an (foldl' (flip (InfixApp an) (toNamed ".")) f fs) (toNamed "<$>") x):rest),
-            [Replace Stmt (toSS g) (("x", toSS x):zip vs (toSS <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSS q)])
-  where vs = ('f':) . show <$> [0..]
-        notDol (InfixApp _ _ op _) = not $ isDol op
-        notDol _ = True
-monadFmap _ = Nothing
-
-
 monadStep :: ([Stmt S] -> Exp_) -> [Stmt S] -> [Idea]
 
 -- do return x; $2 ==> do $2
@@ -135,6 +120,19 @@ monadStep wrap o@(g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Va
     | p == v && v `notElem` varss xs
     = [warn "Use join" (wrap o) (wrap $ Qualifier an (rebracket1 $ App an (toNamed "join") x):xs) r]
     where r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete Stmt (toSS q)]
+
+-- do x <- $1; return $ f $ g x ==> f . g <$> x
+monadStep wrap
+    o@[g@(Generator _ (view -> PVar_ u) x)
+      ,q@(Qualifier _ (fromApplies -> (ret:f:fs, view -> Var_ v)))]
+        | isReturn ret, notDol x, u == v, length fs < 3, all isSimple (f:fs), v `notElem` vars (f:fs)
+        = [warn "Use <$>" (wrap o) (wrap [Qualifier an (InfixApp an (foldl' (flip (InfixApp an) (toNamed ".")) f fs) (toNamed "<$>") x)])
+            [Replace Stmt (toSS g) (("x", toSS x):zip vs (toSS <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSS q)]]
+    where
+        isSimple (fromApps -> xs) = all isAtom (x:xs)
+        vs = ('f':) . show <$> [0..]
+        notDol (InfixApp _ _ op _) = not $ isDol op
+        notDol _ = True
 
 monadStep _ _ = []
 
@@ -158,6 +156,12 @@ monadLet xs = if null rs then Nothing else Just (ys, rs)
                       (prettyPrint $ template (toNamed "lhs") (toNamed "rhs"))
         mkLet x = (x, Nothing)
         template lhs rhs = LetStmt an $ BDecls an [PatBind an lhs (UnGuardedRhs an rhs) Nothing]
+
+
+fromApplies :: Exp_ -> ([Exp_], Exp_)
+fromApplies (App _ f x) = first (f:) $ fromApplies (fromParen x)
+fromApplies (InfixApp _ f (isDol -> True) x) = first (f:) $ fromApplies x
+fromApplies x = ([], x)
 
 
 -- | Match @return x@ to @Just x@.
