@@ -116,12 +116,15 @@ monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (from
         notDol _ = True
 monadFmap _ = Nothing
 
+-- Suggest removing a return
 monadReturn :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
-monadReturn (reverse -> q@(Qualifier _ (App _ ret (Var _ v))):g@(Generator _ (PVar _ p) x):rest)
-    | isReturn ret, fromNamed v == fromNamed p
+-- do ...; a <- ...; return a
+monadReturn (reverse -> q@(Qualifier _ (fromRet -> Just (Var _ v))):g@(Generator _ (PVar _ p) x):rest)
+    | fromNamed v == fromNamed p
     = Just (reverse (Qualifier an x : rest),
             [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)])
 monadReturn _ = Nothing
+
 
 monadJoin :: [Stmt S] -> String -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
 monadJoin (g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Var_ v)):xs) (c:cs)
@@ -133,10 +136,11 @@ monadJoin (g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Var_ v)):
       f (ss, rs) = (s:ss, r ++ rs)
       s = gen x
       r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete Stmt (toSS q)]
-
-monadJoin (x:xs) cs = first (x:)   <$> monadJoin xs cs
+monadJoin (x:xs) cs = first (x:) <$> monadJoin xs cs
 monadJoin [] _ = Nothing
 
+
+-- | do ...; x <- return y; ... ==> do ...; let x = y; ...
 monadLet :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
 monadLet xs = if null rs then Nothing else Just (ys, rs)
     where
@@ -151,6 +155,9 @@ monadLet xs = if null rs then Nothing else Just (ys, rs)
         mkLet x = (x, Nothing)
         template lhs rhs = LetStmt an $ BDecls an [PatBind an lhs (UnGuardedRhs an rhs) Nothing]
 
+
+-- | Match @return x@ to @Just x@.
+fromRet :: Exp_ -> Maybe Exp_
 fromRet (Paren _ x) = fromRet x
 fromRet (InfixApp _ x y z) | opExp y ~= "$" = fromRet $ App an x z
 fromRet (App _ x y) | isReturn x = Just y
