@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, ViewPatterns #-}
+{-# LANGUAGE FlexibleContexts, ViewPatterns, TupleSections #-}
 
 module HSE.Util(module HSE.Util, def) where
 
@@ -207,7 +207,7 @@ transformBracketOld :: (Exp_ -> Maybe Exp_) -> Exp_ -> Exp_
 transformBracketOld op = snd . g
     where
         g = f . descendBracketOld g
-        f x = maybe (False,x) ((,) True) (op x)
+        f x = maybe (False,x) (True,) (op x)
 
 -- | Descend, and if something changes then add/remove brackets appropriately
 descendBracketOld :: (Exp_ -> (Bool, Exp_)) -> Exp_ -> Exp_
