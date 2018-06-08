@@ -70,8 +70,7 @@ monadExp decl (parent, x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         (view -> App2 op x1 (view -> LamConst1 _)) | op ~= ">>=" -> f x1
         Do an xs ->
-            monadReturn (Do an) xs ++
-            [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
+            monadSteps (Do an) xs ++
             [warn "Use <$>" x (Do an y) rs | Just (y, rs) <- [monadFmap xs]] ++
             [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"]
                 | [Qualifier _ y] <- [xs], not $ doOperator parent y] ++
@@ -120,32 +119,30 @@ monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (from
 monadFmap _ = Nothing
 
 
--- Suggest removing a return
-monadReturn :: ([Stmt S] -> Exp_) -> [Stmt S] -> [Idea]
--- do ...; a <- ...; return a
-monadReturn wrap o@[g@(Generator _ (PVar _ p) x), q@(Qualifier _ (fromRet -> Just (Var _ v)))]
+monadStep :: ([Stmt S] -> Exp_) -> [Stmt S] -> [Idea]
+
+-- do return x; $2 ==> do $2
+monadStep wrap o@(Qualifier _ (fromRet -> Just _):x:xs) =
+    [warn "Redundant return" (wrap o) (wrap $ x:xs) [Delete Stmt (toSS (head o))]]
+
+-- do a <- $1; return a ==> do $1
+monadStep wrap o@[g@(Generator _ (PVar _ p) x), q@(Qualifier _ (fromRet -> Just (Var _ v)))]
     | fromNamed v == fromNamed p
     = [warn "Redundant return" (wrap o) (wrap [Qualifier an x]) $
             [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)]]
--- do ...; return x; ...
-monadReturn wrap o@(Qualifier _ (fromRet -> Just _):x:xs) =
-    [warn "Redundant return" (wrap o) (wrap $ x:xs) [Delete Stmt (toSS (head o))]]
-monadReturn wrap (x:xs) = monadReturn (wrap . (x :)) xs
-monadReturn _ _ = []
 
-
-monadJoin :: [Stmt S] -> String -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
-monadJoin (g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Var_ v)):xs) (c:cs)
+-- do x <- $1; x; $2  ==> do join $1; $2
+monadStep wrap o@(g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Var_ v)):xs)
     | p == v && v `notElem` varss xs
-    = Just . f $ fromMaybe def (monadJoin xs cs)
-    where
-      gen expr = Qualifier (ann x) (rebracket1 $ App an (toNamed "join") expr)
-      def = (xs, [])
-      f (ss, rs) = (s:ss, r ++ rs)
-      s = gen x
-      r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete Stmt (toSS q)]
-monadJoin (x:xs) cs = first (x:) <$> monadJoin xs cs
-monadJoin [] _ = Nothing
+    = [warn "Use join" (wrap o) (wrap $ Qualifier an (rebracket1 $ App an (toNamed "join") x):xs) r]
+    where r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete Stmt (toSS q)]
+
+monadStep _ _ = []
+
+-- Suggest removing a return
+monadSteps :: ([Stmt S] -> Exp_) -> [Stmt S] -> [Idea]
+monadSteps wrap (x:xs) = monadStep wrap (x:xs) ++ monadSteps (wrap . (x :)) xs
+monadSteps _ _ = []
 
 
 -- | do ...; x <- return y; ... ==> do ...; let x = y; ...
