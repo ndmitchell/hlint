@@ -69,7 +69,7 @@ monadExp decl (parent, x) = case x of
         (view -> App2 op x1 x2) | op ~= ">>" -> f x1
         (view -> App2 op x1 (view -> LamConst1 _)) | op ~= ">>=" -> f x1
         Do _ xs ->
-            [warn "Redundant return" x (Do an y) rs | Just (y, rs) <- [monadReturn xs]] ++
+            monadReturn x xs ++
             [warn "Use join" x (Do an y) rs | Just (y, rs) <- [monadJoin xs ['a'..'z']]] ++
             [warn "Use <$>" x (Do an y) rs | Just (y, rs) <- [monadFmap xs]] ++
             [warn "Redundant do" x y [Replace Expr (toSS x) [("y", toSS y)] "y"]
@@ -118,14 +118,13 @@ monadFmap (reverse -> q@(Qualifier _ (let go (App _ f x) = first (f:) $ go (from
 monadFmap _ = Nothing
 
 -- Suggest removing a return
-monadReturn :: [Stmt S] -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
+monadReturn :: Exp_ -> [Stmt S] -> [Idea]
 -- do ...; a <- ...; return a
-monadReturn (reverse -> q@(Qualifier _ (fromRet -> Just (Var _ v))):g@(Generator _ (PVar _ p) x):rest)
+monadReturn o (reverse -> q@(Qualifier _ (fromRet -> Just (Var _ v))):g@(Generator _ (PVar _ p) x):rest)
     | fromNamed v == fromNamed p
-    = Just (reverse (Qualifier an x : rest),
-            [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)])
-monadReturn _ = Nothing
-
+    = [warn "Redundant return" o (Do an (reverse (Qualifier an x : rest))) $
+            [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)]]
+monadReturn _ _ = []
 
 monadJoin :: [Stmt S] -> String -> Maybe ([Stmt S], [Refactoring R.SrcSpan])
 monadJoin (g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Var_ v)):xs) (c:cs)
