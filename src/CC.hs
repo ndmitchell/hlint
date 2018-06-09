@@ -89,7 +89,7 @@ fromIdea Idea{..} = Issue
         , T.pack from
         , "```"
         , ""
-        , "remove it."
+        , "remove it?"
         ]
 
     content from (Just to) = T.unlines

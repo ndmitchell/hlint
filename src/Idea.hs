@@ -74,7 +74,7 @@ showEx tt Idea{..} = unlines $
     ["Note: " ++ n | let n = showNotes ideaNote, n /= ""]
     where
         f msg Nothing = []
-        f msg (Just x) | null xs = [msg ++ " remove it."]
+        f msg (Just x) | null xs = [msg ++ " remove it?"]
                        | otherwise = (msg ++ ":") : map ("  "++) xs
             where xs = lines $ tt x
 
