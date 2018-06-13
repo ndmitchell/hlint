@@ -252,8 +252,8 @@
     - warn: {lhs: id x, rhs: x, side: not (isTypeApp x), name: Evaluate}
     - warn: {lhs: id . x, rhs: x, name: Redundant id}
     - warn: {lhs: x . id, rhs: x, name: Redundant id}
-    - warn: {lhs: "(,) x", rhs: "(_noParen_ x,)", name: Use a tuple section, note: RequiresExtension TupleSections}
-    - warn: {lhs: "flip (,) x", rhs: "(,_noParen_ x)", name: Use a tuple section, note: RequiresExtension TupleSections}
+    - warn: {lhs: "(,) x", rhs: "(_noParen_ x,)", name: Use tuple-section, note: RequiresExtension TupleSections}
+    - warn: {lhs: "flip (,) x", rhs: "(,_noParen_ x)", name: Use tuple-section, note: RequiresExtension TupleSections}
 
     # CHAR
 
