@@ -47,6 +47,7 @@ main = void $ forM_ f xs -- forM_ f xs
 main = void $ forM f xs -- void $ forM_ f xs
 main = do _ <- forM_ f xs; bar -- do forM_ f xs; bar
 main = do bar; forM_ f xs; return () -- do bar; forM_ f xs
+main = do a; when b c; return () -- do a; when b c
 </TEST>
 -}
 
@@ -64,6 +65,7 @@ import Prelude
 
 
 badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM","traverse","for","sequenceA"]
+unitFuncs = ["when", "unless"]
 
 
 monadHint :: DeclHint
@@ -97,7 +99,7 @@ returnsUnit :: Exp_ -> Bool
 returnsUnit (Paren _ x) = returnsUnit x
 returnsUnit (App _ x _) = returnsUnit x
 returnsUnit (InfixApp _ x op _) | isDol op = returnsUnit x
-returnsUnit (Var _ x) = any (x ~=) $ map (++ "_") badFuncs
+returnsUnit (Var _ x) = any (x ~=) $ map (++ "_") badFuncs ++ unitFuncs
 returnsUnit _ = False
 
 
