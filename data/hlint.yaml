@@ -252,7 +252,7 @@
     - warn: {lhs: id x, rhs: x, side: not (isTypeApp x), name: Evaluate}
     - warn: {lhs: id . x, rhs: x, name: Redundant id}
     - warn: {lhs: x . id, rhs: x, name: Redundant id}
-    - warn: {lhs: "(,) x", rhs: "(_noParen_ x,)", name: Use tuple-section, note: RequiresExtension TupleSections}
+    - warn: {lhs: "((,) x)", rhs: "(_noParen_ x,)", name: Use tuple-section, note: RequiresExtension TupleSections}
     - warn: {lhs: "flip (,) x", rhs: "(,_noParen_ x)", name: Use tuple-section, note: RequiresExtension TupleSections}
 
     # CHAR
@@ -808,6 +808,7 @@
 # foo = id 12 -- 12
 # yes = foldr (\ curr acc -> (+ 1) curr : acc) [] -- map (\ curr -> (+ 1) curr)
 # yes = foldr (\ curr acc -> curr + curr : acc) [] -- map (\ curr -> curr + curr)
+# no = foo $ (,) x $ do {this is a test; and another test}
 #
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM

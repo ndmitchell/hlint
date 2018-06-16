@@ -85,7 +85,7 @@ unifyDef nm x y = fmap mconcat . sequence =<< gzip (unify nm False) x y
 -- root = True, this is the outside of the expr
 -- do not expand out a dot at the root, since otherwise you get two matches because of readRule (Bug #570)
 unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe (Subst Exp_)
-unifyExp nm root x y | isParen x || isParen y =
+unifyExp nm root x y | not root, isParen x || isParen y =
     fmap (rebracket y) <$> unifyExp nm root (fromParen x) (fromParen y)
     where
         rebracket (Paren l e') e | e' == e = Paren l e
