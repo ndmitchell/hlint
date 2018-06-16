@@ -65,7 +65,7 @@ import Prelude
 
 
 badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM","traverse","for","sequenceA"]
-unitFuncs = ["when", "unless"]
+unitFuncs = ["when","unless","void"]
 
 
 monadHint :: DeclHint
