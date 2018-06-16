@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.6, released 2018-06-16
     Match on explicit brackets at the root of a match expression
     #470, suggest TupleSections
     #496, suggest sequence/fmap ==> mapM
