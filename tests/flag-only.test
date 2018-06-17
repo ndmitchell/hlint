@@ -6,7 +6,7 @@ OUTPUT
 tests/flag-only-one-arg.hs:1:41: Warning: Redundant bracket
 Found:
   (666)
-You might want:
+Perhaps:
   666
 
 1 hint
@@ -18,13 +18,13 @@ OUTPUT
 tests/flag-only-many-args.hs:1:33: Suggestion: Use ++
 Found:
   concat ["foo", "bar"]
-You might want:
+Perhaps:
   "foo" ++ "bar"
 
 tests/flag-only-many-args.hs:1:60: Warning: Redundant bracket
 Found:
   (666)
-You might want:
+Perhaps:
   666
 
 2 hints

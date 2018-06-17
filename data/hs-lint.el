@@ -12,7 +12,7 @@
 ;; /Users/ott/projects/lang-exp/haskell/test.hs:52:1: Eta reduce
 ;; Found:
 ;;   count1 p l = length (filter p l)
-;; You might want:
+;; Perhaps:
 ;;   count1 p = length . filter p
 
 
@@ -52,11 +52,11 @@
 ;; ^\(.*?\):\([0-9]+\):\([0-9]+\): .*
 ;; Found:
 ;; \s +\(.*\)
-;; You might want:
+;; Perhaps:
 ;; \s +\(.*\)
 
 (defvar hs-lint-regex
-  "^\\(.*?\\):\\([0-9]+\\):\\([0-9]+\\): .*[\n\C-m]Found:[\n\C-m]\\s +\\(.*\\)[\n\C-m]You might want:[\n\C-m]\\s +\\(.*\\)[\n\C-m]"
+  "^\\(.*?\\):\\([0-9]+\\):\\([0-9]+\\): .*[\n\C-m]Found:[\n\C-m]\\s +\\(.*\\)[\n\C-m]Perhaps:[\n\C-m]\\s +\\(.*\\)[\n\C-m]"
   "Regex for HLint messages")
 
 (defun make-short-string (str maxlen)

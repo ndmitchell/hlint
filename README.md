@@ -29,19 +29,19 @@ $ hlint darcs-2.1.2
 darcs-2.1.2\src\CommandLine.lhs:94:1: Warning: Use concatMap
 Found:
     concat $ map escapeC s
-You might want:
+Perhaps:
     concatMap escapeC s
 
 darcs-2.1.2\src\CommandLine.lhs:103:1: Suggestion: Use fewer brackets
 Found:
     ftable ++ (map (\ (c, x) -> (toUpper c, urlEncode x)) ftable)
-You might want:
+Perhaps:
     ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable
 
 darcs-2.1.2\src\Darcs\Patch\Test.lhs:306:1: Warning: Use a more efficient monadic variant
 Found:
     mapM (delete_line (fn2fp f) line) old
-You might want:
+Perhaps:
     mapM_ (delete_line (fn2fp f) line) old
 
 ... lots more hints ...

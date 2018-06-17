@@ -8,7 +8,7 @@ OUTPUT
 tests/lhs-line-numbers.lhs:3:17: Suggestion: Use :
 Found:
   [1] ++ [2, 3]
-You might want:
+Perhaps:
   1 : [2, 3]
 
 1 hint
@@ -41,7 +41,7 @@ OUTPUT
 tests/lhs-first-line.lhs:1:17: Suggestion: Use :
 Found:
   [1] ++ [2, 3]
-You might want:
+Perhaps:
   1 : [2, 3]
 
 1 hint

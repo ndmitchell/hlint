@@ -28,13 +28,13 @@ OUTPUT
 tests/note.hs:1:1: Warning: Unused LANGUAGE pragma
 Found:
   {-# LANGUAGE RecordWildCards #-}
-You might want to remove it.
+Perhaps you should remove it.
 Note: may require `{-# LANGUAGE DisambiguateRecordFields #-}` adding to the top of the file
 
 tests/note.hs:5:11: Suggestion: Use null
 Found:
   length xs == 0
-You might want:
+Perhaps:
   null xs
 Note: increases laziness
 
@@ -48,7 +48,7 @@ OUTPUT
 tests/brackets.hs:1:8: Warning: Use fromMaybe
 Found:
   if isNothing x then (-1.0) else fromJust x
-You might want:
+Perhaps:
   fromMaybe (-1.0) x
 
 1 hint

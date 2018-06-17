@@ -6,7 +6,7 @@ OUTPUT
 tests/flag-fixity.hs:1:20: Suggestion: Use list literal
 Found:
   Just x : []
-You might want:
+Perhaps:
   [Just x]
 
 1 hint
