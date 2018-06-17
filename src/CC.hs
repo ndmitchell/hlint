@@ -99,7 +99,7 @@ fromIdea Idea{..} = Issue
         , T.pack from
         , "```"
         , ""
-        , "Why not"
+        , "Perhaps"
         , ""
         , "```"
         , T.pack to

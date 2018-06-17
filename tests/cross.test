@@ -27,7 +27,7 @@ Found:
   a = 1
   b = 2
   c = 3
-Why not:
+Perhaps:
   Combine with tests/cross.hs2:6:9
 
 1 hint

@@ -6,7 +6,7 @@ OUTPUT
 tests/flag-no-summary1.hs:1:8: Suggestion: Use map once
 Found:
   map f $ map g xs
-Why not:
+Perhaps:
   map (f . g) xs
 
 EXIT 1

@@ -6,7 +6,7 @@ OUTPUT
 tests/flag-with-group.hs:1:7: Warning: Use fmap
 Found:
   map
-Why not:
+Perhaps:
   fmap
 
 1 hint
@@ -16,7 +16,7 @@ OUTPUT
 tests/flag-with-group.hs:1:18: Warning: Use foldMap
 Found:
   maybe mempty
-Why not:
+Perhaps:
   foldMap
 
 1 hint

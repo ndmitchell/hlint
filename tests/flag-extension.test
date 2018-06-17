@@ -8,13 +8,13 @@ OUTPUT
 tests/directory*File1.hs:1:8: Suggestion: Use map once
 Found:
   map f . map g
-Why not:
+Perhaps:
   map (f . g)
 
 tests/directory*File2.lhs:1:9: Suggestion: Use map once
 Found:
   map f . map g
-Why not:
+Perhaps:
   map (f . g)
 
 2 hints
@@ -25,7 +25,7 @@ OUTPUT
 tests/directory*File2.lhs:1:9: Suggestion: Use map once
 Found:
   map f . map g
-Why not:
+Perhaps:
   map (f . g)
 
 1 hint

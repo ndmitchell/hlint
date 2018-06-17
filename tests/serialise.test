@@ -11,7 +11,7 @@ FILE tests/serialise-one.hs
 foo = (+1)
 bar x = foo x
 OUTPUT
-[("tests/serialise-one.hs:2:1: Warning: Eta reduce\nFound:\n  bar x = foo x\nWhy not:\n  bar = foo\n",[])]
+[("tests/serialise-one.hs:2:1: Warning: Eta reduce\nFound:\n  bar x = foo x\nPerhaps:\n  bar = foo\n",[])]
 
 
 ---------------------------------------------------------------------
@@ -21,7 +21,7 @@ foo = (+1)
 bar x = foo x
 baz = getLine >>= return . map toUpper
 OUTPUT
-[("tests/serialise-two.hs:2:1: Warning: Eta reduce\nFound:\n  bar x = foo x\nWhy not:\n  bar = foo\n",[]),("tests/serialise-two.hs:3:7: Suggestion: Use <$>\nFound:\n  getLine >>= return . map toUpper\nWhy not:\n  map toUpper <$> getLine\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [("f",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),("m",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = "f <$> m"}])]
+[("tests/serialise-two.hs:2:1: Warning: Eta reduce\nFound:\n  bar x = foo x\nPerhaps:\n  bar = foo\n",[]),("tests/serialise-two.hs:3:7: Suggestion: Use <$>\nFound:\n  getLine >>= return . map toUpper\nPerhaps:\n  map toUpper <$> getLine\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [("f",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),("m",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = "f <$> m"}])]
 
 
 ---------------------------------------------------------------------
@@ -29,7 +29,7 @@ RUN tests/serialise-three.hs --serialise
 FILE tests/serialise-three.hs
 foo = concat (map f (let x = x in x))
 OUTPUT
-[("tests/serialise-three.hs:1:7: Warning: Use concatMap\nFound:\n  concat (map f (let x = x in x))\nWhy not:\n  concatMap f (let x = x in x)\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 1, startCol = 7, endLine = 1, endCol = 38}, subts = [("f",SrcSpan {startLine = 1, startCol = 19, endLine = 1, endCol = 20}),("x",SrcSpan {startLine = 1, startCol = 21, endLine = 1, endCol = 37})], orig = "concatMap f x"}])]
+[("tests/serialise-three.hs:1:7: Warning: Use concatMap\nFound:\n  concat (map f (let x = x in x))\nPerhaps:\n  concatMap f (let x = x in x)\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 1, startCol = 7, endLine = 1, endCol = 38}, subts = [("f",SrcSpan {startLine = 1, startCol = 19, endLine = 1, endCol = 20}),("x",SrcSpan {startLine = 1, startCol = 21, endLine = 1, endCol = 37})], orig = "concatMap f x"}])]
 
 
 ---------------------------------------------------------------------
@@ -38,7 +38,7 @@ FILE tests/serialise-four.hs
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE CPP #-}
 OUTPUT
-[("tests/serialise-four.hs:1:1: Warning: Use better pragmas\nFound:\n  {-# LANGUAGE CPP #-}\n  {-# LANGUAGE CPP #-}\nWhy not:\n  {-# LANGUAGE CPP #-}\n",[ModifyComment {pos = SrcSpan {startLine = 1, startCol = 1, endLine = 1, endCol = 21}, newComment = "{-# LANGUAGE CPP #-}"},ModifyComment {pos = SrcSpan {startLine = 2, startCol = 1, endLine = 2, endCol = 21}, newComment = ""}])]
+[("tests/serialise-four.hs:1:1: Warning: Use better pragmas\nFound:\n  {-# LANGUAGE CPP #-}\n  {-# LANGUAGE CPP #-}\nPerhaps:\n  {-# LANGUAGE CPP #-}\n",[ModifyComment {pos = SrcSpan {startLine = 1, startCol = 1, endLine = 1, endCol = 21}, newComment = "{-# LANGUAGE CPP #-}"},ModifyComment {pos = SrcSpan {startLine = 2, startCol = 1, endLine = 2, endCol = 21}, newComment = ""}])]
 
 
 
@@ -47,7 +47,7 @@ RUN tests/serialise-five.hs --serialise
 FILE tests/serialise-five.hs
 import qualified GHC as GHC
 OUTPUT
-[("tests/serialise-five.hs:1:1: Suggestion: Redundant as\nFound:\n  import qualified GHC as GHC\nWhy not:\n  import qualified GHC\n",[RemoveAsKeyword {pos = SrcSpan {startLine = 1, startCol = 1, endLine = 1, endCol = 28}}])]
+[("tests/serialise-five.hs:1:1: Suggestion: Redundant as\nFound:\n  import qualified GHC as GHC\nPerhaps:\n  import qualified GHC\n",[RemoveAsKeyword {pos = SrcSpan {startLine = 1, startCol = 1, endLine = 1, endCol = 28}}])]
 
 
 ---------------------------------------------------------------------
@@ -55,7 +55,7 @@ RUN tests/serialise-six.hs --serialise
 FILE tests/serialise-six.hs
 foo = qux (\x -> f (g x))
 OUTPUT
-[("tests/serialise-six.hs:1:12: Suggestion: Avoid lambda\nFound:\n  \\ x -> f (g x)\nWhy not:\n  f . g\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 1, startCol = 12, endLine = 1, endCol = 25}, subts = [("a",SrcSpan {startLine = 1, startCol = 18, endLine = 1, endCol = 19}),("b",SrcSpan {startLine = 1, startCol = 21, endLine = 1, endCol = 22})], orig = "a . b"}])]
+[("tests/serialise-six.hs:1:12: Suggestion: Avoid lambda\nFound:\n  \\ x -> f (g x)\nPerhaps:\n  f . g\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 1, startCol = 12, endLine = 1, endCol = 25}, subts = [("a",SrcSpan {startLine = 1, startCol = 18, endLine = 1, endCol = 19}),("b",SrcSpan {startLine = 1, startCol = 21, endLine = 1, endCol = 22})], orig = "a . b"}])]
 
 
 ---------------------------------------------------------------------
@@ -67,7 +67,7 @@ foo = if baz
              then qux'
              else qux''
 OUTPUT
-[("tests/serialise-seven.hs:1:1: Suggestion: Use guards\nFound:\n  foo = if baz then qux else if baz' then qux' else qux''\nWhy not:\n  foo\n    | baz = qux\n    | baz' = qux'\n    | otherwise = qux''\n",[Replace {rtype = Bind, pos = SrcSpan {startLine = 1, startCol = 1, endLine = 5, endCol = 24}, subts = [("g1001",SrcSpan {startLine = 1, startCol = 10, endLine = 1, endCol = 13}),("g1002",SrcSpan {startLine = 3, startCol = 17, endLine = 3, endCol = 21}),("e1001",SrcSpan {startLine = 2, startCol = 14, endLine = 2, endCol = 17}),("e1002",SrcSpan {startLine = 4, startCol = 19, endLine = 4, endCol = 23}),("e1003",SrcSpan {startLine = 5, startCol = 19, endLine = 5, endCol = 24})], orig = "foo\n  | g1001 = e1001\n  | g1002 = e1002\n  | otherwise = e1003"}])]
+[("tests/serialise-seven.hs:1:1: Suggestion: Use guards\nFound:\n  foo = if baz then qux else if baz' then qux' else qux''\nPerhaps:\n  foo\n    | baz = qux\n    | baz' = qux'\n    | otherwise = qux''\n",[Replace {rtype = Bind, pos = SrcSpan {startLine = 1, startCol = 1, endLine = 5, endCol = 24}, subts = [("g1001",SrcSpan {startLine = 1, startCol = 10, endLine = 1, endCol = 13}),("g1002",SrcSpan {startLine = 3, startCol = 17, endLine = 3, endCol = 21}),("e1001",SrcSpan {startLine = 2, startCol = 14, endLine = 2, endCol = 17}),("e1002",SrcSpan {startLine = 4, startCol = 19, endLine = 4, endCol = 23}),("e1003",SrcSpan {startLine = 5, startCol = 19, endLine = 5, endCol = 24})], orig = "foo\n  | g1001 = e1001\n  | g1002 = e1002\n  | otherwise = e1003"}])]
 
 
 
@@ -77,7 +77,7 @@ FILE tests/serialise-eight.hs
 foo = do x <- baz
          x
 OUTPUT
-[("tests/serialise-eight.hs:1:7: Warning: Use join\nFound:\n  do x <- baz\n     x\nWhy not:\n  do join baz\n",[Replace {rtype = Stmt, pos = SrcSpan {startLine = 1, startCol = 10, endLine = 1, endCol = 18}, subts = [("x",SrcSpan {startLine = 1, startCol = 15, endLine = 1, endCol = 18})], orig = "join x"},Delete {rtype = Stmt, pos = SrcSpan {startLine = 2, startCol = 10, endLine = 2, endCol = 11}}])]
+[("tests/serialise-eight.hs:1:7: Warning: Use join\nFound:\n  do x <- baz\n     x\nPerhaps:\n  do join baz\n",[Replace {rtype = Stmt, pos = SrcSpan {startLine = 1, startCol = 10, endLine = 1, endCol = 18}, subts = [("x",SrcSpan {startLine = 1, startCol = 15, endLine = 1, endCol = 18})], orig = "join x"},Delete {rtype = Stmt, pos = SrcSpan {startLine = 2, startCol = 10, endLine = 2, endCol = 11}}])]
 
 
 ---------------------------------------------------------------------
@@ -85,6 +85,6 @@ RUN tests/serialise-nine.hs --serialise
 FILE tests/serialise-nine.hs
 foo | True = baz
 OUTPUT
-[("tests/serialise-nine.hs:1:1: Suggestion: Redundant guard\nFound:\n  foo | True = baz\nWhy not:\n  foo = baz\n",[Delete {rtype = Stmt, pos = SrcSpan {startLine = 1, startCol = 7, endLine = 1, endCol = 11}}])]
+[("tests/serialise-nine.hs:1:1: Suggestion: Redundant guard\nFound:\n  foo | True = baz\nPerhaps:\n  foo = baz\n",[Delete {rtype = Stmt, pos = SrcSpan {startLine = 1, startCol = 7, endLine = 1, endCol = 11}}])]
 
 
