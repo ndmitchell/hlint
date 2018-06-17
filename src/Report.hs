@@ -56,7 +56,7 @@ writeIdea cls Idea{..} =
     (case ideaTo of
         Nothing -> []
         Just to ->
-            ["Why not" ++ (if to == "" then " remove it?" else "") ++ "<br/>"
+            ["You might want" ++ (if to == "" then " to remove it." else "") ++ "<br/>"
             ,hsColourHTML to]) ++
     [let n = showNotes ideaNote in if n /= "" then "<span class='note'>Note: " ++ writeNote n ++ "</span>" else ""
     ,"</div>"

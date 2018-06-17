@@ -8,7 +8,7 @@ OUTPUT
 tests/cpp-full.hs:3:8: Warning: Use print
 Found:
   putStrLn $ show "Hello"
-Why not:
+You might want:
   print "Hello"
 
 1 hint
@@ -56,7 +56,7 @@ OUTPUT
 tests/cpp-file2.hs:5:7: Suggestion: Use map once
 Found:
   map f . map g
-Why not:
+You might want:
   map (f . g)
 
 1 hint
