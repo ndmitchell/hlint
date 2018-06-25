@@ -95,7 +95,7 @@
     - warn: {lhs: reverse (sortOn f x), rhs: sortOn (Data.Ord.Down . f) x, name: Avoid reverse}
     - warn: {lhs: reverse (sort x), rhs: sortOn Data.Ord.Down x, name: Avoid reverse}
     - hint: {lhs: flip (g `on` h), rhs: flip g `on` h, name: Move flip}
-    - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h)}
+    - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h), name: Fuse on/on}
 
 
     # READ/SHOW
@@ -153,7 +153,7 @@
     - warn: {lhs: map (uncurry f) (zip x y), rhs: zipWith f x y}
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: isVar f}
     - warn: {lhs: not (elem x y), rhs: notElem x y}
-    - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x}
+    - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
     - warn: {lhs: "x ++ concatMap (' ':) y", rhs: "unwords (x:y)"}
     - warn: {lhs: intercalate " ", rhs: unwords}
     - hint: {lhs: concat (intersperse x y), rhs: intercalate x y, side: notEq x " "}
@@ -380,8 +380,8 @@
     - warn: {lhs: sequence_ (replicate n x), rhs: Control.Monad.replicateM_ n x}
     - warn: {lhs: mapM f (replicate n x), rhs: Control.Monad.replicateM n (f x)}
     - warn: {lhs: mapM_ f (replicate n x), rhs: Control.Monad.replicateM_ n (f x)}
-    - warn: {lhs: mapM f (map g x), rhs: mapM (f . g) x}
-    - warn: {lhs: mapM_ f (map g x), rhs: mapM_ (f . g) x}
+    - warn: {lhs: mapM f (map g x), rhs: mapM (f . g) x, name: Fuse mapM_/map}
+    - warn: {lhs: mapM_ f (map g x), rhs: mapM_ (f . g) x, name: Fuse mapM_/map}
     - warn: {lhs: mapM id, rhs: sequence}
     - warn: {lhs: mapM_ id, rhs: sequence_}
     - warn: {lhs: sequence (return a), rhs: return <$> a}
@@ -447,7 +447,7 @@
     - warn: {lhs: if isNothing x then y else fromJust x, rhs: fromMaybe y x}
     - warn: {lhs: if isJust x then fromJust x else y, rhs: fromMaybe y x}
     - warn: {lhs: isJust x && (fromJust x == y), rhs: x == Just y}
-    - warn: {lhs: mapMaybe f (map g x), rhs: mapMaybe (f . g) x}
+    - warn: {lhs: mapMaybe f (map g x), rhs: mapMaybe (f . g) x, name: Fuse mapMaybe/map}
     - warn: {lhs: fromMaybe a (fmap f x), rhs: maybe a f x}
     - warn: {lhs: fromMaybe a (f <$> x), rhs: maybe a f x}
     - warn: {lhs: mapMaybe id, rhs: catMaybes}
