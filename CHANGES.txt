@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #345, add catMaybes/fmap ==> mapMaybe
+    #345, add foldMap id ==> fold
     #364, suggest >> instead of >>= \_ ->
     #502, DeriveTraversable implies DeriveFoldable and DeriveFunctor
     Add hints about fusing traverse/map

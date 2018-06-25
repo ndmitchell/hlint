@@ -198,6 +198,7 @@
     - warn: {lhs: sequence (fmap f x), rhs: traverse f x}
     - warn: {lhs: sequenceA_ (map f x), rhs: traverse_ f x}
     - warn: {lhs: sequenceA_ (fmap f x), rhs: traverse_ f x}
+    - warn: {lhs: foldMap id, rhs: fold}
 
     # BY
 
@@ -434,6 +435,7 @@
     - warn: {lhs: not (isJust x), rhs: isNothing x}
     - warn: {lhs: "maybe [] (:[])", rhs: maybeToList}
     - warn: {lhs: catMaybes (map f x), rhs: mapMaybe f x}
+    - warn: {lhs: catMaybes (fmap f x), rhs: mapMaybe f x}
     - hint: {lhs: case x of Nothing -> y; Just a -> a , rhs: fromMaybe y x}
     - warn: {lhs: if isNothing x then y else f (fromJust x), rhs: maybe y f x}
     - warn: {lhs: if isJust x then f (fromJust x) else y, rhs: maybe y f x}
