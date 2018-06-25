@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #502, DeriveTraversable implies DeriveFoldable and DeriveFunctor
     Add hints about fusing traverse/map
     Better names for mapM/map fusion hints and others
     #498, change the output to say "Perhaps:" rather than "Why not:"
