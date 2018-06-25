@@ -382,6 +382,8 @@
     - warn: {lhs: mapM_ f (replicate n x), rhs: Control.Monad.replicateM_ n (f x)}
     - warn: {lhs: mapM f (map g x), rhs: mapM (f . g) x, name: Fuse mapM/map}
     - warn: {lhs: mapM_ f (map g x), rhs: mapM_ (f . g) x, name: Fuse mapM_/map}
+    - warn: {lhs: traverse f (map g x), rhs: traverse (f . g) x, name: Fuse traverse/map}
+    - warn: {lhs: traverse_ f (map g x), rhs: traverse_ (f . g) x, name: Fuse traverse_/map}
     - warn: {lhs: mapM id, rhs: sequence}
     - warn: {lhs: mapM_ id, rhs: sequence_}
     - warn: {lhs: sequence (return a), rhs: return <$> a}
