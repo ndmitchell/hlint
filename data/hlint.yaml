@@ -247,7 +247,7 @@
     - hint: {lhs: "\\(x,y) -> f x y", rhs: uncurry f, note: IncreasesLaziness, name: Use uncurry}
     - warn: {lhs: ($) . f, rhs: f, name: Redundant $}
     - warn: {lhs: (f $), rhs: f, name: Redundant $}
-    - warn: {lhs: (& f), rhs: f, name: Redundant &}
+    - warn: {lhs: (Data.Function.& f), rhs: f, name: Redundant Data.Function.&}
     - hint: {lhs: \x -> y, rhs: const y, side: isAtom y && not (isWildcard y)}
         # isWildcard because some people like to put brackets round them even though they are atomic
     - warn: {lhs: flip f x y, rhs: f y x, side: isApp original, name: Redundant flip}
