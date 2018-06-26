@@ -68,21 +68,22 @@ pragmaIdea :: PragmaIdea -> Idea
 pragmaIdea pidea =
   case pidea of
     SingleComment old new ->
-      mkIdea (srcInfoSpan . ann $ old)
+      mkFewer (srcInfoSpan . ann $ old)
         (prettyPrint old) (Just $ prettyPrint new) []
         [ModifyComment (toSS old) (prettyPrint new)]
     MultiComment repl delete new ->
-      mkIdea (srcInfoSpan . ann $ repl)
+      mkFewer (srcInfoSpan . ann $ repl)
         (f [repl, delete]) (Just $ prettyPrint new) []
         [ ModifyComment (toSS repl) (prettyPrint new)
         , ModifyComment (toSS delete) ""]
     OptionsToComment old new r ->
-      mkIdea (srcInfoSpan . ann . head $ old)
+      mkLanguage (srcInfoSpan . ann . head $ old)
         (f old) (Just $ f new) []
         r
     where
           f = unlines . map prettyPrint
-          mkIdea = rawIdea Warning "Use better pragmas"
+          mkFewer = rawIdea Warning "Use fewer LANGUAGE pragmas"
+          mkLanguage = rawIdea Warning "Use LANGUAGE pragmas"
 
 
 languageDupes :: [ModulePragma S] -> [Idea]

@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #286, improve the duplicate pragma message
     #399, suggest (& f) ==> f
     #136, don't suggest eta-reducing runST
     #345, add catMaybes/fmap ==> mapMaybe
