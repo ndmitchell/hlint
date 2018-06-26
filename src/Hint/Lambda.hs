@@ -84,6 +84,7 @@ import Hint.Type
 import Util
 import Data.List.Extra
 import Data.Maybe
+import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 
 
@@ -141,7 +142,7 @@ lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allo
     [suggestN "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp p o@Lambda{}
     | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o
-    , not $ isLambda res, not $ any isQuasiQuote $ universe res, "runST" `notElem` freeVars o =
+    , not $ isLambda res, not $ any isQuasiQuote $ universe res, not $ "runST" `Set.member` freeVars o =
     [(if isVar res || isCon res then warn else suggest) "Avoid lambda" o res (refact $ toSS o)]
 lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats :: [Exp_]), maybe True (not . isLambda) p =
     [suggest "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
