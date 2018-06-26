@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #399, suggest (& f) ==> f
     #136, don't suggest eta-reducing runST
     #345, add catMaybes/fmap ==> mapMaybe
     #345, add foldMap id ==> fold
