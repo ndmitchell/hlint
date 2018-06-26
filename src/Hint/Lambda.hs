@@ -70,6 +70,7 @@ yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b
 no = blah (\ x -> case x of A -> a x; B -> b x)
 yes = blah (\ x -> (y, x, z+q)) -- (y, , z+q)
 yes = blah (\ x -> (y, x, z+x))
+tmp = map (\ x -> runST $ action x)
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 name = authOAuth2Widget [whamlet|Login via #{name}|] name
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 = foo (\name -> authOAuth2Widget [whamlet|Login via #{name}|] name)
 </TEST>
@@ -138,7 +139,9 @@ lambdaExp p o@(Paren _ (App _ v@(Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, 
 --      subts = [("a", toSS y), ("*", toSS v)]
 lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
     [suggestN "Use section" o $ RightSection an (QVarOp an x) y]
-lambdaExp p o@Lambda{} | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o, not $ isLambda res, not $ any isQuasiQuote $ universe res =
+lambdaExp p o@Lambda{}
+    | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o
+    , not $ isLambda res, not $ any isQuasiQuote $ universe res, "runST" `notElem` freeVars o =
     [(if isVar res || isCon res then warn else suggest) "Avoid lambda" o res (refact $ toSS o)]
 lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats :: [Exp_]), maybe True (not . isLambda) p =
     [suggest "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
