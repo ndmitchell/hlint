@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #507, rename id x ==> x to redundant id
     #286, improve the duplicate pragma message
     #399, suggest (& f) ==> f
     #136, don't suggest eta-reducing runST

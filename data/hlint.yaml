@@ -251,7 +251,7 @@
     - hint: {lhs: \x -> y, rhs: const y, side: isAtom y && not (isWildcard y)}
         # isWildcard because some people like to put brackets round them even though they are atomic
     - warn: {lhs: flip f x y, rhs: f y x, side: isApp original, name: Redundant flip}
-    - warn: {lhs: id x, rhs: x, side: not (isTypeApp x), name: Evaluate}
+    - warn: {lhs: id x, rhs: x, side: not (isTypeApp x), name: Redundant id}
     - warn: {lhs: id . x, rhs: x, name: Redundant id}
     - warn: {lhs: x . id, rhs: x, name: Redundant id}
     - warn: {lhs: "((,) x)", rhs: "(_noParen_ x,)", name: Use tuple-section, note: RequiresExtension TupleSections}
