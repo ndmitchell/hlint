@@ -36,6 +36,8 @@ f = foo ((*) x) -- (x *)
 f = (*) x
 f = foo (flip op x) -- (`op` x)
 f = foo (flip op x) -- @Message Use section
+foo x = bar (\ d -> search d table) -- (`search` table)
+foo x = bar (\ d -> search d table) -- @Message Avoid lambda using `infix`
 f = flip op x
 f = foo (flip (*) x) -- (* x)
 f = foo (flip (-) x)
@@ -144,8 +146,10 @@ lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allo
     [suggestN "Use section" o $ RightSection an (QVarOp an x) y]
 lambdaExp p o@Lambda{}
     | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o
-    , not $ isLambda res, not $ any isQuasiQuote $ universe res, not $ "runST" `Set.member` freeVars o =
-    [(if isVar res || isCon res then warn else suggest) "Avoid lambda" o res (refact $ toSS o)]
+    , not $ isLambda res, not $ any isQuasiQuote $ universe res, not $ "runST" `Set.member` freeVars o
+    , let name = "Avoid lambda" ++ (if countInfixNames res > countInfixNames o then " using `infix`" else "") =
+    [(if isVar res || isCon res then warn else suggest) name o res (refact $ toSS o)]
+    where countInfixNames x = length [() | RightSection _ (QVarOp _ (UnQual _ (Ident _ _))) _ <- universe x]
 lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats :: [Exp_]), maybe True (not . isLambda) p =
     [suggest "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
     where
