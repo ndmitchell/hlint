@@ -31,9 +31,11 @@ fun x y z = f g z -- fun x y = f g
 fun mr = y mr
 fun x = f . g $ x -- fun = f . g
 f = foo (\y -> g x . h $ y) -- g x . h
+f = foo (\y -> g x . h $ y) -- @Message Avoid lambda
 f = foo ((*) x) -- (x *)
 f = (*) x
 f = foo (flip op x) -- (`op` x)
+f = foo (flip op x) -- @Message Use section
 f = flip op x
 f = foo (flip (*) x) -- (* x)
 f = foo (flip (-) x)
