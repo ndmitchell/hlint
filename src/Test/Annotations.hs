@@ -56,6 +56,7 @@ testAnnotations setting file = do
             if null bad then passed else sequence_ bad
 
         match "???" _ = True
+        match (word1 -> ("@Message",msg)) i = ideaHint i == msg
         match (word1 -> ("@Note",note)) i = map show (ideaNote i) == [note]
         match "@NoNote" i = null (ideaNote i)
         match (word1 -> ('@':sev, msg)) i = sev == show (ideaSeverity i) && match msg i
