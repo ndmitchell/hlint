@@ -815,6 +815,7 @@
 # yes = foldr (\ curr acc -> (+ 1) curr : acc) [] -- map (\ curr -> (+ 1) curr)
 # yes = foldr (\ curr acc -> curr + curr : acc) [] -- map (\ curr -> curr + curr)
 # no = foo $ (,) x $ do {this is a test; and another test}
+# {-# LANGUAGE QuasiQuotes #-}; no = f (\url -> [hamlet|foo @{url}|])
 #
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM

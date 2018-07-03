@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #483, don't break quasi quotes when suggesting const
     #404, remove the "Unnecessary hiding" hint introduced in #338
     #162, make avoiding lambda with `infix` give a different name
     #507, rename id x ==> x to redundant id

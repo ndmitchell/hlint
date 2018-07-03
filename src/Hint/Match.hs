@@ -111,6 +111,12 @@ matchIdea s decl HintRule{..} parent x = do
     guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar) (freeVars hintRuleRHS))
             `Set.isSubsetOf` freeVars x
         -- check no unexpected new free variables
+
+    -- check it isn't going to get broken by QuasiQuotes as per #483
+    -- if we have lambdas we might be moving, and QuasiQuotes, we might inadvertantly break free vars
+    -- because quasi quotes don't show what free vars they make use of
+    guard $ not (any isLambda $ universe hintRuleLHS) || not (any isQuasiQuote $ universe x)
+
     guard $ checkSide hintRuleSide $ ("original",x) : ("result",res) : fromSubst u
     guard $ checkDefine decl parent res
     return (res, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst u, ann pos /= an])
