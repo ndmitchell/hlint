@@ -389,7 +389,6 @@
     - warn: {lhs: traverse_ f (map g x), rhs: traverse_ (f . g) x, name: Fuse traverse_/map}
     - warn: {lhs: mapM id, rhs: sequence}
     - warn: {lhs: mapM_ id, rhs: sequence_}
-    - warn: {lhs: sequence (return a), rhs: return <$> a}
 
     # APPLICATIVE / TRAVERSABLE
 
@@ -403,7 +402,6 @@
     - warn: {lhs: Just <$> a <|> pure Nothing, rhs: optional a}
     - hint: {lhs: m >>= pure . f, rhs: f <$> m}
     - hint: {lhs: pure . f =<< m, rhs: f <$> m}
-    - warn: {lhs: sequenceA (pure a), rhs: pure <$> a}
 
 
     # LIST COMP
@@ -815,6 +813,8 @@
 # yes = foldr (\ curr acc -> (+ 1) curr : acc) [] -- map (\ curr -> (+ 1) curr)
 # yes = foldr (\ curr acc -> curr + curr : acc) [] -- map (\ curr -> curr + curr)
 # no = foo $ (,) x $ do {this is a test; and another test}
+# no = sequence (return x)
+# no = sequenceA (pure a)
 # {-# LANGUAGE QuasiQuotes #-}; no = f (\url -> [hamlet|foo @{url}|])
 #
 # import Prelude \
