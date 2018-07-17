@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    Warn on redundant EmptyCase extension
 2.1.8, released 2018-07-06
     #509, remove incorrect suggestions around sequence/pure
 2.1.7, released 2018-07-03

@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 {-
     Suggest removal of unnecessary extensions
     i.e. They have {-# LANGUAGE RecursiveDo #-} but no mdo keywords
@@ -114,6 +116,10 @@ main = 5.6#
 foo = id --
 {-# LANGUAGE GeneralizedNewtypeDeriving #-} \
 newtype X = X Int deriving newtype Show
+{-# LANGUAGE EmptyCase #-} \
+main = case () of {}
+{-# LANGUAGE EmptyCase #-} \
+main = case () of x -> x --
 </TEST>
 -}
 
@@ -186,6 +192,10 @@ used EmptyDataDecls = hasS f
     where f (DataDecl _ _ _ _ [] _) = True
           f (GDataDecl _ _ _ _ _ [] _) = True
           f _ = False
+used EmptyCase = hasS f
+    where f (Case _ _ []) = True
+          f (LCase _ []) = True
+          f (_ :: Exp_) = False
 used KindSignatures = hasT (un :: Kind S)
 used BangPatterns = hasS isPBangPat
 used TemplateHaskell = hasT2 (un :: (Bracket S, Splice S)) ||^ hasS f ||^ hasS isSpliceDecl
