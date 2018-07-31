@@ -29,19 +29,31 @@ function insertRule(s)
 
 // SHOW/HIDE LOGIC //
 
-var last = "";
-
-function show(id)
+/**
+ * @param {bool} [initialise=false] - Used to signal we are loading the page, so
+ the current location doesn't match our presumed state.
+ */
+function show(id, initialise=false)
 {
-    if (id == last) return;
-    if (id == "")
+    var last;
+    if (initialise)
+    {
+        last = "";
+    }
+    else
+    {
+        last = document.location.hash.slice(1);
+    }
+
+    if (id === last) return;
+    if (id.length === 0)
     {
         deleteRules(3);
         insertRule(".all {font-weight: bold;}");
     }
     else
     {
-        if (last == "")
+        if (last.length === 0)
         {
             deleteRules(1);
             insertRule("#content div {display:none;}");
@@ -54,7 +66,7 @@ function show(id)
         insertRule("#" + id + "{font-weight:bold;}");
     }
 
-    last = id;
+    document.location.hash = '#'.concat(id);
 }
 
 </script>
@@ -164,5 +176,8 @@ $VERSION
 
 $CONTENT
 </div>
+<script type='text/javascript'>
+show(window.location.hash.slice(1), true);
+</script>
 </body>
 </html>
