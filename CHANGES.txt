@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.9, released 2018-08-08
     Add QuickCheck fixities
     Warn on redundant EmptyCase extension
 2.1.8, released 2018-07-06
