@@ -225,8 +225,8 @@ cmdHintFiles cmd = do
         -- Ignores home directory when it isn't present.
         home <- catchIOError ((:[]) <$> getHomeDirectory) (const $ return [])
         implicit <- findM doesFileExist $
-            "HLint.hs" : -- the default in HLint 1.*
             map (</> ".hlint.yaml") (ancestors curdir ++ home) -- to match Stylish Haskell
+            ++ ["HLint.hs"] -- the default in HLint 1.*
         return $ explicit1 ++ maybeToList implicit ++ explicit2
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
