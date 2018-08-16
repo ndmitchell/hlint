@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #516, don't require a .hlint.yaml when running tests
     Prefer .hlint.yaml to HLint.hs for settings
     #513, add section links in the HTML report
 2.1.9, released 2018-08-08

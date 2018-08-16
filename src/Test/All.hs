@@ -39,8 +39,8 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
 
     putStrLn "Testing"
     checkCommentedYaml $ dataDir </> "default.yaml"
-    config <- readFilesConfig [(".hlint.yaml",Nothing)]
-    when useSrc $ wrap "Source annotations" $
+    when useSrc $ wrap "Source annotations" $ do
+        config <- readFilesConfig [(".hlint.yaml",Nothing)]
         forM_ builtinHints $ \(name,_) -> do
             progress
             testAnnotations (Builtin name : if name == "Restrict" then config else []) $ "src/Hint" </> name <.> "hs"
