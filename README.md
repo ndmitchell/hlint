@@ -71,7 +71,7 @@ On the CI you should then run `hlint .` (or `hlint src` if you only want to chec
 **Travis:** Execute the following command:
 
 ```sh
-curl -sL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
+curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
 ```
 
 The arguments after `-s` are passed to `hlint`, so modify the final `.` if you want other arguments.

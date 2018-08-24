@@ -15,7 +15,7 @@ matrix:
 script:
 - export HLINT_ARGUMENTS=src
 - export UNIPLATE_VERBOSE=-1
-- curl -sL https://raw.github.com/ndmitchell/neil/master/travis.sh | sh
+- curl -sSL https://raw.github.com/ndmitchell/neil/master/travis.sh | sh
 
 deploy:
   provider: releases
