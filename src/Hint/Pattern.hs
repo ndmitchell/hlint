@@ -47,6 +47,8 @@ foo !(x, y) = x -- (x, y)
 foo ![x] = x -- [x]
 foo !Bar { bar = x } = x -- Bar { bar = x }
 l !(() :: ()) = x -- (() :: ())
+foo x@_ = x -- x
+foo x@Foo = x
 </TEST>
 -}
 
@@ -179,6 +181,7 @@ patHint False strict o@(PIrrPat _ x) | f x = [warn "Redundant irrefutable patter
           f PVar{} = True
           f _ = False
           r = Replace R.Pattern (toSS o) [("x", toSS x)] "x"
+patHint lang strict o@(PAsPat u v PWildCard{}) = [warn "Redundant as-pattern" o v []]
 patHint _ _ _ = []
 
 
