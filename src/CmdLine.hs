@@ -20,7 +20,7 @@ import Language.Haskell.GhclibParserEx.GHC.Driver.Session as GhclibParserEx
 import DynFlags hiding (verbosity)
 
 import Language.Preprocessor.Cpphs
-import System.Console.ANSI(hSupportsANSI)
+import System.Console.ANSI(hSupportsANSIWithoutEmulation)
 import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
 import System.Console.CmdArgs.Implicit
 import System.Directory.Extra
@@ -29,7 +29,6 @@ import System.Exit
 import System.FilePath
 import System.IO
 import System.IO.Error
-import System.Info.Extra
 import System.Process
 import System.FilePattern
 
@@ -89,7 +88,7 @@ data ColorMode
 
 
 instance Default ColorMode where
-  def = if isWindows then Never else Auto
+  def = Auto
 
 
 data Cmd
@@ -138,7 +137,7 @@ mode = cmdArgsMode $ modes
         ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
         ,cmdWithGroups = nam_ "with-group" &= typ "GROUP" &= help "Extra hint groups to use"
         ,cmdGit = nam "git" &= help "Run on files tracked by git"
-        ,cmdColor = nam "colour" &= name "color" &= opt Always &= typ "always/never/auto" &= help "Color output (requires ANSI terminal; auto means on when $TERM is supported; by itself, selects always)"
+        ,cmdColor = nam "colour" &= name "color" &= opt Always &= typ "always/never/auto" &= help "Color output (requires an ANSI terminal; 'auto' means on if the standard output channel can support ANSI; by itself, selects 'always')"
         ,cmdThreads = 1 &= name "threads" &= name "j" &= opt (0 :: Int) &= help "Number of threads to use (-j for all)"
         ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
         ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
@@ -222,7 +221,9 @@ cmdUseColour :: Cmd -> IO Bool
 cmdUseColour cmd = case cmdColor cmd of
   Always -> pure True
   Never  -> pure False
-  Auto   -> hSupportsANSI stdout
+  Auto   -> do
+    supportsANSI <- hSupportsANSIWithoutEmulation stdout
+    pure $ Just True == supportsANSI
 
 
 "." <\> x = x
