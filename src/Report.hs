@@ -33,8 +33,13 @@ writeReport dataDir file ideas = timedIO "Report" file $ writeTemplate dataDir i
         hints = generateIds $ map hintName $ sortOn (negate . fromEnum . ideaSeverity &&& hintName) ideas
         hintName x = show (ideaSeverity x) ++ ": " ++ ideaHint x
 
-        inner = [("VERSION",['v' : showVersion version]),("CONTENT",content),
-                 ("HINTS",list "hint" hints),("FILES",list "file" files)]
+        inner = if null ideas then emptyInner else nonEmptyInner
+
+        emptyInner = [("VERSION",['v' : showVersion version]),("CONTENT", ["No hints"]),
+                      ("HINTS", ["<li>No hints</li>"]),("FILES", ["<li>No files</li>"])]
+
+        nonEmptyInner = [("VERSION",['v' : showVersion version]),("CONTENT",content),
+                         ("HINTS",list "hint" hints),("FILES",list "file" files)]
 
         content = concatMap (\i -> writeIdea (getClass i) i) ideas
         getClass i = "hint" ++ f hints (hintName i) ++ " file" ++ f files (srcSpanFilename $ ideaSpan i)
