@@ -221,12 +221,9 @@ handleRefactoring ideas files cmd@CmdMain{..} =
 handleReporting :: [Idea] -> Cmd -> IO ()
 handleReporting showideas cmd@CmdMain{..} = do
     let outStrLn = whenNormal . putStrLn
-    if null showideas then
-        when (cmdReports /= []) $ outStrLn "Skipping writing reports"
-     else
-        forM_ cmdReports $ \x -> do
-            outStrLn $ "Writing report to " ++ x ++ " ..."
-            writeReport cmdDataDir x showideas
+    forM_ cmdReports $ \x -> do
+        outStrLn $ "Writing report to " ++ x ++ " ..."
+        writeReport cmdDataDir x showideas
     unless cmdNoSummary $ do
         let n = length showideas
         outStrLn $ if n == 0 then "No hints" else show n ++ " hint" ++ ['s' | n/=1]
