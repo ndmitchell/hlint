@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #532, generate requested report files even if there are no hints
     #524, don't suggest newtype for existentials
     #521, add a hint for f x@_ = ... ==> f x = ...
 2.1.10, released 2018-08-16
