@@ -64,3 +64,15 @@ foobar :: [Char]
 foobar = []
 OUTPUT
 No hints
+
+---------------------------------------------------------------------
+RUN tests/typesig-ignore2.hs
+FILE tests/typesig-ignore2.hs
+-- Bug #563
+module Foo(foobar) where
+{-# HLINT ignore foobar "Use String" #-}
+
+foobar :: [Char]
+foobar = []
+OUTPUT
+No hints

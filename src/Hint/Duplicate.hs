@@ -13,6 +13,7 @@ main = do a; a; a; b; a; a; a -- ???
 main = do a; a; a; b; a; a
 foo = a where {a = 1; b = 2; c = 3}; bar = a where {a = 1; b = 2; c = 3} -- ???
 {-# ANN main "HLint: ignore Reduce duplication" #-}; main = do a; a; a; a; a; a -- @Ignore ???
+{-# HLINT ignore main "Reduce duplication" #-}; main = do a; a; a; a; a; a -- @Ignore ???
 </TEST>
 -}
 
