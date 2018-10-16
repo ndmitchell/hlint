@@ -83,7 +83,7 @@ readComment o@(Comment True _ x)
     | Just x <- stripPrefix "#" x
     , x <- trim x
     , (hlint, x) <- word1 x
-    , lower hlint == "hlint"
+    , lower hlint `elem` ["lint","hlint"]
     = f x
     where
         f x | Just x <- stripSuffix "#" x
