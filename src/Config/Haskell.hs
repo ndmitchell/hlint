@@ -1,7 +1,8 @@
-{-# LANGUAGE PatternGuards, ViewPatterns #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, ScopedTypeVariables #-}
 
 module Config.Haskell(
     readPragma,
+    readComment,
     readSetting,
     readFileConfigHaskell
     ) where
@@ -9,6 +10,9 @@ module Config.Haskell(
 import HSE.All
 import Data.Char
 import Data.List.Extra
+import Text.Read.Extra(readMaybe)
+import Data.Tuple.Extra
+import Data.Maybe
 import Config.Type
 import Util
 import Prelude
@@ -27,7 +31,7 @@ readFileConfigHaskell file contents = do
     case res of
         Left (ParseError sl msg err) ->
             error $ "Config parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
-        Right (m, _) -> return $ readSettings m
+        Right (m, cs) -> return $ readSettings m ++ map SettingClassify (concatMap readComment cs)
 
 
 -- | Given a module containing HLint settings information return the 'Classify' rules and the 'HintRule' expressions.
@@ -72,6 +76,32 @@ readPragma o = case o of
         f name (Paren _ x) = f name x
         f name (ExpTypeSig _ x _) = f name x
         f _ _ = Nothing
+
+
+readComment :: Comment -> [Classify]
+readComment o@(Comment True _ x)
+    | Just x <- stripPrefix "#" x
+    , x <- trim x
+    , (hlint, x) <- word1 x
+    , lower hlint == "hlint"
+    = case f x of
+        Just xs -> xs
+        Nothing -> errorOnComment o "bad HLINT pragma, expected:\n    {-# HLINT <severity> <identifier> \"Hint name\" #-}"
+    where
+        f x | Just x <- stripSuffix "#" x
+            , (sev, x) <- word1 x
+            , Just sev <- getSeverity sev
+            , (things, x) <- g x
+            , Just (hint :: String) <- if x == "" then Just "" else readMaybe x
+            = Just $ map (Classify sev hint "") $ ["" | null things] ++ things
+        f _ = Nothing
+
+        g x | (s, x) <- word1 x
+            , s /= ""
+            , not $ "\"" `isPrefixOf` s
+            = first ((if s == "module" then "" else s):) $ g x
+        g x = ([], x)
+readComment _ = []
 
 
 readSide :: [Decl_] -> (Maybe Exp_, [Note])
@@ -124,3 +154,9 @@ errorOn val msg = exitMessageImpure $
     showSrcLoc (getPointLoc $ ann val) ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     prettyPrint val
+
+errorOnComment :: Comment -> String -> b
+errorOnComment (Comment b ann x) msg = exitMessageImpure $
+    showSrcLoc (getPointLoc ann) ++
+    ": Error while reading hint file, " ++ msg ++ "\n" ++
+    (if b then "{-" else "--") ++ x ++ (if b then "-}" else "")

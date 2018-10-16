@@ -45,7 +45,7 @@ applyHints cs = applyHintsReal $ map SettingClassify cs
 
 applyHintsReal :: [Setting] -> Hint -> [(Module_, [Comment])] -> [Idea]
 applyHintsReal settings hints_ ms = concat $
-    [ map (classify (cls ++ mapMaybe readPragma (universeBi m)) . removeRequiresExtensionNotes m) $
+    [ map (classify (cls ++ mapMaybe readPragma (universeBi m) ++ concatMap readComment cs) . removeRequiresExtensionNotes m) $
         order [] (hintModule hints settings nm m) `merge`
         concat [order [fromNamed d] $ decHints d | d <- moduleDecls m] `merge`
         concat [order [] $ hintComment hints settings c | c <- cs]
