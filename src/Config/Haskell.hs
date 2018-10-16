@@ -84,17 +84,15 @@ readComment o@(Comment True _ x)
     , x <- trim x
     , (hlint, x) <- word1 x
     , lower hlint == "hlint"
-    = case f x of
-        Just xs -> xs
-        Nothing -> errorOnComment o "bad HLINT pragma, expected:\n    {-# HLINT <severity> <identifier> \"Hint name\" #-}"
+    = f x
     where
         f x | Just x <- stripSuffix "#" x
             , (sev, x) <- word1 x
             , Just sev <- getSeverity sev
             , (things, x) <- g x
             , Just (hint :: String) <- if x == "" then Just "" else readMaybe x
-            = Just $ map (Classify sev hint "") $ ["" | null things] ++ things
-        f _ = Nothing
+            = map (Classify sev hint "") $ ["" | null things] ++ things
+        f _ = errorOnComment o "bad HLINT pragma, expected:\n    {-# HLINT <severity> <identifier> \"Hint name\" #-}"
 
         g x | (s, x) <- word1 x
             , s /= ""
