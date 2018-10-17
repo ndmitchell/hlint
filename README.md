@@ -237,6 +237,8 @@ This default configuration contains lots of examples, including:
 
 You can see the output of `--default` [here](https://github.com/ndmitchell/hlint/blob/master/data/default.yaml).
 
+If you wish to use the [Dhall configuration language](https://github.com/dhall-lang/dhall-lang) to customize HLint, there [is an example](https://kowainik.github.io/posts/2018-09-09-dhall-to-hlint.html) and [type definition](https://github.com/kowainik/relude/blob/master/hlint/Rule.dhall).
+
 ### Ignoring hints
 
 Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for suppressing certain hints. Ignore directives can either be written as pragmas in the file being analysed, or in the hint files. Examples of pragmas are:
