@@ -76,15 +76,15 @@ lensFixities = concat
     ,infix_ 4 [".|.=",".&.=","<.|.=","<.&.="]
     ]
 
-hspecFixities :: [Fixity]
-hspecFixities =
-    infix_ 1 ["`shouldBe`","`shouldSatisfy`","`shouldStartWith`","`shouldEndWith`","`shouldContain`","`shouldMatchList`"
-             ,"`shouldReturn`","`shouldNotBe`","`shouldNotSatisfy`","`shouldNotContain`","`shouldNotReturn`","`shouldThrow`"]
-
-quickCheckFixities :: [Fixity]
-quickCheckFixities =
-    infixr_ 0 ["==>"] ++
-    infix_ 4 ["==="]
+otherFixities :: [Fixity]
+otherFixities = concat
+    -- hspec
+    [infix_ 1 ["`shouldBe`","`shouldSatisfy`","`shouldStartWith`","`shouldEndWith`","`shouldContain`","`shouldMatchList`"
+              ,"`shouldReturn`","`shouldNotBe`","`shouldNotSatisfy`","`shouldNotContain`","`shouldNotReturn`","`shouldThrow`"]
+    -- quickcheck
+    ,infixr_ 0 ["==>"]
+    ,infix_ 4 ["==="]
+    ]
 
 -- Fixites from the `base` package which are currently
 -- missing from `haskell-src-exts`'s baseFixities.
@@ -107,7 +107,7 @@ customFixities =
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
 defaultParseFlags = ParseFlags NoCpp defaultParseMode
-    {fixities = Just $ customFixities ++ baseFixities ++ baseNotYetInHSE ++ lensFixities ++ hspecFixities ++ quickCheckFixities
+    {fixities = Just $ customFixities ++ baseFixities ++ baseNotYetInHSE ++ lensFixities ++ otherFixities
     ,ignoreLinePragmas = False
     ,ignoreFunctionArity = True
     ,extensions = defaultExtensions}
