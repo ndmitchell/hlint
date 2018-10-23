@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #466, avoid false positives for Esqueleto
     #535, more lens hints
     Allow {-# HLINT #-} pragmas
     #532, generate requested report files even if there are no hints

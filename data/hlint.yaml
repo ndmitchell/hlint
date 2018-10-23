@@ -858,4 +858,5 @@
 # foo = liftIO $ window `on` deleteEvent $ do a; b
 # no = sort <$> f input `shouldBe` sort <$> x
 # sortBy (comparing snd) -- sortOn snd
+# myJoin = on $ child ^. ChildParentId ==. parent ^. ParentId
 # </TEST>

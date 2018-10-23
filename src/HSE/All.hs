@@ -84,6 +84,8 @@ otherFixities = concat
     -- quickcheck
     ,infixr_ 0 ["==>"]
     ,infix_ 4 ["==="]
+    -- esqueleto
+    ,infix_ 4 ["==."]
     ]
 
 -- Fixites from the `base` package which are currently
