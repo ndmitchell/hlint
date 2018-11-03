@@ -323,6 +323,12 @@
     - hint: {lhs: x *> return y, rhs: x Data.Functor.$> y}
     - hint: {lhs: pure x <* y, rhs: x Data.Functor.<$ y}
     - hint: {lhs: return x <* y, rhs: x Data.Functor.<$ y}
+    - hint: {lhs: const x <$> y, rhs: x <$ y}
+    - hint: {lhs: pure x <$> y, rhs: x <$ y}
+    - hint: {lhs: return x <$> y, rhs: x <$ y}
+    - hint: {lhs: x <&> const y, rhs: x Data.Functor.$> y}
+    - hint: {lhs: x <&> pure y, rhs: x Data.Functor.$> y}
+    - hint: {lhs: x <&> return y, rhs: x Data.Functor.$> y}
 
     # MONAD
 
@@ -708,6 +714,12 @@
 # yes = asciiCI "bye" *> return Bye -- asciiCI "bye" Data.Functor.$> Bye
 # yes = pure x <* y -- x Data.Functor.<$ y
 # yes = return x <* y -- x Data.Functor.<$ y
+# yes = const x <$> y -- x <$ y
+# yes = pure alice <$> [1, 2]-- alice <$ [1, 2]
+# yes = return alice <$> "Bob" -- alice <$ "Bob"
+# yes = Just a <&> const b -- Just a Data.Functor.$> b
+# yes = [a,b] <&> pure c -- [a,b] Data.Functor.$> c
+# yes = Hi <&> return bye -- Hi Data.Functor.$> bye
 # yes = (x !! 0) + (x !! 2) -- head x
 # yes = if b < 42 then [a] else [] -- [a | b < 42]
 # no  = take n (foo xs) == "hello"
