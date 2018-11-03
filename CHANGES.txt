@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #545, don't suggest turning type applications into sections
     #466, avoid false positives for Esqueleto
     #535, more lens hints
     Allow {-# HLINT #-} pragmas
