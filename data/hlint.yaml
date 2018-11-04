@@ -715,7 +715,7 @@
 # yes = pure x <* y -- x Data.Functor.<$ y
 # yes = return x <* y -- x Data.Functor.<$ y
 # yes = const x <$> y -- x <$ y
-# yes = pure alice <$> [1, 2]-- alice <$ [1, 2]
+# yes = pure alice <$> [1, 2] -- alice <$ [1, 2]
 # yes = return alice <$> "Bob" -- alice <$ "Bob"
 # yes = Just a <&> const b -- Just a Data.Functor.$> b
 # yes = [a,b] <&> pure c -- [a,b] Data.Functor.$> c
