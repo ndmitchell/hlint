@@ -263,6 +263,14 @@ Ignore directives can also be written in the hint files:
 
 These directives are applied in the order they are given, with later hints overriding earlier ones.
 
+Finally, `hlint` defines the `__HLINT__` preprocessor definition (with value `1`), so problematic definitions (including those that don't parse) can be hidden with:
+
+```haskell
+#ifndef __HLINT__
+foo = ( -- HLint would fail to parse this
+#endif
+```
+
 ### Adding hints
 
 The hint suggesting `concatMap` can be defined as:

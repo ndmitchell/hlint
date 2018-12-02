@@ -242,7 +242,7 @@ cmdCpp cmd
         {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi cmd}
         ,includes = cmdCppInclude cmd
         ,preInclude = cmdCppFile cmd
-        ,defines = [(a,drop 1 b) | x <- cmdCppDefine cmd, let (a,b) = break (== '=') x]
+        ,defines = ("__HLINT__","1") : [(a,drop 1 b) | x <- cmdCppDefine cmd, let (a,b) = break (== '=') x]
         }
     | otherwise = NoCpp
 
