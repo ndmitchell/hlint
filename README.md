@@ -318,7 +318,7 @@ This fragment requires that all imports of `Set` must be `qualified Data.Set as 
 
 ## Hacking HLint
 
-Contributions to HLint are most welcome, following [my standard contribution guidelines](https://github.com/ndmitchell/neil/blob/master/README.md#contributions). You can run the tests either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `stack exec hlint test`.
+Contributions to HLint are most welcome, following [my standard contribution guidelines](https://github.com/ndmitchell/neil/blob/master/README.md#contributions). You can run the tests either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `cabal run hlint test` or `stack init && stack run hlint test`.
 
 New tests for individual hints can be added directly to source and hint files by adding annotations bracketed in `<TEST></TEST>` code comment blocks. As some examples:
 
