@@ -1,6 +1,7 @@
 /dist/
 /.hpc/
 /.stack-work/
+/cc/.stack-work/
 /issues/
 /Sample.hs
 /hlint.prof
