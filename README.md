@@ -244,15 +244,17 @@ If you wish to use the [Dhall configuration language](https://github.com/dhall-l
 
 Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for suppressing certain hints. Ignore directives can either be written as pragmas in the file being analysed, or in the hint files. Examples of pragmas are:
 
-* `{-# ANN module "HLint: ignore" #-}` or `{-# HLINT ignore #-}` - ignore all hints in this module (use `module` literally, not the name of the module).
-* `{-# ANN module "HLint: ignore Eta reduce" #-}` or `{-# HLINT ignore "Eta reduce" #-}` - ignore all eta reduction suggestions in this module.
-* `{-# ANN myFunction "HLint: ignore" #-}` or `{-# HLINT ignore myFunction #-}` - don't give any hints in the function `myFunction`.
-* `{-# ANN myFunction "HLint: error" #-}` or `{-# HLINT error myFunction #-}` - any hint in the function `myFunction` is an error.
-* `{-# ANN module "HLint: error Use concatMap" #-}` or `{-# HLINT error "Use concatMap" #-}` - the hint to use `concatMap` is an error (you may also use `warn` or `suggest` in place of `error` for other severity levels).
+* `{-# ANN module "HLint: ignore" #-}` or `{-# HLINT ignore #-}` or `{- HLINT ignore -}` - ignore all hints in this module (use `module` literally, not the name of the module).
+* `{-# ANN module "HLint: ignore Eta reduce" #-}` or `{-# HLINT ignore "Eta reduce" #-}` or `{- HLINT ignore "Eta reduce" -}` - ignore all eta reduction suggestions in this module.
+* `{-# ANN myFunction "HLint: ignore" #-}` or `{-# HLINT ignore myFunction #-}` or `{- HLINT ignore myFunction -}` - don't give any hints in the function `myFunction`.
+* `{-# ANN myFunction "HLint: error" #-}` or `{-# HLINT error myFunction #-}` or `{- HLINT error myFunction -}` - any hint in the function `myFunction` is an error.
+* `{-# ANN module "HLint: error Use concatMap" #-}` or `{-# HLINT error "Use concatMap" #-}` or `{- HLINT error "Use concatMap" -}` - the hint to use `concatMap` is an error (you may also use `warn` or `suggest` in place of `error` for other severity levels).
 
 For `ANN` pragmas it is important to put them _after_ any `import` statements. If you have the `OverloadedStrings` extension enabled you will need to give an explicit type to the annotation, e.g. `{-# ANN myFunction ("HLint: ignore" :: String) #-}`. The `ANN` pragmas can also increase compile times or cause more recompilation than otherwise required, since they are evaluated by `TemplateHaskell`.
 
-For `HLINT` pragmas GHC may given a warning about an unrecognised pragma, which can be supressed with `-Wno-unrecognised-pragmas`.
+For `{-# HLINT #-}` pragmas GHC may give a warning about an unrecognised pragma, which can be supressed with `-Wno-unrecognised-pragmas`.
+
+For `{- HLINT -}` comments they are likely to be treated as comments in syntax highlighting, which can lead to them being overlooked.
 
 Ignore directives can also be written in the hint files:
 
