@@ -640,8 +640,6 @@
     - package lens
     rules:
     - warn: {lhs: "(a ^. b) ^. c", rhs: "a ^. (b . c)"}
-    - warn: {lhs: "(a ^. b) ^? c", rhs: "a ^? (b . c)"}
-    - warn: {lhs: "a ^? (b . _Just)", rhs: "a ^. b"}
     - warn: {lhs: "fromJust (a ^? b)", rhs: "a ^?! b"}
     - warn: {lhs: "a .~ Just b", rhs: "a ?~ b"}
     - warn: {lhs: "a & (mapped %~ b)", rhs: "a <&> b"}

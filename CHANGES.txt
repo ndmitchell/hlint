@@ -2,6 +2,7 @@ Changelog for HLint (* = breaking change)
 
     #546, suggest `x $> y` for `const x <$> y`, `pure x <$> y`, and `return x <$> y`
     #546, suggest `x <$ y` for `x <&> const y`, `x <&> pure y`, and `x <&> return y`
+    #556, disable a few incorrect lens hints
     #545, don't suggest turning type applications into sections
     #466, avoid false positives for Esqueleto
     #535, more lens hints
