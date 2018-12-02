@@ -249,7 +249,7 @@
     - warn: {lhs: (f $), rhs: f, name: Redundant $}
     - warn: {lhs: (Data.Function.& f), rhs: f, name: Redundant Data.Function.&}
     - hint: {lhs: \x -> y, rhs: const y, side: isAtom y && not (isWildcard y)}
-        # isWildcard because some people like to put brackets round them even though they are atomic
+        # If any isWildcard recursively then x may be used but not mentioned explicitly
     - warn: {lhs: flip f x y, rhs: f y x, side: isApp original, name: Redundant flip}
     - warn: {lhs: id x, rhs: x, side: not (isTypeApp x), name: Redundant id}
     - warn: {lhs: id . x, rhs: x, name: Redundant id}
