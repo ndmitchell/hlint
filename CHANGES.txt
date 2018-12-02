@@ -7,7 +7,7 @@ Changelog for HLint (* = breaking change)
     #545, don't suggest turning type applications into sections
     #466, avoid false positives for Esqueleto
     #535, more lens hints
-    Allow {-# HLINT #-} pragmas
+    Allow {-# HLINT #-} and {- HLINT -} pragmas
     #532, generate requested report files even if there are no hints
     #524, don't suggest newtype for existentials
     #521, add a hint for f x@_ = ... ==> f x = ...

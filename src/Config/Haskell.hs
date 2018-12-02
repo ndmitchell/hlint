@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, ScopedTypeVariables, TupleSections #-}
 
 module Config.Haskell(
     readPragma,
@@ -80,19 +80,21 @@ readPragma o = case o of
 
 readComment :: Comment -> [Classify]
 readComment o@(Comment True _ x)
-    | Just x <- stripPrefix "#" x
+    | (hash, x) <- maybe (False, x) (True,) $ stripPrefix "#" x
     , x <- trim x
     , (hlint, x) <- word1 x
     , lower hlint `elem` ["lint","hlint"]
-    = f x
+    = f hash x
     where
-        f x | Just x <- stripSuffix "#" x
+        f hash x
+            | Just x <- if hash then stripSuffix "#" x else Just x
             , (sev, x) <- word1 x
             , Just sev <- getSeverity sev
             , (things, x) <- g x
             , Just (hint :: String) <- if x == "" then Just "" else readMaybe x
             = map (Classify sev hint "") $ ["" | null things] ++ things
-        f _ = errorOnComment o "bad HLINT pragma, expected:\n    {-# HLINT <severity> <identifier> \"Hint name\" #-}"
+        f hash _ = errorOnComment o $ "bad HLINT pragma, expected:\n    {-" ++ h ++ " HLINT <severity> <identifier> \"Hint name\" " ++ h ++ "-}"
+            where h = ['#' | hash]
 
         g x | (s, x) <- word1 x
             , s /= ""
