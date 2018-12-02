@@ -90,6 +90,7 @@ HLint is integrated into lots of places:
 
 * Lots of editors have HLint plugins (quite a few have more than one HLint plugin).
 * HLint is part of the multiple editor plugins [ghc-mod](https://hackage.haskell.org/package/ghc-mod) and [Intero](https://github.com/commercialhaskell/intero).
+* [HLint Source Plugin](https://github.com/ocharles/hlint-source-plugin) makes HLint available as a GHC plugin.
 * [Code Climate](https://docs.codeclimate.com/v1.0/docs/hlint) is a CI for analysis which integrates HLint.
 * [Danger](http://allocinit.io/haskell/danger-and-hlint/) can be used to automatically comment on pull requests with HLint suggestions.
 
