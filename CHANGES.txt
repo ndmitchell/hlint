@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    Require haskell-src-exts-1.21
 2.1.11, released 2018-12-02
     #553, define __HLINT__=1 for the C preprocessor
     #546, suggest `x $> y` for `const x <$> y`, `pure x <$> y`, and `return x <$> y`

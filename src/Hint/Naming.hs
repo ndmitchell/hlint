@@ -71,7 +71,7 @@ getNames x = case x of
     PatBind{} -> name
     TypeDecl{} -> name
     DataDecl _ _ _ _ cons _ -> name ++ [fromNamed x | QualConDecl _ _ _ x <- cons, x <- f x]
-    GDataDecl _ _ _ _ _ cons _ -> name ++ [fromNamed x | GadtDecl _ x _ _ <- cons]
+    GDataDecl _ _ _ _ _ cons _ -> name ++ [fromNamed x | GadtDecl _ x _ _ _ _ <- cons]
     TypeFamDecl{} -> name
     DataFamDecl{} -> name
     ClassDecl{} -> name
