@@ -238,7 +238,7 @@ This default configuration contains lots of examples, including:
 
 You can see the output of `--default` [here](https://github.com/ndmitchell/hlint/blob/master/data/default.yaml).
 
-If you wish to use the [Dhall configuration language](https://github.com/dhall-lang/dhall-lang) to customize HLint, there [is an example](https://kowainik.github.io/posts/2018-09-09-dhall-to-hlint.html) and [type definition](https://github.com/kowainik/relude/blob/master/hlint/Rule.dhall).
+If you wish to use the [Dhall configuration language](https://github.com/dhall-lang/dhall-lang) to customize HLint, there [is an example](https://kowainik.github.io/posts/2018-09-09-dhall-to-hlint) and [type definition](https://github.com/kowainik/relude/blob/master/hlint/Rule.dhall).
 
 ### Ignoring hints
 
