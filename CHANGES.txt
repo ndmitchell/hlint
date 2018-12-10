@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.12, released 2018-12-10
     Require haskell-src-exts-1.21
 2.1.11, released 2018-12-02
     #553, define __HLINT__=1 for the C preprocessor
