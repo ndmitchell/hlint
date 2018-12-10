@@ -267,6 +267,7 @@ addDerives _ (Just s) xs = case s of
     DerivStock{} -> mempty{derivesStock = xs}
     DerivAnyclass{} -> mempty{derivesAnyclass = xs}
     DerivNewtype{} -> mempty{derivesNewtype = xs}
+    DerivVia{} -> mempty
 addDerives nt _ xs = mempty
     {derivesStock = stock
     ,derivesAnyclass = other
