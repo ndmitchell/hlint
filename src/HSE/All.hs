@@ -86,6 +86,9 @@ otherFixities = concat
     ,infix_ 4 ["==="]
     -- esqueleto
     ,infix_ 4 ["==."]
+    -- lattices
+    ,infixr_ 5 ["\\/"] -- \/
+    ,infixr_ 6 ["/\\"] -- /\
     ]
 
 -- Fixites from the `base` package which are currently
