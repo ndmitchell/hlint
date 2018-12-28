@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #575, add fixities for lattice
     #564, fix hint around withFile with AppendMode
 2.1.12, released 2018-12-10
     Require haskell-src-exts-1.21
