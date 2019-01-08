@@ -93,6 +93,7 @@ HLint is integrated into lots of places:
 * [HLint Source Plugin](https://github.com/ocharles/hlint-source-plugin) makes HLint available as a GHC plugin.
 * [Code Climate](https://docs.codeclimate.com/v1.0/docs/hlint) is a CI for analysis which integrates HLint.
 * [Danger](http://allocinit.io/haskell/danger-and-hlint/) can be used to automatically comment on pull requests with HLint suggestions.
+* [Restyled](https://restyled.io) includes an HLint Restyler to automatically run `hlint --refactor` on files changed in GitHub Pull Requests.
 
 ### Automatically Applying Hints
 
