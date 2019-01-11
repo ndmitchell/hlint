@@ -141,19 +141,27 @@ extensionsHint :: ModuHint
 extensionsHint _ x = [rawIdea Warning "Unused LANGUAGE pragma" (srcInfoSpan sl)
           (prettyPrint o) (Just newPragma)
           (warnings old new) [refact]
-    | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
-    , o@(LanguagePragma sl exts) <- modulePragmas x
+    | o@(LanguagePragma sl exts) <- modulePragmas x
     , let old = map (parseExtension . prettyPrint) exts
-    , let new = minimalExtensions x old
+    , let new = minimalExtensions allExts x old
     , let newPragma = if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) new
     , let refact = ModifyComment (toSS o) newPragma
     , sort new /= sort old]
+    where allExts = [ e
+                    | LanguagePragma _ exts <- modulePragmas x
+                    , let parsed = map (parseExtension . prettyPrint) exts
+                    , EnableExtension e <- parsed
+                    ]
 
 
-minimalExtensions :: Module_ -> [Extension] -> [Extension]
-minimalExtensions x es = nubOrd $ concatMap f es
-    where f e = [e | usedExt e x]
+minimalExtensions :: [KnownExtension] -> Module_ -> [Extension] -> [Extension]
+minimalExtensions allExts x es = nubOrd $ filter f es
+    where f e = (usedExt e x || used TemplateHaskell x) -- if TH is on, can use all other extensions programmatically
+                && not (impliedExt allExts e)
 
+impliedExt :: [KnownExtension] -> Extension -> Bool
+impliedExt allExts (EnableExtension KindSignatures) = PolyKinds `elem` allExts || TypeFamilies `elem` allExts
+impliedExt _ _ = False
 
 -- RecordWildCards implies DisambiguateRecordFields, but most people probably don't want it
 warnings old new | wildcards `elem` old && wildcards `notElem` new = [RequiresExtension "DisambiguateRecordFields"]
