@@ -160,8 +160,24 @@ minimalExtensions allExts x es = nubOrd $ filter f es
                 && not (impliedExt allExts e)
 
 impliedExt :: [KnownExtension] -> Extension -> Bool
-impliedExt allExts (EnableExtension KindSignatures) = PolyKinds `elem` allExts || TypeFamilies `elem` allExts
+impliedExt allExts (DisableExtension ImplicitPrelude) = RebindableSyntax `elem` allExts
+impliedExt allExts (EnableExtension DerivingStrategies) = DerivingVia `elem` allExts
+impliedExt allExts (EnableExtension DisambiguateRecordFields) = RecordWildCards `elem` allExts
+impliedExt allExts (EnableExtension ExplicitForAll) = any (`elem` allExts) [ExistentialQuantification, LiberalTypeSynonyms, RankNTypes, ScopedTypeVariables]
+impliedExt allExts (EnableExtension ExplicitNamespaces) = any (`elem` allExts) (TypeOperators : typeFamiliesEnablers)
+impliedExt allExts (EnableExtension FlexibleContexts) = ImplicitParams `elem` allExts
+impliedExt allExts (EnableExtension FlexibleInstances) = ImplicitParams `elem` allExts
+impliedExt allExts (EnableExtension KindSignatures) = any (`elem` allExts) (PolyKinds : typeFamiliesEnablers)
+impliedExt allExts (EnableExtension MonoLocalBinds) = any (`elem` allExts) (GADTs : typeFamiliesEnablers)
+impliedExt allExts (EnableExtension MultiParamTypeClasses) = FunctionalDependencies `elem` allExts
+impliedExt allExts (EnableExtension OverlappingInstances) = IncoherentInstances `elem` allExts
+impliedExt allExts (EnableExtension RankNTypes) = ImpredicativeTypes `elem` allExts
+impliedExt allExts (EnableExtension TypeFamilies) = TypeFamilyDependencies `elem` allExts
+impliedExt allExts (EnableExtension TypeSynonymInstances) = FlexibleInstances `elem` allExts
 impliedExt _ _ = False
+
+typeFamiliesEnablers :: [KnownExtension]
+typeFamiliesEnablers = [TypeFamilies, TypeFamilyDependencies]
 
 -- RecordWildCards implies DisambiguateRecordFields, but most people probably don't want it
 warnings old new | wildcards `elem` old && wildcards `notElem` new = [RequiresExtension "DisambiguateRecordFields"]
