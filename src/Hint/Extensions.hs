@@ -143,41 +143,44 @@ extensionsHint _ x = [rawIdea Warning "Unused LANGUAGE pragma" (srcInfoSpan sl)
           (warnings old new) [refact]
     | o@(LanguagePragma sl exts) <- modulePragmas x
     , let old = map (parseExtension . prettyPrint) exts
-    , let new = minimalExtensions allExts x old
+    , let new = (if usedTh then old else minimalExtensions x old) \\ impliedExts
     , let newPragma = if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) new
     , let refact = ModifyComment (toSS o) newPragma
     , sort new /= sort old]
-    where allExts = [ e
-                    | LanguagePragma _ exts <- modulePragmas x
-                    , let parsed = map (parseExtension . prettyPrint) exts
-                    , EnableExtension e <- parsed
-                    ]
+    where impliedExts = nubOrd
+                        [ i
+                        | LanguagePragma _ exts <- modulePragmas x
+                        , let parsed = map (parseExtension . prettyPrint) exts
+                        , EnableExtension e <- parsed
+                        , i <- fromMaybe [] (lookup e implies)
+                        ]
+          usedTh = used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
 
 
-minimalExtensions :: [KnownExtension] -> Module_ -> [Extension] -> [Extension]
-minimalExtensions allExts x es = nubOrd $ filter f es
-    where f e = (usedExt e x || used TemplateHaskell x) -- if TH is on, can use all other extensions programmatically
-                && not (impliedExt allExts e)
+minimalExtensions :: Module_ -> [Extension] -> [Extension]
+minimalExtensions x es = nubOrd $ filter (`usedExt` x) es
 
-impliedExt :: [KnownExtension] -> Extension -> Bool
-impliedExt allExts (DisableExtension ImplicitPrelude) = RebindableSyntax `elem` allExts
-impliedExt allExts (EnableExtension DerivingStrategies) = DerivingVia `elem` allExts
-impliedExt allExts (EnableExtension DisambiguateRecordFields) = RecordWildCards `elem` allExts
-impliedExt allExts (EnableExtension ExplicitForAll) = any (`elem` allExts) [ExistentialQuantification, LiberalTypeSynonyms, RankNTypes, ScopedTypeVariables]
-impliedExt allExts (EnableExtension ExplicitNamespaces) = any (`elem` allExts) (TypeOperators : typeFamiliesEnablers)
-impliedExt allExts (EnableExtension FlexibleContexts) = ImplicitParams `elem` allExts
-impliedExt allExts (EnableExtension FlexibleInstances) = ImplicitParams `elem` allExts
-impliedExt allExts (EnableExtension KindSignatures) = any (`elem` allExts) (PolyKinds : typeFamiliesEnablers)
-impliedExt allExts (EnableExtension MonoLocalBinds) = any (`elem` allExts) (GADTs : typeFamiliesEnablers)
-impliedExt allExts (EnableExtension MultiParamTypeClasses) = FunctionalDependencies `elem` allExts
-impliedExt allExts (EnableExtension OverlappingInstances) = IncoherentInstances `elem` allExts
-impliedExt allExts (EnableExtension RankNTypes) = ImpredicativeTypes `elem` allExts
-impliedExt allExts (EnableExtension TypeFamilies) = TypeFamilyDependencies `elem` allExts
-impliedExt allExts (EnableExtension TypeSynonymInstances) = FlexibleInstances `elem` allExts
-impliedExt _ _ = False
-
-typeFamiliesEnablers :: [KnownExtension]
-typeFamiliesEnablers = [TypeFamilies, TypeFamilyDependencies]
+implies :: [(KnownExtension, [Extension])]
+implies =
+    (RebindableSyntax, [DisableExtension ImplicitPrelude]) :
+    map (\(k, vs) -> (k, map EnableExtension vs))
+    [ (DerivingVia              , [DerivingStrategies])
+    , (RecordWildCards          , [DisambiguateRecordFields])
+    , (ExistentialQuantification, [ExplicitForAll])
+    , (FlexibleInstances        , [TypeSynonymInstances])
+    , (FunctionalDependencies   , [MultiParamTypeClasses])
+    , (GADTs                    , [MonoLocalBinds])
+    , (IncoherentInstances      , [OverlappingInstances])
+    , (ImplicitParams           , [FlexibleContexts, FlexibleInstances])
+    , (ImpredicativeTypes       , [ExplicitForAll, RankNTypes])
+    , (LiberalTypeSynonyms      , [ExplicitForAll])
+    , (PolyKinds                , [KindSignatures])
+    , (RankNTypes               , [ExplicitForAll])
+    , (ScopedTypeVariables      , [ExplicitForAll])
+    , (TypeOperators            , [ExplicitNamespaces])
+    , (TypeFamilies             , [ExplicitNamespaces, KindSignatures, MonoLocalBinds])
+    , (TypeFamilyDependencies   , [ExplicitNamespaces, KindSignatures, MonoLocalBinds, TypeFamilies])
+    ]
 
 -- RecordWildCards implies DisambiguateRecordFields, but most people probably don't want it
 warnings old new | wildcards `elem` old && wildcards `notElem` new = [RequiresExtension "DisambiguateRecordFields"]
