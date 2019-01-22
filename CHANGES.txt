@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #583, suggest left sections to avoid lambdas
     #580, remove redundant LANGUAGE pragmas which are implied by others
     #575, add fixities for lattice
     #564, fix hint around withFile with AppendMode

@@ -49,6 +49,12 @@ niceLambdaR [x] (view -> App2 (expOp -> Just op) xx a)
       let e = rebracket1 $ RightSection an op a
       in (e, \s -> [Replace Expr s [] (prettyPrint e)])
 
+-- \x -> a + x ==> (a +) [heuristic, a must be a single lexeme, or gets too complex]
+niceLambdaR [x] (view -> App2 (expOp -> Just op) a xx)
+    | isLexeme a, view xx == Var_ x, x `notElem` vars a =
+      let e = rebracket1 $ LeftSection an a op
+      in (e, \s -> [Replace Expr s [] (prettyPrint e)])
+
 -- \x y -> f y x = flip f
 niceLambdaR [x,y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
     | x == x1, y == y1, vars op `disjoint` [x,y] = (gen op, \s -> [Replace Expr s [("x", toSS op)] (prettyPrint $ gen (toNamed "x"))])

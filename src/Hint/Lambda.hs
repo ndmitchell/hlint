@@ -75,6 +75,7 @@ no = blah (\ x -> case x of A -> a x; B -> b x)
 yes = blah (\ x -> (y, x, z+q)) -- (y, , z+q)
 yes = blah (\ x -> (y, x, z+x))
 tmp = map (\ x -> runST $ action x)
+yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>)
 {-# LANGUAGE TypeApplications #-}; noBug545 = coerce ((<>) @[a])
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 name = authOAuth2Widget [whamlet|Login via #{name}|] name
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 = foo (\name -> authOAuth2Widget [whamlet|Login via #{name}|] name)
