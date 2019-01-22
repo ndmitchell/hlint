@@ -145,7 +145,9 @@ extensionsHint _ x =
         (srcInfoSpan sl)
         (prettyPrint o)
         (Just newPragma)
-        (warnings before after)
+        (warnings before after ++
+            [ Note $ "Extension " ++ prettyExtension x ++ " is implied by " ++ prettyExtension a
+            | x <- before, Just a <- [Map.lookup x implied]])
         [ModifyComment (toSS o) newPragma]
     | o@(LanguagePragma sl exts) <- modulePragmas x
     , let before = map (parseExtension . prettyPrint) exts
