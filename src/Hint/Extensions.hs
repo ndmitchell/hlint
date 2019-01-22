@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, TupleSections #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-
     Suggest removal of unnecessary extensions
