@@ -141,19 +141,46 @@ extensionsHint :: ModuHint
 extensionsHint _ x = [rawIdea Warning "Unused LANGUAGE pragma" (srcInfoSpan sl)
           (prettyPrint o) (Just newPragma)
           (warnings old new) [refact]
-    | not $ used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
-    , o@(LanguagePragma sl exts) <- modulePragmas x
+    | o@(LanguagePragma sl exts) <- modulePragmas x
     , let old = map (parseExtension . prettyPrint) exts
-    , let new = minimalExtensions x old
+    , let new = (if usedTh then old else minimalExtensions x old) \\ impliedExts
     , let newPragma = if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) new
     , let refact = ModifyComment (toSS o) newPragma
     , sort new /= sort old]
+    where impliedExts = nubOrd
+                        [ i
+                        | LanguagePragma _ exts <- modulePragmas x
+                        , let parsed = map (parseExtension . prettyPrint) exts
+                        , EnableExtension e <- parsed
+                        , i <- fromMaybe [] (lookup e implies)
+                        ]
+          usedTh = used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
 
 
 minimalExtensions :: Module_ -> [Extension] -> [Extension]
-minimalExtensions x es = nubOrd $ concatMap f es
-    where f e = [e | usedExt e x]
+minimalExtensions x es = nubOrd $ filter (`usedExt` x) es
 
+implies :: [(KnownExtension, [Extension])]
+implies =
+    (RebindableSyntax, [DisableExtension ImplicitPrelude]) :
+    map (\(k, vs) -> (k, map EnableExtension vs))
+    [ (DerivingVia              , [DerivingStrategies])
+    , (RecordWildCards          , [DisambiguateRecordFields])
+    , (ExistentialQuantification, [ExplicitForAll])
+    , (FlexibleInstances        , [TypeSynonymInstances])
+    , (FunctionalDependencies   , [MultiParamTypeClasses])
+    , (GADTs                    , [MonoLocalBinds])
+    , (IncoherentInstances      , [OverlappingInstances])
+    , (ImplicitParams           , [FlexibleContexts, FlexibleInstances])
+    , (ImpredicativeTypes       , [ExplicitForAll, RankNTypes])
+    , (LiberalTypeSynonyms      , [ExplicitForAll])
+    , (PolyKinds                , [KindSignatures])
+    , (RankNTypes               , [ExplicitForAll])
+    , (ScopedTypeVariables      , [ExplicitForAll])
+    , (TypeOperators            , [ExplicitNamespaces])
+    , (TypeFamilies             , [ExplicitNamespaces, KindSignatures, MonoLocalBinds])
+    , (TypeFamilyDependencies   , [ExplicitNamespaces, KindSignatures, MonoLocalBinds, TypeFamilies])
+    ]
 
 -- RecordWildCards implies DisambiguateRecordFields, but most people probably don't want it
 warnings old new | wildcards `elem` old && wildcards `notElem` new = [RequiresExtension "DisambiguateRecordFields"]
