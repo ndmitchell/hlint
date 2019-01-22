@@ -43,10 +43,10 @@ niceLambdaR xs (fromAppsWithLoc -> e) | map view xs2 == map Var_ xs, vars e2 `di
 niceLambdaR [x,y] (InfixApp _ (view -> Var_ x1) (opExp -> op) (view -> Var_ y1))
     | x == x1, y == y1, vars op `disjoint` [x,y] = (op, \s -> [Replace Expr s [] (prettyPrint op)])
 
--- \x -> x + b ==> (+ b) [heuristic, b must be a single lexeme, or gets too complex]
-niceLambdaR [x] (view -> App2 (expOp -> Just op) a b)
-    | isLexeme b, view a == Var_ x, x `notElem` vars b, allowRightSection (fromNamed op) =
-      let e = rebracket1 $ RightSection an op b
+-- \x -> x + a ==> (+ a) [heuristic, ab must be a single lexeme, or gets too complex]
+niceLambdaR [x] (view -> App2 (expOp -> Just op) xx a)
+    | isLexeme a, view xx == Var_ x, x `notElem` vars a, allowRightSection (fromNamed op) =
+      let e = rebracket1 $ RightSection an op a
       in (e, \s -> [Replace Expr s [] (prettyPrint e)])
 
 -- \x y -> f y x = flip f
