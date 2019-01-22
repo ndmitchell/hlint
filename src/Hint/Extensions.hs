@@ -120,6 +120,11 @@ newtype X = X Int deriving newtype Show
 main = case () of {}
 {-# LANGUAGE EmptyCase #-} \
 main = case () of x -> x --
+{-# LANGUAGE EmptyCase #-} \
+main = case () of x -> x --
+{-# LANGUAGE PolyKinds, KindSignatures #-} -- {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE PolyKinds, KindSignatures #-} \
+data Set (cxt :: * -> *) a = Set [a] -- @Note Extension KindSignatures is implied by PolyKinds
 </TEST>
 -}
 
