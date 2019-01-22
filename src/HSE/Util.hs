@@ -4,9 +4,11 @@ module HSE.Util(module HSE.Util, def) where
 
 import Control.Monad
 import Data.Default
+import Data.Tuple.Extra
 import Data.List
 import Language.Haskell.Exts.Util
 import Control.Monad.Trans.State
+import qualified Data.Map as Map
 import Data.Maybe
 import Data.Data hiding (Fixity)
 import System.FilePath
@@ -383,3 +385,38 @@ getFixity _ = []
 
 toInfixDecl :: Fixity -> Decl ()
 toInfixDecl (Fixity a b c) = InfixDecl () a (Just b) $ maybeToList $ VarOp () <$> fromQual c
+
+
+
+-- | This extension implies the following extensions
+extensionImplies :: Extension -> [Extension]
+extensionImplies = \x -> Map.findWithDefault [] x mp
+    where mp = Map.fromList extensionImplications
+
+-- | This extension is implied by the following extensions
+extensionImpliedBy :: Extension -> [Extension]
+extensionImpliedBy = \x -> Map.findWithDefault [] x mp
+    where mp = Map.fromListWith (++) [(b, [a]) | (a,bs) <- extensionImplications, b <- bs]
+
+-- | (a, bs) means extension a implies all of bs
+extensionImplications :: [(Extension, [Extension])]
+extensionImplications = map (first EnableExtension) $
+    (RebindableSyntax, [DisableExtension ImplicitPrelude]) :
+    map (\(k, vs) -> (k, map EnableExtension vs))
+    [ (DerivingVia              , [DerivingStrategies])
+    , (RecordWildCards          , [DisambiguateRecordFields])
+    , (ExistentialQuantification, [ExplicitForAll])
+    , (FlexibleInstances        , [TypeSynonymInstances])
+    , (FunctionalDependencies   , [MultiParamTypeClasses])
+    , (GADTs                    , [MonoLocalBinds])
+    , (IncoherentInstances      , [OverlappingInstances])
+    , (ImplicitParams           , [FlexibleContexts, FlexibleInstances])
+    , (ImpredicativeTypes       , [ExplicitForAll, RankNTypes])
+    , (LiberalTypeSynonyms      , [ExplicitForAll])
+    , (PolyKinds                , [KindSignatures])
+    , (RankNTypes               , [ExplicitForAll])
+    , (ScopedTypeVariables      , [ExplicitForAll])
+    , (TypeOperators            , [ExplicitNamespaces])
+    , (TypeFamilies             , [ExplicitNamespaces, KindSignatures, MonoLocalBinds])
+    , (TypeFamilyDependencies   , [ExplicitNamespaces, KindSignatures, MonoLocalBinds, TypeFamilies])
+    ]

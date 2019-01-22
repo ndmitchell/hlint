@@ -145,7 +145,7 @@ extensionsHint _ x =
         (srcInfoSpan sl)
         (prettyPrint o)
         (Just newPragma)
-        (warnings before after ++
+        ( [RequiresExtension $ prettyExtension gone | x <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
             [ Note $ "Extension " ++ prettyExtension x ++ " is implied by " ++ prettyExtension a
             | x <- before, Just a <- [Map.lookup x implied]])
         [ModifyComment (toSS o) newPragma]
@@ -156,44 +156,33 @@ extensionsHint _ x =
     , let newPragma = if null after then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) after
     ]
     where
+        usedTH = used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
+
+        -- all the extensions defined to be used
         extensions = Set.fromList [parseExtension $ fromNamed e | LanguagePragma _ exts <- modulePragmas x, e <- exts]
-        useful = if used TemplateHaskell x then extensions -- if TH is on, can use all other extensions programmatically
-                 else Set.filter (`usedExt` x) extensions
+
+        -- those extensions we detect to be useful
+        useful = if usedTH then extensions  else Set.filter (`usedExt` x) extensions
+
+        -- those extensions which are useful, but implied by other useful extensions
         implied = Map.fromList
             [ (e, a)
             | e <- Set.toList useful
-            , Just es <- [Map.lookup e impliedBy]
-            , a:_ <- [filter (`Set.member` useful) $ map EnableExtension es]]
+            , a:_ <- [filter (`Set.member` useful) $ extensionImpliedBy e]]
+
+        -- those we should keep
         keep =  useful `Set.difference` Map.keysSet implied
 
-
-impliedBy :: Map.Map Extension [KnownExtension]
-impliedBy = Map.fromListWith (++) $ concatMap (\(a,bs) -> map (,[a]) bs) $
-    -- below here, (a, bs) means extension a implies all of bs
-    (RebindableSyntax, [DisableExtension ImplicitPrelude]) :
-    map (\(k, vs) -> (k, map EnableExtension vs))
-    [ (DerivingVia              , [DerivingStrategies])
-    , (RecordWildCards          , [DisambiguateRecordFields])
-    , (ExistentialQuantification, [ExplicitForAll])
-    , (FlexibleInstances        , [TypeSynonymInstances])
-    , (FunctionalDependencies   , [MultiParamTypeClasses])
-    , (GADTs                    , [MonoLocalBinds])
-    , (IncoherentInstances      , [OverlappingInstances])
-    , (ImplicitParams           , [FlexibleContexts, FlexibleInstances])
-    , (ImpredicativeTypes       , [ExplicitForAll, RankNTypes])
-    , (LiberalTypeSynonyms      , [ExplicitForAll])
-    , (PolyKinds                , [KindSignatures])
-    , (RankNTypes               , [ExplicitForAll])
-    , (ScopedTypeVariables      , [ExplicitForAll])
-    , (TypeOperators            , [ExplicitNamespaces])
-    , (TypeFamilies             , [ExplicitNamespaces, KindSignatures, MonoLocalBinds])
-    , (TypeFamilyDependencies   , [ExplicitNamespaces, KindSignatures, MonoLocalBinds, TypeFamilies])
-    ]
-
--- RecordWildCards implies DisambiguateRecordFields, but most people probably don't want it
-warnings old new | wildcards `elem` old && wildcards `notElem` new = [RequiresExtension "DisambiguateRecordFields"]
-    where wildcards = EnableExtension RecordWildCards
-warnings _ _ = []
+        -- (a,b) means a used to imply b, but has gone, so suggest enabling b
+        disappear =
+            Map.fromListWith (++) $
+            nubOrdOn snd -- only keep one instance for each of a
+            [ (e, [a])
+            | e <- Set.toList $ extensions `Set.difference` keep
+            , a <- extensionImplies e
+            , a `Set.notMember` useful
+            , usedTH || usedExt a x
+            ]
 
 
 deriveHaskell = ["Eq","Ord","Enum","Ix","Bounded","Read","Show"]
