@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, TupleSections #-}
 
 {-
     Suggest removal of unnecessary extensions
@@ -134,34 +134,40 @@ import Data.Ratio
 import Data.Data
 import Refact.Types
 import Data.Semigroup
+import qualified Data.Set as Set
+import qualified Data.Map as Map
 import Prelude
 
 
 extensionsHint :: ModuHint
-extensionsHint _ x = [rawIdea Warning "Unused LANGUAGE pragma" (srcInfoSpan sl)
-          (prettyPrint o) (Just newPragma)
-          (warnings old new) [refact]
+extensionsHint _ x =
+    [ rawIdea Warning "Unused LANGUAGE pragma"
+        (srcInfoSpan sl)
+        (prettyPrint o)
+        (Just newPragma)
+        (warnings before after)
+        [ModifyComment (toSS o) newPragma]
     | o@(LanguagePragma sl exts) <- modulePragmas x
-    , let old = map (parseExtension . prettyPrint) exts
-    , let new = (if usedTh then old else minimalExtensions x old) \\ impliedExts
-    , let newPragma = if null new then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) new
-    , let refact = ModifyComment (toSS o) newPragma
-    , sort new /= sort old]
-    where impliedExts = nubOrd
-                        [ i
-                        | LanguagePragma _ exts <- modulePragmas x
-                        , let parsed = map (parseExtension . prettyPrint) exts
-                        , EnableExtension e <- parsed
-                        , i <- fromMaybe [] (lookup e implies)
-                        ]
-          usedTh = used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
+    , let before = map (parseExtension . prettyPrint) exts
+    , let after = filter (`Set.member` keep) before
+    , before /= after
+    , let newPragma = if null after then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) after
+    ]
+    where
+        extensions = Set.fromList [parseExtension $ fromNamed e | LanguagePragma _ exts <- modulePragmas x, e <- exts]
+        useful = if used TemplateHaskell x then extensions -- if TH is on, can use all other extensions programmatically
+                 else Set.filter (`usedExt` x) extensions
+        implied = Map.fromList
+            [ (e, a)
+            | e <- Set.toList useful
+            , Just es <- [Map.lookup e impliedBy]
+            , a:_ <- [filter (`Set.member` useful) $ map EnableExtension es]]
+        keep =  useful `Set.difference` Map.keysSet implied
 
 
-minimalExtensions :: Module_ -> [Extension] -> [Extension]
-minimalExtensions x es = nubOrd $ filter (`usedExt` x) es
-
-implies :: [(KnownExtension, [Extension])]
-implies =
+impliedBy :: Map.Map Extension [KnownExtension]
+impliedBy = Map.fromListWith (++) $ concatMap (\(a,bs) -> map (,[a]) bs) $
+    -- below here, (a, bs) means extension a implies all of bs
     (RebindableSyntax, [DisableExtension ImplicitPrelude]) :
     map (\(k, vs) -> (k, map EnableExtension vs))
     [ (DerivingVia              , [DerivingStrategies])
