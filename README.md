@@ -68,7 +68,7 @@ Most hints are intended to be a good idea in most circumstances, but not univers
 
 On the CI you should then run `hlint .` (or `hlint src` if you only want to check the `src` directory). To avoid the cost of compilation you may wish to fetch the [latest HLint binary release](https://github.com/ndmitchell/hlint/releases/latest). For certain CI environments there are helper scripts to do that.
 
-**Travis:** Execute the following command:
+**Travis (Linux, Mac, Windows):** Execute the following command:
 
 ```sh
 curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
@@ -76,7 +76,7 @@ curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s 
 
 The arguments after `-s` are passed to `hlint`, so modify the final `.` if you want other arguments.
 
-**Appveyor:** Add the following statement to `.appveyor.yml`:
+**Appveyor (Windows only):** Add the following statement to `.appveyor.yml`:
 
 ```powershell
 - ps: Invoke-Command ([Scriptblock]::Create((Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.ps1').Content)) -ArgumentList @('.')
