@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.14, released 2019-01-28
     #587, fix extensions implied by ImplicitParams
     #588, suggest optional from attoparsec
 2.1.13, released 2019-01-23
