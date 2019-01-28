@@ -398,7 +398,8 @@ extensionImpliedBy :: Extension -> [Extension]
 extensionImpliedBy = \x -> Map.findWithDefault [] x mp
     where mp = Map.fromListWith (++) [(b, [a]) | (a,bs) <- extensionImplications, b <- bs]
 
--- | (a, bs) means extension a implies all of bs
+-- | (a, bs) means extension a implies all of bs.
+--   Taken from https://downloads.haskell.org/~ghc/master/users-guide/glasgow_exts.html#language-options
 extensionImplications :: [(Extension, [Extension])]
 extensionImplications = map (first EnableExtension) $
     (RebindableSyntax, [DisableExtension ImplicitPrelude]) :
@@ -410,7 +411,8 @@ extensionImplications = map (first EnableExtension) $
     , (FunctionalDependencies   , [MultiParamTypeClasses])
     , (GADTs                    , [MonoLocalBinds])
     , (IncoherentInstances      , [OverlappingInstances])
-    , (ImplicitParams           , [FlexibleContexts, FlexibleInstances])
+--    Incorrect, see https://github.com/ndmitchell/hlint/issues/587
+--    , (ImplicitParams           , [FlexibleContexts, FlexibleInstances])
     , (ImpredicativeTypes       , [ExplicitForAll, RankNTypes])
     , (LiberalTypeSynonyms      , [ExplicitForAll])
     , (PolyKinds                , [KindSignatures])
