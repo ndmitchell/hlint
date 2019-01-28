@@ -1,6 +1,7 @@
 Changelog for HLint (* = breaking change)
 
     #587, fix extensions implied by ImplicitParams
+    #588, suggest optional from attoparsec
 2.1.13, released 2019-01-23
     #583, suggest left sections to avoid lambdas
     #580, remove redundant LANGUAGE pragmas which are implied by others
