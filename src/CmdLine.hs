@@ -8,6 +8,7 @@ module CmdLine(
     ) where
 
 import Control.Monad.Extra
+import qualified Data.ByteString as BS
 import Data.Char
 import Data.List
 import Data.Maybe
@@ -269,7 +270,8 @@ resolveFile cmd = getFile (cmdPath cmd) (cmdExtension cmd)
 
 getFile :: [FilePath] -> [String] -> Maybe FilePath -> FilePath -> IO [FilePath]
 getFile path _ (Just tmpfile) "-" =
-  getContents >>= writeFile tmpfile >> return [tmpfile]
+    -- make sure we don't reencode any Unicode
+    BS.getContents >>= BS.writeFile tmpfile >> return [tmpfile]
 getFile path _ Nothing "-" = return ["-"]
 getFile [] exts _ file = exitMessage $ "Couldn't find file: " ++ file
 getFile (p:ath) exts t file = do

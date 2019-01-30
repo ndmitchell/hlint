@@ -4,7 +4,8 @@ module Util(
     defaultExtensions,
     forceList,
     gzip, universeParentBi,
-    exitMessage, exitMessageImpure
+    exitMessage, exitMessageImpure,
+    getContentsUTF8
     ) where
 
 import Data.List
@@ -34,6 +35,12 @@ exitMessage msg = do
 
 exitMessageImpure :: String -> a
 exitMessageImpure = unsafePerformIO . exitMessage
+
+
+getContentsUTF8 :: IO String
+getContentsUTF8 = do
+    hSetEncoding stdin utf8
+    getContents
 
 
 ---------------------------------------------------------------------

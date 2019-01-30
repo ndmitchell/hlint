@@ -156,7 +156,7 @@ parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError
 parseModuleEx flags file str = timedIO "Parse" file $ do
         str <- case str of
             Just x -> return x
-            Nothing | file == "-" -> getContents
+            Nothing | file == "-" -> getContentsUTF8
                     | otherwise -> readFileUTF8' file
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
