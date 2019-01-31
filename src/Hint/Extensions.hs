@@ -151,8 +151,8 @@ extensionsHint _ x =
         (prettyPrint o)
         (Just newPragma)
         ( [RequiresExtension $ prettyExtension gone | x <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
-            [ Note $ "Extension " ++ prettyExtension x ++ " is implied by " ++ prettyExtension a
-            | x <- before, Just a <- [Map.lookup x implied]])
+            [ Note $ "Extension " ++ prettyExtension x ++ " is " ++ reason x
+            | x <- before \\ after])
         [ModifyComment (toSS o) newPragma]
     | o@(LanguagePragma sl exts) <- modulePragmas x
     , let before = map (parseExtension . prettyPrint) exts
@@ -189,6 +189,10 @@ extensionsHint _ x =
             , usedTH || usedExt a x
             ]
 
+        reason x =
+            case Map.lookup x implied of
+            Just a -> "implied by " ++ prettyExtension a
+            Nothing -> "not used"
 
 deriveHaskell = ["Eq","Ord","Enum","Ix","Bounded","Read","Show"]
 deriveGenerics = ["Data","Typeable","Generic","Generic1","Lift"]
