@@ -151,13 +151,16 @@ extensionsHint _ x =
         (prettyPrint o)
         (Just newPragma)
         ( [RequiresExtension $ prettyExtension gone | x <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
-            [ Note $ "Extension " ++ prettyExtension x ++ " is implied by " ++ prettyExtension a
-            | x <- before, Just a <- [Map.lookup x implied]])
+            [ Note $ "Extension " ++ prettyExtension x ++ " is " ++ reason x
+            | x <- explainedRemovals])
         [ModifyComment (toSS o) newPragma]
     | o@(LanguagePragma sl exts) <- modulePragmas x
     , let before = map (parseExtension . prettyPrint) exts
     , let after = filter (`Set.member` keep) before
     , before /= after
+    , let explainedRemovals
+            | null after && not (any (`Map.member` implied) before) = []
+            | otherwise = before \\ after
     , let newPragma = if null after then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) after
     ]
     where
@@ -189,6 +192,10 @@ extensionsHint _ x =
             , usedTH || usedExt a x
             ]
 
+        reason x =
+            case Map.lookup x implied of
+            Just a -> "implied by " ++ prettyExtension a
+            Nothing -> "not used"
 
 deriveHaskell = ["Eq","Ord","Enum","Ix","Bounded","Read","Show"]
 deriveGenerics = ["Data","Typeable","Generic","Generic1","Lift"]
