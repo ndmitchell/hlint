@@ -66,23 +66,15 @@ Most hints are intended to be a good idea in most circumstances, but not univers
 
 ### Running with Continuous Integration
 
-On the CI you should then run `hlint .` (or `hlint src` if you only want to check the `src` directory). To avoid the cost of compilation you may wish to fetch the [latest HLint binary release](https://github.com/ndmitchell/hlint/releases/latest). For certain CI environments there are helper scripts to do that.
+On CI you might wish to run `hlint .` (or `hlint src` if you only want to check the `src` directory). To avoid the cost of compilation you may wish to fetch the [latest HLint binary release](https://github.com/ndmitchell/hlint/releases/latest).
 
-**Travis (Linux, Mac, Windows):** Execute the following command:
+For the CI systems [Travis](https://travis-ci.org/), [Appveyor](https://www.appveyor.com/) and [Azure Pipelines](https://azure.microsoft.com/en-gb/services/devops/pipelines/) add the line:
 
 ```sh
 curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
 ```
 
-The arguments after `-s` are passed to `hlint`, so modify the final `.` if you want other arguments.
-
-**Appveyor (Windows only):** Add the following statement to `.appveyor.yml`:
-
-```powershell
-- ps: Invoke-Command ([Scriptblock]::Create((Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.ps1').Content)) -ArgumentList @('.')
-```
-
-The arguments inside `@()` are passed to `hlint`, so add new arguments surrounded by `'`, space separated - e.g. `@('.' '--report')`.
+The arguments after `-s` are passed to `hlint`, so modify the final `.` if you want other arguments. This command works on Windows, Mac and Linux.
 
 ### Integrations
 
