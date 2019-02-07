@@ -71,7 +71,7 @@ On CI you might wish to run `hlint .` (or `hlint src` if you only want to check 
 For the CI systems [Travis](https://travis-ci.org/), [Appveyor](https://www.appveyor.com/) and [Azure Pipelines](https://azure.microsoft.com/en-gb/services/devops/pipelines/) add the line:
 
 ```sh
-curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
+curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
 ```
 
 The arguments after `-s` are passed to `hlint`, so modify the final `.` if you want other arguments. This command works on Windows, Mac and Linux.
