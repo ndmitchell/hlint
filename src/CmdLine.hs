@@ -268,12 +268,11 @@ resolveFile
     -> Maybe FilePath -- ^ Temporary file
     -> FilePath       -- ^ File to resolve, may be "-" for stdin
     -> IO [FilePath]
-resolveFile cmd p
+resolveFile cmd
   = getFile
   (ignore $ cmdIgnoreGlob cmd)
   (cmdPath cmd)
   (cmdExtension cmd)
-  p
   where
   ignore :: Maybe FilePattern -> FilePath -> Bool
   ignore Nothing _ = False
