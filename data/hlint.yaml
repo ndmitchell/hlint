@@ -473,6 +473,7 @@
     - hint: {lhs: case m of Nothing -> Nothing; Just x -> x, rhs: Control.Monad.join m}
     - hint: {lhs: maybe Nothing id, rhs: join}
     - hint: {lhs: maybe (f x) (f . g), rhs: f . maybe x g, note: IncreasesLaziness, name: Too strict maybe}
+    - warn: {lhs: \x -> if f x then Just x else Nothing, rhs: mfilter f . Just}
 
     # EITHER
 
