@@ -1,9 +1,6 @@
 sudo: required
 matrix:
   include:
-  - env: GHCVER=7.4
-  - env: GHCVER=7.6
-  - env: GHCVER=7.8
   - env: GHCVER=7.10
   - env: GHCVER=8.0
   - env: GHCVER=8.2
