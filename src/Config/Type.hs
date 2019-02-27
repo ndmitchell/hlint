@@ -102,7 +102,7 @@ data Restrict = Restrict
     {restrictType :: RestrictType
     ,restrictDefault :: Bool
     ,restrictName :: [String]
-    ,restrictAs :: [String] -- for RestrictModule only, what you can import it as
+    ,restrictAs :: [String] -- for RestrictModule only, what module names you can import it as
     ,restrictWithin :: [(String, String)]
     } deriving Show
 
