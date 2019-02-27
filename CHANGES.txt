@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.15, released 2019-02-27
     #593, reorder guards in list comps where possible
     #597, suggest pushing a map over a list comp inside
     Say redundant pure, when the thing you are removing is pure
