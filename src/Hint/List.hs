@@ -77,20 +77,20 @@ isAppend _ = False
 
 
 checks = let (*) = (,) in drop 1 -- see #174
-         ["Use string literal" * useString
-         ,"Use list literal" * useList
-         ,"Use :" * useCons
-         ]
+    ["Use string literal" * useString
+    ,"Use list literal" * useList
+    ,"Use :" * useCons
+    ]
 
 pchecks = let (*) = (,) in drop 1 -- see #174
-          ["Use string literal pattern" * usePString
-          ,"Use list literal pattern" * usePList
-          ]
+    ["Use string literal pattern" * usePString
+    ,"Use list literal pattern" * usePList
+    ]
 
 
 usePString (PList _ xs) | xs /= [], Just s <- mapM fromPChar xs =
-  let literal = PLit an (Signless an) $ String an s (show s)
-  in Just (literal, [], prettyPrint literal)
+    let literal = PLit an (Signless an) $ String an s (show s)
+    in Just (literal, [], prettyPrint literal)
 usePString _ = Nothing
 
 usePList =
