@@ -24,6 +24,12 @@ foo = [a b] ++ xs -- a b : xs
 foo = [myexpr | True, a] -- [myexpr | a]
 foo = [myexpr | False] -- []
 foo = map f [x + 1 | x <- [1..10]] -- [f (x + 1) | x <- [1..10]]
+foo = [x + 1 | x <- [1..10], feature] -- [x + 1 | feature, x <- [1..10]]
+foo = [x + 1 | x <- [1..10], even x]
+foo = [x + 1 | x <- [1..10], even x, dont_reoder_guards]
+foo = [x + 1 | x <- [1..10], let y = even x, y]
+foo = [x + 1 | x <- [1..10], let q = even 1, q] -- [x + 1 | let q = even 1, q, x <- [1..10]]
+foo = [fooValue | Foo{..} <- y, fooField]
 </TEST>
 -}
 
@@ -31,6 +37,7 @@ module Hint.List(listHint) where
 
 import Control.Applicative
 import Hint.Type
+import Data.List.Extra
 import Data.Maybe
 import Prelude
 import Refact.Types
@@ -50,6 +57,7 @@ listComp :: Exp_ -> [Idea]
 listComp o@(ListComp a e xs)
     | "False" `elem` cons = [suggest "Short-circuited list comprehension" o (List an []) []]
     | "True" `elem` cons = [suggest "Redundant True guards" o o2 []]
+    | let ys = moveGuardsForward xs, xs /= ys = [suggest "Move guards forward" o (ListComp a e ys) []]
     where
         o2 = ListComp a e $ filter ((/= Just "True") . qualCon) xs
         cons = mapMaybe qualCon xs
@@ -59,6 +67,20 @@ listComp o@(view -> App2 mp f (ListComp a e xs)) | mp ~= "map" =
     [suggest "Move map inside list comprehension" o o2 []]
     where o2 = ListComp a (App an (paren f) (paren e)) xs
 listComp _ = []
+
+-- Move all the list comp guards as far forward as they can go
+moveGuardsForward :: [QualStmt S] -> [QualStmt S]
+moveGuardsForward = reverse . f [] . reverse
+    where
+        f guards (x@(QualStmt _ (Generator _ p _)):xs) = reverse stop ++ x : f move xs
+            where (move, stop) = span (if any isPFieldWildcard (universeS x) then const False else \x -> pvars p `disjoint` vars' x) guards
+        f guards (x@(QualStmt _ Qualifier{}):xs) = f (x:guards) xs
+        f guards (x@(QualStmt _ LetStmt{}):xs) = f (x:guards) xs
+        f guards xs = reverse guards ++ xs
+
+        -- the type QualStmt doesn't have a Var instance, so fake something that works
+        vars' x = [prettyPrint a | Var _ a <- universeS x]
+
 
 -- boolean = are you in a ++ chain
 listExp :: Bool -> Exp_ -> [Idea]
