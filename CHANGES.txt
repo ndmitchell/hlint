@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #554, add more verbosity
     Don't test with GHC 7.4 to 7.8
     #590, say which extensions should be deleted
     #591, be careful about encoding on stdin
