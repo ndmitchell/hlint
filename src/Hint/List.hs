@@ -23,6 +23,7 @@ instance C [Char]
 foo = [a b] ++ xs -- a b : xs
 foo = [myexpr | True, a] -- [myexpr | a]
 foo = [myexpr | False] -- []
+foo = map f [x + 1 | x <- [1..10]] -- [f (x + 1) | x <- [1..10]]
 </TEST>
 -}
 
@@ -54,6 +55,9 @@ listComp o@(ListComp a e xs)
         cons = mapMaybe qualCon xs
         qualCon (QualStmt _ (Qualifier _ (Con _ x))) = Just $ fromNamed x
         qualCon _ = Nothing
+listComp o@(view -> App2 mp f (ListComp a e xs)) | mp ~= "map" =
+    [suggest "Move map inside list comprehension" o o2 []]
+    where o2 = ListComp a (App an (paren f) (paren e)) xs
 listComp _ = []
 
 -- boolean = are you in a ++ chain
