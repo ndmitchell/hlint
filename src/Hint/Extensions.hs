@@ -125,6 +125,8 @@ main = case () of x -> x --
 {-# LANGUAGE PolyKinds, KindSignatures #-} -- {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE PolyKinds, KindSignatures #-} \
 data Set (cxt :: * -> *) a = Set [a] -- @Note Extension KindSignatures is implied by PolyKinds
+{-# LANGUAGE QuasiQuotes, OverloadedStrings #-} \
+main = putStrLn [f|{T.intercalate "blah" []}|]
 </TEST>
 -}
 
@@ -164,7 +166,8 @@ extensionsHint _ x =
     , let newPragma = if null after then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) after
     ]
     where
-        usedTH = used TemplateHaskell x -- if TH is on, can use all other extensions programmatically
+        usedTH = used TemplateHaskell x || used QuasiQuotes x
+            -- if TH or QuasiQuotes is on, can use all other extensions programmatically
 
         -- all the extensions defined to be used
         extensions = Set.fromList [parseExtension $ fromNamed e | LanguagePragma _ exts <- modulePragmas x, e <- exts]
