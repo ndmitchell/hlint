@@ -158,7 +158,7 @@ readAllSettings args1 cmd@CmdMain{..} = do
         ++ [("CommandLine.hs",Just x) | x <- cmdWithHints]
         ++ [("CommandLine.yaml",Just (enableGroup x)) | x <- cmdWithGroups]
     let args2 = [x | SettingArgument x <- settings1]
-    cmd@CmdMain{..} <- if null args2 then return cmd else getCmd $ args1 ++ args2
+    cmd@CmdMain{..} <- if null args2 then return cmd else getCmd $ args2 ++ args1 -- command line arguments are passed last
     settings2 <- concatMapM (fmap snd . computeSettings (cmdParseFlags cmd)) cmdFindHints
     settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
     return (cmd, settings1 ++ settings2 ++ settings3)
