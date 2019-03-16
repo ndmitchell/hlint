@@ -53,7 +53,7 @@ smellManyArgFunctions :: Decl_ -> Int -> [Idea]
 smellManyArgFunctions d@(TypeSig _ _ t) n = warn "Many arg function" d d [] <$  filter manyArgFunction (unrollType t)
   where
     manyArgFunction x = countFunctionArgs x >= n
-smellManyArgFunctions _ _ = []    
+smellManyArgFunctions _ _ = []
 
 countFunctionArgs :: Type l -> Int
 countFunctionArgs (TyFun _ _ b) = 1 + countFunctionArgs b
