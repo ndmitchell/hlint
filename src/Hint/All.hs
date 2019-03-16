@@ -60,7 +60,9 @@ builtin x = case x of
     HintComment    -> comm commentHint
     HintNewType    -> decl newtypeHint
     HintRestrict   -> mempty{hintModule=restrictHint}
-    HintSmell      -> mempty{hintDecl=smellHint}
+    HintSmell      -> mempty{hintDecl=smellHint
+                            ,hintModule=smellModuleHint
+                            }
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList
         decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}

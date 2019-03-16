@@ -106,12 +106,14 @@ data Restrict = Restrict
     ,restrictWithin :: [(String, String)]
     } deriving Show
 
-data SmellType = SmellLongFunctions | SmellLongTypeLists | SmellManyArgFunctions deriving (Show,Eq,Ord)
+data SmellType = SmellLongFunctions | SmellLongTypeLists | SmellManyArgFunctions | SmellManyImports
+  deriving (Show,Eq,Ord)
 
 getSmellType :: String -> Maybe SmellType
 getSmellType "long functions" = Just SmellLongFunctions
 getSmellType "long type lists" = Just SmellLongTypeLists
 getSmellType "many arg functions" = Just SmellManyArgFunctions
+getSmellType "many imports" = Just SmellManyImports
 getSmellType _ = Nothing
 
 data Smell = Smell

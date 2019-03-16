@@ -5,8 +5,19 @@ module Hint.Smell where
 import Hint.Type
 import Config.Type
 import Control.Monad
+import Data.List.Extra
 import Data.Maybe
 import qualified Data.Map as Map
+
+smellModuleHint :: [Setting] -> ModuHint
+smellModuleHint settings scope m@(Module _ _ _ imports _) = case Map.lookup SmellManyImports (smells settings) of
+  Just n | length imports >= n ->
+           let span = srcInfoSpan $ ann $ head imports
+               displayImports = unlines $ f <$> imports
+           in [rawIdea Warning "Many imports" span displayImports  Nothing [] [] ]
+    where
+      f = trimStart . prettyPrint
+  _ -> []
 
 smellHint :: [Setting] -> DeclHint
 smellHint settings scope m d =
