@@ -65,7 +65,3 @@
 - ignore: {name: Use explicit module export list, within: HSE.Util}
 # this const has meaingful argument names
 - ignore: {name: Use const, within: Config.Yaml}
-
-- smell: {type: long type lists, limit: 10}
-- smell: {type: many arg functions, limit: 6}
-- smell: {type: many imports, limit: 15 }
