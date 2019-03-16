@@ -11,15 +11,16 @@ import qualified Data.Map as Map
 smellHint :: [Setting] -> DeclHint
 smellHint settings scope m d =
   sniff smellLongFunctions SmellLongFunctions ++
-  sniff smellLongTypeLists SmellLongTypeLists
+  sniff smellLongTypeLists SmellLongTypeLists ++ 
+  sniff smellManyArgFunctions SmellManyArgFunctions
   where
-    sniff f t = maybe [] (f d) $ Map.lookup t (smells settings)
+    sniff f t = fmap (\i -> i {ideaTo = Nothing }) . take 1 $ maybe [] (f d) $ Map.lookup t (smells settings)
 
 smellLongFunctions :: Decl_ -> Int -> [Idea]
 smellLongFunctions d n
   | Just length <- spanLength <$> declBind d
   , length >= n
-  = [(warn "Long function" d d []) { ideaTo = Nothing}]
+  = [warn "Long function" d d []]
 smellLongFunctions _ _ = []
 
 declBind :: Decl l -> Maybe l
@@ -35,7 +36,18 @@ smellLongTypeLists d@(TypeSig _ _ t) n = warn "Long type list" d d [] <$ filter 
   where
     longTypeList (TyPromoted _ (PromotedList _ _ x)) = length x >= n
     longTypeList _ = False
-smellLongTypeLists _ _ = []    
+smellLongTypeLists _ _ = []
+
+smellManyArgFunctions :: Decl_ -> Int -> [Idea]
+smellManyArgFunctions d@(TypeSig _ _ t) n = warn "Many arg function" d d [] <$  filter manyArgFunction (unrollType t)
+  where
+    manyArgFunction x = countFunctionArgs x >= n
+smellManyArgFunctions _ _ = []    
+
+countFunctionArgs :: Type l -> Int
+countFunctionArgs (TyFun _ _ b) = 1 + countFunctionArgs b
+countFunctionArgs (TyParen _ t) = countFunctionArgs t
+countFunctionArgs _ = 0
 
 subTypes :: Type l -> [Type l]
 subTypes (TyForall _ _ _ t) = [t]
