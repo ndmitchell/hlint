@@ -1,8 +1,8 @@
 
 module Config.Type(
     Severity(..), Classify(..), HintRule(..), Note(..), Setting(..),
-    Restrict(..), RestrictType(..),
-    defaultHintName, isUnifyVar, showNotes, getSeverity, getRestrictType
+    Restrict(..), RestrictType(..), Smell(..), SmellType(..),
+    defaultHintName, isUnifyVar, showNotes, getSeverity, getRestrictType, getSmellType
     ) where
 
 import HSE.All
@@ -106,11 +106,23 @@ data Restrict = Restrict
     ,restrictWithin :: [(String, String)]
     } deriving Show
 
+data SmellType = SmellLongFunctions deriving (Show,Eq,Ord)
+
+getSmellType :: String -> Maybe SmellType
+getSmellType "long functions" = Just SmellLongFunctions
+getSmellType _ = Nothing
+
+data Smell = Smell
+    {smellType :: SmellType
+    ,smellLimit :: Int
+    } deriving Show
+
 data Setting
     = SettingClassify Classify
     | SettingMatchExp HintRule
     | SettingRestrict Restrict
     | SettingArgument String -- ^ Extra command-line argument
+    | SettingSmell Smell
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show

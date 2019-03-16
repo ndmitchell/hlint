@@ -115,6 +115,7 @@ library
         Hint.Pattern
         Hint.Pragma
         Hint.Restrict
+        Hint.Smell
         Hint.Type
         Hint.Unsafe
         Hint.Util
