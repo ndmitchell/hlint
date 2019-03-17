@@ -77,7 +77,7 @@ subTypes (TyBang _ _ _ a) = [a]
 subTypes _ = []
 
 unrollType :: Type l -> [Type l]
-unrollType t = t : (subTypes t >>= unrollType)
+unrollType t = t : concatMap unrollType (subTypes t)
 
 smells :: [Setting] -> Map.Map SmellType Int
 smells settings = Map.fromList [ (smellType, smellLimit) | SettingSmell Smell{..} <- settings]
