@@ -1,11 +1,12 @@
 {-# LANGUAGE RecordWildCards #-}
-module Hint.Smell where
+module Hint.Smell (
+  smellModuleHint,
+  smellHint
+  ) where
 
 import Hint.Type
 import Config.Type
-import Control.Monad
 import Data.List.Extra
-import Data.Maybe
 import qualified Data.Map as Map
 
 smellModuleHint :: [Setting] -> ModuHint
@@ -80,4 +81,4 @@ unrollType :: Type l -> [Type l]
 unrollType t = t : concatMap unrollType (subTypes t)
 
 smells :: [Setting] -> Map.Map SmellType Int
-smells settings = Map.fromList [ (smellType, smellLimit) | SettingSmell Smell{..} <- settings]
+smells settings = Map.fromList [ (smellType, smellLimit) | SettingSmell smellType smellLimit  <- settings]

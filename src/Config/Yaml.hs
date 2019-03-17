@@ -190,11 +190,11 @@ parseSmell v = do
   smellName <- parseField "type" v >>= parseString
   smellType <- require v "Expected SmellType"  $ getSmellType smellName
   smellLimit <- parseField "limit" v >>= parseInt
-  return [SettingSmell Smell{..}]
+  return [SettingSmell smellType smellLimit]
     where
       require :: Val -> String -> Maybe a -> Parser a
       require _ _ (Just a) = return a
-      require val err Nothing = parseFail val err
+      require val err Nothing = parseFail val err 
 
 parseGroup :: Val -> Parser Group
 parseGroup v = do

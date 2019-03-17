@@ -1,7 +1,7 @@
 
 module Config.Type(
     Severity(..), Classify(..), HintRule(..), Note(..), Setting(..),
-    Restrict(..), RestrictType(..), Smell(..), SmellType(..),
+    Restrict(..), RestrictType(..), SmellType(..),
     defaultHintName, isUnifyVar, showNotes, getSeverity, getRestrictType, getSmellType
     ) where
 
@@ -116,17 +116,12 @@ getSmellType "many arg functions" = Just SmellManyArgFunctions
 getSmellType "many imports" = Just SmellManyImports
 getSmellType _ = Nothing
 
-data Smell = Smell
-    {smellType :: SmellType
-    ,smellLimit :: Int
-    } deriving Show
-
 data Setting
     = SettingClassify Classify
     | SettingMatchExp HintRule
     | SettingRestrict Restrict
     | SettingArgument String -- ^ Extra command-line argument
-    | SettingSmell Smell
+    | SettingSmell SmellType Int
     | Builtin String -- use a builtin hint set
     | Infix Fixity
       deriving Show
