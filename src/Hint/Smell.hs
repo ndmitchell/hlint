@@ -1,8 +1,61 @@
-{-# LANGUAGE RecordWildCards #-}
 module Hint.Smell (
   smellModuleHint,
   smellHint
   ) where
+
+{-
+<TEST> [{smell: { type: many arg functions, limit: 2 }}]
+f :: Int -> Int \
+f = undefined
+
+f :: Int -> Int -> Int \
+f = undefined --
+</TEST>
+
+<TEST> 
+f :: Int -> Int \
+f = undefined
+
+f :: Int -> Int -> Int \
+f = undefined
+</TEST>
+
+<TEST> [{smell: { type: long functions, limit: 3}}]
+f = do \
+ x <- y \
+ return x --
+
+f = return x
+</TEST>
+
+<TEST> 
+f = do \
+ x <- y \
+ return x
+
+f = return x
+</TEST>
+
+<TEST> [{smell: { type: long type lists, limit: 2}}]
+f :: Proxy '[a, b] --
+f :: Proxy '[a]
+</TEST>
+
+<TEST>
+f :: Proxy '[a, b]
+f :: Proxy '[a]
+</TEST>
+
+<TEST> [{smell: { type: many imports, limit: 2}}]
+import A; import B --
+import A
+</TEST>
+
+<TEST>
+import A; import B
+import A
+</TEST>
+-}
 
 import Hint.Type
 import Config.Type
