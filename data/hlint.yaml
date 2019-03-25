@@ -472,6 +472,7 @@
     - hint: {lhs: "[x | Just x <- a]", rhs: Data.Maybe.catMaybes a}
     - hint: {lhs: case m of Nothing -> Nothing; Just x -> x, rhs: Control.Monad.join m}
     - hint: {lhs: maybe Nothing id, rhs: join}
+    - hint: {lhs: maybe Nothing f x, rhs: f =<< x}
     - hint: {lhs: maybe (f x) (f . g), rhs: f . maybe x g, note: IncreasesLaziness, name: Too strict maybe}
 
     # EITHER
