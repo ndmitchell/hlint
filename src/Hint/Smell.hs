@@ -25,6 +25,26 @@ f = do \
  x <- y \
  return x --
 
+f = do \
+  return z \
+\
+  where \
+   z = do \
+    a \
+    b --
+
+f = do \
+  return z \
+\
+  where \
+   z = a
+
+f = Con \
+  { a = x \
+  , b = y \
+  , c = z \
+  }
+
 f = return x
 </TEST>
 
@@ -81,16 +101,25 @@ smellHint settings scope m d =
     sniff f t = fmap (\i -> i {ideaTo = Nothing }) . take 1 $ maybe [] (f d) $ Map.lookup t (smells settings)
 
 smellLongFunctions :: Decl_ -> Int -> [Idea]
-smellLongFunctions d n
-  | Just length <- spanLength <$> declBind d
-  , length >= n
-  = [warn "Long function" d d []]
-smellLongFunctions _ _ = []
+smellLongFunctions d n = [ idea
+                         | (span, idea) <- declSpans d
+                         , spanLength span >= n
+                         ]
 
-declBind :: Decl l -> Maybe l
-declBind (FunBind  l match)         = Just l
-declBind (PatBind l (PVar _ n) _ _) = Just l
-declBind _                          = Nothing
+declSpans :: Decl_ -> [(SrcSpanInfo, Idea)]
+declSpans (FunBind _ [Match _ _ _ rhs where_]) = rhsSpans rhs ++ whereSpans where_
+declSpans f@(FunBind  l match)         = [(l, warn "Long function" f f [])] -- count where clauses
+declSpans (PatBind _ _ rhs where_) = rhsSpans rhs ++ whereSpans where_
+declSpans _                          = []
+
+whereSpans :: Maybe (Binds SrcSpanInfo) ->  [(SrcSpanInfo, Idea)]
+whereSpans Nothing = []
+whereSpans (Just (BDecls _ decls)) = concatMap declSpans decls
+
+rhsSpans :: Rhs SrcSpanInfo -> [(SrcSpanInfo, Idea)]
+rhsSpans (UnGuardedRhs l RecConstr{}) = [] --- record constructors get a pass
+rhsSpans r@(UnGuardedRhs l _) = [(l, warn "Long function" r r [])]
+rhsSpans r@(GuardedRhss l _) = [(l, warn "Long function" r r [])]
 
 spanLength :: SrcSpanInfo -> Int
 spanLength (SrcSpanInfo span _) = srcSpanEndLine span - srcSpanStartLine span + 1
