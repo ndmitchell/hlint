@@ -49,9 +49,9 @@ namingHint :: DeclHint
 namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ moduleDecls modu
 
 naming :: Set.Set String -> Decl_ -> [Idea]
-naming seen x = [suggestN "Use camelCase" x2 (replaceNames res x2) | not $ null res]
+naming seen x = [suggest "Use camelCase" x x2 [Replace Decl (toSS x) [] (prettyPrint x2)] | not $ null res]
     where res = [(n,y) | n <- nubOrd $ getNames x, Just y <- [suggestName n], not $ y `Set.member` seen]
-          x2 = shorten x
+          x2 = replaceNames res x
 
 
 shorten :: Decl_ -> Decl_
@@ -104,6 +104,6 @@ suggestName x
 
 
 replaceNames :: Data a => [(String,String)] -> a -> a
-replaceNames rep = descendBi f
+replaceNames rep = transformBi f
     where f (Ident _ x) = Ident an $ fromMaybe x $ lookup x rep
           f x = x

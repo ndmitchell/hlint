@@ -55,16 +55,17 @@ listDecl x =
 
 listComp :: Exp_ -> [Idea]
 listComp o@(ListComp a e xs)
-    | "False" `elem` cons = [suggest "Short-circuited list comprehension" o (List an []) []]
-    | "True" `elem` cons = [suggest "Redundant True guards" o o2 []]
-    | let ys = moveGuardsForward xs, xs /= ys = [suggest "Move guards forward" o (ListComp a e ys) []]
+    | "False" `elem` cons = [suggest "Short-circuited list comprehension" o o' [Replace Expr (toSS o) [] (prettyPrint o')]]
+    | "True" `elem` cons = [suggest "Redundant True guards" o o2 [Replace Expr (toSS o) [] (prettyPrint o2)]]
+    | let ys = moveGuardsForward xs, xs /= ys = [suggest "Move guards forward" o (ListComp a e ys) [Replace Expr (toSS o) [] (prettyPrint (ListComp a e ys))]]
     where
+        o' = List an []
         o2 = ListComp a e $ filter ((/= Just "True") . qualCon) xs
         cons = mapMaybe qualCon xs
         qualCon (QualStmt _ (Qualifier _ (Con _ x))) = Just $ fromNamed x
         qualCon _ = Nothing
 listComp o@(view -> App2 mp f (ListComp a e xs)) | mp ~= "map" =
-    [suggest "Move map inside list comprehension" o o2 []]
+    [suggest "Move map inside list comprehension" o o2 [Replace Expr (toSS o) [] (prettyPrint o2)]]
     where o2 = ListComp a (App an (paren f) (paren e)) xs
 listComp _ = []
 
