@@ -40,7 +40,8 @@ import Hint.Type
 import Data.List.Extra
 import Data.Maybe
 import Prelude
-import Refact.Types
+import Refact.Types hiding (SrcSpan)
+import qualified Refact.Types as R
 
 
 listHint :: DeclHint
@@ -55,18 +56,24 @@ listDecl x =
 
 listComp :: Exp_ -> [Idea]
 listComp o@(ListComp a e xs)
-    | "False" `elem` cons = [suggest "Short-circuited list comprehension" o (List an []) []]
-    | "True" `elem` cons = [suggest "Redundant True guards" o o2 []]
-    | let ys = moveGuardsForward xs, xs /= ys = [suggest "Move guards forward" o (ListComp a e ys) []]
+    | "False" `elem` cons = [suggest "Short-circuited list comprehension" o o' (suggestExpr o o')]
+    | "True" `elem` cons = [suggest "Redundant True guards" o o2 (suggestExpr o o2)]
+    | xs /= ys = [suggest "Move guards forward" o o3 (suggestExpr o o3)]
     where
+        ys = moveGuardsForward xs
+        o' = List an []
         o2 = ListComp a e $ filter ((/= Just "True") . qualCon) xs
+        o3 = ListComp a e ys
         cons = mapMaybe qualCon xs
         qualCon (QualStmt _ (Qualifier _ (Con _ x))) = Just $ fromNamed x
         qualCon _ = Nothing
 listComp o@(view -> App2 mp f (ListComp a e xs)) | mp ~= "map" =
-    [suggest "Move map inside list comprehension" o o2 []]
+    [suggest "Move map inside list comprehension" o o2 (suggestExpr o o2)]
     where o2 = ListComp a (App an (paren f) (paren e)) xs
 listComp _ = []
+
+suggestExpr :: Exp_ -> Exp_ -> [Refactoring R.SrcSpan]
+suggestExpr o o2 = [Replace Expr (toSS o) [] (prettyPrint o2)]
 
 -- Move all the list comp guards as far forward as they can go
 moveGuardsForward :: [QualStmt S] -> [QualStmt S]
