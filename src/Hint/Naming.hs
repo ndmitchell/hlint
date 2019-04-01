@@ -42,6 +42,7 @@ import Data.List.Extra
 import Data.Data
 import Data.Char
 import Data.Maybe
+import Refact.Types hiding (RType(Match))
 import qualified Data.Set as Set
 
 
@@ -49,9 +50,11 @@ namingHint :: DeclHint
 namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ moduleDecls modu
 
 naming :: Set.Set String -> Decl_ -> [Idea]
-naming seen x = [suggest "Use camelCase" x x2 [Replace Bind (toSS x) [] (prettyPrint x2)] | not $ null res]
+naming seen x = [suggest "Use camelCase" x' x2' [Replace Bind (toSS x) [] (prettyPrint x2)] | not $ null res]
     where res = [(n,y) | n <- nubOrd $ getNames x, Just y <- [suggestName n], not $ y `Set.member` seen]
           x2 = replaceNames res x
+          x' = shorten x
+          x2' = shorten x2
 
 
 shorten :: Decl_ -> Decl_
