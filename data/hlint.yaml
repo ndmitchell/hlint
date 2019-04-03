@@ -666,6 +666,16 @@
     - error: {lhs: "Control.Lens.nullOf (a . Control.Lens.at b)", rhs: "Control.Lens.nullOf a"}
 
 - group:
+    name: use-lens
+    enabled: false
+    imports:
+    - package base
+    - package lens
+    rules:
+    - warn: {lhs: "either Just (const Nothing)", rhs: preview _Left}
+    - warn: {lhs: "either (const Nothing) Just", rhs: preview _Right}
+
+- group:
     name: attoparsec
     enabled: true
     imports:
