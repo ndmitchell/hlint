@@ -30,6 +30,7 @@ import Hint.Duplicate
 import Hint.Comment
 import Hint.Unsafe
 import Hint.NewType
+import Hint.Smell
 
 -- | A list of the builtin hints wired into HLint.
 --   This list is likely to grow over time.
@@ -37,7 +38,7 @@ data HintBuiltin =
     HintList | HintListRec | HintMonad | HintLambda |
     HintBracket | HintNaming | HintPattern | HintImport | HintExport |
     HintPragma | HintExtensions | HintUnsafe | HintDuplicate | HintRestrict |
-    HintComment | HintNewType
+    HintComment | HintNewType | HintSmell
     deriving (Show,Eq,Ord,Bounded,Enum)
 
 
@@ -59,6 +60,7 @@ builtin x = case x of
     HintComment    -> comm commentHint
     HintNewType    -> decl newtypeHint
     HintRestrict   -> mempty{hintModule=restrictHint}
+    HintSmell      -> mempty{hintDecl=smellHint,hintModule=smellModuleHint}
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList
         decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}
