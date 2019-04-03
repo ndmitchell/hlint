@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 module Hint.Smell (
   smellModuleHint,
   smellHint
@@ -83,7 +85,7 @@ import Data.List.Extra
 import qualified Data.Map as Map
 
 smellModuleHint :: [Setting] -> ModuHint
-smellModuleHint settings scope m@(Module _ _ _ imports _) = case Map.lookup SmellManyImports (smells settings) of
+smellModuleHint settings scope m@(moduleImports -> imports) = case Map.lookup SmellManyImports (smells settings) of
   Just n | length imports >= n ->
            let span = foldl1 mergeSrcSpan $ srcInfoSpan . ann <$> imports
                displayImports = unlines $ f <$> imports
@@ -113,8 +115,8 @@ declSpans (PatBind _ _ rhs where_) = rhsSpans rhs ++ whereSpans where_
 declSpans _                          = []
 
 whereSpans :: Maybe (Binds SrcSpanInfo) ->  [(SrcSpanInfo, Idea)]
-whereSpans Nothing = []
 whereSpans (Just (BDecls _ decls)) = concatMap declSpans decls
+whereSpans _ = []
 
 rhsSpans :: Rhs SrcSpanInfo -> [(SrcSpanInfo, Idea)]
 rhsSpans (UnGuardedRhs l RecConstr{}) = [] --- record constructors get a pass
