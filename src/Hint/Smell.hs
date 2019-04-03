@@ -12,7 +12,7 @@ f :: Int -> Int -> Int \
 f = undefined --
 </TEST>
 
-<TEST> 
+<TEST>
 f :: Int -> Int \
 f = undefined
 
@@ -48,7 +48,7 @@ f = Con \
 f = return x
 </TEST>
 
-<TEST> 
+<TEST>
 f = do \
  x <- y \
  return x
@@ -95,7 +95,7 @@ smellModuleHint settings scope m@(Module _ _ _ imports _) = case Map.lookup Smel
 smellHint :: [Setting] -> DeclHint
 smellHint settings scope m d =
   sniff smellLongFunctions SmellLongFunctions ++
-  sniff smellLongTypeLists SmellLongTypeLists ++ 
+  sniff smellLongTypeLists SmellLongTypeLists ++
   sniff smellManyArgFunctions SmellManyArgFunctions
   where
     sniff f t = fmap (\i -> i {ideaTo = Nothing }) . take 1 $ maybe [] (f d) $ Map.lookup t (smells settings)
