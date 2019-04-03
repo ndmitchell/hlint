@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #609, add code smells
     #614, adds refactorings for camelCase and some list suggestions
     #605, make command line arguments override the .yaml file
     #603, QuasiQuotes can programatically use any extension
