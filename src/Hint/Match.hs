@@ -132,6 +132,7 @@ checkSide x bind = maybe True bool x
         bool (InfixApp _ x op y)
             | opExp op ~= "&&" = bool x && bool y
             | opExp op ~= "||" = bool x || bool y
+            | opExp op ~= "==" = expr (fromParen1 x) =~= expr (fromParen1 y)
         bool (App _ x y) | x ~= "not" = not $ bool y
         bool (Paren _ x) = bool x
 
@@ -143,6 +144,10 @@ checkSide x bind = maybe True bool x
         bool x | x ~= "noTypeCheck" = True
         bool x | x ~= "noQuickCheck" = True
         bool x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
+
+        expr :: Exp_ -> Exp_
+        expr (App _ (fromNamed -> "subst") x) = sub $ fromParen1 x
+        expr x = x
 
         isType "Compare" x = True -- just a hint for proof stuff
         isType "Atom" x = isAtom x

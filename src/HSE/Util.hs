@@ -71,6 +71,10 @@ fromPString :: Pat_ -> Maybe String
 fromPString (PLit _ _ (String _ x _)) =  Just x
 fromPString _ = Nothing
 
+fromParen1 :: Exp_ -> Exp_
+fromParen1 (Paren _ x) = x
+fromParen1 x = x
+
 fromParen :: Exp_ -> Exp_
 fromParen (Paren _ x) = fromParen x
 fromParen x = x
