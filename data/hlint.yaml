@@ -695,6 +695,7 @@
     - warn: {lhs: either (const mempty), rhs: foldMap}
     - warn: {lhs: Data.Maybe.fromMaybe mempty, rhs: Data.Foldable.fold}
     - warn: {lhs: Data.Either.fromRight mempty, rhs: Data.Foldable.fold}
+    - warn: {lhs: if f x then Just x else Nothing, rhs: mfilter f (Just x)}
 
 - group:
     name: dollar
