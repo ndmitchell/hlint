@@ -126,23 +126,23 @@ matchIdea s decl HintRule{..} parent x = do
 -- SIDE CONDITIONS
 
 checkSide :: Maybe Exp_ -> [(String, Exp_)] -> Bool
-checkSide x bind = maybe True f x
+checkSide x bind = maybe True bool x
     where
-        f (InfixApp _ x op y)
-            | opExp op ~= "&&" = f x && f y
-            | opExp op ~= "||" = f x || f y
-        f (App _ x y) | x ~= "not" = not $ f y
-        f (Paren _ x) = f x
+        bool :: Exp_ -> Bool
+        bool (InfixApp _ x op y)
+            | opExp op ~= "&&" = bool x && bool y
+            | opExp op ~= "||" = bool x || bool y
+        bool (App _ x y) | x ~= "not" = not $ bool y
+        bool (Paren _ x) = bool x
 
-        f (App _ cond (sub -> y))
-            | 'i':'s':typ <- fromNamed cond
-            = isType typ y
-        f (App _ (App _ cond (sub -> x)) (sub -> y))
+        bool (App _ cond (sub -> y))
+            | 'i':'s':typ <- fromNamed cond = isType typ y
+        bool (App _ (App _ cond (sub -> x)) (sub -> y))
             | cond ~= "notIn" = and [x `notElem` universe y | x <- list x, y <- list y]
             | cond ~= "notEq" = x /=~= y
-        f x | x ~= "noTypeCheck" = True
-        f x | x ~= "noQuickCheck" = True
-        f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
+        bool x | x ~= "noTypeCheck" = True
+        bool x | x ~= "noQuickCheck" = True
+        bool x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
 
         isType "Compare" x = True -- just a hint for proof stuff
         isType "Atom" x = isAtom x
