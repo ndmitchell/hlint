@@ -338,6 +338,11 @@
     - hint: {lhs: x <&> pure y, rhs: x Data.Functor.$> y}
     - hint: {lhs: x <&> return y, rhs: x Data.Functor.$> y}
 
+    # APPLICATIVE
+
+    - hint: {lhs: return x <*> y, rhs: x <$> y}
+    - hint: {lhs: pure x <*> y, rhs: x <$> y}
+
     # MONAD
 
     - warn: {lhs: return a >>= f, rhs: f a, name: "Monad law, left identity"}
