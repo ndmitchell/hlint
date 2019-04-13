@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #619, require haskell-src-exts-util-0.2.5
+    #619, fix move guards forward with record puns
     #618, add pure x <*> y ==> x <$> y
     #611, add == and subst for more advanced match conditions
     #612, add: Suggest f =<< instead of maybe Nothing f
