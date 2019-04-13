@@ -430,10 +430,10 @@
 
     # SEQ
 
-    - warn: {lhs: x `seq` x, rhs: x, name: Redundant seq}
+    - warn: {lhs: seq x x, rhs: x, name: Redundant seq}
     - warn: {lhs: join seq, rhs: id, name: Redundant seq}
     - warn: {lhs: id $! x, rhs: x, name: Redundant $!}
-    - warn: {lhs: x `seq` y, rhs: "y", side: isWHNF x, name: Redundant seq}
+    - warn: {lhs: seq x y, rhs: "y", side: isWHNF x, name: Redundant seq}
     - warn: {lhs: f $! x, rhs: f x, side: isWHNF x, name: Redundant $!}
     - warn: {lhs: evaluate x, rhs: return x, side: isWHNF x, name: Redundant evaluate}
     - warn: {lhs: seq (rnf x) (), rhs: rhs x, name: Redundant seq}
@@ -506,8 +506,8 @@
     - warn: {lhs: negate (negate x), rhs: x, name: Redundant negate}
     - hint: {lhs: log y / log x, rhs: logBase x y}
     - hint: {lhs: sin x / cos x, rhs: tan x}
-    - hint: {lhs: n `rem` 2 == 0, rhs: even n}
-    - hint: {lhs: n `rem` 2 /= 0, rhs: odd n}
+    - hint: {lhs: rem n 2 == 0, rhs: even n}
+    - hint: {lhs: rem n 2 /= 0, rhs: odd n}
     - hint: {lhs: not (even x), rhs: odd x}
     - hint: {lhs: not (odd x), rhs: even x}
     - hint: {lhs: x ** 0.5, rhs: sqrt x}
