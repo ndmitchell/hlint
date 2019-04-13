@@ -436,6 +436,7 @@
     - warn: {lhs: x `seq` y, rhs: "y", side: isWHNF x, name: Redundant seq}
     - warn: {lhs: f $! x, rhs: f x, side: isWHNF x, name: Redundant $!}
     - warn: {lhs: evaluate x, rhs: return x, side: isWHNF x, name: Redundant evaluate}
+    - warn: {lhs: seq (rnf x) (), rhs: rhs x, name: Redundant seq}
 
     # TUPLE
 

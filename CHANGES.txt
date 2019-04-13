@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #604, suggest rnf x `seq` () ==> rnf x
     #619, require haskell-src-exts-util-0.2.5
     #619, fix move guards forward with record puns
     #618, add pure x <*> y ==> x <$> y
