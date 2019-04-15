@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.16, released 2019-04-15
     Make `seq` and `rem` hints apply to prefix functions
     #604, suggest rnf x `seq` () ==> rnf x
     #619, require haskell-src-exts-util-0.2.5
