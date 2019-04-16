@@ -59,11 +59,15 @@ test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTes
 ---------------------------------------------------------------------
 -- VARIOUS SMALL TESTS
 
+-- Check all hints in the standard config files get sensible names
 testNames :: [Setting] -> IO ()
 testNames  hints = sequence_
     [ failed ["No name for the hint " ++ prettyPrint hintRuleLHS ++ " ==> " ++ prettyPrint hintRuleRHS]
     | SettingMatchExp x@HintRule{..} <- hints, hintRuleName == defaultHintName]
 
+
+-- Check that the default.yaml template I supply is valid when I strip off all the comments, since that's
+-- what a user gets with --default
 checkCommentedYaml :: FilePath -> IO ()
 checkCommentedYaml file = do
     src <- lines <$> readFile' file
