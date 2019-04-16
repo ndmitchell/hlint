@@ -32,10 +32,10 @@ withTests (Test act) = do
     return (failures, res)
 
 addIdeas :: [Idea] -> Test ()
-addIdeas xs = Test $ modify $ \s -> s{ideas = reverse xs ++ ideas s}
+addIdeas xs = Test $ modify $ \s -> s{ideas = xs ++ ideas s}
 
 getIdeas :: Test [Idea]
-getIdeas = Test $ gets $ reverse . ideas
+getIdeas = Test $ gets ideas
 
 progress :: Test ()
 progress = liftIO $ putChar '.'
