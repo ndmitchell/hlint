@@ -8,7 +8,7 @@ module Test.Util(
 
 import Idea
 import Control.Monad
-import Control.Monad.Trans.State
+import Control.Monad.Trans.State.Strict
 import Control.Monad.IO.Class
 
 
