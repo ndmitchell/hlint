@@ -1,44 +1,42 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, GeneralizedNewtypeDeriving #-}
 
 module Test.Util(
-    withTests, tested, passed, failed, progress
+    Test, withTests, tested, passed, failed, progress
     ) where
 
-import Data.IORef
-import System.IO.Unsafe
 import Control.Monad
+import Control.Monad.Trans.State
+import Control.Monad.IO.Class
 
 
-data Result = Result {failures :: Int, total :: Int} deriving Show
+data S = S
+    {failures :: !Int
+    ,total :: !Int
+    }
 
-{-# NOINLINE ref #-}
-ref :: IORef [Result]
-ref = unsafePerformIO $ newIORef []
-
+newtype Test a = Test (StateT S IO a)
+    deriving (Functor, Applicative, Monad, MonadIO)
 
 -- | Returns the number of failing tests.
---   Warning: Not multithread safe, but is reenterant
-withTests :: IO () -> IO Int
-withTests act = do
-    atomicModifyIORef ref $ \r -> (Result 0 0 : r, ())
-    act
-    Result{..} <- atomicModifyIORef ref $ \(r:rs) -> (rs, r)
+withTests :: Test () -> IO Int
+withTests (Test act) = do
+    S{..} <- execStateT act $ S 0 0
     putStrLn ""
     putStrLn $ if failures == 0
         then "Tests passed (" ++ show total ++ ")"
         else "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
     return failures
 
-progress :: IO ()
-progress = putChar '.'
+progress :: Test ()
+progress = liftIO $ putChar '.'
 
-passed :: IO ()
-passed = atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1}:rs, ())
+passed :: Test ()
+passed = Test $ modify $ \s -> s{total=total s+1}
 
-failed :: [String] -> IO ()
+failed :: [String] -> Test ()
 failed xs = do
-    unless (null xs) $ putStrLn $ unlines $ "" : xs
-    atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1, failures=failures r+1}:rs, ())
+    unless (null xs) $ liftIO $ putStrLn $ unlines $ "" : xs
+    Test $ modify $ \s -> s{total=total s+1, failures=failures s+1}
 
-tested :: Bool -> IO ()
+tested :: Bool -> Test ()
 tested b = if b then passed else failed []

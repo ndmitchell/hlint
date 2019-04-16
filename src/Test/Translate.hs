@@ -3,6 +3,7 @@
 module Test.Translate(testTypeCheck, testQuickCheck) where
 
 import Control.Monad
+import Control.Monad.IO.Class
 import Data.List.Extra
 import System.IO.Extra
 import Data.Maybe
@@ -15,29 +16,30 @@ import HSE.All
 import Test.Util
 
 
-runMains :: FilePath -> FilePath -> [String] -> IO ()
-runMains datadir tmpdir xs = (if tmpdir == "" then withTempDir else ($ tmpdir)) $ \dir -> do
-    ms <- forM (zip [1..] xs) $ \(i,x) -> do
-        let m = "I" ++ show i
-        writeFile (dir </> m <.> "hs") $ replace "module Main" ("module " ++ m) x
-        return m
-    writeFile (dir </> "Main.hs") $ unlines $
-        ["import qualified " ++ m | m <- ms] ++
-        ["main = do"] ++
-        ["    " ++ m ++ ".main" | m <- ms]
-    res <- system $ "runhaskell -i" ++ dir ++ " -i" ++ datadir ++ " Main"
+runMains :: FilePath -> FilePath -> [String] -> Test ()
+runMains datadir tmpdir xs = do
+    res <- liftIO $ (if tmpdir == "" then withTempDir else ($ tmpdir)) $ \dir -> do
+        ms <- forM (zip [1..] xs) $ \(i,x) -> do
+            let m = "I" ++ show i
+            writeFile (dir </> m <.> "hs") $ replace "module Main" ("module " ++ m) x
+            return m
+        writeFile (dir </> "Main.hs") $ unlines $
+            ["import qualified " ++ m | m <- ms] ++
+            ["main = do"] ++
+            ["    " ++ m ++ ".main" | m <- ms]
+        system $ "runhaskell -i" ++ dir ++ " -i" ++ datadir ++ " Main"
     replicateM_ (length xs) $ tested $ res == ExitSuccess
 
 
 -- | Given a set of hints, do all the HintRule hints type check
-testTypeCheck :: FilePath -> FilePath -> [[Setting]] -> IO ()
+testTypeCheck :: FilePath -> FilePath -> [[Setting]] -> Test ()
 testTypeCheck = wrap toTypeCheck
 
 -- | Given a set of hints, do all the HintRule hints satisfy QuickCheck
-testQuickCheck :: FilePath -> FilePath -> [[Setting]] -> IO ()
+testQuickCheck :: FilePath -> FilePath -> [[Setting]] -> Test ()
 testQuickCheck = wrap toQuickCheck
 
-wrap :: ([HintRule] -> [String]) -> FilePath -> FilePath -> [[Setting]] -> IO ()
+wrap :: ([HintRule] -> [String]) -> FilePath -> FilePath -> [[Setting]] -> Test ()
 wrap f datadir tmpdir hints = runMains datadir tmpdir [unlines $ body [x | SettingMatchExp x <- xs] | xs <- hints]
     where
         body xs =

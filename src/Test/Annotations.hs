@@ -9,6 +9,7 @@ import Data.Char
 import Data.Either.Extra
 import Data.List.Extra
 import Data.Maybe
+import Control.Monad.IO.Class
 import Data.Function
 import Data.Yaml
 import qualified Data.ByteString.Char8 as BS
@@ -26,15 +27,15 @@ import Config.Yaml
 -- Input, Output
 -- Output = Nothing, should not match
 -- Output = Just xs, should match xs
-data Test = Test SrcLoc String (Maybe String) [Setting] deriving (Show)
+data TestCase = TestCase SrcLoc String (Maybe String) [Setting] deriving (Show)
 
-testAnnotations :: [Setting] -> FilePath -> IO ()
+testAnnotations :: [Setting] -> FilePath -> Test ()
 testAnnotations setting file = do
-    tests <- parseTestFile file
+    tests <- liftIO $ parseTestFile file
     mapM_ f tests
     where
-        f (Test loc inp out additionalSettings) = do
-            ideas <- try_ $ do
+        f (TestCase loc inp out additionalSettings) = do
+            ideas <- liftIO $ try_ $ do
                 res <- applyHintFile defaultParseFlags (setting ++ additionalSettings) file $ Just inp
                 evaluate $ length $ show res
                 return res
@@ -69,7 +70,7 @@ testAnnotations setting file = do
         norm = filter $ \x -> not (isSpace x) && x /= ';'
 
 
-parseTestFile :: FilePath -> IO [Test]
+parseTestFile :: FilePath -> IO [TestCase]
 parseTestFile file =
     -- we remove all leading # symbols since Yaml only lets us do comments that way
     f Nothing . zip [1..] . map (\x -> fromMaybe x $ stripPrefix "# " x) . lines <$> readFile file
@@ -87,7 +88,7 @@ parseTestFile file =
         shut :: String -> Bool
         shut = isPrefixOf "</TEST>"
 
-        f :: Maybe [Setting] -> [(Int, String)] -> [Test]
+        f :: Maybe [Setting] -> [(Int, String)] -> [TestCase]
         f Nothing ((i,x):xs) = f (open x) xs
         f (Just s)  ((i,x):xs)
             | shut x = f Nothing xs
@@ -97,7 +98,7 @@ parseTestFile file =
         f _ [] = []
 
 
-parseTest file i x = uncurry (Test (SrcLoc file i 0)) $ f x
+parseTest file i x = uncurry (TestCase (SrcLoc file i 0)) $ f x
     where
         f x | Just x <- stripPrefix "<COMMENT>" x = first ("--"++) $ f x
         f (' ':'-':'-':xs) | null xs || " " `isPrefixOf` xs = ("", Just $ dropWhile isSpace xs)

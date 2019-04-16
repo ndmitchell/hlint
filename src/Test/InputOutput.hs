@@ -7,6 +7,7 @@ import Control.Applicative
 import Data.Tuple.Extra
 import Control.Exception
 import Control.Monad
+import Control.Monad.IO.Class
 import Data.List.Extra
 import Data.IORef
 import System.Directory
@@ -20,19 +21,19 @@ import Prelude
 import Test.Util
 
 
-testInputOutput :: ([String] -> IO ()) -> IO ()
+testInputOutput :: ([String] -> IO ()) -> Test ()
 testInputOutput main = do
-    xs <- getDirectoryContents "tests"
+    xs <- liftIO $ getDirectoryContents "tests"
     xs <- return $ filter ((==) ".test" . takeExtension) xs
     forM_ xs $ \file -> do
-        ios <- parseInputOutputs <$> readFile ("tests" </> file)
+        ios <- liftIO $ parseInputOutputs <$> readFile ("tests" </> file)
         forM_ (zip [1..] ios) $ \(i,io@InputOutput{..}) -> do
             progress
-            forM_ files $ \(name,contents) -> do
+            liftIO $ forM_ files $ \(name,contents) -> do
                 createDirectoryIfMissing True $ takeDirectory name
                 writeFile name contents
             checkInputOutput main io{name= "_" ++ takeBaseName file ++ "_" ++ show i}
-        mapM_ (removeFile . fst) $ concatMap files ios
+        liftIO $ mapM_ (removeFile . fst) $ concatMap files ios
 
 data InputOutput = InputOutput
     {name :: String
@@ -62,14 +63,14 @@ parseInputOutputs = f z . lines
 ---------------------------------------------------------------------
 -- CHECK INPUT/OUTPUT PAIRS
 
-checkInputOutput :: ([String] -> IO ()) -> InputOutput -> IO ()
+checkInputOutput :: ([String] -> IO ()) -> InputOutput -> Test ()
 checkInputOutput main InputOutput{..} = do
-    code <- newIORef ExitSuccess
-    got <- fmap (reverse . dropWhile null . reverse . map trimEnd . lines . fst) $ captureOutput $
+    code <- liftIO $ newIORef ExitSuccess
+    got <- liftIO $ fmap (reverse . dropWhile null . reverse . map trimEnd . lines . fst) $ captureOutput $
         handle (\(e::SomeException) -> print e) $
         handle (\(e::ExitCode) -> writeIORef code e) $
         bracket getVerbosity setVerbosity $ const $ setVerbosity Normal >> main run
-    code <- readIORef code
+    code <- liftIO $ readIORef code
     (want,got) <- return $ matchStarStar (lines output) got
 
     if maybe False (/= code) exit then
