@@ -4,6 +4,7 @@
 module Test.All(test) where
 
 import Control.Exception
+import System.Console.CmdArgs
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Char
@@ -26,35 +27,39 @@ import System.IO.Extra
 
 
 test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
-test CmdTest{..} main dataDir files = withBuffering stdout NoBuffering $ withTests $ do
-    hasSrc <- liftIO $ doesFileExist "hlint.cabal"
-    useSrc <- return $ hasSrc && null files
-    testFiles <- if files /= [] then return files else do
-        xs <- liftIO $ getDirectoryContents dataDir
-        return [dataDir </> x | x <- xs, takeExtension x `elem` [".hs",".yml",".yaml"]
-                              , not $ "HLint_" `isPrefixOf` takeBaseName x]
-    testFiles <- liftIO $ forM testFiles $ \file -> do
-        hints <- readFilesConfig [(file, Nothing)]
-        return (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
-    let wrap msg act = do liftIO $ putStr (msg ++ " "); act; liftIO $ putStrLn ""
+test CmdTest{..} main dataDir files = do
+    (failures, ideas) <- withBuffering stdout NoBuffering $ withTests $ do
+        hasSrc <- liftIO $ doesFileExist "hlint.cabal"
+        useSrc <- return $ hasSrc && null files
+        testFiles <- if files /= [] then return files else do
+            xs <- liftIO $ getDirectoryContents dataDir
+            return [dataDir </> x | x <- xs, takeExtension x `elem` [".hs",".yml",".yaml"]
+                                , not $ "HLint_" `isPrefixOf` takeBaseName x]
+        testFiles <- liftIO $ forM testFiles $ \file -> do
+            hints <- readFilesConfig [(file, Nothing)]
+            return (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
+        let wrap msg act = do liftIO $ putStr (msg ++ " "); act; liftIO $ putStrLn ""
 
-    liftIO $ putStrLn "Testing"
-    liftIO $ checkCommentedYaml $ dataDir </> "default.yaml"
-    when useSrc $ wrap "Source annotations" $ do
-        config <- liftIO $ readFilesConfig [(".hlint.yaml",Nothing)]
-        forM_ builtinHints $ \(name,_) -> do
-            progress
-            testAnnotations (Builtin name : if name == "Restrict" then config else []) $ "src/Hint" </> name <.> "hs"
-    when useSrc $ wrap "Input/outputs" $ testInputOutput main
+        liftIO $ putStrLn "Testing"
+        liftIO $ checkCommentedYaml $ dataDir </> "default.yaml"
+        when useSrc $ wrap "Source annotations" $ do
+            config <- liftIO $ readFilesConfig [(".hlint.yaml",Nothing)]
+            forM_ builtinHints $ \(name,_) -> do
+                progress
+                testAnnotations (Builtin name : if name == "Restrict" then config else []) $ "src/Hint" </> name <.> "hs"
+        when useSrc $ wrap "Input/outputs" $ testInputOutput main
 
-    wrap "Hint names" $ mapM_ (\x -> do progress; testNames $ snd x) testFiles
-    wrap "Hint annotations" $ forM_ testFiles $ \(file,h) -> do progress; testAnnotations h file
-    when cmdTypeCheck $ wrap "Hint typechecking" $
-        progress >> testTypeCheck cmdDataDir cmdTempDir [h | (file, h) <- testFiles, takeFileName file /= "Test.hs"]
-    when cmdQuickCheck $ wrap "Hint QuickChecking" $
-        progress >> testQuickCheck cmdDataDir cmdTempDir [h | (file, h) <- testFiles, takeFileName file /= "Test.hs"]
+        wrap "Hint names" $ mapM_ (\x -> do progress; testNames $ snd x) testFiles
+        wrap "Hint annotations" $ forM_ testFiles $ \(file,h) -> do progress; testAnnotations h file
+        when cmdTypeCheck $ wrap "Hint typechecking" $
+            progress >> testTypeCheck cmdDataDir cmdTempDir [h | (file, h) <- testFiles, takeFileName file /= "Test.hs"]
+        when cmdQuickCheck $ wrap "Hint QuickChecking" $
+            progress >> testQuickCheck cmdDataDir cmdTempDir [h | (file, h) <- testFiles, takeFileName file /= "Test.hs"]
 
-    when (null files && not hasSrc) $ liftIO $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
+        when (null files && not hasSrc) $ liftIO $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
+        getIdeas
+    whenLoud $ mapM_ print ideas
+    return failures
 
 
 ---------------------------------------------------------------------

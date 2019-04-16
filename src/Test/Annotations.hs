@@ -39,6 +39,7 @@ testAnnotations setting file = do
                 res <- applyHintFile defaultParseFlags (setting ++ additionalSettings) file $ Just inp
                 evaluate $ length $ show res
                 return res
+            either (const $ return ()) addIdeas ideas
             let good = case (out, ideas) of
                     (Nothing, Right []) -> True
                     (Just x, Right [idea]) | match x idea -> True

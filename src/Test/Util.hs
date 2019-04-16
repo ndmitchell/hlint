@@ -1,9 +1,12 @@
 {-# LANGUAGE RecordWildCards, GeneralizedNewtypeDeriving #-}
 
 module Test.Util(
-    Test, withTests, tested, passed, failed, progress
+    Test, withTests,
+    tested, passed, failed, progress,
+    addIdeas, getIdeas
     ) where
 
+import Idea
 import Control.Monad
 import Control.Monad.Trans.State
 import Control.Monad.IO.Class
@@ -12,20 +15,27 @@ import Control.Monad.IO.Class
 data S = S
     {failures :: !Int
     ,total :: !Int
+    ,ideas :: [Idea]
     }
 
 newtype Test a = Test (StateT S IO a)
     deriving (Functor, Applicative, Monad, MonadIO)
 
 -- | Returns the number of failing tests.
-withTests :: Test () -> IO Int
+withTests :: Test a -> IO (Int, a)
 withTests (Test act) = do
-    S{..} <- execStateT act $ S 0 0
+    (res, S{..}) <- runStateT act $ S 0 0 []
     putStrLn ""
     putStrLn $ if failures == 0
         then "Tests passed (" ++ show total ++ ")"
         else "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
-    return failures
+    return (failures, res)
+
+addIdeas :: [Idea] -> Test ()
+addIdeas xs = Test $ modify $ \s -> s{ideas = reverse xs ++ ideas s}
+
+getIdeas :: Test [Idea]
+getIdeas = Test $ gets $ reverse . ideas
 
 progress :: Test ()
 progress = liftIO $ putChar '.'
