@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.17, released 2019-04-17
     #626, add operator wildcards with ?, ??, ??? etc
     #625, fix an rnf/rhs typo
     #562, make test --verbose show a list of matched hints
