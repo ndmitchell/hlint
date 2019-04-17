@@ -44,7 +44,8 @@ data Severity
 -- Any 1-letter variable names are assumed to be unification variables
 isUnifyVar :: String -> Bool
 isUnifyVar [x] = x == '?' || isAlpha x
-isUnifyVar _ = False
+isUnifyVar [] = False
+isUnifyVar xs = all (== '?') xs
 
 
 ---------------------------------------------------------------------
