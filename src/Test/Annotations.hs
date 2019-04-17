@@ -9,6 +9,8 @@ import Data.Char
 import Data.Either.Extra
 import Data.List.Extra
 import Data.Maybe
+import Control.Monad
+import System.FilePath
 import Control.Monad.IO.Class
 import Data.Function
 import Data.Yaml
@@ -39,7 +41,12 @@ testAnnotations setting file = do
                 res <- applyHintFile defaultParseFlags (setting ++ additionalSettings) file $ Just inp
                 evaluate $ length $ show res
                 return res
-            either (const $ return ()) addIdeas ideas
+
+            -- the hints from data/Test.hs are really fake hints we don't actually deploy
+            -- so don't record them
+            when (takeFileName file /= "Test.hs") $
+                either (const $ return ()) addIdeas ideas
+
             let good = case (out, ideas) of
                     (Nothing, Right []) -> True
                     (Just x, Right [idea]) | match x idea -> True
