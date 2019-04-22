@@ -1,6 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
 
+-- For ghc-lib-parser.
+{-# LANGUAGE PackageImports #-}
+{-# OPTIONS_GHC -Wno-missing-fields #-}
+
 module HSE.All(
     module X,
     CppFlags(..), ParseFlags(..), defaultParseFlags,
@@ -28,6 +32,20 @@ import qualified Data.Set as Set
 import System.IO.Extra
 import Data.Functor
 import Prelude
+
+import qualified "ghc-lib-parser" HsSyn
+import "ghc-lib-parser" Config
+import qualified "ghc-lib-parser" DynFlags
+import "ghc-lib-parser" Platform
+import "ghc-lib-parser" StringBuffer
+import "ghc-lib-parser" Fingerprint
+import qualified "ghc-lib-parser" Lexer
+import "ghc-lib-parser" RdrName
+import "ghc-lib-parser" ErrUtils
+import qualified "ghc-lib-parser" Parser
+import "ghc-lib-parser" FastString
+import "ghc-lib-parser" Outputable
+import qualified "ghc-lib-parser" SrcLoc
 
 vars :: FreeVars a => a -> [String]
 freeVars :: FreeVars a => a -> Set String
@@ -141,14 +159,61 @@ runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
 
 
 ---------------------------------------------------------------------
+-- Nascent ghc-lib-parser support.
+
+fakeSettings :: DynFlags.Settings
+fakeSettings = DynFlags.Settings
+  { DynFlags.sTargetPlatform=platform
+  , DynFlags.sPlatformConstants=platformConstants
+  , DynFlags.sProjectVersion=cProjectVersion
+  , DynFlags.sProgramName="ghc"
+  , DynFlags.sOpt_P_fingerprint=fingerprint0
+  }
+  where
+    platform =
+      Platform{platformWordSize=8
+              , platformOS=OSUnknown
+              , platformUnregisterised=True}
+    platformConstants =
+      DynFlags.PlatformConstants{DynFlags.pc_DYNAMIC_BY_DEFAULT=False,DynFlags.pc_WORD_SIZE=8}
+
+fakeLlvmConfig :: (DynFlags.LlvmTargets, DynFlags.LlvmPasses)
+fakeLlvmConfig = ([], [])
+
+-- -- | Parse a Haskell module using ghc-lib. Requires flags produced
+-- -- like so @DynFlags.defaultDynFlags fakeSettings fakeLlvmConfig@.
+-- parseModuleGhcLibEx :: DynFlags.DynFlags
+--                     -> String
+--                     -> IO (Either [SDoc] (SrcLoc.Located (HsSyn.HsModule HsSyn.GhcPs)))
+-- parseModuleGhcLibEx flags file s = do
+--   case parse file flags s of
+--     Lexer.POk _ mod -> return $ Right mod
+--     Lexer.PFailed ps -> return $ Left (pprErrMsgBagWithLoc $ snd $ Lexer.getMessages ps flags)
+--   where
+--     parse filename flags str =
+--       Lexer.unP Parser.parseModule parseState
+--       where
+--         location = SrcLoc.mkRealSrcLoc (mkFastString filename) 1 1
+--         buffer = stringToStringBuffer str
+--         parseState = Lexer.mkPState flags buffer location
+
+---------------------------------------------------------------------
 -- PARSING
 
--- | A parse error from 'parseModuleEx'.
+-- | A parse error.
 data ParseError = ParseError
     {parseErrorLocation :: SrcLoc -- ^ Location of the error.
-    ,parseErrorMessage :: String -- ^ Message about the cause of the error.
+    ,parseErrorMessage :: String  -- ^ Message about the cause of the error.
     ,parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
+    -- Newly added.
+    ,parseErrorSDocs :: [SDoc]    -- ^ Parse error messages as reported by ghc-lib.
     }
+
+-- | Combined, hs-src-exts and ghc-lib-parser module results.
+data ParsedModuleResults = ParsedModuleResults {
+    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result.
+  , pm_ghclib :: SrcLoc.Located (HsSyn.HsModule HsSyn.GhcPs) -- ghc-lib-parser result.
+}
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses best-guess fixity resolution if there are ambiguities.
 --   The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
@@ -170,13 +235,49 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                 let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
                         ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
                         _ -> context (srcLine sl) ppstr
-                return $ Left $ ParseError sl msg pe
+                return $ Left $ ParseError sl msg pe []
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
         mode flags = (hseFlags flags)
             {parseFilename = file
             ,fixities = Nothing
             }
+
+-- | Parse a Haskell module. This version used both hs-src-exts AND
+-- ghc-lib. It's considered to be an unrecoverable error if one
+-- parsing method succeeds whilst the other fails.
+parseModuleEx' :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ParsedModuleResults)
+parseModuleEx' flags file str = timedIO "Parse" file $ do
+        str <- case str of
+            Just x -> return x
+            Nothing | file == "-" -> getContentsUTF8
+                    | otherwise -> readFileUTF8' file
+        str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
+        ppstr <- runCpp (cppFlags flags) file str
+        case (parseFileContentsWithComments (mode flags) ppstr, parseFileGhcLib file ppstr)
+          of
+            (ParseOk (x, cs), Lexer.POk _ mod) ->
+              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) mod)
+            (ParseFailed sl msg, Lexer.PFailed ps) -> do
+                flags <- return $ parseFlagsNoLocations flags
+                ppstr2 <- runCpp (cppFlags flags) file str
+                let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
+                        ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
+                        _ -> context (srcLine sl) ppstr
+                return $ Left $ ParseError sl msg pe (pprErrMsgBagWithLoc $ snd $ Lexer.getMessages ps dynFlags)
+            (_, _) -> error "Unexpected : one but not both parse methods failed."
+
+    where
+        fixity = fromMaybe [] $ fixities $ hseFlags flags
+        mode flags = (hseFlags flags){parseFilename = file,fixities = Nothing }
+
+        dynFlags = DynFlags.defaultDynFlags fakeSettings fakeLlvmConfig
+        parseFileGhcLib filename str =
+          Lexer.unP Parser.parseModule parseState
+          where
+            location = SrcLoc.mkRealSrcLoc (mkFastString filename) 1 1
+            buffer = stringToStringBuffer str
+            parseState = Lexer.mkPState dynFlags buffer location
 
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
