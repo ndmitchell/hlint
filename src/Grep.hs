@@ -26,6 +26,6 @@ runGrep patt flags files = do
         case res of
             Left (ParseError sl msg ctxt _) ->
                 print $ rawIdeaN Error (if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg) (mkSrcSpan sl sl) ctxt Nothing []
-            Right m ->
-                forM_ (applyHints [] rule [m]) $ \i ->
+            Right (ParsedModuleResults (m, c) _) ->
+                forM_ (applyHints [] rule [(m, c)]) $ \i ->
                     print i{ideaHint="", ideaTo=Nothing}

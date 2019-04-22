@@ -120,5 +120,5 @@ splitSettings xs =
 _docs :: IO ()
 _docs = do
     (flags, classify, hint) <- autoSettings
-    Right m <- parseModuleEx flags "MyFile.hs" Nothing
-    print $ applyHints classify hint [m]
+    Right (ParsedModuleResults (m, c) _) <- parseModuleEx flags "MyFile.hs" Nothing
+    print $ applyHints classify hint [(m, c)]
