@@ -157,9 +157,24 @@ runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
         dropLine (line1 -> (a,b)) | "{-# LINE " `isPrefixOf` a = b
         dropLine x = x
 
-
 ---------------------------------------------------------------------
--- Nascent ghc-lib-parser support.
+-- PARSING
+
+-- | A parse error.
+data ParseError = ParseError
+    {parseErrorLocation :: SrcLoc -- ^ Location of the error.
+    ,parseErrorMessage :: String  -- ^ Message about the cause of the error.
+    ,parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
+    ,parseErrorSDocs :: [SDoc]    -- ^ Parse error messages as reported by ghc-lib.
+    }
+
+-- | Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
+data ParsedModuleResults = ParsedModuleResults {
+    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result.
+  , pm_ghclib :: SrcLoc.Located (HsSyn.HsModule HsSyn.GhcPs) -- ghc-lib-parser result.
+}
+
+-- 'ghc-lib-parser' related constants.
 
 fakeSettings :: DynFlags.Settings
 fakeSettings = DynFlags.Settings
@@ -179,40 +194,6 @@ fakeSettings = DynFlags.Settings
 
 fakeLlvmConfig :: (DynFlags.LlvmTargets, DynFlags.LlvmPasses)
 fakeLlvmConfig = ([], [])
-
--- -- | Parse a Haskell module using ghc-lib. Requires flags produced
--- -- like so @DynFlags.defaultDynFlags fakeSettings fakeLlvmConfig@.
--- parseModuleGhcLibEx :: DynFlags.DynFlags
---                     -> String
---                     -> IO (Either [SDoc] (SrcLoc.Located (HsSyn.HsModule HsSyn.GhcPs)))
--- parseModuleGhcLibEx flags file s = do
---   case parse file flags s of
---     Lexer.POk _ mod -> return $ Right mod
---     Lexer.PFailed ps -> return $ Left (pprErrMsgBagWithLoc $ snd $ Lexer.getMessages ps flags)
---   where
---     parse filename flags str =
---       Lexer.unP Parser.parseModule parseState
---       where
---         location = SrcLoc.mkRealSrcLoc (mkFastString filename) 1 1
---         buffer = stringToStringBuffer str
---         parseState = Lexer.mkPState flags buffer location
-
----------------------------------------------------------------------
--- PARSING
-
--- | A parse error.
-data ParseError = ParseError
-    {parseErrorLocation :: SrcLoc -- ^ Location of the error.
-    ,parseErrorMessage :: String  -- ^ Message about the cause of the error.
-    ,parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
-    ,parseErrorSDocs :: [SDoc]    -- ^ Parse error messages as reported by ghc-lib.
-    }
-
--- | Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
-data ParsedModuleResults = ParsedModuleResults {
-    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result.
-  , pm_ghclib :: SrcLoc.Located (HsSyn.HsModule HsSyn.GhcPs) -- ghc-lib-parser result.
-}
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses best-guess fixity resolution if there are ambiguities.
 -- The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
