@@ -190,10 +190,9 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
               return $ Right (ParsedModuleResults (applyFixity fixity x, cs) mod)
             (ParseFailed sl msg, PFailed ps) ->
               runParseFileContentsWithMode ppstr sl msg flags file str (pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags)
-                -- error "Unexpected : ghc-lib-parser succeeded, hs-src-exts failed
             (ParseFailed sl msg, POk _ _) ->
               runParseFileContentsWithMode ppstr sl msg flags file str []
-                -- error "Unexpected : ghc-lib-parser succeeded, hs-src-exts failed
+              -- error "Unexpected : hs-exts-src failed, ghc-lib-parser succeded"
             (ParseOk _, PFailed _) ->
               error "Unexpected : hs-exts-src succeeded, ghc-lib-parser failed"
 
