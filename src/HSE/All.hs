@@ -1,7 +1,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
 
--- For ghc-lib-parser.
+{- Note [ghc-lib-parser directives]
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   These directives provided for ghc-lib-parser give rise to
+   restricted extensions and restricted flags hlint warnings
+   accounting for the "ignore" directives that occur below the module
+   import list.
+-}
 {-# LANGUAGE PackageImports #-}
 {-# OPTIONS_GHC -Wno-missing-fields #-}
 
@@ -46,6 +52,10 @@ import qualified "ghc-lib-parser" Parser
 import "ghc-lib-parser" FastString
 import "ghc-lib-parser" Outputable
 import qualified "ghc-lib-parser" SrcLoc
+
+-- See note [ghc-lib-parser directives] at the top of this file.
+{-# ANN module "HLint: ignore Avoid restricted extensions" #-}
+{-# ANN module "HLint: ignore Avoid restricted flags" #-}
 
 vars :: FreeVars a => a -> [String]
 freeVars :: FreeVars a => a -> Set String
