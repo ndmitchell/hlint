@@ -194,9 +194,17 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                 let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
                         ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
                         _ -> context (srcLine sl) ppstr
-                return $ Left $
-                  ParseError sl msg pe (pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags)
-            (_, _) -> error "Unexpected : one but not both parse methods failed."
+                return $ Left $ ParseError sl msg pe (pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags)
+            (ParseFailed sl msg, POk _ _) -> do
+                flags <- return $ parseFlagsNoLocations flags
+                ppstr2 <- runCpp (cppFlags flags) file str
+                let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
+                        ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
+                        _ -> context (srcLine sl) ppstr
+                return $ Left $ ParseError sl msg pe []
+                -- error "Unexpected : ghc-lib-parser succeeded, hs-src-exts failed
+            (ParseOk _, PFailed _) ->
+              error "Unexpected : hs-exts-src succeeded, ghc-lib-parser failed"
 
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
