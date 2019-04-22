@@ -41,6 +41,7 @@ import Prelude
 
 import GHC.Util
 import qualified "ghc-lib-parser" HsSyn
+import qualified "ghc-lib-parser" Outputable
 
 -- See note [ghc-lib-parser directives] at the top of this file.
 {-# ANN module "HLint: ignore Avoid restricted extensions" #-}
@@ -169,7 +170,7 @@ data ParseError = ParseError
 -- | Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
 data ParsedModuleResults = ParsedModuleResults {
     pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result.
-  , pm_ghclib :: Located (HsSyn.HsModule HsSyn.GhcPs) -- ghc-lib-parser result.
+  , pm_ghclib :: Maybe (Located (HsSyn.HsModule HsSyn.GhcPs)) -- ghc-lib-parser result.
 }
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses best-guess fixity resolution if there are ambiguities.
@@ -187,26 +188,25 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         case (parseFileContentsWithComments (mode flags) ppstr, parseFileGhcLib file ppstr)
           of
             (ParseOk (x, cs), POk _ mod) ->
-              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) mod)
-            (ParseFailed sl msg, PFailed ps) ->
-              runParseFileContentsWithMode ppstr sl msg flags file str (pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags)
+              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) (Just mod))
+            (ParseFailed sl msg, PFailed ps) -> do
+              flags <- return $ parseFlagsNoLocations flags
+              ppstr2 <- runCpp (cppFlags flags) file str
+              let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
+                         ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
+                         _ -> context (srcLine sl) ppstr
+              return $ Left $ ParseError sl msg pe (pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags)
+            (ParseOk (x, cs), PFailed _) ->
+              -- There are 37 tests where 'hs-src-exts' gives a parse
+              -- whereas 'ghc-lib-parser' fails.
+              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) Nothing)
             (ParseFailed sl msg, POk _ _) ->
-              runParseFileContentsWithMode ppstr sl msg flags file str []
-              -- error "Unexpected : hs-src-exts failed, ghc-lib-parser succeded"
-            (ParseOk _, PFailed _) ->
-              error "Unexpected : hs-src-exts succeeded, ghc-lib-parser failed"
-
+              -- There are no tests where 'ghc-lib-parser' succeeds
+              -- whereas 'hs-src-exts' fails.
+              error "Unexpected : hs-src-exts failed, ghc-lib-parser succeded"
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
         mode flags = (hseFlags flags){parseFilename = file,fixities = Nothing }
-
-        runParseFileContentsWithMode ppstr sl msg flags file str ms = do
-          flags <- return $ parseFlagsNoLocations flags
-          ppstr2 <- runCpp (cppFlags flags) file str
-          let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
-                     ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
-                     _ -> context (srcLine sl) ppstr
-          return $ Left $ ParseError sl msg pe ms
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
 context :: Int -> String -> String
