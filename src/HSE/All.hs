@@ -202,14 +202,6 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         fixity = fromMaybe [] $ fixities $ hseFlags flags
         mode flags = (hseFlags flags){parseFilename = file,fixities = Nothing }
 
-        -- parseFileGhcLib filename str =
-        --   Lexer.unP Parser.parseModule parseState
-        --   where
-        --     location = SrcLoc.mkRealSrcLoc (FastString.mkFastString filename) 1 1
-        --     buffer = StringBuffer.stringToStringBuffer str
-        --     parseState = Lexer.mkPState dynFlags buffer location
-
-
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
 context :: Int -> String -> String
 context lineNo src =
