@@ -92,6 +92,7 @@ library
         Config.Read
         Config.Type
         Config.Yaml
+        GHC.Util
         HSE.All
         HSE.Match
         HSE.Reduce
