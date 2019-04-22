@@ -201,8 +201,8 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
               -- whereas 'ghc-lib-parser' fails.
               return $ Right (ParsedModuleResults (applyFixity fixity x, cs) Nothing)
             (ParseFailed sl msg, POk _ _) ->
-              -- There are no tests where 'ghc-lib-parser' succeeds
-              -- whereas 'hs-src-exts' fails.
+              -- There are no tests where 'ghc-lib-parser' gives a
+              -- parse whereas 'hs-src-exts' fails.
               error "Unexpected : hs-src-exts failed, ghc-lib-parser succeded"
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
