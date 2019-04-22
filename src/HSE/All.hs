@@ -188,20 +188,11 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
           of
             (ParseOk (x, cs), POk _ mod) ->
               return $ Right (ParsedModuleResults (applyFixity fixity x, cs) mod)
-            (ParseFailed sl msg, PFailed ps) -> do
-                flags <- return $ parseFlagsNoLocations flags
-                ppstr2 <- runCpp (cppFlags flags) file str
-                let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
-                        ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
-                        _ -> context (srcLine sl) ppstr
-                return $ Left $ ParseError sl msg pe (pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags)
-            (ParseFailed sl msg, POk _ _) -> do
-                flags <- return $ parseFlagsNoLocations flags
-                ppstr2 <- runCpp (cppFlags flags) file str
-                let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
-                        ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
-                        _ -> context (srcLine sl) ppstr
-                return $ Left $ ParseError sl msg pe []
+            (ParseFailed sl msg, PFailed ps) ->
+              runParseFileContentsWithMode ppstr sl msg flags file str (pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags)
+                -- error "Unexpected : ghc-lib-parser succeeded, hs-src-exts failed
+            (ParseFailed sl msg, POk _ _) ->
+              runParseFileContentsWithMode ppstr sl msg flags file str []
                 -- error "Unexpected : ghc-lib-parser succeeded, hs-src-exts failed
             (ParseOk _, PFailed _) ->
               error "Unexpected : hs-exts-src succeeded, ghc-lib-parser failed"
@@ -209,6 +200,14 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
         mode flags = (hseFlags flags){parseFilename = file,fixities = Nothing }
+
+        runParseFileContentsWithMode ppstr sl msg flags file str ms = do
+          flags <- return $ parseFlagsNoLocations flags
+          ppstr2 <- runCpp (cppFlags flags) file str
+          let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
+                     ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
+                     _ -> context (srcLine sl) ppstr
+          return $ Left $ ParseError sl msg pe ms
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
 context :: Int -> String -> String
