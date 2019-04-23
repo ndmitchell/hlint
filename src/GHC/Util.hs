@@ -2,9 +2,7 @@
 {-# OPTIONS_GHC -Wno-missing-fields #-}
 
 module GHC.Util (
-    fakeSettings
-  , fakeLlvmConfig
-  , dynFlags
+    dynFlags
   , parseFileGhcLib
   , ParseResult (..)
   , pprErrMsgBagWithLoc
