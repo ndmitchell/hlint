@@ -41,7 +41,6 @@ import Prelude
 
 import GHC.Util
 import qualified "ghc-lib-parser" HsSyn
-import qualified "ghc-lib-parser" Outputable
 
 -- See note [ghc-lib-parser directives] at the top of this file.
 {-# ANN module "HLint: ignore Avoid restricted extensions" #-}
