@@ -42,9 +42,6 @@ import Prelude
 import GHC.Util
 import qualified "ghc-lib-parser" HsSyn
 
-import Data.List -- for unlines
-import Outputable
-
 -- See note [ghc-lib-parser directives] at the top of this file.
 {-# ANN module "HLint: ignore Avoid restricted extensions" #-}
 
@@ -172,7 +169,7 @@ data ParseError = ParseError
 -- | Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
 data ParsedModuleResults = ParsedModuleResults {
     pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result.
-  , pm_ghclib :: Maybe (Located (HsSyn.HsModule HsSyn.GhcPs)) -- ghc-lib-parser result.
+  , pm_ghclib :: Located (HsSyn.HsModule HsSyn.GhcPs) -- ghc-lib-parser result.
 }
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses best-guess fixity resolution if there are ambiguities.
@@ -190,7 +187,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         case (parseFileContentsWithComments (mode flags) ppstr, parseFileGhcLib file ppstr)
           of
             (ParseOk (x, cs), POk _ mod) ->
-              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) (Just mod))
+              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) mod)
             (ParseFailed sl msg, PFailed ps) -> do
               flags <- return $ parseFlagsNoLocations flags
               ppstr2 <- runCpp (cppFlags flags) file str
@@ -200,7 +197,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
               return $ Left $ ParseError sl msg pe (pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags)
             (ParseOk _, PFailed _) ->
               error "Unexpected : hs-src-exts succeeded, ghc-lib-parser failed"
-            (ParseFailed _, POk _ _) ->
+            (ParseFailed _ _, POk _ _) ->
               error "Unexpected : hs-src-exts failed, ghc-lib-parser succeeded"
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
