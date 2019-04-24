@@ -1,14 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
-
-{- Note [ghc-lib-parser directives]
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   Directives provided for ghc-lib-parser give rise to restricted
-   extensions and restricted flags hlint warnings accounting for
-   "ignore" directives that occur at least in this file and
-   'GHC.Util'.
--}
 {-# LANGUAGE PackageImports #-}
 
 module HSE.All(
@@ -41,9 +32,6 @@ import Prelude
 
 import GHC.Util
 import qualified "ghc-lib-parser" HsSyn
-
--- See note [ghc-lib-parser directives] at the top of this file.
-{-# ANN module "HLint: ignore Avoid restricted extensions" #-}
 
 vars :: FreeVars a => a -> [String]
 freeVars :: FreeVars a => a -> Set String
