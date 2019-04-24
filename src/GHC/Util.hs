@@ -48,7 +48,7 @@ fakeLlvmConfig :: (LlvmTargets, LlvmPasses)
 fakeLlvmConfig = ([], [])
 
 enabledExtensions :: [Extension]
-enabledExtensions = [Cpp .. StarIsType]
+enabledExtensions = [Cpp .. StarIsType] -- First and last extension in ghc-boot-th/GHC/LanguageExtensions/Type.hs 'data Extension'.
 
 dynFlags :: DynFlags
 dynFlags = foldl' xopt_set
