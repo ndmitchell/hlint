@@ -24,13 +24,6 @@ OUTPUT
 ,{"module":["Main"],"decl":["baz"],"severity":"Suggestion","hint":"Use <$>","file":"tests/json-two.hs","startLine":3,"startColumn":7,"endLine":3,"endColumn":39,"from":"getLine >>= return . map toUpper","to":"map toUpper <$> getLine","note":[],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [(\"f\",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),(\"m\",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = \"f <$> m\"}]"}]
 
 ---------------------------------------------------------------------
-RUN tests/json-parse-error.hs --json
-FILE tests/json-parse-error.hs
-@
-OUTPUT
-[{"module":[],"decl":[],"severity":"Error","hint":"Parse error","file":"tests/json-parse-error.hs","startLine":1,"startColumn":1,"endLine":1,"endColumn":1,"from":"  @\n  \n> \n","to":null,"note":[],"refactorings":"[]"}]
-
----------------------------------------------------------------------
 RUN tests/json-note.hs --json
 FILE tests/json-note.hs
 foo = any (a ==)

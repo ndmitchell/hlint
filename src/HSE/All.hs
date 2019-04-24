@@ -42,6 +42,9 @@ import Prelude
 import GHC.Util
 import qualified "ghc-lib-parser" HsSyn
 
+import Data.List -- for unlines
+import Outputable
+
 -- See note [ghc-lib-parser directives] at the top of this file.
 {-# ANN module "HLint: ignore Avoid restricted extensions" #-}
 
@@ -195,14 +198,10 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                          ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
                          _ -> context (srcLine sl) ppstr
               return $ Left $ ParseError sl msg pe (pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags)
-            (ParseOk (x, cs), PFailed _) ->
-              -- There are 37 tests where 'hs-src-exts' gives a parse
-              -- whereas 'ghc-lib-parser' fails.
-              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) Nothing)
-            (ParseFailed sl msg, POk _ _) ->
-              -- There are no tests where 'ghc-lib-parser' gives a
-              -- parse whereas 'hs-src-exts' fails.
-              error "Unexpected : hs-src-exts failed, ghc-lib-parser succeded"
+            (ParseOk _, PFailed _) ->
+              error "Unexpected : hs-src-exts succeeded, ghc-lib-parser failed"
+            (ParseFailed _, POk _ _) ->
+              error "Unexpected : hs-src-exts failed, ghc-lib-parser succeeded"
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
         mode flags = (hseFlags flags){parseFilename = file,fixities = Nothing }
