@@ -67,5 +67,3 @@
 - ignore: {name: Use explicit module export list, within: HSE.Util}
 # this const has meaingful argument names
 - ignore: {name: Use const, within: Config.Yaml}
-# allow missing fields
-- ignore: {name: Avoid restricted flags, within: [GHC.Util]}
