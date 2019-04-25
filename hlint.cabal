@@ -27,7 +27,7 @@ data-files:
 extra-doc-files:
     README.md
     CHANGES.txt
-tested-with:        GHC==8.6.5, GHC==8.4.4, GHC==8.2.2, GHC==8.0.2, GHC==7.10.3
+tested-with:        GHC==8.6.5, GHC==8.4.4
 
 source-repository head
     type:     git
@@ -59,7 +59,8 @@ library
         ansi-terminal >= 0.6.2,
         extra >= 1.6.6,
         refact >= 0.3,
-        aeson >= 1.1.2.0
+        aeson >= 1.1.2.0,
+        ghc-lib-parser >= 0.20190423
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
@@ -91,6 +92,7 @@ library
         Config.Read
         Config.Type
         Config.Yaml
+        GHC.Util
         HSE.All
         HSE.Match
         HSE.Reduce

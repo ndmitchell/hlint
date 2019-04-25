@@ -13,12 +13,14 @@
   - name: [PatternGuards, Rank2Types, RecordWildCards, ScopedTypeVariables, ViewPatterns, TupleSections, LambdaCase]
   - name: [ExistentialQuantification, MultiParamTypeClasses]
   - name: [FlexibleContexts, FlexibleInstances]
+  - name: [PackageImports]
   - {name: CPP, within: HsColour} # so it can be disabled to avoid GPL code
 
 - flags:
   - default: false
   - {name: [-fno-warn-missing-fields, -fno-cse, -O0], within: CmdLine} # for cmdargs
   - {name: [-fno-warn-incomplete-patterns, -fno-warn-overlapping-patterns]} # the pattern match checker is not very good
+  - {name: [-fno-warn-missing-fields], within: GHC.Util} # enable missing record fields
 
 - modules:
   - {name: [Data.Set, Data.HashSet], as: Set}

@@ -1,11 +1,12 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE PackageImports #-}
 
 module HSE.All(
     module X,
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
-    parseModuleEx, ParseError(..),
+    parseModuleEx, ParseError(..), ParsedModuleResults(..),
     freeVars, vars, varss, pvars
     ) where
 
@@ -28,6 +29,9 @@ import qualified Data.Set as Set
 import System.IO.Extra
 import Data.Functor
 import Prelude
+
+import GHC.Util
+import qualified "ghc-lib-parser" HsSyn
 
 vars :: FreeVars a => a -> [String]
 freeVars :: FreeVars a => a -> Set String
@@ -139,20 +143,28 @@ runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
         dropLine (line1 -> (a,b)) | "{-# LINE " `isPrefixOf` a = b
         dropLine x = x
 
-
 ---------------------------------------------------------------------
 -- PARSING
 
--- | A parse error from 'parseModuleEx'.
+-- | A parse error.
 data ParseError = ParseError
     {parseErrorLocation :: SrcLoc -- ^ Location of the error.
-    ,parseErrorMessage :: String -- ^ Message about the cause of the error.
+    ,parseErrorMessage :: String  -- ^ Message about the cause of the error.
     ,parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
+    ,parseErrorSDocs :: [SDoc]    -- ^ Parse error messages as reported by ghc-lib.
     }
 
+-- | Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
+data ParsedModuleResults = ParsedModuleResults {
+    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result.
+  , pm_ghclib :: Maybe (Located (HsSyn.HsModule HsSyn.GhcPs)) -- ghc-lib-parser result.
+}
+
 -- | Parse a Haskell module. Applies the C pre processor, and uses best-guess fixity resolution if there are ambiguities.
---   The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
-parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
+-- The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
+-- This version uses both hs-src-exts AND ghc-lib. It's considered to be an unrecoverable error if one
+-- parsing method succeeds whilst the other fails.
+parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ParsedModuleResults)
 parseModuleEx flags file str = timedIO "Parse" file $ do
         str <- case str of
             Just x -> return x
@@ -160,24 +172,27 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                     | otherwise -> readFileUTF8' file
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
-        case parseFileContentsWithComments (mode flags) ppstr of
-            ParseOk (x, cs) -> return $ Right (applyFixity fixity x, cs)
-            ParseFailed sl msg -> do
-                -- figure out the best line number to grab context from, by reparsing
-                -- but not generating {-# LINE #-} pragmas
-                flags <- return $ parseFlagsNoLocations flags
-                ppstr2 <- runCpp (cppFlags flags) file str
-                let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
-                        ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
-                        _ -> context (srcLine sl) ppstr
-                return $ Left $ ParseError sl msg pe
+        case (parseFileContentsWithComments (mode flags) ppstr, parseFileGhcLib file ppstr)
+          of
+            (ParseOk (x, cs), POk _ mod) ->
+              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) (Just mod))
+            (ParseFailed sl msg, PFailed ps) ->
+              runParseFileContentsWithMode ppstr sl msg flags file str (pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags)
+            (ParseOk (x, cs), PFailed _) ->
+              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) Nothing)
+            (ParseFailed sl msg, POk _ _) ->
+              runParseFileContentsWithMode ppstr sl msg flags file str []
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
-        mode flags = (hseFlags flags)
-            {parseFilename = file
-            ,fixities = Nothing
-            }
+        mode flags = (hseFlags flags){parseFilename = file,fixities = Nothing }
 
+        runParseFileContentsWithMode ppstr sl msg flags file str ms = do
+           flags <- return $ parseFlagsNoLocations flags
+           ppstr2 <- runCpp (cppFlags flags) file str
+           let pe = case parseFileContentsWithMode (mode flags) ppstr2 of
+                      ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
+                      _ -> context (srcLine sl) ppstr
+           return $ Left $ ParseError sl msg pe ms
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
 context :: Int -> String -> String
