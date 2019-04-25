@@ -26,7 +26,9 @@ import "ghc-lib-parser" Outputable
 import "ghc-lib-parser" GHC.LanguageExtensions.Type
 
 import Data.List
+import System.FilePath
 import Language.Preprocessor.Unlit
+
 
 fakeSettings :: Settings
 fakeSettings = Settings
@@ -59,5 +61,6 @@ parseFileGhcLib filename str =
   Lexer.unP Parser.parseModule parseState
   where
     location = mkRealSrcLoc (mkFastString filename) 1 1
-    buffer = stringToStringBuffer (if ".lhs" `isSuffixOf` filename then unlit filename str else str)
+    buffer = stringToStringBuffer $
+              if takeExtension filename /= ".lhs" then str else unlit filename str
     parseState = mkPState dynFlags buffer location
