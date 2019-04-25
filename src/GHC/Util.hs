@@ -59,5 +59,5 @@ parseFileGhcLib filename str =
   Lexer.unP Parser.parseModule parseState
   where
     location = mkRealSrcLoc (mkFastString filename) 1 1
-    buffer = stringToStringBuffer (unlit filename str)
+    buffer = stringToStringBuffer (if ".lhs" `isSuffixOf` filename then unlit filename str else str)
     parseState = mkPState dynFlags buffer location
