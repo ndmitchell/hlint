@@ -203,9 +203,9 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
               return $ Right (ParsedModuleResults (applyFixity fixity x, cs) (Just mod))
             (ParseOk (x, cs), PFailed _) ->
               return $ Right (ParsedModuleResults (applyFixity fixity x, cs) Nothing)
-            (hseFail@(ParseFailed sl msg), ghcFail@(PFailed ps)) ->
+            (hseFail @ (ParseFailed sl msg), ghcFail @ (PFailed ps)) ->
               failOpParseModuleEx ppstr flags file str hseFail (Just ghcFail)
-            (hseFail@(ParseFailed sl msg), POk _ _) ->
+            (hseFail @ (ParseFailed sl msg), POk _ _) ->
               failOpParseModuleEx ppstr flags file str hseFail Nothing
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
