@@ -31,6 +31,7 @@ import Data.Functor
 import Prelude
 
 import GHC.Util
+import qualified "ghc-lib-parser" Lexer
 import qualified "ghc-lib-parser" HsSyn
 
 vars :: FreeVars a => a -> [String]
@@ -169,10 +170,11 @@ failOpParseModuleEx :: String
                    -> ParseFlags
                    -> FilePath
                    -> String
-                   -> X.ParseResult (Module SrcSpanInfo, [Comment])
-                   -> Maybe (GHC.Util.ParseResult (Located (HsSyn.HsModule HsSyn.GhcPs)))
+                   -> SrcLoc
+                   -> String
+                   -> Maybe Lexer.PState
                    -> IO (Either ParseError ParsedModuleResults)
-failOpParseModuleEx ppstr flags file str (ParseFailed sl msg) maybePFailed = do
+failOpParseModuleEx ppstr flags file str sl msg maybePFailed = do
     flags <- return $ parseFlagsNoLocations flags
     ppstr2 <- runCpp (cppFlags flags) file str
     let pe = case parseFileContentsWithMode (mkMode flags file) ppstr2 of
@@ -180,7 +182,7 @@ failOpParseModuleEx ppstr flags file str (ParseFailed sl msg) maybePFailed = do
                _ -> context (srcLine sl) ppstr
     return $ Left $ ParseError sl msg pe
                             (case maybePFailed of
-                              Just (PFailed ps)  ->
+                              Just ps  ->
                                 pprErrMsgBagWithLoc $ snd $ getMessages ps dynFlags
                               Nothing -> []
                             )
@@ -203,10 +205,10 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
               return $ Right (ParsedModuleResults (applyFixity fixity x, cs) (Just mod))
             (ParseOk (x, cs), PFailed _) ->
               return $ Right (ParsedModuleResults (applyFixity fixity x, cs) Nothing)
-            (hseFail @ (ParseFailed sl msg), ghcFail @ (PFailed ps)) ->
-              failOpParseModuleEx ppstr flags file str hseFail (Just ghcFail)
-            (hseFail @ (ParseFailed sl msg), POk _ _) ->
-              failOpParseModuleEx ppstr flags file str hseFail Nothing
+            (ParseFailed sl msg, PFailed ps) ->
+              failOpParseModuleEx ppstr flags file str sl msg $ Just ps
+            (ParseFailed sl msg, POk _ _) ->
+              failOpParseModuleEx ppstr flags file str sl msg Nothing
     where
         fixity = fromMaybe [] $ fixities $ hseFlags flags
 
