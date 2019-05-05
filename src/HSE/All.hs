@@ -199,17 +199,18 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                     | otherwise -> readFileUTF8' file
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
-        case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr)
-          of
-            (ParseOk (x, cs), POk _ mod) ->
-              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) (Just mod))
-            (ParseOk (x, cs), PFailed _) ->
-              return $ Right (ParsedModuleResults (applyFixity fixity x, cs) Nothing)
-            (ParseFailed sl msg, PFailed ps) ->
-              failOpParseModuleEx ppstr flags file str sl msg $ Just ps
-            (ParseFailed sl msg, POk _ _) ->
-              failOpParseModuleEx ppstr flags file str sl msg Nothing
+        case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr) of
+            (ParseOk (x, cs), ghc) ->
+                return $ Right (ParsedModuleResults (applyFixity fixity x, cs) $ fromPOk ghc)
+            (ParseFailed sl msg, pfailed) ->
+                failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
     where
+        fromPFailed (PFailed x) = Just x
+        fromPFailed _ = Nothing
+
+        fromPOk (POk _ x) = Just x
+        fromPOk _ = Nothing
+
         fixity = fromMaybe [] $ fixities $ hseFlags flags
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
