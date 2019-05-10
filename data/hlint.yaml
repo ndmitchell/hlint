@@ -519,6 +519,10 @@
     - hint: {lhs: mapM_ (writeChan a), rhs: writeList2Chan a}
     - error: {lhs: atomically (readTVar x), rhs: readTVarIO x}
 
+    # TYPEABLE
+
+    - hint: {lhs: "typeOf (a :: b)", rhs: "typeRep (Proxy :: Proxy b)"}
+
     # EXCEPTION
 
     - hint: {lhs: flip Control.Exception.catch, rhs: handle}
@@ -905,4 +909,6 @@
 # no = sort <$> f input `shouldBe` sort <$> x
 # sortBy (comparing snd) -- sortOn snd
 # myJoin = on $ child ^. ChildParentId ==. parent ^. ParentId
+# foo = typeOf (undefined :: Foo Int) -- typeRep (Proxy :: Proxy (Foo Int))
+# foo = typeOf (undefined :: a) -- typeRep (Proxy :: Proxy a)
 # </TEST>

@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #631, suggest typeOf ==> typeRep
     Add matching on type variables
     #627, restrict to GHC 8.4 and above
 2.1.17, released 2019-04-17
