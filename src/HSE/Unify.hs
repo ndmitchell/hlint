@@ -48,7 +48,7 @@ validSubst eq = fmap Subst . mapM f . groupSort . fromSubst
 
 -- | Perform a substitution
 substitute :: Subst Exp_ -> Exp_ -> Exp_
-substitute (Subst bind) = transformBracketOld exp . transformBi pat
+substitute (Subst bind) = transformBracketOld exp . transformBi pat . transformBi typ
     where
         exp (Var _ (fromNamed -> x)) = lookup x bind
         exp (InfixApp s lhs (fromNamed -> x) rhs) =
@@ -65,6 +65,8 @@ substitute (Subst bind) = transformBracketOld exp . transformBi pat
         pat (PVar _ (fromNamed -> x)) | Just y <- lookup x bind = toNamed $ fromNamed y
         pat x = x :: Pat_
 
+        typ (TyVar _ (fromNamed -> x)) | Just (TypeApp _ y) <- lookup x bind = y
+        typ x = x :: Type_
 
 ---------------------------------------------------------------------
 -- UNIFICATION
@@ -82,6 +84,7 @@ unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe (Subst Exp_)
 unify nm root x y
     | Just (x,y) <- cast (x,y) = unifyExp nm root x y
     | Just (x,y) <- cast (x,y) = unifyPat nm x y
+    | Just (x,y) <- cast (x,y) = unifyType nm x y
     | Just (x :: S) <- cast x = Just mempty
     | otherwise = unifyDef nm x y
 
@@ -147,3 +150,8 @@ unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe (Subst Exp_)
 unifyPat nm (PVar _ x) (PVar _ y) = Just $ Subst [(fromNamed x, toNamed $ fromNamed y)]
 unifyPat nm (PVar _ x) PWildCard{} = Just $ Subst [(fromNamed x, toNamed $ "_" ++ fromNamed x)]
 unifyPat nm x y = unifyDef nm x y
+
+
+unifyType :: NameMatch -> Type_ -> Type_ -> Maybe (Subst Exp_)
+unifyType nm (TyVar a x) y = Just $ Subst [(fromNamed x, TypeApp a y)]
+unifyType nm x y = unifyDef nm x y
