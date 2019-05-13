@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.18, released 2019-05-13
     #633, don't suggest changes inside RULES
     #631, suggest typeOf ==> typeRep
     Add matching on type variables
