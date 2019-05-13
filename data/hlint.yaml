@@ -911,4 +911,5 @@
 # myJoin = on $ child ^. ChildParentId ==. parent ^. ParentId
 # foo = typeOf (undefined :: Foo Int) -- typeRep (Proxy :: Proxy (Foo Int))
 # foo = typeOf (undefined :: a) -- typeRep (Proxy :: Proxy a)
+# {-# RULES "Id-fmap-id" forall (x :: Id a). fmap id x = x #-}
 # </TEST>

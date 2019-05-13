@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #633, don't suggest changes inside RULES
     #631, suggest typeOf ==> typeRep
     Add matching on type variables
     #627, restrict to GHC 8.4 and above

@@ -101,6 +101,7 @@ findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
 
 findDecls :: Decl_ -> [Decl_]
 findDecls x@InstDecl{} = children x
+findDecls RulePragmaDecl{} = [] -- often rules contain things that HLint would rewrite
 findDecls x = [x]
 
 matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_, [Note], [(String, R.SrcSpan)])
