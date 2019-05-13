@@ -94,10 +94,14 @@ dotVersion _ = []
 findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
 findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
     [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
-    | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
+    | decl <- findDecls decl
     , (parent,x) <- universeParentExp decl, not $ isParen x
     , m <- matches, Just (y,notes, subst) <- [matchIdea s decl m parent x]
     , let r = R.Replace R.Expr (toSS x) subst (prettyPrint $ hintRuleRHS m) ]
+
+findDecls :: Decl_ -> [Decl_]
+findDecls x@InstDecl{} = children x
+findDecls x = [x]
 
 matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_, [Note], [(String, R.SrcSpan)])
 matchIdea s decl HintRule{..} parent x = do
