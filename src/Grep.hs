@@ -24,7 +24,7 @@ runGrep patt flags files = do
     forM_ files $ \file -> do
         res <- parseModuleEx flags file Nothing
         case res of
-            Left (ParseError sl msg ctxt _) ->
+            Left (ParseError sl msg ctxt) ->
                 print $ rawIdeaN Error (if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg) (mkSrcSpan sl sl) ctxt Nothing []
             Right (ParsedModuleResults (m, c) _) ->
                 forM_ (applyHints [] rule [(m, c)]) $ \i ->
