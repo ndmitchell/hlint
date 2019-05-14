@@ -16,7 +16,7 @@ computeSettings :: ParseFlags -> FilePath -> IO (String, [Setting])
 computeSettings flags file = do
     x <- parseModuleEx flags file Nothing
     case x of
-        Left (ParseError sl msg _ _) ->
+        Left (ParseError sl msg _) ->
             return ("# Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
         Right (ParsedModuleResults (m, _) _) -> do
             let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
