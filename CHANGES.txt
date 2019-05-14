@@ -1,6 +1,8 @@
 Changelog for HLint (* = breaking change)
 
+*   Revert PVP breakage
 2.1.18, released 2019-05-13
+*   Change parseModuleEx/ParseError by accident
     #633, don't suggest changes inside RULES
     #631, suggest typeOf ==> typeRep
     Add matching on type variables
