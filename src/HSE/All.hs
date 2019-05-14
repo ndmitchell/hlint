@@ -7,6 +7,7 @@ module HSE.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     parseModuleEx, ParseError(..), ParsedModuleResults(..),
+    parseModuleExInternal,
     freeVars, vars, varss, pvars
     ) where
 
@@ -207,8 +208,11 @@ failOpParseModuleEx ppstr _ file str _ _ (Just ps) = do
 -- The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
 -- This version uses both hs-src-exts AND ghc-lib. It's considered to be an unrecoverable error if one
 -- parsing method succeeds whilst the other fails.
-parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ParsedModuleResults)
-parseModuleEx flags file str = timedIO "Parse" file $ do
+parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
+parseModuleEx flags file str = fmap undefined <$> parseModuleExInternal flags file str
+
+parseModuleExInternal :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ParsedModuleResults)
+parseModuleExInternal flags file str = timedIO "Parse" file $ do
         str <- case str of
             Just x -> return x
             Nothing | file == "-" -> getContentsUTF8

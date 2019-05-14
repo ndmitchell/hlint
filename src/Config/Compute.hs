@@ -14,7 +14,7 @@ import Prelude
 --   Returns the text of the hints (if you want to save it down) along with the settings to be used.
 computeSettings :: ParseFlags -> FilePath -> IO (String, [Setting])
 computeSettings flags file = do
-    x <- parseModuleEx flags file Nothing
+    x <- parseModuleExInternal flags file Nothing
     case x of
         Left (ParseError sl msg _) ->
             return ("# Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])

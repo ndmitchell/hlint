@@ -77,7 +77,7 @@ executeHints s = applyHintsReal s (allHints s)
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
 parseModuleApply :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO (Either Idea (Module_, [Comment]))
 parseModuleApply flags s file src = do
-    res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
+    res <- parseModuleExInternal (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case res of
         Right (ParsedModuleResults (m, c) _)  -> return $ Right (m,c)
         Left (ParseError sl msg ctxt) ->
