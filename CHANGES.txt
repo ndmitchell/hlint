@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+*   Fix a dumb break in the API on parseModuleEx
 2.1.19, released 2019-05-14
 *   Revert PVP breakage
 2.1.18, released 2019-05-13
