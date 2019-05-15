@@ -209,7 +209,7 @@ failOpParseModuleEx ppstr _ file str _ _ (Just ps) = do
 -- This version uses both hs-src-exts AND ghc-lib. It's considered to be an unrecoverable error if one
 -- parsing method succeeds whilst the other fails.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
-parseModuleEx flags file str = fmap undefined <$> parseModuleExInternal flags file str
+parseModuleEx flags file str = fmap pm_hsext <$> parseModuleExInternal flags file str
 
 parseModuleExInternal :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ParsedModuleResults)
 parseModuleExInternal flags file str = timedIO "Parse" file $ do
