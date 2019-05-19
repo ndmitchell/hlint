@@ -225,10 +225,13 @@ parseModuleExInternal flags file str = timedIO "Parse" file $ do
             (ParseFailed sl msg, pfailed) ->
                 failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
     where
-        fromPFailed (PFailed x) = Just x
+        -- TEMPORARY HACK TO AVOID EVALUATING parseFileGhcLib
+        -- see https://github.com/ndmitchell/hlint/issues/637
+        -- fromPFailed (PFailed x) = Just x
         fromPFailed _ = Nothing
 
-        fromPOk (POk _ x) = Just x
+        -- TEMPORARY HACK
+        -- fromPOk (POk _ x) = Just x
         fromPOk _ = Nothing
 
         fixity = fromMaybe [] $ fixities $ hseFlags flags
