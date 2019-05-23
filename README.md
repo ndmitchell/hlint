@@ -245,7 +245,7 @@ Some of the hints are subjective, and some users believe they should be ignored.
 
 For `ANN` pragmas it is important to put them _after_ any `import` statements. If you have the `OverloadedStrings` extension enabled you will need to give an explicit type to the annotation, e.g. `{-# ANN myFunction ("HLint: ignore" :: String) #-}`. The `ANN` pragmas can also increase compile times or cause more recompilation than otherwise required, since they are evaluated by `TemplateHaskell`.
 
-For `{-# HLINT #-}` pragmas GHC may give a warning about an unrecognised pragma, which can be supressed with `-Wno-unrecognised-pragmas`.
+For `{-# HLINT #-}` pragmas GHC may give a warning about an unrecognised pragma, which can be suppressed with `-Wno-unrecognised-pragmas`.
 
 For `{- HLINT -}` comments they are likely to be treated as comments in syntax highlighting, which can lead to them being overlooked.
 
