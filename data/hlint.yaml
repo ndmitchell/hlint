@@ -538,6 +538,11 @@
     - warn: {lhs: toException NonTermination, rhs: nonTermination}
     - warn: {lhs: toException NestedAtomically, rhs: nestedAtomically}
 
+    # IOREF
+
+    - hint: {lhs: modifyIORef r (const x), rhs: writeIORef r x}
+    - hint: {lhs: modifyIORef r (\v -> x), rhs: writeIORef r x}
+
     # STOREABLE/PTR
 
     - hint: {lhs: castPtr nullPtr, rhs: nullPtr}

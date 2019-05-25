@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #634, suggest modifyIORef ==> writeIORef when applicable
     #642, suggest null in more places
     #640, reenable GHC parsing
 2.1.21, released 2019-05-19
