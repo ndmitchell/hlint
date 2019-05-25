@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #642, suggest null in more places
     #640, reenable GHC parsing
 2.1.21, released 2019-05-19
     #637, temporary workaround for GHC parser segfaults
