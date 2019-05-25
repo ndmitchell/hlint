@@ -155,6 +155,8 @@
     - warn: {lhs: "zipWith (,)", rhs: zip}
     - warn: {lhs: "zipWith3 (,,)", rhs: zip3}
     - hint: {lhs: length x == 0, rhs: null x, note: IncreasesLaziness}
+    - hint: {lhs: length x < 1, rhs: null x, note: IncreasesLaziness}
+    - hint: {lhs: length x <= 0, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: "x == []", rhs: null x}
     - hint: {lhs: length x /= 0, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - hint: {lhs: "\\x -> [x]", rhs: "(:[])", name: "Use :"}
