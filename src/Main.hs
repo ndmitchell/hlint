@@ -12,4 +12,3 @@ main = do
     errs <- hlint args
     unless (null errs) $
         exitWith $ ExitFailure 1
-

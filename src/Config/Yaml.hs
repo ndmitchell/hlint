@@ -194,7 +194,7 @@ parseSmell v = do
     where
       require :: Val -> String -> Maybe a -> Parser a
       require _ _ (Just a) = return a
-      require val err Nothing = parseFail val err 
+      require val err Nothing = parseFail val err
 
 parseGroup :: Val -> Parser Group
 parseGroup v = do
