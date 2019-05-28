@@ -163,8 +163,8 @@ data ParseError = ParseError
 
 -- | Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
 data ParsedModuleResults = ParsedModuleResults {
-    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result.
-  , pm_ghclib :: Maybe (Located (HsSyn.HsModule HsSyn.GhcPs)) -- ghc-lib-parser result.
+    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result
+  , pm_ghclib :: Located (HsSyn.HsModule HsSyn.GhcPs) -- ghc-lib-parser result
 }
 
 -- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
@@ -222,10 +222,11 @@ ghcFailOpParseModuleEx ppstr file str ps = do
                            snd (Lexer.getMessages ps dynFlags)]
    return $ Left $ ParseError sl msg pe
 
--- | Parse a Haskell module. Applies the C pre processor, and uses best-guess fixity resolution if there are ambiguities.
--- The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
--- This version uses both hs-src-exts AND ghc-lib. It's considered to be an unrecoverable error if one
--- parsing method succeeds whilst the other fails.
+-- | Parse a Haskell module. Applies the C pre processor, and uses
+-- best-guess fixity resolution if there are ambiguities.  The
+-- filename @-@ is treated as @stdin@. Requires some flags (often
+-- 'defaultParseFlags'), the filename, and optionally the contents of
+-- that file. This version uses both hs-src-exts AND ghc-lib.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
 parseModuleEx flags file str = fmap pm_hsext <$> parseModuleExInternal flags file str
 
@@ -239,10 +240,10 @@ parseModuleExInternal flags file str = timedIO "Parse" file $ do
         ppstr <- runCpp (cppFlags flags) file str
         case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr) of
             (ParseOk (x, cs), POk _ a) ->
-                return $ Right (ParsedModuleResults (applyFixity fixity x, cs) $ Just a)
+                return $ Right (ParsedModuleResults (applyFixity fixity x, cs) a)
             -- Parse error if GHC parsing fails (see
             -- https://github.com/ndmitchell/hlint/issues/645).
-            (ParseOk (x, cs), PFailed e) ->
+            (ParseOk _, PFailed e) ->
                 ghcFailOpParseModuleEx ppstr file str e
             (ParseFailed sl msg, pfailed) ->
                 failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
