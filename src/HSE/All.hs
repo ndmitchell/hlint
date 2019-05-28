@@ -153,12 +153,9 @@ runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
 
 -- | A parse error.
 data ParseError = ParseError
-    {parseErrorLocation :: SrcLoc -- ^ Location of the error.
-    ,parseErrorMessage :: String  -- ^ Message about the cause of the error.
-    -- Testing seems to indicate that this field doesn't participate
-    -- in user error messages [SF 2019-05-14]?
-
-    ,parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
+    { parseErrorLocation :: SrcLoc -- ^ Location of the error.
+    , parseErrorMessage :: String  -- ^ Message about the cause of the error.
+    , parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
     }
 
 -- | Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
@@ -171,6 +168,7 @@ data ParsedModuleResults = ParsedModuleResults {
 mkMode :: ParseFlags -> String -> ParseMode
 mkMode flags file = (hseFlags flags){parseFilename = file,fixities = Nothing }
 
+-- | Error handler dispatcher. Invoked when HSE parsing has failed.
 failOpParseModuleEx :: String
                     -> ParseFlags
                     -> FilePath
@@ -191,6 +189,8 @@ failOpParseModuleEx ppstr flags file str sl msg ghc = do
        -- to handling errors.
        hseFailOpParseModuleEx ppstr flags file str sl msg
 
+-- | An error handler of last resort. This is invoked when HSE parsing
+-- has failed but apparently GHC has not!
 hseFailOpParseModuleEx :: String
                        -> ParseFlags
                        -> FilePath
@@ -206,6 +206,7 @@ hseFailOpParseModuleEx ppstr flags file str sl msg = do
                _ -> context (srcLine sl) ppstr
     return $ Left $ ParseError sl msg pe
 
+-- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String
                        -> FilePath
                        -> String
