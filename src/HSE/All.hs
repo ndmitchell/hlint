@@ -167,22 +167,38 @@ data ParsedModuleResults = ParsedModuleResults {
   , pm_ghclib :: Maybe (Located (HsSyn.HsModule HsSyn.GhcPs)) -- ghc-lib-parser result.
 }
 
--- | Utility called from 'parseModuleEx' and 'failOpModuleEx'.
+-- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
 mkMode :: ParseFlags -> String -> ParseMode
 mkMode flags file = (hseFlags flags){parseFilename = file,fixities = Nothing }
 
--- | Error handler called on HSE parse failure.
 failOpParseModuleEx :: String
-                   -> ParseFlags
-                   -> FilePath
-                   -> String
-                   -> SrcLoc
-                   -> String
-                   -> Maybe Lexer.PState
-                   -> IO (Either ParseError ParsedModuleResults)
-failOpParseModuleEx ppstr flags file str sl msg Nothing = do
-    -- Error handling when there is no GHC parse state provided. This
-    -- is the traditional approach to handling errors
+                    -> ParseFlags
+                    -> FilePath
+                    -> String
+                    -> SrcLoc
+                    -> String
+                    -> Maybe Lexer.PState
+                    -> IO (Either ParseError ParsedModuleResults)
+failOpParseModuleEx ppstr flags file str sl msg ghc = do
+   case ghc of
+     Just ps ->
+       -- A GHC parse state is available (assumed to have come from a
+       -- 'PFailed s'). We prefer to construct a 'ParseError' value using
+       -- that.
+       ghcFailOpParseModuleEx ppstr file str ps
+     Nothing ->
+       -- No GHC parse state provided. This is the traditional approach
+       -- to handling errors.
+       hseFailOpParseModuleEx ppstr flags file str sl msg
+
+hseFailOpParseModuleEx :: String
+                       -> ParseFlags
+                       -> FilePath
+                       -> String
+                       -> SrcLoc
+                       -> String
+                       -> IO (Either ParseError ParsedModuleResults)
+hseFailOpParseModuleEx ppstr flags file str sl msg = do
     flags <- return $ parseFlagsNoLocations flags
     ppstr2 <- runCpp (cppFlags flags) file str
     let pe = case parseFileContentsWithMode (mkMode flags file) ppstr2 of
@@ -190,10 +206,12 @@ failOpParseModuleEx ppstr flags file str sl msg Nothing = do
                _ -> context (srcLine sl) ppstr
     return $ Left $ ParseError sl msg pe
 
-failOpParseModuleEx ppstr _ file str _ _ (Just ps) = do
-   -- Error handling when a GHC parse state is available (assumed to
-   -- have come from a 'PFailed s'). We prefer to construct a
-   -- 'ParseError' value using that.
+ghcFailOpParseModuleEx :: String
+                       -> FilePath
+                       -> String
+                       -> Lexer.PState
+                       -> IO (Either ParseError ParsedModuleResults)
+ghcFailOpParseModuleEx ppstr file str ps = do
    let s = Lexer.last_loc ps
        sl = SrcLoc { srcFilename = FastString.unpackFS (GHC.srcSpanFile s)
                    , srcLine = GHC.srcSpanStartLine s
@@ -220,16 +238,17 @@ parseModuleExInternal flags file str = timedIO "Parse" file $ do
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
         case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr) of
-            (ParseOk (x, cs), ghc) ->
-                return $ Right (ParsedModuleResults (applyFixity fixity x, cs) $ fromPOk ghc)
+            (ParseOk (x, cs), POk _ a) ->
+                return $ Right (ParsedModuleResults (applyFixity fixity x, cs) $ Just a)
+            -- Parse error if GHC parsing fails (see
+            -- https://github.com/ndmitchell/hlint/issues/645).
+            (ParseOk (x, cs), PFailed e) ->
+                ghcFailOpParseModuleEx ppstr file str e
             (ParseFailed sl msg, pfailed) ->
                 failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
     where
         fromPFailed (PFailed x) = Just x
         fromPFailed _ = Nothing
-
-        fromPOk (POk _ x) = Just x
-        fromPOk _ = Nothing
 
         fixity = fromMaybe [] $ fixities $ hseFlags flags
 
