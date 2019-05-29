@@ -10,7 +10,9 @@ module GHC.Util (
   , getMessages
   , SDoc
   , Located
-  , isAtom, paren
+  -- Temporary : Export these so GHC doesn't consider them unused and
+  -- tell weeder to ignore them.
+  , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
   ) where
 
 import "ghc-lib-parser" HsSyn
