@@ -108,8 +108,8 @@ isAtom x = case x of
     isNegativeLit (HsInteger _ x _) = x < 0
     isNegativeLit _ = False
 
-    isNegativeOverLit (OverLit {ol_val=HsIntegral i}) = il_neg i
-    isNegativeOverLit (OverLit {ol_val=HsFractional f}) = fl_neg f
+    isNegativeOverLit OverLit {ol_val=HsIntegral i} = il_neg i
+    isNegativeOverLit OverLit {ol_val=HsFractional f} = fl_neg f
     isNegativeOverLit _ = False
 
 -- | 'addParen e' wraps 'e' in parens.
