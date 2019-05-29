@@ -1,4 +1,5 @@
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module GHC.Util (
@@ -14,6 +15,7 @@ module GHC.Util (
 
 import "ghc-lib-parser" HsSyn
 import "ghc-lib-parser" BasicTypes
+import "ghc-lib-parser" RdrName
 import "ghc-lib-parser" DynFlags
 import "ghc-lib-parser" Platform
 import "ghc-lib-parser" Fingerprint
@@ -66,8 +68,14 @@ parseFileGhcLib filename str =
               if takeExtension filename /= ".lhs" then str else unlit filename str
     parseState = mkPState dynFlags buffer location
 
+---------------------------------------------------------------------
+-- The following functions are from
+-- https://github.com/pepeiborra/haskell-src-exts-util ("Utility code
+-- for working with haskell-src-exts") rewritten for GHC parse trees
+-- (of which at least one of them came from this project originally).
+
 -- | 'isAtom e' if 'e' requires no bracketing ever.
-isAtom :: HsExpr p -> Bool
+isAtom :: (p ~ GhcPass pass) => HsExpr p -> Bool
 isAtom x = case x of
   HsVar {}          -> True
   HsUnboundVar {}   -> True
@@ -105,9 +113,48 @@ isAtom x = case x of
     isNegativeOverLit _ = False
 
 -- | 'addParen e' wraps 'e' in parens.
-addParen :: HsExpr GhcPs -> HsExpr GhcPs
+addParen :: (p ~ GhcPass pass) => HsExpr p -> HsExpr p
 addParen e = HsPar noExt (noLoc e)
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
-paren :: HsExpr GhcPs -> HsExpr GhcPs
-paren x = if isAtom x then x else addParen x
+paren :: (p ~ GhcPass pass) => HsExpr GhcPs -> HsExpr GhcPs
+paren x
+  | isAtom x  = x
+  | otherwise = addParen x
+
+-- | 'isApp e' if 'e' is a (regular) application.
+isApp :: (p ~ GhcPass pass) => HsExpr p -> Bool
+isApp x = case x of
+  HsApp {}  -> True
+  _         -> False
+
+-- | 'isOpApp e' if 'e' is an operator application.
+isOpApp :: (p ~ GhcPass pass) => HsExpr p -> Bool
+isOpApp x = case x of
+  OpApp {}   -> True
+  _          -> False
+
+-- | 'isAnyApp e' if 'e' is either an application or operator
+-- application.
+isAnyApp :: (p ~ GhcPass pass) => HsExpr p -> Bool
+isAnyApp x = isApp x || isOpApp x
+
+-- | 'isDot e'  if 'e' is the unqualifed variable '.'.
+isDot :: HsExpr GhcPs -> Bool
+isDot x
+  | HsVar _ (L _ ident) <- x
+    , ident == mkVarUnqual (fsLit ".") = True
+  | otherwise                          = False
+
+-- | 'isSection e' if 'e' is a section.
+isSection :: (p ~ GhcPass pass) => HsExpr p -> Bool
+isSection x = case x of
+  SectionL {} -> True
+  SectionR {} -> True
+  _           -> False
+
+-- | 'isDotApp e' if 'e' is dot application.
+isDotApp :: HsExpr GhcPs -> Bool
+isDotApp (OpApp _ _ (L _ op) _)
+  | isDot op  = True
+  | otherwise = False
