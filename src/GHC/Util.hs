@@ -69,7 +69,7 @@ parseFileGhcLib filename str =
 -- | 'isAtom e' if 'e' requires no bracketing ever.
 isAtom :: HsExpr p -> Bool
 isAtom x = case x of
-  HsVar {} -> True
+  HsVar {}          -> True
   HsUnboundVar {}   -> True
   HsRecFld {}       -> True
   HsOverLabel {}    -> True
