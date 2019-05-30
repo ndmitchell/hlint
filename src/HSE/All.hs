@@ -153,24 +153,22 @@ runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
 
 -- | A parse error.
 data ParseError = ParseError
-    {parseErrorLocation :: SrcLoc -- ^ Location of the error.
-    ,parseErrorMessage :: String  -- ^ Message about the cause of the error.
-    -- Testing seems to indicate that this field doesn't participate
-    -- in user error messages [SF 2019-05-14]?
-
-    ,parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
+    { parseErrorLocation :: SrcLoc -- ^ Location of the error.
+    , parseErrorMessage :: String  -- ^ Message about the cause of the error.
+    , parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
     }
 
 -- | Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
 data ParsedModuleResults = ParsedModuleResults {
-    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result.
-  , pm_ghclib :: Maybe (Located (HsSyn.HsModule HsSyn.GhcPs)) -- ghc-lib-parser result.
+    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result
+  , pm_ghclib :: Located (HsSyn.HsModule HsSyn.GhcPs) -- ghc-lib-parser result
 }
 
 -- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
 mkMode :: ParseFlags -> String -> ParseMode
 mkMode flags file = (hseFlags flags){parseFilename = file,fixities = Nothing }
 
+-- | Error handler dispatcher. Invoked when HSE parsing has failed.
 failOpParseModuleEx :: String
                     -> ParseFlags
                     -> FilePath
@@ -191,6 +189,8 @@ failOpParseModuleEx ppstr flags file str sl msg ghc = do
        -- to handling errors.
        hseFailOpParseModuleEx ppstr flags file str sl msg
 
+-- | An error handler of last resort. This is invoked when HSE parsing
+-- has failed but apparently GHC has not!
 hseFailOpParseModuleEx :: String
                        -> ParseFlags
                        -> FilePath
@@ -206,6 +206,7 @@ hseFailOpParseModuleEx ppstr flags file str sl msg = do
                _ -> context (srcLine sl) ppstr
     return $ Left $ ParseError sl msg pe
 
+-- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String
                        -> FilePath
                        -> String
@@ -222,10 +223,11 @@ ghcFailOpParseModuleEx ppstr file str ps = do
                            snd (Lexer.getMessages ps dynFlags)]
    return $ Left $ ParseError sl msg pe
 
--- | Parse a Haskell module. Applies the C pre processor, and uses best-guess fixity resolution if there are ambiguities.
--- The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
--- This version uses both hs-src-exts AND ghc-lib. It's considered to be an unrecoverable error if one
--- parsing method succeeds whilst the other fails.
+-- | Parse a Haskell module. Applies the C pre processor, and uses
+-- best-guess fixity resolution if there are ambiguities.  The
+-- filename @-@ is treated as @stdin@. Requires some flags (often
+-- 'defaultParseFlags'), the filename, and optionally the contents of
+-- that file. This version uses both hs-src-exts AND ghc-lib.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
 parseModuleEx flags file str = fmap pm_hsext <$> parseModuleExInternal flags file str
 
@@ -239,10 +241,10 @@ parseModuleExInternal flags file str = timedIO "Parse" file $ do
         ppstr <- runCpp (cppFlags flags) file str
         case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr) of
             (ParseOk (x, cs), POk _ a) ->
-                return $ Right (ParsedModuleResults (applyFixity fixity x, cs) $ Just a)
+                return $ Right (ParsedModuleResults (applyFixity fixity x, cs) a)
             -- Parse error if GHC parsing fails (see
             -- https://github.com/ndmitchell/hlint/issues/645).
-            (ParseOk (x, cs), PFailed e) ->
+            (ParseOk _, PFailed e) ->
                 ghcFailOpParseModuleEx ppstr file str e
             (ParseFailed sl msg, pfailed) ->
                 failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
