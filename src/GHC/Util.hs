@@ -49,8 +49,25 @@ fakeSettings = Settings
 fakeLlvmConfig :: (LlvmTargets, LlvmPasses)
 fakeLlvmConfig = ([], [])
 
+badExtensions :: [Extension]
+badExtensions =
+  [
+    Arrows
+  , TransformListComp
+  , UnboxedTuples
+  , UnboxedSums
+  , QuasiQuotes
+  , RecursiveDo
+ ]
+
 enabledExtensions :: [Extension]
-enabledExtensions = [Cpp .. StarIsType] -- First and last extension in ghc-boot-th/GHC/LanguageExtensions/Type.hs 'data Extension'.
+enabledExtensions =
+  -- `Cpp`/`StarIsType` are the first and last extension in
+  -- ghc-boot-th/GHC/LanguageExtensions/Type.hs 'data Extension'. MR
+  -- https://gitlab.haskell.org/ghc/ghc/merge_requests/826 has landed
+  -- which means at some point we can replace with
+  -- `[minBound..maxBound]`.
+  [x | x <- [Cpp .. StarIsType], not (x `elem` badExtensions)]
 
 dynFlags :: DynFlags
 dynFlags = foldl' xopt_set
