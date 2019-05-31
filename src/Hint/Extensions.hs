@@ -251,6 +251,7 @@ used StandaloneDeriving = hasS isDerivDecl
 used PatternSignatures = hasS isPatTypeSig
 used RecordWildCards = hasS isPFieldWildcard ||^ hasS isFieldWildcard
 used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun
+used NamedFieldPuns = hasS isPFieldPun ||^ hasS isFieldPun
 used UnboxedTuples = has (not . isBoxed)
 used PackageImports = hasS (isJust . importPkg)
 used QuasiQuotes = hasS isQuasiQuote ||^ hasS isTyQuasiQuote

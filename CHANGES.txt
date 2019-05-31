@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #651, warn on unused NamedFieldPuns
+    #646, switch to an HTML doctype
 2.1.22, released 2019-05-25
     #634, suggest modifyIORef ==> writeIORef when applicable
     #642, suggest null in more places
