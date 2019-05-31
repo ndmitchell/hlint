@@ -177,7 +177,7 @@ failOpParseModuleEx :: String
                     -> String
                     -> Maybe Lexer.PState
                     -> IO (Either ParseError ParsedModuleResults)
-failOpParseModuleEx ppstr flags file str sl msg ghc = do
+failOpParseModuleEx ppstr flags file str sl msg ghc =
    case ghc of
      Just ps ->
        -- A GHC parse state is available (assumed to have come from a
