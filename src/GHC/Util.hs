@@ -29,7 +29,6 @@ import Data.List
 import System.FilePath
 import Language.Preprocessor.Unlit
 
-
 fakeSettings :: Settings
 fakeSettings = Settings
   { sTargetPlatform=platform
@@ -61,13 +60,7 @@ badExtensions =
  ]
 
 enabledExtensions :: [Extension]
-enabledExtensions =
-  -- `Cpp`/`StarIsType` are the first and last extension in
-  -- ghc-boot-th/GHC/LanguageExtensions/Type.hs 'data Extension'. MR
-  -- https://gitlab.haskell.org/ghc/ghc/merge_requests/826 has landed
-  -- which means at some point we can replace with
-  -- `[minBound..maxBound]`.
-  [x | x <- [Cpp .. StarIsType], not (x `elem` badExtensions)]
+enabledExtensions = [x | x <- [minBound .. maxBound], x `notElem` badExtensions]
 
 dynFlags :: DynFlags
 dynFlags = foldl' xopt_set
