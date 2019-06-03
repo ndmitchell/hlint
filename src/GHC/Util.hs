@@ -13,6 +13,7 @@ module GHC.Util (
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
+  , parsePragmasIntoDynFlags
   ) where
 
 import "ghc-lib-parser" HsSyn
@@ -30,6 +31,10 @@ import "ghc-lib-parser" StringBuffer
 import "ghc-lib-parser" ErrUtils
 import "ghc-lib-parser" Outputable
 import "ghc-lib-parser" GHC.LanguageExtensions.Type
+import "ghc-lib-parser" ToolSettings
+import "ghc-lib-parser" Panic
+import "ghc-lib-parser" HscTypes
+import "ghc-lib-parser" HeaderInfo
 
 import Data.List
 import System.FilePath
@@ -37,13 +42,23 @@ import Language.Preprocessor.Unlit
 
 fakeSettings :: Settings
 fakeSettings = Settings
-  { sTargetPlatform=platform
+  { sGhcNameVersion=ghcNameVersion
+  , sFileSettings=fileSettings
+  , sTargetPlatform=platform
+  , sPlatformMisc=platformMisc
   , sPlatformConstants=platformConstants
-  , sProjectVersion=Config.cProjectVersion
-  , sProgramName="ghc"
-  , sOpt_P_fingerprint=Fingerprint.fingerprint0
+  , sToolSettings=toolSettings
   }
   where
+    toolSettings = ToolSettings {
+      toolSettings_opt_P_fingerprint=fingerprint0
+      }
+    fileSettings = FileSettings {}
+    platformMisc = PlatformMisc {}
+    ghcNameVersion =
+      GhcNameVersion{ghcNameVersion_programName="ghc"
+                    ,ghcNameVersion_projectVersion=cProjectVersion
+                    }
     platform =
       Platform{platformWordSize=8
               , platformOS=OSUnknown
@@ -71,6 +86,19 @@ enabledExtensions = [x | x <- [minBound .. maxBound], x `notElem` badExtensions]
 dynFlags :: DynFlags
 dynFlags = foldl' xopt_set
              (defaultDynFlags fakeSettings fakeLlvmConfig) enabledExtensions
+
+parsePragmasIntoDynFlags ::
+  DynFlags -> FilePath -> String -> IO (Either String DynFlags)
+parsePragmasIntoDynFlags flags filepath str =
+  catchErrors $ do
+    let opts = getOptions flags (stringToStringBuffer str) filepath
+    (flags, _, _) <- parseDynamicFilePragma flags opts
+    return $ Right flags
+  where
+    catchErrors :: IO (Either String DynFlags) -> IO (Either String DynFlags)
+    catchErrors act = handleGhcException reportErr
+                        (handleSourceError reportErr act)
+    reportErr e = return $ Left (show e)
 
 parseFileGhcLib :: FilePath -> String -> ParseResult (Located (HsModule GhcPs))
 parseFileGhcLib filename str =
