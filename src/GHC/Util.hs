@@ -3,7 +3,8 @@
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module GHC.Util (
-    dynFlags
+    baseDynFlags
+  , parsePragmasIntoDynFlags
   , parseFileGhcLib
   , ParseResult (..)
   , pprErrMsgBagWithLoc
@@ -13,7 +14,6 @@ module GHC.Util (
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
-  , parsePragmasIntoDynFlags
   ) where
 
 import "ghc-lib-parser" HsSyn
@@ -83,8 +83,8 @@ badExtensions =
 enabledExtensions :: [Extension]
 enabledExtensions = [x | x <- [minBound .. maxBound], x `notElem` badExtensions]
 
-dynFlags :: DynFlags
-dynFlags = foldl' xopt_set
+baseDynFlags :: DynFlags
+baseDynFlags = foldl' xopt_set
              (defaultDynFlags fakeSettings fakeLlvmConfig) enabledExtensions
 
 parsePragmasIntoDynFlags ::
@@ -100,14 +100,15 @@ parsePragmasIntoDynFlags flags filepath str =
                         (handleSourceError reportErr act)
     reportErr e = return $ Left (show e)
 
-parseFileGhcLib :: FilePath -> String -> ParseResult (Located (HsModule GhcPs))
-parseFileGhcLib filename str =
+parseFileGhcLib ::
+  FilePath -> String -> DynFlags -> ParseResult (Located (HsModule GhcPs))
+parseFileGhcLib filename str flags =
   Lexer.unP Parser.parseModule parseState
   where
     location = mkRealSrcLoc (mkFastString filename) 1 1
     buffer = stringToStringBuffer $
               if takeExtension filename /= ".lhs" then str else unlit filename str
-    parseState = mkPState dynFlags buffer location
+    parseState = mkPState flags buffer location
 
 ---------------------------------------------------------------------
 -- The following functions are from

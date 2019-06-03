@@ -218,9 +218,9 @@ ghcFailOpParseModuleEx ppstr file str ps = do
                    , srcLine = GHC.srcSpanStartLine s
                    , srcColumn = GHC.srcSpanStartCol s }
        pe = context (srcLine sl) ppstr
-       msg = head [Outputable.showSDoc dynFlags msg
+       msg = head [Outputable.showSDoc baseDynFlags msg
                   | msg <- pprErrMsgBagWithLoc $
-                           snd (Lexer.getMessages ps dynFlags)]
+                           snd (Lexer.getMessages ps baseDynFlags)]
    return $ Left $ ParseError sl msg pe
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
@@ -239,15 +239,27 @@ parseModuleExInternal flags file str = timedIO "Parse" file $ do
                     | otherwise -> readFileUTF8' file
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
-        case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr) of
-            (ParseOk (x, cs), POk _ a) ->
-                return $ Right (ParsedModuleResults (applyFixity fixity x, cs) a)
-            -- Parse error if GHC parsing fails (see
-            -- https://github.com/ndmitchell/hlint/issues/645).
-            (ParseOk _, PFailed e) ->
-                ghcFailOpParseModuleEx ppstr file str e
-            (ParseFailed sl msg, pfailed) ->
-                failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
+        dynFlags <- parsePragmasIntoDynFlags baseDynFlags file ppstr
+        case dynFlags of
+          Right ghcFlags ->
+            case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of
+                (ParseOk (x, cs), POk _ a) ->
+                    return $ Right (ParsedModuleResults (applyFixity fixity x, cs) a)
+                -- Parse error if GHC parsing fails (see
+                -- https://github.com/ndmitchell/hlint/issues/645).
+                (ParseOk _, PFailed e) ->
+                    ghcFailOpParseModuleEx ppstr file str e
+                (ParseFailed sl msg, pfailed) ->
+                    failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
+          Left msg -> do
+            -- Parsing GHC flags from dynamic pragmas in the source
+            -- has failed. When this happens, it's reported by
+            -- exception. It's impossible or at least fiddly getting a
+            -- location so we skip that for now. Synthesize a parse
+            -- error.
+            let loc = SrcLoc file (1 :: Int) (1 :: Int)
+            return $ Left (ParseError loc msg (context (srcLine loc) ppstr))
+
     where
         fromPFailed (PFailed x) = Just x
         fromPFailed _ = Nothing
