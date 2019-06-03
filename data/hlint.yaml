@@ -739,6 +739,17 @@
     - package base
     rules:
     - hint: {lhs: "x /= []", rhs: not (null x), name: Use null}
+    - hint: {lhs: "[] /= x", rhs: not (null x), name: Use null}
+    - hint: {lhs: "[] == x", rhs: null x}
+    - hint: {lhs: 0 <= length x, rhs: "True", name: Length always non-negative}
+    - hint: {lhs: 0 == length x, rhs: null x, note: IncreasesLaziness}
+    - hint: {lhs: 0 >= length x, rhs: null x, note: IncreasesLaziness}
+    - hint: {lhs: 1 > length x, rhs: null x, note: IncreasesLaziness}
+    - hint: {lhs: 0 /= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
+    - hint: {lhs: 0 < length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
+    - hint: {lhs: 1 <= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
+    - hint: {lhs: 0 == rem n 2, rhs: even n}
+    - hint: {lhs: 0 /= rem n 2, rhs: odd n}
 
 
 # <TEST>
