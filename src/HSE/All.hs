@@ -222,8 +222,8 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
                      , srcColumn = GHC.srcSpanStartCol r }
            GHC.UnhelpfulSpan _ ->
              SrcLoc { srcFilename = file
-                     , srcLine = (1 :: Int)
-                     , srcColumn = (1 :: Int) }
+                     , srcLine = 1 :: Int
+                     , srcColumn = 1 :: Int }
        pe = context (srcLine sl) ppstr
        msg = Outputable.showSDoc baseDynFlags $
                ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
