@@ -36,6 +36,7 @@ import qualified "ghc-lib-parser" Lexer
 import qualified "ghc-lib-parser" HsSyn
 import qualified "ghc-lib-parser" FastString
 import qualified "ghc-lib-parser" SrcLoc as GHC
+import qualified "ghc-lib-parser" ErrUtils
 import qualified "ghc-lib-parser" Outputable
 
 vars :: FreeVars a => a -> [String]
@@ -175,17 +176,17 @@ failOpParseModuleEx :: String
                     -> String
                     -> SrcLoc
                     -> String
-                    -> Maybe Lexer.PState
+                    -> Maybe (GHC.SrcSpan, ErrUtils.MsgDoc)
                     -> IO (Either ParseError ParsedModuleResults)
 failOpParseModuleEx ppstr flags file str sl msg ghc =
    case ghc of
-     Just ps ->
-       -- A GHC parse state is available (assumed to have come from a
-       -- 'PFailed s'). We prefer to construct a 'ParseError' value using
-       -- that.
-       ghcFailOpParseModuleEx ppstr file str ps
+     Just err ->
+       -- GHC error info is available (assumed to have come from a
+       -- 'PFailed'). We prefer to construct a 'ParseError' value
+       -- using that.
+       ghcFailOpParseModuleEx ppstr file str err
      Nothing ->
-       -- No GHC parse state provided. This is the traditional approach
+       -- No GHC error info provided. This is the traditional approach
        -- to handling errors.
        hseFailOpParseModuleEx ppstr flags file str sl msg
 
@@ -210,17 +211,22 @@ hseFailOpParseModuleEx ppstr flags file str sl msg = do
 ghcFailOpParseModuleEx :: String
                        -> FilePath
                        -> String
-                       -> Lexer.PState
+                       -> (GHC.SrcSpan, ErrUtils.MsgDoc)
                        -> IO (Either ParseError ParsedModuleResults)
-ghcFailOpParseModuleEx ppstr file str ps = do
-   let s = Lexer.last_loc ps
-       sl = SrcLoc { srcFilename = FastString.unpackFS (GHC.srcSpanFile s)
-                   , srcLine = GHC.srcSpanStartLine s
-                   , srcColumn = GHC.srcSpanStartCol s }
+ghcFailOpParseModuleEx ppstr file str (loc, err) = do
+   let sl =
+         case loc of
+           GHC.RealSrcSpan r ->
+             SrcLoc { srcFilename = FastString.unpackFS (GHC.srcSpanFile r)
+                     , srcLine = GHC.srcSpanStartLine r
+                     , srcColumn = GHC.srcSpanStartCol r }
+           GHC.UnhelpfulSpan _ ->
+             SrcLoc { srcFilename = file
+                     , srcLine = (1 :: Int)
+                     , srcColumn = (1 :: Int) }
        pe = context (srcLine sl) ppstr
-       msg = head [Outputable.showSDoc baseDynFlags msg
-                  | msg <- pprErrMsgBagWithLoc $
-                           snd (Lexer.getMessages ps baseDynFlags)]
+       msg = Outputable.showSDoc baseDynFlags $
+               ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
    return $ Left $ ParseError sl msg pe
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
@@ -247,8 +253,8 @@ parseModuleExInternal flags file str = timedIO "Parse" file $ do
                     return $ Right (ParsedModuleResults (applyFixity fixity x, cs) a)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
-                (ParseOk _, PFailed e) ->
-                    ghcFailOpParseModuleEx ppstr file str e
+                (ParseOk _, PFailed _ loc err) ->
+                    ghcFailOpParseModuleEx ppstr file str (loc, err)
                 (ParseFailed sl msg, pfailed) ->
                     failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
           Left msg -> do
@@ -261,7 +267,7 @@ parseModuleExInternal flags file str = timedIO "Parse" file $ do
             return $ Left (ParseError loc msg (context (srcLine loc) ppstr))
 
     where
-        fromPFailed (PFailed x) = Just x
+        fromPFailed (PFailed _ loc err) = Just (loc, err)
         fromPFailed _ = Nothing
 
         fixity = fromMaybe [] $ fixities $ hseFlags flags

@@ -31,7 +31,6 @@ import "ghc-lib-parser" StringBuffer
 import "ghc-lib-parser" ErrUtils
 import "ghc-lib-parser" Outputable
 import "ghc-lib-parser" GHC.LanguageExtensions.Type
-import "ghc-lib-parser" ToolSettings
 import "ghc-lib-parser" Panic
 import "ghc-lib-parser" HscTypes
 import "ghc-lib-parser" HeaderInfo
@@ -42,23 +41,13 @@ import Language.Preprocessor.Unlit
 
 fakeSettings :: Settings
 fakeSettings = Settings
-  { sGhcNameVersion=ghcNameVersion
-  , sFileSettings=fileSettings
-  , sTargetPlatform=platform
-  , sPlatformMisc=platformMisc
+  { sTargetPlatform=platform
   , sPlatformConstants=platformConstants
-  , sToolSettings=toolSettings
+  , sProjectVersion=cProjectVersion
+  , sProgramName="ghc"
+  , sOpt_P_fingerprint=fingerprint0
   }
   where
-    toolSettings = ToolSettings {
-      toolSettings_opt_P_fingerprint=fingerprint0
-      }
-    fileSettings = FileSettings {}
-    platformMisc = PlatformMisc {}
-    ghcNameVersion =
-      GhcNameVersion{ghcNameVersion_programName="ghc"
-                    ,ghcNameVersion_projectVersion=cProjectVersion
-                    }
     platform =
       Platform{platformWordSize=8
               , platformOS=OSUnknown
@@ -81,7 +70,12 @@ badExtensions =
  ]
 
 enabledExtensions :: [Extension]
-enabledExtensions = [x | x <- [minBound .. maxBound], x `notElem` badExtensions]
+enabledExtensions = [x | x <- [Cpp .. StarIsType], x `notElem` badExtensions]
+-- 'Cpp' are the first and last cases of type 'Extension' in
+-- 'libraries/ghc-boot-th/GHC/LanguageExtensions/Type.hs'. When we are
+-- on a version of GHC that has MR
+-- https://gitlab.haskell.org/ghc/ghc/merge_requests/826, we can
+-- replace them with 'minBound' and 'maxBound' respectively.
 
 baseDynFlags :: DynFlags
 baseDynFlags = foldl' xopt_set
