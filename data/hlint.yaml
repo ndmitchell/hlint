@@ -155,10 +155,15 @@
     - warn: {lhs: "zipWith (,)", rhs: zip}
     - warn: {lhs: "zipWith3 (,,)", rhs: zip3}
     - hint: {lhs: length x == 0, rhs: null x, note: IncreasesLaziness}
+    - hint: {lhs: 0 == length x, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: length x < 1, rhs: null x, note: IncreasesLaziness}
+    - hint: {lhs: 1 > length x, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: length x <= 0, rhs: null x, note: IncreasesLaziness}
+    - hint: {lhs: 0 >= length x, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: "x == []", rhs: null x}
+    - hint: {lhs: "[] == x", rhs: null x}
     - hint: {lhs: length x /= 0, rhs: not (null x), note: IncreasesLaziness, name: Use null}
+    - hint: {lhs: 0 /= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - hint: {lhs: "\\x -> [x]", rhs: "(:[])", name: "Use :"}
     - warn: {lhs: map (uncurry f) (zip x y), rhs: zipWith f x y}
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: isVar f}
@@ -191,8 +196,11 @@
     - hint: {lhs: "elem x [y]", rhs: x == y, note: ValidInstance Eq a}
     - hint: {lhs: "notElem x [y]", rhs: x /= y, note: ValidInstance Eq a}
     - hint: {lhs: length x >= 0, rhs: "True", name: Length always non-negative}
+    - hint: {lhs: 0 <= length x, rhs: "True", name: Length always non-negative}
     - hint: {lhs: length x > 0, rhs: not (null x), note: IncreasesLaziness, name: Use null}
+    - hint: {lhs: 0 < length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - hint: {lhs: length x >= 1, rhs: not (null x), note: IncreasesLaziness, name: Use null}
+    - hint: {lhs: 1 <= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - warn: {lhs: take i x, rhs: "[]", side: isNegZero i, name: Take on a non-positive}
     - warn: {lhs: drop i x, rhs: x, side: isNegZero i, name: Drop on a non-positive}
     - warn: {lhs: last (scanl f z x), rhs: foldl f z x}
@@ -509,7 +517,9 @@
     - hint: {lhs: log y / log x, rhs: logBase x y}
     - hint: {lhs: sin x / cos x, rhs: tan x}
     - hint: {lhs: rem n 2 == 0, rhs: even n}
+    - hint: {lhs: 0 == rem n 2, rhs: even n}
     - hint: {lhs: rem n 2 /= 0, rhs: odd n}
+    - hint: {lhs: 0 /= rem n 2, rhs: odd n}
     - hint: {lhs: not (even x), rhs: odd x}
     - hint: {lhs: not (odd x), rhs: even x}
     - hint: {lhs: x ** 0.5, rhs: sqrt x}
@@ -740,16 +750,6 @@
     rules:
     - hint: {lhs: "x /= []", rhs: not (null x), name: Use null}
     - hint: {lhs: "[] /= x", rhs: not (null x), name: Use null}
-    - hint: {lhs: "[] == x", rhs: null x}
-    - hint: {lhs: 0 <= length x, rhs: "True", name: Length always non-negative}
-    - hint: {lhs: 0 == length x, rhs: null x, note: IncreasesLaziness}
-    - hint: {lhs: 0 >= length x, rhs: null x, note: IncreasesLaziness}
-    - hint: {lhs: 1 > length x, rhs: null x, note: IncreasesLaziness}
-    - hint: {lhs: 0 /= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
-    - hint: {lhs: 0 < length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
-    - hint: {lhs: 1 <= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
-    - hint: {lhs: 0 == rem n 2, rhs: even n}
-    - hint: {lhs: 0 /= rem n 2, rhs: odd n}
 
 
 # <TEST>
