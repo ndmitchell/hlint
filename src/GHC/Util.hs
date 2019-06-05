@@ -191,6 +191,5 @@ isSection x = case x of
 
 -- | 'isDotApp e' if 'e' is dot application.
 isDotApp :: HsExpr GhcPs -> Bool
-isDotApp (OpApp _ _ (L _ op) _)
-  | isDot op  = True
-  | otherwise = False
+isDotApp (OpApp _ _ (L _ op) _) = isDot op
+isDotApp _ = False

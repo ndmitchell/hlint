@@ -732,6 +732,14 @@
     rules:
     - warn: {lhs: a $ b $ c, rhs: a . b $ c}
 
+- group:
+    name: teaching
+    enabled: false
+    imports:
+    - package base
+    rules:
+    - hint: {lhs: "x /= []", rhs: not (null x), name: Use null}
+
 
 # <TEST>
 # yes = concat . map f -- concatMap f
