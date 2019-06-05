@@ -6,10 +6,10 @@
 <TEST>
 {-# LANGUAGE Arrows #-} \
 f = id --
-{-# LANGUAGE TotallyUnknown #-} \
+{-# LANGUAGE RebindableSyntax #-} \
 f = id
-{-# LANGUAGE Foo, ParallelListComp, ImplicitParams #-} \
-f = [(a,c) | a <- b | c <- d] -- {-# LANGUAGE Foo, ParallelListComp #-}
+{-# LANGUAGE RebindableSyntax, ParallelListComp, ImplicitParams #-} \
+f = [(a,c) | a <- b | c <- d] -- {-# LANGUAGE RebindableSyntax, ParallelListComp #-}
 {-# LANGUAGE EmptyDataDecls #-} \
 data Foo
 {-# LANGUAGE TemplateHaskell #-} \

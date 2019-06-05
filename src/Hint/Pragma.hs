@@ -13,15 +13,15 @@
 {-# OPTIONS_YHC -cpp #-}
 {-# OPTIONS_GHC -XFoo #-} -- {-# LANGUAGE Foo #-}
 {-# OPTIONS_GHC -fglasgow-exts #-} -- ???
-{-# LANGUAGE A, B, C, A #-} -- {-# LANGUAGE A, B, C #-}
-{-# LANGUAGE A #-}
+{-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields, RebindableSyntax #-} -- {-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -cpp -foo #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -foo #-}
 {-# OPTIONS_GHC -cpp #-} \
 {-# LANGUAGE CPP, Text #-} --
-{-# LANGUAGE A #-} \
-{-# LANGUAGE B #-}
-{-# LANGUAGE A #-} \
-{-# LANGUAGE B, A #-} -- {-# LANGUAGE A, B #-}
+{-# LANGUAGE RebindableSyntax #-} \
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE RebindableSyntax #-} \
+{-# LANGUAGE EmptyCase, RebindableSyntax #-} -- {-# LANGUAGE RebindableSyntax, EmptyCase #-}
 </TEST>
 -}
 
