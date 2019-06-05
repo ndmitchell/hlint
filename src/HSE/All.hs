@@ -32,7 +32,6 @@ import Data.Functor
 import Prelude
 
 import GHC.Util
-import qualified "ghc-lib-parser" Lexer
 import qualified "ghc-lib-parser" HsSyn
 import qualified "ghc-lib-parser" FastString
 import qualified "ghc-lib-parser" SrcLoc as GHC
