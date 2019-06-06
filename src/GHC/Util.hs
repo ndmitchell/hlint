@@ -61,7 +61,9 @@ fakeLlvmConfig = ([], [])
 badExtensions :: [Extension]
 badExtensions =
   [
-    Arrows
+    AlternativeLayoutRule
+  , AlternativeLayoutRuleTransitional
+  , Arrows
   , TransformListComp
   , UnboxedTuples
   , UnboxedSums

@@ -149,7 +149,7 @@ lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allo
 lambdaExp p o@Lambda{}
     | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o
     , not $ isLambda res, not $ any isQuasiQuote $ universe res, not $ "runST" `Set.member` freeVars o
-    , name <- "Avoid lambda" ++ (if countInfixNames res > countInfixNames o then " using `infix`" else "") =
+    , let name = "Avoid lambda" ++ (if countInfixNames res > countInfixNames o then " using `infix`" else "") =
     [(if isVar res || isCon res then warn else suggest) name o res (refact $ toSS o)]
     where countInfixNames x = length [() | RightSection _ (QVarOp _ (UnQual _ (Ident _ _))) _ <- universe x]
 lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats :: [Exp_]), maybe True (not . isLambda) p =
