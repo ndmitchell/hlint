@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #653, add symmetric versions of some == hints
     #650, add a group of teaching hints
     #651, warn on unused NamedFieldPuns
     #646, switch to an HTML doctype
