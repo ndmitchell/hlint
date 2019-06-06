@@ -32,10 +32,10 @@ import Data.Functor
 import Prelude
 
 import GHC.Util
-import qualified "ghc-lib-parser" Lexer
 import qualified "ghc-lib-parser" HsSyn
 import qualified "ghc-lib-parser" FastString
 import qualified "ghc-lib-parser" SrcLoc as GHC
+import qualified "ghc-lib-parser" ErrUtils
 import qualified "ghc-lib-parser" Outputable
 
 vars :: FreeVars a => a -> [String]
@@ -153,36 +153,52 @@ runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
 
 -- | A parse error.
 data ParseError = ParseError
-    {parseErrorLocation :: SrcLoc -- ^ Location of the error.
-    ,parseErrorMessage :: String  -- ^ Message about the cause of the error.
-    -- Testing seems to indicate that this field doesn't participate
-    -- in user error messages [SF 2019-05-14]?
-
-    ,parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
+    { parseErrorLocation :: SrcLoc -- ^ Location of the error.
+    , parseErrorMessage :: String  -- ^ Message about the cause of the error.
+    , parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
     }
 
 -- | Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
 data ParsedModuleResults = ParsedModuleResults {
-    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result.
-  , pm_ghclib :: Maybe (Located (HsSyn.HsModule HsSyn.GhcPs)) -- ghc-lib-parser result.
+    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result
+  , pm_ghclib :: Located (HsSyn.HsModule HsSyn.GhcPs) -- ghc-lib-parser result
 }
 
--- | Utility called from 'parseModuleEx' and 'failOpModuleEx'.
+-- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
 mkMode :: ParseFlags -> String -> ParseMode
 mkMode flags file = (hseFlags flags){parseFilename = file,fixities = Nothing }
 
--- | Error handler called on HSE parse failure.
+-- | Error handler dispatcher. Invoked when HSE parsing has failed.
 failOpParseModuleEx :: String
-                   -> ParseFlags
-                   -> FilePath
-                   -> String
-                   -> SrcLoc
-                   -> String
-                   -> Maybe Lexer.PState
-                   -> IO (Either ParseError ParsedModuleResults)
-failOpParseModuleEx ppstr flags file str sl msg Nothing = do
-    -- Error handling when there is no GHC parse state provided. This
-    -- is the traditional approach to handling errors
+                    -> ParseFlags
+                    -> FilePath
+                    -> String
+                    -> SrcLoc
+                    -> String
+                    -> Maybe (GHC.SrcSpan, ErrUtils.MsgDoc)
+                    -> IO (Either ParseError ParsedModuleResults)
+failOpParseModuleEx ppstr flags file str sl msg ghc =
+   case ghc of
+     Just err ->
+       -- GHC error info is available (assumed to have come from a
+       -- 'PFailed'). We prefer to construct a 'ParseError' value
+       -- using that.
+       ghcFailOpParseModuleEx ppstr file str err
+     Nothing ->
+       -- No GHC error info provided. This is the traditional approach
+       -- to handling errors.
+       hseFailOpParseModuleEx ppstr flags file str sl msg
+
+-- | An error handler of last resort. This is invoked when HSE parsing
+-- has failed but apparently GHC has not!
+hseFailOpParseModuleEx :: String
+                       -> ParseFlags
+                       -> FilePath
+                       -> String
+                       -> SrcLoc
+                       -> String
+                       -> IO (Either ParseError ParsedModuleResults)
+hseFailOpParseModuleEx ppstr flags file str sl msg = do
     flags <- return $ parseFlagsNoLocations flags
     ppstr2 <- runCpp (cppFlags flags) file str
     let pe = case parseFileContentsWithMode (mkMode flags file) ppstr2 of
@@ -190,24 +206,33 @@ failOpParseModuleEx ppstr flags file str sl msg Nothing = do
                _ -> context (srcLine sl) ppstr
     return $ Left $ ParseError sl msg pe
 
-failOpParseModuleEx ppstr _ file str _ _ (Just ps) = do
-   -- Error handling when a GHC parse state is available (assumed to
-   -- have come from a 'PFailed s'). We prefer to construct a
-   -- 'ParseError' value using that.
-   let s = Lexer.last_loc ps
-       sl = SrcLoc { srcFilename = FastString.unpackFS (GHC.srcSpanFile s)
-                   , srcLine = GHC.srcSpanStartLine s
-                   , srcColumn = GHC.srcSpanStartCol s }
+-- | The error handler invoked when GHC parsing has failed.
+ghcFailOpParseModuleEx :: String
+                       -> FilePath
+                       -> String
+                       -> (GHC.SrcSpan, ErrUtils.MsgDoc)
+                       -> IO (Either ParseError ParsedModuleResults)
+ghcFailOpParseModuleEx ppstr file str (loc, err) = do
+   let sl =
+         case loc of
+           GHC.RealSrcSpan r ->
+             SrcLoc { srcFilename = FastString.unpackFS (GHC.srcSpanFile r)
+                     , srcLine = GHC.srcSpanStartLine r
+                     , srcColumn = GHC.srcSpanStartCol r }
+           GHC.UnhelpfulSpan _ ->
+             SrcLoc { srcFilename = file
+                     , srcLine = 1 :: Int
+                     , srcColumn = 1 :: Int }
        pe = context (srcLine sl) ppstr
-       msg = head [Outputable.showSDoc dynFlags msg
-                  | msg <- pprErrMsgBagWithLoc $
-                           snd (Lexer.getMessages ps dynFlags)]
+       msg = Outputable.showSDoc baseDynFlags $
+               ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
    return $ Left $ ParseError sl msg pe
 
--- | Parse a Haskell module. Applies the C pre processor, and uses best-guess fixity resolution if there are ambiguities.
--- The filename @-@ is treated as @stdin@. Requires some flags (often 'defaultParseFlags'), the filename, and optionally the contents of that file.
--- This version uses both hs-src-exts AND ghc-lib. It's considered to be an unrecoverable error if one
--- parsing method succeeds whilst the other fails.
+-- | Parse a Haskell module. Applies the C pre processor, and uses
+-- best-guess fixity resolution if there are ambiguities.  The
+-- filename @-@ is treated as @stdin@. Requires some flags (often
+-- 'defaultParseFlags'), the filename, and optionally the contents of
+-- that file. This version uses both hs-src-exts AND ghc-lib.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
 parseModuleEx flags file str = fmap pm_hsext <$> parseModuleExInternal flags file str
 
@@ -219,17 +244,30 @@ parseModuleExInternal flags file str = timedIO "Parse" file $ do
                     | otherwise -> readFileUTF8' file
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
-        case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr) of
-            (ParseOk (x, cs), ghc) ->
-                return $ Right (ParsedModuleResults (applyFixity fixity x, cs) $ fromPOk ghc)
-            (ParseFailed sl msg, pfailed) ->
-                failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
-    where
-        fromPFailed (PFailed x) = Just x
-        fromPFailed _ = Nothing
+        dynFlags <- parsePragmasIntoDynFlags baseDynFlags file ppstr
+        case dynFlags of
+          Right ghcFlags ->
+            case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of
+                (ParseOk (x, cs), POk _ a) ->
+                    return $ Right (ParsedModuleResults (applyFixity fixity x, cs) a)
+                -- Parse error if GHC parsing fails (see
+                -- https://github.com/ndmitchell/hlint/issues/645).
+                (ParseOk _, PFailed _ loc err) ->
+                    ghcFailOpParseModuleEx ppstr file str (loc, err)
+                (ParseFailed sl msg, pfailed) ->
+                    failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
+          Left msg -> do
+            -- Parsing GHC flags from dynamic pragmas in the source
+            -- has failed. When this happens, it's reported by
+            -- exception. It's impossible or at least fiddly getting a
+            -- location so we skip that for now. Synthesize a parse
+            -- error.
+            let loc = SrcLoc file (1 :: Int) (1 :: Int)
+            return $ Left (ParseError loc msg (context (srcLine loc) ppstr))
 
-        fromPOk (POk _ x) = Just x
-        fromPOk _ = Nothing
+    where
+        fromPFailed (PFailed _ loc err) = Just (loc, err)
+        fromPFailed _ = Nothing
 
         fixity = fromMaybe [] $ fixities $ hseFlags flags
 

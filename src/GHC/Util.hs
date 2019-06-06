@@ -3,7 +3,8 @@
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module GHC.Util (
-    dynFlags
+    baseDynFlags
+  , parsePragmasIntoDynFlags
   , parseFileGhcLib
   , ParseResult (..)
   , pprErrMsgBagWithLoc
@@ -30,6 +31,9 @@ import "ghc-lib-parser" StringBuffer
 import "ghc-lib-parser" ErrUtils
 import "ghc-lib-parser" Outputable
 import "ghc-lib-parser" GHC.LanguageExtensions.Type
+import "ghc-lib-parser" Panic
+import "ghc-lib-parser" HscTypes
+import "ghc-lib-parser" HeaderInfo
 
 import Data.List
 import System.FilePath
@@ -39,9 +43,9 @@ fakeSettings :: Settings
 fakeSettings = Settings
   { sTargetPlatform=platform
   , sPlatformConstants=platformConstants
-  , sProjectVersion=Config.cProjectVersion
+  , sProjectVersion=cProjectVersion
   , sProgramName="ghc"
-  , sOpt_P_fingerprint=Fingerprint.fingerprint0
+  , sOpt_P_fingerprint=fingerprint0
   }
   where
     platform =
@@ -54,21 +58,53 @@ fakeSettings = Settings
 fakeLlvmConfig :: (LlvmTargets, LlvmPasses)
 fakeLlvmConfig = ([], [])
 
-enabledExtensions :: [Extension]
-enabledExtensions = [Cpp .. StarIsType] -- First and last extension in ghc-boot-th/GHC/LanguageExtensions/Type.hs 'data Extension'.
+badExtensions :: [Extension]
+badExtensions =
+  [
+    AlternativeLayoutRule
+  , AlternativeLayoutRuleTransitional
+  , Arrows
+  , TransformListComp
+  , UnboxedTuples
+  , UnboxedSums
+  , QuasiQuotes
+  , RecursiveDo
+ ]
 
-dynFlags :: DynFlags
-dynFlags = foldl' xopt_set
+enabledExtensions :: [Extension]
+enabledExtensions = [x | x <- [Cpp .. StarIsType], x `notElem` badExtensions]
+-- 'Cpp' are the first and last cases of type 'Extension' in
+-- 'libraries/ghc-boot-th/GHC/LanguageExtensions/Type.hs'. When we are
+-- on a version of GHC that has MR
+-- https://gitlab.haskell.org/ghc/ghc/merge_requests/826, we can
+-- replace them with 'minBound' and 'maxBound' respectively.
+
+baseDynFlags :: DynFlags
+baseDynFlags = foldl' xopt_set
              (defaultDynFlags fakeSettings fakeLlvmConfig) enabledExtensions
 
-parseFileGhcLib :: FilePath -> String -> ParseResult (Located (HsModule GhcPs))
-parseFileGhcLib filename str =
+parsePragmasIntoDynFlags ::
+  DynFlags -> FilePath -> String -> IO (Either String DynFlags)
+parsePragmasIntoDynFlags flags filepath str =
+  catchErrors $ do
+    let opts = getOptions flags (stringToStringBuffer str) filepath
+    (flags, _, _) <- parseDynamicFilePragma flags opts
+    return $ Right flags
+  where
+    catchErrors :: IO (Either String DynFlags) -> IO (Either String DynFlags)
+    catchErrors act = handleGhcException reportErr
+                        (handleSourceError reportErr act)
+    reportErr e = return $ Left (show e)
+
+parseFileGhcLib ::
+  FilePath -> String -> DynFlags -> ParseResult (Located (HsModule GhcPs))
+parseFileGhcLib filename str flags =
   Lexer.unP Parser.parseModule parseState
   where
     location = mkRealSrcLoc (mkFastString filename) 1 1
     buffer = stringToStringBuffer $
               if takeExtension filename /= ".lhs" then str else unlit filename str
-    parseState = mkPState dynFlags buffer location
+    parseState = mkPState flags buffer location
 
 ---------------------------------------------------------------------
 -- The following functions are from
