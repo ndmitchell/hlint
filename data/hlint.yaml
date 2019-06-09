@@ -739,6 +739,9 @@
     - warn: {lhs: Data.Maybe.fromMaybe mempty, rhs: Data.Foldable.fold}
     - warn: {lhs: Data.Either.fromRight mempty, rhs: Data.Foldable.fold}
     - warn: {lhs: if f x then Just x else Nothing, rhs: mfilter f (Just x)}
+    - hint: {lhs: maybe (pure ()), rhs: traverse_, note: IncreasesLaziness}
+    - hint: {lhs: fromMaybe (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
+    - hint: {lhs: fromRight (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
 
 - group:
     name: dollar
