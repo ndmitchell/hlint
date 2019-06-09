@@ -490,12 +490,15 @@
     - hint: {lhs: maybe Nothing id, rhs: join}
     - hint: {lhs: maybe Nothing f x, rhs: f =<< x}
     - hint: {lhs: maybe (f x) (f . g), rhs: f . maybe x g, note: IncreasesLaziness, name: Too strict maybe}
+    - hint: {lhs: maybe (pure ()), rhs: traverse_, note: IncreasesLaziness}
+    - hint: {lhs: fromMaybe (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
 
     # EITHER
 
     - warn: {lhs: "[a | Left a <- a]", rhs: lefts a}
     - warn: {lhs: "[a | Right a <- a]", rhs: rights a}
     - warn: {lhs: either Left (Right . f), rhs: fmap f}
+    - hint: {lhs: fromRight (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
 
     # INFIX
 
