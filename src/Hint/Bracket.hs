@@ -26,7 +26,7 @@ yes = f (x) y -- @Warning x
 no = f (+x) y
 no = f ($x) y
 no = ($x)
-yes = (($x)) -- @Warning ($x)
+yes = (($x))
 no = ($1)
 yes = (($1)) -- @Warning ($1)
 no = (+5)
@@ -104,6 +104,7 @@ bracketHint _ _ x =
             x -> x
 
 isPartialAtom :: Exp_ -> Bool
+isPartialAtom (SpliceExp _ IdSplice{}) = True -- might be $x, which was really $ x, but TH enabled misparsed it
 isPartialAtom x = isRecConstr x || isRecUpdate x
 
 -- Dirty, should add to Brackets type class I think
@@ -131,7 +132,7 @@ bracket isPartialAtom root = f Nothing
         -- f (Maybe (index, parent, gen)) child
         f :: (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
         f Just{} o@(remParens -> Just x) | isAtom x, not $ isPartialAtom x = bracketError msg o x : g x
-        f Nothing o@(remParens -> Just x) | root || isAtom x = (if isAtom x then bracketError else bracketWarning) msg o x : g x
+        f Nothing o@(remParens -> Just x) | root || isAtom x, not $ isPartialAtom x = (if isAtom x then bracketError else bracketWarning) msg o x : g x
         f (Just (i,o,gen)) v@(remParens -> Just x) | not $ needBracket i o x, not $ isPartialAtom x =
           suggest msg o (gen x) [r] : g x
           where

@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #662, don't warn on ($x), since it might not really be TH
     #660, suggest tuple sections for \y -> (x,y) and similar
     #667, warn on return x >> m and similar
     #653, add symmetric versions of some == hints
