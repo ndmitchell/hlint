@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #667, warn on return x >> m and similar
     #653, add symmetric versions of some == hints
     #650, add a group of teaching hints
     #651, warn on unused NamedFieldPuns
