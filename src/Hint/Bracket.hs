@@ -22,6 +22,15 @@ no = \(x -> y) -> z
 yes = (`foo` (bar baz)) -- @Suggestion (`foo` bar baz)
 yes = f ((x)) -- @Warning x
 main = do f; (print x) -- @Suggestion do f print x
+yes = f (x) y -- @Warning x
+no = f (+x) y
+no = f ($x) y
+no = ($x)
+yes = (($x)) -- @Warning ($x)
+no = ($1)
+yes = (($1)) -- @Warning ($1)
+no = (+5)
+yes = ((+5)) -- @Warning (+5)
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int

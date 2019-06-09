@@ -1,0 +1,29 @@
+---------------------------------------------------------------------
+RUN tests/bracket-slice.hs
+FILE tests/bracket-slice.hs
+
+fAnd :: [a -> Bool] -> a -> Bool
+fAnd fs x = all ($x) fs
+
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/bracket-slice-spaced.hs
+FILE tests/bracket-slice-spaced.hs
+
+fAnd :: [a -> Bool] -> a -> Bool
+fAnd fs x = all ($ x) fs
+
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/bracket-slice-plus.hs
+FILE tests/bracket-slice-plus.hs
+
+incAll :: [Int] -> Int -> [Int]
+incAll ys x = map (+x) fs
+
+OUTPUT
+No hints
