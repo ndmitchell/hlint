@@ -352,6 +352,8 @@
 
     - hint: {lhs: return x <*> y, rhs: x <$> y}
     - hint: {lhs: pure x <*> y, rhs: x <$> y}
+    - warn: {lhs: x <* pure y, rhs: x}
+    - warn: {lhs: pure x *> y, rhs: "y"}
 
     # MONAD
 
@@ -397,6 +399,10 @@
     - warn: {lhs: mapM_ (void . f), rhs: mapM_ f}
     - warn: {lhs: forM_ x (void . f), rhs: forM_ x f}
     - warn: {lhs: a >>= \_ -> b, rhs: a >> b}
+    - warn: {lhs: m <* return x, rhs: m}
+    - warn: {lhs: return x *> m, rhs: m}
+    - warn: {lhs: pure x >> m, rhs: m}
+    - warn: {lhs: return x >> m, rhs: m}
 
     # STATE MONAD
 
