@@ -87,6 +87,7 @@ HLint is integrated into lots of places:
 * [Danger](http://allocinit.io/haskell/danger-and-hlint/) can be used to automatically comment on pull requests with HLint suggestions.
 * [Restyled](https://restyled.io) includes an HLint Restyler to automatically run `hlint --refactor` on files changed in GitHub Pull Requests.
 * [lpaste](http://lpaste.net/) integrates with HLint - suggestions are shown at the bottom.
+* [hlint-test](https://hackage.haskell.org/package/hlint-test) helps you write a small test runner with HLint.
 
 ### Automatically Applying Hints
 
