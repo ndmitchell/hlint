@@ -131,5 +131,5 @@ parseModuleEx flags file str = fmap pm_hsext <$> parseModuleExInternal flags fil
 _docs :: IO ()
 _docs = do
     (flags, classify, hint) <- autoSettings
-    Right (m, c) <- parseModuleEx flags "MyFile.hs" Nothing
-    print $ applyHints classify hint [(m, c)]
+    Right m <- parseModuleEx flags "MyFile.hs" Nothing
+    print $ applyHints classify hint [m]
