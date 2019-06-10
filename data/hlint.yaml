@@ -472,7 +472,8 @@
     - warn: {lhs: "maybe [] (:[])", rhs: maybeToList}
     - warn: {lhs: catMaybes (map f x), rhs: mapMaybe f x}
     - warn: {lhs: catMaybes (fmap f x), rhs: mapMaybe f x}
-    - hint: {lhs: case x of Nothing -> y; Just a -> a , rhs: fromMaybe y x}
+    - hint: {lhs: case x of Nothing -> y; Just a -> a , rhs: Data.Maybe.fromMaybe y x, name: Replace case with fromMaybe}
+    - hint: {lhs: case x of Just a -> a; Nothing -> y, rhs: Data.Maybe.fromMaybe y x, name: Replace case with fromMaybe}
     - warn: {lhs: if isNothing x then y else f (fromJust x), rhs: maybe y f x}
     - warn: {lhs: if isJust x then f (fromJust x) else y, rhs: maybe y f x}
     - warn: {lhs: maybe Nothing (Just . f), rhs: fmap f}
@@ -484,7 +485,6 @@
     - warn: {lhs: concatMap (maybeToList . f), rhs: Data.Maybe.mapMaybe f}
     - warn: {lhs: concatMap maybeToList, rhs: catMaybes}
     - warn: {lhs: maybe n Just x, rhs: x Control.Applicative.<|> n}
-    - hint: {lhs: case x of Just a -> a; Nothing -> y, rhs: fromMaybe y x}
     - warn: {lhs: if isNothing x then y else fromJust x, rhs: fromMaybe y x}
     - warn: {lhs: if isJust x then fromJust x else y, rhs: fromMaybe y x}
     - warn: {lhs: isJust x && (fromJust x == y), rhs: x == Just y}
