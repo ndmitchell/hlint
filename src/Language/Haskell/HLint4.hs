@@ -22,14 +22,14 @@ module Language.Haskell.HLint4(
     findSettings, readSettingsFile,
     -- * Hints
     Hint, resolveHints,
-    -- * Haskell-src-exts
-    parseModuleEx, defaultParseFlags, parseFlagsAddFixities, ParseError(..), ParseFlags(..), CppFlags(..)
+    -- * Parse files
+    ModuleEx, parseModuleEx, defaultParseFlags, parseFlagsAddFixities, ParseError(..), ParseFlags(..), CppFlags(..)
     ) where
 
 import Config.Type
 import Config.Read
 import Idea
-import Apply
+import qualified Apply as H
 import HLint
 import HSE.All
 import Hint.All hiding (resolveHints)
@@ -123,8 +123,19 @@ splitSettings xs =
 -- filename @-@ is treated as @stdin@. Requires some flags (often
 -- 'defaultParseFlags'), the filename, and optionally the contents of
 -- that file. This version uses both hs-src-exts AND ghc-lib.
-parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
-parseModuleEx flags file str = fmap pm_hsext <$> parseModuleExInternal flags file str
+parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ModuleEx)
+parseModuleEx flags file str = parseModuleExInternal flags file str
+
+
+-- | Given a way of classifying results, and a 'Hint', apply to a set of modules generating a list of 'Idea's.
+--   The 'Idea' values will be ordered within a file.
+--
+--   Given a set of modules, it may be faster pass each to 'applyHints' in a singleton list.
+--   When given multiple modules at once this function attempts to find hints between modules,
+--   which is slower and often pointless (by default HLint passes modules singularly, using
+--   @--cross@ to pass all modules together).
+applyHints :: [Classify] -> Hint -> [ModuleEx] -> [Idea]
+applyHints a b = H.applyHints a b . map pm_hsext
 
 
 -- | Snippet from the documentation, if this changes, update the documentation
