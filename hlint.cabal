@@ -66,8 +66,6 @@ library
         build-depends: hscolour >= 1.21
     else
         cpp-options: -DGPL_SCARES_ME
-    if impl(ghc < 8.0)
-        build-depends: semigroups >= 0.18
 
     hs-source-dirs:     src
     exposed-modules:
