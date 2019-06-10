@@ -73,6 +73,7 @@ library
     exposed-modules:
         Language.Haskell.HLint
         Language.Haskell.HLint3
+        Language.Haskell.HLint4
     other-modules:
         Paths_hlint
         Apply
