@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #658, ignore the previously undocumented {- LINT -} comments
     #658, force parsing of all pragmas and comments eagerly
     #665, make different fromMaybe hints have different names
     #664, better name for the Use uncurry hint

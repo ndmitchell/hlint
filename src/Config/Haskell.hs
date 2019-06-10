@@ -83,7 +83,7 @@ readComment o@(Comment True _ x)
     | (hash, x) <- maybe (False, x) (True,) $ stripPrefix "#" x
     , x <- trim x
     , (hlint, x) <- word1 x
-    , lower hlint `elem` ["lint","hlint"]
+    , lower hlint == "hlint"
     = f hash x
     where
         f hash x
