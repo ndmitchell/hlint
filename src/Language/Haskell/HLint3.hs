@@ -24,7 +24,8 @@ import Config.Read
 import Idea
 import Apply
 import HLint
-import HSE.All
+import HSE.All hiding (parseModuleEx)
+import qualified HSE.All as H
 import Hint.All
 import CmdLine
 import Paths_hlint
@@ -113,7 +114,7 @@ splitSettings xs =
 -- 'defaultParseFlags'), the filename, and optionally the contents of
 -- that file. This version uses both hs-src-exts AND ghc-lib.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
-parseModuleEx flags file str = fmap pm_hsext <$> parseModuleExInternal flags file str
+parseModuleEx flags file str = fmap pm_hsext <$> H.parseModuleEx flags file str
 
 
 -- | Snippet from the documentation, if this changes, update the documentation

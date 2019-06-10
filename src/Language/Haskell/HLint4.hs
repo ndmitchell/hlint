@@ -118,14 +118,6 @@ splitSettings xs =
     ,[x | SettingClassify x <- xs]
     ,H.resolveHints $ [Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])
 
--- | Parse a Haskell module. Applies the C pre processor, and uses
--- best-guess fixity resolution if there are ambiguities.  The
--- filename @-@ is treated as @stdin@. Requires some flags (often
--- 'defaultParseFlags'), the filename, and optionally the contents of
--- that file. This version uses both hs-src-exts AND ghc-lib.
-parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ModuleEx)
-parseModuleEx flags file str = parseModuleExInternal flags file str
-
 
 -- | Given a way of classifying results, and a 'Hint', apply to a set of modules generating a list of 'Idea's.
 --   The 'Idea' values will be ordered within a file.

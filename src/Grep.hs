@@ -22,7 +22,7 @@ runGrep patt flags files = do
     let scope = scopeCreate $ Module an Nothing [] [] []
     let rule = hintRules [HintRule Suggestion "grep" scope exp (Tuple an Boxed []) Nothing []]
     forM_ files $ \file -> do
-        res <- parseModuleExInternal flags file Nothing
+        res <- parseModuleEx flags file Nothing
         case res of
             Left (ParseError sl msg ctxt) ->
                 print $ rawIdeaN Error (if "Parse error" `isPrefixOf` msg then msg else "Parse error: " ++ msg) (mkSrcSpan sl sl) ctxt Nothing []
