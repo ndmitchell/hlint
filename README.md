@@ -1,6 +1,6 @@
 # HLint [![Hackage version](https://img.shields.io/hackage/v/hlint.svg?label=Hackage)](https://hackage.haskell.org/package/hlint) [![Stackage version](https://www.stackage.org/package/hlint/badge/nightly?label=Stackage)](https://www.stackage.org/package/hlint) [![Linux build status](https://img.shields.io/travis/ndmitchell/hlint/master.svg?label=Linux%20build)](https://travis-ci.org/ndmitchell/hlint) [![Windows build status](https://img.shields.io/appveyor/ci/ndmitchell/hlint/master.svg?label=Windows%20build)](https://ci.appveyor.com/project/ndmitchell/hlint)
 
-HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. You can try HLint online at [lpaste.net](http://lpaste.net/) - suggestions are shown at the bottom. This document is structured as follows:
+HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
 
 * [Installing and running HLint](#installing-and-running-hlint)
 * [FAQ](#faq)
@@ -86,6 +86,7 @@ HLint is integrated into lots of places:
 * [Code Climate](https://docs.codeclimate.com/v1.0/docs/hlint) is a CI for analysis which integrates HLint.
 * [Danger](http://allocinit.io/haskell/danger-and-hlint/) can be used to automatically comment on pull requests with HLint suggestions.
 * [Restyled](https://restyled.io) includes an HLint Restyler to automatically run `hlint --refactor` on files changed in GitHub Pull Requests.
+* [lpaste](http://lpaste.net/) integrates with HLint - suggestions are shown at the bottom.
 
 ### Automatically Applying Hints
 
