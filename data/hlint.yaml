@@ -263,6 +263,7 @@
     - warn: {lhs: "\\(x,y) -> x", rhs: fst}
     - hint: {lhs: "\\x y -> f (x,y)", rhs: curry f, name: Use curry}
     - hint: {lhs: "\\(x,y) -> f x y", rhs: uncurry f, note: IncreasesLaziness, name: Use uncurry}
+    - warn: {lhs: f (fst p) (snd p), rhs: uncurry f p, name: Use uncurry}
     - warn: {lhs: ($) . f, rhs: f, name: Redundant $}
     - warn: {lhs: (f $), rhs: f, name: Redundant $}
     - warn: {lhs: (Data.Function.& f), rhs: f, name: Redundant Data.Function.&}
@@ -606,7 +607,6 @@
     - warn: {lhs: either f g (Right y), rhs: g y, name: Evaluate}
     - warn: {lhs: "fst (x,y)", rhs: x, name: Evaluate}
     - warn: {lhs: "snd (x,y)", rhs: "y", name: Evaluate}
-    - warn: {lhs: f (fst p) (snd p), rhs: uncurry f p, name: Evaluate}
     - warn: {lhs: "init [x]", rhs: "[]", name: Evaluate}
     - warn: {lhs: "null []", rhs: "True", name: Evaluate}
     - warn: {lhs: "length []", rhs: "0", name: Evaluate}

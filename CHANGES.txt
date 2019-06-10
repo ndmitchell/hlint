@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #664, better name for the Use uncurry hint
     #659, make hints with brackets at the root work
 2.1.23, released 2019-06-09
     Make it an error if your code does not parse with GHC
