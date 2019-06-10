@@ -50,7 +50,7 @@ import CC
 --
 --   /Warning:/ The flags provided by HLint are relatively stable, but do not have the same
 --   API stability guarantees as the rest of the strongly-typed API. Do not run this function
---   on a your server with untrusted input.
+--   on your server with untrusted input.
 hlint :: [String] -> IO [Idea]
 hlint args = do
     cmd <- getCmd args
