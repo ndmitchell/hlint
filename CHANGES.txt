@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #658, force parsing of all pragmas and comments eagerly
     #665, make different fromMaybe hints have different names
     #664, better name for the Use uncurry hint
     #659, make hints with brackets at the root work

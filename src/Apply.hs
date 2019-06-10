@@ -45,11 +45,13 @@ applyHints cs = applyHintsReal $ map SettingClassify cs
 
 applyHintsReal :: [Setting] -> Hint -> [(Module_, [Comment])] -> [Idea]
 applyHintsReal settings hints_ ms = concat $
-    [ map (classify (cls ++ mapMaybe readPragma (universeBi m) ++ concatMap readComment cs) . removeRequiresExtensionNotes m) $
+    [ map (classify classifiers . removeRequiresExtensionNotes m) $
         order [] (hintModule hints settings nm m) `merge`
         concat [order [fromNamed d] $ decHints d | d <- moduleDecls m] `merge`
         concat [order [] $ hintComment hints settings c | c <- cs]
     | (nm,(m,cs)) <- mns
+    , let classifiers = cls ++ mapMaybe readPragma (universeBi m) ++ concatMap readComment cs
+    , seq (length classifiers) True -- to force any errors from readPragma or readComment
     , let decHints = hintDecl hints settings nm m -- partially apply
     , let order n = map (\i -> i{ideaModule= f $ moduleName m : ideaModule i, ideaDecl= f $ n ++ ideaDecl i}) . sortOn ideaSpan
     , let merge = mergeBy (comparing ideaSpan)] ++
