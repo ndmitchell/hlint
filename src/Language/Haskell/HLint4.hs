@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, RecordWildCards #-}
 
--- | /WARNING: This module represents the evolving second version of the HLint API./
+-- | /WARNING: This module represents the evolving version of the HLint API./
 --   /It will be renamed to drop the "4" in the next major version./
 --
 --   This module provides a way to apply HLint hints. If you want to just run @hlint@ in-process
