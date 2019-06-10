@@ -65,7 +65,7 @@ autoSettings = do
     return (parseFlagsAddFixities fixities defaultParseFlags, classify, hints)
 
 
--- | Identity - in previous versions of HLint this function was useful. Now, just delete it.
+-- | The identity function. In previous versions of HLint this function was useful. Now, it isn't.
 resolveHints :: Hint -> Hint
 resolveHints = id
 
