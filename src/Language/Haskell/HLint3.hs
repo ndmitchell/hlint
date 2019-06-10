@@ -106,6 +106,16 @@ splitSettings xs =
     ,[x | SettingClassify x <- xs]
     ,[Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])
 
+
+-- | Parse a Haskell module. Applies the C pre processor, and uses
+-- best-guess fixity resolution if there are ambiguities.  The
+-- filename @-@ is treated as @stdin@. Requires some flags (often
+-- 'defaultParseFlags'), the filename, and optionally the contents of
+-- that file. This version uses both hs-src-exts AND ghc-lib.
+parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
+parseModuleEx flags file str = fmap pm_hsext <$> parseModuleExInternal flags file str
+
+
 -- | Snippet from the documentation, if this changes, update the documentation
 _docs :: IO ()
 _docs = do
