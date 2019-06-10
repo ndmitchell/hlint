@@ -6,7 +6,7 @@ module HSE.All(
     module X,
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
-    parseModuleEx, ParseError(..), ParsedModuleResults(..),
+    parseModuleEx, ParseError(..), ModuleEx(..),
     parseModuleExInternal,
     freeVars, vars, varss, pvars
     ) where
@@ -158,8 +158,9 @@ data ParseError = ParseError
     , parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
     }
 
--- | Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
-data ParsedModuleResults = ParsedModuleResults {
+-- | Result of 'parseModuleEx', representing a parsed module.
+data ModuleEx = ModuleEx {
+    -- Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
     pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result
   , pm_ghclib :: Located (HsSyn.HsModule HsSyn.GhcPs) -- ghc-lib-parser result
 }
@@ -176,7 +177,7 @@ failOpParseModuleEx :: String
                     -> SrcLoc
                     -> String
                     -> Maybe (GHC.SrcSpan, ErrUtils.MsgDoc)
-                    -> IO (Either ParseError ParsedModuleResults)
+                    -> IO (Either ParseError ModuleEx)
 failOpParseModuleEx ppstr flags file str sl msg ghc =
    case ghc of
      Just err ->
@@ -197,7 +198,7 @@ hseFailOpParseModuleEx :: String
                        -> String
                        -> SrcLoc
                        -> String
-                       -> IO (Either ParseError ParsedModuleResults)
+                       -> IO (Either ParseError ModuleEx)
 hseFailOpParseModuleEx ppstr flags file str sl msg = do
     flags <- return $ parseFlagsNoLocations flags
     ppstr2 <- runCpp (cppFlags flags) file str
@@ -211,7 +212,7 @@ ghcFailOpParseModuleEx :: String
                        -> FilePath
                        -> String
                        -> (GHC.SrcSpan, ErrUtils.MsgDoc)
-                       -> IO (Either ParseError ParsedModuleResults)
+                       -> IO (Either ParseError ModuleEx)
 ghcFailOpParseModuleEx ppstr file str (loc, err) = do
    let sl =
          case loc of
@@ -236,7 +237,7 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError (Module SrcSpanInfo, [Comment]))
 parseModuleEx flags file str = fmap pm_hsext <$> parseModuleExInternal flags file str
 
-parseModuleExInternal :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ParsedModuleResults)
+parseModuleExInternal :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ModuleEx)
 parseModuleExInternal flags file str = timedIO "Parse" file $ do
         str <- case str of
             Just x -> return x
@@ -249,7 +250,7 @@ parseModuleExInternal flags file str = timedIO "Parse" file $ do
           Right ghcFlags ->
             case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of
                 (ParseOk (x, cs), POk _ a) ->
-                    return $ Right (ParsedModuleResults (applyFixity fixity x, cs) a)
+                    return $ Right (ModuleEx (applyFixity fixity x, cs) a)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
                 (ParseOk _, PFailed _ loc err) ->

@@ -18,7 +18,7 @@ computeSettings flags file = do
     case x of
         Left (ParseError sl msg _) ->
             return ("# Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
-        Right (ParsedModuleResults (m, _) _) -> do
+        Right (ModuleEx (m, _) _) -> do
             let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
                 r = concatMap (readSetting mempty) xs
                 s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting r ++ ["# no hints found" | null xs]
