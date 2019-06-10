@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #659, make hints with brackets at the root work
 2.1.23, released 2019-06-09
     Make it an error if your code does not parse with GHC
     #662, don't warn on ($x), since it might not really be TH

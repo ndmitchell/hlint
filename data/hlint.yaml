@@ -913,6 +913,7 @@
 # no = sequence (return x)
 # no = sequenceA (pure a)
 # {-# LANGUAGE QuasiQuotes #-}; no = f (\url -> [hamlet|foo @{url}|])
+# yes = f ((,) x) -- (x,)
 
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM
