@@ -21,10 +21,7 @@ module Language.Haskell.HLint4(
     getHLintDataDir, autoSettings, argsSettings,
     findSettings, readSettingsFile,
     -- * Hints
-    HintBuiltin(..), HintRule(..),
-    Hint(..), resolveHints,
-    -- * Scopes
-    Scope, scopeCreate, scopeMatch, scopeMove,
+    Hint, resolveHints,
     -- * Haskell-src-exts
     parseModuleEx, defaultParseFlags, parseFlagsAddFixities, ParseError(..), ParseFlags(..), CppFlags(..)
     ) where
@@ -35,7 +32,8 @@ import Idea
 import Apply
 import HLint
 import HSE.All
-import Hint.All
+import Hint.All hiding (resolveHints)
+import qualified Hint.All as H
 import CmdLine
 import Paths_hlint
 
@@ -64,8 +62,12 @@ getHLintDataDir = getDataDir
 autoSettings :: IO (ParseFlags, [Classify], Hint)
 autoSettings = do
     (fixities, classify, hints) <- findSettings (readSettingsFile Nothing) Nothing
-    return (parseFlagsAddFixities fixities defaultParseFlags, classify, resolveHints hints)
+    return (parseFlagsAddFixities fixities defaultParseFlags, classify, hints)
 
+
+-- | Identity - in previous versions of HLint this function was useful. Now, just delete it.
+resolveHints :: Hint -> Hint
+resolveHints = id
 
 -- | A version of 'autoSettings' which respects some of the arguments supported by HLint.
 --   If arguments unrecognised by HLint are used it will result in an error.
@@ -81,7 +83,7 @@ argsSettings args = do
             let flags = parseFlagsSetLanguage (cmdExtensions cmd) $ parseFlagsAddFixities fixities $
                         defaultParseFlags{cppFlags = cmdCpp cmd}
             let ignore = [Classify Ignore x "" "" | x <- cmdIgnore]
-            return (flags, classify ++ ignore, resolveHints hints)
+            return (flags, classify ++ ignore, hints)
         _ -> error "Can only invoke autoSettingsArgs with the root process"
 
 
@@ -104,17 +106,17 @@ readSettingsFile dir x
 
 -- | Given a function to load a module (typically 'readSettingsFile'), and a module to start from
 --   (defaults to @hlint.yaml@) find the information from all settings files.
-findSettings :: (String -> IO (FilePath, Maybe String)) -> Maybe String -> IO ([Fixity], [Classify], [Either HintBuiltin HintRule])
+findSettings :: (String -> IO (FilePath, Maybe String)) -> Maybe String -> IO ([Fixity], [Classify], Hint)
 findSettings load start = do
     (file,contents) <- load $ fromMaybe "hlint.yaml" start
     splitSettings <$> readFilesConfig [(file,contents)]
 
 -- | Split a list of 'Setting' for separate use in parsing and hint resolution
-splitSettings :: [Setting] -> ([Fixity], [Classify], [Either HintBuiltin HintRule])
+splitSettings :: [Setting] -> ([Fixity], [Classify], Hint)
 splitSettings xs =
     ([x | Infix x <- xs]
     ,[x | SettingClassify x <- xs]
-    ,[Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])
+    ,H.resolveHints $ [Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])
 
 -- | Snippet from the documentation, if this changes, update the documentation
 _docs :: IO ()
