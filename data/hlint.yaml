@@ -98,10 +98,11 @@
     - warn: {lhs: head (sortBy f x), rhs: minimumBy f x, side: isCompare f}
     - warn: {lhs: last (sortBy f x), rhs: maximumBy f x, side: isCompare f}
     - warn: {lhs: reverse (sortBy f x), rhs: sortBy (flip f) x, name: Avoid reverse, side: isCompare f}
-    - warn: {lhs: sortBy (comparing (flip f)), rhs: sortOn (Down . f)}
-    - warn: {lhs: sortBy (comparing f), rhs: sortOn f}
+    - warn: {lhs: sortBy (comparing (flip f)), rhs: GHC.Exts.sortWith (Down . f)}
+    - warn: {lhs: sortBy (comparing f), rhs: GHC.Exts.sortWith f}
     - warn: {lhs: reverse (sortOn f x), rhs: sortOn (Data.Ord.Down . f) x, name: Avoid reverse}
-    - warn: {lhs: reverse (sort x), rhs: sortOn Data.Ord.Down x, name: Avoid reverse}
+    - warn: {lhs: reverse (sort x), rhs: GHC.Exts.sortWith Data.Ord.Down x, name: Avoid reverse}
+    - warn: {lhs: reverse (sortWith f x), rhs: sortWith (Data.Ord.Down . f) x, name: Avoid reverse}
     - hint: {lhs: flip (g `on` h), rhs: flip g `on` h, name: Move flip}
     - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h), name: Fuse on/on}
 
@@ -943,7 +944,7 @@
 # main = hello .~ Just 12 -- hello ?~ 12
 # foo = liftIO $ window `on` deleteEvent $ do a; b
 # no = sort <$> f input `shouldBe` sort <$> x
-# sortBy (comparing snd) -- sortOn snd
+# sortBy (comparing snd) -- GHC.Exts.sortWith snd
 # myJoin = on $ child ^. ChildParentId ==. parent ^. ParentId
 # foo = typeOf (undefined :: Foo Int) -- typeRep (Proxy :: Proxy (Foo Int))
 # foo = typeOf (undefined :: a) -- typeRep (Proxy :: Proxy a)
