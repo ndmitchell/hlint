@@ -443,6 +443,7 @@
     # LIST COMP
 
     - hint: {lhs: "if b then [x] else []", rhs: "[x | b]", name: Use list comprehension}
+    - hint: {lhs: "if b then [] else [x]", rhs: "[x | not b]", name: Use list comprehension}
     - hint: {lhs: "[x | x <- y]", rhs: "y", side: isVar x, name: Redundant list comprehension}
 
     # SEQ
@@ -759,6 +760,8 @@
     rules:
     - hint: {lhs: "x /= []", rhs: not (null x), name: Use null}
     - hint: {lhs: "[] /= x", rhs: not (null x), name: Use null}
+    - hint: {lhs: "not (x || y)", rhs: "not x && not y", name: Apply De Morgan law}
+    - hint: {lhs: "not (x && y)", rhs: "not x || not y", name: Apply De Morgan law}
 
 
 # <TEST>
