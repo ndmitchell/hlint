@@ -498,12 +498,23 @@
     - hint: {lhs: maybe Nothing id, rhs: join}
     - hint: {lhs: maybe Nothing f x, rhs: f =<< x}
     - hint: {lhs: maybe (f x) (f . g), rhs: f . maybe x g, note: IncreasesLaziness, name: Too strict maybe}
+    - warn: {lhs: isJust . fmap f, rhs: isJust, name: Redundant fmap}
+    - warn: {lhs: isNothing . fmap f, rhs: isNothing, name: Redundant fmap}
+    - warn: {lhs: fromJust . fmap f, rhs: f . fromJust}
+    - warn: {lhs: mapMaybe f . fmap g, rhs: mapMaybe (f . g)}
+
 
     # EITHER
 
     - warn: {lhs: "[a | Left a <- a]", rhs: lefts a}
     - warn: {lhs: "[a | Right a <- a]", rhs: rights a}
     - warn: {lhs: either Left (Right . f), rhs: fmap f}
+    - warn: {lhs: either f g . fmap h, rhs: either f (g . h)}
+    - warn: {lhs: isLeft . fmap f, rhs: isLeft, name: Redundant fmap}
+    - warn: {lhs: isRight . fmap f, rhs: isRight, name: Redundant fmap}
+    - warn: {lhs: fromLeft x . fmap f, rhs: fromLeft x, name: Redundant fmap}
+    - warn: {lhs: fromRight x . fmap f, rhs: either (const x) f}
+
 
     # INFIX
 
