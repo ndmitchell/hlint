@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    Add back two $ hints removed in error
 2.1.24, released 2019-06-10
     Add Language.Haskell.HLint4
     #658, ignore the previously undocumented {- LINT -} comments
