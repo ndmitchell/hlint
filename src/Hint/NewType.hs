@@ -19,6 +19,9 @@ data A = A {b :: !C} -- newtype A = A {b :: C}
 data A = A Int#
 {-# LANGUAGE UnboxedTuples #-}; data WithAnn x = WithAnn (# Ann, x #)
 data A = A () -- newtype A = A ()
+newtype Foo = Foo Int deriving (Show, Eq) -- newtype Foo = Foo Int deriving newtype (Show, Eq)
+newtype Foo = Foo { getFoo :: Int } deriving (Show, Eq) -- newtype Foo = Foo { getFoo :: Int } deriving newtype (Show, Eq)
+newtype Foo = Foo Int deriving stock Show
 </TEST>
 -}
 module Hint.NewType (newtypeHint) where
@@ -26,7 +29,7 @@ module Hint.NewType (newtypeHint) where
 import Hint.Type
 
 newtypeHint :: DeclHint
-newtypeHint _ _ = newtypeHintDecl
+newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
 
 newtypeHintDecl :: Decl_ -> [Idea]
 newtypeHintDecl x
@@ -44,3 +47,21 @@ singleSimpleField (DataDecl x1 dt x2 x3 [QualConDecl y1 Nothing Nothing ctor] x4
         f (RecDecl x1 x2 [FieldDecl y1 [y2] t]) = Just (t, \t -> RecDecl x1 x2 [FieldDecl y1 [y2] t])
         f _ = Nothing
 singleSimpleField _ = Nothing
+
+newTypeDerivingStrategiesHintDecl :: Decl_ -> [Idea]
+newTypeDerivingStrategiesHintDecl x = [ignoreN "Use DerivingStrategies" x new | Just new <- [newtypeDecl x]]
+
+newtypeDecl :: Decl_ -> Maybe Decl_
+newtypeDecl (DataDecl x1 x2@(NewType _) x3 x4 x5 x6)
+    | any hasNoStrategy x6 = Just $ DataDecl x1 x2 x3 x4 x5 (withNewtype <$> x6)
+newtypeDecl (GDataDecl x1 x2@(NewType _) x3 x4 x5 x6 x7)
+    | any hasNoStrategy x7 = Just $ GDataDecl x1 x2 x3 x4 x5 x6 (withNewtype <$> x7)
+newtypeDecl _ = Nothing
+
+hasNoStrategy :: Deriving a -> Bool
+hasNoStrategy (Deriving _ Nothing _) = True
+hasNoStrategy _                      = False
+
+withNewtype :: Deriving a -> Deriving a
+withNewtype (Deriving l Nothing rs)  = Deriving l (Just $ DerivNewtype l) rs
+withNewtype d                        = d
