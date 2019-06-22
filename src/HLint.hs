@@ -205,6 +205,7 @@ getIdeas cmd@CmdMain{..} settings = do
         else ideas
 
 handleRefactoring :: [Idea] -> [String] -> Cmd -> IO ()
+handleRefactoring [] _ _ = pure () -- No refactorings to apply
 handleRefactoring ideas files cmd@CmdMain{..} =
     case cmdFiles of
         [file] -> do
