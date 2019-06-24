@@ -3,7 +3,7 @@
 module Idea(
     Idea(..),
     rawIdea, idea, suggest, warn, ignore,
-    rawIdeaN, suggestN,
+    rawIdeaN, suggestN, ignoreN,
     showIdeasJson, showANSI,
     Note(..), showNotes,
     Severity(..)
@@ -92,3 +92,4 @@ ignore = idea Ignore
 ideaN severity hint from to = idea severity hint from to []
 
 suggestN = ideaN Suggestion
+ignoreN = ideaN Ignore
