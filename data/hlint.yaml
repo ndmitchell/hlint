@@ -128,6 +128,7 @@
     - warn: {lhs: "cycle [x]", rhs: repeat x}
     - warn: {lhs: head (reverse x), rhs: last x}
     - warn: {lhs: head (drop n x), rhs: x !! n, side: isNat n}
+    - warn: {lhs: head (drop n x), rhs: x !! max 0 n, side: not (isNat n)}
     - warn: {lhs: reverse (tail (reverse x)), rhs: init x, note: IncreasesLaziness}
     - warn: {lhs: reverse (reverse x), rhs: x, note: IncreasesLaziness, name: Avoid reverse}
     - warn: {lhs: isPrefixOf (reverse x) (reverse y), rhs: isSuffixOf x y}
