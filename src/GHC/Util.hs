@@ -1,7 +1,6 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module GHC.Util (
     baseDynFlags
@@ -99,9 +98,7 @@ parsePragmasIntoDynFlags flags (enable, disable) filepath str =
   catchErrors $ do
     let opts = getOptions flags (stringToStringBuffer str) filepath
     (flags, _, _) <- parseDynamicFilePragma flags opts
-    -- Explicit enable extensions
     let flags' =  foldl' xopt_set flags enable
-    -- Explicit disable extensions
     let flags'' = foldl' xopt_unset flags' disable
     return $ Right flags''
   where

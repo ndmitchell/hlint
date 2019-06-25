@@ -255,9 +255,6 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                     | otherwise -> readFileUTF8' file
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
-        -- Pull out langexts passed by config or command line to
-        -- explicitly enable/disable
-        -- (see https://github.com/ndmitchell/hlint/issues/681).
         let enableDisableExts = ghcExtensionsFromParseFlags flags
         dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
