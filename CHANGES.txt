@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #683, add Use DerivingStrategies hint, ignored by default
     #685, skip running refactoring tool if there are no hints
     #675, warn about redundant fmaps on Eithers and Maybes
     Add back two $ hints removed in error
