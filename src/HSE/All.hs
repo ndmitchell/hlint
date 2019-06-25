@@ -24,13 +24,13 @@ import Data.List.Extra
 import Data.Maybe
 import Timing
 import Language.Preprocessor.Cpphs
+import Data.Either
 import Data.Set (Set)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import System.IO.Extra
 import Data.Functor
 import Prelude
-import qualified Data.Map.Strict
 
 import GHC.Util
 import qualified "ghc-lib-parser" HsSyn
@@ -232,22 +232,15 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
    return $ Left $ ParseError sl msg pe
 
 -- | Produce a pair of lists from a 'ParseFlags' value representing
---   language extensions to explicitly enable/disable.
+-- language extensions to explicitly enable/disable.
 ghcExtensionsFromParseFlags :: ParseFlags
                              -> ([GHC.Extension], [GHC.Extension])
 ghcExtensionsFromParseFlags ParseFlags {hseFlags=ParseMode {extensions=exts}}=
-    foldl' classify ([], []) exts
-    where
-       classify acc@(enable, disable) ke =
-         case ke of
-           EnableExtension e ->
-             case Data.Map.Strict.lookup e hseToGhcExtension of
-               Just e' -> (e' : enable, disable)
-               Nothing -> acc
-           DisableExtension e ->
-             case Data.Map.Strict.lookup e hseToGhcExtension of
-               Just e' -> (enable, e' : disable)
-               Nothing -> acc
+   partitionEithers $ mapMaybe toEither exts
+   where
+     toEither ke = case ke of
+       EnableExtension e  -> Left  <$> Map.lookup e hseToGhcExtension
+       DisableExtension e -> Right <$> Map.lookup e hseToGhcExtension
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The

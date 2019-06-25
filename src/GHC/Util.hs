@@ -1,6 +1,7 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module GHC.Util (
     baseDynFlags
@@ -40,7 +41,8 @@ import Data.List
 import System.FilePath
 import Language.Preprocessor.Unlit
 import qualified Language.Haskell.Exts.Extension as HSE
-import qualified Data.Map.Strict
+import qualified Data.Map.Strict as Map
+import Text.Read
 
 fakeSettings :: Settings
 fakeSettings = Settings
@@ -211,116 +213,9 @@ isDotApp _ = False
 
 -- | A mapping from 'HSE.KnownExtension' values to their
 -- 'GHC.LanguageExtensions.Type.Extension' equivalents.
-hseToGhcExtension :: Data.Map.Strict.Map HSE.KnownExtension Extension
+hseToGhcExtension :: Map.Map HSE.KnownExtension Extension
 hseToGhcExtension =
-  Data.Map.Strict.fromList
-    [ (HSE.OverlappingInstances, OverlappingInstances)
-    , (HSE.UndecidableInstances, UndecidableInstances)
-    , (HSE.IncoherentInstances, IncoherentInstances)
-    , (HSE.InstanceSigs, InstanceSigs)
-    , (HSE.RecursiveDo, RecursiveDo)
-    , (HSE.ParallelListComp, ParallelListComp)
-    , (HSE.MultiParamTypeClasses, MultiParamTypeClasses)
-    , (HSE.MonomorphismRestriction, MonomorphismRestriction)
-    , (HSE.FunctionalDependencies, FunctionalDependencies)
-    , (HSE.RankNTypes, RankNTypes)
-    , (HSE.ExistentialQuantification, ExistentialQuantification)
-    , (HSE.ScopedTypeVariables, ScopedTypeVariables)
-    , (HSE.ImplicitParams, ImplicitParams)
-    , (HSE.FlexibleContexts, FlexibleContexts)
-    , (HSE.FlexibleInstances, FlexibleInstances)
-    , (HSE.EmptyDataDecls, EmptyDataDecls)
-    , (HSE.KindSignatures, KindSignatures)
-    , (HSE.BangPatterns, BangPatterns)
-    , (HSE.TypeSynonymInstances, TypeSynonymInstances)
-    , (HSE.TemplateHaskell, TemplateHaskell)
-    , (HSE.ForeignFunctionInterface, ForeignFunctionInterface)
-    , (HSE.Arrows, Arrows)
-    , (HSE.ImplicitPrelude, ImplicitPrelude)
-    , (HSE.PatternGuards, PatternGuards)
-    , (HSE.GeneralizedNewtypeDeriving, GeneralizedNewtypeDeriving)
-    , (HSE.DeriveAnyClass, DeriveAnyClass)
-    , (HSE.MagicHash, MagicHash)
-    , (HSE.BinaryLiterals, BinaryLiterals)
-    , (HSE.TypeFamilies, TypeFamilies)
-    , (HSE.StandaloneDeriving, StandaloneDeriving)
-    , (HSE.UnicodeSyntax, UnicodeSyntax)
-    , (HSE.UnliftedFFITypes, UnliftedFFITypes)
-    , (HSE.LiberalTypeSynonyms, LiberalTypeSynonyms)
-    , (HSE.TypeOperators, TypeOperators)
-    , (HSE.ParallelArrays, ParallelArrays)
-    , (HSE.RecordWildCards, RecordWildCards)
-    , (HSE.RecordPuns, RecordPuns)
-    , (HSE.DisambiguateRecordFields, DisambiguateRecordFields)
-    , (HSE.OverloadedStrings, OverloadedStrings)
-    , (HSE.GADTs, GADTs)
-    , (HSE.MonoPatBinds, MonoPatBinds)
-    , (HSE.RelaxedPolyRec, RelaxedPolyRec)
-    , (HSE.ExtendedDefaultRules, ExtendedDefaultRules)
-    , (HSE.UnboxedTuples, UnboxedTuples)
-    , (HSE.DeriveDataTypeable, DeriveDataTypeable)
-    , (HSE.ConstrainedClassMethods, ConstrainedClassMethods)
-    , (HSE.PackageImports, PackageImports)
-    , (HSE.LambdaCase, LambdaCase)
-    , (HSE.EmptyCase, EmptyCase)
-    , (HSE.ImpredicativeTypes, ImpredicativeTypes)
-    , (HSE.PostfixOperators, PostfixOperators)
-    , (HSE.QuasiQuotes, QuasiQuotes)
-    , (HSE.TransformListComp, TransformListComp)
-    , (HSE.ViewPatterns, ViewPatterns)
-    , (HSE.TupleSections, TupleSections)
-    , (HSE.GHCForeignImportPrim, GHCForeignImportPrim)
-    , (HSE.NPlusKPatterns, NPlusKPatterns)
-    , (HSE.DoAndIfThenElse, DoAndIfThenElse)
-    , (HSE.RebindableSyntax, RebindableSyntax)
-    , (HSE.ExplicitForAll, ExplicitForAll)
-    , (HSE.DatatypeContexts, DatatypeContexts)
-    , (HSE.MonoLocalBinds, MonoLocalBinds)
-    , (HSE.DeriveFunctor, DeriveFunctor)
-    , (HSE.DeriveGeneric, DeriveGeneric)
-    , (HSE.DeriveTraversable, DeriveTraversable)
-    , (HSE.DeriveFoldable, DeriveFoldable)
-    , (HSE.NondecreasingIndentation, NondecreasingIndentation)
-    , (HSE.InterruptibleFFI, InterruptibleFFI)
-    , (HSE.CApiFFI, CApiFFI)
-    , (HSE.JavaScriptFFI, JavaScriptFFI)
-    , (HSE.ExplicitNamespaces, ExplicitNamespaces)
-    , (HSE.DataKinds, DataKinds)
-    , (HSE.PolyKinds, PolyKinds)
-    , (HSE.MultiWayIf, MultiWayIf)
-    , (HSE.DefaultSignatures, DefaultSignatures)
-    , (HSE.ConstraintKinds, ConstraintKinds)
-    , (HSE.RoleAnnotations, RoleAnnotations)
-    , (HSE.PatternSynonyms, PatternSynonyms)
-    , (HSE.PartialTypeSignatures, PartialTypeSignatures)
-    , (HSE.TypeApplications, TypeApplications)
-    , (HSE.TypeFamilyDependencies, TypeFamilyDependencies)
-    , (HSE.OverloadedLabels, OverloadedLabels)
-    , (HSE.DerivingStrategies, DerivingStrategies)
-    , (HSE.UnboxedSums, UnboxedSums)
-    , (HSE.TypeInType, TypeInType)
-    , (HSE.Strict, Strict)
-    , (HSE.StrictData, StrictData)
-    , (HSE.DerivingVia, DerivingVia)
-
-    -- These HSE "known extensions" don't appear to have GHC
-    -- analogues.
-
-    -- , (HSE.DoRec, DoRec)
-    -- , (HSE.Rank2Types, Rank2Types)
-    -- , (HSE.PolymorphicComponents, PolymorphicComponents)
-    -- , (HSE.PatternSignatures, PatternSignatures)
-    -- , (HSE.CPP, CPP)
-    -- , (HSE.Generics, Generics)
-    -- , (HSE.NamedFieldPuns, NamedFieldPuns)
-    -- , (HSE.ExtensibleRecords, ExtensibleRecords)
-    -- , (HSE.RestrictedTypeSynonyms, RestrictedTypeSynonyms)
-    -- , (HSE.HereDocuments, HereDocuments)
-    -- , (HSE.NewQualifiedOperators, NewQualifiedOperators)
-    -- , (HSE.XmlSyntax, XmlSyntax)
-    -- , (HSE.RegularPatterns, RegularPatterns)
-    -- , (HSE.SafeImports, SafeImports)
-    -- , (HSE.Safe, Safe)
-    -- , (HSE.Trustworthy, Trustworthy)
-    -- , (HSE.NamedWildCards, NamedWiledCards)
-    ]
+  let ghcExts = Map.fromList [(show x, x) | x <- [Cpp .. StarIsType]]
+  in
+    Map.fromList [ (x, ext) | x <- [minBound .. maxBound]
+                 , Just ext <- [Map.lookup (show x) ghcExts] ]
