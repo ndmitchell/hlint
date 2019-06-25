@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #686, suggest head (drop n x) ==> x !! max 0 n
     #683, add Use DerivingStrategies hint, ignored by default
     #685, skip running refactoring tool if there are no hints
     #675, warn about redundant fmaps on Eithers and Maybes

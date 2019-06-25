@@ -128,7 +128,7 @@
     - warn: {lhs: "cycle [x]", rhs: repeat x}
     - warn: {lhs: head (reverse x), rhs: last x}
     - warn: {lhs: head (drop n x), rhs: x !! n, side: isNat n}
-    - warn: {lhs: head (drop n x), rhs: x !! max 0 n, side: not (isNat n)}
+    - warn: {lhs: head (drop n x), rhs: x !! max 0 n, side: not (isNat n) && not (isNeg n)}
     - warn: {lhs: reverse (tail (reverse x)), rhs: init x, note: IncreasesLaziness}
     - warn: {lhs: reverse (reverse x), rhs: x, note: IncreasesLaziness, name: Avoid reverse}
     - warn: {lhs: isPrefixOf (reverse x) (reverse y), rhs: isSuffixOf x y}
@@ -873,7 +873,7 @@
 # fooer input = catMaybes . map Just $ input -- mapMaybe Just
 # yes = mapMaybe id -- catMaybes
 # main = print $ map (\_->5) [2,3,5] -- const 5
-# main = head $ drop n x
+# main = head $ drop n x -- x !! max 0 n
 # main = head $ drop (-3) x -- x
 # main = head $ drop 2 x -- x !! 2
 # main = drop 0 x -- x
