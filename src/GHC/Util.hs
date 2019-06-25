@@ -42,7 +42,6 @@ import System.FilePath
 import Language.Preprocessor.Unlit
 import qualified Language.Haskell.Exts.Extension as HSE
 import qualified Data.Map.Strict as Map
-import Text.Read
 
 fakeSettings :: Settings
 fakeSettings = Settings
