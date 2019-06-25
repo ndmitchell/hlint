@@ -104,11 +104,10 @@ lambdaDecl (toFunBind -> o@(FunBind loc1 [Match _ name pats (UnGuardedRhs loc2 b
       [warn "Redundant lambda" o (gen pats bod) [Replace Decl (toSS o) s1 t1]]
     | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
         = [warn "Eta reduce" (reform pats bod) (reform pats2 bod2)
-            [ -- Disabled, see apply-refact #3
-              -- Replace Decl (toSS $ reform pats bod) s2 t2]]
-            ]]
-        where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) Nothing]
-              loc = setSpanInfoEnd loc1 $ srcSpanEnd $ srcInfoSpan loc2
+            [Replace Decl (toSS $ reform pats bod) s2 t2]]
+        where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) bind]
+              loc' = chooseLoc bind loc2
+              loc = setSpanInfoEnd loc1 $ srcSpanEnd $ srcInfoSpan loc'
               gen ps = uncurry reform . fromLambda . Lambda an ps
               (finalpats, body) = fromLambda . Lambda an pats $ bod
               (pats2, bod2) = etaReduce pats bod
@@ -118,9 +117,12 @@ lambdaDecl (toFunBind -> o@(FunBind loc1 [Match _ name pats (UnGuardedRhs loc2 b
               munge ident p = PVar (ann p) (Ident (ann p) [ident])
               subts fps b = ("body", toSS b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS fps)
               s1 = subts finalpats body
-              --s2 = subts pats2 bod2
+              s2 = subts pats2 bod2
               t1 = template finalpats body
-              --t2 = template pats2 bod2
+              t2 = template pats2 bod2
+              chooseLoc Nothing loc2 = loc2
+              chooseLoc (Just (BDecls loc decls)) loc2 = loc
+              chooseLoc (Just (IPBinds loc decls)) loc2 = loc
 
 lambdaDecl _ = []
 
