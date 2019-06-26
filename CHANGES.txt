@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+*   Remove functions and make some things abstract in HLint3 API
 2.1.26, released 2019-06-26
     Make sure unknown extensions don't cause errors
 2.1.25, released 2019-06-26
