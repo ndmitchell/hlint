@@ -11,7 +11,7 @@ module GHC.Util (
   , getMessages
   , SDoc
   , Located
-  , hseToGhcExtension
+  , readExtension
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
@@ -39,7 +39,6 @@ import "ghc-lib-parser" HeaderInfo
 import Data.List
 import System.FilePath
 import Language.Preprocessor.Unlit
-import qualified Language.Haskell.Exts.Extension as HSE
 import qualified Data.Map.Strict as Map
 
 fakeSettings :: Settings
@@ -75,12 +74,7 @@ badExtensions =
  ]
 
 enabledExtensions :: [Extension]
-enabledExtensions = [x | x <- [Cpp .. StarIsType], x `notElem` badExtensions]
--- 'Cpp' are the first and last cases of type 'Extension' in
--- 'libraries/ghc-boot-th/GHC/LanguageExtensions/Type.hs'. When we are
--- on a version of GHC that has MR
--- https://gitlab.haskell.org/ghc/ghc/merge_requests/826, we can
--- replace them with 'minBound' and 'maxBound' respectively.
+enabledExtensions = filter (`notElem` badExtensions) enumerateExtensions
 
 baseDynFlags :: DynFlags
 baseDynFlags = foldl' xopt_set
@@ -207,11 +201,16 @@ isDotApp :: HsExpr GhcPs -> Bool
 isDotApp (OpApp _ _ (L _ op) _) = isDot op
 isDotApp _ = False
 
--- | A mapping from 'HSE.KnownExtension' values to their
--- 'GHC.LanguageExtensions.Type.Extension' equivalents.
-hseToGhcExtension :: Map.Map HSE.KnownExtension Extension
-hseToGhcExtension =
-  let ghcExts = Map.fromList [(show x, x) | x <- [Cpp .. StarIsType]]
-  in
-    Map.fromList [ (x, ext) | x <- [minBound .. maxBound]
-                 , Just ext <- [Map.lookup (show x) ghcExts] ]
+-- | All available GHC extensions
+enumerateExtensions :: [Extension]
+-- 'Cpp' are the first and last cases of type 'Extension' in
+-- 'libraries/ghc-boot-th/GHC/LanguageExtensions/Type.hs'. When we are
+-- on a version of GHC that has MR
+-- https://gitlab.haskell.org/ghc/ghc/merge_requests/826, we can
+-- replace them with 'minBound' and 'maxBound' respectively.
+enumerateExtensions = [Cpp .. StarIsType]
+
+-- | Parse a GHC extension
+readExtension :: String -> Maybe Extension
+readExtension x = Map.lookup x exts
+  where exts = Map.fromList [(show x, x) | x <- [Cpp .. StarIsType]]

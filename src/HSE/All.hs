@@ -239,8 +239,10 @@ ghcExtensionsFromParseFlags ParseFlags {hseFlags=ParseMode {extensions=exts}}=
    partitionEithers $ mapMaybe toEither exts
    where
      toEither ke = case ke of
-       EnableExtension e  -> Left  <$> Map.lookup e hseToGhcExtension
-       DisableExtension e -> Right <$> Map.lookup e hseToGhcExtension
+       EnableExtension e  -> Left  <$> readExtension (show e)
+       DisableExtension e -> Right <$> readExtension (show e)
+       UnknownExtension ('N':'o':e) -> Right <$> readExtension e
+       UnknownExtension e -> Left <$> readExtension e
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
