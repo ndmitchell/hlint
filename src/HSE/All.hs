@@ -24,6 +24,7 @@ import Data.List.Extra
 import Data.Maybe
 import Timing
 import Language.Preprocessor.Cpphs
+import Data.Either
 import Data.Set (Set)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -37,6 +38,7 @@ import qualified "ghc-lib-parser" FastString
 import qualified "ghc-lib-parser" SrcLoc as GHC
 import qualified "ghc-lib-parser" ErrUtils
 import qualified "ghc-lib-parser" Outputable
+import qualified "ghc-lib-parser" GHC.LanguageExtensions.Type as GHC
 
 vars :: FreeVars a => a -> [String]
 freeVars :: FreeVars a => a -> Set String
@@ -229,6 +231,17 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
                ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
    return $ Left $ ParseError sl msg pe
 
+-- | Produce a pair of lists from a 'ParseFlags' value representing
+-- language extensions to explicitly enable/disable.
+ghcExtensionsFromParseFlags :: ParseFlags
+                             -> ([GHC.Extension], [GHC.Extension])
+ghcExtensionsFromParseFlags ParseFlags {hseFlags=ParseMode {extensions=exts}}=
+   partitionEithers $ mapMaybe toEither exts
+   where
+     toEither ke = case ke of
+       EnableExtension e  -> Left  <$> Map.lookup e hseToGhcExtension
+       DisableExtension e -> Right <$> Map.lookup e hseToGhcExtension
+
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
 -- filename @-@ is treated as @stdin@. Requires some flags (often
@@ -242,7 +255,8 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                     | otherwise -> readFileUTF8' file
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
-        dynFlags <- parsePragmasIntoDynFlags baseDynFlags file ppstr
+        let enableDisableExts = ghcExtensionsFromParseFlags flags
+        dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
           Right ghcFlags ->
             case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of

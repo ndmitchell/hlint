@@ -11,6 +11,7 @@ module GHC.Util (
   , getMessages
   , SDoc
   , Located
+  , hseToGhcExtension
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
@@ -38,6 +39,8 @@ import "ghc-lib-parser" HeaderInfo
 import Data.List
 import System.FilePath
 import Language.Preprocessor.Unlit
+import qualified Language.Haskell.Exts.Extension as HSE
+import qualified Data.Map.Strict as Map
 
 fakeSettings :: Settings
 fakeSettings = Settings
@@ -83,13 +86,21 @@ baseDynFlags :: DynFlags
 baseDynFlags = foldl' xopt_set
              (defaultDynFlags fakeSettings fakeLlvmConfig) enabledExtensions
 
-parsePragmasIntoDynFlags ::
-  DynFlags -> FilePath -> String -> IO (Either String DynFlags)
-parsePragmasIntoDynFlags flags filepath str =
+-- | Adjust the input 'DynFlags' to take into account language
+-- extensions to explicitly enable/disable as well as language
+-- extensions enabled by pragma in the source.
+parsePragmasIntoDynFlags :: DynFlags
+                         -> ([Extension], [Extension])
+                         -> FilePath
+                         -> String
+                         -> IO (Either String DynFlags)
+parsePragmasIntoDynFlags flags (enable, disable) filepath str =
   catchErrors $ do
     let opts = getOptions flags (stringToStringBuffer str) filepath
     (flags, _, _) <- parseDynamicFilePragma flags opts
-    return $ Right flags
+    let flags' =  foldl' xopt_set flags enable
+    let flags'' = foldl' xopt_unset flags' disable
+    return $ Right flags''
   where
     catchErrors :: IO (Either String DynFlags) -> IO (Either String DynFlags)
     catchErrors act = handleGhcException reportErr
@@ -195,3 +206,12 @@ isSection x = case x of
 isDotApp :: HsExpr GhcPs -> Bool
 isDotApp (OpApp _ _ (L _ op) _) = isDot op
 isDotApp _ = False
+
+-- | A mapping from 'HSE.KnownExtension' values to their
+-- 'GHC.LanguageExtensions.Type.Extension' equivalents.
+hseToGhcExtension :: Map.Map HSE.KnownExtension Extension
+hseToGhcExtension =
+  let ghcExts = Map.fromList [(show x, x) | x <- [Cpp .. StarIsType]]
+  in
+    Map.fromList [ (x, ext) | x <- [minBound .. maxBound]
+                 , Just ext <- [Map.lookup (show x) ghcExts] ]
