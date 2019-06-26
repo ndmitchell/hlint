@@ -36,9 +36,9 @@ import qualified Refact.Types as R
 
 
 pragmaHint :: ModuHint
-pragmaHint _ x = languageDupes lang ++ optToPragma x lang
+pragmaHint _ x = languageDupes lang ++ optToPragma (hseModule x) lang
     where
-        lang = [x | x@LanguagePragma{} <- modulePragmas x]
+        lang = [x | x@LanguagePragma{} <- modulePragmas (hseModule x)]
 
 optToPragma :: Module_ -> [ModulePragma S] -> [Idea]
 optToPragma x lang =

@@ -91,7 +91,7 @@ dotVersion _ = []
 ---------------------------------------------------------------------
 -- PERFORM THE MATCHING
 
-findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
+findIdeas :: [HintRule] -> Scope -> ModuleEx -> Decl_ -> [Idea]
 findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
     [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
     | decl <- findDecls decl

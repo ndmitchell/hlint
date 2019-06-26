@@ -85,7 +85,7 @@ import Data.List.Extra
 import qualified Data.Map as Map
 
 smellModuleHint :: [Setting] -> ModuHint
-smellModuleHint settings scope m@(moduleImports -> imports) = case Map.lookup SmellManyImports (smells settings) of
+smellModuleHint settings scope ((moduleImports . hseModule) -> imports) = case Map.lookup SmellManyImports (smells settings) of
   Just n | length imports >= n ->
            let span = foldl1 mergeSrcSpan $ srcInfoSpan . ann <$> imports
                displayImports = unlines $ f <$> imports

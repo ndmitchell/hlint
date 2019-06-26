@@ -33,7 +33,7 @@ unsafeHint _ m = \d ->
         , isUnsafeDecl d, x `notElem_` noinline]
     where
         gen x = InlineSig an False Nothing $ UnQual an x
-        noinline = [q | InlineSig _ False Nothing (UnQual _ q) <- moduleDecls m]
+        noinline = [q | InlineSig _ False Nothing (UnQual _ q) <- moduleDecls (hseModule m)]
 
 isUnsafeDecl :: Decl_ -> Bool
 isUnsafeDecl (PatBind _ _ rhs bind) =

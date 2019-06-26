@@ -31,8 +31,9 @@ import qualified Data.Map as Map
 duplicateHint :: CrossHint
 duplicateHint ms =
     dupes [(m,d,y) | (m,d,x) <- ds, Do _ y :: Exp S <- universeBi x] ++
+
     dupes [(m,d,y) | (m,d,x) <- ds, BDecls _ y :: Binds S <- universeBi x]
-    where ds = [(moduleName m, fromNamed d, d) | m <- map snd ms, d <- moduleDecls m]
+    where ds = [(moduleName (hseModule m), fromNamed d, d) | m <- map snd ms, d <- moduleDecls (hseModule m)]
 
 
 dupes :: (Pretty (f SrcSpan), Annotated f, Ord (f ())) => [(String, String, [f S])] -> [Idea]

@@ -16,7 +16,7 @@ import Hint.Type
 
 
 exportHint :: ModuHint
-exportHint _ (Module _ (Just o@(ModuleHead a name warning exports)) _ _ _)
+exportHint _ (ModuleEx (Module _ (Just o@(ModuleHead a name warning exports)) _ _ _) _ _)
     | Nothing <- exports =
         let o2 = ModuleHead a name warning $ Just $ ExportSpecList a [EModuleContents a name]
         in [(ignore "Use module export list" o o2 []){ideaNote = [Note "an explicit list is usually better"]}]

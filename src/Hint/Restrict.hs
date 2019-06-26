@@ -26,11 +26,11 @@ import Prelude
 -- FIXME: The settings should be partially applied, but that's hard to orchestrate right now
 restrictHint :: [Setting] -> ModuHint
 restrictHint settings scope m =
-        checkPragmas modu (modulePragmas m) restrict ++
-        maybe [] (checkImports modu $ moduleImports m) (Map.lookup RestrictModule restrict) ++
-        maybe [] (checkFunctions modu $ moduleDecls m) (Map.lookup RestrictFunction restrict)
+        checkPragmas modu (modulePragmas (hseModule m)) restrict ++
+        maybe [] (checkImports modu $ moduleImports (hseModule m)) (Map.lookup RestrictModule restrict) ++
+        maybe [] (checkFunctions modu $ moduleDecls (hseModule m)) (Map.lookup RestrictFunction restrict)
     where
-        modu = moduleName m
+        modu = moduleName (hseModule m)
         restrict = restrictions settings
 
 ---------------------------------------------------------------------

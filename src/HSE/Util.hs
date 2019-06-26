@@ -1,3 +1,4 @@
+{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE FlexibleContexts, ViewPatterns, TupleSections #-}
 
 module HSE.Util(module HSE.Util, def) where
@@ -15,7 +16,6 @@ import System.FilePath
 import HSE.Type
 import Data.Functor
 import Prelude
-
 
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER

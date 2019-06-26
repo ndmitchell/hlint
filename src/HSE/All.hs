@@ -163,13 +163,13 @@ data ParseError = ParseError
 -- | Result of 'parseModuleEx', representing a parsed module.
 data ModuleEx = ModuleEx {
     hseModule :: Module SrcSpanInfo
-  , hseComments  :: [Comment]
+  , hseComments :: [Comment]
   , ghcModule :: Located (HsSyn.HsModule HsSyn.GhcPs)
 }
 
 -- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
 mkMode :: ParseFlags -> String -> ParseMode
-mkMode flags file = (hseFlags flags){parseFilename = file,fixities = Nothing }
+mkMode flags file = (hseFlags flags){ parseFilename = file,fixities = Nothing }
 
 -- | Error handler dispatcher. Invoked when HSE parsing has failed.
 failOpParseModuleEx :: String
