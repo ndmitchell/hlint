@@ -16,6 +16,7 @@ import HSE.Type
 import Data.Functor
 import Prelude
 
+
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER
 
