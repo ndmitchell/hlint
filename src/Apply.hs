@@ -55,7 +55,7 @@ applyHintsReal settings hints_ ms = concat $
     , let decHints = hintDecl hints settings nm m -- partially apply
     , let order n = map (\i -> i{ideaModule= f $ moduleName (hseModule m) : ideaModule i, ideaDecl = f $ n ++ ideaDecl i}) . sortOn ideaSpan
     , let merge = mergeBy (comparing ideaSpan)] ++
-    [map (classify cls) (hintModules hints settings $ map (\x -> (scopeCreate (hseModule x), x)) ms)]
+    [map (classify cls) (hintModules hints settings $ mns)]
     where
         f = nubOrd . filter (/= "")
         cls = [x | SettingClassify x <- settings]
