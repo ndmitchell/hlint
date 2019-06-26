@@ -127,7 +127,7 @@ splitSettings xs =
 --   which is slower and often pointless (by default HLint passes modules singularly, using
 --   @--cross@ to pass all modules together).
 applyHints :: [Classify] -> Hint -> [ModuleEx] -> [Idea]
-applyHints a b = H.applyHints a b
+applyHints = H.applyHints
 
 -- | Snippet from the documentation, if this changes, update the documentation
 _docs :: IO ()

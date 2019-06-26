@@ -173,7 +173,7 @@ extensionsHint _ x =
         extensions = Set.fromList [parseExtension $ fromNamed e | LanguagePragma _ exts <- modulePragmas (hseModule x), e <- exts]
 
         -- those extensions we detect to be useful
-        useful = if usedTH then extensions  else Set.filter (`usedExt` (hseModule x)) extensions
+        useful = if usedTH then extensions  else Set.filter (`usedExt` hseModule x) extensions
 
         -- those extensions which are useful, but implied by other useful extensions
         implied = Map.fromList
