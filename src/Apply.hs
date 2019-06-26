@@ -40,26 +40,26 @@ applyHintFiles flags s files = do
 --   When given multiple modules at once this function attempts to find hints between modules,
 --   which is slower and often pointless (by default HLint passes modules singularly, using
 --   @--cross@ to pass all modules together).
-applyHints {- PUBLIC -} :: [Classify] -> Hint -> [(Module SrcSpanInfo, [Comment])] -> [Idea]
+applyHints {- PUBLIC -} :: [Classify] -> Hint -> [ModuleEx] -> [Idea]
 applyHints cs = applyHintsReal $ map SettingClassify cs
 
-applyHintsReal :: [Setting] -> Hint -> [(Module_, [Comment])] -> [Idea]
+applyHintsReal :: [Setting] -> Hint -> [ModuleEx] -> [Idea]
 applyHintsReal settings hints_ ms = concat $
-    [ map (classify classifiers . removeRequiresExtensionNotes m) $
+    [ map (classify classifiers . removeRequiresExtensionNotes (hseModule m)) $
         order [] (hintModule hints settings nm m) `merge`
-        concat [order [fromNamed d] $ decHints d | d <- moduleDecls m] `merge`
-        concat [order [] $ hintComment hints settings c | c <- cs]
-    | (nm,(m,cs)) <- mns
-    , let classifiers = cls ++ mapMaybe readPragma (universeBi m) ++ concatMap readComment cs
+        concat [order [fromNamed d] $ decHints d | d <- moduleDecls (hseModule m)] `merge`
+        concat [order [] $ hintComment hints settings c | c <- (hseComments m)]
+    | (nm, m) <- mns
+    , let classifiers = cls ++ mapMaybe readPragma (universeBi (hseModule m)) ++ concatMap readComment (hseComments m)
     , seq (length classifiers) True -- to force any errors from readPragma or readComment
     , let decHints = hintDecl hints settings nm m -- partially apply
-    , let order n = map (\i -> i{ideaModule= f $ moduleName m : ideaModule i, ideaDecl= f $ n ++ ideaDecl i}) . sortOn ideaSpan
+    , let order n = map (\i -> i{ideaModule= f $ moduleName (hseModule m) : ideaModule i, ideaDecl = f $ n ++ ideaDecl i}) . sortOn ideaSpan
     , let merge = mergeBy (comparing ideaSpan)] ++
-    [map (classify cls) (hintModules hints settings $ map (second fst) mns)]
+    [map (classify cls) (hintModules hints settings $ map (\x -> (scopeCreate (hseModule x), x)) ms)]
     where
         f = nubOrd . filter (/= "")
         cls = [x | SettingClassify x <- settings]
-        mns = map (scopeCreate . fst &&& id) ms
+        mns = map (\x -> (scopeCreate (hseModule x), x)) ms
         hints = (if length ms <= 1 then noModules else id) hints_
         noModules h = h{hintModules = \_ _ -> []} `mappend` mempty{hintModule = \s a b -> hintModules h s [(a,b)]}
 
@@ -72,17 +72,17 @@ removeRequiresExtensionNotes m = \x -> x{ideaNote = filter keep $ ideaNote x}
         keep _ = True
 
 -- | Given a list of settings (a way to classify) and a list of hints, run them over a list of modules.
-executeHints :: [Setting] -> [(Module_, [Comment])] -> [Idea]
+executeHints :: [Setting] -> [ModuleEx] -> [Idea]
 executeHints s = applyHintsReal s (allHints s)
 
 
 -- | Return either an idea (a parse error) or the module. In IO because might call the C pre processor.
-parseModuleApply :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO (Either Idea (Module_, [Comment]))
+parseModuleApply :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO (Either Idea ModuleEx)
 parseModuleApply flags s file src = do
     res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case res of
-        Right (ModuleEx m c _)  -> return $ Right (m,c)
-        Left (ParseError sl msg ctxt) ->
+      Right (res@(ModuleEx m c _))  -> return $ Right res
+      Left (ParseError sl msg ctxt) ->
             return $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
 
 
