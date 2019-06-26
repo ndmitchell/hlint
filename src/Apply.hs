@@ -81,7 +81,7 @@ parseModuleApply :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO (E
 parseModuleApply flags s file src = do
     res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case res of
-      Right res@(ModuleEx m c _)  -> return $ Right res
+      Right r -> return $ Right r
       Left (ParseError sl msg ctxt) ->
             return $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
 
