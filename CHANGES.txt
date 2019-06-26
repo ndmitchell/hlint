@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.1.25, released 2019-06-26
     #681, fix for extensions on the command line not being used
     #686, suggest head (drop n x) ==> x !! max 0 n
     #683, add Use DerivingStrategies hint, ignored by default
