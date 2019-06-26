@@ -47,7 +47,7 @@ import qualified Data.Set as Set
 
 
 namingHint :: DeclHint
-namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ moduleDecls modu
+namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ moduleDecls (hseModule modu)
 
 naming :: Set.Set String -> Decl_ -> [Idea]
 naming seen x = [suggest "Use camelCase" x' x2' [Replace Bind (toSS x) [] (prettyPrint x2)] | not $ null res]

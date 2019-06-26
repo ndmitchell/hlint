@@ -162,14 +162,14 @@ data ParseError = ParseError
 
 -- | Result of 'parseModuleEx', representing a parsed module.
 data ModuleEx = ModuleEx {
-    -- Combined 'hs-src-ext' and 'ghc-lib-parser' parse trees.
-    pm_hsext  :: (Module SrcSpanInfo, [Comment]) -- hs-src-ext result
-  , pm_ghclib :: Located (HsSyn.HsModule HsSyn.GhcPs) -- ghc-lib-parser result
+    hseModule :: Module SrcSpanInfo
+  , hseComments :: [Comment]
+  , ghcModule :: Located (HsSyn.HsModule HsSyn.GhcPs)
 }
 
 -- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
 mkMode :: ParseFlags -> String -> ParseMode
-mkMode flags file = (hseFlags flags){parseFilename = file,fixities = Nothing }
+mkMode flags file = (hseFlags flags){ parseFilename = file,fixities = Nothing }
 
 -- | Error handler dispatcher. Invoked when HSE parsing has failed.
 failOpParseModuleEx :: String
@@ -263,7 +263,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
           Right ghcFlags ->
             case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of
                 (ParseOk (x, cs), POk _ a) ->
-                    return $ Right (ModuleEx (applyFixity fixity x, cs) a)
+                    return $ Right (ModuleEx (applyFixity fixity x) cs a)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
                 (ParseOk _, PFailed _ loc err) ->

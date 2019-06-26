@@ -156,7 +156,7 @@ extensionsHint _ x =
             [ Note $ "Extension " ++ prettyExtension x ++ " is " ++ reason x
             | x <- explainedRemovals])
         [ModifyComment (toSS o) newPragma]
-    | o@(LanguagePragma sl exts) <- modulePragmas x
+    | o@(LanguagePragma sl exts) <- modulePragmas (hseModule x)
     , let before = map (parseExtension . prettyPrint) exts
     , let after = filter (`Set.member` keep) before
     , before /= after
@@ -166,14 +166,14 @@ extensionsHint _ x =
     , let newPragma = if null after then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) after
     ]
     where
-        usedTH = used TemplateHaskell x || used QuasiQuotes x
+        usedTH = used TemplateHaskell (hseModule x) || used QuasiQuotes (hseModule x)
             -- if TH or QuasiQuotes is on, can use all other extensions programmatically
 
         -- all the extensions defined to be used
-        extensions = Set.fromList [parseExtension $ fromNamed e | LanguagePragma _ exts <- modulePragmas x, e <- exts]
+        extensions = Set.fromList [parseExtension $ fromNamed e | LanguagePragma _ exts <- modulePragmas (hseModule x), e <- exts]
 
         -- those extensions we detect to be useful
-        useful = if usedTH then extensions  else Set.filter (`usedExt` x) extensions
+        useful = if usedTH then extensions  else Set.filter (`usedExt` hseModule x) extensions
 
         -- those extensions which are useful, but implied by other useful extensions
         implied = Map.fromList
@@ -192,7 +192,7 @@ extensionsHint _ x =
             | e <- Set.toList $ extensions `Set.difference` keep
             , a <- extensionImplies e
             , a `Set.notMember` useful
-            , usedTH || usedExt a x
+            , usedTH || usedExt a (hseModule x)
             ]
 
         reason x =

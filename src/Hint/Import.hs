@@ -51,8 +51,8 @@ import Prelude
 
 importHint :: ModuHint
 importHint _ x = concatMap (wrap . snd) (groupSort
-                 [((fromNamed $ importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]) ++
-                 concatMap (\x -> hierarchy x ++ combine1 x) (universeBi x)
+                 [((fromNamed $ importModule i,importPkg i),i) | i <- universeBi (hseModule x), not $ importSrc i]) ++
+                 concatMap (\x -> hierarchy x ++ combine1 x) (universeBi (hseModule x))
 
 
 wrap :: [ImportDecl S] -> [Idea]

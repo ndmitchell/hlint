@@ -12,18 +12,18 @@ import Prelude
 import Refact   as Export
 
 
-type DeclHint = Scope -> Module_ -> Decl_ -> [Idea]
-type ModuHint = Scope -> Module_          -> [Idea]
-type CrossHint = [(Scope, Module_)] -> [Idea]
+type DeclHint = Scope -> ModuleEx -> Decl_ -> [Idea]
+type ModuHint = Scope -> ModuleEx         -> [Idea]
+type CrossHint = [(Scope, ModuleEx)] -> [Idea]
 
 -- | Functions to generate hints, combined using the 'Monoid' instance.
 data Hint {- PUBLIC -} = Hint
-    {hintModules :: [Setting] -> [(Scope, Module SrcSpanInfo)] -> [Idea] -- ^ Given a list of modules (and their scope information) generate some 'Idea's.
-    ,hintModule :: [Setting] -> Scope -> Module SrcSpanInfo -> [Idea] -- ^ Given a single module and its scope information generate some 'Idea's.
-    ,hintDecl :: [Setting] -> Scope -> Module SrcSpanInfo -> Decl SrcSpanInfo -> [Idea]
+    { hintModules :: [Setting] -> [(Scope, ModuleEx)] -> [Idea] -- ^ Given a list of modules (and their scope information) generate some 'Idea's.
+    , hintModule :: [Setting] -> Scope -> ModuleEx -> [Idea] -- ^ Given a single module and its scope information generate some 'Idea's.
+    , hintDecl :: [Setting] -> Scope -> ModuleEx -> Decl SrcSpanInfo -> [Idea]
         -- ^ Given a declaration (with a module and scope) generate some 'Idea's.
         --   This function will be partially applied with one module/scope, then used on multiple 'Decl' values.
-    ,hintComment :: [Setting] -> Comment -> [Idea] -- ^ Given a comment generate some 'Idea's.
+    , hintComment :: [Setting] -> Comment -> [Idea] -- ^ Given a comment generate some 'Idea's.
     }
 
 instance Semigroup Hint where

@@ -76,7 +76,7 @@ patternHint _ modu x =
         noPatBind (PatBind a _ b c) = PatBind a (PWildCard a) b c
         noPatBind x = x
 
-        strict = "Strict" `elem` [n | LanguagePragma _ ns <- modulePragmas modu, Ident _ n <- ns]
+        strict = "Strict" `elem` [n | LanguagePragma _ ns <- modulePragmas (hseModule modu), Ident _ n <- ns]
 
 
 hints :: (String -> Pattern -> [Refactoring R.SrcSpan] -> Idea) -> Pattern -> [Idea]
