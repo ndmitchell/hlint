@@ -8,7 +8,10 @@ module HSE.All(
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
     parseModuleEx,
-    freeVars, vars, varss, pvars
+    freeVars, vars, varss, pvars,
+    -- Temporary : Export these so GHC doesn't consider them unused and
+    -- tell weeder to ignore them.
+    ghcSpanToHSE
     ) where
 
 import Language.Haskell.Exts.Util hiding (freeVars, Vars(..))
@@ -38,7 +41,21 @@ import qualified "ghc-lib-parser" FastString
 import qualified "ghc-lib-parser" SrcLoc as GHC
 import qualified "ghc-lib-parser" ErrUtils
 import qualified "ghc-lib-parser" Outputable
+import qualified "ghc-lib-parser" Lexer as GHC
 import qualified "ghc-lib-parser" GHC.LanguageExtensions.Type as GHC
+import qualified "ghc-lib-parser" ApiAnnotation as GHC
+
+-- | Convert a GHC source span into an HSE equivalent.
+ghcSpanToHSE :: GHC.SrcSpan -> SrcSpan
+ghcSpanToHSE (GHC.RealSrcSpan s) =
+  SrcSpan {
+      srcSpanFilename = FastString.unpackFS (GHC.srcSpanFile s)
+    , srcSpanStartLine = GHC.srcSpanStartLine s
+    , srcSpanStartColumn = GHC.srcSpanStartCol s
+    , srcSpanEndLine = GHC.srcSpanEndLine s
+    , srcSpanEndColumn = GHC.srcSpanEndCol s
+    }
+ghcSpanToHSE (GHC.UnhelpfulSpan _) = mkSrcSpan noLoc noLoc
 
 vars :: FreeVars a => a -> [String]
 freeVars :: FreeVars a => a -> Set String
@@ -165,6 +182,7 @@ data ModuleEx = ModuleEx {
     hseModule :: Module SrcSpanInfo
   , hseComments :: [Comment]
   , ghcModule :: Located (HsSyn.HsModule HsSyn.GhcPs)
+  , ghcAnnotations :: GHC.ApiAnns
 }
 
 -- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
@@ -262,8 +280,12 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         case dynFlags of
           Right ghcFlags ->
             case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of
-                (ParseOk (x, cs), POk _ a) ->
-                    return $ Right (ModuleEx (applyFixity fixity x) cs a)
+                (ParseOk (x, cs), POk pst a) ->
+                    let anns =
+                          ( Map.fromListWith (++) $ GHC.annotations pst
+                          , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
+                          ) in
+                    return $ Right (ModuleEx (applyFixity fixity x) cs a anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
                 (ParseOk _, PFailed _ loc err) ->
