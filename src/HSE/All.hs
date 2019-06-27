@@ -9,8 +9,6 @@ module HSE.All(
     ParseError(..), ModuleEx(..),
     parseModuleEx,
     freeVars, vars, varss, pvars,
-    -- Temporary : Export these so GHC doesn't consider them unused and
-    -- tell weeder to ignore them.
     ghcSpanToHSE
     ) where
 

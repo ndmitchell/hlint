@@ -4,4 +4,4 @@
 
 - message:
   - name: Weeds exported
-  - module: [HSE.All, HSE.Util, GHC.Util]
+  - module: [HSE.Util, GHC.Util]
