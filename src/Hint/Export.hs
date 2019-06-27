@@ -33,7 +33,7 @@ exportHint _ (ModuleEx _ _ (L s m@HsModule {hsmodName = Just name, hsmodExports 
   , names <- [GHC.moduleNameString (GHC.unLoc n) | (L _ (IEModuleContents _ n)) <- mods]
   , exports' <- [x | x <- xs, not (matchesModName modName x)]
   , modName `elem` names =
-      let dots = mkRdrUnqual (mkVarOcc "...")
+      let dots = mkRdrUnqual (mkVarOcc " ... ")
           r = o{ hsmodExports = Just (GHC.noLoc (GHC.noLoc (IEVar noExt (GHC.noLoc (IEName (GHC.noLoc dots)))) : exports') )}
       in
         [ignore' "Use explicit module export list" (L s o) (GHC.noLoc r) []]
