@@ -19,8 +19,6 @@ import qualified "ghc-lib-parser" Module as GHC
 import "ghc-lib-parser" SrcLoc as GHC
 import "ghc-lib-parser" OccName
 import "ghc-lib-parser" RdrName
-import Data.List
-import Data.Maybe
 
 exportHint :: ModuHint
 exportHint _ (ModuleEx _ _ (L s m@HsModule {hsmodName = Just name, hsmodExports = exports}) _)
