@@ -51,7 +51,7 @@ ghcSrcLocToHSE (GHC.RealSrcLoc l) =
     , srcLine = GHC.srcLocLine l
     , srcColumn = GHC.srcLocCol l
     }
-ghcSrcLoHSE (GHC.UnhelpfulLoc _) = noLoc
+ghcSrcLocHSE (GHC.UnhelpfulLoc _) = noLoc
 
 -- | Convert a GHC source span into an HSE equivalent.
 ghcSpanToHSE :: GHC.SrcSpan -> SrcSpan
