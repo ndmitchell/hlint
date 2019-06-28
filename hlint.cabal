@@ -133,6 +133,6 @@ executable hlint
     build-depends:      base, hlint
     main-is:            src/Main.hs
 
-    ghc-options:        -rtsopts
+    ghc-options:        -rtsopts -withrtsopts=+RTS K100000000 -RTS
     if flag(threaded)
         ghc-options:    -threaded
