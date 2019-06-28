@@ -6,10 +6,10 @@ module HSE.All(
     module X,
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
-    ParseError(..), ModuleEx(..),
-    parseModuleEx,
+    ParseError(..), ModuleEx(..), CommentEx(..),
+    parseModuleEx, comments,
     freeVars, vars, varss, pvars,
-    ghcSpanToHSE
+    ghcSpanToHSE, ghcSrcLocToHSE
     ) where
 
 import Language.Haskell.Exts.Util hiding (freeVars, Vars(..))
@@ -42,6 +42,16 @@ import qualified "ghc-lib-parser" Outputable
 import qualified "ghc-lib-parser" Lexer as GHC
 import qualified "ghc-lib-parser" GHC.LanguageExtensions.Type as GHC
 import qualified "ghc-lib-parser" ApiAnnotation as GHC
+
+-- | Convert a GHC source loc into an HSE equivalent.
+ghcSrcLocToHSE :: GHC.SrcLoc -> SrcLoc
+ghcSrcLocToHSE (GHC.RealSrcLoc l) =
+  SrcLoc {
+      srcFilename = FastString.unpackFS (GHC.srcLocFile l)
+    , srcLine = GHC.srcLocLine l
+    , srcColumn = GHC.srcLocCol l
+    }
+ghcSrcLoHSE (GHC.UnhelpfulLoc _) = noLoc
 
 -- | Convert a GHC source span into an HSE equivalent.
 ghcSpanToHSE :: GHC.SrcSpan -> SrcSpan
@@ -182,6 +192,19 @@ data ModuleEx = ModuleEx {
   , ghcModule :: Located (HsSyn.HsModule HsSyn.GhcPs)
   , ghcAnnotations :: GHC.ApiAnns
 }
+
+-- | The two representations of comments in a tidy little bundle. Used
+-- by 'commentHint'.
+data CommentEx = CommentEx {
+    hseComment :: Comment
+  , ghcComment :: Located GHC.AnnotationComment
+}
+
+-- | Extract a list of all a parsed module's comments.
+comments :: ModuleEx -> [CommentEx]
+comments m =
+  let ghcComments = concat (Map.elems $ snd (ghcAnnotations m))
+  in zipWith CommentEx (hseComments m) ghcComments
 
 -- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
 mkMode :: ParseFlags -> String -> ParseMode

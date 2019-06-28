@@ -10,6 +10,7 @@
 <COMMENT> INLINE X
 </TEST>
 -}
+{-# LANGUAGE PackageImports #-}
 
 
 module Hint.Comment(commentHint) where
@@ -18,21 +19,26 @@ import Hint.Type
 import Data.Char
 import Data.List.Extra
 import Refact.Types(Refactoring(ModifyComment))
-
+import "ghc-lib-parser" SrcLoc
+import "ghc-lib-parser" ApiAnnotation
+import GHC.Util
 
 pragmas = words $
     "LANGUAGE OPTIONS_GHC INCLUDE WARNING DEPRECATED MINIMAL INLINE NOINLINE INLINABLE " ++
     "CONLIKE LINE SPECIALIZE SPECIALISE UNPACK NOUNPACK SOURCE"
 
 
-commentHint :: Comment -> [Idea]
-commentHint c@(Comment True span s)
-    | "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" c $ '#':s]
-    | name `elem` pragmas = [grab "Use pragma syntax" c $ "# " ++ trim s ++ " #"]
-        where name = takeWhile (\x -> isAlphaNum x || x == '_') $ dropWhile isSpace s
+commentHint :: CommentEx -> [Idea]
+commentHint CommentEx {ghcComment=comm}
+  | "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
+  | name `elem` pragmas = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
+       where s = commentText comm
+             name = takeWhile (\x -> isAlphaNum x || x == '_') $ dropWhile isSpace s
 commentHint _ = []
 
-grab :: String -> Comment -> String -> Idea
-grab msg (Comment typ pos s1) s2 = rawIdea Suggestion msg pos (f s1) (Just $ f s2) [] refact
-    where f s = if typ then "{-" ++ s ++ "-}" else "--" ++ s
-          refact = [ModifyComment (toRefactSrcSpan pos) (f s2)]
+grab :: String -> Located AnnotationComment -> String -> Idea
+grab msg o@(L pos c) s2 =
+  let s1 = commentText o in
+  rawIdea Suggestion msg (ghcSpanToHSE pos) (f s1) (Just $ f s2) [] refact
+    where f s = if isCommentMultiline o then "{-" ++ s ++ "-}" else "--" ++ s
+          refact = [ModifyComment (toRefactSrcSpan (ghcSpanToHSE pos)) (f s2)]

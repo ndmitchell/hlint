@@ -13,7 +13,7 @@ import Refact   as Export
 
 
 type DeclHint = Scope -> ModuleEx -> Decl_ -> [Idea]
-type ModuHint = Scope -> ModuleEx         -> [Idea]
+type ModuHint = Scope -> ModuleEx -> [Idea]
 type CrossHint = [(Scope, ModuleEx)] -> [Idea]
 
 -- | Functions to generate hints, combined using the 'Monoid' instance.
@@ -23,7 +23,7 @@ data Hint {- PUBLIC -} = Hint
     , hintDecl :: [Setting] -> Scope -> ModuleEx -> Decl SrcSpanInfo -> [Idea]
         -- ^ Given a declaration (with a module and scope) generate some 'Idea's.
         --   This function will be partially applied with one module/scope, then used on multiple 'Decl' values.
-    , hintComment :: [Setting] -> Comment -> [Idea] -- ^ Given a comment generate some 'Idea's.
+    , hintComment :: [Setting] -> CommentEx -> [Idea] -- ^ Given a comment generate some 'Idea's.
     }
 
 instance Semigroup Hint where
