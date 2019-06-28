@@ -30,10 +30,12 @@ pragmas = words $
 
 commentHint :: CommentEx -> [Idea]
 commentHint CommentEx {ghcComment=comm}
-  | "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
-  | name `elem` pragmas = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
-       where s = commentText comm
-             name = takeWhile (\x -> isAlphaNum x || x == '_') $ dropWhile isSpace s
+  | isMultiline, "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
+  | isMultiline, name `elem` pragmas = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
+       where
+         isMultiline = isCommentMultiline comm
+         s = commentText comm
+         name = takeWhile (\x -> isAlphaNum x || x == '_') $ dropWhile isSpace s
 commentHint _ = []
 
 grab :: String -> Located AnnotationComment -> String -> Idea

@@ -82,13 +82,14 @@ readPragma o = case o of
 
 
 readComment :: CommentEx -> [Classify]
-readComment c@CommentEx {ghcComment=L _ (AnnBlockComment x)}
+readComment c@CommentEx {ghcComment=L pos (AnnBlockComment s)}
     | (hash, x) <- maybe (False, x) (True,) $ stripPrefix "#" x
     , x <- trim x
     , (hlint, x) <- word1 x
     , lower hlint == "hlint"
     = f hash x
     where
+        x = commentText (L pos (AnnBlockComment s))
         f hash x
             | Just x <- if hash then stripSuffix "#" x else Just x
             , (sev, x) <- word1 x
