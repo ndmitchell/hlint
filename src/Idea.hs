@@ -1,8 +1,9 @@
 {-# LANGUAGE RecordWildCards, NoMonomorphismRestriction #-}
+{-# LANGUAGE PackageImports #-}
 
 module Idea(
     Idea(..),
-    rawIdea, idea, suggest, warn, ignore,
+    rawIdea, idea, idea', suggest, warn, ignore, ignore',
     rawIdeaN, suggestN, ignoreN,
     showIdeasJson, showANSI,
     Note(..), showNotes,
@@ -17,7 +18,8 @@ import HsColour
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
 import Prelude
-
+import qualified "ghc-lib-parser" SrcLoc as GHC
+import qualified "ghc-lib-parser" Outputable
 
 -- | An idea suggest by a 'Hint'.
 data Idea = Idea
@@ -85,9 +87,17 @@ rawIdeaN a b c d e f = Idea [] [] a b c d e f []
 idea severity hint from to = rawIdea severity hint (srcInfoSpan $ ann from) (f from) (Just $ f to) []
     where f = trimStart . prettyPrint
 
+idea' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+         Severity -> String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
+idea' severity hint from to =
+  rawIdea severity hint (ghcSpanToHSE (GHC.getLoc from)) (f from) (Just $ f to) []
+  where
+    f = Outputable.showSDocUnsafe . Outputable.ppr
+
 suggest = idea Suggestion
 warn = idea Warning
 ignore = idea Ignore
+ignore' = idea' Ignore
 
 ideaN severity hint from to = idea severity hint from to []
 
