@@ -1,3 +1,4 @@
+{-# LANGUAGE PackageImports #-}
 {-
     Suggest newtype instead of data for type declarations that have
     only one field. Don't suggest newtype for existentially
@@ -27,7 +28,14 @@ newtype Foo = Foo Int deriving stock Show
 module Hint.NewType (newtypeHint) where
 
 import Hint.Type
+-- TODO: remove these qualifieds
+import qualified "ghc-lib-parser" HsDecls as Hs
+import qualified "ghc-lib-parser" HsTypes as Hs
+import qualified "ghc-lib-parser" SrcLoc  as Hs
 
+-- TODO: Adapt to use ghc-lib-parser:
+-- * figure out pretty printing ???
+-- * need to call stuff higher up to pass in the correct thing (probably HsDecl or LHsDecl)
 newtypeHint :: DeclHint
 newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
 
@@ -48,6 +56,7 @@ singleSimpleField (DataDecl x1 dt x2 x3 [QualConDecl y1 Nothing Nothing ctor] x4
         f _ = Nothing
 singleSimpleField _ = Nothing
 
+-- TODO: implement with ghc-lib-parser
 newTypeDerivingStrategiesHintDecl :: Decl_ -> [Idea]
 newTypeDerivingStrategiesHintDecl x =
     [rawIdeaN Ignore "Use DerivingStrategies" (srcInfoSpan $ ann x) (prettyPrint x) Nothing [] | lacksStrategy x]
@@ -62,3 +71,25 @@ lacksStrategy _ = False
 hasNoStrategy :: Deriving a -> Bool
 hasNoStrategy (Deriving _ Nothing _) = True
 hasNoStrategy _                      = False
+
+-- | Given a declaration, returns the suggested \"newtype\"ized declaration following these guidelines:
+-- * @MagicHash@'d stuff is __ignored__ - @data X = X Int#@
+-- * @ExistentialQuantification@ stuff is __ignored__ - @data X = forall t. X t@
+-- * Single field constructors get newtyped - @data X = X Int@ -> @newtype X = X Int@
+-- * Single record field constructors get newtyped - @data X = X {getX :: Int}@ -> @newtype X = X {getX :: Int}@
+-- * All other declarations are ignored.
+--
+-- TODO: insert ! warning (or lack thereof) somewhere
+singleSimpleFieldNew :: Hs.HsDecl pass -> Maybe (Hs.HsDecl pass)
+singleSimpleFieldNew (Hs.TyClD wtfIsThisSomePassStuff decl@(Hs.DataDecl _ name _ _ def@(Hs.HsDataDefn _ Hs.DataType ctx _ _ [Hs.L _ constructor] derives)))
+  | simpleCons constructor = Just $ Hs.TyClD wtfIsThisSomePassStuff decl {Hs.tcdDataDefn = def {Hs.dd_ND = Hs.NewType}}
+singleSimpleFieldNew _ = Nothing
+
+-- TODO: check for MAGIC#HASH
+-- TODO: test out existentials matching
+--
+-- TODO: eventually check GADTs too
+simpleCons :: Hs.ConDecl pass -> Bool
+simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.PrefixCon [_]) _) = True -- TODO: does this actually check for existentials??? supposedly the first empty list holds all the existentials
+simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.RecCon (Hs.L _ [_])) _) = True -- TODO: ^
+simpleCons _ = False
