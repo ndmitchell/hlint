@@ -82,7 +82,7 @@ hasNoStrategy _                      = False
 -- TODO: insert ! warning (or lack thereof) somewhere
 singleSimpleFieldNew :: Hs.HsDecl pass -> Maybe (Hs.HsDecl pass)
 singleSimpleFieldNew (Hs.TyClD wtfIsThisSomePassStuff decl@(Hs.DataDecl _ name _ _ def@(Hs.HsDataDefn _ Hs.DataType ctx _ _ [Hs.L _ constructor] derives)))
-  | simpleCons constructor = Just $ Hs.TyClD wtfIsThisSomePassStuff decl {Hs.tcdDataDefn = def {Hs.dd_ND = Hs.NewType}}
+    | simpleCons constructor = Just $ Hs.TyClD wtfIsThisSomePassStuff decl {Hs.tcdDataDefn = def {Hs.dd_ND = Hs.NewType}}
 singleSimpleFieldNew _ = Nothing
 
 -- TODO: check for MAGIC#HASH
