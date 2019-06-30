@@ -1,3 +1,4 @@
+{-# LANGUAGE PackageImports #-}
 
 module Apply(applyHints, applyHintFile, applyHintFiles) where
 
@@ -5,6 +6,7 @@ import Control.Applicative
 import Data.Monoid
 import HSE.All
 import Hint.All
+import GHC.Util
 import Idea
 import Data.Tuple.Extra
 import Data.Either
@@ -13,6 +15,8 @@ import Data.Maybe
 import Data.Ord
 import Config.Type
 import Config.Haskell
+import "ghc-lib-parser" HsSyn
+import qualified "ghc-lib-parser" SrcLoc as GHC
 import qualified Data.HashSet as Set
 import Prelude
 
@@ -48,11 +52,13 @@ applyHintsReal settings hints_ ms = concat $
     [ map (classify classifiers . removeRequiresExtensionNotes (hseModule m)) $
         order [] (hintModule hints settings nm m) `merge`
         concat [order [fromNamed d] $ decHints d | d <- moduleDecls (hseModule m)] `merge`
+        concat [order [declName $ GHC.unLoc d] $ decHints' d | d <- hsmodDecls $ GHC.unLoc $ ghcModule m] `merge`
         concat [order [] $ hintComment hints settings c | c <- hseComments m]
     | (nm, m) <- mns
     , let classifiers = cls ++ mapMaybe readPragma (universeBi (hseModule m)) ++ concatMap readComment (hseComments m)
     , seq (length classifiers) True -- to force any errors from readPragma or readComment
     , let decHints = hintDecl hints settings nm m -- partially apply
+    , let decHints' = hintDecl' hints settings nm m -- partially apply
     , let order n = map (\i -> i{ideaModule= f $ moduleName (hseModule m) : ideaModule i, ideaDecl = f $ n ++ ideaDecl i}) . sortOn ideaSpan
     , let merge = mergeBy (comparing ideaSpan)] ++
     [map (classify cls) (hintModules hints settings mns)]
