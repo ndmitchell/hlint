@@ -34,6 +34,7 @@ import qualified "ghc-lib-parser" HsSyn   as Hs
 import qualified "ghc-lib-parser" HsTypes as Hs
 import qualified "ghc-lib-parser" SrcLoc  as Hs
 
+-- TODO: get deriving strategies to work
 newtypeHint :: DeclHint'
 newtypeHint _ _ x = newtypeHintDecl x -- ++ newTypeDerivingStrategiesHintDecl x
 
