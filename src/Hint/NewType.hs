@@ -84,10 +84,11 @@ singleSimpleFieldNew (Hs.L loc (Hs.TyClD ext decl@(Hs.DataDecl _ name _ _ def@(H
 singleSimpleFieldNew _ = Nothing
 
 -- TODO: check for MAGIC#HASH
--- TODO: test out existentials matching
+-- TODO: get tests to pass
 --
 -- TODO: eventually check GADTs too
 simpleCons :: Hs.ConDecl Hs.GhcPs -> Bool
-simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.PrefixCon [_]) _) = True -- TODO: does this actually check for existentials??? supposedly the first empty list holds all the existentials
-simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.RecCon (Hs.L _ [_])) _) = True -- TODO: ^
+simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.PrefixCon [_]) _) = True
+simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.RecCon (Hs.L _ [Hs.L _ (Hs.ConDeclField _ [_] _ _)])) _) = True 
+                                     -- TODO: ^ why is there a list in RecCon, if the actualy fields are inside the ConDeclField???
 simpleCons _ = False
