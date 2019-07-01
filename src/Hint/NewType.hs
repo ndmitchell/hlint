@@ -90,8 +90,6 @@ data WarnNewtype = WarnNewtype
 -- * Single field constructors get newtyped - @data X = X Int@ -> @newtype X = X Int@
 -- * Single record field constructors get newtyped - @data X = X {getX :: Int}@ -> @newtype X = X {getX :: Int}@
 -- * All other declarations are ignored.
---
--- TODO: insert ! warning (or lack thereof) somewhere
 singleSimpleFieldNew :: Hs.LHsDecl Hs.GhcPs -> Maybe WarnNewtype
 singleSimpleFieldNew (Hs.L loc (Hs.TyClD ext decl@(Hs.DataDecl _ name _ _ def@(Hs.HsDataDefn _ Hs.DataType ctx _ _ [Hs.L _ constructor] derives))))
     | Just inType <- simpleCons constructor =
