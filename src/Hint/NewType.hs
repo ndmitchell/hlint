@@ -34,17 +34,14 @@ import qualified "ghc-lib-parser" HsSyn   as Hs
 import qualified "ghc-lib-parser" HsTypes as Hs
 import qualified "ghc-lib-parser" SrcLoc  as Hs
 
--- TODO: Adapt to use ghc-lib-parser:
--- * figure out pretty printing ???
--- * need to call stuff higher up to pass in the correct thing (probably HsDecl or LHsDecl)
-newtypeHint :: DeclHint
-newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
+newtypeHint :: DeclHint'
+newtypeHint _ _ x = newtypeHintDecl x -- ++ newTypeDerivingStrategiesHintDecl x
 
-newtypeHintDecl :: Decl_ -> [Idea]
-newtypeHintDecl x
-    | Just (DataType s, t, f) <- singleSimpleField x
-    = [(suggestN "Use newtype instead of data" x $ f (NewType s) $ fromTyBang t)
-            {ideaNote = [DecreasesLaziness | not $ isTyBang t]}]
+newtypeHintDecl :: Hs.LHsDecl Hs.GhcPs -> [Idea]
+newtypeHintDecl old
+    | Just new <- singleSimpleFieldNew old
+    = [(suggestN' "Use newtype instead of data" old new)]
+            --{ideaNote = [DecreasesLaziness | not $ isTyBang t]}]
 newtypeHintDecl _ = []
 
 
@@ -81,9 +78,9 @@ hasNoStrategy _                      = False
 -- * All other declarations are ignored.
 --
 -- TODO: insert ! warning (or lack thereof) somewhere
-singleSimpleFieldNew :: Hs.HsDecl Hs.GhcPs -> Maybe (Hs.HsDecl Hs.GhcPs)
-singleSimpleFieldNew (Hs.TyClD ext decl@(Hs.DataDecl _ name _ _ def@(Hs.HsDataDefn _ Hs.DataType ctx _ _ [Hs.L _ constructor] derives)))
-    | simpleCons constructor = Just $ Hs.TyClD ext decl {Hs.tcdDataDefn = def {Hs.dd_ND = Hs.NewType}}
+singleSimpleFieldNew :: Hs.LHsDecl Hs.GhcPs -> Maybe (Hs.LHsDecl Hs.GhcPs)
+singleSimpleFieldNew (Hs.L loc (Hs.TyClD ext decl@(Hs.DataDecl _ name _ _ def@(Hs.HsDataDefn _ Hs.DataType ctx _ _ [Hs.L _ constructor] derives))))
+    | simpleCons constructor = Just $ Hs.L loc $ Hs.TyClD ext decl {Hs.tcdDataDefn = def {Hs.dd_ND = Hs.NewType}}
 singleSimpleFieldNew _ = Nothing
 
 -- TODO: check for MAGIC#HASH

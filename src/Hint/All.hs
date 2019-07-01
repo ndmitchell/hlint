@@ -58,13 +58,13 @@ builtin x = case x of
     HintUnsafe     -> decl unsafeHint
     HintDuplicate  -> mods duplicateHint
     HintComment    -> comm commentHint
-    HintNewType    -> decl newtypeHint
+    HintNewType    -> decl' newtypeHint
     HintRestrict   -> mempty{hintModule=restrictHint}
     HintSmell      -> mempty{hintDecl=smellHint,hintModule=smellModuleHint}
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList
         decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}
-        -- decl' f = mempty{hintDecl'=const $ \a b c -> wrap $ f a b c}
+        decl' f = mempty{hintDecl'=const $ \a b c -> wrap $ f a b c}
         modu f = mempty{hintModule=const $ \a b -> wrap $ f a b}
         mods f = mempty{hintModules=const $ \a -> wrap $ f a}
         comm f = mempty{hintComment=const $ \a -> wrap $ f a}
