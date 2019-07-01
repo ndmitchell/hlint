@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PackageImports #-}
 {-
     Suggest newtype instead of data for type declarations that have
@@ -40,9 +41,9 @@ newtypeHint _ _ x = newtypeHintDecl x -- ++ newTypeDerivingStrategiesHintDecl x
 
 newtypeHintDecl :: Hs.LHsDecl Hs.GhcPs -> [Idea]
 newtypeHintDecl old
-    | Just new <- singleSimpleFieldNew old
-    = [(suggestN' "Use newtype instead of data" old new)]
-            --{ideaNote = [DecreasesLaziness | not $ isTyBang t]}]
+    | Just WarnNewtype{newDecl, insideType} <- singleSimpleFieldNew old
+    = [(suggestN' "Use newtype instead of data" old newDecl)
+            {ideaNote = [DecreasesLaziness | warnBang insideType]}]
 newtypeHintDecl _ = []
 
 
@@ -71,6 +72,15 @@ hasNoStrategy :: Deriving a -> Bool
 hasNoStrategy (Deriving _ Nothing _) = True
 hasNoStrategy _                      = False
 
+withNewtype :: Deriving a -> Deriving a
+withNewtype (Deriving l Nothing rs)  = Deriving l (Just $ DerivNewtype l) rs
+withNewtype d                        = d
+
+data WarnNewtype = WarnNewtype
+    { newDecl :: Hs.LHsDecl Hs.GhcPs
+    , insideType :: Hs.HsType Hs.GhcPs
+    }
+
 -- | Given a declaration, returns the suggested \"newtype\"ized declaration following these guidelines:
 -- * @MagicHash@'d stuff is __ignored__ - @data X = X Int#@
 -- * @ExistentialQuantification@ stuff is __ignored__ - @data X = forall t. X t@
@@ -79,17 +89,26 @@ hasNoStrategy _                      = False
 -- * All other declarations are ignored.
 --
 -- TODO: insert ! warning (or lack thereof) somewhere
-singleSimpleFieldNew :: Hs.LHsDecl Hs.GhcPs -> Maybe (Hs.LHsDecl Hs.GhcPs)
+singleSimpleFieldNew :: Hs.LHsDecl Hs.GhcPs -> Maybe WarnNewtype
 singleSimpleFieldNew (Hs.L loc (Hs.TyClD ext decl@(Hs.DataDecl _ name _ _ def@(Hs.HsDataDefn _ Hs.DataType ctx _ _ [Hs.L _ constructor] derives))))
-    | simpleCons constructor = Just $ Hs.L loc $ Hs.TyClD ext decl {Hs.tcdDataDefn = def {Hs.dd_ND = Hs.NewType}}
+    | Just inType <- simpleCons constructor =
+        Just WarnNewtype
+              { newDecl = (Hs.L loc $ Hs.TyClD ext decl {Hs.tcdDataDefn = def {Hs.dd_ND = Hs.NewType}})
+              , insideType = inType
+              }
 singleSimpleFieldNew _ = Nothing
 
 -- TODO: check for MAGIC#HASH
 -- TODO: get tests to pass
 --
 -- TODO: eventually check GADTs too
-simpleCons :: Hs.ConDecl Hs.GhcPs -> Bool
-simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.PrefixCon [_]) _) = True
-simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.RecCon (Hs.L _ [Hs.L _ (Hs.ConDeclField _ [_] _ _)])) _) = True 
-                                     -- TODO: ^ why is there a list in RecCon, if the actualy fields are inside the ConDeclField???
-simpleCons _ = False
+-- | Checks whether its argument is a \"simple constructor\" (see criteria in 'singleSimpleFieldNew')
+-- returning the type inside the constructor if it is. This is needed for bang/MagicHash analysis.
+simpleCons :: Hs.ConDecl Hs.GhcPs -> Maybe (Hs.HsType Hs.GhcPs)
+simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.PrefixCon [Hs.L _ inType]) _) = Just inType
+simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.RecCon (Hs.L _ [Hs.L _ (Hs.ConDeclField _ [_] (Hs.L _ inType) _)])) _) = Just inType
+simpleCons _ = Nothing
+
+warnBang :: Hs.HsType Hs.GhcPs -> Bool
+warnBang (Hs.HsBangTy _ (Hs.HsSrcBang _ _ Hs.SrcStrict) _) = False
+warnBang _ = True
