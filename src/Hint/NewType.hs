@@ -19,8 +19,8 @@ data A = A {b :: !C} -- newtype A = A {b :: C}
 data A = A Int#
 {-# LANGUAGE UnboxedTuples #-}; data WithAnn x = WithAnn (# Ann, x #)
 data A = A () -- newtype A = A ()
-newtype Foo = Foo Int deriving (Show, Eq) -- newtype Foo = Foo Int deriving newtype (Show, Eq)
-newtype Foo = Foo { getFoo :: Int } deriving (Show, Eq) -- newtype Foo = Foo { getFoo :: Int } deriving newtype (Show, Eq)
+newtype Foo = Foo Int deriving (Show, Eq) --
+newtype Foo = Foo { getFoo :: Int } deriving (Show, Eq) --
 newtype Foo = Foo Int deriving stock Show
 </TEST>
 -}
