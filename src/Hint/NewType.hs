@@ -7,6 +7,7 @@
 
 <TEST>
 data Foo = Foo Int -- newtype Foo = Foo Int
+data Foo where Foo :: Int -> Foo -- newtype Foo where Foo :: Int -> Foo
 data Foo = Foo Int deriving (Show, Eq) -- newtype Foo = Foo Int deriving (Show, Eq)
 data Foo = Foo { field :: Int } deriving Show -- newtype Foo = Foo { field :: Int } deriving Show
 data Foo a b = Foo a -- newtype Foo a b = Foo a
@@ -14,6 +15,7 @@ data Foo = Foo { field1, field2 :: Int}
 data S a = forall b . Show b => S b
 data Color a = Red a | Green a | Blue a
 data Pair a b = Pair a b
+data Pair a b where Pair :: a -> b -> Pair a b
 data Foo = Bar
 data Foo a = Eq a => MkFoo a
 data X = Y {-# UNPACK #-} !Int -- newtype X = Y Int
@@ -101,7 +103,6 @@ singleSimpleFieldNew _ = Nothing
 -- TODO: check for MAGIC#HASH
 -- TODO: get tests to pass
 --
--- TODO: eventually check GADTs too
 -- | Checks whether its argument is a \"simple constructor\" (see criteria in 'singleSimpleFieldNew')
 -- returning the type inside the constructor if it is. This is needed for bang/MagicHash analysis.
 simpleCons :: Hs.ConDecl Hs.GhcPs -> Maybe (Hs.HsType Hs.GhcPs)
