@@ -87,6 +87,7 @@ data WarnNewtype = WarnNewtype
 -- | Given a declaration, returns the suggested \"newtype\"ized declaration following these guidelines:
 -- * @MagicHash@'d stuff is __ignored__ - @data X = X Int#@
 -- * @ExistentialQuantification@ stuff is __ignored__ - @data X = forall t. X t@
+-- * Constructors with (nonempty) constraints are __ignored__ - @data X a = (Eq a) => X a@
 -- * Single field constructors get newtyped - @data X = X Int@ -> @newtype X = X Int@
 -- * Single record field constructors get newtyped - @data X = X {getX :: Int}@ -> @newtype X = X {getX :: Int}@
 -- * All other declarations are ignored.
