@@ -4,7 +4,7 @@
 module Idea(
     Idea(..),
     rawIdea, idea, idea', suggest, warn, ignore, ignore',
-    rawIdeaN, suggestN, ignoreN,
+    rawIdeaN, suggestN, suggestN', ignoreN,
     showIdeasJson, showANSI,
     Note(..), showNotes,
     Severity(..)
@@ -97,9 +97,17 @@ idea' severity hint from to =
 suggest = idea Suggestion
 warn = idea Warning
 ignore = idea Ignore
+ignore' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+           String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
 ignore' = idea' Ignore
 
 ideaN severity hint from to = idea severity hint from to []
+ideaN' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+          Severity -> String -> a -> a -> Idea
+ideaN' severity hint from to = idea' severity hint from to []
 
 suggestN = ideaN Suggestion
+suggestN' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+             String -> a -> a -> Idea
+suggestN' = ideaN' Suggestion
 ignoreN = ideaN Ignore
