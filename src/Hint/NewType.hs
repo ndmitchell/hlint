@@ -49,19 +49,16 @@ singleSimpleField (DataDecl x1 dt x2 x3 [QualConDecl y1 Nothing Nothing ctor] x4
 singleSimpleField _ = Nothing
 
 newTypeDerivingStrategiesHintDecl :: Decl_ -> [Idea]
-newTypeDerivingStrategiesHintDecl x = [ignoreN "Use DerivingStrategies" x new | Just new <- [newtypeDecl x]]
+newTypeDerivingStrategiesHintDecl x =
+    [rawIdeaN Ignore "Use DerivingStrategies" (srcInfoSpan $ ann x) (prettyPrint x) Nothing [] | lacksStrategy x]
 
-newtypeDecl :: Decl_ -> Maybe Decl_
-newtypeDecl (DataDecl x1 x2@(NewType _) x3 x4 x5 x6)
-    | any hasNoStrategy x6 = Just $ DataDecl x1 x2 x3 x4 x5 (withNewtype <$> x6)
-newtypeDecl (GDataDecl x1 x2@(NewType _) x3 x4 x5 x6 x7)
-    | any hasNoStrategy x7 = Just $ GDataDecl x1 x2 x3 x4 x5 x6 (withNewtype <$> x7)
-newtypeDecl _ = Nothing
+lacksStrategy :: Decl_ -> Bool
+lacksStrategy (DataDecl _ (NewType _) _ _ _ derivingClause)
+    = any hasNoStrategy derivingClause
+lacksStrategy (GDataDecl _ (NewType _) _ _ _ _ derivingClause)
+    = any hasNoStrategy derivingClause
+lacksStrategy _ = False
 
 hasNoStrategy :: Deriving a -> Bool
 hasNoStrategy (Deriving _ Nothing _) = True
 hasNoStrategy _                      = False
-
-withNewtype :: Deriving a -> Deriving a
-withNewtype (Deriving l Nothing rs)  = Deriving l (Just $ DerivNewtype l) rs
-withNewtype d                        = d
