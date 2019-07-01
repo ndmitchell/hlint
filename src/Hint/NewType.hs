@@ -107,10 +107,17 @@ singleSimpleFieldNew _ = Nothing
 -- | Checks whether its argument is a \"simple constructor\" (see criteria in 'singleSimpleFieldNew')
 -- returning the type inside the constructor if it is. This is needed for bang/MagicHash analysis.
 simpleCons :: Hs.ConDecl Hs.GhcPs -> Maybe (Hs.HsType Hs.GhcPs)
-simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.PrefixCon [Hs.L _ inType]) _) = Just inType
-simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.RecCon (Hs.L _ [Hs.L _ (Hs.ConDeclField _ [_] (Hs.L _ inType) _)])) _) = Just inType
+simpleCons (Hs.ConDeclH98 _ _ _ [] context (Hs.PrefixCon [Hs.L _ inType]) _) 
+    | emptyOrNoContext context = Just inType
+simpleCons (Hs.ConDeclH98 _ _ _ [] context (Hs.RecCon (Hs.L _ [Hs.L _ (Hs.ConDeclField _ [_] (Hs.L _ inType) _)])) _)
+    | emptyOrNoContext context = Just inType
 simpleCons _ = Nothing
 
 warnBang :: Hs.HsType Hs.GhcPs -> Bool
 warnBang (Hs.HsBangTy _ (Hs.HsSrcBang _ _ Hs.SrcStrict) _) = False
 warnBang _ = True
+
+emptyOrNoContext :: Maybe (Hs.LHsContext Hs.GhcPs) -> Bool
+emptyOrNoContext Nothing = True
+emptyOrNoContext (Just (Hs.L _ [])) = True
+emptyOrNoContext _ = False
