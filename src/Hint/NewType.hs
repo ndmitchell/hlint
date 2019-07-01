@@ -30,6 +30,7 @@ module Hint.NewType (newtypeHint) where
 import Hint.Type
 -- TODO: remove these qualifieds
 import qualified "ghc-lib-parser" HsDecls as Hs
+import qualified "ghc-lib-parser" HsSyn   as Hs
 import qualified "ghc-lib-parser" HsTypes as Hs
 import qualified "ghc-lib-parser" SrcLoc  as Hs
 
@@ -80,7 +81,7 @@ hasNoStrategy _                      = False
 -- * All other declarations are ignored.
 --
 -- TODO: insert ! warning (or lack thereof) somewhere
-singleSimpleFieldNew :: Hs.HsDecl pass -> Maybe (Hs.HsDecl pass)
+singleSimpleFieldNew :: Hs.HsDecl Hs.GhcPs -> Maybe (Hs.HsDecl Hs.GhcPs)
 singleSimpleFieldNew (Hs.TyClD wtfIsThisSomePassStuff decl@(Hs.DataDecl _ name _ _ def@(Hs.HsDataDefn _ Hs.DataType ctx _ _ [Hs.L _ constructor] derives)))
     | simpleCons constructor = Just $ Hs.TyClD wtfIsThisSomePassStuff decl {Hs.tcdDataDefn = def {Hs.dd_ND = Hs.NewType}}
 singleSimpleFieldNew _ = Nothing
@@ -89,7 +90,7 @@ singleSimpleFieldNew _ = Nothing
 -- TODO: test out existentials matching
 --
 -- TODO: eventually check GADTs too
-simpleCons :: Hs.ConDecl pass -> Bool
+simpleCons :: Hs.ConDecl Hs.GhcPs -> Bool
 simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.PrefixCon [_]) _) = True -- TODO: does this actually check for existentials??? supposedly the first empty list holds all the existentials
 simpleCons (Hs.ConDeclH98 _ _ _ [] _ (Hs.RecCon (Hs.L _ [_])) _) = True -- TODO: ^
 simpleCons _ = False
