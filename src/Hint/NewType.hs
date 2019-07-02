@@ -95,7 +95,10 @@ singleSimpleFieldNew :: Hs.LHsDecl Hs.GhcPs -> Maybe WarnNewtype
 singleSimpleFieldNew (Hs.L loc (Hs.TyClD ext decl@(Hs.DataDecl _ name _ _ def@(Hs.HsDataDefn _ Hs.DataType ctx _ _ [Hs.L _ constructor] derives))))
     | Just inType <- simpleCons constructor =
         Just WarnNewtype
-              { newDecl = (Hs.L loc $ Hs.TyClD ext decl {Hs.tcdDataDefn = def {Hs.dd_ND = Hs.NewType}})
+              { newDecl = Hs.L loc $ Hs.TyClD ext decl {Hs.tcdDataDefn = def
+                  { Hs.dd_ND = Hs.NewType
+                  , Hs.dd_cons = map (\(Hs.L consloc x) -> Hs.L consloc $ dropUnpackCons x) $ Hs.dd_cons def
+                  }}
               , insideType = inType
               }
 singleSimpleFieldNew _ = Nothing
@@ -106,7 +109,7 @@ singleSimpleFieldNew _ = Nothing
 -- | Checks whether its argument is a \"simple constructor\" (see criteria in 'singleSimpleFieldNew')
 -- returning the type inside the constructor if it is. This is needed for bang/MagicHash analysis.
 simpleCons :: Hs.ConDecl Hs.GhcPs -> Maybe (Hs.HsType Hs.GhcPs)
-simpleCons (Hs.ConDeclH98 _ _ _ [] context (Hs.PrefixCon [Hs.L _ inType]) _) 
+simpleCons (Hs.ConDeclH98 _ _ _ [] context (Hs.PrefixCon [Hs.L _ inType]) _)
     | emptyOrNoContext context = Just inType
 simpleCons (Hs.ConDeclH98 _ _ _ [] context (Hs.RecCon (Hs.L _ [Hs.L _ (Hs.ConDeclField _ [_] (Hs.L _ inType) _)])) _)
     | emptyOrNoContext context = Just inType
@@ -120,3 +123,24 @@ emptyOrNoContext :: Maybe (Hs.LHsContext Hs.GhcPs) -> Bool
 emptyOrNoContext Nothing = True
 emptyOrNoContext (Just (Hs.L _ [])) = True
 emptyOrNoContext _ = False
+
+dropUnpackCons :: Hs.ConDecl Hs.GhcPs -> Hs.ConDecl Hs.GhcPs
+dropUnpackCons decl@(Hs.ConDeclH98 _ _ _ _ _ (Hs.PrefixCon fields) _) =
+    decl {Hs.con_args = Hs.PrefixCon $ map (\(Hs.L loc field') -> Hs.L loc $ dropUnpack field') fields}
+dropUnpackCons decl@(Hs.ConDeclH98 _ _ _ _ _ (Hs.RecCon (Hs.L recloc conDeclFields)) _) =
+    decl {Hs.con_args = Hs.RecCon $ Hs.L recloc $ removeUnpacksRecords conDeclFields}
+    where
+        removeUnpacksRecords :: [Hs.LConDeclField Hs.GhcPs] -> [Hs.LConDeclField Hs.GhcPs]
+        removeUnpacksRecords = map (\(Hs.L conDeclFieldLoc x) -> Hs.L conDeclFieldLoc $ removeConDeclFieldUnpacks x)
+
+        removeConDeclFieldUnpacks :: Hs.ConDeclField Hs.GhcPs -> Hs.ConDeclField Hs.GhcPs
+        removeConDeclFieldUnpacks decl@(Hs.ConDeclField _ _ (Hs.L typeLoc fieldType) _) =
+            decl {Hs.cd_fld_type = Hs.L typeLoc $ dropUnpack fieldType}
+        removeConDeclFieldUnpacks x = x
+dropUnpackCons x = x
+
+-- TODO: consider deleting in favour of 'getBangType'
+dropUnpack :: Hs.HsType Hs.GhcPs -> Hs.HsType Hs.GhcPs
+dropUnpack (Hs.HsBangTy ext (Hs.HsSrcBang srctext packedness bang) innerType) =
+    Hs.HsBangTy ext (Hs.HsSrcBang srctext Hs.NoSrcUnpack bang) innerType
+dropUnpack x = x
