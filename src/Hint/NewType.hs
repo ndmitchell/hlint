@@ -24,6 +24,7 @@ data X = Y {-# UNPACK #-} !Int -- newtype X = Y Int
 data A = A {b :: !C} -- newtype A = A {b :: C}
 data A = A Int#
 {-# LANGUAGE UnboxedTuples #-}; data WithAnn x = WithAnn (# Ann, x #)
+{-# LANGUAGE UnboxedTuples #-}; data WithAnn x = WithAnn {getWithAnn :: (# Ann, x #)}
 data A = A () -- newtype A = A ()
 newtype Foo = Foo Int deriving (Show, Eq) --
 newtype Foo = Foo { getFoo :: Int } deriving (Show, Eq) --
@@ -111,9 +112,9 @@ singleSimpleFieldNew _ = Nothing
 -- returning the type inside the constructor if it is. This is needed for bang/MagicHash analysis.
 simpleCons :: Hs.ConDecl Hs.GhcPs -> Maybe (Hs.HsType Hs.GhcPs)
 simpleCons (Hs.ConDeclH98 _ _ _ [] context (Hs.PrefixCon [Hs.L _ inType]) _)
-    | emptyOrNoContext context = Just inType
+    | emptyOrNoContext context, not $ isUnboxedTuple inType = Just inType
 simpleCons (Hs.ConDeclH98 _ _ _ [] context (Hs.RecCon (Hs.L _ [Hs.L _ (Hs.ConDeclField _ [_] (Hs.L _ inType) _)])) _)
-    | emptyOrNoContext context = Just inType
+    | emptyOrNoContext context, not $ isUnboxedTuple inType = Just inType
 simpleCons _ = Nothing
 
 warnBang :: Hs.HsType Hs.GhcPs -> Bool
@@ -140,3 +141,7 @@ dropConsBang decl@(Hs.ConDeclH98 _ _ _ _ _ (Hs.RecCon (Hs.L recloc conDeclFields
             decl {Hs.cd_fld_type = Hs.getBangType fieldType}
         removeConDeclFieldUnpacks x = x
 dropConsBang x = x
+
+isUnboxedTuple :: Hs.HsType Hs.GhcPs -> Bool
+isUnboxedTuple (Hs.HsTupleTy _ Hs.HsUnboxedTuple _) = True
+isUnboxedTuple _ = False
