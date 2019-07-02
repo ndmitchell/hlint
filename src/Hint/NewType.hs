@@ -13,6 +13,7 @@ data Foo = Foo { field :: Int } deriving Show -- newtype Foo = Foo { field :: In
 data Foo a b = Foo a -- newtype Foo a b = Foo a
 data Foo = Foo { field1, field2 :: Int}
 data S a = forall b . Show b => S b
+{-# LANGUAGE RankNTypes #-}; data Foo = Foo (forall a. a) -- newtype Foo = Foo (forall a. a)
 data Color a = Red a | Green a | Blue a
 data Pair a b = Pair a b
 data Pair a b where Pair :: a -> b -> Pair a b
