@@ -108,7 +108,6 @@ singleSimpleFieldNew (Hs.L loc (Hs.TyClD ext decl@(Hs.DataDecl _ name _ _ def@(H
               }
 singleSimpleFieldNew _ = Nothing
 
--- TODO: check for MAGIC#HASH
 -- TODO: get tests to pass
 --
 -- | Checks whether its argument is a \"simple constructor\" (see criteria in 'singleSimpleFieldNew')
