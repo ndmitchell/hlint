@@ -52,27 +52,10 @@ newtypeHintDecl old
             {ideaNote = [DecreasesLaziness | warnBang insideType]}]
 newtypeHintDecl _ = []
 
-
-singleSimpleField :: Decl_ -> Maybe (DataOrNew S, Type_, DataOrNew S -> Type_ -> Decl_)
-singleSimpleField (DataDecl x1 dt x2 x3 [QualConDecl y1 Nothing Nothing ctor] x4)
-    | Just (t, ft) <- f ctor = Just (dt, t, \dt t -> DataDecl x1 dt x2 x3 [QualConDecl y1 Nothing Nothing $ ft t] x4)
-    where
-        f (ConDecl x1 x2 [t]) | not $ isKindHash t = Just (t, \t -> ConDecl x1 x2 [t])
-        f (RecDecl x1 x2 [FieldDecl y1 [y2] t]) = Just (t, \t -> RecDecl x1 x2 [FieldDecl y1 [y2] t])
-        f _ = Nothing
-singleSimpleField _ = Nothing
-
 newTypeDerivingStrategiesHintDecl :: Hs.LHsDecl Hs.GhcPs -> [Idea]
 newTypeDerivingStrategiesHintDecl decl@(Hs.L _ (Hs.TyClD _ (Hs.DataDecl _ _ _ _ dataDef))) =
     [ignoreNoSuggestion' "Use DerivingStrategies" decl | not $ isData dataDef, not $ hasAllStrategies dataDef]
 newTypeDerivingStrategiesHintDecl _ = []
-
-lacksStrategy :: Decl_ -> Bool
-lacksStrategy (DataDecl _ (NewType _) _ _ _ derivingClause)
-    = any hasNoStrategy derivingClause
-lacksStrategy (GDataDecl _ (NewType _) _ _ _ _ derivingClause)
-    = any hasNoStrategy derivingClause
-lacksStrategy _ = False
 
 hasAllStrategies :: Hs.HsDataDefn Hs.GhcPs -> Bool
 hasAllStrategies (Hs.HsDataDefn _ Hs.NewType _ _ _ _ (Hs.L _ xs)) = all hasStrategyClause xs
@@ -85,14 +68,6 @@ isData (Hs.HsDataDefn _ Hs.DataType _ _ _ _ _) = True
 hasStrategyClause :: Hs.LHsDerivingClause Hs.GhcPs -> Bool
 hasStrategyClause (Hs.L _ (Hs.HsDerivingClause _ (Just _) _)) = True
 hasStrategyClause _ = False
-
-hasNoStrategy :: Deriving a -> Bool
-hasNoStrategy (Deriving _ Nothing _) = True
-hasNoStrategy _                      = False
-
-withNewtype :: Deriving a -> Deriving a
-withNewtype (Deriving l Nothing rs)  = Deriving l (Just $ DerivNewtype l) rs
-withNewtype d                        = d
 
 data WarnNewtype = WarnNewtype
     { newDecl :: Hs.LHsDecl Hs.GhcPs
