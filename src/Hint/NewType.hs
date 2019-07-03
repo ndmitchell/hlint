@@ -37,7 +37,6 @@ import Data.List (isSuffixOf)
 -- TODO: remove these qualifieds
 import qualified "ghc-lib-parser" HsDecls as Hs
 import qualified "ghc-lib-parser" HsSyn   as Hs
-import qualified "ghc-lib-parser" HsTypes as Hs
 import qualified "ghc-lib-parser" Outputable as Hs
 import qualified "ghc-lib-parser" SrcLoc  as Hs
 
@@ -64,6 +63,7 @@ hasAllStrategies _ = False
 isData :: Hs.HsDataDefn Hs.GhcPs -> Bool
 isData (Hs.HsDataDefn _ Hs.NewType _ _ _ _ _) = False
 isData (Hs.HsDataDefn _ Hs.DataType _ _ _ _ _) = True
+isData _ = False
 
 hasStrategyClause :: Hs.LHsDerivingClause Hs.GhcPs -> Bool
 hasStrategyClause (Hs.L _ (Hs.HsDerivingClause _ (Just _) _)) = True
@@ -82,12 +82,12 @@ data WarnNewtype = WarnNewtype
 -- * Single record field constructors get newtyped - @data X = X {getX :: Int}@ -> @newtype X = X {getX :: Int}@
 -- * All other declarations are ignored.
 singleSimpleFieldNew :: Hs.LHsDecl Hs.GhcPs -> Maybe WarnNewtype
-singleSimpleFieldNew (Hs.L loc (Hs.TyClD ext decl@(Hs.DataDecl _ name _ _ def@(Hs.HsDataDefn _ Hs.DataType ctx _ _ [Hs.L _ constructor] derives))))
+singleSimpleFieldNew (Hs.L loc (Hs.TyClD ext decl@(Hs.DataDecl _ _ _ _ dataDef@(Hs.HsDataDefn _ Hs.DataType _ _ _ [Hs.L _ constructor] _))))
     | Just inType <- simpleCons constructor =
         Just WarnNewtype
-              { newDecl = Hs.L loc $ Hs.TyClD ext decl {Hs.tcdDataDefn = def
+              { newDecl = Hs.L loc $ Hs.TyClD ext decl {Hs.tcdDataDefn = dataDef
                   { Hs.dd_ND = Hs.NewType
-                  , Hs.dd_cons = map (\(Hs.L consloc x) -> Hs.L consloc $ dropConsBang x) $ Hs.dd_cons def
+                  , Hs.dd_cons = map (\(Hs.L consloc x) -> Hs.L consloc $ dropConsBang x) $ Hs.dd_cons dataDef
                   }}
               , insideType = inType
               }
@@ -111,8 +111,8 @@ simpleCons (Hs.ConDeclH98 _ _ _ [] context (Hs.RecCon (Hs.L _ [Hs.L _ (Hs.ConDec
 simpleCons _ = Nothing
 
 isHashy :: Hs.HsType Hs.GhcPs -> Bool
-isHashy (Hs.HsTyVar _ _ id) = "#" `isSuffixOf` Hs.showSDocUnsafe (Hs.ppr id)
-isHashy x = False
+isHashy (Hs.HsTyVar _ _ identifier) = "#" `isSuffixOf` Hs.showSDocUnsafe (Hs.ppr identifier)
+isHashy _ = False
 
 warnBang :: Hs.HsType Hs.GhcPs -> Bool
 warnBang (Hs.HsBangTy _ (Hs.HsSrcBang _ _ Hs.SrcStrict) _) = False
@@ -134,8 +134,8 @@ dropConsBang decl@(Hs.ConDeclH98 _ _ _ _ _ (Hs.RecCon (Hs.L recloc conDeclFields
         removeUnpacksRecords = map (\(Hs.L conDeclFieldLoc x) -> Hs.L conDeclFieldLoc $ removeConDeclFieldUnpacks x)
 
         removeConDeclFieldUnpacks :: Hs.ConDeclField Hs.GhcPs -> Hs.ConDeclField Hs.GhcPs
-        removeConDeclFieldUnpacks decl@(Hs.ConDeclField _ _ fieldType _) =
-            decl {Hs.cd_fld_type = Hs.getBangType fieldType}
+        removeConDeclFieldUnpacks conDeclField@(Hs.ConDeclField _ _ fieldType _) =
+            conDeclField {Hs.cd_fld_type = Hs.getBangType fieldType}
         removeConDeclFieldUnpacks x = x
 dropConsBang x = x
 
