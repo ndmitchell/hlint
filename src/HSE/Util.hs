@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, ViewPatterns, TupleSections #-}
+{-# LANGUAGE FlexibleContexts, TupleSections #-}
 
 module HSE.Util(module HSE.Util, def) where
 
