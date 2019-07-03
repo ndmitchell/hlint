@@ -34,10 +34,13 @@ newtype Foo = Foo Int deriving stock Show
 module Hint.NewType (newtypeHint) where
 
 import Hint.Type
+
+import Data.List (isSuffixOf)
 -- TODO: remove these qualifieds
 import qualified "ghc-lib-parser" HsDecls as Hs
 import qualified "ghc-lib-parser" HsSyn   as Hs
 import qualified "ghc-lib-parser" HsTypes as Hs
+import qualified "ghc-lib-parser" Outputable as Hs
 import qualified "ghc-lib-parser" SrcLoc  as Hs
 
 -- TODO: get deriving strategies to work
@@ -87,7 +90,7 @@ data WarnNewtype = WarnNewtype
     }
 
 -- | Given a declaration, returns the suggested \"newtype\"ized declaration following these guidelines:
--- * @MagicHash@'d stuff is __ignored__ - @data X = X Int#@
+-- * Types ending in a \"#\" are __ignored__, because they are usually unboxed primitives - @data X = X Int#@
 -- * @ExistentialQuantification@ stuff is __ignored__ - @data X = forall t. X t@
 -- * Constructors with (nonempty) constraints are __ignored__ - @data X a = (Eq a) => X a@
 -- * Single field constructors get newtyped - @data X = X Int@ -> @newtype X = X Int@
@@ -112,10 +115,20 @@ singleSimpleFieldNew _ = Nothing
 -- returning the type inside the constructor if it is. This is needed for bang/MagicHash analysis.
 simpleCons :: Hs.ConDecl Hs.GhcPs -> Maybe (Hs.HsType Hs.GhcPs)
 simpleCons (Hs.ConDeclH98 _ _ _ [] context (Hs.PrefixCon [Hs.L _ inType]) _)
-    | emptyOrNoContext context, not $ isUnboxedTuple inType = Just inType
+    | emptyOrNoContext context
+    , not $ isUnboxedTuple inType
+    , not $ isHashy inType
+    = Just inType
 simpleCons (Hs.ConDeclH98 _ _ _ [] context (Hs.RecCon (Hs.L _ [Hs.L _ (Hs.ConDeclField _ [_] (Hs.L _ inType) _)])) _)
-    | emptyOrNoContext context, not $ isUnboxedTuple inType = Just inType
+    | emptyOrNoContext context
+    , not $ isUnboxedTuple inType
+    , not $ isHashy inType
+    = Just inType
 simpleCons _ = Nothing
+
+isHashy :: Hs.HsType Hs.GhcPs -> Bool
+isHashy (Hs.HsTyVar _ _ id) = "#" `isSuffixOf` Hs.showSDocUnsafe (Hs.ppr id)
+isHashy x = False
 
 warnBang :: Hs.HsType Hs.GhcPs -> Bool
 warnBang (Hs.HsBangTy _ (Hs.HsSrcBang _ _ Hs.SrcStrict) _) = False
