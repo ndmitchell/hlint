@@ -7,7 +7,6 @@
 
 <TEST>
 data Foo = Foo Int -- newtype Foo = Foo Int
-data Foo where Foo :: Int -> Foo -- newtype Foo where Foo :: Int -> Foo
 data Foo = Foo Int deriving (Show, Eq) -- newtype Foo = Foo Int deriving (Show, Eq)
 data Foo = Foo { field :: Int } deriving Show -- newtype Foo = Foo { field :: Int } deriving Show
 data Foo a b = Foo a -- newtype Foo a b = Foo a
@@ -16,7 +15,6 @@ data S a = forall b . Show b => S b
 {-# LANGUAGE RankNTypes #-}; data Foo = Foo (forall a. a) -- newtype Foo = Foo (forall a. a)
 data Color a = Red a | Green a | Blue a
 data Pair a b = Pair a b
-data Pair a b where Pair :: a -> b -> Pair a b
 data Foo = Bar
 data Foo a = Eq a => MkFoo a
 data Foo a = () => Foo a -- newtype Foo a = Foo a
