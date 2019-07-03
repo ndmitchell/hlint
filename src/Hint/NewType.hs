@@ -43,7 +43,7 @@ import qualified "ghc-lib-parser" SrcLoc  as Hs
 
 -- TODO: get deriving strategies to work
 newtypeHint :: DeclHint'
-newtypeHint _ _ x = newtypeHintDecl x -- ++ newTypeDerivingStrategiesHintDecl x
+newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
 
 newtypeHintDecl :: Hs.LHsDecl Hs.GhcPs -> [Idea]
 newtypeHintDecl old
@@ -62,10 +62,10 @@ singleSimpleField (DataDecl x1 dt x2 x3 [QualConDecl y1 Nothing Nothing ctor] x4
         f _ = Nothing
 singleSimpleField _ = Nothing
 
--- TODO: implement with ghc-lib-parser
-newTypeDerivingStrategiesHintDecl :: Decl_ -> [Idea]
-newTypeDerivingStrategiesHintDecl x =
-    [rawIdeaN Ignore "Use DerivingStrategies" (srcInfoSpan $ ann x) (prettyPrint x) Nothing [] | lacksStrategy x]
+newTypeDerivingStrategiesHintDecl :: Hs.LHsDecl Hs.GhcPs -> [Idea]
+newTypeDerivingStrategiesHintDecl decl@(Hs.L _ (Hs.TyClD _ (Hs.DataDecl _ _ _ _ dataDef))) =
+    [ignoreNoSuggestion' "Use DerivingStrategies" decl | not $ isData dataDef, not $ hasAllStrategies dataDef]
+newTypeDerivingStrategiesHintDecl _ = []
 
 lacksStrategy :: Decl_ -> Bool
 lacksStrategy (DataDecl _ (NewType _) _ _ _ derivingClause)
@@ -73,6 +73,18 @@ lacksStrategy (DataDecl _ (NewType _) _ _ _ derivingClause)
 lacksStrategy (GDataDecl _ (NewType _) _ _ _ _ derivingClause)
     = any hasNoStrategy derivingClause
 lacksStrategy _ = False
+
+hasAllStrategies :: Hs.HsDataDefn Hs.GhcPs -> Bool
+hasAllStrategies (Hs.HsDataDefn _ Hs.NewType _ _ _ _ (Hs.L _ xs)) = all hasStrategyClause xs
+hasAllStrategies _ = False
+
+isData :: Hs.HsDataDefn Hs.GhcPs -> Bool
+isData (Hs.HsDataDefn _ Hs.NewType _ _ _ _ _) = False
+isData (Hs.HsDataDefn _ Hs.DataType _ _ _ _ _) = True
+
+hasStrategyClause :: Hs.LHsDerivingClause Hs.GhcPs -> Bool
+hasStrategyClause (Hs.L _ (Hs.HsDerivingClause _ (Just _) _)) = True
+hasStrategyClause _ = False
 
 hasNoStrategy :: Deriving a -> Bool
 hasNoStrategy (Deriving _ Nothing _) = True
