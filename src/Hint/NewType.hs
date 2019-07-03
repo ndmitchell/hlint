@@ -44,7 +44,7 @@ newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
 
 newtypeHintDecl :: LHsDecl GhcPs -> [Idea]
 newtypeHintDecl old
-    | Just WarnNewtype{newDecl, insideType} <- singleSimpleFieldNew old
+    | Just WarnNewtype{newDecl, insideType} <- singleSimpleField old
     = [(suggestN' "Use newtype instead of data" old newDecl)
             {ideaNote = [DecreasesLaziness | warnBang insideType]}]
 newtypeHintDecl _ = []
@@ -79,8 +79,8 @@ data WarnNewtype = WarnNewtype
 -- * Single field constructors get newtyped - @data X = X Int@ -> @newtype X = X Int@
 -- * Single record field constructors get newtyped - @data X = X {getX :: Int}@ -> @newtype X = X {getX :: Int}@
 -- * All other declarations are ignored.
-singleSimpleFieldNew :: LHsDecl GhcPs -> Maybe WarnNewtype
-singleSimpleFieldNew (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef@(HsDataDefn _ DataType _ _ _ [L _ constructor] _))))
+singleSimpleField :: LHsDecl GhcPs -> Maybe WarnNewtype
+singleSimpleField (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef@(HsDataDefn _ DataType _ _ _ [L _ constructor] _))))
     | Just inType <- simpleCons constructor =
         Just WarnNewtype
               { newDecl = L loc $ TyClD ext decl {tcdDataDefn = dataDef
@@ -89,7 +89,7 @@ singleSimpleFieldNew (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef@(HsDataDef
                   }}
               , insideType = inType
               }
-singleSimpleFieldNew _ = Nothing
+singleSimpleField _ = Nothing
 
 -- | Checks whether its argument is a \"simple constructor\" (see criteria in 'singleSimpleFieldNew')
 -- returning the type inside the constructor if it is. This is needed for bang/MagicHash analysis.
