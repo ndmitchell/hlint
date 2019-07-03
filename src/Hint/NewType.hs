@@ -34,13 +34,11 @@ module Hint.NewType (newtypeHint) where
 import Hint.Type (Idea, DeclHint', Note(DecreasesLaziness), ideaNote, ignoreNoSuggestion', suggestN')
 
 import Data.List (isSuffixOf)
--- TODO: remove these qualifieds
 import "ghc-lib-parser" HsDecls
 import "ghc-lib-parser" HsSyn
 import "ghc-lib-parser" Outputable
 import "ghc-lib-parser" SrcLoc
 
--- TODO: get deriving strategies to work
 newtypeHint :: DeclHint'
 newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
 
@@ -93,8 +91,6 @@ singleSimpleFieldNew (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef@(HsDataDef
               }
 singleSimpleFieldNew _ = Nothing
 
--- TODO: get tests to pass
---
 -- | Checks whether its argument is a \"simple constructor\" (see criteria in 'singleSimpleFieldNew')
 -- returning the type inside the constructor if it is. This is needed for bang/MagicHash analysis.
 simpleCons :: ConDecl GhcPs -> Maybe (HsType GhcPs)
