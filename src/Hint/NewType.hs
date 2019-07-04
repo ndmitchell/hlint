@@ -92,7 +92,7 @@ singleSimpleField (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef@(HsDataDefn _
 singleSimpleField _ = Nothing
 
 -- | Checks whether its argument is a \"simple constructor\" (see criteria in 'singleSimpleFieldNew')
--- returning the type inside the constructor if it is. This is needed for bang/MagicHash analysis.
+-- returning the type inside the constructor if it is. This is needed for strictness analysis.
 simpleCons :: ConDecl GhcPs -> Maybe (HsType GhcPs)
 simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [L _ inType]) _)
     | emptyOrNoContext context
