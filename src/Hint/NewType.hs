@@ -119,7 +119,7 @@ emptyOrNoContext Nothing = True
 emptyOrNoContext (Just (L _ [])) = True
 emptyOrNoContext _ = False
 
--- | The \"Bang\" here refers to 'HsSrcBang', which notably also include @UNPACK@ pragmas!
+-- | The \"Bang\" here refers to 'HsSrcBang', which notably also includes @UNPACK@ pragmas!
 dropConsBang :: ConDecl GhcPs -> ConDecl GhcPs
 dropConsBang decl@(ConDeclH98 _ _ _ _ _ (PrefixCon fields) _) =
     decl {con_args = PrefixCon $ map getBangType fields}
