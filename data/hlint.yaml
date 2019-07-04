@@ -776,6 +776,91 @@
     - hint: {lhs: "not (x || y)", rhs: "not x && not y", name: Apply De Morgan law}
     - hint: {lhs: "not (x && y)", rhs: "not x || not y", name: Apply De Morgan law}
 
+- group:
+    name: demorgan
+    enabled: true
+    imports:
+    - package base
+    rules:
+
+    # not
+
+    - hint: {lhs: "not (not x || y)", rhs: "x && not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x || not y)", rhs: "not x && y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (not x && y)", rhs: "x || not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x && not y)", rhs: "not x || y", name: Use De Morgan law to eliminate a not}
+
+    # ==, /=
+
+    - hint: {lhs: "not (a == b || y)", rhs: "a /= b && not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x || a == b)", rhs: "not x && a /= b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (a == b && y)", rhs: "a /= b || not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x && a == b)", rhs: "not x || a /= b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+
+    - hint: {lhs: "not (a /= b || y)", rhs: "a == b && not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x || a /= b)", rhs: "not x && a == b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (a /= b && y)", rhs: "a == b || not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x && a /= b)", rhs: "not x || a == b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+
+    # >, <=
+
+    - hint: {lhs: "not (a > b || y)", rhs: "a <= b && not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x || a > b)", rhs: "not x && a <= b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (a > b && y)", rhs: "a <= b || not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x && a > b)", rhs: "not x || a <= b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+
+    - hint: {lhs: "not (a >= b || y)", rhs: "a < b && not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x || a >= b)", rhs: "not x && a < b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (a >= b && y)", rhs: "a < b || not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x && a >= b)", rhs: "not x || a < b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+
+    # <, >=
+
+    - hint: {lhs: "not (a < b || y)", rhs: "a >= b && not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x || a < b)", rhs: "not x && a >= b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (a < b && y)", rhs: "a >= b || not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x && a < b)", rhs: "not x || a >= b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+
+    - hint: {lhs: "not (a <= b || y)", rhs: "a > b && not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x || a <= b)", rhs: "not x && a > b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (a <= b && y)", rhs: "a > b || not y", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+    - hint: {lhs: "not (x && a <= b)", rhs: "not x || a > b", name: Use De Morgan law to eliminate a not, note: incorrect if either value being compared is NaN}
+
+    # elem, notElem
+
+    - hint: {lhs: "not (a `elem` b || y)", rhs: "a `notElem` b && not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x || a `elem` b)", rhs: "not x && a `notElem` b", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (a `elem` b && y)", rhs: "a `notElem` b || not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x && a `elem` b)", rhs: "not x || a `notElem` b", name: Use De Morgan law to eliminate a not}
+
+    - hint: {lhs: "not (a `notElem` b || y)", rhs: "a `elem` b && not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x || a `notElem` b)", rhs: "not x && a `elem` b", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (a `notElem` b && y)", rhs: "a `elem` b || not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x && a `notElem` b)", rhs: "not x || a `elem` b", name: Use De Morgan law to eliminate a not}
+
+    # isNothing, isJust
+
+    - hint: {lhs: "not (isNothing x || y)", rhs: "isJust x && not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x || isNothing y)", rhs: "not x && isJust y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (isNothing x && y)", rhs: "isJust x || not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x && isNothing y)", rhs: "not x || isJust y", name: Use De Morgan law to eliminate a not}
+
+    - hint: {lhs: "not (isJust x || y)", rhs: "isNothing x && not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x || isJust y)", rhs: "not x && isNothing y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (isJust x && y)", rhs: "isNothing x || not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x && isJust y)", rhs: "not x || isNothing y", name: Use De Morgan law to eliminate a not}
+
+    # even, odd
+
+    - hint: {lhs: "not (even x || y)", rhs: "odd x && not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x || even y)", rhs: "not x && odd y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (even x && y)", rhs: "odd x || not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x && even y)", rhs: "not x || odd y", name: Use De Morgan law to eliminate a not}
+
+    - hint: {lhs: "not (odd x || y)", rhs: "even x && not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x || odd y)", rhs: "not x && even y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (odd x && y)", rhs: "even x || not y", name: Use De Morgan law to eliminate a not}
+    - hint: {lhs: "not (x && odd y)", rhs: "not x || even y", name: Use De Morgan law to eliminate a not}
 
 # <TEST>
 # yes = concat . map f -- concatMap f
