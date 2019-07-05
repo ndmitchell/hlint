@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #700, add some Monoid and Alternative hints
     Add createModuleEx to the API
     #698, don't suggest a replacement for DerivingStrategies
 2.2, released 2019-06-26
