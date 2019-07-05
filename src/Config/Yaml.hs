@@ -159,8 +159,8 @@ instance FromJSON ConfigYaml where
 parseConfigYaml :: Val -> Parser ConfigYaml
 parseConfigYaml v = do
     vs <- parseArray v
-    fmap ConfigYaml $ forM vs $ \o@v -> do
-        (s, v) <- parseObject1 v
+    fmap ConfigYaml $ forM vs $ \o -> do
+        (s, v) <- parseObject1 o
         case s of
             "package" -> ConfigPackage <$> parsePackage v
             "group" -> ConfigGroup <$> parseGroup v
