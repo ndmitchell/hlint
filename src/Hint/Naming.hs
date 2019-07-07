@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE PackageImports #-}
 {-
     Suggest the use of camelCase
 
@@ -45,9 +46,16 @@ import Data.Maybe
 import Refact.Types hiding (RType(Match))
 import qualified Data.Set as Set
 
+import qualified "ghc-lib-parser" HsDecls as Hs
+import qualified "ghc-lib-parser" HsExtension as Hs
+import qualified "ghc-lib-parser" HsSyn as Hs
+import qualified "ghc-lib-parser" SrcLoc as Hs
 
-namingHint :: DeclHint
-namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ moduleDecls (hseModule modu)
+namingHint :: DeclHint'
+namingHint _ modu = namingNew $ Set.fromList $ concatMap getNamesNew $ Hs.hsmodDecls $ Hs.unLoc (ghcModule modu)
+
+namingNew :: Set.Set String -> Hs.LHsDecl Hs.GhcPs -> [Idea]
+namingNew _ _ = []
 
 naming :: Set.Set String -> Decl_ -> [Idea]
 naming seen x = [suggest "Use camelCase" x' x2' [Replace Bind (toSS x) [] (prettyPrint x2)] | not $ null res]
@@ -67,6 +75,8 @@ shorten x = case x of
         f cont (UnGuardedRhs _ _) = cont (UnGuardedRhs an dots) Nothing
         f cont (GuardedRhss _ _) = cont (GuardedRhss an [GuardedRhs an [Qualifier an dots] dots]) Nothing
 
+getNamesNew :: Hs.LHsDecl Hs.GhcPs -> [String]
+getNamesNew _ = []
 
 getNames :: Decl_ -> [String]
 getNames x = case x of

@@ -49,7 +49,7 @@ builtin x = case x of
     HintMonad      -> decl monadHint
     HintLambda     -> decl lambdaHint
     HintBracket    -> decl bracketHint
-    HintNaming     -> decl namingHint
+    HintNaming     -> decl' namingHint
     HintPattern    -> decl patternHint
     HintImport     -> modu importHint
     HintExport     -> modu exportHint
