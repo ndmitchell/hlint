@@ -46,6 +46,7 @@ import Data.Maybe
 import Refact.Types hiding (RType(Match))
 import qualified Data.Set as Set
 
+import qualified GHC.Util as Hs
 import qualified "ghc-lib-parser" HsDecls as Hs
 import qualified "ghc-lib-parser" HsExtension as Hs
 import qualified "ghc-lib-parser" HsSyn as Hs
@@ -55,7 +56,21 @@ namingHint :: DeclHint'
 namingHint _ modu = namingNew $ Set.fromList $ concatMap getNamesNew $ Hs.hsmodDecls $ Hs.unLoc (ghcModule modu)
 
 namingNew :: Set.Set String -> Hs.LHsDecl Hs.GhcPs -> [Idea]
-namingNew _ _ = []
+namingNew seen originalDecl =
+    [ suggest' "Use camelCase"
+               (shortenNew originalDecl)
+               (shortenNew replacedDecl)
+               [Replace Bind (toSrcSpan' originalDecl) [] (Hs.unsafePrettyPrint replacedDecl)]
+    | not $ null suggestedNames
+    ]
+    where
+        suggestedNames =
+            [ (originalName, suggestedName)
+            | originalName <- nubOrd $ [Hs.declName $ Hs.unLoc originalDecl]
+            , Just suggestedName <- [suggestName originalName]
+            , not $ suggestedName `Set.member` seen
+            ]
+        replacedDecl = replaceNames suggestedNames originalDecl
 
 naming :: Set.Set String -> Decl_ -> [Idea]
 naming seen x = [suggest "Use camelCase" x' x2' [Replace Bind (toSS x) [] (prettyPrint x2)] | not $ null res]
@@ -64,6 +79,9 @@ naming seen x = [suggest "Use camelCase" x' x2' [Replace Bind (toSS x) [] (prett
           x' = shorten x
           x2' = shorten x2
 
+-- TODO: shorten names
+shortenNew :: Hs.LHsDecl Hs.GhcPs -> Hs.LHsDecl Hs.GhcPs
+shortenNew = id
 
 shorten :: Decl_ -> Decl_
 shorten x = case x of
@@ -76,7 +94,7 @@ shorten x = case x of
         f cont (GuardedRhss _ _) = cont (GuardedRhss an [GuardedRhs an [Qualifier an dots] dots]) Nothing
 
 getNamesNew :: Hs.LHsDecl Hs.GhcPs -> [String]
-getNamesNew _ = []
+getNamesNew = pure . Hs.declName . Hs.unLoc
 
 getNames :: Decl_ -> [String]
 getNames x = case x of
