@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ViewPatterns #-}
 {-
     Suggest the use of camelCase
 
@@ -51,6 +52,8 @@ import qualified "ghc-lib-parser" HsDecls as Hs
 import qualified "ghc-lib-parser" HsExtension as Hs
 import qualified "ghc-lib-parser" HsSyn as Hs
 import qualified "ghc-lib-parser" SrcLoc as Hs
+import qualified "ghc-lib-parser" RdrName as Hs
+import qualified "ghc-lib-parser" OccName as Hs
 
 namingHint :: DeclHint'
 namingHint _ modu = namingNew $ Set.fromList $ concatMap getNamesNew $ Hs.hsmodDecls $ Hs.unLoc (ghcModule modu)
@@ -70,7 +73,7 @@ namingNew seen originalDecl =
             , Just suggestedName <- [suggestName originalName]
             , not $ suggestedName `Set.member` seen
             ]
-        replacedDecl = replaceNames suggestedNames originalDecl
+        replacedDecl = replaceNamesNew suggestedNames originalDecl
 
 naming :: Set.Set String -> Decl_ -> [Idea]
 naming seen x = [suggest "Use camelCase" x' x2' [Replace Bind (toSS x) [] (prettyPrint x2)] | not $ null res]
@@ -138,6 +141,12 @@ suggestName x
                  | otherwise = g xs
         g [] = []
 
+replaceNamesNew :: Data a => [(String, String)] -> a -> a
+replaceNamesNew rep = transformBi replace
+    where 
+        replace :: Hs.RdrName -> Hs.RdrName
+        replace (Hs.Unqual (Hs.unsafePrettyPrint -> name)) = Hs.Unqual $ Hs.mkOccName Hs.srcDataName $ fromMaybe name $ lookup name rep
+        replace x = x
 
 replaceNames :: Data a => [(String,String)] -> a -> a
 replaceNames rep = transformBi f
