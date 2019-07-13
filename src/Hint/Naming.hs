@@ -66,7 +66,7 @@ namingNew seen originalDecl =
     where
         suggestedNames =
             [ (originalName, suggestedName)
-            | originalName <- nubOrd $ [Hs.declName $ Hs.unLoc originalDecl]
+            | originalName <- nubOrd $ getNamesNew originalDecl
             , Just suggestedName <- [suggestName originalName]
             , not $ suggestedName `Set.member` seen
             ]
@@ -93,9 +93,13 @@ shorten x = case x of
         f cont (UnGuardedRhs _ _) = cont (UnGuardedRhs an dots) Nothing
         f cont (GuardedRhss _ _) = cont (GuardedRhss an [GuardedRhs an [Qualifier an dots] dots]) Nothing
 
--- TODO: get constructor names
 getNamesNew :: Hs.LHsDecl Hs.GhcPs -> [String]
-getNamesNew = pure . Hs.declName . Hs.unLoc
+getNamesNew l@(Hs.L _ decl) = Hs.declName decl : getConstructorNamesNew decl
+
+getConstructorNamesNew :: Hs.HsDecl Hs.GhcPs -> [String]
+getConstructorNamesNew (Hs.TyClD _ (Hs.DataDecl _ _ _ _ (Hs.HsDataDefn _ _ _ _ _ cons _))) =
+    concatMap (map Hs.unsafePrettyPrint . Hs.getConNames . Hs.unLoc) cons
+getConstructorNamesNew _ = []
 
 getNames :: Decl_ -> [String]
 getNames x = case x of
