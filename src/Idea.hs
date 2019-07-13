@@ -3,7 +3,7 @@
 
 module Idea(
     Idea(..),
-    rawIdea, idea, idea', suggest, warn, ignore, ignore',
+    rawIdea, idea, idea', suggest, suggest', warn, ignore, ignore',
     rawIdeaN, suggestN, suggestN', ignoreN, ignoreNoSuggestion',
     showIdeasJson, showANSI,
     Note(..), showNotes,
@@ -93,6 +93,10 @@ idea' severity hint from to =
   rawIdea severity hint (ghcSpanToHSE (GHC.getLoc from)) (unsafePrettyPrint from) (Just $ unsafePrettyPrint to) []
 
 suggest = idea Suggestion
+suggest' :: (GHC.HasSrcSpan a, Outputable.Outputable a)
+         => String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
+suggest' = idea' Suggestion
+
 warn = idea Warning
 
 ignoreNoSuggestion' :: (GHC.HasSrcSpan a, Outputable.Outputable a)
