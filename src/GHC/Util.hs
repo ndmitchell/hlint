@@ -13,6 +13,7 @@ module GHC.Util (
   , Located
   , readExtension
   , declName
+  , unsafePrettyPrint
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
@@ -232,3 +233,6 @@ declName (SigD _ (ClassOpSig _ _ (x:_) _)) = occNameString $ occName $ unLoc x
 declName (ForD _ ForeignImport{fd_name}) = occNameString $ occName $ unLoc fd_name
 declName (ForD _ ForeignExport{fd_name}) = occNameString $ occName $ unLoc fd_name
 declName _ = ""
+
+unsafePrettyPrint :: (Outputable.Outputable a) => a -> String
+unsafePrettyPrint = Outputable.showSDocUnsafe . Outputable.ppr
