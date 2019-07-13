@@ -93,6 +93,7 @@ shorten x = case x of
         f cont (UnGuardedRhs _ _) = cont (UnGuardedRhs an dots) Nothing
         f cont (GuardedRhss _ _) = cont (GuardedRhss an [GuardedRhs an [Qualifier an dots] dots]) Nothing
 
+-- TODO: get constructor names
 getNamesNew :: Hs.LHsDecl Hs.GhcPs -> [String]
 getNamesNew = pure . Hs.declName . Hs.unLoc
 
