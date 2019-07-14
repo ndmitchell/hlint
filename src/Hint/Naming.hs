@@ -40,8 +40,8 @@ runMutator# = 1
 
 module Hint.Naming(namingHint) where
 
-import Hint.Type (Idea, DeclHint', Note(DecreasesLaziness), suggest', transformBi, isSym, toSrcSpan', ghcModule)
-import Data.List.Extra
+import Hint.Type (Idea, DeclHint', suggest', transformBi, isSym, toSrcSpan', ghcModule)
+import Data.List.Extra (nubOrd, isPrefixOf)
 import Data.Data
 import Data.Char
 import Data.Maybe
@@ -88,6 +88,7 @@ shorten x = x
 shortenMatch :: LMatch GhcPs (LHsExpr GhcPs) -> LMatch GhcPs (LHsExpr GhcPs)
 shortenMatch (L locMatch match@(Match _ _ _ grhss@(GRHSs _ rhss _))) =
     L locMatch match {m_grhss = grhss {grhssGRHSs = map shortenLGRHS rhss}}
+shortenMatch x = x
 
 shortenLGRHS :: LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
 shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
@@ -95,9 +96,10 @@ shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
     where
         dots :: HsExpr GhcPs
         dots = HsLit NoExt (HsString (SourceText "...") (mkFastString "..."))
+shortenLGRHS x = x
 
 getNames :: LHsDecl GhcPs -> [String]
-getNames l@(L _ decl) = declName decl : getConstructorNames decl
+getNames (L _ decl) = declName decl : getConstructorNames decl
 
 getConstructorNames :: HsDecl GhcPs -> [String]
 getConstructorNames (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ _ cons _))) =
@@ -105,12 +107,12 @@ getConstructorNames (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ _ cons _))) =
 getConstructorNames _ = []
 
 suggestName :: String -> Maybe String
-suggestName x
-    | isSym x || good || not (any isLower x) || any isDigit x ||
-        any (`isPrefixOf` x) ["prop_","case_","unit_","test_","spec_","scprop_","hprop_"] = Nothing
-    | otherwise = Just $ f x
+suggestName original
+    | isSym original || good || not (any isLower original) || any isDigit original ||
+        any (`isPrefixOf` original) ["prop_","case_","unit_","test_","spec_","scprop_","hprop_"] = Nothing
+    | otherwise = Just $ f original
     where
-        good = all isAlphaNum $ drp '_' $ drp '#' $ drp '\'' $ reverse $ drp '_' x
+        good = all isAlphaNum $ drp '_' $ drp '#' $ drp '\'' $ reverse $ drp '_' original
         drp x = dropWhile (== x)
 
         f xs = us ++ g ys
