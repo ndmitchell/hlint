@@ -48,12 +48,14 @@ import Refact.Types hiding (RType(Match))
 import qualified Data.Set as Set
 
 import qualified GHC.Util as Hs
+import qualified "ghc-lib-parser" BasicTypes as Hs
+import qualified "ghc-lib-parser" FastString as Hs
 import qualified "ghc-lib-parser" HsDecls as Hs
 import qualified "ghc-lib-parser" HsExtension as Hs
 import qualified "ghc-lib-parser" HsSyn as Hs
-import qualified "ghc-lib-parser" SrcLoc as Hs
-import qualified "ghc-lib-parser" RdrName as Hs
 import qualified "ghc-lib-parser" OccName as Hs
+import qualified "ghc-lib-parser" RdrName as Hs
+import qualified "ghc-lib-parser" SrcLoc as Hs
 
 namingHint :: DeclHint'
 namingHint _ modu = namingNew $ Set.fromList $ concatMap getNamesNew $ Hs.hsmodDecls $ Hs.unLoc (ghcModule modu)
@@ -82,9 +84,22 @@ naming seen x = [suggest "Use camelCase" x' x2' [Replace Bind (toSS x) [] (prett
           x' = shorten x
           x2' = shorten x2
 
--- TODO: shorten names
+-- TODO: shorten pattern names
 shortenNew :: Hs.LHsDecl Hs.GhcPs -> Hs.LHsDecl Hs.GhcPs
-shortenNew = id
+shortenNew (Hs.L locDecl (Hs.ValD ttg0 bind@(Hs.FunBind _ _ matchGroup@(Hs.MG _ (Hs.L locMatches matches) _) _ _))) =
+    Hs.L locDecl (Hs.ValD ttg0 bind {Hs.fun_matches = matchGroup {Hs.mg_alts = Hs.L locMatches $ map shortenMatch matches}})
+shortenNew x = x
+
+shortenMatch :: Hs.LMatch Hs.GhcPs (Hs.LHsExpr Hs.GhcPs) -> Hs.LMatch Hs.GhcPs (Hs.LHsExpr Hs.GhcPs)
+shortenMatch (Hs.L locMatch match@(Hs.Match _ _ _ grhss@(Hs.GRHSs _ rhss _))) =
+    Hs.L locMatch match {Hs.m_grhss = grhss {Hs.grhssGRHSs = map shortenLGRHS rhss}}
+
+shortenLGRHS :: Hs.LGRHS Hs.GhcPs (Hs.LHsExpr Hs.GhcPs) -> Hs.LGRHS Hs.GhcPs (Hs.LHsExpr Hs.GhcPs)
+shortenLGRHS (Hs.L locGRHS (Hs.GRHS ttg0 guards (Hs.L locExpr _))) =
+    Hs.L locGRHS (Hs.GRHS ttg0 guards (Hs.L locExpr dots))
+    where
+        dots :: Hs.HsExpr Hs.GhcPs
+        dots = Hs.HsLit Hs.NoExt (Hs.HsString (Hs.SourceText "...") (Hs.mkFastString "..."))
 
 shorten :: Decl_ -> Decl_
 shorten x = case x of
