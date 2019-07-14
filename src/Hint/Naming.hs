@@ -143,7 +143,7 @@ suggestName x
 
 replaceNamesNew :: Data a => [(String, String)] -> a -> a
 replaceNamesNew rep = transformBi replace
-    where 
+    where
         replace :: Hs.RdrName -> Hs.RdrName
         replace (Hs.Unqual (Hs.unsafePrettyPrint -> name)) = Hs.Unqual $ Hs.mkOccName Hs.srcDataName $ fromMaybe name $ lookup name rep
         replace x = x
