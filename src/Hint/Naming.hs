@@ -84,10 +84,11 @@ naming seen x = [suggest "Use camelCase" x' x2' [Replace Bind (toSS x) [] (prett
           x' = shorten x
           x2' = shorten x2
 
--- TODO: shorten pattern names
 shortenNew :: Hs.LHsDecl Hs.GhcPs -> Hs.LHsDecl Hs.GhcPs
 shortenNew (Hs.L locDecl (Hs.ValD ttg0 bind@(Hs.FunBind _ _ matchGroup@(Hs.MG _ (Hs.L locMatches matches) _) _ _))) =
     Hs.L locDecl (Hs.ValD ttg0 bind {Hs.fun_matches = matchGroup {Hs.mg_alts = Hs.L locMatches $ map shortenMatch matches}})
+shortenNew (Hs.L locDecl (Hs.ValD ttg0 bind@(Hs.PatBind _ _ grhss@(Hs.GRHSs _ rhss _) _))) =
+    Hs.L locDecl (Hs.ValD ttg0 bind {Hs.pat_rhs = grhss {Hs.grhssGRHSs = map shortenLGRHS rhss}})
 shortenNew x = x
 
 shortenMatch :: Hs.LMatch Hs.GhcPs (Hs.LHsExpr Hs.GhcPs) -> Hs.LMatch Hs.GhcPs (Hs.LHsExpr Hs.GhcPs)
