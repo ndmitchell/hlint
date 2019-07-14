@@ -40,7 +40,7 @@ runMutator# = 1
 
 module Hint.Naming(namingHint) where
 
-import Hint.Type
+import Hint.Type (Idea, DeclHint', Note(DecreasesLaziness), suggest', transformBi, isSym, toSrcSpan', ghcModule)
 import Data.List.Extra
 import Data.Data
 import Data.Char
@@ -48,25 +48,25 @@ import Data.Maybe
 import Refact.Types hiding (RType(Match))
 import qualified Data.Set as Set
 
-import qualified GHC.Util as Hs
-import qualified "ghc-lib-parser" BasicTypes as Hs
-import qualified "ghc-lib-parser" FastString as Hs
-import qualified "ghc-lib-parser" HsDecls as Hs
-import qualified "ghc-lib-parser" HsExtension as Hs
-import qualified "ghc-lib-parser" HsSyn as Hs
-import qualified "ghc-lib-parser" OccName as Hs
-import qualified "ghc-lib-parser" RdrName as Hs
-import qualified "ghc-lib-parser" SrcLoc as Hs
+import GHC.Util (declName, unsafePrettyPrint)
+import "ghc-lib-parser" BasicTypes
+import "ghc-lib-parser" FastString
+import "ghc-lib-parser" HsDecls
+import "ghc-lib-parser" HsExtension
+import "ghc-lib-parser" HsSyn
+import "ghc-lib-parser" OccName
+import "ghc-lib-parser" RdrName
+import "ghc-lib-parser" SrcLoc
 
 namingHint :: DeclHint'
-namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ Hs.hsmodDecls $ Hs.unLoc (ghcModule modu)
+namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ hsmodDecls $ unLoc (ghcModule modu)
 
-naming :: Set.Set String -> Hs.LHsDecl Hs.GhcPs -> [Idea]
+naming :: Set.Set String -> LHsDecl GhcPs -> [Idea]
 naming seen originalDecl =
     [ suggest' "Use camelCase"
                (shorten originalDecl)
                (shorten replacedDecl)
-               [Replace Bind (toSrcSpan' originalDecl) [] (Hs.unsafePrettyPrint replacedDecl)]
+               [Replace Bind (toSrcSpan' originalDecl) [] (unsafePrettyPrint replacedDecl)]
     | not $ null suggestedNames
     ]
     where
@@ -78,30 +78,30 @@ naming seen originalDecl =
             ]
         replacedDecl = replaceNames suggestedNames originalDecl
 
-shorten :: Hs.LHsDecl Hs.GhcPs -> Hs.LHsDecl Hs.GhcPs
-shorten (Hs.L locDecl (Hs.ValD ttg0 bind@(Hs.FunBind _ _ matchGroup@(Hs.MG _ (Hs.L locMatches matches) _) _ _))) =
-    Hs.L locDecl (Hs.ValD ttg0 bind {Hs.fun_matches = matchGroup {Hs.mg_alts = Hs.L locMatches $ map shortenMatch matches}})
-shorten (Hs.L locDecl (Hs.ValD ttg0 bind@(Hs.PatBind _ _ grhss@(Hs.GRHSs _ rhss _) _))) =
-    Hs.L locDecl (Hs.ValD ttg0 bind {Hs.pat_rhs = grhss {Hs.grhssGRHSs = map shortenLGRHS rhss}})
+shorten :: LHsDecl GhcPs -> LHsDecl GhcPs
+shorten (L locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG _ (L locMatches matches) _) _ _))) =
+    L locDecl (ValD ttg0 bind {fun_matches = matchGroup {mg_alts = L locMatches $ map shortenMatch matches}})
+shorten (L locDecl (ValD ttg0 bind@(PatBind _ _ grhss@(GRHSs _ rhss _) _))) =
+    L locDecl (ValD ttg0 bind {pat_rhs = grhss {grhssGRHSs = map shortenLGRHS rhss}})
 shorten x = x
 
-shortenMatch :: Hs.LMatch Hs.GhcPs (Hs.LHsExpr Hs.GhcPs) -> Hs.LMatch Hs.GhcPs (Hs.LHsExpr Hs.GhcPs)
-shortenMatch (Hs.L locMatch match@(Hs.Match _ _ _ grhss@(Hs.GRHSs _ rhss _))) =
-    Hs.L locMatch match {Hs.m_grhss = grhss {Hs.grhssGRHSs = map shortenLGRHS rhss}}
+shortenMatch :: LMatch GhcPs (LHsExpr GhcPs) -> LMatch GhcPs (LHsExpr GhcPs)
+shortenMatch (L locMatch match@(Match _ _ _ grhss@(GRHSs _ rhss _))) =
+    L locMatch match {m_grhss = grhss {grhssGRHSs = map shortenLGRHS rhss}}
 
-shortenLGRHS :: Hs.LGRHS Hs.GhcPs (Hs.LHsExpr Hs.GhcPs) -> Hs.LGRHS Hs.GhcPs (Hs.LHsExpr Hs.GhcPs)
-shortenLGRHS (Hs.L locGRHS (Hs.GRHS ttg0 guards (Hs.L locExpr _))) =
-    Hs.L locGRHS (Hs.GRHS ttg0 guards (Hs.L locExpr dots))
+shortenLGRHS :: LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
+shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
+    L locGRHS (GRHS ttg0 guards (L locExpr dots))
     where
-        dots :: Hs.HsExpr Hs.GhcPs
-        dots = Hs.HsLit Hs.NoExt (Hs.HsString (Hs.SourceText "...") (Hs.mkFastString "..."))
+        dots :: HsExpr GhcPs
+        dots = HsLit NoExt (HsString (SourceText "...") (mkFastString "..."))
 
-getNames :: Hs.LHsDecl Hs.GhcPs -> [String]
-getNames l@(Hs.L _ decl) = Hs.declName decl : getConstructorNames decl
+getNames :: LHsDecl GhcPs -> [String]
+getNames l@(L _ decl) = declName decl : getConstructorNames decl
 
-getConstructorNames :: Hs.HsDecl Hs.GhcPs -> [String]
-getConstructorNames (Hs.TyClD _ (Hs.DataDecl _ _ _ _ (Hs.HsDataDefn _ _ _ _ _ cons _))) =
-    concatMap (map Hs.unsafePrettyPrint . Hs.getConNames . Hs.unLoc) cons
+getConstructorNames :: HsDecl GhcPs -> [String]
+getConstructorNames (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ _ cons _))) =
+    concatMap (map unsafePrettyPrint . getConNames . unLoc) cons
 getConstructorNames _ = []
 
 suggestName :: String -> Maybe String
@@ -125,6 +125,6 @@ suggestName x
 replaceNames :: Data a => [(String, String)] -> a -> a
 replaceNames rep = transformBi replace
     where
-        replace :: Hs.RdrName -> Hs.RdrName
-        replace (Hs.Unqual (Hs.unsafePrettyPrint -> name)) = Hs.Unqual $ Hs.mkOccName Hs.srcDataName $ fromMaybe name $ lookup name rep
+        replace :: RdrName -> RdrName
+        replace (Unqual (unsafePrettyPrint -> name)) = Unqual $ mkOccName srcDataName $ fromMaybe name $ lookup name rep
         replace x = x
