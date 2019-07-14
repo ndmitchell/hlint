@@ -21,6 +21,7 @@ data No = a :::: b
 data Yes = Foo {bar_cap :: Int}
 data No = FOO | BarBAR | BarBBar
 yes_foo = yes_foo + yes_foo -- yesFoo = ...
+yes_fooPattern Nothing = 0 -- yesFooPattern Nothing = ...
 no = 1 where yes_foo = 2
 a -== b = 1
 myTest = 1; my_test = 1
