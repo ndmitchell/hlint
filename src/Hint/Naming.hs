@@ -78,13 +78,6 @@ namingNew seen originalDecl =
             ]
         replacedDecl = replaceNamesNew suggestedNames originalDecl
 
-naming :: Set.Set String -> Decl_ -> [Idea]
-naming seen x = [suggest "Use camelCase" x' x2' [Replace Bind (toSS x) [] (prettyPrint x2)] | not $ null res]
-    where res = [(n,y) | n <- nubOrd $ getNames x, Just y <- [suggestName n], not $ y `Set.member` seen]
-          x2 = replaceNames res x
-          x' = shorten x
-          x2' = shorten x2
-
 shortenNew :: Hs.LHsDecl Hs.GhcPs -> Hs.LHsDecl Hs.GhcPs
 shortenNew (Hs.L locDecl (Hs.ValD ttg0 bind@(Hs.FunBind _ _ matchGroup@(Hs.MG _ (Hs.L locMatches matches) _) _ _))) =
     Hs.L locDecl (Hs.ValD ttg0 bind {Hs.fun_matches = matchGroup {Hs.mg_alts = Hs.L locMatches $ map shortenMatch matches}})
@@ -103,16 +96,6 @@ shortenLGRHS (Hs.L locGRHS (Hs.GRHS ttg0 guards (Hs.L locExpr _))) =
         dots :: Hs.HsExpr Hs.GhcPs
         dots = Hs.HsLit Hs.NoExt (Hs.HsString (Hs.SourceText "...") (Hs.mkFastString "..."))
 
-shorten :: Decl_ -> Decl_
-shorten x = case x of
-    FunBind sl (Match a b c d _:_) -> FunBind sl [f (Match a b c) d]
-    PatBind a b c _ -> f (PatBind a b) c
-    x -> x
-    where
-        dots = Var an ellipses
-        f cont (UnGuardedRhs _ _) = cont (UnGuardedRhs an dots) Nothing
-        f cont (GuardedRhss _ _) = cont (GuardedRhss an [GuardedRhs an [Qualifier an dots] dots]) Nothing
-
 getNamesNew :: Hs.LHsDecl Hs.GhcPs -> [String]
 getNamesNew l@(Hs.L _ decl) = Hs.declName decl : getConstructorNamesNew decl
 
@@ -120,25 +103,6 @@ getConstructorNamesNew :: Hs.HsDecl Hs.GhcPs -> [String]
 getConstructorNamesNew (Hs.TyClD _ (Hs.DataDecl _ _ _ _ (Hs.HsDataDefn _ _ _ _ _ cons _))) =
     concatMap (map Hs.unsafePrettyPrint . Hs.getConNames . Hs.unLoc) cons
 getConstructorNamesNew _ = []
-
-getNames :: Decl_ -> [String]
-getNames x = case x of
-    FunBind{} -> name
-    PatBind{} -> name
-    TypeDecl{} -> name
-    DataDecl _ _ _ _ cons _ -> name ++ [fromNamed x | QualConDecl _ _ _ x <- cons, x <- f x]
-    GDataDecl _ _ _ _ _ cons _ -> name ++ [fromNamed x | GadtDecl _ x _ _ _ _ <- cons]
-    TypeFamDecl{} -> name
-    DataFamDecl{} -> name
-    ClassDecl{} -> name
-    _ -> []
-    where
-        name = [fromNamed x]
-
-        f (ConDecl _ x _) = [x]
-        f (InfixConDecl _ _ x _) = [x]
-        f (RecDecl _ x _) = [x]
-
 
 suggestName :: String -> Maybe String
 suggestName x
@@ -164,8 +128,3 @@ replaceNamesNew rep = transformBi replace
         replace :: Hs.RdrName -> Hs.RdrName
         replace (Hs.Unqual (Hs.unsafePrettyPrint -> name)) = Hs.Unqual $ Hs.mkOccName Hs.srcDataName $ fromMaybe name $ lookup name rep
         replace x = x
-
-replaceNames :: Data a => [(String,String)] -> a -> a
-replaceNames rep = transformBi f
-    where f (Ident _ x) = Ident an $ fromMaybe x $ lookup x rep
-          f x = x
