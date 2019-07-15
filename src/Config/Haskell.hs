@@ -18,7 +18,6 @@ import Util
 import Prelude
 import GHC.Util
 import "ghc-lib-parser" SrcLoc as GHC
-import "ghc-lib-parser" SrcLoc
 import "ghc-lib-parser" ApiAnnotation
 
 
@@ -82,7 +81,7 @@ readPragma o = case o of
         f _ _ = Nothing
 
 
-readComment :: Located AnnotationComment -> [Classify]
+readComment :: GHC.Located AnnotationComment -> [Classify]
 readComment c@(L pos AnnBlockComment{})
     | (hash, x) <- maybe (False, x) (True,) $ stripPrefix "#" x
     , x <- trim x
@@ -160,7 +159,7 @@ errorOn val msg = exitMessageImpure $
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     prettyPrint val
 
-errorOnComment :: Located AnnotationComment -> String -> b
+errorOnComment :: GHC.Located AnnotationComment -> String -> b
 errorOnComment c@(L s _) msg = exitMessageImpure $
     let isMultiline = isCommentMultiline c in
     showSrcLoc (ghcSrcLocToHSE $ GHC.srcSpanStart s) ++
