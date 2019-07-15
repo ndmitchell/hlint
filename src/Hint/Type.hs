@@ -13,7 +13,8 @@ import Prelude
 import Refact   as Export
 import "ghc-lib-parser" HsExtension
 import "ghc-lib-parser" HsDecls
-
+import "ghc-lib-parser" SrcLoc
+import "ghc-lib-parser" ApiAnnotation
 
 type DeclHint = Scope -> ModuleEx -> Decl_ -> [Idea]
 type DeclHint' = Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
@@ -28,7 +29,7 @@ data Hint {- PUBLIC -} = Hint
     , hintDecl' :: [Setting] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
         -- ^ Given a declaration (with a module and scope) generate some 'Idea's.
         --   This function will be partially applied with one module/scope, then used on multiple 'Decl' values.
-    , hintComment :: [Setting] -> CommentEx -> [Idea] -- ^ Given a comment generate some 'Idea's.
+    , hintComment :: [Setting] -> Located AnnotationComment -> [Idea] -- ^ Given a comment generate some 'Idea's.
     }
 
 instance Semigroup Hint where

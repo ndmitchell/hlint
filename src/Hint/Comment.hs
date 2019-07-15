@@ -28,8 +28,8 @@ pragmas = words $
     "CONLIKE LINE SPECIALIZE SPECIALISE UNPACK NOUNPACK SOURCE"
 
 
-commentHint :: CommentEx -> [Idea]
-commentHint CommentEx {ghcComment=comm}
+commentHint :: Located AnnotationComment -> [Idea]
+commentHint comm
   | isMultiline, "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
   | isMultiline, name `elem` pragmas = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
        where

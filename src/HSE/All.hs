@@ -6,7 +6,7 @@ module HSE.All(
     module X,
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
-    ParseError(..), ModuleEx(..), CommentEx(..),
+    ParseError(..), ModuleEx(..),
     parseModuleEx, comments,
     freeVars, vars, varss, pvars,
     ghcSpanToHSE, ghcSrcLocToHSE
@@ -193,18 +193,9 @@ data ModuleEx = ModuleEx {
   , ghcAnnotations :: GHC.ApiAnns
 }
 
--- | The two representations of comments in a tidy little bundle. Used
--- by 'commentHint'.
-data CommentEx = CommentEx {
-    hseComment :: Comment
-  , ghcComment :: Located GHC.AnnotationComment
-}
-
--- | Extract a list of all a parsed module's comments.
-comments :: ModuleEx -> [CommentEx]
-comments m =
-  let ghcComments = concat (Map.elems $ snd (ghcAnnotations m))
-  in zipWith CommentEx (hseComments m) ghcComments
+-- | Extract a list of all of a parsed module's comments.
+comments :: ModuleEx -> [Located GHC.AnnotationComment]
+comments m = concat (Map.elems $ snd (ghcAnnotations m))
 
 -- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
 mkMode :: ParseFlags -> String -> ParseMode

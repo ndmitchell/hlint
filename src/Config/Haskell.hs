@@ -18,6 +18,7 @@ import Util
 import Prelude
 import GHC.Util
 import "ghc-lib-parser" SrcLoc as GHC
+import "ghc-lib-parser" SrcLoc
 import "ghc-lib-parser" ApiAnnotation
 
 
@@ -81,21 +82,21 @@ readPragma o = case o of
         f _ _ = Nothing
 
 
-readComment :: CommentEx -> [Classify]
-readComment c@CommentEx {ghcComment=L pos (AnnBlockComment s)}
+readComment :: Located AnnotationComment -> [Classify]
+readComment c@(L pos AnnBlockComment{})
     | (hash, x) <- maybe (False, x) (True,) $ stripPrefix "#" x
     , x <- trim x
     , (hlint, x) <- word1 x
     , lower hlint == "hlint"
     = f hash x
     where
-        x = commentText (L pos (AnnBlockComment s))
+        x = commentText c
         f hash x
             | Just x <- if hash then stripSuffix "#" x else Just x
             , (sev, x) <- word1 x
             , Just sev <- getSeverity sev
             , (things, x) <- g x
-            , Just (hint :: String) <- if x == "" then Just "" else readMaybe x
+            , Just hint <- if x == "" then Just "" else readMaybe x
             = map (Classify sev hint "") $ ["" | null things] ++ things
         f hash _ = errorOnComment c $ "bad HLINT pragma, expected:\n    {-" ++ h ++ " HLINT <severity> <identifier> \"Hint name\" " ++ h ++ "-}"
             where h = ['#' | hash]
@@ -159,8 +160,8 @@ errorOn val msg = exitMessageImpure $
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     prettyPrint val
 
-errorOnComment :: CommentEx -> String -> b
-errorOnComment (CommentEx _ c@(L s _)) msg = exitMessageImpure $
+errorOnComment :: Located AnnotationComment -> String -> b
+errorOnComment c@(L s _) msg = exitMessageImpure $
     let isMultiline = isCommentMultiline c in
     showSrcLoc (ghcSrcLocToHSE $ GHC.srcSpanStart s) ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
