@@ -41,7 +41,6 @@ import "ghc-lib-parser" HeaderInfo
 import "ghc-lib-parser" ApiAnnotation
 
 import Data.List.Extra
-import Data.Maybe
 import System.FilePath
 import Language.Preprocessor.Unlit
 import qualified Data.Map.Strict as Map

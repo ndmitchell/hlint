@@ -13,8 +13,6 @@ import Prelude
 import Refact   as Export
 import "ghc-lib-parser" HsExtension
 import "ghc-lib-parser" HsDecls
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" ApiAnnotation
 
 type DeclHint = Scope -> ModuleEx -> Decl_ -> [Idea]
 type DeclHint' = Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
