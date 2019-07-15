@@ -7,7 +7,7 @@ module HSE.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
-    parseModuleEx, comments,
+    parseModuleEx, ghcComments,
     freeVars, vars, varss, pvars,
     ghcSpanToHSE, ghcSrcLocToHSE
     ) where
@@ -194,8 +194,8 @@ data ModuleEx = ModuleEx {
 }
 
 -- | Extract a list of all of a parsed module's comments.
-comments :: ModuleEx -> [Located GHC.AnnotationComment]
-comments m = concat (Map.elems $ snd (ghcAnnotations m))
+ghcComments :: ModuleEx -> [Located GHC.AnnotationComment]
+ghcComments m = concat (Map.elems $ snd (ghcAnnotations m))
 
 -- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
 mkMode :: ParseFlags -> String -> ParseMode
