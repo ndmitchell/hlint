@@ -222,13 +222,13 @@ readExtension x = Map.lookup x exts
   where exts = Map.fromList [(show x, x) | x <- [Cpp .. StarIsType]]
 
 trimCommentStart s
-  | "{-" `isPrefixOf` s = fromJust (stripPrefix "{-" s)
-  | "--" `isPrefixOf` s = fromJust (stripPrefix "--" s)
-  | otherwise = s
+    | Just s <- stripPrefix "{-" s = s
+    | Just s <- stripPrefix "--" s = s
+    | otherwise = s
 
 trimCommentEnd s
-  | "-}" `isSuffixOf` s = fromJust (stripSuffix "-}" s)
-  | otherwise = s
+    | Just s <- stripSuffix "-}" s = s
+    | otherwise = s
 
 trimCommentDelims = trimCommentEnd . trimCommentStart
 
