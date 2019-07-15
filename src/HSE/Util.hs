@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, ViewPatterns, TupleSections #-}
+{-# LANGUAGE FlexibleContexts, TupleSections #-}
 
 module HSE.Util(module HSE.Util, def) where
 
@@ -235,15 +235,6 @@ descendIndex f x = flip evalState 0 $ flip descendM x $ \y -> do
 
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
-
-isKindHash :: Type_ -> Bool
-isKindHash (TyParen _ x) = isKindHash x
-isKindHash (TyApp _ x _) = isKindHash x
-isKindHash (TyCon _ (fromQual -> Just (Ident _ s))) = "#" `isSuffixOf`  s
-isKindHash (TyTuple _ Unboxed _) = True
-isKindHash TyUnboxedSum{} = True
-isKindHash _ = False
-
 
 getEquations :: Decl s -> [Decl s]
 getEquations (FunBind s xs) = map (FunBind s . (:[])) xs

@@ -4,7 +4,7 @@
 module Idea(
     Idea(..),
     rawIdea, idea, idea', suggest, warn, ignore, ignore',
-    rawIdeaN, suggestN, ignoreN,
+    rawIdeaN, suggestN, suggestN', ignoreN, ignoreNoSuggestion',
     showIdeasJson, showANSI,
     Note(..), showNotes,
     Severity(..)
@@ -90,16 +90,30 @@ idea severity hint from to = rawIdea severity hint (srcInfoSpan $ ann from) (f f
 idea' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
          Severity -> String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
 idea' severity hint from to =
-  rawIdea severity hint (ghcSpanToHSE (GHC.getLoc from)) (f from) (Just $ f to) []
-  where
-    f = Outputable.showSDocUnsafe . Outputable.ppr
+  rawIdea severity hint (ghcSpanToHSE (GHC.getLoc from)) (unsafePrettyPrint from) (Just $ unsafePrettyPrint to) []
 
 suggest = idea Suggestion
 warn = idea Warning
+
+ignoreNoSuggestion' :: (GHC.HasSrcSpan a, Outputable.Outputable a)
+                    => String -> a -> Idea
+ignoreNoSuggestion' hint x = rawIdeaN Ignore hint (ghcSpanToHSE (GHC.getLoc x)) (unsafePrettyPrint x) Nothing []
+
 ignore = idea Ignore
+ignore' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+           String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
 ignore' = idea' Ignore
 
 ideaN severity hint from to = idea severity hint from to []
+ideaN' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+          Severity -> String -> a -> a -> Idea
+ideaN' severity hint from to = idea' severity hint from to []
 
 suggestN = ideaN Suggestion
+suggestN' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+             String -> a -> a -> Idea
+suggestN' = ideaN' Suggestion
 ignoreN = ideaN Ignore
+
+unsafePrettyPrint :: (Outputable.Outputable a) => a -> String
+unsafePrettyPrint = Outputable.showSDocUnsafe . Outputable.ppr

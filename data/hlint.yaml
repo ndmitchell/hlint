@@ -210,6 +210,15 @@
     - warn: {lhs: zipWith f (repeat x), rhs: map (f x)}
     - warn: {lhs: zipWith f y (repeat z), rhs: map (\x -> f x z) y}
 
+    # MONOIDS
+
+    - warn: {lhs: mempty <> x, rhs: x, name: "Monoid law, left identity"}
+    - warn: {lhs: mempty `mappend` x, rhs: x, name: "Monoid law, left identity"}
+    - warn: {lhs: x <> mempty, rhs: x, name: "Monoid law, right identity"}
+    - warn: {lhs: x `mappend` mempty, rhs: x, name: "Monoid law, right identity"}
+    - warn: {lhs: foldr (<>) mempty, rhs: mconcat}
+    - warn: {lhs: foldr mappend mempty, rhs: mconcat}
+
     # TRAVERSABLES
 
     - warn: {lhs: sequenceA (map f x), rhs: traverse f x}
@@ -441,6 +450,8 @@
     - warn: {lhs: Just <$> a <|> pure Nothing, rhs: optional a}
     - hint: {lhs: m >>= pure . f, rhs: f <$> m}
     - hint: {lhs: pure . f =<< m, rhs: f <$> m}
+    - warn: {lhs: empty <|> x, rhs: x, name: "Alternative law, left identity"}
+    - warn: {lhs: x <|> empty, rhs: x, name: "Alternative law, right identity"}
 
 
     # LIST COMP

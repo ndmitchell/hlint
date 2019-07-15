@@ -23,7 +23,7 @@ module Language.Haskell.HLint4(
     -- * Hints
     Hint, resolveHints,
     -- * Parse files
-    ModuleEx, parseModuleEx, defaultParseFlags, parseFlagsAddFixities, ParseError(..), ParseFlags(..), CppFlags(..)
+    ModuleEx, parseModuleEx, createModuleEx, defaultParseFlags, parseFlagsAddFixities, ParseError(..), ParseFlags(..), CppFlags(..)
     ) where
 
 import Config.Type
@@ -34,6 +34,9 @@ import HLint
 import HSE.All
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
+import qualified ApiAnnotation as GHC
+import qualified HsSyn as GHC
+import SrcLoc
 import CmdLine
 import Paths_hlint
 
@@ -135,3 +138,10 @@ _docs = do
     (flags, classify, hint) <- autoSettings
     Right m <- parseModuleEx flags "MyFile.hs" Nothing
     print $ applyHints classify hint [m]
+
+
+-- | Create a 'ModuleEx' from GHC annotations and module tree.
+--   Note that any hints that work on the @haskell-src-exts@ won't work.
+createModuleEx:: GHC.ApiAnns -> Located (GHC.HsModule GHC.GhcPs) -> ModuleEx
+createModuleEx anns ast = ModuleEx empty [] ast anns
+    where empty = Module an Nothing [] [] []

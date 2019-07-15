@@ -1,5 +1,5 @@
 {-# LANGUAGE PackageImports #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies, NamedFieldPuns #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module GHC.Util (
@@ -13,6 +13,7 @@ module GHC.Util (
   , Located
   , readExtension
   , commentText, isCommentMultiline
+  , declName
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
@@ -28,6 +29,7 @@ import "ghc-lib-parser" Config
 import "ghc-lib-parser" Lexer
 import "ghc-lib-parser" Parser
 import "ghc-lib-parser" SrcLoc
+import "ghc-lib-parser" OccName
 import "ghc-lib-parser" FastString
 import "ghc-lib-parser" StringBuffer
 import "ghc-lib-parser" ErrUtils
@@ -243,3 +245,18 @@ commentText (L _ (AnnBlockComment s)) = trimCommentDelims s
 isCommentMultiline :: Located AnnotationComment -> Bool
 isCommentMultiline (L _ (AnnBlockComment _)) = True
 isCommentMultiline _ = False
+
+declName :: HsDecl GhcPs -> String
+declName (TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}}) = occNameString $ occName $ unLoc fdLName
+declName (TyClD _ SynDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
+declName (TyClD _ DataDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
+declName (TyClD _ ClassDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
+declName (ValD _ FunBind{fun_id})  = occNameString $ occName $ unLoc fun_id
+declName (ValD _ VarBind{var_id})  = occNameString $ occName var_id
+declName (ValD _ (PatSynBind _ PSB{psb_id})) = occNameString $ occName $ unLoc psb_id
+declName (SigD _ (TypeSig _ (x:_) _)) = occNameString $ occName $ unLoc x
+declName (SigD _ (PatSynSig _ (x:_) _)) = occNameString $ occName $ unLoc x
+declName (SigD _ (ClassOpSig _ _ (x:_) _)) = occNameString $ occName $ unLoc x
+declName (ForD _ ForeignImport{fd_name}) = occNameString $ occName $ unLoc fd_name
+declName (ForD _ ForeignExport{fd_name}) = occNameString $ occName $ unLoc fd_name
+declName _ = ""
