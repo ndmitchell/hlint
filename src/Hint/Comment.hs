@@ -28,19 +28,22 @@ pragmas = words $
     "CONLIKE LINE SPECIALIZE SPECIALISE UNPACK NOUNPACK SOURCE"
 
 
-commentHint :: Located AnnotationComment -> [Idea]
-commentHint comm
-  | isMultiline, "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
-  | isMultiline, name `elem` pragmas = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
-       where
-         isMultiline = isCommentMultiline comm
-         s = commentText comm
-         name = takeWhile (\x -> isAlphaNum x || x == '_') $ dropWhile isSpace s
-commentHint _ = []
+commentHint :: ModuHint
+commentHint _ m = concatMap chk (ghcComments m)
+    where
+        chk :: Located AnnotationComment -> [Idea]
+        chk comm
+          | isMultiline, "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
+          | isMultiline, name `elem` pragmas = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
+               where
+                 isMultiline = isCommentMultiline comm
+                 s = commentText comm
+                 name = takeWhile (\x -> isAlphaNum x || x == '_') $ dropWhile isSpace s
+        chk _ = []
 
-grab :: String -> Located AnnotationComment -> String -> Idea
-grab msg o@(L pos _) s2 =
-  let s1 = commentText o in
-  rawIdea Suggestion msg (ghcSpanToHSE pos) (f s1) (Just $ f s2) [] refact
-    where f s = if isCommentMultiline o then "{-" ++ s ++ "-}" else "--" ++ s
-          refact = [ModifyComment (toRefactSrcSpan (ghcSpanToHSE pos)) (f s2)]
+        grab :: String -> Located AnnotationComment -> String -> Idea
+        grab msg o@(L pos _) s2 =
+          let s1 = commentText o in
+          rawIdea Suggestion msg (ghcSpanToHSE pos) (f s1) (Just $ f s2) [] refact
+            where f s = if isCommentMultiline o then "{-" ++ s ++ "-}" else "--" ++ s
+                  refact = [ModifyComment (toRefactSrcSpan (ghcSpanToHSE pos)) (f s2)]
