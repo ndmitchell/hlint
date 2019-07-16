@@ -1,5 +1,5 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, ScopedTypeVariables, TupleSections #-}
-
+{-# LANGUAGE PackageImports #-}
 module Config.Haskell(
     readPragma,
     readComment,
@@ -16,6 +16,9 @@ import Data.Maybe
 import Config.Type
 import Util
 import Prelude
+import GHC.Util
+import "ghc-lib-parser" SrcLoc as GHC
+import "ghc-lib-parser" ApiAnnotation
 
 
 addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
@@ -31,7 +34,7 @@ readFileConfigHaskell file contents = do
     case res of
         Left (ParseError sl msg err) ->
             error $ "Config parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
-        Right (ModuleEx m cs _ _) -> return $ readSettings m ++ map SettingClassify (concatMap readComment cs)
+        Right modEx@(ModuleEx m _ _ _) -> return $ readSettings m ++ map SettingClassify (concatMap readComment (ghcComments modEx))
 
 
 -- | Given a module containing HLint settings information return the 'Classify' rules and the 'HintRule' expressions.
@@ -78,22 +81,23 @@ readPragma o = case o of
         f _ _ = Nothing
 
 
-readComment :: Comment -> [Classify]
-readComment o@(Comment True _ x)
+readComment :: GHC.Located AnnotationComment -> [Classify]
+readComment c@(L pos AnnBlockComment{})
     | (hash, x) <- maybe (False, x) (True,) $ stripPrefix "#" x
     , x <- trim x
     , (hlint, x) <- word1 x
     , lower hlint == "hlint"
     = f hash x
     where
+        x = commentText c
         f hash x
             | Just x <- if hash then stripSuffix "#" x else Just x
             , (sev, x) <- word1 x
             , Just sev <- getSeverity sev
             , (things, x) <- g x
-            , Just (hint :: String) <- if x == "" then Just "" else readMaybe x
+            , Just hint <- if x == "" then Just "" else readMaybe x
             = map (Classify sev hint "") $ ["" | null things] ++ things
-        f hash _ = errorOnComment o $ "bad HLINT pragma, expected:\n    {-" ++ h ++ " HLINT <severity> <identifier> \"Hint name\" " ++ h ++ "-}"
+        f hash _ = errorOnComment c $ "bad HLINT pragma, expected:\n    {-" ++ h ++ " HLINT <severity> <identifier> \"Hint name\" " ++ h ++ "-}"
             where h = ['#' | hash]
 
         g x | (s, x) <- word1 x
@@ -155,8 +159,9 @@ errorOn val msg = exitMessageImpure $
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     prettyPrint val
 
-errorOnComment :: Comment -> String -> b
-errorOnComment (Comment b ann x) msg = exitMessageImpure $
-    showSrcLoc (getPointLoc ann) ++
+errorOnComment :: GHC.Located AnnotationComment -> String -> b
+errorOnComment c@(L s _) msg = exitMessageImpure $
+    let isMultiline = isCommentMultiline c in
+    showSrcLoc (ghcSrcLocToHSE $ GHC.srcSpanStart s) ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
-    (if b then "{-" else "--") ++ x ++ (if b then "-}" else "")
+    (if isMultiline then "{-" else "--") ++ commentText c ++ (if isMultiline then "-}" else "")

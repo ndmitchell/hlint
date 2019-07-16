@@ -12,6 +12,7 @@ module GHC.Util (
   , SDoc
   , Located
   , readExtension
+  , commentText, isCommentMultiline
   , declName
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
@@ -37,8 +38,9 @@ import "ghc-lib-parser" GHC.LanguageExtensions.Type
 import "ghc-lib-parser" Panic
 import "ghc-lib-parser" HscTypes
 import "ghc-lib-parser" HeaderInfo
+import "ghc-lib-parser" ApiAnnotation
 
-import Data.List
+import Data.List.Extra
 import System.FilePath
 import Language.Preprocessor.Unlit
 import qualified Data.Map.Strict as Map
@@ -96,7 +98,8 @@ parsePragmasIntoDynFlags flags (enable, disable) filepath str =
     (flags, _, _) <- parseDynamicFilePragma flags opts
     let flags' =  foldl' xopt_set flags enable
     let flags'' = foldl' xopt_unset flags' disable
-    return $ Right flags''
+    let flags''' = flags'' `gopt_set` Opt_KeepRawTokenStream
+    return $ Right flags'''
   where
     catchErrors :: IO (Either String DynFlags) -> IO (Either String DynFlags)
     catchErrors act = handleGhcException reportErr
@@ -217,6 +220,30 @@ readExtension :: String -> Maybe Extension
 readExtension x = Map.lookup x exts
   where exts = Map.fromList [(show x, x) | x <- [Cpp .. StarIsType]]
 
+trimCommentStart s
+    | Just s <- stripPrefix "{-" s = s
+    | Just s <- stripPrefix "--" s = s
+    | otherwise = s
+
+trimCommentEnd s
+    | Just s <- stripSuffix "-}" s = s
+    | otherwise = s
+
+trimCommentDelims = trimCommentEnd . trimCommentStart
+
+-- | Access to a comment's text.
+commentText :: Located AnnotationComment -> String
+commentText (L _ (AnnDocCommentNext s)) = trimCommentDelims s
+commentText (L _ (AnnDocCommentPrev s)) = trimCommentDelims s
+commentText (L _ (AnnDocCommentNamed s)) = trimCommentDelims s
+commentText (L _ (AnnDocSection _ s)) = trimCommentDelims s
+commentText (L _ (AnnDocOptions s)) = trimCommentDelims s
+commentText (L _ (AnnLineComment s)) = trimCommentDelims s
+commentText (L _ (AnnBlockComment s)) = trimCommentDelims s
+
+isCommentMultiline :: Located AnnotationComment -> Bool
+isCommentMultiline (L _ (AnnBlockComment _)) = True
+isCommentMultiline _ = False
 
 declName :: HsDecl GhcPs -> String
 declName (TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}}) = occNameString $ occName $ unLoc fdLName
