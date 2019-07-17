@@ -127,6 +127,5 @@ suggestName original
 replaceNames :: Data a => [(String, String)] -> a -> a
 replaceNames rep = transformBi replace
     where
-        replace :: RdrName -> RdrName
-        replace (Unqual (unsafePrettyPrint -> name)) = Unqual $ mkOccName srcDataName $ fromMaybe name $ lookup name rep
-        replace x = x
+        replace :: OccName -> OccName
+        replace (unsafePrettyPrint -> name) = mkOccName srcDataName $ fromMaybe name $ lookup name rep
