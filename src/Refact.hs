@@ -19,14 +19,14 @@ toRefactSrcSpan ss = R.SrcSpan (srcSpanStartLine ss)
 toSS :: Annotated a => a S -> R.SrcSpan
 toSS = toRefactSrcSpan . srcInfoSpan . ann
 
+-- | Don't crash in case ghc gives us a \"fake\" span,
+-- opting instead to show @0 0 0 0@ coordinates.
 toSrcSpan' :: Hs.HasSrcSpan a => a -> R.SrcSpan
-toSrcSpan' x =
-    R.SrcSpan (Hs.srcSpanStartLine span)
-              (Hs.srcSpanStartCol span)
-              (Hs.srcSpanEndLine span)
-              (Hs.srcSpanEndCol span)
-    where
-        span :: Hs.RealSrcSpan
-        span = case Hs.getLoc x of
-                 Hs.RealSrcSpan s -> s
-                 _ -> error "Got a bad ghc SrcSpan! Report a bug to hlint please!"
+toSrcSpan' x = case Hs.getLoc x of
+    Hs.RealSrcSpan span ->
+        R.SrcSpan (Hs.srcSpanStartLine span)
+                  (Hs.srcSpanStartCol span)
+                  (Hs.srcSpanEndLine span)
+                  (Hs.srcSpanEndCol span)
+    Hs.UnhelpfulSpan _ ->
+        R.SrcSpan 0 0 0 0
