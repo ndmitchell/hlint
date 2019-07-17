@@ -55,7 +55,6 @@ import "ghc-lib-parser" HsDecls
 import "ghc-lib-parser" HsExtension
 import "ghc-lib-parser" HsSyn
 import "ghc-lib-parser" OccName
-import "ghc-lib-parser" RdrName
 import "ghc-lib-parser" SrcLoc
 
 namingHint :: DeclHint'
