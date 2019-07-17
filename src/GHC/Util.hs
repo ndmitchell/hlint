@@ -251,21 +251,6 @@ isCommentMultiline :: Located AnnotationComment -> Bool
 isCommentMultiline (L _ (AnnBlockComment _)) = True
 isCommentMultiline _ = False
 
-declName :: HsDecl GhcPs -> String
-declName (TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}}) = occNameString $ occName $ unLoc fdLName
-declName (TyClD _ SynDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
-declName (TyClD _ DataDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
-declName (TyClD _ ClassDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
-declName (ValD _ FunBind{fun_id})  = occNameString $ occName $ unLoc fun_id
-declName (ValD _ VarBind{var_id})  = occNameString $ occName var_id
-declName (ValD _ (PatSynBind _ PSB{psb_id})) = occNameString $ occName $ unLoc psb_id
-declName (SigD _ (TypeSig _ (x:_) _)) = occNameString $ occName $ unLoc x
-declName (SigD _ (PatSynSig _ (x:_) _)) = occNameString $ occName $ unLoc x
-declName (SigD _ (ClassOpSig _ _ (x:_) _)) = occNameString $ occName $ unLoc x
-declName (ForD _ ForeignImport{fd_name}) = occNameString $ occName $ unLoc fd_name
-declName (ForD _ ForeignExport{fd_name}) = occNameString $ occName $ unLoc fd_name
-declName _ = ""
-
 -- \"Unsafely\" in this case means that it uses the following
 -- 'DynFlags' for printing -
 -- <http://hackage.haskell.org/package/ghc-lib-parser-8.8.0.20190424/docs/src/DynFlags.html#v_unsafeGlobalDynFlags
@@ -298,3 +283,18 @@ getloc = getLoc
 
 noext :: NoExt
 noext = noExt
+
+declName :: HsDecl GhcPs -> Maybe String
+declName (TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}}) = Just $ occNameString $ occName $ unLoc fdLName
+declName (TyClD _ SynDecl{tcdLName}) = Just $ occNameString $ occName $ unLoc tcdLName
+declName (TyClD _ DataDecl{tcdLName}) = Just $ occNameString $ occName $ unLoc tcdLName
+declName (TyClD _ ClassDecl{tcdLName}) = Just $ occNameString $ occName $ unLoc tcdLName
+declName (ValD _ FunBind{fun_id})  = Just $ occNameString $ occName $ unLoc fun_id
+declName (ValD _ VarBind{var_id})  = Just $ occNameString $ occName var_id
+declName (ValD _ (PatSynBind _ PSB{psb_id})) = Just $ occNameString $ occName $ unLoc psb_id
+declName (SigD _ (TypeSig _ (x:_) _)) = Just $ occNameString $ occName $ unLoc x
+declName (SigD _ (PatSynSig _ (x:_) _)) = Just $ occNameString $ occName $ unLoc x
+declName (SigD _ (ClassOpSig _ _ (x:_) _)) = Just $ occNameString $ occName $ unLoc x
+declName (ForD _ ForeignImport{fd_name}) = Just $ occNameString $ occName $ unLoc fd_name
+declName (ForD _ ForeignExport{fd_name}) = Just $ occNameString $ occName $ unLoc fd_name
+declName _ = Nothing
