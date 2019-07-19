@@ -15,6 +15,8 @@ module GHC.Util (
   , commentText, isCommentMultiline
   , declName
   , unsafePrettyPrint
+  , eqMaybe
+  , noloc, unloc, getloc, noext
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
@@ -221,15 +223,18 @@ readExtension :: String -> Maybe Extension
 readExtension x = Map.lookup x exts
   where exts = Map.fromList [(show x, x) | x <- [Cpp .. StarIsType]]
 
+trimCommentStart :: String -> String
 trimCommentStart s
     | Just s <- stripPrefix "{-" s = s
     | Just s <- stripPrefix "--" s = s
     | otherwise = s
 
+trimCommentEnd :: String -> String
 trimCommentEnd s
     | Just s <- stripSuffix "-}" s = s
     | otherwise = s
 
+trimCommentDelims :: String -> String
 trimCommentDelims = trimCommentEnd . trimCommentStart
 
 -- | Access to a comment's text.
@@ -261,9 +266,28 @@ declName (ForD _ ForeignImport{fd_name}) = occNameString $ occName $ unLoc fd_na
 declName (ForD _ ForeignExport{fd_name}) = occNameString $ occName $ unLoc fd_name
 declName _ = ""
 
--- \"Unsafely\" in this case means that it uses the following 'DynFlags' for printing -
--- <http://hackage.haskell.org/package/ghc-lib-parser-8.8.0.20190424/docs/src/DynFlags.html#v_unsafeGlobalDynFlags unsafeGlobalDynFlags>
--- This could lead to the issues documented there, but it also might not be a problem for our use case.
--- TODO: Decide whether this really is unsafe, and if it is, what needs to be done to make it safe.
 unsafePrettyPrint :: (Outputable.Outputable a) => a -> String
 unsafePrettyPrint = Outputable.showSDocUnsafe . Outputable.ppr
+
+-- | Test if two AST elements are equal modulo annotations.
+(=~=) :: Eq a => Located a -> Located a -> Bool
+a =~= b = unLoc a == unLoc b
+
+-- | Compare two 'Maybe (Located a)' values for equality modulo
+-- locations.
+eqMaybe:: Eq a => Maybe (Located a) -> Maybe (Located a) -> Bool
+eqMaybe (Just x) (Just y) = x =~= y
+eqMaybe Nothing Nothing = True
+eqMaybe _ _ = False
+
+noloc :: e -> Located e
+noloc = noLoc
+
+unloc :: Located e -> e
+unloc = unLoc
+
+getloc :: Located e -> SrcSpan
+getloc = getLoc
+
+noext :: NoExt
+noext = noExt
