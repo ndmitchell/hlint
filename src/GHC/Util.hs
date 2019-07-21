@@ -127,7 +127,7 @@ parseFileGhcLib filename str flags =
 -- (of which at least one of them came from this project originally).
 
 -- | 'isAtom e' if 'e' requires no bracketing ever.
-isAtom :: (p ~ GhcPass pass) => HsExpr p -> Bool
+isAtom :: HsExpr GhcPs -> Bool
 isAtom x = case x of
   HsVar {}          -> True
   HsUnboundVar {}   -> True
@@ -165,30 +165,30 @@ isAtom x = case x of
     isNegativeOverLit _ = False
 
 -- | 'addParen e' wraps 'e' in parens.
-addParen :: (p ~ GhcPass pass) => HsExpr p -> HsExpr p
+addParen :: HsExpr GhcPs -> HsExpr GhcPs
 addParen e = HsPar noExt (noLoc e)
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
-paren :: (p ~ GhcPass pass) => HsExpr GhcPs -> HsExpr GhcPs
+paren :: HsExpr GhcPs -> HsExpr GhcPs
 paren x
   | isAtom x  = x
   | otherwise = addParen x
 
 -- | 'isApp e' if 'e' is a (regular) application.
-isApp :: (p ~ GhcPass pass) => HsExpr p -> Bool
+isApp :: HsExpr GhcPs -> Bool
 isApp x = case x of
   HsApp {}  -> True
   _         -> False
 
 -- | 'isOpApp e' if 'e' is an operator application.
-isOpApp :: (p ~ GhcPass pass) => HsExpr p -> Bool
+isOpApp :: HsExpr GhcPs -> Bool
 isOpApp x = case x of
   OpApp {}   -> True
   _          -> False
 
 -- | 'isAnyApp e' if 'e' is either an application or operator
 -- application.
-isAnyApp :: (p ~ GhcPass pass) => HsExpr p -> Bool
+isAnyApp :: HsExpr GhcPs -> Bool
 isAnyApp x = isApp x || isOpApp x
 
 -- | 'isDot e'  if 'e' is the unqualifed variable '.'.
@@ -199,7 +199,7 @@ isDot x
   | otherwise                          = False
 
 -- | 'isSection e' if 'e' is a section.
-isSection :: (p ~ GhcPass pass) => HsExpr p -> Bool
+isSection :: HsExpr GhcPs -> Bool
 isSection x = case x of
   SectionL {} -> True
   SectionR {} -> True
