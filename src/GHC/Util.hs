@@ -14,6 +14,7 @@ module GHC.Util (
   , readExtension
   , commentText, isCommentMultiline
   , declName
+  , unsafePrettyPrint
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
@@ -259,3 +260,10 @@ declName (SigD _ (ClassOpSig _ _ (x:_) _)) = occNameString $ occName $ unLoc x
 declName (ForD _ ForeignImport{fd_name}) = occNameString $ occName $ unLoc fd_name
 declName (ForD _ ForeignExport{fd_name}) = occNameString $ occName $ unLoc fd_name
 declName _ = ""
+
+-- \"Unsafely\" in this case means that it uses the following 'DynFlags' for printing -
+-- <http://hackage.haskell.org/package/ghc-lib-parser-8.8.0.20190424/docs/src/DynFlags.html#v_unsafeGlobalDynFlags unsafeGlobalDynFlags>
+-- This could lead to the issues documented there, but it also might not be a problem for our use case.
+-- TODO: Decide whether this really is unsafe, and if it is, what needs to be done to make it safe.
+unsafePrettyPrint :: (Outputable.Outputable a) => a -> String
+unsafePrettyPrint = Outputable.showSDocUnsafe . Outputable.ppr

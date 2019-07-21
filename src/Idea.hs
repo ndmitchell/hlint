@@ -3,7 +3,7 @@
 
 module Idea(
     Idea(..),
-    rawIdea, idea, idea', suggest, warn, ignore, ignore',
+    rawIdea, idea, idea', suggest, suggest', warn, ignore, ignore',
     rawIdeaN, suggestN, suggestN', ignoreN, ignoreNoSuggestion',
     showIdeasJson, showANSI,
     Note(..), showNotes,
@@ -20,6 +20,7 @@ import qualified Refact.Types as R
 import Prelude
 import qualified "ghc-lib-parser" SrcLoc as GHC
 import qualified "ghc-lib-parser" Outputable
+import qualified GHC.Util as GHC
 
 -- | An idea suggest by a 'Hint'.
 data Idea = Idea
@@ -90,14 +91,18 @@ idea severity hint from to = rawIdea severity hint (srcInfoSpan $ ann from) (f f
 idea' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
          Severity -> String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
 idea' severity hint from to =
-  rawIdea severity hint (ghcSpanToHSE (GHC.getLoc from)) (unsafePrettyPrint from) (Just $ unsafePrettyPrint to) []
+  rawIdea severity hint (ghcSpanToHSE (GHC.getLoc from)) (GHC.unsafePrettyPrint from) (Just $ GHC.unsafePrettyPrint to) []
 
 suggest = idea Suggestion
+suggest' :: (GHC.HasSrcSpan a, Outputable.Outputable a)
+         => String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
+suggest' = idea' Suggestion
+
 warn = idea Warning
 
 ignoreNoSuggestion' :: (GHC.HasSrcSpan a, Outputable.Outputable a)
                     => String -> a -> Idea
-ignoreNoSuggestion' hint x = rawIdeaN Ignore hint (ghcSpanToHSE (GHC.getLoc x)) (unsafePrettyPrint x) Nothing []
+ignoreNoSuggestion' hint x = rawIdeaN Ignore hint (ghcSpanToHSE (GHC.getLoc x)) (GHC.unsafePrettyPrint x) Nothing []
 
 ignore = idea Ignore
 ignore' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
@@ -114,6 +119,3 @@ suggestN' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
              String -> a -> a -> Idea
 suggestN' = ideaN' Suggestion
 ignoreN = ideaN Ignore
-
-unsafePrettyPrint :: (Outputable.Outputable a) => a -> String
-unsafePrettyPrint = Outputable.showSDocUnsafe . Outputable.ppr

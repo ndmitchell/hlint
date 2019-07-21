@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ViewPatterns #-}
 {-
     Suggest the use of camelCase
 
@@ -19,6 +21,7 @@ data No = a :::: b
 data Yes = Foo {bar_cap :: Int}
 data No = FOO | BarBAR | BarBBar
 yes_foo = yes_foo + yes_foo -- yesFoo = ...
+yes_fooPattern Nothing = 0 -- yesFooPattern Nothing = ...
 no = 1 where yes_foo = 2
 a -== b = 1
 myTest = 1; my_test = 1
@@ -37,63 +40,78 @@ runMutator# = 1
 
 module Hint.Naming(namingHint) where
 
-import Hint.Type
-import Data.List.Extra
+import Hint.Type (Idea, DeclHint', suggest', transformBi, isSym, toSrcSpan', ghcModule)
+import Data.List.Extra (nubOrd, isPrefixOf)
 import Data.Data
 import Data.Char
 import Data.Maybe
 import Refact.Types hiding (RType(Match))
 import qualified Data.Set as Set
 
+import GHC.Util (declName, unsafePrettyPrint)
+import "ghc-lib-parser" BasicTypes
+import "ghc-lib-parser" FastString
+import "ghc-lib-parser" HsDecls
+import "ghc-lib-parser" HsExtension
+import "ghc-lib-parser" HsSyn
+import "ghc-lib-parser" OccName
+import "ghc-lib-parser" SrcLoc
 
-namingHint :: DeclHint
-namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ moduleDecls (hseModule modu)
+namingHint :: DeclHint'
+namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ hsmodDecls $ unLoc (ghcModule modu)
 
-naming :: Set.Set String -> Decl_ -> [Idea]
-naming seen x = [suggest "Use camelCase" x' x2' [Replace Bind (toSS x) [] (prettyPrint x2)] | not $ null res]
-    where res = [(n,y) | n <- nubOrd $ getNames x, Just y <- [suggestName n], not $ y `Set.member` seen]
-          x2 = replaceNames res x
-          x' = shorten x
-          x2' = shorten x2
-
-
-shorten :: Decl_ -> Decl_
-shorten x = case x of
-    FunBind sl (Match a b c d _:_) -> FunBind sl [f (Match a b c) d]
-    PatBind a b c _ -> f (PatBind a b) c
-    x -> x
+naming :: Set.Set String -> LHsDecl GhcPs -> [Idea]
+naming seen originalDecl =
+    [ suggest' "Use camelCase"
+               (shorten originalDecl)
+               (shorten replacedDecl)
+               [Replace Bind (toSrcSpan' originalDecl) [] (unsafePrettyPrint replacedDecl)]
+    | not $ null suggestedNames
+    ]
     where
-        dots = Var an ellipses
-        f cont (UnGuardedRhs _ _) = cont (UnGuardedRhs an dots) Nothing
-        f cont (GuardedRhss _ _) = cont (GuardedRhss an [GuardedRhs an [Qualifier an dots] dots]) Nothing
+        suggestedNames =
+            [ (originalName, suggestedName)
+            | originalName <- nubOrd $ getNames originalDecl
+            , Just suggestedName <- [suggestName originalName]
+            , not $ suggestedName `Set.member` seen
+            ]
+        replacedDecl = replaceNames suggestedNames originalDecl
 
+shorten :: LHsDecl GhcPs -> LHsDecl GhcPs
+shorten (L locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG _ (L locMatches matches) _) _ _))) =
+    L locDecl (ValD ttg0 bind {fun_matches = matchGroup {mg_alts = L locMatches $ map shortenMatch matches}})
+shorten (L locDecl (ValD ttg0 bind@(PatBind _ _ grhss@(GRHSs _ rhss _) _))) =
+    L locDecl (ValD ttg0 bind {pat_rhs = grhss {grhssGRHSs = map shortenLGRHS rhss}})
+shorten x = x
 
-getNames :: Decl_ -> [String]
-getNames x = case x of
-    FunBind{} -> name
-    PatBind{} -> name
-    TypeDecl{} -> name
-    DataDecl _ _ _ _ cons _ -> name ++ [fromNamed x | QualConDecl _ _ _ x <- cons, x <- f x]
-    GDataDecl _ _ _ _ _ cons _ -> name ++ [fromNamed x | GadtDecl _ x _ _ _ _ <- cons]
-    TypeFamDecl{} -> name
-    DataFamDecl{} -> name
-    ClassDecl{} -> name
-    _ -> []
+shortenMatch :: LMatch GhcPs (LHsExpr GhcPs) -> LMatch GhcPs (LHsExpr GhcPs)
+shortenMatch (L locMatch match@(Match _ _ _ grhss@(GRHSs _ rhss _))) =
+    L locMatch match {m_grhss = grhss {grhssGRHSs = map shortenLGRHS rhss}}
+shortenMatch x = x
+
+shortenLGRHS :: LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
+shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
+    L locGRHS (GRHS ttg0 guards (L locExpr dots))
     where
-        name = [fromNamed x]
+        dots :: HsExpr GhcPs
+        dots = HsLit NoExt (HsString (SourceText "...") (mkFastString "..."))
+shortenLGRHS x = x
 
-        f (ConDecl _ x _) = [x]
-        f (InfixConDecl _ _ x _) = [x]
-        f (RecDecl _ x _) = [x]
+getNames :: LHsDecl GhcPs -> [String]
+getNames (L _ decl) = declName decl : getConstructorNames decl
 
+getConstructorNames :: HsDecl GhcPs -> [String]
+getConstructorNames (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ _ cons _))) =
+    concatMap (map unsafePrettyPrint . getConNames . unLoc) cons
+getConstructorNames _ = []
 
 suggestName :: String -> Maybe String
-suggestName x
-    | isSym x || good || not (any isLower x) || any isDigit x ||
-        any (`isPrefixOf` x) ["prop_","case_","unit_","test_","spec_","scprop_","hprop_"] = Nothing
-    | otherwise = Just $ f x
+suggestName original
+    | isSym original || good || not (any isLower original) || any isDigit original ||
+        any (`isPrefixOf` original) ["prop_","case_","unit_","test_","spec_","scprop_","hprop_"] = Nothing
+    | otherwise = Just $ f original
     where
-        good = all isAlphaNum $ drp '_' $ drp '#' $ drp '\'' $ reverse $ drp '_' x
+        good = all isAlphaNum $ drp '_' $ drp '#' $ drp '\'' $ reverse $ drp '_' original
         drp x = dropWhile (== x)
 
         f xs = us ++ g ys
@@ -105,8 +123,8 @@ suggestName x
                  | otherwise = g xs
         g [] = []
 
-
-replaceNames :: Data a => [(String,String)] -> a -> a
-replaceNames rep = transformBi f
-    where f (Ident _ x) = Ident an $ fromMaybe x $ lookup x rep
-          f x = x
+replaceNames :: Data a => [(String, String)] -> a -> a
+replaceNames rep = transformBi replace
+    where
+        replace :: OccName -> OccName
+        replace (unsafePrettyPrint -> name) = mkOccName srcDataName $ fromMaybe name $ lookup name rep
