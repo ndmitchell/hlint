@@ -132,7 +132,7 @@ stripRedundantAlias x@(GHC.L loc i@GHC.ImportDecl {..})
   -- Suggest 'import M as M' be just 'import M'.
   | Just (unloc ideclName) == fmap unloc ideclAs =
       [suggest' "Redundant as" x (GHC.L loc i{ideclAs=Nothing}) [RemoveAsKeyword (toSS' x)]]
-  | otherwise = []
+stripRedundantAlias _ = []
 
 preferHierarchicalImports :: LImportDecl GhcPs -> [Idea]
 preferHierarchicalImports x@(GHC.L loc i@GHC.ImportDecl{ideclName=(GHC.L _ n),ideclPkgQual=Nothing})
