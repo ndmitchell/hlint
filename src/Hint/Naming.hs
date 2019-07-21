@@ -13,6 +13,7 @@
     Also allow test_ as it's a standard tasty-th idiom
     Also allow numbers separated by _
     Also don't suggest anything mentioned elsewhere in the module
+    Don't suggest for FFI, since they match their C names
 
 <TEST>
 data Yes = Foo | Bar'Test -- data Yes = Foo | BarTest
@@ -34,6 +35,7 @@ replicateM_ = 1
 _foo__ = 1
 section_1_1 = 1
 runMutator# = 1
+foreign import ccall hexml_node_child :: IO ()
 </TEST>
 -}
 
@@ -48,7 +50,7 @@ import Data.Maybe
 import Refact.Types hiding (RType(Match))
 import qualified Data.Set as Set
 
-import GHC.Util (declName, unsafePrettyPrint)
+import GHC.Util
 import "ghc-lib-parser" BasicTypes
 import "ghc-lib-parser" FastString
 import "ghc-lib-parser" HsDecls
@@ -71,7 +73,8 @@ naming seen originalDecl =
     where
         suggestedNames =
             [ (originalName, suggestedName)
-            | originalName <- nubOrd $ getNames originalDecl
+            | not $ isForD $ unloc originalDecl
+            , originalName <- nubOrd $ getNames originalDecl
             , Just suggestedName <- [suggestName originalName]
             , not $ suggestedName `Set.member` seen
             ]

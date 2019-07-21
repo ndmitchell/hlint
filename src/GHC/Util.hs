@@ -17,6 +17,7 @@ module GHC.Util (
   , unsafePrettyPrint
   , eqMaybe
   , noloc, unloc, getloc, noext
+  , isForD
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
@@ -203,6 +204,11 @@ isSection x = case x of
   SectionL {} -> True
   SectionR {} -> True
   _           -> False
+
+isForD :: HsDecl GhcPs -> Bool
+isForD ForD{} = True
+isForD _ = False
+
 
 -- | 'isDotApp e' if 'e' is dot application.
 isDotApp :: HsExpr GhcPs -> Bool
