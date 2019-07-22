@@ -68,25 +68,18 @@ fakeSettings = Settings
 fakeLlvmConfig :: (LlvmTargets, LlvmPasses)
 fakeLlvmConfig = ([], [])
 
-badExtensions :: [Extension]
-badExtensions =
-  [
-    AlternativeLayoutRule
-  , AlternativeLayoutRuleTransitional
-  , Arrows
-  , TransformListComp
-  , UnboxedTuples
-  , UnboxedSums
-  , QuasiQuotes
-  , RecursiveDo
- ]
-
-enabledExtensions :: [Extension]
-enabledExtensions = filter (`notElem` badExtensions) enumerateExtensions
-
 baseDynFlags :: DynFlags
-baseDynFlags = foldl' xopt_set
-             (defaultDynFlags fakeSettings fakeLlvmConfig) enabledExtensions
+baseDynFlags =
+  -- The list of default enabled extensions is empty except for
+  -- 'TemplateHaskellQuotes'. This is because:
+  --  * The extensions to enable/disable are set exclusively in
+  --    'parsePragmasIntoDynFlags' based solely on HSE parse flags
+  --    (and source level annotations);
+  --  * 'TemplateHaskellQuotes' is not a known HSE extension but IS
+  --    needed if the GHC parse is to succeed for the unit-test at
+  --    hlint.yaml:860
+  let enable = [TemplateHaskellQuotes]
+  in foldl' xopt_set (defaultDynFlags fakeSettings fakeLlvmConfig) enable
 
 -- | Adjust the input 'DynFlags' to take into account language
 -- extensions to explicitly enable/disable as well as language
@@ -205,24 +198,15 @@ isSection x = case x of
   SectionR {} -> True
   _           -> False
 
+-- | 'isForD d' if 'd' is a foreign declaration.
 isForD :: HsDecl GhcPs -> Bool
 isForD ForD{} = True
 isForD _ = False
-
 
 -- | 'isDotApp e' if 'e' is dot application.
 isDotApp :: HsExpr GhcPs -> Bool
 isDotApp (OpApp _ _ (L _ op) _) = isDot op
 isDotApp _ = False
-
--- | All available GHC extensions
-enumerateExtensions :: [Extension]
--- 'Cpp' are the first and last cases of type 'Extension' in
--- 'libraries/ghc-boot-th/GHC/LanguageExtensions/Type.hs'. When we are
--- on a version of GHC that has MR
--- https://gitlab.haskell.org/ghc/ghc/merge_requests/826, we can
--- replace them with 'minBound' and 'maxBound' respectively.
-enumerateExtensions = [Cpp .. StarIsType]
 
 -- | Parse a GHC extension
 readExtension :: String -> Maybe Extension
