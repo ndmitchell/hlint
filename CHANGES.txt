@@ -1,6 +1,7 @@
 Changelog for HLint (* = breaking change)
 
-    #713, make sure -XNoPatternSynonyms works
+2.2.1, released 2019-07-22
+    #713, make sure -XNoPatternSynonyms works (fix regression)
     #700, add some Monoid and Alternative hints
     Add createModuleEx to the API
     #698, don't suggest a replacement for DerivingStrategies
