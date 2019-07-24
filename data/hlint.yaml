@@ -515,7 +515,7 @@
     - warn: {lhs: maybe x f (fmap g y), rhs: maybe x (f . g) y, name: Redundant fmap}
     - warn: {lhs: isJust (fmap f x), rhs: isJust x}
     - warn: {lhs: isNothing (fmap f x), rhs: isNothing x}
-    - warn: {lhs: fromJust (fmap f x), rhs: f (fromJust x)}
+    - warn: {lhs: fromJust (fmap f x), rhs: f (fromJust x), note: IncreasesLaziness}
     - warn: {lhs: mapMaybe f (fmap g x), rhs: mapMaybe (f . g) x, name: Redundant fmap}
 
     # EITHER
