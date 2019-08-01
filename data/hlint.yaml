@@ -791,6 +791,9 @@
   - {name: Restricted.Module, within: []}
   - {name: Restricted.Module.Message, within: [], message: "Custom message"}
 
+- functions:
+  - {name: restricted, within: []}
+
 # <TEST>
 # yes = concat . map f -- concatMap f
 # yes = foo . bar . concat . map f . baz . bar -- concatMap f . baz . bar

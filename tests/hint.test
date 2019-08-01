@@ -100,3 +100,15 @@ Found:
 Note: Custom message
 
 1 hint
+
+---------------------------------------------------------------------
+RUN tests/restricted-function.lhs
+FILE tests/restricted-function.lhs
+> main = restricted ()
+OUTPUT
+tests/restricted-function.lhs:1:10: Warning: Avoid restricted function
+Found:
+  restricted
+Note: may break the code
+
+1 hint
