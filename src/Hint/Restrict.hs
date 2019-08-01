@@ -96,9 +96,10 @@ checkImports modu imp (def, mp) =
 
 checkFunctions :: String -> [Decl_] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkFunctions modu decls (def, mp) =
-    [ (ideaMayBreak $ ideaNoTo $ warn "Avoid restricted function" x x []){ideaDecl = [dname]}
+    [ (maybe ideaMayBreak ideaMessage riMessage $ ideaNoTo $ warn "Avoid restricted function" x x []){ideaDecl = [dname]}
     | d <- decls
     , let dname = fromNamed d
     , x <- universeBi d :: [QName S]
-    , not $ maybe def (within modu dname) $ Map.lookup (fromNamed x) mp
+    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] Nothing) (fromNamed x) mp
+    , not $ within modu dname ri
     ]
