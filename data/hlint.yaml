@@ -793,6 +793,7 @@
 
 - functions:
   - {name: restricted, within: []}
+  - {name: restrictedMessage, within: [], message: "Custom message"}
 
 # <TEST>
 # yes = concat . map f -- concatMap f

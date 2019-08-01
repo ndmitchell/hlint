@@ -102,6 +102,18 @@ Note: Custom message
 1 hint
 
 ---------------------------------------------------------------------
+RUN tests/restricted-function-message.lhs
+FILE tests/restricted-function-message.lhs
+> main = restricted ()
+OUTPUT
+tests/restricted-function-message.lhs:1:10: Warning: Avoid restricted function
+Found:
+  restricted
+Note: Custom message
+
+1 hint
+
+---------------------------------------------------------------------
 RUN tests/restricted-function.lhs
 FILE tests/restricted-function.lhs
 > main = restricted ()
