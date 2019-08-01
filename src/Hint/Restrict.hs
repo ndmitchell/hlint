@@ -54,8 +54,8 @@ restrictions settings = Map.map f $ Map.fromListWith (++) [(restrictType x, [x])
         f rs = (all restrictDefault rs
                ,Map.fromListWith (<>) [(s, RestrictItem restrictAs restrictWithin restrictMessage) | Restrict{..} <- rs, s <- restrictName])
 
-ideaMessage message w = w{ideaNote=[Note message]}
-ideaMayBreak w = w{ideaNote=[noteMayBreak]}
+ideaMessage (Just message) w = w{ideaNote=[Note message]}
+ideaMessage Nothing w = w{ideaNote=[noteMayBreak]}
 ideaNoTo w = w{ideaTo=Nothing}
 noteMayBreak = Note "may break the code"
 
@@ -87,7 +87,7 @@ checkPragmas modu xs mps = f RestrictFlag "flags" onFlags ++ f RestrictExtension
 
 checkImports :: String -> [ImportDecl S] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkImports modu imp (def, mp) =
-    [ maybe ideaMayBreak ideaMessage riMessage $ if not allowImport
+    [ ideaMessage riMessage $ if not allowImport
       then ideaNoTo $ warn "Avoid restricted module" i i []
       else warn "Avoid restricted qualification" i i{importAs=ModuleName an <$> listToMaybe riAs} []
     | i@ImportDecl{..} <- imp
@@ -100,7 +100,7 @@ checkImports modu imp (def, mp) =
 
 checkFunctions :: String -> [Decl_] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkFunctions modu decls (def, mp) =
-    [ (maybe ideaMayBreak ideaMessage riMessage $ ideaNoTo $ warn "Avoid restricted function" x x []){ideaDecl = [dname]}
+    [ (ideaMessage riMessage $ ideaNoTo $ warn "Avoid restricted function" x x []){ideaDecl = [dname]}
     | d <- decls
     , let dname = fromNamed d
     , x <- universeBi d :: [QName S]
