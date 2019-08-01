@@ -787,6 +787,8 @@
     - hint: {lhs: "not (x || y)", rhs: "not x && not y", name: Apply De Morgan law}
     - hint: {lhs: "not (x && y)", rhs: "not x || not y", name: Apply De Morgan law}
 
+- modules:
+  - {name: Restricted.Module, within: []}
 
 # <TEST>
 # yes = concat . map f -- concatMap f
