@@ -125,3 +125,27 @@ Note: Custom message
 
 1 hint
 
+---------------------------------------------------------------------
+RUN tests/restricted-extension.hs --with= --hint=data/hlint-restrict-extensions.yaml
+FILE tests/restricted-extension.hs
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+module Test(A) where
+
+import Data.Foldable (Foldable)
+import Data.Traversable (Traversable)
+import Data.Typeable (Typeable)
+
+newtype A f = A f
+  deriving (Foldable, Functor, Traversable, Typeable)
+OUTPUT
+OUTPUT
+tests/restricted-extension.hs:2:1: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE DeriveFunctor #-}
+Note: may break the code
+
+1 hint
+
