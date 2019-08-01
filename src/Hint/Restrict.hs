@@ -69,11 +69,12 @@ checkPragmas :: String -> [ModulePragma S] -> Map.Map RestrictType (Bool, Map.Ma
 checkPragmas modu xs mps = f RestrictFlag "flags" onFlags ++ f RestrictExtension "extensions" onExtensions
     where
         f tag name sel =
-            [ (if null good then ideaNoTo else id) $ note $ warn ("Avoid restricted " ++ name) o (regen good) []
+            [ (if null good then ideaNoTo else id) $ notes $ warn ("Avoid restricted " ++ name) o (regen good) []
             | Just (def, mp) <- [Map.lookup tag mps]
             , o <- xs, Just (xs, regen) <- [sel o]
             , let (good, bad) = partition (isGood def mp) xs
-            , let note w = w{ideaNote=maybe noteMayBreak Note . (=<<) riMessage . flip Map.lookup mp <$> bad}
+            , let note = maybe noteMayBreak Note . (=<<) riMessage . flip Map.lookup mp
+            , let notes w = w{ideaNote=note <$> bad}
             , not $ null bad]
 
         onFlags (OptionsPragma s t x) = Just (words x, OptionsPragma s t . unwords)
