@@ -789,6 +789,7 @@
 
 - modules:
   - {name: Restricted.Module, within: []}
+  - {name: Restricted.Module.Message, within: [], message: "Custom message"}
 
 # <TEST>
 # yes = concat . map f -- concatMap f

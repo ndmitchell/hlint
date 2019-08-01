@@ -88,3 +88,15 @@ Found:
 Note: may break the code
 
 1 hint
+
+---------------------------------------------------------------------
+RUN tests/restricted-module-message.lhs
+FILE tests/restricted-module-message.lhs
+> import Restricted.Module.Message
+OUTPUT
+tests/restricted-module-message.lhs:1:3: Warning: Avoid restricted module
+Found:
+  import Restricted.Module.Message
+Note: Custom message
+
+1 hint
