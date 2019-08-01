@@ -106,27 +106,32 @@ listPat x = if null res then concatMap listPat $ children x else [head res]
                   , Just (x2, subts, temp) <- [f x]
                   , let r = Replace Pattern (toSS x) subts temp ]
 
+isAppend :: View a App2 => a -> Bool
 isAppend (view -> App2 op _ _) = op ~= "++"
 isAppend _ = False
 
 
+checks :: [(String, Bool -> Exp S -> Maybe (Exp SrcSpanInfo, [(String, R.SrcSpan)], String))]
 checks = let (*) = (,) in drop 1 -- see #174
     ["Use string literal" * useString
     ,"Use list literal" * useList
     ,"Use :" * useCons
     ]
 
+pchecks :: [(String, Pat S -> Maybe (Pat SrcSpanInfo, [(String, R.SrcSpan)], String))]
 pchecks = let (*) = (,) in drop 1 -- see #174
     ["Use string literal pattern" * usePString
     ,"Use list literal pattern" * usePList
     ]
 
 
+usePString :: Pat S -> Maybe (Pat SrcSpanInfo, [a], String)
 usePString (PList _ xs) | xs /= [], Just s <- mapM fromPChar xs =
     let literal = PLit an (Signless an) $ String an s (show s)
     in Just (literal, [], prettyPrint literal)
 usePString _ = Nothing
 
+usePList :: Pat_ -> Maybe (Pat SrcSpanInfo, [(String, R.SrcSpan)], String)
 usePList =
         fmap  ( (\(e, s) -> (PList an e, map (fmap toSS) s, prettyPrint (PList an (map snd s))))
               . unzip
@@ -141,11 +146,13 @@ usePList =
         g :: Char -> Pat_ -> (String, Pat_)
         g c p = ([c], PVar (ann p) (toNamed [c]))
 
+useString :: p -> Exp S -> Maybe (Exp SrcSpanInfo, [a], String)
 useString b (List _ xs) | xs /= [], Just s <- mapM fromChar xs =
   let literal = Lit an $ String an s (show s)
   in Just (literal , [], prettyPrint literal)
 useString b _ = Nothing
 
+useList :: p -> Exp_ -> Maybe (Exp SrcSpanInfo, [(String, R.SrcSpan)], String)
 useList b =
         fmap  ( (\(e, s) -> (List an e, map (fmap toSS) s, prettyPrint (List an (map snd s))))
               . unzip
@@ -160,6 +167,8 @@ useList b =
         g :: Char -> Exp_ -> (String, Exp_)
         g c p = ([c], toNamed [c])
 
+useCons :: View a App2 =>
+           Bool -> a -> Maybe (Exp SrcSpanInfo, [(String, R.SrcSpan)], String)
 useCons False (view -> App2 op x y) | op ~= "++"
                                     , Just (x2, build) <- f x
                                     , not $ isAppend y =
@@ -176,7 +185,10 @@ useCons _ _ = Nothing
 
 
 
+typeListChar :: Type SrcSpanInfo
 typeListChar = TyList an (TyCon an (toNamed "Char"))
+
+typeString :: Type SrcSpanInfo
 typeString = TyCon an (toNamed "String")
 
 

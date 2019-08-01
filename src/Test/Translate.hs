@@ -101,5 +101,6 @@ toQuickCheck hints =
         restrict _ v = toNamed v
 
 
+isRemovesError :: Note -> Bool
 isRemovesError RemovesError{} = True
 isRemovesError _ = False

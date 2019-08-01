@@ -52,14 +52,16 @@ test CmdTest{..} main dataDir files = do
         wrap "Hint names" $ mapM_ (\x -> do progress; testNames $ snd x) testFiles
         wrap "Hint annotations" $ forM_ testFiles $ \(file,h) -> do progress; testAnnotations h file
         when cmdTypeCheck $ wrap "Hint typechecking" $
-            progress >> testTypeCheck cmdDataDir cmdTempDir [h | (file, h) <- testFiles, takeFileName file /= "Test.hs"]
+            progress >> testTypeCheck cmdDataDir cmdTempDir (hs testFiles)
         when cmdQuickCheck $ wrap "Hint QuickChecking" $
-            progress >> testQuickCheck cmdDataDir cmdTempDir [h | (file, h) <- testFiles, takeFileName file /= "Test.hs"]
+            progress >> testQuickCheck cmdDataDir cmdTempDir (hs testFiles)
 
         when (null files && not hasSrc) $ liftIO $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
         getIdeas
     whenLoud $ mapM_ print ideas
     return failures
+    where
+      hs testFiles = [h | (file, h) <- testFiles, takeFileName file /= "Test.hs"]
 
 
 ---------------------------------------------------------------------

@@ -106,6 +106,7 @@ parseTestFile file =
         f _ [] = []
 
 
+parseTest :: String -> Int -> String -> [Setting] -> TestCase
 parseTest file i x = uncurry (TestCase (SrcLoc file i 0)) $ f x
     where
         f x | Just x <- stripPrefix "<COMMENT>" x = first ("--"++) $ f x

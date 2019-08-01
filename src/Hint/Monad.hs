@@ -64,7 +64,9 @@ import qualified Refact.Types as R
 import Prelude
 
 
+badFuncs :: [String]
 badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM","traverse","for","sequenceA"]
+unitFuncs :: [String]
 unitFuncs = ["when","unless","void"]
 
 
@@ -91,6 +93,7 @@ monadExp (fromNamed -> decl) (parent, x) = case x of
 
 
 -- Sometimes people write a * do a + b, to avoid brackets
+doOperator :: (Eq a, Num a) => Maybe (a, Exp S) -> Exp l -> Bool
 doOperator (Just (1, InfixApp _ _ op _)) InfixApp{} | not $ isDol op = True
 doOperator _ _ = False
 

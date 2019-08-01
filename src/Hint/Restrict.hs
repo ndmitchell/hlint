@@ -52,7 +52,10 @@ restrictions settings = Map.map f $ Map.fromListWith (++) [(restrictType x, [x])
         f rs = (all restrictDefault rs
                ,Map.fromListWith (<>) [(s, RestrictItem restrictAs restrictWithin) | Restrict{..} <- rs, s <- restrictName])
 
+ideaMayBreak :: Idea -> Idea
 ideaMayBreak w = w{ideaNote=[Note "may break the code"]}
+
+ideaNoTo :: Idea -> Idea
 ideaNoTo w = w{ideaTo=Nothing}
 
 within :: String -> String -> RestrictItem -> Bool

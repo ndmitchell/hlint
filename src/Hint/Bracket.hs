@@ -143,8 +143,15 @@ bracket isPartialAtom root = f Nothing
         g :: (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
         g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
 
+bracketWarning :: (Pretty (a1 S), Pretty (a2 SrcSpanInfo),
+                    Data (a1 S), Annotated a2, Annotated a1) =>
+                  String -> a2 SrcSpanInfo -> a1 S -> Idea
 bracketWarning msg o x =
   suggest msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
+
+bracketError :: (Pretty (a1 S), Pretty (a2 SrcSpanInfo),
+                  Data (a1 S), Annotated a2, Annotated a1) =>
+                String -> a2 SrcSpanInfo -> a1 S -> Idea
 bracketError msg o x =
   warn msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 

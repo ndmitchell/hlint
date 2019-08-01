@@ -13,11 +13,13 @@ module GHC.Util (
   , Located
   , readExtension
   , commentText, isCommentMultiline
-  , declName
+  , nameOfDecl, nameOfModule
   , unsafePrettyPrint
   , eqMaybe
   , noloc, unloc, getloc, noext
   , isForD
+  , W(..)
+  , SrcSpanD(..)
   -- Temporary : Export these so GHC doesn't consider them unused and
   -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isDot, isSection, isDotApp
@@ -43,11 +45,14 @@ import "ghc-lib-parser" Panic
 import "ghc-lib-parser" HscTypes
 import "ghc-lib-parser" HeaderInfo
 import "ghc-lib-parser" ApiAnnotation
+import "ghc-lib-parser" Module
 
 import Data.List.Extra
+import Data.Function
 import System.FilePath
 import Language.Preprocessor.Unlit
 import qualified Data.Map.Strict as Map
+import Data.Default
 
 fakeSettings :: Settings
 fakeSettings = Settings
@@ -241,20 +246,24 @@ isCommentMultiline :: Located AnnotationComment -> Bool
 isCommentMultiline (L _ (AnnBlockComment _)) = True
 isCommentMultiline _ = False
 
-declName :: HsDecl GhcPs -> String
-declName (TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}}) = occNameString $ occName $ unLoc fdLName
-declName (TyClD _ SynDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
-declName (TyClD _ DataDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
-declName (TyClD _ ClassDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
-declName (ValD _ FunBind{fun_id})  = occNameString $ occName $ unLoc fun_id
-declName (ValD _ VarBind{var_id})  = occNameString $ occName var_id
-declName (ValD _ (PatSynBind _ PSB{psb_id})) = occNameString $ occName $ unLoc psb_id
-declName (SigD _ (TypeSig _ (x:_) _)) = occNameString $ occName $ unLoc x
-declName (SigD _ (PatSynSig _ (x:_) _)) = occNameString $ occName $ unLoc x
-declName (SigD _ (ClassOpSig _ _ (x:_) _)) = occNameString $ occName $ unLoc x
-declName (ForD _ ForeignImport{fd_name}) = occNameString $ occName $ unLoc fd_name
-declName (ForD _ ForeignExport{fd_name}) = occNameString $ occName $ unLoc fd_name
-declName _ = ""
+nameOfDecl :: HsDecl GhcPs -> String
+nameOfDecl (TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}}) = occNameString $ occName $ unLoc fdLName
+nameOfDecl (TyClD _ SynDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
+nameOfDecl (TyClD _ DataDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
+nameOfDecl (TyClD _ ClassDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
+nameOfDecl (ValD _ FunBind{fun_id})  = occNameString $ occName $ unLoc fun_id
+nameOfDecl (ValD _ VarBind{var_id})  = occNameString $ occName var_id
+nameOfDecl (ValD _ (PatSynBind _ PSB{psb_id})) = occNameString $ occName $ unLoc psb_id
+nameOfDecl (SigD _ (TypeSig _ (x:_) _)) = occNameString $ occName $ unLoc x
+nameOfDecl (SigD _ (PatSynSig _ (x:_) _)) = occNameString $ occName $ unLoc x
+nameOfDecl (SigD _ (ClassOpSig _ _ (x:_) _)) = occNameString $ occName $ unLoc x
+nameOfDecl (ForD _ ForeignImport{fd_name}) = occNameString $ occName $ unLoc fd_name
+nameOfDecl (ForD _ ForeignExport{fd_name}) = occNameString $ occName $ unLoc fd_name
+nameOfDecl _ = ""
+
+nameOfModule :: HsModule GhcPs -> String
+nameOfModule HsModule {hsmodName=Nothing} = "Main"
+nameOfModule HsModule {hsmodName=Just (L _ n)} = moduleNameString n
 
 -- \"Unsafely\" in this case means that it uses the following
 -- 'DynFlags' for printing -
@@ -288,3 +297,25 @@ getloc = getLoc
 
 noext :: NoExt
 noext = noExt
+
+--
+
+newtype SrcSpanD = SrcSpanD SrcSpan -- SrcSpan, deriving `Default`.
+instance Default SrcSpanD where def = SrcSpanD noSrcSpan
+instance Outputable SrcSpanD where ppr (SrcSpanD s) = ppr s
+instance Eq SrcSpanD where (==) (SrcSpanD a) (SrcSpanD b) = a == b
+instance Ord SrcSpanD where compare (SrcSpanD a) (SrcSpanD b) = compare a b
+
+newtype W a = W a -- Wrapper of terms.
+-- The issue is that at times, terms we work with in this program are
+-- not in `Eq` and `Ord` and we need them to be. This work-around
+-- resorts to implementing `Eq` and `Ord` for the these types via
+-- lexicographical comparisons of string representations. As long as
+-- two different terms never map to the same string representation,
+-- basing `Eq` and `Ord` on their string representations rather than
+-- the term types themselves, leads to identical results.
+wToStr :: Outputable a => W a -> String
+wToStr (W e) = showPpr baseDynFlags e
+instance (Outputable a) => Outputable (W a) where ppr (W e) = ppr e
+instance (Outputable a) => Eq (W a) where (==) a b = wToStr a == wToStr b
+instance (Outputable a) => Ord (W a) where compare = compare `on` wToStr

@@ -4,7 +4,7 @@
 module Idea(
     Idea(..),
     rawIdea, idea, idea', suggest, suggest', warn, warn',ignore, ignore',
-    rawIdeaN, suggestN, suggestN', ignoreN, ignoreN', ignoreNoSuggestion',
+    rawIdeaN, rawIdeaN', suggestN, suggestN', ignoreN, ignoreN', ignoreNoSuggestion',
     showIdeasJson, showANSI,
     Note(..), showNotes,
     Severity(..),
@@ -84,8 +84,12 @@ showEx tt Idea{..} = unlines $
 
 rawIdea :: Severity -> String -> SrcSpan -> String -> Maybe String -> [Note]-> [Refactoring R.SrcSpan] -> Idea
 rawIdea = Idea [] []
+
 rawIdeaN :: Severity -> String -> SrcSpan -> String -> Maybe String -> [Note] -> Idea
 rawIdeaN a b c d e f = Idea [] [] a b c d e f []
+
+rawIdeaN' :: Severity -> String -> GHC.SrcSpan -> String -> Maybe String -> [Note] -> Idea
+rawIdeaN' a b c d e f = Idea [] [] a b (ghcSpanToHSE c) d e f []
 
 idea :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
         Severity -> String -> ast SrcSpanInfo -> a -> [Refactoring R.SrcSpan] -> Idea

@@ -21,6 +21,7 @@ import "ghc-lib-parser" SrcLoc as GHC
 import "ghc-lib-parser" ApiAnnotation
 
 
+addInfix :: ParseFlags -> ParseFlags
 addInfix = parseFlagsAddFixities $ infix_ (-1) ["==>"]
 
 
