@@ -20,6 +20,7 @@ import Data.List
 import Data.Maybe
 import Data.Semigroup
 import Control.Applicative
+import Control.Monad
 import Prelude
 
 
@@ -67,10 +68,12 @@ checkPragmas :: String -> [ModulePragma S] -> Map.Map RestrictType (Bool, Map.Ma
 checkPragmas modu xs mps = f RestrictFlag "flags" onFlags ++ f RestrictExtension "extensions" onExtensions
     where
         f tag name sel =
-            [ (if null good then ideaNoTo else id) $ ideaMayBreak $ warn ("Avoid restricted " ++ name) o (regen good) []
-            | Just mp <- [Map.lookup tag mps]
+            [ (if null good then ideaNoTo else id) $ note $ warn ("Avoid restricted " ++ name) o (regen good) []
+            | Just (def, mp) <- [Map.lookup tag mps]
             , o <- xs, Just (xs, regen) <- [sel o]
-            , let (good, bad) = partition (isGood mp) xs, not $ null bad]
+            , let (good, bad) = partition (isGood def mp) xs
+            , let note w = w{ideaNote=Note . fromMaybe "may break the code" . (=<<) riMessage . flip Map.lookup mp <$> bad}
+            , not $ null bad]
 
         onFlags (OptionsPragma s t x) = Just (words x, OptionsPragma s t . unwords)
         onFlags _ = Nothing
@@ -78,7 +81,7 @@ checkPragmas modu xs mps = f RestrictFlag "flags" onFlags ++ f RestrictExtension
         onExtensions (LanguagePragma s xs) = Just (map fromNamed xs, LanguagePragma (s :: S) . map toNamed)
         onExtensions _ = Nothing
 
-        isGood (def, mp) x = maybe def (within modu "") $ Map.lookup x mp
+        isGood def mp x = maybe def (within modu "") $ Map.lookup x mp
 
 
 checkImports :: String -> [ImportDecl S] -> (Bool, Map.Map String RestrictItem) -> [Idea]

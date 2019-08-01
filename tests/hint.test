@@ -147,5 +147,10 @@ Found:
   {-# LANGUAGE DeriveFunctor #-}
 Note: may break the code
 
-1 hint
+tests/restricted-extension.hs:3:1: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE DeriveTraversable #-}
+Note: Custom message
+
+2 hints
 
