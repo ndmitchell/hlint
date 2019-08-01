@@ -55,8 +55,9 @@ restrictions settings = Map.map f $ Map.fromListWith (++) [(restrictType x, [x])
                ,Map.fromListWith (<>) [(s, RestrictItem restrictAs restrictWithin restrictMessage) | Restrict{..} <- rs, s <- restrictName])
 
 ideaMessage message w = w{ideaNote=[Note message]}
-ideaMayBreak w = w{ideaNote=[Note "may break the code"]}
+ideaMayBreak w = w{ideaNote=[noteMayBreak]}
 ideaNoTo w = w{ideaTo=Nothing}
+noteMayBreak = Note "may break the code"
 
 within :: String -> String -> RestrictItem -> Bool
 within modu func RestrictItem{..} = any (\(a,b) -> (a == modu || a == "") && (b == func || b == "")) riWithin
@@ -72,7 +73,7 @@ checkPragmas modu xs mps = f RestrictFlag "flags" onFlags ++ f RestrictExtension
             | Just (def, mp) <- [Map.lookup tag mps]
             , o <- xs, Just (xs, regen) <- [sel o]
             , let (good, bad) = partition (isGood def mp) xs
-            , let note w = w{ideaNote=Note . fromMaybe "may break the code" . (=<<) riMessage . flip Map.lookup mp <$> bad}
+            , let note w = w{ideaNote=maybe noteMayBreak Note . (=<<) riMessage . flip Map.lookup mp <$> bad}
             , not $ null bad]
 
         onFlags (OptionsPragma s t x) = Just (words x, OptionsPragma s t . unwords)
