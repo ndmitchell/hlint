@@ -52,7 +52,7 @@ applyHintsReal settings hints_ ms = concat $
     [ map (classify classifiers . removeRequiresExtensionNotes (hseModule m)) $
         order [] (hintModule hints settings nm m) `merge`
         concat [order [fromNamed d] $ decHints d | d <- moduleDecls (hseModule m)] `merge`
-        concat [order [declName $ GHC.unLoc d] $ decHints' d | d <- hsmodDecls $ GHC.unLoc $ ghcModule m]
+        concat [order (maybeToList $ declName $ GHC.unLoc d) $ decHints' d | d <- hsmodDecls $ GHC.unLoc $ ghcModule m]
     | (nm, m) <- mns
     , let classifiers = cls ++ mapMaybe readPragma (universeBi (hseModule m)) ++ concatMap readComment (ghcComments m)
     , seq (length classifiers) True -- to force any errors from readPragma or readComment
