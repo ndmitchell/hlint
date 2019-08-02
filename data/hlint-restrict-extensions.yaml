@@ -1,0 +1,3 @@
+- extensions:
+  - {name: DeriveFunctor, within: []}
+  - {name: DeriveTraversable, within: [], message: "Custom message"}

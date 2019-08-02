@@ -116,6 +116,10 @@ parseInt v = parseFail v "Expected an Int"
 parseArrayString :: Val -> Parser [String]
 parseArrayString = parseArray >=> mapM parseString
 
+maybeParse :: (Val -> Parser a) -> Maybe Val -> Parser (Maybe a)
+maybeParse parseValue Nothing = return Nothing
+maybeParse parseValue (Just value) = Just <$> parseValue value
+
 parseBool :: Val -> Parser Bool
 parseBool (getVal -> Bool b) = return b
 parseBool v = parseFail v "Expected a Bool"
@@ -239,12 +243,13 @@ parseRestrict restrictType v = do
         Just def -> do
             b <- parseBool def
             allowFields v ["default"]
-            return $ Restrict restrictType b [] [] []
+            return $ Restrict restrictType b [] [] [] Nothing
         Nothing -> do
             restrictName <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
             restrictWithin <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
             restrictAs <- parseFieldOpt "as" v >>= maybe (return []) parseArrayString
-            allowFields v $ ["as" | restrictType == RestrictModule] ++ ["name","within"]
+            restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
+            allowFields v $ ["as" | restrictType == RestrictModule] ++ ["name","within", "message"]
             return Restrict{restrictDefault=True,..}
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
