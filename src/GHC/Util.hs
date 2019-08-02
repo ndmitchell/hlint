@@ -290,16 +290,17 @@ noext = noExt
 -- This is useful because we don't want to tell users to rename binders that they aren't creating right now
 -- and therefore usually cannot change.
 declName :: HsDecl GhcPs -> Maybe String
-declName (TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}}) = Just $ occNameString $ occName $ unLoc fdLName
-declName (TyClD _ SynDecl{tcdLName}) = Just $ occNameString $ occName $ unLoc tcdLName
-declName (TyClD _ DataDecl{tcdLName}) = Just $ occNameString $ occName $ unLoc tcdLName
-declName (TyClD _ ClassDecl{tcdLName}) = Just $ occNameString $ occName $ unLoc tcdLName
-declName (ValD _ FunBind{fun_id})  = Just $ occNameString $ occName $ unLoc fun_id
-declName (ValD _ VarBind{var_id})  = Just $ occNameString $ occName var_id
-declName (ValD _ (PatSynBind _ PSB{psb_id})) = Just $ occNameString $ occName $ unLoc psb_id
-declName (SigD _ (TypeSig _ (x:_) _)) = Just $ occNameString $ occName $ unLoc x
-declName (SigD _ (PatSynSig _ (x:_) _)) = Just $ occNameString $ occName $ unLoc x
-declName (SigD _ (ClassOpSig _ _ (x:_) _)) = Just $ occNameString $ occName $ unLoc x
-declName (ForD _ ForeignImport{fd_name}) = Just $ occNameString $ occName $ unLoc fd_name
-declName (ForD _ ForeignExport{fd_name}) = Just $ occNameString $ occName $ unLoc fd_name
-declName _ = Nothing
+declName x = occNameString . occName <$> case x of
+    TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}} -> Just $ unLoc fdLName
+    TyClD _ SynDecl{tcdLName} -> Just $ unLoc tcdLName
+    TyClD _ DataDecl{tcdLName} -> Just $ unLoc tcdLName
+    TyClD _ ClassDecl{tcdLName} -> Just $ unLoc tcdLName
+    ValD _ FunBind{fun_id}  -> Just $ unLoc fun_id
+    ValD _ VarBind{var_id}  -> Just var_id
+    ValD _ (PatSynBind _ PSB{psb_id}) -> Just $ unLoc psb_id
+    SigD _ (TypeSig _ (x:_) _) -> Just $ unLoc x
+    SigD _ (PatSynSig _ (x:_) _) -> Just $ unLoc x
+    SigD _ (ClassOpSig _ _ (x:_) _) -> Just $ unLoc x
+    ForD _ ForeignImport{fd_name} -> Just $ unLoc fd_name
+    ForD _ ForeignExport{fd_name} -> Just $ unLoc fd_name
+    _ -> Nothing
