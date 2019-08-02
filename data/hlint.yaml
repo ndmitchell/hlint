@@ -787,7 +787,6 @@
     - hint: {lhs: "not (x || y)", rhs: "not x && not y", name: Apply De Morgan law}
     - hint: {lhs: "not (x && y)", rhs: "not x || not y", name: Apply De Morgan law}
 
-
 # <TEST>
 # yes = concat . map f -- concatMap f
 # yes = foo . bar . concat . map f . baz . bar -- concatMap f . baz . bar

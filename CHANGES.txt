@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #725, allow custom message for restricted items
 2.2.2, released 2019-07-23
     #716, upgrade to ghc-lib-parser 8.8.0.20190723
 2.2.1, released 2019-07-22
