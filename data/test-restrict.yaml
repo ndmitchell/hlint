@@ -1,0 +1,11 @@
+- modules:
+  - {name: Restricted.Module, within: []}
+  - {name: Restricted.Module.Message, within: [], message: "Custom message"}
+
+- functions:
+  - {name: restricted, within: []}
+  - {name: restrictedMessage, within: [], message: "Custom message"}
+
+- extensions:
+  - {name: DeriveFunctor, within: []}
+  - {name: DeriveTraversable, within: [], message: "Custom message"}
