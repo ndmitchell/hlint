@@ -322,7 +322,7 @@ This declares that the `nub` function can't be used in any modules, and thus is 
 
 This fragment requires that all imports of `Set` must be `qualified Data.Set as Set`, enforcing consistency. It also ensures the module `Control.Arrow` can't be used anywhere.
 
-You can customize the `NOTE:` for restricted modules, functions and extensions, by providing a `message` field (default: `may break the code`).
+You can customize the `Note:` for restricted modules, functions and extensions, by providing a `message` field (default: `may break the code`).
 
 ## Hacking HLint
 
