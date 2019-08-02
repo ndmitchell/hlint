@@ -246,20 +246,21 @@ isCommentMultiline :: Located AnnotationComment -> Bool
 isCommentMultiline (L _ (AnnBlockComment _)) = True
 isCommentMultiline _ = False
 
-nameOfDecl :: HsDecl GhcPs -> String
-nameOfDecl (TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}}) = occNameString $ occName $ unLoc fdLName
-nameOfDecl (TyClD _ SynDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
-nameOfDecl (TyClD _ DataDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
-nameOfDecl (TyClD _ ClassDecl{tcdLName}) = occNameString $ occName $ unLoc tcdLName
-nameOfDecl (ValD _ FunBind{fun_id})  = occNameString $ occName $ unLoc fun_id
-nameOfDecl (ValD _ VarBind{var_id})  = occNameString $ occName var_id
-nameOfDecl (ValD _ (PatSynBind _ PSB{psb_id})) = occNameString $ occName $ unLoc psb_id
-nameOfDecl (SigD _ (TypeSig _ (x:_) _)) = occNameString $ occName $ unLoc x
-nameOfDecl (SigD _ (PatSynSig _ (x:_) _)) = occNameString $ occName $ unLoc x
-nameOfDecl (SigD _ (ClassOpSig _ _ (x:_) _)) = occNameString $ occName $ unLoc x
-nameOfDecl (ForD _ ForeignImport{fd_name}) = occNameString $ occName $ unLoc fd_name
-nameOfDecl (ForD _ ForeignExport{fd_name}) = occNameString $ occName $ unLoc fd_name
-nameOfDecl _ = ""
+nameOfDecl :: HsDecl GhcPs -> Maybe String
+nameOfDecl x = occNameString . occName <$> case x of
+    TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}} -> Just $ unLoc fdLName
+    TyClD _ SynDecl{tcdLName} -> Just $ unLoc tcdLName
+    TyClD _ DataDecl{tcdLName} -> Just $ unLoc tcdLName
+    TyClD _ ClassDecl{tcdLName} -> Just $ unLoc tcdLName
+    ValD _ FunBind{fun_id}  -> Just $ unLoc fun_id
+    ValD _ VarBind{var_id}  -> Just var_id
+    ValD _ (PatSynBind _ PSB{psb_id}) -> Just $ unLoc psb_id
+    SigD _ (TypeSig _ (x:_) _) -> Just $ unLoc x
+    SigD _ (PatSynSig _ (x:_) _) -> Just $ unLoc x
+    SigD _ (ClassOpSig _ _ (x:_) _) -> Just $ unLoc x
+    ForD _ ForeignImport{fd_name} -> Just $ unLoc fd_name
+    ForD _ ForeignExport{fd_name} -> Just $ unLoc fd_name
+    _ -> Nothing
 
 nameOfModule :: HsModule GhcPs -> String
 nameOfModule HsModule {hsmodName=Nothing} = "Main"
@@ -297,8 +298,6 @@ getloc = getLoc
 
 noext :: NoExt
 noext = noExt
-
---
 
 newtype SrcSpanD = SrcSpanD SrcSpan -- SrcSpan, deriving `Default`.
 instance Default SrcSpanD where def = SrcSpanD noSrcSpan

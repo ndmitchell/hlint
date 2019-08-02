@@ -25,6 +25,7 @@ module Hint.Duplicate(duplicateHint) where
 import Hint.Type
 import Data.Data
 import Data.Default
+import Data.Maybe
 import Data.Tuple.Extra
 import Data.List hiding (find)
 import qualified Data.Map as Map
@@ -49,7 +50,7 @@ duplicateHint ms =
          , let y = bagToList b
          ]
     where
-      ds = [(nameOfModule m, nameOfDecl d, d)
+      ds = [(nameOfModule m, fromMaybe "" (nameOfDecl d), d)
            | ModuleEx _ _ (L _ m) _ <- map snd ms
            , d <- map unloc (hsmodDecls m)]
 
