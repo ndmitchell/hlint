@@ -13,7 +13,7 @@ module GHC.Util (
   , Located
   , readExtension
   , commentText, isCommentMultiline
-  , nameOfDecl, nameOfModule
+  , declName, modName
   , unsafePrettyPrint
   , eqMaybe
   , noloc, unloc, getloc, noext
@@ -246,8 +246,8 @@ isCommentMultiline :: Located AnnotationComment -> Bool
 isCommentMultiline (L _ (AnnBlockComment _)) = True
 isCommentMultiline _ = False
 
-nameOfDecl :: HsDecl GhcPs -> Maybe String
-nameOfDecl x = occNameString . occName <$> case x of
+declName :: HsDecl GhcPs -> Maybe String
+declName x = occNameString . occName <$> case x of
     TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}} -> Just $ unLoc fdLName
     TyClD _ SynDecl{tcdLName} -> Just $ unLoc tcdLName
     TyClD _ DataDecl{tcdLName} -> Just $ unLoc tcdLName
@@ -262,9 +262,9 @@ nameOfDecl x = occNameString . occName <$> case x of
     ForD _ ForeignExport{fd_name} -> Just $ unLoc fd_name
     _ -> Nothing
 
-nameOfModule :: HsModule GhcPs -> String
-nameOfModule HsModule {hsmodName=Nothing} = "Main"
-nameOfModule HsModule {hsmodName=Just (L _ n)} = moduleNameString n
+modName :: HsModule GhcPs -> String
+modName HsModule {hsmodName=Nothing} = "Main"
+modName HsModule {hsmodName=Just (L _ n)} = moduleNameString n
 
 -- \"Unsafely\" in this case means that it uses the following
 -- 'DynFlags' for printing -

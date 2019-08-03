@@ -50,7 +50,7 @@ duplicateHint ms =
          , let y = bagToList b
          ]
     where
-      ds = [(nameOfModule m, fromMaybe "" (nameOfDecl d), d)
+      ds = [(modName m, fromMaybe "" (declName d), d)
            | ModuleEx _ _ (L _ m) _ <- map snd ms
            , d <- map unloc (hsmodDecls m)]
 
