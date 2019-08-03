@@ -86,17 +86,15 @@ add pos [] d = d
 add pos (v:vs) (Dupe p mp) = Dupe p $ Map.insertWith f v (add pos vs $ Dupe pos Map.empty) mp
     where f new = add pos vs
 
-
-duplicateOrdered :: (Ord pos, Default pos, Ord val) => Int -> [[(pos,val)]] -> [(pos,pos,[val])]
+duplicateOrdered :: forall pos val.
+  (Ord pos, Default pos, Ord val) => Int -> [[(pos,val)]] -> [(pos,pos,[val])]
 duplicateOrdered threshold xs = concat $ concat $ snd $ mapAccumL f (Dupe def Map.empty) xs
     where
-        f :: (Ord pos, Default pos, Ord val) =>
-               Dupe pos val -> [(pos, val)] -> (Dupe pos val, [[(pos, pos, [val])]])
+        f :: Dupe pos val -> [(pos, val)] -> (Dupe pos val, [[(pos, pos, [val])]])
         f d xs = second overlaps $ mapAccumL (g pos) d $ takeWhile ((>= threshold) . length) $ tails xs
             where pos = Map.fromList $ zip (map fst xs) [0..]
 
-        g :: (Ord pos, Default pos, Ord val) =>
-             Map.Map pos Int -> Dupe pos val -> [(pos, val)] -> (Dupe pos val, [(pos, pos, [val])])
+        g :: Map.Map pos Int -> Dupe pos val -> [(pos, val)] -> (Dupe pos val, [(pos, pos, [val])])
         g pos d xs = (d2, res)
             where
                 res = [(p,pme,take mx vs) | i >= threshold
