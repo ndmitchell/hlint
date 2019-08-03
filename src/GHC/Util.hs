@@ -313,5 +313,5 @@ newtype W a = W a deriving Outputable -- Wrapper of terms.
 -- the term types themselves, leads to identical results.
 wToStr :: Outputable a => W a -> String
 wToStr (W e) = showPpr baseDynFlags e
-instance (Outputable a) => Eq (W a) where (==) a b = wToStr a == wToStr b
-instance (Outputable a) => Ord (W a) where compare = compare `on` wToStr
+instance Outputable a => Eq (W a) where (==) a b = wToStr a == wToStr b
+instance Outputable a => Ord (W a) where compare = compare `on` wToStr
