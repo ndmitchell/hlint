@@ -1,5 +1,6 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TypeFamilies, NamedFieldPuns #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module GHC.Util (
@@ -299,13 +300,10 @@ getloc = getLoc
 noext :: NoExt
 noext = noExt
 
-newtype SrcSpanD = SrcSpanD SrcSpan -- SrcSpan, deriving `Default`.
+newtype SrcSpanD = SrcSpanD SrcSpan deriving (Outputable, Eq, Ord)
 instance Default SrcSpanD where def = SrcSpanD noSrcSpan
-instance Outputable SrcSpanD where ppr (SrcSpanD s) = ppr s
-instance Eq SrcSpanD where (==) (SrcSpanD a) (SrcSpanD b) = a == b
-instance Ord SrcSpanD where compare (SrcSpanD a) (SrcSpanD b) = compare a b
 
-newtype W a = W a -- Wrapper of terms.
+newtype W a = W a deriving Outputable -- Wrapper of terms.
 -- The issue is that at times, terms we work with in this program are
 -- not in `Eq` and `Ord` and we need them to be. This work-around
 -- resorts to implementing `Eq` and `Ord` for the these types via
@@ -315,6 +313,5 @@ newtype W a = W a -- Wrapper of terms.
 -- the term types themselves, leads to identical results.
 wToStr :: Outputable a => W a -> String
 wToStr (W e) = showPpr baseDynFlags e
-instance (Outputable a) => Outputable (W a) where ppr (W e) = ppr e
 instance (Outputable a) => Eq (W a) where (==) a b = wToStr a == wToStr b
 instance (Outputable a) => Ord (W a) where compare = compare `on` wToStr
