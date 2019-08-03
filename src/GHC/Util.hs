@@ -247,6 +247,12 @@ isCommentMultiline :: Located AnnotationComment -> Bool
 isCommentMultiline (L _ (AnnBlockComment _)) = True
 isCommentMultiline _ = False
 
+-- | @declName x@ returns the \"new name\" that is created (for
+-- example a function declaration) by @x@.  If @x@ isn't a declaration
+-- that creates a new name (for example an instance declaration),
+-- 'Nothing' is returned instead.  This is useful because we don't
+-- want to tell users to rename binders that they aren't creating
+-- right now and therefore usually cannot change.
 declName :: HsDecl GhcPs -> Maybe String
 declName x = occNameString . occName <$> case x of
     TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}} -> Just $ unLoc fdLName
