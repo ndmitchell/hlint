@@ -54,6 +54,7 @@ import Prelude
 import qualified Refact.Types as R
 
 
+fmapAn :: Exp b -> Exp SrcSpanInfo
 fmapAn = fmap (const an)
 
 

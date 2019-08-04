@@ -51,6 +51,7 @@ listRecHint _ _ = concatMap f . universe
             return $ idea severity ("Use " ++ use) o y [Replace Decl (toSS o) [] (prettyPrint y)]
 
 
+recursiveStr :: String
 recursiveStr = "_recursive_"
 recursive = toNamed recursiveStr
 

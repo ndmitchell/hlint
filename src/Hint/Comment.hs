@@ -23,6 +23,7 @@ import "ghc-lib-parser" SrcLoc
 import "ghc-lib-parser" ApiAnnotation
 import GHC.Util
 
+pragmas :: [String]
 pragmas = words $
     "LANGUAGE OPTIONS_GHC INCLUDE WARNING DEPRECATED MINIMAL INLINE NOINLINE INLINABLE " ++
     "CONLIKE LINE SPECIALIZE SPECIALISE UNPACK NOUNPACK SOURCE"

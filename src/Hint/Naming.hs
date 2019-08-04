@@ -101,6 +101,7 @@ shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
 shortenLGRHS x = x
 
 getNames :: LHsDecl GhcPs -> [String]
+
 getNames (L _ decl) = maybeToList (declName decl) ++ getConstructorNames decl
 
 getConstructorNames :: HsDecl GhcPs -> [String]

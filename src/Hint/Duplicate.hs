@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
+{-# LANGUAGE PackageImports #-}
 
 {-
 Find bindings within a let, and lists of statements
@@ -22,31 +23,50 @@ foo = a where {a = 1; b = 2; c = 3}; bar = a where {a = 1; b = 2; c = 3} -- ???
 module Hint.Duplicate(duplicateHint) where
 
 import Hint.Type
+import Data.Data
 import Data.Default
+import Data.Maybe
 import Data.Tuple.Extra
 import Data.List hiding (find)
 import qualified Data.Map as Map
 
+import "ghc-lib-parser" SrcLoc as GHC
+import "ghc-lib-parser" HsSyn
+import "ghc-lib-parser" Outputable
+import "ghc-lib-parser" Bag
+import GHC.Util
 
 duplicateHint :: CrossHint
 duplicateHint ms =
-    dupes [(m,d,y) | (m,d,x) <- ds, Do _ y :: Exp S <- universeBi x] ++
-    dupes [(m,d,y) | (m,d,x) <- ds, BDecls _ y :: Binds S <- universeBi x]
-    where ds = [(moduleName (hseModule m), fromNamed d, d) | m <- map snd ms, d <- moduleDecls (hseModule m)]
-
-
-dupes :: (Pretty (f SrcSpan), Annotated f, Ord (f ())) => [(String, String, [f S])] -> [Idea]
-dupes ys =
-    [(rawIdeaN
-        (if length xs >= 5 then Warning else Suggestion)
-        "Reduce duplication" p1
-        (unlines $ map (prettyPrint . fmap (const p1)) xs)
-        (Just $ "Combine with " ++ showSrcLoc (getPointLoc p2)) [])
-      {ideaModule = [m1,m2], ideaDecl = [d1,d2]}
-    | ((m1,d1,p1),(m2,d2,p2),xs) <- duplicateOrdered 3 $ map f ys]
+   -- Do expressions.
+   dupes [ (m, d, y)
+         | (m, d, x) <- ds
+         , HsDo _ _ (L _ y) :: HsExpr GhcPs <- universeBi x
+         ] ++
+  -- Bindings in a 'let' expression or a 'where' clause.
+   dupes [ (m, d, y)
+         | (m, d, x) <- ds
+         , HsValBinds _ (ValBinds _ b _ ) :: HsLocalBinds GhcPs <- universeBi x
+         , let y = bagToList b
+         ]
     where
-        f (m,d,xs) = [((m,d,srcInfoSpan $ ann x), dropAnn x) | x <- xs]
+      ds = [(modName m, fromMaybe "" (declName d), d)
+           | ModuleEx _ _ (L _ m) _ <- map snd ms
+           , d <- map unloc (hsmodDecls m)]
 
+dupes :: (Outputable e, Data e) => [(String, String, [Located e])] -> [Idea]
+dupes ys =
+    [(rawIdeaN'
+        (if length xs >= 5 then Hint.Type.Warning else Suggestion)
+        "Reduce duplication" p1
+        (unlines $ map unsafePrettyPrint xs)
+        (Just $ "Combine with " ++
+         showSrcLoc (ghcSrcLocToHSE (GHC.srcSpanStart p2))) []
+     ){ideaModule = [m1, m2], ideaDecl = [d1, d2]}
+    | ((m1, d1, SrcSpanD p1), (m2, d2, SrcSpanD p2), xs) <- duplicateOrdered 3 $ map f ys]
+    where
+      f (m, d, xs) =
+        [((m, d, SrcSpanD (getloc x)), W (transformBi (const GHC.noSrcSpan) (unloc x))) | x <- xs]
 
 ---------------------------------------------------------------------
 -- DUPLICATE FINDING
@@ -66,13 +86,15 @@ add pos [] d = d
 add pos (v:vs) (Dupe p mp) = Dupe p $ Map.insertWith f v (add pos vs $ Dupe pos Map.empty) mp
     where f new = add pos vs
 
-
-duplicateOrdered :: (Ord pos, Default pos, Ord val) => Int -> [[(pos,val)]] -> [(pos,pos,[val])]
+duplicateOrdered :: forall pos val.
+  (Ord pos, Default pos, Ord val) => Int -> [[(pos,val)]] -> [(pos,pos,[val])]
 duplicateOrdered threshold xs = concat $ concat $ snd $ mapAccumL f (Dupe def Map.empty) xs
     where
+        f :: Dupe pos val -> [(pos, val)] -> (Dupe pos val, [[(pos, pos, [val])]])
         f d xs = second overlaps $ mapAccumL (g pos) d $ takeWhile ((>= threshold) . length) $ tails xs
             where pos = Map.fromList $ zip (map fst xs) [0..]
 
+        g :: Map.Map pos Int -> Dupe pos val -> [(pos, val)] -> (Dupe pos val, [(pos, pos, [val])])
         g pos d xs = (d2, res)
             where
                 res = [(p,pme,take mx vs) | i >= threshold
