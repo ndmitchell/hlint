@@ -56,7 +56,7 @@ builtin x = case x of
     HintComment    -> modu commentHint
     HintPragma     -> modu pragmaHint
     HintExtensions -> modu extensionsHint
-    HintUnsafe     -> decl unsafeHint
+    HintUnsafe     -> decl' unsafeHint
     HintDuplicate  -> mods duplicateHint
     HintNewType    -> decl' newtypeHint
     HintRestrict   -> mempty{hintModule=restrictHint}
