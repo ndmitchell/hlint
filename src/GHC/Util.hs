@@ -193,17 +193,13 @@ isAnyApp x = isApp x || isOpApp x
 
 -- | 'isDot e'  if 'e' is the unqualifed variable '.'.
 isDot :: HsExpr GhcPs -> Bool
-isDot x
-  | HsVar _ (L _ ident) <- x
-    , ident == mkVarUnqual (fsLit ".") = True
-  | otherwise                          = False
+isDot (HsVar _ (L _ ident)) = ident == mkVarUnqual (fsLit ".")
+isDot _ = False
 
 -- | 'isDol e'  if 'e' is the unqualifed variable '$'.
 isDol :: HsExpr GhcPs -> Bool
-isDol x
-  | HsVar _ (L _ ident) <- x
-    , ident == mkVarUnqual (fsLit "$") = True
-  | otherwise                          = False
+isDol (HsVar _ (L _ ident)) = ident == mkVarUnqual (fsLit "$")
+isDol _ = False
 
 -- | 'isSection e' if 'e' is a section.
 isSection :: HsExpr GhcPs -> Bool
