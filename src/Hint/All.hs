@@ -60,7 +60,7 @@ builtin x = case x of
     HintDuplicate  -> mods duplicateHint
     HintNewType    -> decl' newtypeHint
     HintRestrict   -> mempty{hintModule=restrictHint}
-    HintSmell      -> mempty{hintDecl=smellHint,hintModule=smellModuleHint}
+    HintSmell      -> mempty{hintDecl'=smellHint,hintModule=smellModuleHint}
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList
         decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}

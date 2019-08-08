@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE PackageImports #-}
 
 module Hint.Smell (
   smellModuleHint,
@@ -84,17 +84,33 @@ import Config.Type
 import Data.List.Extra
 import qualified Data.Map as Map
 
-smellModuleHint :: [Setting] -> ModuHint
-smellModuleHint settings scope (moduleImports . hseModule -> imports) = case Map.lookup SmellManyImports (smells settings) of
-  Just n | length imports >= n ->
-           let span = foldl1 mergeSrcSpan $ srcInfoSpan . ann <$> imports
-               displayImports = unlines $ f <$> imports
-           in [rawIdea Warning "Many imports" span displayImports  Nothing [] [] ]
-    where
-      f = trimStart . prettyPrint
-  _ -> []
+import "ghc-lib-parser" BasicTypes
+import qualified "ghc-lib-parser" HsSyn as GHC
+import "ghc-lib-parser" HsDecls
+import "ghc-lib-parser" HsImpExp
+import "ghc-lib-parser" HsTypes
+import "ghc-lib-parser" HsExtension
+import "ghc-lib-parser" RdrName
+import "ghc-lib-parser" Outputable
+import "ghc-lib-parser" Bag
+import qualified "ghc-lib-parser" SrcLoc as GHC
+import GHC.Util
 
-smellHint :: [Setting] -> DeclHint
+smellModuleHint :: [Setting] -> ModuHint
+smellModuleHint settings scope m =
+  let (GHC.L _ mod) = ghcModule m
+      imports = GHC.hsmodImports mod in
+  case Map.lookup SmellManyImports (smells settings) of
+    Just n | length imports >= n ->
+             let span = foldl1 GHC.combineSrcSpans $ getloc <$> imports
+                 displayImports = unlines $ f <$> imports
+             in [rawIdea Config.Type.Warning "Many imports" (ghcSpanToHSE span) displayImports  Nothing [] [] ]
+      where
+        f :: LImportDecl GhcPs -> String
+        f = trimStart . unsafePrettyPrint
+    _ -> []
+
+smellHint :: [Setting] -> DeclHint'
 smellHint settings scope m d =
   sniff smellLongFunctions SmellLongFunctions ++
   sniff smellLongTypeLists SmellLongTypeLists ++
@@ -102,46 +118,68 @@ smellHint settings scope m d =
   where
     sniff f t = fmap (\i -> i {ideaTo = Nothing }) . take 1 $ maybe [] (f d) $ Map.lookup t (smells settings)
 
-smellLongFunctions :: Decl_ -> Int -> [Idea]
+smellLongFunctions :: LHsDecl GhcPs -> Int -> [Idea]
 smellLongFunctions d n = [ idea
                          | (span, idea) <- declSpans d
                          , spanLength span >= n
                          ]
 
-declSpans :: Decl_ -> [(SrcSpanInfo, Idea)]
-declSpans (FunBind _ [Match _ _ _ rhs where_]) = rhsSpans rhs ++ whereSpans where_
-declSpans f@(FunBind  l match)         = [(l, warn "Long function" f f [])] -- count where clauses
-declSpans (PatBind _ _ rhs where_) = rhsSpans rhs ++ whereSpans where_
-declSpans _                          = []
+-- I've tried to be faithful to the original here but I'm doubtful
+-- about it. I think I've replicated the behavior of the original but
+-- is the original correctly honoring the intent?
 
-whereSpans :: Maybe (Binds SrcSpanInfo) ->  [(SrcSpanInfo, Idea)]
-whereSpans (Just (BDecls _ decls)) = concatMap declSpans decls
+-- A function with with one alternative, one rhs and its 'where'
+-- clause (perhaps we should be looping over alts and all guarded
+-- right hand sides?)
+declSpans :: LHsDecl GhcPs -> [(GHC.SrcSpan, Idea)]
+declSpans
+   (GHC.L _ (ValD _
+     GHC.FunBind {GHC.fun_matches=GHC.MG {
+                  GHC.mg_alts=GHC.L _ [GHC.L _ GHC.Match {
+                       GHC.m_ctxt=ctx
+                     , GHC.m_grhss=GHC.GRHSs{GHC.grhssGRHSs=[locGrhs]
+                                 , GHC.grhssLocalBinds=where_}}]}})) =
+ -- The span of the right hand side and the spans of each binding in
+ -- the where clause.
+ rhsSpans ctx locGrhs ++ whereSpans where_
+-- Any other kind of function.
+declSpans f@(GHC.L l (ValD _ GHC.FunBind {})) = [(l, warn' "Long function" f f [])]
+declSpans _ = []
+
+-- The span of a guarded right hand side.
+rhsSpans :: GHC.HsMatchContext RdrName -> GHC.LGRHS GhcPs (GHC.LHsExpr GhcPs) -> [(GHC.SrcSpan, Idea)]
+rhsSpans _ (GHC.L _ (GHC.GRHS _ _ (GHC.L _ GHC.RecordCon {}))) = [] -- record constructors get a pass
+rhsSpans ctx (GHC.L _ r@(GHC.GRHS _ _ (GHC.L l _))) =
+  [(l, rawIdea Config.Type.Warning "Long function" (ghcSpanToHSE l) (showSDocUnsafe (GHC.pprGRHS ctx r)) Nothing [] [])]
+
+-- The spans of a 'where' clause are the spans of its bindings.
+whereSpans :: GHC.LHsLocalBinds GhcPs -> [(GHC.SrcSpan, Idea)]
+whereSpans (GHC.L l (GHC.HsValBinds _ (GHC.ValBinds _ bs _))) =
+  concatMap (declSpans . (\(GHC.L loc bind) -> GHC.L loc (ValD noext bind))) (bagToList bs)
 whereSpans _ = []
 
-rhsSpans :: Rhs SrcSpanInfo -> [(SrcSpanInfo, Idea)]
-rhsSpans (UnGuardedRhs l RecConstr{}) = [] --- record constructors get a pass
-rhsSpans r@(UnGuardedRhs l _) = [(l, warn "Long function" r r [])]
-rhsSpans r@(GuardedRhss l _) = [(l, warn "Long function" r r [])]
+spanLength :: GHC.SrcSpan -> Int
+spanLength (GHC.RealSrcSpan span) = GHC.srcSpanEndLine span - GHC.srcSpanStartLine span + 1
+spanLength (GHC.UnhelpfulSpan _) = -1
 
-spanLength :: SrcSpanInfo -> Int
-spanLength (SrcSpanInfo span _) = srcSpanEndLine span - srcSpanStartLine span + 1
-
-smellLongTypeLists :: Decl_ -> Int -> [Idea]
-smellLongTypeLists d@(TypeSig _ _ t) n = warn "Long type list" d d [] <$ filter longTypeList (universe t)
+smellLongTypeLists :: LHsDecl GhcPs -> Int -> [Idea]
+smellLongTypeLists d@(GHC.L _ (SigD _ (GHC.TypeSig _ _ (HsWC _ (HsIB _ (GHC.L _ t)))))) n =
+  warn' "Long type list" d d [] <$ filter longTypeList (universe t)
   where
-    longTypeList (TyPromoted _ (PromotedList _ _ x)) = length x >= n
+    longTypeList (HsExplicitListTy _ IsPromoted x) = length x >= n
     longTypeList _ = False
 smellLongTypeLists _ _ = []
 
-smellManyArgFunctions :: Decl_ -> Int -> [Idea]
-smellManyArgFunctions d@(TypeSig _ _ t) n = warn "Many arg function" d d [] <$  filter manyArgFunction (universe t)
+smellManyArgFunctions :: LHsDecl GhcPs -> Int -> [Idea]
+smellManyArgFunctions d@(GHC.L _ (SigD _ (GHC.TypeSig _ _ (HsWC _ (HsIB _ (GHC.L _ t)))))) n =
+  warn' "Many arg function" d d [] <$  filter manyArgFunction (universe t)
   where
-    manyArgFunction x = countFunctionArgs x >= n
+    manyArgFunction t = countFunctionArgs t >= n
 smellManyArgFunctions _ _ = []
 
-countFunctionArgs :: Type l -> Int
-countFunctionArgs (TyFun _ _ b) = 1 + countFunctionArgs b
-countFunctionArgs (TyParen _ t) = countFunctionArgs t
+countFunctionArgs :: HsType GhcPs -> Int
+countFunctionArgs (HsFunTy _ _ t) = 1 + countFunctionArgs (unloc t)
+countFunctionArgs (HsParTy _ t) = countFunctionArgs (unloc t)
 countFunctionArgs _ = 0
 
 smells :: [Setting] -> Map.Map SmellType Int
