@@ -14,7 +14,7 @@ module GHC.Util (
   , Located
   , readExtension
   , commentText, isCommentMultiline
-  , declName, modName
+  , declName, modName, rdrNameName
   , unsafePrettyPrint
   , eqMaybe
   , noloc, unloc, getloc, noext
@@ -22,6 +22,7 @@ module GHC.Util (
   , W(..)
   , SrcSpanD(..)
   , isDot, isDol
+  , flags, langExts
    -- Temporary : Export these so GHC doesn't consider them unused and
    -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isSection, isDotApp
@@ -49,6 +50,7 @@ import "ghc-lib-parser" HeaderInfo
 import "ghc-lib-parser" ApiAnnotation
 import "ghc-lib-parser" Module
 
+import Data.Maybe
 import Data.List.Extra
 import Data.Function
 import System.FilePath
@@ -273,6 +275,9 @@ declName x = occNameString . occName <$> case x of
     ForD _ ForeignExport{fd_name} -> Just $ unLoc fd_name
     _ -> Nothing
 
+rdrNameName :: RdrName -> String
+rdrNameName = occNameString . rdrNameOcc
+
 modName :: HsModule GhcPs -> String
 modName HsModule {hsmodName=Nothing} = "Main"
 modName HsModule {hsmodName=Just (L _ n)} = moduleNameString n
@@ -325,3 +330,33 @@ wToStr :: Outputable a => W a -> String
 wToStr (W e) = showPpr baseDynFlags e
 instance Outputable a => Eq (W a) where (==) a b = wToStr a == wToStr b
 instance Outputable a => Ord (W a) where compare = compare `on` wToStr
+
+-- GHC parse trees don't contain pragmas. We work around this with
+-- (nasty) parsing of comments.
+
+-- Pragmas. Comments not associated with a span in the annotations
+-- that have the form @{-# ...#-}@.
+pragmas :: ApiAnns -> [(Located AnnotationComment, String)]
+pragmas anns =
+  [ (c, s) |
+      c@(L _ (AnnBlockComment comm)) <- fromMaybe [] $ Map.lookup noSrcSpan (snd anns)
+    , let body = trimCommentDelims comm
+    , "#" `isPrefixOf` body && "#" `isSuffixOf` body
+    , let s = trim $ take (length body - 2) (drop 1 body)
+  ]
+
+-- Flags. The first element of the pair is the (located) annotation
+-- comment that sets the flags enumerated in the second element of the
+-- pair.
+flags :: ApiAnns -> [(Located AnnotationComment, [String])]
+flags anns =
+  [(c, opts) | (c, s) <- pragmas anns, "OPTIONS_GHC" `isPrefixOf` s
+    , let opts = words $ fromJust (stripPrefix "OPTIONS_GHC" s)]
+
+-- Language extensions. The first element of the pair is the (located)
+-- annotation comment that enables the extensions enumerated by he
+-- second element of the pair.
+langExts :: ApiAnns -> [(Located AnnotationComment, [String])]
+langExts anns =
+  [(c, exts) | (c, s) <- pragmas anns, "LANGUAGE" `isPrefixOf` s
+    , let exts = map trim (splitOn "," $ fromJust (stripPrefix "LANGUAGE" s))]
