@@ -15,6 +15,7 @@
     - import Data.Foldable(asum, sequenceA_, traverse_, for_)
     - import Data.Traversable(traverse, for)
     - import Control.Applicative
+    - import Data.Bifunctor
     - import Data.Function
     - import Data.Int
     - import Data.Char
@@ -335,12 +336,15 @@
     - warn: {lhs: id *** g, rhs: second g}
     - warn: {lhs: f *** id, rhs: first f}
     - ignore: {lhs: zip (map f x) (map g x), rhs: map (f Control.Arrow.&&& g) x}
-    - ignore: {lhs: "\\(x,y) -> (f x, g y)", rhs: f Control.Arrow.*** g}
     - ignore: {lhs: "\\x -> (f x, g x)", rhs: f Control.Arrow.&&& g}
-    - ignore: {lhs: "\\(x,y) -> (f x,y)", rhs: Control.Arrow.first f}
-    - ignore: {lhs: "\\(x,y) -> (x,f y)", rhs: Control.Arrow.second f}
-    - ignore: {lhs: "(f (fst x), g (snd x))", rhs: (f Control.Arrow.*** g) x}
     - hint: {lhs: "(fst x, snd x)", rhs:  x, note: DecreasesLaziness, name: Redundant pair}
+
+    # BIFUNCTOR
+
+    - hint: {lhs: "\\(x,y) -> (f x, g y)", rhs: Data.Bifunctor.bimap f g, note: IncreasesLaziness}
+    - hint: {lhs: "\\(x,y) -> (f x,y)", rhs: Data.Bifunctor.first f, note: IncreasesLaziness}
+    - hint: {lhs: "\\(x,y) -> (x,f y)", rhs: Data.Bifunctor.second f, note: IncreasesLaziness}
+    - hint: {lhs: "(f (fst x), g (snd x))", rhs: Data.Bifunctor.bimap f g x}
 
     # FUNCTOR
 
