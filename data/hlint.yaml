@@ -15,6 +15,7 @@
     - import Data.Foldable(asum, sequenceA_, traverse_, for_)
     - import Data.Traversable(traverse, for)
     - import Control.Applicative
+    - import Data.Bifunctor
     - import Data.Function
     - import Data.Int
     - import Data.Char
@@ -335,12 +336,17 @@
     - warn: {lhs: id *** g, rhs: second g}
     - warn: {lhs: f *** id, rhs: first f}
     - ignore: {lhs: zip (map f x) (map g x), rhs: map (f Control.Arrow.&&& g) x}
-    - ignore: {lhs: "\\(x,y) -> (f x, g y)", rhs: f Control.Arrow.*** g}
     - ignore: {lhs: "\\x -> (f x, g x)", rhs: f Control.Arrow.&&& g}
-    - ignore: {lhs: "\\(x,y) -> (f x,y)", rhs: Control.Arrow.first f}
-    - ignore: {lhs: "\\(x,y) -> (x,f y)", rhs: Control.Arrow.second f}
-    - ignore: {lhs: "(f (fst x), g (snd x))", rhs: (f Control.Arrow.*** g) x}
     - hint: {lhs: "(fst x, snd x)", rhs:  x, note: DecreasesLaziness, name: Redundant pair}
+
+    # BIFUNCTOR
+
+    - warn: {lhs: bimap id g, rhs: second g}
+    - warn: {lhs: bimap f id, rhs: first f}
+    - hint: {lhs: "\\(x,y) -> (f x, g y)", rhs: Data.Bifunctor.bimap f g, note: IncreasesLaziness}
+    - hint: {lhs: "\\(x,y) -> (f x,y)", rhs: Data.Bifunctor.first f, note: IncreasesLaziness}
+    - hint: {lhs: "\\(x,y) -> (x,f y)", rhs: Data.Bifunctor.second f, note: IncreasesLaziness}
+    - hint: {lhs: "(f (fst x), g (snd x))", rhs: Data.Bifunctor.bimap f g x}
 
     # FUNCTOR
 
@@ -825,7 +831,7 @@
 # yes = head (reverse xs) -- last xs
 # yes = reverse xs `isPrefixOf` reverse ys -- isSuffixOf xs ys
 # no = putStrLn $ show (length xs) ++ "Test"
-# yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable -- toUpper Control.Arrow.*** urlEncode
+# yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable -- Data.Bifunctor.bimap toUpper urlEncode
 # yes = map (\(a,b) -> a) xs -- fst
 # yes = map (\(a,_) -> a) xs -- fst
 # yes = readFile $ args !! 0 -- head args
@@ -835,7 +841,7 @@
 # yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
 #     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff
 # yes = if foo then stuff else return () -- Control.Monad.when foo stuff
-# yes = foo $ \(a, b) -> (a, y + b) -- Control.Arrow.second ((+) y)
+# yes = foo $ \(a, b) -> (a, y + b) -- Data.Bifunctor.second ((+) y)
 # no  = foo $ \(a, b) -> (a, a + b)
 # yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 10]
 # no = do iter <- textBufferGetTextIter tb ; textBufferSelectRange tb iter iter
