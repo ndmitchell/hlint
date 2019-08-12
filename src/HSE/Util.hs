@@ -398,7 +398,7 @@ extensionImpliedBy = \x -> Map.findWithDefault [] x mp
 extensionImplications :: [(Extension, [Extension])]
 extensionImplications = map (first EnableExtension) $
     (RebindableSyntax, [DisableExtension ImplicitPrelude]) :
-    map (\(k, vs) -> (k, map EnableExtension vs))
+    map (second (map EnableExtension))
     [ (DerivingVia              , [DerivingStrategies])
     , (RecordWildCards          , [DisambiguateRecordFields])
     , (ExistentialQuantification, [ExplicitForAll])
