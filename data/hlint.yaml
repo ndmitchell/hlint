@@ -829,7 +829,7 @@
 # yes = head (reverse xs) -- last xs
 # yes = reverse xs `isPrefixOf` reverse ys -- isSuffixOf xs ys
 # no = putStrLn $ show (length xs) ++ "Test"
-# yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable -- toUpper Control.Arrow.*** urlEncode
+# yes = ftable ++ map (\ (c, x) -> (toUpper c, urlEncode x)) ftable -- Data.Bifunctor.bimap toUpper urlEncode
 # yes = map (\(a,b) -> a) xs -- fst
 # yes = map (\(a,_) -> a) xs -- fst
 # yes = readFile $ args !! 0 -- head args
@@ -839,7 +839,7 @@
 # yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
 #     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff
 # yes = if foo then stuff else return () -- Control.Monad.when foo stuff
-# yes = foo $ \(a, b) -> (a, y + b) -- Control.Arrow.second ((+) y)
+# yes = foo $ \(a, b) -> (a, y + b) -- Data.Bifunctor.second ((+) y)
 # no  = foo $ \(a, b) -> (a, a + b)
 # yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 10]
 # no = do iter <- textBufferGetTextIter tb ; textBufferSelectRange tb iter iter
