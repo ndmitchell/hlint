@@ -151,6 +151,7 @@ rhsSpans :: GHC.HsMatchContext RdrName -> GHC.LGRHS GhcPs (GHC.LHsExpr GhcPs) ->
 rhsSpans _ (GHC.L _ (GHC.GRHS _ _ (GHC.L _ GHC.RecordCon {}))) = [] -- record constructors get a pass
 rhsSpans ctx (GHC.L _ r@(GHC.GRHS _ _ (GHC.L l _))) =
   [(l, rawIdea Config.Type.Warning "Long function" (ghcSpanToHSE l) (showSDocUnsafe (GHC.pprGRHS ctx r)) Nothing [] [])]
+rhsSpans _ _ = []
 
 -- The spans of a 'where' clause are the spans of its bindings.
 whereSpans :: GHC.LHsLocalBinds GhcPs -> [(GHC.SrcSpan, Idea)]
