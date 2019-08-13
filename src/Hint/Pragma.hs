@@ -43,8 +43,9 @@ import GHC.Util
 
 pragmaHint :: ModuHint
 pragmaHint _ modu =
-  let opts = flags (ghcAnnotations modu)
-      lang = langExts (ghcAnnotations modu) in
+  let ps = pragmas (ghcAnnotations modu)
+      opts = flags ps
+      lang = langExts ps in
     languageDupes lang ++ optToPragma opts lang
 
 optToPragma :: [(Located AnnotationComment, [String])]
@@ -66,8 +67,8 @@ optToPragma flags langExts =
                -> Maybe (Located AnnotationComment)
                -> [String]
                -> Refactoring R.SrcSpan
-      mkRefact old (maybe "" pragmaToComment -> new) ns =
-        let ns' = map (\n -> pragmaToComment (mkLangExts GHC.noSrcSpan [n])) ns
+      mkRefact old (maybe "" comment -> new) ns =
+        let ns' = map (\n -> comment (mkLangExts GHC.noSrcSpan [n])) ns
         in ModifyComment (toSS' (fst old)) (intercalate "\n" (filter (not . null) (new : ns')))
 
 data PragmaIdea = SingleComment (Located AnnotationComment) (Located AnnotationComment)
@@ -78,19 +79,19 @@ pragmaIdea :: PragmaIdea -> Idea
 pragmaIdea pidea =
   case pidea of
     SingleComment old new ->
-      mkFewer (getloc old) (pragmaToComment old) (Just $ pragmaToComment new) []
-      [ModifyComment (toSS' old) (pragmaToComment new)]
+      mkFewer (getloc old) (comment old) (Just $ comment new) []
+      [ModifyComment (toSS' old) (comment new)]
     MultiComment repl delete new ->
       mkFewer (getloc repl)
-        (f [repl, delete]) (Just $ pragmaToComment new) []
-        [ ModifyComment (toSS' repl) (pragmaToComment new)
+        (f [repl, delete]) (Just $ comment new) []
+        [ ModifyComment (toSS' repl) (comment new)
         , ModifyComment (toSS' delete) ""]
     OptionsToComment old new r ->
       mkLanguage (getloc . head $ old)
         (f old) (Just $ f new) []
         r
     where
-          f = unlines . map pragmaToComment
+          f = unlines . map comment
           mkFewer = rawIdea' Hint.Type.Warning "Use fewer LANGUAGE pragmas"
           mkLanguage = rawIdea' Hint.Type.Warning "Use LANGUAGE pragmas"
 

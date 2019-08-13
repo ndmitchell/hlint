@@ -36,8 +36,9 @@ import GHC.Util
 restrictHint :: [Setting] -> ModuHint
 restrictHint settings scope m =
     let anns = ghcAnnotations m
-        opts = flags anns
-        exts = langExts anns in
+        ps   = pragmas anns
+        opts = flags ps
+        exts = langExts ps in
     checkPragmas modu opts exts restrict ++
     maybe [] (checkImports modu $ hsmodImports (unloc (ghcModule m))) (Map.lookup RestrictModule restrict) ++
     maybe [] (checkFunctions modu $ hsmodDecls (unloc (ghcModule m))) (Map.lookup RestrictFunction restrict)
