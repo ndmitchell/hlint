@@ -758,6 +758,8 @@
     - warn: {lhs: map, rhs: fmap}
     - warn: {lhs: a ++ b, rhs: a <> b}
     - warn: {lhs: "sequence [a]", rhs: "pure <$> a"}
+    - warn: {lhs: "x /= []", rhs: not (null x), name: Use null}
+    - warn: {lhs: "[] /= x", rhs: not (null x), name: Use null}
 
 - group:
     name: generalise-for-conciseness
