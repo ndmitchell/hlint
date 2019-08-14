@@ -343,6 +343,18 @@
 
     - warn: {lhs: bimap id g, rhs: second g}
     - warn: {lhs: bimap f id, rhs: first f}
+    - warn: {lhs: first id, rhs: id}
+    - warn: {lhs: second id, rhs: id}
+    - warn: {lhs: bimap id id, rhs: id}
+    - warn: {lhs: first f (second g x), rhs: bimap f g x}
+    - warn: {lhs: second g (first f x), rhs: bimap f g x}
+    - warn: {lhs: first f1 (first f2 x), rhs: first (f1 . f2) x}
+    - warn: {lhs: second g1 (second g2 x), rhs: second (g1 . g2) x}
+    - warn: {lhs: bimap f1 f2 (bimap g1 g2 x), rhs: bimap (f1 . f2) (g1 . g2) x}
+    - warn: {lhs: first f1 (bimap f2 g x), rhs: bimap (f1 . f2) g x}
+    - warn: {lhs: second g1 (bimap f g2 x), rhs: bimap f (g1 . g2) x}
+    - warn: {lhs: bimap f1 g (first f2 x), rhs: bimap (f1 . f2) g x}
+    - warn: {lhs: bimap f g1 (second g2 x), rhs: bimap f (g1 . g2) x}
     - hint: {lhs: "\\(x,y) -> (f x, g y)", rhs: Data.Bifunctor.bimap f g, note: IncreasesLaziness}
     - hint: {lhs: "\\(x,y) -> (f x,y)", rhs: Data.Bifunctor.first f, note: IncreasesLaziness}
     - hint: {lhs: "\\(x,y) -> (x,f y)", rhs: Data.Bifunctor.second f, note: IncreasesLaziness}
