@@ -23,8 +23,8 @@ import "ghc-lib-parser" SrcLoc
 import "ghc-lib-parser" ApiAnnotation
 import GHC.Util
 
-pragmas :: [String]
-pragmas = words $
+directives :: [String]
+directives = words $
     "LANGUAGE OPTIONS_GHC INCLUDE WARNING DEPRECATED MINIMAL INLINE NOINLINE INLINABLE " ++
     "CONLIKE LINE SPECIALIZE SPECIALISE UNPACK NOUNPACK SOURCE"
 
@@ -35,7 +35,7 @@ commentHint _ m = concatMap chk (ghcComments m)
         chk :: Located AnnotationComment -> [Idea]
         chk comm
           | isMultiline, "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
-          | isMultiline, name `elem` pragmas = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
+          | isMultiline, name `elem` directives = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
                where
                  isMultiline = isCommentMultiline comm
                  s = commentText comm

@@ -13,7 +13,7 @@ module GHC.Util (
   , SDoc
   , Located
   , readExtension
-  , commentText, isCommentMultiline
+  , comment, commentText, isCommentMultiline
   , declName, modName, rdrNameName
   , unsafePrettyPrint
   , eqMaybe
@@ -22,7 +22,7 @@ module GHC.Util (
   , W(..)
   , SrcSpanD(..)
   , isDot, isDol
-  , flags, langExts, mkFlags, mkLangExts, pragmaToComment
+  , pragmas, flags, langExts, mkFlags, mkLangExts
    -- Temporary : Export these so GHC doesn't consider them unused and
    -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isSection, isDotApp
@@ -50,6 +50,7 @@ import "ghc-lib-parser" HeaderInfo
 import "ghc-lib-parser" ApiAnnotation
 import "ghc-lib-parser" Module
 
+import Control.Applicative
 import Data.Maybe
 import Data.List.Extra
 import Data.Function
@@ -57,6 +58,7 @@ import System.FilePath
 import Language.Preprocessor.Unlit
 import qualified Data.Map.Strict as Map
 import Data.Default
+import qualified Data.Text as Text
 
 fakeSettings :: Settings
 fakeSettings = Settings
@@ -239,15 +241,19 @@ trimCommentEnd s
 trimCommentDelims :: String -> String
 trimCommentDelims = trimCommentEnd . trimCommentStart
 
--- | Access to a comment's text.
+-- | A comment as a string.
+comment :: Located AnnotationComment -> String
+comment (L _ (AnnBlockComment s)) = s
+comment (L _ (AnnLineComment s)) = s
+comment (L _ (AnnDocOptions s)) = s
+comment (L _ (AnnDocCommentNamed s)) = s
+comment (L _ (AnnDocCommentPrev s)) = s
+comment (L _ (AnnDocCommentNext s)) = s
+comment (L _ (AnnDocSection _ s)) = s
+
+-- | The comment string with delimiters removed.
 commentText :: Located AnnotationComment -> String
-commentText (L _ (AnnDocCommentNext s)) = trimCommentDelims s
-commentText (L _ (AnnDocCommentPrev s)) = trimCommentDelims s
-commentText (L _ (AnnDocCommentNamed s)) = trimCommentDelims s
-commentText (L _ (AnnDocSection _ s)) = trimCommentDelims s
-commentText (L _ (AnnDocOptions s)) = trimCommentDelims s
-commentText (L _ (AnnLineComment s)) = trimCommentDelims s
-commentText (L _ (AnnBlockComment s)) = trimCommentDelims s
+commentText = trimCommentDelims . comment
 
 isCommentMultiline :: Located AnnotationComment -> Bool
 isCommentMultiline (L _ (AnnBlockComment _)) = True
@@ -345,30 +351,39 @@ pragmas anns =
     [ (c, s) |
         c@(L _ (AnnBlockComment comm)) <- fromMaybe [] $ Map.lookup noSrcSpan (snd anns)
       , let body = trimCommentDelims comm
-      , "#" `isPrefixOf` body && "#" `isSuffixOf` body
-      , let s = trim $ take (length body - 2) (drop 1 body)
+      , Just rest <- [stripSuffix "#" =<< stripPrefix "#" body]
+      , let s = trim rest
     ]
+
+-- Utility for a case insensitive prefix strip.
+stripPrefixCI :: String -> String -> Maybe String
+stripPrefixCI pref str =
+  let pref' = Text.toCaseFold (Text.pack pref)
+      (str_pref, rest) = Text.splitAt (Text.length pref') (Text.pack str)
+  in if Text.toCaseFold str_pref == pref' then Just (Text.unpack rest) else Nothing
 
 -- Flags. The first element of the pair is the (located) annotation
 -- comment that sets the flags enumerated in the second element of the
 -- pair.
-flags :: ApiAnns -> [(Located AnnotationComment, [String])]
-flags anns =
-  [(c, opts) | (c, s) <- pragmas anns, "OPTIONS_GHC" `isPrefixOf` s
-    , let opts = words $ fromJust (stripPrefix "OPTIONS_GHC" s)]
-  ++
+flags :: [(Located AnnotationComment, String)]
+      -> [(Located AnnotationComment, [String])]
+flags ps =
   -- Old versions of GHC accepted 'OPTIONS' rather than 'OPTIONS_GHC' (but
   -- this is deprecated).
-  [(c, opts) | (c, s) <- pragmas anns, "OPTIONS" `isPrefixOf` s && not ("OPTIONS_" `isPrefixOf` s)
-     , let opts = words $ fromJust (stripPrefix "OPTIONS" s)]
+  [(c, opts) | (c, s) <- ps
+             , Just rest <- [stripPrefixCI "OPTIONS_GHC " s
+                             <|> stripPrefixCI "OPTIONS " s]
+             , let opts = words rest]
 
 -- Language extensions. The first element of the pair is the (located)
 -- annotation comment that enables the extensions enumerated by he
 -- second element of the pair.
-langExts :: ApiAnns -> [(Located AnnotationComment, [String])]
-langExts anns =
-  [(c, exts) | (c, s) <- pragmas anns, "LANGUAGE" `isPrefixOf` s
-    , let exts = map trim (splitOn "," $ fromJust (stripPrefix "LANGUAGE" s))]
+langExts :: [(Located AnnotationComment, String)]
+         -> [(Located AnnotationComment, [String])]
+langExts ps =
+  [(c, exts) | (c, s) <- ps
+             , Just rest <- [stripPrefixCI "LANGUAGE " s]
+             , let exts = map trim (splitOn "," rest)]
 
 -- Given a list of flags, make a GHC options pragma.
 mkFlags :: SrcSpan -> [String] -> Located AnnotationComment
@@ -378,12 +393,3 @@ mkFlags loc flags =
 mkLangExts :: SrcSpan -> [String] -> Located AnnotationComment
 mkLangExts loc exts =
   L loc $ AnnBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")
-
-pragmaToComment :: Located AnnotationComment -> String
-pragmaToComment (L _ (AnnBlockComment s)) = s
-pragmaToComment (L _ (AnnLineComment s)) = s
-pragmaToComment (L _ (AnnDocOptions s)) = s
-pragmaToComment (L _ (AnnDocCommentNamed s)) = s
-pragmaToComment (L _ (AnnDocCommentPrev s)) = s
-pragmaToComment (L _ (AnnDocCommentNext s)) = s
-pragmaToComment (L _ (AnnDocSection _ _)) = ""
