@@ -1,46 +1,49 @@
 #
 # Build stage
 #
-FROM fpco/stack-build:lts as builder
+FROM haskell as builder
 MAINTAINER Pat Brisbin <pbrisbin@gmail.com>
 
-ENV LANG en_US.UTF-8
-ENV PATH /root/.local/bin:$PATH
+ENV LANG C.UTF-8
 
 RUN mkdir -p /src
 WORKDIR /src
 
-# Initialize package/stack
+# Initialize package
 COPY hlint.cabal /src/
-RUN stack init
-RUN stack setup
+RUN cabal v2-update
 
 # Install HLint
-RUN stack install --dependencies-only
+RUN cabal v2-build --dependencies-only
 COPY ./src /src/src
 COPY ./data /src/data
 COPY ./LICENSE /src/LICENSE
-RUN stack install
+COPY ./README.md /src/README.md
+COPY ./CHANGES.txt /src/CHANGES.txt
+RUN cabal v2-install exe:hlint
 
 # Install CC/Engine executable
 RUN mkdir -p /cc
 WORKDIR /cc
 COPY ./cc/engine.cabal /cc/engine.cabal
-RUN stack init && stack install --dependencies-only
+RUN cabal v2-build --dependencies-only
 COPY ./cc/Engine.hs /cc/Engine.hs
-RUN stack install
+RUN cabal v2-install exe:engine
 
 #
 # Runtime
 #
-FROM fpco/stack-run:lts
+FROM debian:stretch
 MAINTAINER Pat Brisbin <pbrisbin@gmail.com>
 
-ENV LANG en_US.UTF-8
+ENV LANG C.UTF-8
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libgmp-dev
 
 # Executables from build stage
-COPY --from=builder /root/.local/bin/hlint /usr/bin/hlint
-COPY --from=builder /root/.local/bin/engine /usr/bin/engine
+COPY --from=builder /root/.cabal/bin/hlint /usr/bin/hlint
+COPY --from=builder /root/.cabal/bin/engine /usr/bin/engine
 COPY --from=builder /src/data /opt/hlint
 
 RUN mkdir -p /code
@@ -50,6 +53,4 @@ WORKDIR /code
 RUN useradd app --uid 9000
 USER app
 
-# Reset fpco/stack-run's dumb ENTRYPOINT
-ENTRYPOINT []
 CMD ["/usr/bin/engine"]
