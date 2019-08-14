@@ -347,6 +347,8 @@
     - hint: {lhs: "\\(x,y) -> (f x,y)", rhs: Data.Bifunctor.first f, note: IncreasesLaziness}
     - hint: {lhs: "\\(x,y) -> (x,f y)", rhs: Data.Bifunctor.second f, note: IncreasesLaziness}
     - hint: {lhs: "(f (fst x), g (snd x))", rhs: Data.Bifunctor.bimap f g x}
+    - hint: {lhs: "(f (fst x), snd x)", rhs: Data.Bifunctor.first f x}
+    - hint: {lhs: "(fst x, g (snd x))", rhs: Data.Bifunctor.second g x}
 
     # FUNCTOR
 
