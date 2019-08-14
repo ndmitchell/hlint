@@ -493,8 +493,8 @@
     - warn: {lhs: "maybe [] (:[])", rhs: maybeToList}
     - warn: {lhs: catMaybes (map f x), rhs: mapMaybe f x}
     - warn: {lhs: catMaybes (fmap f x), rhs: mapMaybe f x}
-    - hint: {lhs: case x of Nothing -> y; Just a -> a , rhs: Data.Maybe.fromMaybe y x, name: Replace case with fromMaybe}
-    - hint: {lhs: case x of Just a -> a; Nothing -> y, rhs: Data.Maybe.fromMaybe y x, name: Replace case with fromMaybe}
+    - hint: {lhs: case x of Nothing -> y; Just a -> a , rhs: Data.Maybe.fromMaybe y x, side: isAtom y, name: Replace case with fromMaybe}
+    - hint: {lhs: case x of Just a -> a; Nothing -> y, rhs: Data.Maybe.fromMaybe y x, side: isAtom y, name: Replace case with fromMaybe}
     - hint: {lhs: case x of Nothing -> y; Just a -> f a , rhs: maybe y f x, side: isAtom y && isAtom f, name: Replace case with maybe}
     - hint: {lhs: case x of Just a -> f a; Nothing -> y, rhs: maybe y f x, side: isAtom y && isAtom f, name: Replace case with maybe}
     - warn: {lhs: if isNothing x then y else f (fromJust x), rhs: maybe y f x}
