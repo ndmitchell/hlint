@@ -58,7 +58,6 @@ import System.FilePath
 import Language.Preprocessor.Unlit
 import qualified Data.Map.Strict as Map
 import Data.Default
-import qualified Data.Text as Text
 
 fakeSettings :: Settings
 fakeSettings = Settings
@@ -358,9 +357,9 @@ pragmas anns =
 -- Utility for a case insensitive prefix strip.
 stripPrefixCI :: String -> String -> Maybe String
 stripPrefixCI pref str =
-  let pref' = Text.toCaseFold (Text.pack pref)
-      (str_pref, rest) = Text.splitAt (Text.length pref') (Text.pack str)
-  in if Text.toCaseFold str_pref == pref' then Just (Text.unpack rest) else Nothing
+  let pref' = lower pref
+      (str_pref, rest) = splitAt (length pref') str
+  in if lower str_pref == pref' then Just rest else Nothing
 
 -- Flags. The first element of the pair is the (located) annotation
 -- comment that sets the flags enumerated in the second element of the
