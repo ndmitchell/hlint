@@ -1,6 +1,8 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TypeFamilies, NamedFieldPuns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ViewPatterns, MultiParamTypeClasses , FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module GHC.Util (
@@ -23,6 +25,10 @@ module GHC.Util (
   , SrcSpanD(..)
   , isDot, isDol
   , pragmas, flags, langExts, mkFlags, mkLangExts
+  , View'(..)
+  , Var_'(Var_'), PVar_'(PVar_')
+  , simplifyExp'
+  , fromApps', childrenApps', universeApps', apps'
    -- Temporary : Export these so GHC doesn't consider them unused and
    -- tell weeder to ignore them.
   , isAtom, addParen, paren, isApp, isOpApp, isAnyApp, isSection, isDotApp
@@ -49,6 +55,8 @@ import "ghc-lib-parser" HscTypes
 import "ghc-lib-parser" HeaderInfo
 import "ghc-lib-parser" ApiAnnotation
 import "ghc-lib-parser" Module
+import "ghc-lib-parser" Bag
+import "ghc-lib-parser" Name
 
 import Control.Applicative
 import Data.Maybe
@@ -58,6 +66,8 @@ import System.FilePath
 import Language.Preprocessor.Unlit
 import qualified Data.Map.Strict as Map
 import Data.Default
+import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.Data
 
 fakeSettings :: Settings
 fakeSettings = Settings
@@ -297,14 +307,10 @@ modName HsModule {hsmodName=Just (L _ n)} = moduleNameString n
 unsafePrettyPrint :: (Outputable.Outputable a) => a -> String
 unsafePrettyPrint = Outputable.showSDocUnsafe . Outputable.ppr
 
--- | Test if two AST elements are equal modulo annotations.
-(=~=) :: Eq a => Located a -> Located a -> Bool
-a =~= b = unLoc a == unLoc b
-
 -- | Compare two 'Maybe (Located a)' values for equality modulo
 -- locations.
 eqMaybe:: Eq a => Maybe (Located a) -> Maybe (Located a) -> Bool
-eqMaybe (Just x) (Just y) = x =~= y
+eqMaybe (Just x) (Just y) = x `eqLocated` y
 eqMaybe Nothing Nothing = True
 eqMaybe _ _ = False
 
@@ -392,3 +398,66 @@ mkFlags loc flags =
 mkLangExts :: SrcSpan -> [String] -> Located AnnotationComment
 mkLangExts loc exts =
   L loc $ AnnBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")
+
+--
+
+class View' a b where
+  view' :: a -> b
+
+data Var_' = NoVar_' | Var_' String deriving Eq
+
+instance View' (LHsExpr GhcPs) Var_' where
+    view' (fromParen' -> L _ (HsVar _ (L _ (Unqual x)))) = Var_' $ occNameString x
+    view' _ = NoVar_'
+
+data PVar_' = NoPVar_' | PVar_' String
+
+instance View' (Pat GhcPs) PVar_' where
+  view' (fromPParen' -> VarPat _ (L _ x)) = PVar_' $ rdrNameName x
+  view' _ = NoPVar_'
+
+fromParen' :: LHsExpr GhcPs -> LHsExpr GhcPs
+fromParen' (L _ (HsPar _ x)) = fromParen' x
+fromParen' x = x
+
+fromPParen' :: Pat GhcPs -> Pat GhcPs
+fromPParen' (ParPat _ x) = fromPParen' x
+fromPParen' x = x
+
+simplifyExp' :: LHsExpr GhcPs -> LHsExpr GhcPs
+-- Appliciation f $ x.
+simplifyExp' (L l (OpApp _ x (L _ op) y)) | isDol op = L l (HsApp noext x (noloc (HsPar noext y)))
+-- An expression of the form, 'let x = y in z'.
+simplifyExp' e@(L _ (HsLet _ (L _ (HsValBinds _ (ValBinds _ binds []))) z)) =
+  case bagToList binds of
+    -- Implementing this requires computing 'vars', 'freeVars' and so
+    -- on. Quite detailed work. Postponing for now to see how far we
+    -- can get without it.
+    -- [L _
+    --  (FunBind {
+    --      fun_matches =
+    --          MG {mg_alts =
+    --              L _ [L _ Match {
+    --                      m_ctxt = FunRhs {mc_fun = x}
+    --                      , m_pats = []
+    --                      , m_grhss = GRHSs {
+    --                          grhssGRHSs = [L _ (GRHS _ [] y)]
+    --                          , grhssLocalBinds=L _ (EmptyLocalBinds _)}}]}})
+    --   ] -> undefined
+    _ -> e
+
+simplifyExp' e =  e
+
+apps' :: [LHsExpr GhcPs] -> LHsExpr GhcPs
+apps' = foldl1' mkApp where mkApp x y = noLoc (HsApp noExt x y)
+
+fromApps' :: LHsExpr GhcPs  -> [LHsExpr GhcPs]
+fromApps' (L _ (HsApp _ x y)) = fromApps' x ++ [y]
+fromApps' x = [x]
+
+childrenApps' :: LHsExpr GhcPs -> [LHsExpr GhcPs]
+childrenApps' (L _ (HsApp _ x y)) = childrenApps' x ++ [y]
+childrenApps' x = children x
+
+universeApps' :: LHsExpr GhcPs -> [LHsExpr GhcPs]
+universeApps' x = x : concatMap universeApps' (childrenApps' x)

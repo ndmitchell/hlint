@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
+{-# LANGUAGE PackageImports #-}
 
 {-
 map f [] = []
@@ -37,6 +38,16 @@ import Data.Either.Extra
 import Control.Monad
 import Refact.Types hiding (RType(Match))
 
+import qualified "ghc-lib-parser" SrcLoc as GHC
+import "ghc-lib-parser" HsExtension
+import "ghc-lib-parser" HsPat
+import "ghc-lib-parser" HsTypes
+import "ghc-lib-parser" TysWiredIn
+import "ghc-lib-parser" FastString
+import "ghc-lib-parser" RdrName
+import qualified "ghc-lib-parser" HsBinds as GHC
+import qualified "ghc-lib-parser" HsExpr as GHC
+import GHC.Util
 
 listRecHint :: DeclHint
 listRecHint _ _ = concatMap f . universe
@@ -54,6 +65,7 @@ listRecHint _ _ = concatMap f . universe
 recursiveStr :: String
 recursiveStr = "_recursive_"
 recursive = toNamed recursiveStr
+recursiveExpr = noloc $ GHC.HsVar noext (noloc $ mkVarUnqual (fsLit recursiveStr))
 
 -- recursion parameters, nil-case, (x,xs,cons-case)
 -- for cons-case delete any recursive calls with xs from them
@@ -68,6 +80,9 @@ data BList = BNil | BCons String String
 -- function name, parameters, list-position, list-type, body (unmodified)
 data Branch = Branch String [String] Int BList Exp_
               deriving Show
+
+data Branch' = Branch' String [String] Int BList (GHC.LHsExpr GhcPs)
+              -- deriving Show
 
 
 
@@ -135,6 +150,12 @@ delCons func pos var (fromApps -> (view -> Var_ x):xs) | func == x = do
     return $ apps $ recursive : pre ++ post
 delCons _ _ _ x = return x
 
+delCons' :: String -> Int -> String -> GHC.LHsExpr GhcPs -> Maybe (GHC.LHsExpr GhcPs)
+delCons' func pos var (fromApps' -> (view' -> Var_' x) : xs) | func == x = do
+    (pre, (view' -> Var_' v) : post) <- return $ splitAt pos xs
+    guard $ v == var
+    return $ apps' $ recursiveExpr : pre ++ post
+delCons' _ _ _ x = return x
 
 eliminateArgs :: [String] -> Exp_ -> ([String], Exp_)
 eliminateArgs ps cons = (remove ps, transform f cons)
@@ -146,6 +167,16 @@ eliminateArgs ps cons = (remove ps, transform f cons)
         f (fromApps -> x:xs) | x == recursive = apps $ x : remove xs
         f x = x
 
+eliminateArgs' :: [String] -> GHC.LHsExpr GhcPs -> ([String], GHC.LHsExpr GhcPs)
+eliminateArgs' ps cons = (remove ps, transform f cons)
+  where
+    args = [zs | z : zs <- map fromApps' $ universeApps' cons
+             , W (transformBi (const GHC.noSrcSpan) z) == W recursiveExpr]
+    elim = [all (\xs -> length xs > i && view' (xs !! i) == Var_' p) args | (i, p) <- zip [0..] ps] ++ repeat False
+    remove = concat . zipWith (\b x -> [x | not b]) elim
+
+    f (fromApps' -> x : xs) | W x == W recursiveExpr = apps' $ x : remove xs
+    f x = x
 
 ---------------------------------------------------------------------
 -- FIND A BRANCH
@@ -156,6 +187,19 @@ findBranch x = do
     (a,b,c) <- findPat ps
     return $ Branch (fromNamed name) a b c $ simplifyExp bod
 
+findBranch' :: GHC.LMatch GhcPs (GHC.HsExpr GhcPs) -> Maybe Branch'
+findBranch' (GHC.L _ x) = do
+  -- A right hand side of a pattern or function binding that is
+  -- unguarded and has no local bindings.
+  GHC.Match { GHC.m_ctxt = GHC.FunRhs {GHC.mc_fun=(GHC.L _ name)}
+            , GHC.m_pats = ps
+            , GHC.m_grhss =
+              GHC.GRHSs {GHC.grhssGRHSs=[GHC.L l (GHC.GRHS _ [] body)]
+                        , GHC.grhssLocalBinds=GHC.L _ (GHC.EmptyLocalBinds _)
+                        }
+            } <- return x
+  (a, b, c) <- findPat' ps
+  return $ Branch' (rdrNameName name) a b c $ simplifyExp' (GHC.L l body)
 
 findPat :: [Pat_] -> Maybe ([String], Int, BList)
 findPat ps = do
@@ -164,9 +208,30 @@ findPat ps = do
     let (left,[right]) = partitionEithers ps
     return (left, i, right)
 
+-- If all of the patterns in the input list can be interpreted as
+-- variables ('x') or list constructions ('x : xs'), then return a
+-- triple : the variables, the indices in the input list that
+-- correspond to list constructions and lastly the lists. If one or
+-- more of the patterns in the input list can't be classified in
+-- either of those two ways, return 'Nothing'.
+findPat' :: [LPat GhcPs] -> Maybe ([String], Int, BList)
+findPat' ps = do
+  ps <- mapM readPat' ps
+  [i] <- return $ findIndices isRight ps
+  let (left, [right]) = partitionEithers ps
+  return (left, i, right)
 
 readPat :: Pat_ -> Maybe (Either String BList)
 readPat (view -> PVar_ x) = Just $ Left x
 readPat (PParen _ (PInfixApp _ (view -> PVar_ x) (Special _ Cons{}) (view -> PVar_ xs))) = Just $ Right $ BCons x xs
 readPat (PList _ []) = Just $ Right BNil
 readPat _ = Nothing
+
+-- Interpret a pattern as a either a variable 'x', a list of form 'x :
+-- xs' (or 'Nothing' if neither).
+readPat' :: LPat GhcPs -> Maybe (Either String BList)
+readPat' (view' -> PVar_' x) = Just $ Left x
+readPat' (ParPat _ (ConPatIn (GHC.L _ n) (InfixCon (view' -> PVar_' x) (view' -> PVar_' xs))))
+  | n == consDataCon_RDR = Just $ Right $ BCons x xs
+readPat' (ListPat _ []) = Just $ Right BNil
+readPat' _ = Nothing
