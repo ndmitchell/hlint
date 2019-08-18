@@ -15,7 +15,7 @@
   - name: [FlexibleContexts, FlexibleInstances]
   - name: [PackageImports]
   - {name: CPP, within: HsColour} # so it can be disabled to avoid GPL code
-  - {name: TypeFamilies, within: GHC.Util} # type family constraints here
+  - {name: TypeFamilies, within: [GHC.Util, Hint.Export, Hint.Restrict]} # type family constraints here
 
 - flags:
   - default: false
