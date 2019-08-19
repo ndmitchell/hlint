@@ -1,4 +1,5 @@
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Hint.Smell (
   smellModuleHint,
@@ -98,7 +99,7 @@ import GHC.Util
 
 smellModuleHint :: [Setting] -> ModuHint
 smellModuleHint settings scope m =
-  let (GHC.L _ mod) = ghcModule m
+  let (dL -> GHC.L _ mod) = ghcModule m
       imports = GHC.hsmodImports mod in
   case Map.lookup SmellManyImports (smells settings) of
     Just n | length imports >= n ->
@@ -133,30 +134,30 @@ smellLongFunctions d n = [ idea
 -- right hand sides?)
 declSpans :: LHsDecl GhcPs -> [(GHC.SrcSpan, Idea)]
 declSpans
-   (GHC.L _ (ValD _
+   (dL -> GHC.L _ (ValD _
      GHC.FunBind {GHC.fun_matches=GHC.MG {
-                  GHC.mg_alts=GHC.L _ [GHC.L _ GHC.Match {
+                  GHC.mg_alts=(dL -> GHC.L _ [dL -> GHC.L _ GHC.Match {
                        GHC.m_ctxt=ctx
                      , GHC.m_grhss=GHC.GRHSs{GHC.grhssGRHSs=[locGrhs]
-                                 , GHC.grhssLocalBinds=where_}}]}})) =
+                                 , GHC.grhssLocalBinds=where_}}])}})) =
  -- The span of the right hand side and the spans of each binding in
  -- the where clause.
  rhsSpans ctx locGrhs ++ whereSpans where_
 -- Any other kind of function.
-declSpans f@(GHC.L l (ValD _ GHC.FunBind {})) = [(l, warn' "Long function" f f [])]
+declSpans f@(dL -> GHC.L l (ValD _ GHC.FunBind {})) = [(l, warn' "Long function" f f [])]
 declSpans _ = []
 
 -- The span of a guarded right hand side.
 rhsSpans :: GHC.HsMatchContext RdrName -> GHC.LGRHS GhcPs (GHC.LHsExpr GhcPs) -> [(GHC.SrcSpan, Idea)]
-rhsSpans _ (GHC.L _ (GHC.GRHS _ _ (GHC.L _ GHC.RecordCon {}))) = [] -- record constructors get a pass
-rhsSpans ctx (GHC.L _ r@(GHC.GRHS _ _ (GHC.L l _))) =
-  [(l, rawIdea Config.Type.Warning "Long function" (ghcSpanToHSE l) (showSDocUnsafe (GHC.pprGRHS ctx r)) Nothing [] [])]
+rhsSpans _ (dL -> GHC.L _ (GHC.GRHS _ _ (dL -> GHC.L _ GHC.RecordCon {}))) = [] -- record constructors get a pass
+rhsSpans ctx (dL -> GHC.L _ r@(GHC.GRHS _ _ (GHC.L l _))) =
+  [(l, rawIdea' Config.Type.Warning "Long function" l (showSDocUnsafe (GHC.pprGRHS ctx r)) Nothing [] [])]
 rhsSpans _ _ = []
 
 -- The spans of a 'where' clause are the spans of its bindings.
 whereSpans :: GHC.LHsLocalBinds GhcPs -> [(GHC.SrcSpan, Idea)]
-whereSpans (GHC.L l (GHC.HsValBinds _ (GHC.ValBinds _ bs _))) =
-  concatMap (declSpans . (\(GHC.L loc bind) -> GHC.L loc (ValD noext bind))) (bagToList bs)
+whereSpans (dL -> GHC.L l (GHC.HsValBinds _ (GHC.ValBinds _ bs _))) =
+  concatMap (declSpans . (\(dL -> GHC.L loc bind) -> cL loc (ValD noext bind))) (bagToList bs)
 whereSpans _ = []
 
 spanLength :: GHC.SrcSpan -> Int
@@ -164,7 +165,7 @@ spanLength (GHC.RealSrcSpan span) = GHC.srcSpanEndLine span - GHC.srcSpanStartLi
 spanLength (GHC.UnhelpfulSpan _) = -1
 
 smellLongTypeLists :: LHsDecl GhcPs -> Int -> [Idea]
-smellLongTypeLists d@(GHC.L _ (SigD _ (GHC.TypeSig _ _ (HsWC _ (HsIB _ (GHC.L _ t)))))) n =
+smellLongTypeLists d@(dL -> GHC.L _ (SigD _ (GHC.TypeSig _ _ (HsWC _ (HsIB _ (dL -> GHC.L _ t)))))) n =
   warn' "Long type list" d d [] <$ filter longTypeList (universe t)
   where
     longTypeList (HsExplicitListTy _ IsPromoted x) = length x >= n
@@ -172,7 +173,7 @@ smellLongTypeLists d@(GHC.L _ (SigD _ (GHC.TypeSig _ _ (HsWC _ (HsIB _ (GHC.L _ 
 smellLongTypeLists _ _ = []
 
 smellManyArgFunctions :: LHsDecl GhcPs -> Int -> [Idea]
-smellManyArgFunctions d@(GHC.L _ (SigD _ (GHC.TypeSig _ _ (HsWC _ (HsIB _ (GHC.L _ t)))))) n =
+smellManyArgFunctions d@(dL -> GHC.L _ (SigD _ (GHC.TypeSig _ _ (HsWC _ (HsIB _ (dL -> GHC.L _ t)))))) n =
   warn' "Many arg function" d d [] <$  filter manyArgFunction (universe t)
   where
     manyArgFunction t = countFunctionArgs t >= n

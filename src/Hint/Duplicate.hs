@@ -1,5 +1,6 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ViewPatterns#-}
 
 {-
 Find bindings within a let, and lists of statements
@@ -41,7 +42,7 @@ duplicateHint ms =
    -- Do expressions.
    dupes [ (m, d, y)
          | (m, d, x) <- ds
-         , HsDo _ _ (L _ y) :: HsExpr GhcPs <- universeBi x
+         , HsDo _ _ (dL -> L _ y) :: HsExpr GhcPs <- universeBi x
          ] ++
   -- Bindings in a 'let' expression or a 'where' clause.
    dupes [ (m, d, y)
@@ -51,7 +52,7 @@ duplicateHint ms =
          ]
     where
       ds = [(modName m, fromMaybe "" (declName d), d)
-           | ModuleEx _ _ (L _ m) _ <- map snd ms
+           | ModuleEx _ _ (dL -> L _ m) _ <- map snd ms
            , d <- map unloc (hsmodDecls m)]
 
 dupes :: (Outputable e, Data e) => [(String, String, [Located e])] -> [Idea]

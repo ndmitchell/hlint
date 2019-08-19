@@ -1,5 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Hint.Restrict(restrictHint) where
 
@@ -94,7 +96,7 @@ checkPragmas modu flags exts mps =
    f tag name xs =
      [(if null good then ideaNoTo else id) $ notes $ rawIdea Hint.Type.Warning ("Avoid restricted " ++ name) (ghcSpanToHSE l) c Nothing [] []
      | Just (def, mp) <- [Map.lookup tag mps]
-     , (GHC.L l (AnnBlockComment c), les) <- xs
+     , (dL -> GHC.L l (AnnBlockComment c), les) <- xs
      , let (good, bad) = partition (isGood def mp) les
      , let note = maybe noteMayBreak Note . (=<<) riMessage . flip Map.lookup mp
      , let notes w = w {ideaNote=note <$> bad}
@@ -106,7 +108,7 @@ checkImports modu imp (def, mp) =
     [ ideaMessage riMessage $ if not allowImport
       then ideaNoTo $ warn' "Avoid restricted module" i i []
       else warn' "Avoid restricted qualification" i (noloc $ (unloc i){ideclAs=noloc . GHC.mkModuleName <$> listToMaybe riAs}) []
-    | i@(GHC.L _ GHC.ImportDecl {..}) <- imp
+    | i@(dL -> GHC.L _ GHC.ImportDecl {..}) <- imp
     , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] Nothing) (GHC.moduleNameString (unloc ideclName)) mp
     , let allowImport = within modu "" ri
     , let allowQual = maybe True (\x -> null riAs || GHC.moduleNameString (unloc x) `elem` riAs) ideclAs

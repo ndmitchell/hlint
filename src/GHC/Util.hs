@@ -1,6 +1,7 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TypeFamilies, NamedFieldPuns #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module GHC.Util (
@@ -9,6 +10,7 @@ module GHC.Util (
   , parseFileGhcLib
   , ParseResult (..)
   , pprErrMsgBagWithLoc
+  , dL, cL
   , getMessages
   , SDoc
   , Located
@@ -196,12 +198,12 @@ isAnyApp x = isApp x || isOpApp x
 
 -- | 'isDot e'  if 'e' is the unqualifed variable '.'.
 isDot :: HsExpr GhcPs -> Bool
-isDot (HsVar _ (L _ ident)) = ident == mkVarUnqual (fsLit ".")
+isDot (HsVar _ (dL -> L _ ident)) = ident == mkVarUnqual (fsLit ".")
 isDot _ = False
 
 -- | 'isDol e'  if 'e' is the unqualifed variable '$'.
 isDol :: HsExpr GhcPs -> Bool
-isDol (HsVar _ (L _ ident)) = ident == mkVarUnqual (fsLit "$")
+isDol (HsVar _ (dL -> L _ ident)) = ident == mkVarUnqual (fsLit "$")
 isDol _ = False
 
 -- | 'isSection e' if 'e' is a section.
@@ -218,7 +220,7 @@ isForD _ = False
 
 -- | 'isDotApp e' if 'e' is dot application.
 isDotApp :: HsExpr GhcPs -> Bool
-isDotApp (OpApp _ _ (L _ op) _) = isDot op
+isDotApp (OpApp _ _ (dL -> L _ op) _) = isDot op
 isDotApp _ = False
 
 -- | Parse a GHC extension
@@ -242,20 +244,20 @@ trimCommentDelims = trimCommentEnd . trimCommentStart
 
 -- | A comment as a string.
 comment :: Located AnnotationComment -> String
-comment (L _ (AnnBlockComment s)) = s
-comment (L _ (AnnLineComment s)) = s
-comment (L _ (AnnDocOptions s)) = s
-comment (L _ (AnnDocCommentNamed s)) = s
-comment (L _ (AnnDocCommentPrev s)) = s
-comment (L _ (AnnDocCommentNext s)) = s
-comment (L _ (AnnDocSection _ s)) = s
+comment (dL -> L _ (AnnBlockComment s)) = s
+comment (dL -> L _ (AnnLineComment s)) = s
+comment (dL -> L _ (AnnDocOptions s)) = s
+comment (dL -> L _ (AnnDocCommentNamed s)) = s
+comment (dL -> L _ (AnnDocCommentPrev s)) = s
+comment (dL -> L _ (AnnDocCommentNext s)) = s
+comment (dL -> L _ (AnnDocSection _ s)) = s
 
 -- | The comment string with delimiters removed.
 commentText :: Located AnnotationComment -> String
 commentText = trimCommentDelims . comment
 
 isCommentMultiline :: Located AnnotationComment -> Bool
-isCommentMultiline (L _ (AnnBlockComment _)) = True
+isCommentMultiline (dL -> L _ (AnnBlockComment _)) = True
 isCommentMultiline _ = False
 
 -- | @declName x@ returns the \"new name\" that is created (for
@@ -285,7 +287,7 @@ rdrNameName = occNameString . rdrNameOcc
 
 modName :: HsModule GhcPs -> String
 modName HsModule {hsmodName=Nothing} = "Main"
-modName HsModule {hsmodName=Just (L _ n)} = moduleNameString n
+modName HsModule {hsmodName=Just (dL -> L _ n)} = moduleNameString n
 
 -- \"Unsafely\" in this case means that it uses the following
 -- 'DynFlags' for printing -
@@ -348,7 +350,7 @@ pragmas anns =
   -- list (makes sense when you think about it).
   reverse
     [ (c, s) |
-        c@(L _ (AnnBlockComment comm)) <- fromMaybe [] $ Map.lookup noSrcSpan (snd anns)
+        c@(dL -> L _ (AnnBlockComment comm)) <- fromMaybe [] $ Map.lookup noSrcSpan (snd anns)
       , let body = trimCommentDelims comm
       , Just rest <- [stripSuffix "#" =<< stripPrefix "#" body]
       , let s = trim rest
@@ -387,8 +389,8 @@ langExts ps =
 -- Given a list of flags, make a GHC options pragma.
 mkFlags :: SrcSpan -> [String] -> Located AnnotationComment
 mkFlags loc flags =
-  L loc $ AnnBlockComment ("{-# " ++ "OPTIONS_GHC " ++ unwords flags ++ " #-}")
+  cL loc $ AnnBlockComment ("{-# " ++ "OPTIONS_GHC " ++ unwords flags ++ " #-}")
 
 mkLangExts :: SrcSpan -> [String] -> Located AnnotationComment
 mkLangExts loc exts =
-  L loc $ AnnBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")
+  cL loc $ AnnBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")

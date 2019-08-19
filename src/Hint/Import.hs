@@ -1,4 +1,5 @@
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards #-}
 {-
     Reduce the number of import declarations.
@@ -58,7 +59,7 @@ import qualified "ghc-lib-parser" SrcLoc as GHC
 import GHC.Util
 
 importHint :: ModuHint
-importHint _ ModuleEx {ghcModule=GHC.L _ HsModule{hsmodImports=ms}} =
+importHint _ ModuleEx {ghcModule=(dL -> GHC.L _ HsModule{hsmodImports=ms})} =
   -- Ideas for combining multiple imports.
   concatMap (reduceImports . snd) (
     groupSort [((n, pkg), i) | i <- ms
@@ -97,7 +98,7 @@ simplifyHead x [] = Nothing
 combine :: LImportDecl GhcPs
         -> LImportDecl GhcPs
         -> Maybe (LImportDecl GhcPs, [Refactoring R.SrcSpan])
-combine x@(GHC.L _ x') y@(GHC.L _ y')
+combine x@(dL -> GHC.L _ x') y@(dL -> GHC.L _ y')
   -- Both (un/)qualified, common 'as', same names : Delete the second.
   | qual, as, specs = Just (x, [Delete Import (toSS' y)])
     -- Both (un/)qualified, common 'as', different names : Merge the
@@ -128,14 +129,14 @@ combine x@(GHC.L _ x') y@(GHC.L _ y')
                     transformBi (const noSrcSpan) (ideclHiding y')
 
 stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
-stripRedundantAlias x@(GHC.L loc i@GHC.ImportDecl {..})
+stripRedundantAlias x@(dL -> GHC.L loc i@GHC.ImportDecl {..})
   -- Suggest 'import M as M' be just 'import M'.
   | Just (unloc ideclName) == fmap unloc ideclAs =
-      [suggest' "Redundant as" x (GHC.L loc i{ideclAs=Nothing}) [RemoveAsKeyword (toSS' x)]]
+      [suggest' "Redundant as" x (cL loc i{ideclAs=Nothing}) [RemoveAsKeyword (toSS' x)]]
 stripRedundantAlias _ = []
 
 preferHierarchicalImports :: LImportDecl GhcPs -> [Idea]
-preferHierarchicalImports x@(GHC.L loc i@GHC.ImportDecl{ideclName=(GHC.L _ n),ideclPkgQual=Nothing})
+preferHierarchicalImports x@(dL -> GHC.L loc i@GHC.ImportDecl{ideclName=(dL -> GHC.L _ n),ideclPkgQual=Nothing})
   -- Suggest 'import IO' be rewritten 'import System.IO, import
   -- System.IO.Error, import Control.Exception(bracket, bracket_)'.
   | n == mkModuleName "IO" && isNothing (ideclHiding i) =
