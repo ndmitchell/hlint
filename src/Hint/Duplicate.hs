@@ -1,5 +1,7 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 {-
 Find bindings within a let, and lists of statements
@@ -41,7 +43,7 @@ duplicateHint ms =
    -- Do expressions.
    dupes [ (m, d, y)
          | (m, d, x) <- ds
-         , HsDo _ _ (L _ y) :: HsExpr GhcPs <- universeBi x
+         , HsDo _ _ (dL -> L _ y) :: HsExpr GhcPs <- universeBi x
          ] ++
   -- Bindings in a 'let' expression or a 'where' clause.
    dupes [ (m, d, y)
@@ -51,10 +53,10 @@ duplicateHint ms =
          ]
     where
       ds = [(modName m, fromMaybe "" (declName d), d)
-           | ModuleEx _ _ (L _ m) _ <- map snd ms
-           , d <- map unloc (hsmodDecls m)]
+           | ModuleEx _ _ (dL -> L _ m) _ <- map snd ms
+           , d <- map GHC.unLoc (hsmodDecls m)]
 
-dupes :: (Outputable e, Data e) => [(String, String, [Located e])] -> [Idea]
+dupes :: (Outputable e, Data e) => [(String, String, [GHC.Located e])] -> [Idea]
 dupes ys =
     [(rawIdeaN'
         (if length xs >= 5 then Hint.Type.Warning else Suggestion)
@@ -66,7 +68,7 @@ dupes ys =
     | ((m1, d1, SrcSpanD p1), (m2, d2, SrcSpanD p2), xs) <- duplicateOrdered 3 $ map f ys]
     where
       f (m, d, xs) =
-        [((m, d, SrcSpanD (getloc x)), W (transformBi (const GHC.noSrcSpan) (unloc x))) | x <- xs]
+        [((m, d, SrcSpanD (GHC.getLoc x)), W (transformBi (const GHC.noSrcSpan) (GHC.unLoc x))) | x <- xs]
 
 ---------------------------------------------------------------------
 -- DUPLICATE FINDING

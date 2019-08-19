@@ -189,12 +189,12 @@ data ParseError = ParseError
 data ModuleEx = ModuleEx {
     hseModule :: Module SrcSpanInfo
   , hseComments :: [Comment]
-  , ghcModule :: Located (HsSyn.HsModule HsSyn.GhcPs)
+  , ghcModule :: GHC.Located (HsSyn.HsModule HsSyn.GhcPs)
   , ghcAnnotations :: GHC.ApiAnns
 }
 
 -- | Extract a list of all of a parsed module's comments.
-ghcComments :: ModuleEx -> [Located GHC.AnnotationComment]
+ghcComments :: ModuleEx -> [GHC.Located GHC.AnnotationComment]
 ghcComments m = concat (Map.elems $ snd (ghcAnnotations m))
 
 -- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
@@ -292,7 +292,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         case dynFlags of
           Right ghcFlags ->
             case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of
-                (ParseOk (x, cs), POk pst a) ->
+                (ParseOk (x, cs), GHC.POk pst a) ->
                     let anns =
                           ( Map.fromListWith (++) $ GHC.annotations pst
                           , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
@@ -300,7 +300,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                     return $ Right (ModuleEx (applyFixity fixity x) cs a anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
-                (ParseOk _, PFailed _ loc err) ->
+                (ParseOk _,  GHC.PFailed _ loc err) ->
                     ghcFailOpParseModuleEx ppstr file str (loc, err)
                 (ParseFailed sl msg, pfailed) ->
                     failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
@@ -314,7 +314,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             return $ Left (ParseError loc msg (context (srcLine loc) ppstr))
 
     where
-        fromPFailed (PFailed _ loc err) = Just (loc, err)
+        fromPFailed (GHC.PFailed _ loc err) = Just (loc, err)
         fromPFailed _ = Nothing
 
         fixity = fromMaybe [] $ fixities $ hseFlags flags
