@@ -1,4 +1,4 @@
-sudo: required
+language: minimal
 matrix:
   include:
   - env: GHCVER=8.4
