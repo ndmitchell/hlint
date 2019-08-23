@@ -261,6 +261,8 @@ Ignore directives can also be written in the hint files:
 
 These directives are applied in the order they are given, with later hints overriding earlier ones.
 
+You can choose to ignore all hints with `- ignore: {}` then selectively enable the ones you want (e.g. `- warn: {name: Use const}`), but it isn't a totally smooth experience (see [#747](https://github.com/ndmitchell/hlint/issues/747) and [#748](https://github.com/ndmitchell/hlint/issues/748)).
+
 Finally, `hlint` defines the `__HLINT__` preprocessor definition (with value `1`), so problematic definitions (including those that don't parse) can be hidden with:
 
 ```haskell
