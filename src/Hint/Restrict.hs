@@ -1,6 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE PackageImports #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Hint.Restrict(restrictHint) where
@@ -16,9 +15,11 @@ foo = unsafePerformOI
 </TEST>
 -}
 
-import qualified Data.Map as Map
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn',rawIdea')
 import Config.Type
-import Hint.Type
+
+import Data.Generics.Uniplate.Operations
+import qualified Data.Map as Map
 import Data.List
 import Data.Maybe
 import Data.Semigroup
@@ -29,9 +30,8 @@ import Prelude
 import "ghc-lib-parser" HsSyn
 import "ghc-lib-parser" RdrName
 import "ghc-lib-parser" ApiAnnotation
-import qualified "ghc-lib-parser" Module as GHC
-import qualified "ghc-lib-parser" HsImpExp as GHC
-import qualified "ghc-lib-parser" SrcLoc as GHC
+import "ghc-lib-parser" Module
+import "ghc-lib-parser" SrcLoc
 import "ghc-lib-parser" OccName
 import GHC.Util
 
@@ -43,10 +43,10 @@ restrictHint settings scope m =
         opts = flags ps
         exts = langExts ps in
     checkPragmas modu opts exts restrict ++
-    maybe [] (checkImports modu $ hsmodImports (GHC.unLoc (ghcModule m))) (Map.lookup RestrictModule restrict) ++
-    maybe [] (checkFunctions modu $ hsmodDecls (GHC.unLoc (ghcModule m))) (Map.lookup RestrictFunction restrict)
+    maybe [] (checkImports modu $ hsmodImports (unLoc (ghcModule m))) (Map.lookup RestrictModule restrict) ++
+    maybe [] (checkFunctions modu $ hsmodDecls (unLoc (ghcModule m))) (Map.lookup RestrictFunction restrict)
     where
-        modu = modName (GHC.unLoc (ghcModule m))
+        modu = modName (ghcModule m)
         restrict = restrictions settings
 
 ---------------------------------------------------------------------
@@ -87,17 +87,17 @@ within modu func RestrictItem{..} = any (\(a,b) -> (a == modu || a == "") && (b 
 -- CHECKS
 
 checkPragmas :: String
-              -> [(GHC.Located AnnotationComment, [String])]
-              -> [(GHC.Located AnnotationComment, [String])]
+              -> [(Located AnnotationComment, [String])]
+              -> [(Located AnnotationComment, [String])]
               ->  Map.Map RestrictType (Bool, Map.Map String RestrictItem)
               -> [Idea]
 checkPragmas modu flags exts mps =
   f RestrictFlag "flags" flags ++ f RestrictExtension "extensions" exts
   where
    f tag name xs =
-     [(if null good then ideaNoTo else id) $ notes $ rawIdea Hint.Type.Warning ("Avoid restricted " ++ name) (ghcSpanToHSE l) c Nothing [] []
+     [(if null good then ideaNoTo else id) $ notes $ rawIdea' Hint.Type.Warning ("Avoid restricted " ++ name) l c Nothing [] []
      | Just (def, mp) <- [Map.lookup tag mps]
-     , (GHC.dL -> GHC.L l (AnnBlockComment c), les) <- xs
+     , (L l (AnnBlockComment c), les) <- xs
      , let (good, bad) = partition (isGood def mp) les
      , let note = maybe noteMayBreak Note . (=<<) riMessage . flip Map.lookup mp
      , let notes w = w {ideaNote=note <$> bad}
@@ -108,11 +108,11 @@ checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map.Map String RestrictI
 checkImports modu imp (def, mp) =
     [ ideaMessage riMessage $ if not allowImport
       then ideaNoTo $ warn' "Avoid restricted module" i i []
-      else warn' "Avoid restricted qualification" i (GHC.noLoc $ (GHC.unLoc i){ideclAs=GHC.noLoc . GHC.mkModuleName <$> listToMaybe riAs}) []
-    | i@(GHC.dL -> GHC.L _ GHC.ImportDecl {..}) <- imp
-    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] Nothing) (GHC.moduleNameString (GHC.unLoc ideclName)) mp
+      else warn' "Avoid restricted qualification" i (noLoc $ (unLoc i){ideclAs=noLoc . mkModuleName <$> listToMaybe riAs}) []
+    | i@(LL _ ImportDecl {..}) <- imp
+    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] Nothing) (moduleNameString (unLoc ideclName)) mp
     , let allowImport = within modu "" ri
-    , let allowQual = maybe True (\x -> null riAs || GHC.moduleNameString (GHC.unLoc x) `elem` riAs) ideclAs
+    , let allowQual = maybe True (\x -> null riAs || moduleNameString (unLoc x) `elem` riAs) ideclAs
     , not allowImport || not allowQual
     ]
 
@@ -120,8 +120,8 @@ checkFunctions :: String -> [LHsDecl GhcPs] -> (Bool, Map.Map String RestrictIte
 checkFunctions modu decls (def, mp) =
     [ (ideaMessage riMessage $ ideaNoTo $ warn' "Avoid restricted function" x x []){ideaDecl = [dname]}
     | d <- decls
-    , let dname = fromMaybe "" (declName (GHC.unLoc d))
-    , x <- universeBi d :: [GHC.Located RdrName]
-    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] Nothing) (occNameString (rdrNameOcc (GHC.unLoc x))) mp
+    , let dname = fromMaybe "" (declName (unLoc d))
+    , x <- universeBi d :: [Located RdrName]
+    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] Nothing) (occNameString (rdrNameOcc (unLoc x))) mp
     , not $ within modu dname ri
     ]

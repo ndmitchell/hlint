@@ -1,6 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PackageImports #-}
-{-# LANGUAGE ViewPatterns #-}
 {-
     Suggest newtype instead of data for type declarations that have
     only one field. Don't suggest newtype for existentially
@@ -51,12 +50,12 @@ newtypeHintDecl old
 newtypeHintDecl _ = []
 
 newTypeDerivingStrategiesHintDecl :: LHsDecl GhcPs -> [Idea]
-newTypeDerivingStrategiesHintDecl decl@(dL -> L _ (TyClD _ (DataDecl _ _ _ _ dataDef))) =
+newTypeDerivingStrategiesHintDecl decl@(LL _ (TyClD _ (DataDecl _ _ _ _ dataDef))) =
     [ignoreNoSuggestion' "Use DerivingStrategies" decl | not $ isData dataDef, not $ hasAllStrategies dataDef]
 newTypeDerivingStrategiesHintDecl _ = []
 
 hasAllStrategies :: HsDataDefn GhcPs -> Bool
-hasAllStrategies (HsDataDefn _ NewType _ _ _ _ (dL -> L _ xs)) = all hasStrategyClause xs
+hasAllStrategies (HsDataDefn _ NewType _ _ _ _ (LL _ xs)) = all hasStrategyClause xs
 hasAllStrategies _ = False
 
 isData :: HsDataDefn GhcPs -> Bool
@@ -65,7 +64,7 @@ isData (HsDataDefn _ DataType _ _ _ _ _) = True
 isData _ = False
 
 hasStrategyClause :: LHsDerivingClause GhcPs -> Bool
-hasStrategyClause (dL -> L _ (HsDerivingClause _ (Just _) _)) = True
+hasStrategyClause (LL _ (HsDerivingClause _ (Just _) _)) = True
 hasStrategyClause _ = False
 
 data WarnNewtype = WarnNewtype
@@ -81,12 +80,12 @@ data WarnNewtype = WarnNewtype
 -- * Single record field constructors get newtyped - @data X = X {getX :: Int}@ -> @newtype X = X {getX :: Int}@
 -- * All other declarations are ignored.
 singleSimpleField :: LHsDecl GhcPs -> Maybe WarnNewtype
-singleSimpleField (dL -> L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef@(HsDataDefn _ DataType _ _ _ [dL -> L _ constructor] _))))
+singleSimpleField (LL loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef@(HsDataDefn _ DataType _ _ _ [LL _ constructor] _))))
     | Just inType <- simpleCons constructor =
         Just WarnNewtype
-              { newDecl = cL loc $ TyClD ext decl {tcdDataDefn = dataDef
+              { newDecl = LL loc $ TyClD ext decl {tcdDataDefn = dataDef
                   { dd_ND = NewType
-                  , dd_cons = map (\(dL -> L consloc x) -> cL consloc $ dropConsBang x) $ dd_cons dataDef
+                  , dd_cons = map (\(LL consloc x) -> LL consloc $ dropConsBang x) $ dd_cons dataDef
                   }}
               , insideType = inType
               }
@@ -95,12 +94,12 @@ singleSimpleField _ = Nothing
 -- | Checks whether its argument is a \"simple constructor\" (see criteria in 'singleSimpleFieldNew')
 -- returning the type inside the constructor if it is. This is needed for strictness analysis.
 simpleCons :: ConDecl GhcPs -> Maybe (HsType GhcPs)
-simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [dL -> L _ inType]) _)
+simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [LL _ inType]) _)
     | emptyOrNoContext context
     , not $ isUnboxedTuple inType
     , not $ isHashy inType
     = Just inType
-simpleCons (ConDeclH98 _ _ _ [] context (RecCon (dL -> L _ [dL -> L _ (ConDeclField _ [_] (dL -> L _ inType) _)])) _)
+simpleCons (ConDeclH98 _ _ _ [] context (RecCon (LL _ [LL _ (ConDeclField _ [_] (LL _ inType) _)])) _)
     | emptyOrNoContext context
     , not $ isUnboxedTuple inType
     , not $ isHashy inType
@@ -117,18 +116,18 @@ warnBang _ = True
 
 emptyOrNoContext :: Maybe (LHsContext GhcPs) -> Bool
 emptyOrNoContext Nothing = True
-emptyOrNoContext (Just (dL -> L _ [])) = True
+emptyOrNoContext (Just (LL _ [])) = True
 emptyOrNoContext _ = False
 
 -- | The \"Bang\" here refers to 'HsSrcBang', which notably also includes @UNPACK@ pragmas!
 dropConsBang :: ConDecl GhcPs -> ConDecl GhcPs
 dropConsBang decl@(ConDeclH98 _ _ _ _ _ (PrefixCon fields) _) =
     decl {con_args = PrefixCon $ map getBangType fields}
-dropConsBang decl@(ConDeclH98 _ _ _ _ _ (RecCon (dL -> L recloc conDeclFields)) _) =
+dropConsBang decl@(ConDeclH98 _ _ _ _ _ (RecCon (LL recloc conDeclFields)) _) =
     decl {con_args = RecCon $ cL recloc $ removeUnpacksRecords conDeclFields}
     where
         removeUnpacksRecords :: [LConDeclField GhcPs] -> [LConDeclField GhcPs]
-        removeUnpacksRecords = map (\(dL -> L conDeclFieldLoc x) -> cL conDeclFieldLoc $ removeConDeclFieldUnpacks x)
+        removeUnpacksRecords = map (\(LL conDeclFieldLoc x) -> LL conDeclFieldLoc $ removeConDeclFieldUnpacks x)
 
         removeConDeclFieldUnpacks :: ConDeclField GhcPs -> ConDeclField GhcPs
         removeConDeclFieldUnpacks conDeclField@(ConDeclField _ _ fieldType _) =
