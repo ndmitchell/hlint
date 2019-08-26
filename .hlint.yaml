@@ -14,7 +14,7 @@
   - name: [ExistentialQuantification, MultiParamTypeClasses, NamedFieldPuns]
   - name: [FlexibleContexts, FlexibleInstances]
   - name: [PackageImports]
-  - {name: CPP, within: [HsColour, GHC.Util.FreeVars]} # so it can be disabled to avoid GPL code
+  - {name: CPP, within: [HsColour]} # so it can be disabled to avoid GPL code
   - {name: TypeFamilies, within: [GHC.Util.HsExpr, GHC.Util.FreeVars, Hint.Export, Hint.Restrict]} # type family constraints here
 
 - flags:
