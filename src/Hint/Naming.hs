@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-
     Suggest the use of camelCase
 
@@ -73,7 +73,7 @@ naming seen originalDecl =
     where
         suggestedNames =
             [ (originalName, suggestedName)
-            | not $ isForD $ unloc originalDecl
+            | not $ isForD' $ unLoc originalDecl
             , originalName <- nubOrd $ getNames originalDecl
             , Just suggestedName <- [suggestName originalName]
             , not $ suggestedName `Set.member` seen

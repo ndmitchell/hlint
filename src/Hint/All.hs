@@ -44,22 +44,24 @@ data HintBuiltin =
 
 builtin :: HintBuiltin -> Hint
 builtin x = case x of
+    -- Hse.
     HintList       -> decl listHint
-    HintListRec    -> decl listRecHint
     HintMonad      -> decl monadHint
     HintLambda     -> decl lambdaHint
     HintBracket    -> decl bracketHint
-    HintNaming     -> decl' namingHint
     HintPattern    -> decl patternHint
+    -- Ghc.
     HintImport     -> modu importHint
     HintExport     -> modu exportHint
     HintComment    -> modu commentHint
     HintPragma     -> modu pragmaHint
     HintExtensions -> modu extensionsHint
-    HintUnsafe     -> decl' unsafeHint
     HintDuplicate  -> mods duplicateHint
-    HintNewType    -> decl' newtypeHint
     HintRestrict   -> mempty{hintModule=restrictHint}
+    HintNewType    -> decl' newtypeHint
+    HintUnsafe     -> decl' unsafeHint
+    HintListRec    -> decl' listRecHint
+    HintNaming     -> decl' namingHint
     HintSmell      -> mempty{hintDecl'=smellHint,hintModule=smellModuleHint}
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList

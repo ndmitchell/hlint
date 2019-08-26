@@ -11,7 +11,6 @@
 </TEST>
 -}
 {-# LANGUAGE PackageImports #-}
-{-# LANGUAGE ViewPatterns #-}
 
 
 module Hint.Comment(commentHint) where
@@ -44,7 +43,7 @@ commentHint _ m = concatMap chk (ghcComments m)
         chk _ = []
 
         grab :: String -> Located AnnotationComment -> String -> Idea
-        grab msg o@(dL -> L pos _) s2 =
+        grab msg o@(L pos _) s2 =
           let s1 = commentText o in
           rawIdea' Suggestion msg pos (f s1) (Just $ f s2) [] refact
             where f s = if isCommentMultiline o then "{-" ++ s ++ "-}" else "--" ++ s

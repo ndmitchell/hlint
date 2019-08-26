@@ -48,8 +48,8 @@ pragmaHint _ modu =
       lang = langExts ps in
     languageDupes lang ++ optToPragma opts lang
 
-optToPragma :: [(Located AnnotationComment, [String])]
-             -> [(Located AnnotationComment, [String])]
+optToPragma :: [(GHC.Located AnnotationComment, [String])]
+             -> [(GHC.Located AnnotationComment, [String])]
              -> [Idea]
 optToPragma flags langExts =
   [pragmaIdea (OptionsToComment (map fst old) ys rs) | old /= []]
@@ -63,31 +63,31 @@ optToPragma flags langExts =
       ns2 = nubOrd (concat ns) \\ ls
 
       ys = [mkLangExts GHC.noSrcSpan ns2 | ns2 /= []] ++ catMaybes new
-      mkRefact :: (Located AnnotationComment, [String])
-               -> Maybe (Located AnnotationComment)
+      mkRefact :: (GHC.Located AnnotationComment, [String])
+               -> Maybe (GHC.Located AnnotationComment)
                -> [String]
                -> Refactoring R.SrcSpan
       mkRefact old (maybe "" comment -> new) ns =
         let ns' = map (\n -> comment (mkLangExts GHC.noSrcSpan [n])) ns
         in ModifyComment (toSS' (fst old)) (intercalate "\n" (filter (not . null) (new : ns')))
 
-data PragmaIdea = SingleComment (Located AnnotationComment) (Located AnnotationComment)
-                 | MultiComment (Located AnnotationComment) (Located AnnotationComment) (Located AnnotationComment)
-                 | OptionsToComment [Located AnnotationComment] [Located AnnotationComment] [Refactoring R.SrcSpan]
+data PragmaIdea = SingleComment (GHC.Located AnnotationComment) (GHC.Located AnnotationComment)
+                 | MultiComment (GHC.Located AnnotationComment) (GHC.Located AnnotationComment) (GHC.Located AnnotationComment)
+                 | OptionsToComment [GHC.Located AnnotationComment] [GHC.Located AnnotationComment] [Refactoring R.SrcSpan]
 
 pragmaIdea :: PragmaIdea -> Idea
 pragmaIdea pidea =
   case pidea of
     SingleComment old new ->
-      mkFewer (getloc old) (comment old) (Just $ comment new) []
+      mkFewer (GHC.getLoc old) (comment old) (Just $ comment new) []
       [ModifyComment (toSS' old) (comment new)]
     MultiComment repl delete new ->
-      mkFewer (getloc repl)
+      mkFewer (GHC.getLoc repl)
         (f [repl, delete]) (Just $ comment new) []
         [ ModifyComment (toSS' repl) (comment new)
         , ModifyComment (toSS' delete) ""]
     OptionsToComment old new r ->
-      mkLanguage (getloc . head $ old)
+      mkLanguage (GHC.getLoc . head $ old)
         (f old) (Just $ f new) []
         r
     where
@@ -95,11 +95,11 @@ pragmaIdea pidea =
           mkFewer = rawIdea' Hint.Type.Warning "Use fewer LANGUAGE pragmas"
           mkLanguage = rawIdea' Hint.Type.Warning "Use LANGUAGE pragmas"
 
-languageDupes :: [(Located AnnotationComment, [String])] -> [Idea]
-languageDupes ( (a@(dL -> GHC.L l _), les) : cs ) =
+languageDupes :: [(GHC.Located AnnotationComment, [String])] -> [Idea]
+languageDupes ( (a@(GHC.dL -> GHC.L l _), les) : cs ) =
   (if nubOrd les /= les
        then [pragmaIdea (SingleComment a (mkLangExts l $ nubOrd les))]
-       else [pragmaIdea (MultiComment a b (mkLangExts l (nubOrd $ les ++ les'))) | ( b@(dL -> GHC.L _ _), les' ) <- cs, not $ null $ intersect les les']
+       else [pragmaIdea (MultiComment a b (mkLangExts l (nubOrd $ les ++ les'))) | ( b@(GHC.dL -> GHC.L _ _), les' ) <- cs, not $ null $ intersect les les']
   ) ++ languageDupes cs
 languageDupes _ = []
 
@@ -122,10 +122,10 @@ strToLanguage _ = Nothing
 -- extension enabling flags. Return that together with a list of any
 -- language extensions enabled by this pragma that are not otherwise
 -- enabled by LANGUAGE pragmas in the module.
-optToLanguage :: (Located AnnotationComment, [String])
+optToLanguage :: (GHC.Located AnnotationComment, [String])
                -> [String]
-               -> Maybe (Maybe (Located AnnotationComment), [String])
-optToLanguage (dL -> GHC.L loc _, flags) langExts
+               -> Maybe (Maybe (GHC.Located AnnotationComment), [String])
+optToLanguage (GHC.dL -> GHC.L loc _, flags) langExts
   | any isJust vs =
       -- 'ls' is a list of language features enabled by this
       -- OPTIONS_GHC pragma that are not enabled by LANGUAGE pragmas

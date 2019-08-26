@@ -1,4 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE RecordWildCards #-}
 
 {-
 map f [] = []
@@ -29,16 +31,30 @@ f [] y = y; f (x:xs) y = f xs (f xs z)
 
 module Hint.ListRec(listRecHint) where
 
-import Hint.Type
-import Hint.Util
+import Hint.Type (DeclHint', Severity(Suggestion, Warning), idea', toSS')
+
+import Data.Generics.Uniplate.Operations
 import Data.List.Extra
 import Data.Maybe
 import Data.Either.Extra
 import Control.Monad
 import Refact.Types hiding (RType(Match))
 
+import "ghc-lib-parser" SrcLoc
+import "ghc-lib-parser" HsExtension
+import "ghc-lib-parser" HsPat
+import "ghc-lib-parser" HsTypes
+import "ghc-lib-parser" TysWiredIn
+import "ghc-lib-parser" RdrName
+import "ghc-lib-parser" HsBinds
+import "ghc-lib-parser" HsExpr
+import "ghc-lib-parser" HsDecls
+import "ghc-lib-parser" OccName
+import "ghc-lib-parser" BasicTypes
 
-listRecHint :: DeclHint
+import GHC.Util
+
+listRecHint :: DeclHint'
 listRecHint _ _ = concatMap f . universe
     where
         f o = maybeToList $ do
@@ -46,127 +62,163 @@ listRecHint _ _ = concatMap f . universe
             (x, addCase) <- findCase x
             (use,severity,x) <- matchListRec x
             let y = addCase x
-            guard $ recursiveStr `notElem` varss y
-            -- Maybe we can do better here maintaining source formatting?
-            return $ idea severity ("Use " ++ use) o y [Replace Decl (toSS o) [] (prettyPrint y)]
-
+            guard $ recursiveStr `notElem` varss' y
+            -- Maybe we can do better here maintaining source
+            -- formatting?
+            return $ idea' severity ("Use " ++ use) o y [Replace Decl (toSS' o) [] (unsafePrettyPrint y)]
 
 recursiveStr :: String
 recursiveStr = "_recursive_"
-recursive = toNamed recursiveStr
+recursive = strToVar' recursiveStr
 
--- recursion parameters, nil-case, (x,xs,cons-case)
--- for cons-case delete any recursive calls with xs from them
--- any recursive calls are marked "_recursive_"
-data ListCase = ListCase [String] Exp_ (String,String,Exp_)
-                deriving Show
-
+data ListCase =
+  ListCase
+    [String] -- recursion parameters
+    (LHsExpr GhcPs)  -- nil case
+    (String, String, LHsExpr GhcPs) -- cons case
+-- For cons-case delete any recursive calls with 'xs' in them. Any
+-- recursive calls are marked "_recursive_".
 
 data BList = BNil | BCons String String
-             deriving (Eq,Ord,Show)
+             deriving (Eq, Ord, Show)
 
--- function name, parameters, list-position, list-type, body (unmodified)
-data Branch = Branch String [String] Int BList Exp_
-              deriving Show
-
+data Branch =
+  Branch
+    String  -- function name
+    [String]  -- parameters
+    Int -- list position
+    BList (LHsExpr GhcPs) -- list type/body
 
 
 ---------------------------------------------------------------------
 -- MATCH THE RECURSION
 
 
-matchListRec :: ListCase -> Maybe (String,Severity,Exp_)
-matchListRec o@(ListCase vs nil (x,xs,cons))
-
-    | [] <- vs, nil ~= "[]", InfixApp _ lhs c rhs <- cons, opExp c ~= ":"
-    , fromParen rhs =~= recursive, xs `notElem` vars lhs
-    = Just $ (,,) "map" Warning $ appsBracket
-        [toNamed "map", niceLambda [x] lhs, toNamed xs]
-
-    | [] <- vs, App2 op lhs rhs <- view cons
-    , vars op `disjoint` [x,xs]
-    , fromParen rhs == recursive, xs `notElem` vars lhs
-    = Just $ (,,) "foldr" Suggestion $ appsBracket
-        [toNamed "foldr", niceLambda [x] $ appsBracket [op,lhs], nil, toNamed xs]
-
-    | [v] <- vs, view nil == Var_ v, App _ r lhs <- cons, r =~= recursive
-    , xs `notElem` vars lhs
-    = Just $ (,,) "foldl" Suggestion $ appsBracket
-        [toNamed "foldl", niceLambda [v,x] lhs, toNamed v, toNamed xs]
-
-    | [v] <- vs, App _ ret res <- nil, isReturn ret, res ~= "()" || view res == Var_ v
-    , [Generator _ (view -> PVar_ b1) e, Qualifier _ (fromParen -> App _ r (view -> Var_ b2))] <- asDo cons
-    , b1 == b2, r == recursive, xs `notElem` vars e
-    , name <- "foldM" ++ ['_' | res ~= "()"]
-    = Just $ (,,) name Suggestion $ appsBracket
-        [toNamed name, niceLambda [v,x] e, toNamed v, toNamed xs]
-
+matchListRec :: ListCase -> Maybe (String, Severity, LHsExpr GhcPs)
+matchListRec o@(ListCase vs nil (x, xs, cons))
+    -- Suggest 'map'?
+    | [] <- vs, varToStr' nil == "[]", (LL _ (OpApp _ lhs c rhs)) <- cons, varToStr' c == ":"
+    , eqNoLoc' (fromParen' rhs) recursive, xs `notElem` vars' lhs
+    = Just $ (,,) "map" Hint.Type.Warning $
+      appsBracket' [ strToVar' "map", niceLambda' [x] lhs, strToVar' xs]
+    -- Suggest 'foldr'?
+    | [] <- vs, App2' op lhs rhs <- view' cons, vars' op `disjoint` [x, xs]
+    , eqNoLoc' (fromParen' rhs) recursive
+    = Just $ (,,) "foldr" Suggestion $
+      appsBracket' [ strToVar' "foldr", niceLambda' [x] $ appsBracket' [op,lhs], nil, strToVar' xs]
+    -- Suggest 'foldl'?
+    | [v] <- vs, view' nil == Var_' v, (LL _ (HsApp _ r lhs)) <- cons
+    , eqNoLoc' (fromParen' r) recursive
+    , xs `notElem` vars' lhs
+    = Just $ (,,) "foldl" Suggestion $
+      appsBracket' [ strToVar' "foldl", niceLambda' [v,x] lhs, strToVar' v, strToVar' xs]
+    -- Suggest 'foldM'?
+    | [v] <- vs, (LL _ (HsApp _ ret res)) <- nil, isReturn' ret, varToStr' res == "()" || view' res == Var_' v
+    , [LL _ (BindStmt _ (view' -> PVar_' b1) e _ _), LL _ (BodyStmt _ (fromParen' -> (LL _ (HsApp _ r (view' -> Var_' b2)))) _ _)] <- asDo cons
+    , b1 == b2, eqNoLoc' r recursive, xs `notElem` vars' e
+    , name <- "foldM" ++ ['_' | varToStr' res == "()"]
+    = Just $ (,,) name Suggestion $
+      appsBracket' [strToVar' name, niceLambda' [v,x] e, strToVar' v, strToVar' xs]
+    -- Nope, I got nothing ¯\_(ツ)_/¯.
     | otherwise = Nothing
 
+-- Very limited attempt to convert >>= to do, only useful for
+-- 'foldM' / 'foldM_'.
+asDo :: LHsExpr GhcPs -> [LStmt GhcPs (LHsExpr GhcPs)]
+asDo (view' ->
+       App2' bind lhs
+         (LL _ (HsLam _ MG {
+             mg_alts=LL _ [
+                 LL _ Match {  m_ctxt=LambdaExpr
+                            , m_pats=[LL _ v@VarPat{}]
+                            , m_grhss=GRHSs _
+                                        [LL _ (GRHS _ [] rhs)]
+                                        (LL _ (EmptyLocalBinds _))}]}))
+      ) =
+  [ noLoc $ BindStmt noExt v lhs noSyntaxExpr' noSyntaxExpr'
+  , noLoc $ BodyStmt noExt rhs noSyntaxExpr' noSyntaxExpr'     ]
+asDo (LL _ (HsDo _ DoExpr (LL _ stmts))) = stmts
+asDo x = [noLoc $ BodyStmt noExt x noSyntaxExpr' noSyntaxExpr']
 
--- Very limited attempt to convert >>= to do, only useful for foldM/foldM_
-asDo :: Exp_ -> [Stmt S]
-asDo (view -> App2 bind lhs (Lambda _ [v] rhs)) = [Generator an v lhs, Qualifier an rhs]
-asDo (Do _ x) = x
-asDo x = [Qualifier an x]
 
 ---------------------------------------------------------------------
 -- FIND THE CASE ANALYSIS
 
-findCase :: Decl_ -> Maybe (ListCase, Exp_ -> Decl_)
+
+findCase :: LHsDecl GhcPs -> Maybe (ListCase, LHsExpr GhcPs -> LHsDecl GhcPs)
 findCase x = do
-    FunBind _ [x1,x2] <- return x
-    Branch name1 ps1 p1 c1 b1 <- findBranch x1
-    Branch name2 ps2 p2 c2 b2 <- findBranch x2
-    guard (name1 == name2 && ps1 == ps2 && p1 == p2)
-    [(BNil, b1), (BCons x xs, b2)] <- return $ sortOn fst [(c1,b1), (c2,b2)]
-    b2 <- transformAppsM (delCons name1 p1 xs) b2
-    (ps,b2) <- return $ eliminateArgs ps1 b2
+  -- Match a function binding with two alternatives.
+  (LL _ (ValD _ FunBind {fun_matches=
+              MG{mg_alts=
+                     (LL _
+                            [ x1@(LL _ Match{..}) -- Match fields.
+                            , x2]), ..} -- Match group fields.
+          , ..} -- Fun. bind fields.
+      )) <- return x
 
-    let ps12 = let (a,b) = splitAt p1 ps1 in map toNamed $ a ++ xs : b
-    return (ListCase ps b1 (x,xs,b2)
-           ,\e -> FunBind an [Match an (toNamed name1) ps12 (UnGuardedRhs an e) Nothing])
+  Branch name1 ps1 p1 c1 b1 <- findBranch x1
+  Branch name2 ps2 p2 c2 b2 <- findBranch x2
+  guard (name1 == name2 && ps1 == ps2 && p1 == p2)
+  [(BNil, b1), (BCons x xs, b2)] <- return $ sortOn fst [(c1, b1), (c2, b2)]
+  b2 <- transformAppsM' (delCons name1 p1 xs) b2
+  (ps, b2) <- return $ eliminateArgs ps1 b2
 
+  let ps12 = let (a, b) = splitAt p1 ps1 in map strToPat (a ++ xs : b) -- Function arguments.
+      emptyLocalBinds = noLoc $ EmptyLocalBinds noExt -- Empty where clause.
+      gRHS e = noLoc $ GRHS noExt [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
+      gRHSSs e = GRHSs noExt [gRHS e] emptyLocalBinds -- Guarded rhs set.
+      match e = Match{m_ext=noExt,m_pats=ps12, m_grhss=gRHSSs e, ..} -- Match.
+      matchGroup e = MG{mg_alts=noLoc [noLoc $ match e], mg_origin=Generated, ..} -- Match group.
+      funBind e = FunBind {fun_matches=matchGroup e, ..} :: HsBindLR GhcPs GhcPs -- Fun bind.
 
-delCons :: String -> Int -> String -> Exp_ -> Maybe Exp_
-delCons func pos var (fromApps -> (view -> Var_ x):xs) | func == x = do
-    (pre, (view -> Var_ v):post) <- return $ splitAt pos xs
+  return (ListCase ps b1 (x, xs, b2), noLoc . ValD noExt . funBind)
+
+delCons :: String -> Int -> String -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
+delCons func pos var (fromApps' -> (view' -> Var_' x) : xs) | func == x = do
+    (pre, (view' -> Var_' v) : post) <- return $ splitAt pos xs
     guard $ v == var
-    return $ apps $ recursive : pre ++ post
+    return $ apps' $ recursive : pre ++ post
 delCons _ _ _ x = return x
 
-
-eliminateArgs :: [String] -> Exp_ -> ([String], Exp_)
+eliminateArgs :: [String] -> LHsExpr GhcPs -> ([String], LHsExpr GhcPs)
 eliminateArgs ps cons = (remove ps, transform f cons)
-    where
-        args = [zs | z:zs <- map fromApps $ universeApps cons, z =~= recursive]
-        elim = [all (\xs -> length xs > i && view (xs !! i) == Var_ p) args | (i,p) <- zip [0..] ps] ++ repeat False
-        remove = concat . zipWith (\b x -> [x | not b]) elim
+  where
+    args = [zs | z : zs <- map fromApps' $ universeApps' cons, eqNoLoc' z recursive]
+    elim = [all (\xs -> length xs > i && view' (xs !! i) == Var_' p) args | (i, p) <- zip [0..] ps] ++ repeat False
+    remove = concat . zipWith (\b x -> [x | not b]) elim
 
-        f (fromApps -> x:xs) | x == recursive = apps $ x : remove xs
-        f x = x
+    f (fromApps' -> x : xs) | eqNoLoc' x recursive = apps' $ x : remove xs
+    f x = x
 
 
 ---------------------------------------------------------------------
 -- FIND A BRANCH
 
-findBranch :: Match S -> Maybe Branch
-findBranch x = do
-    Match _ name ps (UnGuardedRhs _ bod) Nothing <- return x
-    (a,b,c) <- findPat ps
-    return $ Branch (fromNamed name) a b c $ simplifyExp bod
 
+findBranch :: LMatch GhcPs (LHsExpr GhcPs) -> Maybe Branch
+findBranch (L _ x) = do
+  Match { m_ctxt = FunRhs {mc_fun=(L _ name)}
+            , m_pats = ps
+            , m_grhss =
+              GRHSs {grhssGRHSs=[L l (GRHS _ [] body)]
+                        , grhssLocalBinds=L _ (EmptyLocalBinds _)
+                        }
+            } <- return x
+  (a, b, c) <- findPat ps
+  return $ Branch (occNameString $rdrNameOcc name) a b c $ simplifyExp' body
 
-findPat :: [Pat_] -> Maybe ([String], Int, BList)
+findPat :: [LPat GhcPs] -> Maybe ([String], Int, BList)
 findPat ps = do
-    ps <- mapM readPat ps
-    [i] <- return $ findIndices isRight ps
-    let (left,[right]) = partitionEithers ps
-    return (left, i, right)
+  ps <- mapM readPat ps
+  [i] <- return $ findIndices isRight ps
+  let (left, [right]) = partitionEithers ps
 
+  return (left, i, right)
 
-readPat :: Pat_ -> Maybe (Either String BList)
-readPat (view -> PVar_ x) = Just $ Left x
-readPat (PParen _ (PInfixApp _ (view -> PVar_ x) (Special _ Cons{}) (view -> PVar_ xs))) = Just $ Right $ BCons x xs
-readPat (PList _ []) = Just $ Right BNil
+readPat :: Pat GhcPs -> Maybe (Either String BList)
+readPat (view' -> PVar_' x) = Just $ Left x
+readPat (LL _ (ParPat _ (LL _ (ConPatIn (L _ n) (InfixCon (view' -> PVar_' x) (view' -> PVar_' xs))))))
+ | n == consDataCon_RDR = Just $ Right $ BCons x xs
+readPat (LL _ (ConPatIn (L _ n) (PrefixCon [])))
+  | n == nameRdrName nilDataConName = Just $ Right BNil
 readPat _ = Nothing

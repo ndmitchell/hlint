@@ -62,8 +62,8 @@ unsafeHint _ (ModuleEx _ _ (GHC.L _ m) _) = \(GHC.L loc d) ->
      , x `notElem` noinline]
   where
     gen :: OccName -> LHsDecl GhcPs
-    gen x = GHC.noloc $
-      SigD GHC.noext (GHC.InlineSig noExt (GHC.noloc (mkRdrUnqual x))
+    gen x = GHC.noLoc $
+      SigD GHC.noExt (GHC.InlineSig noExt (GHC.noLoc (mkRdrUnqual x))
                       (InlinePragma (SourceText "{-# NOINLINE") NoInline Nothing NeverActive FunLike))
     noinline :: [OccName]
     noinline = [q | GHC.L _(SigD _ (GHC.InlineSig _ (GHC.L _ (Unqual q))
@@ -77,12 +77,12 @@ isUnsafeDecl _ = False
 
 -- Am I equivalent to @unsafePerformIO x@?
 isUnsafeApp :: HsExpr GhcPs -> Bool
-isUnsafeApp (OpApp _ (GHC.L _ l) (GHC.L _ op) _ ) | GHC.isDol op = isUnsafeFun l
+isUnsafeApp (OpApp _ (GHC.L _ l) (GHC.L _ op) _ ) | GHC.isDol' op = isUnsafeFun l
 isUnsafeApp (HsApp _ (GHC.L _ x) _) = isUnsafeFun x
 isUnsafeApp _ = False
 
 -- Am I equivalent to @unsafePerformIO . x@?
 isUnsafeFun :: HsExpr GhcPs -> Bool
 isUnsafeFun (HsVar _ (GHC.L _ x)) | x == mkVarUnqual (fsLit "unsafePerformIO") = True
-isUnsafeFun (OpApp _ (GHC.L _ l) (GHC.L _ op) _) | GHC.isDot op = isUnsafeFun l
+isUnsafeFun (OpApp _ (GHC.L _ l) (GHC.L _ op) _) | GHC.isDot' op = isUnsafeFun l
 isUnsafeFun _ = False

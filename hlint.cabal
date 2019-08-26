@@ -91,7 +91,21 @@ library
         Config.Read
         Config.Type
         Config.Yaml
+
         GHC.Util
+        GHC.Util.ApiAnnotation
+        GHC.Util.View
+        GHC.Util.FreeVars
+        GHC.Util.HsDecl
+        GHC.Util.HsExpr
+        GHC.Util.Pat
+        GHC.Util.LanguageExtensions.Type
+        GHC.Util.Module
+        GHC.Util.Outputable
+        GHC.Util.SrcLoc
+        GHC.Util.W
+        GHC.Util.DynFlags
+
         HSE.All
         HSE.Match
         HSE.Reduce
