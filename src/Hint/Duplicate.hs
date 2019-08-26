@@ -1,6 +1,5 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
 {-# LANGUAGE PackageImports #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 {-
@@ -24,15 +23,16 @@ foo = a where {a = 1; b = 2; c = 3}; bar = a where {a = 1; b = 2; c = 3} -- ???
 
 module Hint.Duplicate(duplicateHint) where
 
-import Hint.Type
+import Hint.Type (CrossHint, ModuleEx(..), Idea(..),rawIdeaN',Severity(Suggestion,Warning),showSrcLoc,ghcSrcLocToHSE)
 import Data.Data
+import Data.Generics.Uniplate.Operations
 import Data.Default
 import Data.Maybe
 import Data.Tuple.Extra
 import Data.List hiding (find)
 import qualified Data.Map as Map
 
-import "ghc-lib-parser" SrcLoc as GHC
+import "ghc-lib-parser" SrcLoc
 import "ghc-lib-parser" HsSyn
 import "ghc-lib-parser" Outputable
 import "ghc-lib-parser" Bag
@@ -43,7 +43,7 @@ duplicateHint ms =
    -- Do expressions.
    dupes [ (m, d, y)
          | (m, d, x) <- ds
-         , HsDo _ _ (dL -> L _ y) :: HsExpr GhcPs <- universeBi x
+         , HsDo _ _ (LL _ y) :: HsExpr GhcPs <- universeBi x
          ] ++
   -- Bindings in a 'let' expression or a 'where' clause.
    dupes [ (m, d, y)
@@ -53,22 +53,22 @@ duplicateHint ms =
          ]
     where
       ds = [(modName m, fromMaybe "" (declName d), d)
-           | ModuleEx _ _ (dL -> L _ m) _ <- map snd ms
-           , d <- map GHC.unLoc (hsmodDecls m)]
+           | ModuleEx _ _ m _ <- map snd ms
+           , d <- map unLoc (hsmodDecls (unLoc m))]
 
-dupes :: (Outputable e, Data e) => [(String, String, [GHC.Located e])] -> [Idea]
+dupes :: (Outputable e, Data e) => [(String, String, [Located e])] -> [Idea]
 dupes ys =
     [(rawIdeaN'
         (if length xs >= 5 then Hint.Type.Warning else Suggestion)
         "Reduce duplication" p1
         (unlines $ map unsafePrettyPrint xs)
         (Just $ "Combine with " ++
-         showSrcLoc (ghcSrcLocToHSE (GHC.srcSpanStart p2))) []
+         showSrcLoc (ghcSrcLocToHSE (srcSpanStart p2))) []
      ){ideaModule = [m1, m2], ideaDecl = [d1, d2]}
     | ((m1, d1, SrcSpanD p1), (m2, d2, SrcSpanD p2), xs) <- duplicateOrdered 3 $ map f ys]
     where
       f (m, d, xs) =
-        [((m, d, SrcSpanD (GHC.getLoc x)), W (transformBi (const GHC.noSrcSpan) (GHC.unLoc x))) | x <- xs]
+        [((m, d, SrcSpanD (getLoc x)), wrap (stripLocs' x)) | x <- xs]
 
 ---------------------------------------------------------------------
 -- DUPLICATE FINDING
