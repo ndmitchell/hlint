@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    Switch to ghc-parser-8.8.1
     Slightly restrict the replace case with fromMaybe hint
     #701, add hints for replacing case with maybe
     #724, suggest Data.Bifunctor in some places
