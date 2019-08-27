@@ -63,8 +63,7 @@ main = do
     c <- readConfig "/config.json"
 
     callProcess "hlint" $
-        [ "lint"
-        , "--cc"
+        [ "--cc"
         , "--datadir", "/opt/hlint"
         , "--no-exit-code"
         ]
