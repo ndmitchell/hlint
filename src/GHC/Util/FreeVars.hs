@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -39,9 +38,6 @@ instance Semigroup Vars' where
 
 instance Monoid Vars' where
     mempty = Vars' Set.empty Set.empty
-#if !(MIN_VERSION_base(4,11,0))
-    mappend = (<>)
-#endif
     mconcat vs = Vars' (Set.unions $ map bound' vs) (Set.unions $ map free' vs)
 
 -- A type `a` is a model of `AllVars' a` if exists a function
