@@ -3,15 +3,16 @@
 {-# LANGUAGE ViewPatterns, MultiParamTypeClasses , FlexibleInstances, FlexibleContexts #-}
 {-# LANGUAGE TupleSections #-}
 
- --  Keep until 'isDotApp', 'descendApps', 'transformApps' and
- -- 'allowLeftSection' are used.
+--  Keep until 'isDotApp', 'descendApps', 'transformApps' and
+-- 'allowLeftSection' are used.
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module GHC.Util.HsExpr (
     noSyntaxExpr'
-  , isDol', isDot', isAtom', isSection', isApp', isAnyApp', isForD', isLexeme', isReturn'
-  , addParen', dotApp'
+  , isDol', isDot', isSection', isRecConstr', isRecUpdate', isVar', isPar', isApp', isAnyApp', isLexeme', isReturn'
+  , dotApp'
   , simplifyExp', niceLambda', niceDotApp'
+  , Brackets'(..)
   , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps'
   , varToStr', strToVar'
 ) where
@@ -27,6 +28,7 @@ import "ghc-lib-parser" TysWiredIn
 import "ghc-lib-parser" TcEvidence
 import "ghc-lib-parser" Name
 
+import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
 import GHC.Util.W
@@ -55,108 +57,23 @@ noSyntaxExpr' =
 dotApp' :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
 dotApp' x y = noLoc $ OpApp noExt x (noLoc $ HsVar noExt (noLoc $ mkVarUnqual (fsLit "."))) y
 
--- | 'addParen e' wraps 'e' in parens.
-addParen' :: LHsExpr GhcPs -> LHsExpr GhcPs
-addParen' e = noLoc $ HsPar noExt e
-
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren' :: LHsExpr GhcPs -> LHsExpr GhcPs
 paren' x
-  | isAtom' (unLoc x)  = x
+  | isAtom' x  = x
   | otherwise = addParen' x
 
--- | 'isApp e' if 'e' is a (regular) application.
-isApp' :: HsExpr GhcPs -> Bool
-isApp' x = case x of
-  HsApp {}  -> True
-  _         -> False
-
--- | 'isOpApp e' if 'e' is an operator application.
-isOpApp' :: HsExpr GhcPs -> Bool
-isOpApp' x = case x of
-  OpApp {}   -> True
-  _          -> False
-
--- | 'isAnyApp e' if 'e' is either an application or operator
--- application.
-isAnyApp' :: HsExpr GhcPs -> Bool
-isAnyApp' x = isApp' x || isOpApp' x
-
--- | 'isDot e'  if 'e' is the unqualifed variable '.'.
-isDot' :: HsExpr GhcPs -> Bool
-isDot' (HsVar _ (L _ ident)) = ident == mkVarUnqual (fsLit ".")
-isDot' _ = False
-
--- | 'isDol e'  if 'e' is the unqualifed variable '$'.
-isDol' :: HsExpr GhcPs -> Bool
-isDol' (HsVar _ (L _ ident)) = ident == mkVarUnqual (fsLit "$")
-isDol' _ = False
-
--- | 'isSection e' if 'e' is a section.
-isSection' :: HsExpr GhcPs -> Bool
-isSection' x = case x of
-  SectionL {} -> True
-  SectionR {} -> True
-  _           -> False
-
--- | 'isForD d' if 'd' is a foreign declaration.
-isForD' :: HsDecl GhcPs -> Bool
-isForD' ForD{} = True
-isForD' _ = False
-
--- | 'isDotApp e' if 'e' is dot application.
-isDotApp' :: HsExpr GhcPs -> Bool
-isDotApp' (OpApp _ _ (dL -> L _ op) _) = isDot' op
-isDotApp' _ = False
-
--- | 'isAtom e' if 'e' requires no bracketing ever.
-isAtom' :: HsExpr GhcPs -> Bool
-isAtom' x = case x of
-  HsVar {}          -> True
-  HsUnboundVar {}   -> True
-  HsRecFld {}       -> True
-  HsOverLabel {}    -> True
-  HsIPVar {}        -> True
-  HsPar {}          -> True
-  SectionL {}       -> True
-  SectionR {}       -> True
-  ExplicitTuple {}  -> True
-  ExplicitSum {}    -> True
-  ExplicitList {}   -> True
-  RecordCon {}      -> True
-  RecordUpd {}      -> True
-  ArithSeq {}       -> True
-  HsBracket {}      -> True
-  HsRnBracketOut {} -> True
-  HsTcBracketOut {} -> True
-  HsSpliceE {}      -> True
-  HsLit _ x     | not $ isNegativeLit x     -> True
-  HsOverLit _ x | not $ isNegativeOverLit x -> True
-  _                 -> False
-  where
-    isNegativeLit (HsInt _ i) = il_neg i
-    isNegativeLit (HsRat _ f _) = fl_neg f
-    isNegativeLit (HsFloatPrim _ f) = fl_neg f
-    isNegativeLit (HsDoublePrim _ f) = fl_neg f
-    isNegativeLit (HsIntPrim _ x) = x < 0
-    isNegativeLit (HsInt64Prim _ x) = x < 0
-    isNegativeLit (HsInteger _ x _) = x < 0
-    isNegativeLit _ = False
-
-    isNegativeOverLit OverLit {ol_val=HsIntegral i} = il_neg i
-    isNegativeOverLit OverLit {ol_val=HsFractional f} = fl_neg f
-    isNegativeOverLit _ = False
-
-isLexeme' :: HsExpr GhcPs -> Bool
-isLexeme' HsVar{} = True
-isLexeme' HsOverLit{} = True
-isLexeme' HsLit{} = True
-isLexeme' _ = False
-
--- Allow both pure and return, as they have the same semantics.
-isReturn' :: LHsExpr GhcPs -> Bool
-isReturn' (LL _ (HsVar _ (LL _ (Unqual x)))) = occNameString x == "return" || occNameString x == "pure"
-isReturn' _ = False
+isVar',isReturn',isLexeme',isDotApp',isRecUpdate',isRecConstr',isDol', isDot' :: LHsExpr GhcPs -> Bool
+isPar' (LL _ HsPar{}) = True; isPar' _ = False
+isVar' (LL _ HsVar{}) = True; isVar' _ = False
+isDot' (LL _ (HsVar _ (LL _ ident))) = occNameString (rdrNameOcc ident) == "."; isDot' _ = False
+isDol' (LL _ (HsVar _ (L _ ident))) = occNameString (rdrNameOcc ident) == "$"; isDol' _ = False
+isRecConstr' (LL _ RecordCon{}) = True; isRecConstr' _ = False
+isRecUpdate' (LL _ RecordUpd{}) = True; isRecUpdate' _ = False
+isDotApp' (LL _ (OpApp _ _ op _)) = isDot' op; isDotApp' _ = False
+isLexeme' (LL _ HsVar{}) = True;isLexeme' (LL _ HsOverLit{}) = True;isLexeme' (LL _ HsLit{}) = True;isLexeme' _ = False
+-- Allow both 'pure' and 'return' as they have the same semantics.
+isReturn' (LL _ (HsVar _ (LL _ (Unqual x)))) = occNameString x == "return" || occNameString x == "pure"; isReturn' _ = False
 
 --
 
@@ -194,27 +111,6 @@ descendIndex' f x = flip evalState 0 $ flip descendM x $ \y -> do
     modify (+1)
     return $ f i y
 
--- | Is the child safe free from brackets in the parent position. Err
--- on the side of caution, True = don't know
-needBracket :: Int -> LHsExpr GhcPs -> LHsExpr GhcPs -> Bool
-needBracket i (LL _ parent) (LL _ child) -- Note: i is the index in children, not in the AST.
- | isAtom' child = False
- | isSection' parent, HsApp{} <- child = False
- | OpApp{} <- parent, HsApp{} <- child = False
- | HsLet{} <- parent, HsApp{} <- child = False
- | HsDo{} <- parent = False
- | ExplicitList{} <- parent = False
- | ExplicitTuple{} <- parent = False
- | HsIf{} <- parent, isAnyApp' child = False
- | HsApp{} <- parent, i == 0, HsApp{} <- child = False
- | ExprWithTySig{} <- parent, i == 0, isApp' child = False
- | HsPar{} <- parent = False
- | RecordCon{} <- parent = False
- | RecordUpd{} <- parent, i /= 0 = False
- | HsCase{} <- parent, i /= 0 || isAnyApp' child = False
- | HsLam{} <- parent = False -- might be either the RHS of a PViewPat, or the lambda body (neither needs brackets)
- | otherwise = True
-
 --  There are differences in pretty-printing between GHC and HSE. This
 --  version never removes brackets.
 descendBracket' :: (LHsExpr GhcPs -> (Bool, LHsExpr GhcPs)) -> LHsExpr GhcPs -> LHsExpr GhcPs
@@ -222,7 +118,7 @@ descendBracket' op x = descendIndex' g x
     where
         g i y = if a then f i b else b
             where (a, b) = op y
-        f i y@(LL _ e) | needBracket i x y = addParen' y
+        f i y@(LL _ e) | needBracket' i x y = addParen' y
         f _ y = y
 
 -- Add brackets as suggested 'needBracket' at 1-level of depth.
@@ -251,7 +147,7 @@ strToVar' x = noLoc $ HsVar noExt (noLoc $ mkRdrUnqual (mkVarOcc x))
 
 simplifyExp' :: LHsExpr GhcPs -> LHsExpr GhcPs
 -- Replace appliciations 'f $ x' with 'f (x)'.
-simplifyExp' (LL l (OpApp _ x (LL _ op) y)) | isDol' op = LL l (HsApp noExt x (noLoc (HsPar noExt y)))
+simplifyExp' (LL l (OpApp _ x op y)) | isDol' op = LL l (HsApp noExt x (noLoc (HsPar noExt y)))
 simplifyExp' e@(LL _ (HsLet _ (LL _ (HsValBinds _ (ValBinds _ binds []))) z)) =
   -- An expression of the form, 'let x = y in z'.
   case bagToList binds of
@@ -289,7 +185,7 @@ niceLambdaR' xs (LL _ (HsPar _ x)) = niceLambdaR' xs x
 -- Rewrite '\x -> x + a' as '(+ a)' (heuristic: 'a' must be a single
 -- lexeme, or it all gets too complex).
 niceLambdaR' [x] (view' -> App2' op@(LL _ (HsVar _ (L _ tag))) l r)
-  | isLexeme' (unLoc r), view' l == Var_' x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
+  | isLexeme' r, view' l == Var_' x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
       let e = rebracket1' $ addParen' (noLoc $ SectionR noExt op r)
       in (e, const [])
 -- Rewrite (1) '\x -> f (b x)' as 'f . b', (2) '\x -> f $ b x' as 'f . b'.
@@ -302,7 +198,7 @@ niceLambdaR' [x] y
     factor y@(LL _ (HsApp _ ini lst)) | Just (z, ss) <- factor lst
       = let r = niceDotApp' ini z
         in if eqLoc' r z then Just (r, ss) else Just (r, ini : ss)
-    factor (LL _ (OpApp _ y op@(LL _ tag) (factor -> Just (z, ss))))| isDol' tag
+    factor (LL _ (OpApp _ y op (factor -> Just (z, ss))))| isDol' op
       = let r = niceDotApp' y z
         in if eqLoc' r z then Just (r, ss) else Just (r, y : ss)
     factor (LL _ (HsPar _ y@(LL _ HsApp{}))) = factor y

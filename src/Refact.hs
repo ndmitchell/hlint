@@ -31,5 +31,5 @@ toSrcSpan' x = case GHC.getLoc x of
     GHC.UnhelpfulSpan _ ->
         R.SrcSpan 0 0 0 0
 
-toSS' :: GHC.Located e -> R.SrcSpan
+toSS' :: GHC.HasSrcSpan e => e -> R.SrcSpan
 toSS' = toRefactSrcSpan . ghcSpanToHSE . GHC.getLoc

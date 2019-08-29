@@ -108,7 +108,7 @@ checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map.Map String RestrictI
 checkImports modu imp (def, mp) =
     [ ideaMessage riMessage $ if not allowImport
       then ideaNoTo $ warn' "Avoid restricted module" i i []
-      else warn' "Avoid restricted qualification" i (noLoc $ (unLoc i){ideclAs=noLoc . mkModuleName <$> listToMaybe riAs}) []
+      else warn' "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
     | i@(LL _ ImportDecl {..}) <- imp
     , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] Nothing) (moduleNameString (unLoc ideclName)) mp
     , let allowImport = within modu "" ri

@@ -75,7 +75,7 @@ naming seen originalDecl =
     where
         suggestedNames =
             [ (originalName, suggestedName)
-            | not $ isForD' $ unLoc originalDecl
+            | not $ isForD' originalDecl
             , originalName <- nubOrd $ getNames originalDecl
             , Just suggestedName <- [suggestName originalName]
             , not $ suggestedName `Set.member` seen

@@ -99,8 +99,8 @@ idea :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
 idea severity hint from to = rawIdea severity hint (srcInfoSpan $ ann from) (f from) (Just $ f to) []
     where f = trimStart . prettyPrint
 
-idea' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
-         Severity -> String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
+idea' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
+         Severity -> String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
 idea' severity hint from to =
   rawIdea severity hint (ghcSpanToHSE (GHC.getLoc from)) (GHC.unsafePrettyPrint from) (Just $ GHC.unsafePrettyPrint to) []
 
@@ -108,16 +108,16 @@ suggest :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
            String -> ast SrcSpanInfo -> a -> [Refactoring R.SrcSpan] -> Idea
 suggest = idea Suggestion
 
-suggest' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
-            String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
+suggest' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
+            String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
 suggest' = idea' Suggestion
 
 warn :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
         String -> ast SrcSpanInfo -> a -> [Refactoring R.SrcSpan] -> Idea
 warn = idea Warning
 
-warn' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
-         String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
+warn' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
+         String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
 warn' = idea' Warning
 
 ignoreNoSuggestion' :: (GHC.HasSrcSpan a, Outputable.Outputable a)

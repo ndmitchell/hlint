@@ -17,10 +17,12 @@ module GHC.Util (
   , parsePragmasIntoDynFlags, parseFileGhcLib
   ) where
 
+import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
 import GHC.Util.ApiAnnotation
 import GHC.Util.HsExpr
+import GHC.Util.HsType ()
 import GHC.Util.HsDecl
 import GHC.Util.LanguageExtensions.Type
 import GHC.Util.Pat

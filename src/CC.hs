@@ -12,7 +12,6 @@ module CC
 
 import Data.Aeson (ToJSON(..), (.=), encode, object)
 import Data.Char (toUpper)
-import Data.Monoid ((<>))
 import Data.Text (Text)
 import Language.Haskell.Exts.SrcLoc (SrcSpan(..))
 

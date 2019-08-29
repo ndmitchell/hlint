@@ -60,7 +60,9 @@ library
         extra >= 1.6.6,
         refact >= 0.3,
         aeson >= 1.1.2.0,
-        ghc-lib-parser == 8.8.1
+        ghc-lib-parser == 8.8.1,
+        syb >= 0.7.1,
+        mtl >= 2.2.2
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
@@ -95,9 +97,11 @@ library
         GHC.Util
         GHC.Util.ApiAnnotation
         GHC.Util.View
+        GHC.Util.Brackets
         GHC.Util.FreeVars
         GHC.Util.HsDecl
         GHC.Util.HsExpr
+        GHC.Util.HsType
         GHC.Util.Pat
         GHC.Util.LanguageExtensions.Type
         GHC.Util.Module
@@ -105,6 +109,9 @@ library
         GHC.Util.SrcLoc
         GHC.Util.W
         GHC.Util.DynFlags
+        GHC.Util.Language.Haskell.GHC.ExactPrint.Types
+        GHC.Util.Refact.Utils
+        GHC.Util.Refact.Fixity
 
         HSE.All
         HSE.Match
