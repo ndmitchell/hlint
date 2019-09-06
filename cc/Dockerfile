@@ -1,4 +1,12 @@
 #
+#
+#############
+#
+# Please be aware of the specification as of: 
+# https://github.com/codeclimate/spec/blob/master/SPEC.md
+#
+############
+#
 # Build stage
 #
 FROM haskell as builder
