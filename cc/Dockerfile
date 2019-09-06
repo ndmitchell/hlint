@@ -50,6 +50,7 @@ RUN mkdir -p /code
 VOLUME /code
 WORKDIR /code
 
-USER 1000
+RUN useradd app --uid 9000
+USER app
 
 CMD ["/usr/bin/engine"]
