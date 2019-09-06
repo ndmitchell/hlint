@@ -1,6 +1,5 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE MultiParamTypeClasses , FlexibleInstances, FlexibleContexts #-}
-
 module GHC.Util.Brackets (Brackets'(..), isApp',isOpApp',isAnyApp',isSection') where
 
 import "ghc-lib-parser" HsSyn
@@ -64,10 +63,10 @@ instance Brackets' (LHsExpr GhcPs) where
         isNegativeLit (HsInt64Prim _ x) = x < 0
         isNegativeLit (HsInteger _ x _) = x < 0
         isNegativeLit _ = False
-
         isNegativeOverLit OverLit {ol_val=HsIntegral i} = il_neg i
         isNegativeOverLit OverLit {ol_val=HsFractional f} = fl_neg f
         isNegativeOverLit _ = False
+  isAtom' _ = False -- '{-# COMPLETE LL #-}'
 
   needBracket' i parent child -- Note: i is the index in children, not in the AST.
      | isAtom' child = False
@@ -115,6 +114,7 @@ instance Brackets' (Pat GhcPs) where
       isSignedLit HsFloatPrim{} = True
       isSignedLit HsDoublePrim{} = True
       isSignedLit _ = False
+  isAtom' _ = False -- '{-# COMPLETE LL #-}'
 
   needBracket' _ parent child
     | isAtom' child = False
@@ -138,6 +138,7 @@ instance Brackets' (LHsType GhcPs) where
       HsSpliceTy{} -> True
       HsWildCardTy{} -> True
       _ -> False
+  isAtom' _ = False -- '{-# COMPLETE LL #-}'
 
   needBracket' _ parent child
     | isAtom' child = False

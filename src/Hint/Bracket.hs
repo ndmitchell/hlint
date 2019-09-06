@@ -208,6 +208,8 @@ fieldDecl o@(LL loc f@ConDeclField{cd_fld_type=v@(LL l (HsParTy _ c))}) =
      ppr_fld (LL _ ConDeclField { cd_fld_names = ns, cd_fld_type = ty, cd_fld_doc = doc })
        = ppr_names ns <+> dcolon <+> ppr ty <+> ppr_mbDoc doc
      ppr_fld (LL _ (XConDeclField x)) = ppr x
+     ppr_fld _ = undefined -- '{-# COMPLETE LL #-}'
+
      ppr_names [n] = ppr n
      ppr_names ns = sep (punctuate comma (map ppr ns))
 fieldDecl _ = []

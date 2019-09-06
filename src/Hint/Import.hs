@@ -131,6 +131,7 @@ combine x@(LL _ x') y@(LL _ y')
         ass = mapMaybe ideclAs [x', y']
         specs = transformBi (const noSrcSpan) (ideclHiding x') ==
                     transformBi (const noSrcSpan) (ideclHiding y')
+combine _ _ = Nothing -- {-# COMPLETE LL #-}
 
 stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
 stripRedundantAlias x@(LL loc i@ImportDecl {..})

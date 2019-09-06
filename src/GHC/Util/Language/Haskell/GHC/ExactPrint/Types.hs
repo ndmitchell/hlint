@@ -367,6 +367,7 @@ declFun f (GHC.L l de) =
       GHC.SpliceD _ d     -> f (GHC.L l d)
       GHC.DocD _ d        -> f (GHC.L l d)
       GHC.RoleAnnotD _ d  -> f (GHC.L l d)
+      GHC.XHsDecl d       -> f (GHC.L l d)
 
 -- ---------------------------------------------------------------------
 

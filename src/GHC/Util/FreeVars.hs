@@ -240,6 +240,8 @@ instance AllVars' (LGRHS GhcPs (LHsExpr GhcPs)) where
 instance AllVars' (LHsDecl GhcPs) where
   allVars' (dL -> L l (ValD _ bind)) = allVars' (cL l bind :: LHsBind GhcPs)
 
+  allVars' _ = mempty  -- We only consider value bindings.
+
 --
 
 vars' :: FreeVars' a => a -> [String]
