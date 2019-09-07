@@ -1,5 +1,6 @@
 *~
 *_flymake*
+*
 TAGS
 /dist/
 /.hpc/
@@ -9,3 +10,5 @@ TAGS
 /Sample.hs
 /hlint.prof
 /TAGS
+\#*\#
+.\#*\#

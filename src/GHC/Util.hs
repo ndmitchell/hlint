@@ -17,7 +17,6 @@ module GHC.Util (
   , parsePragmasIntoDynFlags, parseFileGhcLib
   ) where
 
-import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
 import GHC.Util.ApiAnnotation

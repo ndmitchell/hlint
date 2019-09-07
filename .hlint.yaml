@@ -14,10 +14,8 @@
   - name: [ExistentialQuantification, MultiParamTypeClasses, NamedFieldPuns]
   - name: [FlexibleContexts, FlexibleInstances]
   - name: [PackageImports]
-  - {name: ConstraintKinds, within: [GHC.Util.Language.Haskell.GHC.ExactPrint.Types]}
+  - name: [ConstraintKinds, RankNTypes, TypeFamilies]
   - {name: CPP, within: [HsColour]} # so it can be disabled to avoid GPL code
-  - {name: TypeFamilies, within: [GHC.Util.HsExpr, GHC.Util.FreeVars, Hint.Export, Hint.Restrict, Hint.Bracket]} # type family constraints here
-  - {name: RankNTypes, within: [GHC.Util.Language.Haskell.GHC.ExactPrint.Types]}
 
 - flags:
   - default: false
