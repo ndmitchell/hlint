@@ -1,11 +1,14 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module GHC.Util.HsDecl (declName) where
+module GHC.Util.HsDecl (declName,isForD') where
 
 import "ghc-lib-parser" HsSyn
 import "ghc-lib-parser" OccName
 import "ghc-lib-parser" SrcLoc
+
+isForD' :: LHsDecl GhcPs -> Bool
+isForD' (LL _ ForD{}) = True; isForD' _ = False
 
 -- | @declName x@ returns the \"new name\" that is created (for
 -- example a function declaration) by @x@.  If @x@ isn't a declaration

@@ -48,8 +48,8 @@ builtin x = case x of
     HintList       -> decl listHint
     HintMonad      -> decl monadHint
     HintLambda     -> decl lambdaHint
-    HintBracket    -> decl bracketHint
     HintPattern    -> decl patternHint
+
     -- Ghc.
     HintImport     -> modu importHint
     HintExport     -> modu exportHint
@@ -62,6 +62,7 @@ builtin x = case x of
     HintUnsafe     -> decl' unsafeHint
     HintListRec    -> decl' listRecHint
     HintNaming     -> decl' namingHint
+    HintBracket    -> decl' bracketHint
     HintSmell      -> mempty{hintDecl'=smellHint,hintModule=smellModuleHint}
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList

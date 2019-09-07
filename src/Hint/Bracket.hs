@@ -1,6 +1,11 @@
 {-# LANGUAGE ViewPatterns, ScopedTypeVariables #-}
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies #-}
 {-
-Raise an error if you are bracketing an atom, or are enclosed be a list bracket
+
+Raise an error if you are bracketing an atom, or are enclosed by a
+list bracket.
 
 <TEST>
 -- expression bracket reduction
@@ -85,31 +90,43 @@ special = foo (f{x=1})
 
 module Hint.Bracket(bracketHint) where
 
-import Hint.Type
+import Hint.Type(DeclHint',Idea(..),rawIdea',warn',suggest',Severity(..),toSS')
 import Data.Data
+import Data.Generics.Uniplate.Operations
 import Refact.Types
 
+import "ghc-lib-parser" HsSyn
+import "ghc-lib-parser" Outputable
+import "ghc-lib-parser" SrcLoc
+import GHC.Util
 
-bracketHint :: DeclHint
+bracketHint :: DeclHint'
 bracketHint _ _ x =
-    concatMap (\x -> bracket isPartialAtom True x ++ dollar x) (childrenBi (descendBi annotations x) :: [Exp_]) ++
-    concatMap (bracket (const False) False) (childrenBi x :: [Type_]) ++
-    concatMap (bracket (const False) False) (childrenBi x :: [Pat_]) ++
-    concatMap fieldDecl (childrenBi x)
-    where
-        -- Brackets at the roots of annotations are fine, so we strip them
-        annotations :: Annotation S -> Annotation S
-        annotations = descendBi $ \x -> case (x :: Exp_) of
-            Paren _ x -> x
-            x -> x
+  concatMap (\x -> bracket prettyExpr isPartialAtom True x ++ dollar x) (childrenBi (descendBi annotations x) :: [LHsExpr GhcPs]) ++
+  concatMap (bracket unsafePrettyPrint (const False) False) (childrenBi x :: [LHsType GhcPs]) ++
+  concatMap (bracket unsafePrettyPrint (const False) False) (childrenBi x :: [Pat GhcPs]) ++
+  concatMap fieldDecl (childrenBi x)
+   where
+     -- Brackets the roots of annotations are fine, so we strip them.
+     annotations :: AnnDecl GhcPs -> AnnDecl GhcPs
+     annotations= descendBi $ \x -> case (x :: LHsExpr GhcPs) of
+       LL l (HsPar _ x) -> x
+       x -> x
 
-isPartialAtom :: Exp_ -> Bool
-isPartialAtom (SpliceExp _ IdSplice{}) = True -- might be $x, which was really $ x, but TH enabled misparsed it
-isPartialAtom x = isRecConstr x || isRecUpdate x
+-- If we find ourselves in the context of a section and we want to
+-- issue a warning that a child therein has unneccessary brackets,
+-- we'd rather report 'Found : (`Foo` (Bar Baz))' rather than 'Found :
+-- `Foo` (Bar Baz)'. If left to 'unsafePrettyPrint' we'd get the
+-- latter (in contrast to the HSE pretty printer). This patches things
+-- up.
+prettyExpr :: LHsExpr GhcPs -> String
+prettyExpr s@(LL _ SectionL{}) = unsafePrettyPrint (noLoc (HsPar noExt s) :: LHsExpr GhcPs)
+prettyExpr s@(LL _ SectionR{}) = unsafePrettyPrint (noLoc (HsPar noExt s) :: LHsExpr GhcPs)
+prettyExpr x = unsafePrettyPrint x
 
 -- Dirty, should add to Brackets type class I think
 tyConToRtype :: String -> RType
-tyConToRtype "Exp" = Expr
+tyConToRtype "Exp"  = Expr
 tyConToRtype "Type" = Type
 tyConToRtype "Pat"  = Pattern
 tyConToRtype _      = Expr
@@ -117,71 +134,111 @@ tyConToRtype _      = Expr
 findType :: (Data a) => a -> RType
 findType = tyConToRtype . dataTypeName . dataTypeOf
 
--- Just if at least one paren was removed
--- Nothing if zero parens were removed
-remParens :: Brackets a => a -> Maybe a
-remParens = fmap go . remParen
+-- 'Just _' if at least one set of parens were removed. 'Nothing' if
+-- zero parens were removed.
+remParens' :: Brackets' a => a -> Maybe a
+remParens' = fmap go . remParen'
   where
-    go e = maybe e go (remParen e)
+    go e = maybe e go (remParen' e)
 
-bracket :: forall a . (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => (a S -> Bool) -> Bool -> a S -> [Idea]
-bracket isPartialAtom root = f Nothing
-    where
-        msg = "Redundant bracket"
+isPartialAtom :: LHsExpr GhcPs -> Bool
+-- Might be '$x', which was really '$ x', but TH enabled misparsed it.
+isPartialAtom (LL _ (HsSpliceE _ (HsTypedSplice _ HasDollar _ _) )) = True
+isPartialAtom (LL _ (HsSpliceE _ (HsUntypedSplice _ HasDollar _ _) )) = True
+isPartialAtom x = isRecConstr' x || isRecUpdate' x
 
-        -- f (Maybe (index, parent, gen)) child
-        f :: (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => Maybe (Int,a S,a S -> a S) -> a S -> [Idea]
-        f Just{} o@(remParens -> Just x) | isAtom x, not $ isPartialAtom x = bracketError msg o x : g x
-        f Nothing o@(remParens -> Just x) | root || isAtom x, not $ isPartialAtom x = (if isAtom x then bracketError else bracketWarning) msg o x : g x
-        f (Just (i,o,gen)) v@(remParens -> Just x) | not $ needBracket i o x, not $ isPartialAtom x =
-          suggest msg o (gen x) [r] : g x
-          where
-            typ = findType v
-            r = Replace typ (toSS v) [("x", toSS x)] "x"
-        f _ x = g x
+bracket :: forall a . (Data a, Data (SrcSpanLess a), HasSrcSpan a, Outputable a, Brackets' a) => (a -> String) -> (a -> Bool) -> Bool -> a -> [Idea]
+bracket pretty isPartialAtom root = f Nothing
+  where
+    msg = "Redundant bracket"
+    -- 'f' is a (generic) function over types in 'Brackets'
+    -- (expressions, patterns and types). Arguments are, 'f (Maybe
+    -- (index, parent, gen)) child'.
+    f :: (HasSrcSpan a, Data a, Outputable a, Brackets' a) => Maybe (Int, a , a -> a) -> a -> [Idea]
+    -- No context. Removing parentheses from 'x' succeeds?
+    f Nothing o@(remParens' -> Just x)
+      -- If at the root, or 'x' is an atom, 'x' parens are redundant.
+      | root || isAtom' x
+      , not $ isPartialAtom x =
+          (if isAtom' x then bracketError else bracketWarning) msg o x : g x
+    -- In some context, removing parentheses from 'x' succeeds and 'x'
+    -- is atomic?
+    f Just{} o@(remParens' -> Just x)
+      | isAtom' x
+      , not $ isPartialAtom x =
+          bracketError msg o x : g x
+    -- In some context, removing parentheses from 'x' succeds. Does
+    -- 'x' actually need bracketing in this context?
+    f (Just (i, o, gen)) v@(remParens' -> Just x)
+      | not $ needBracket' i o x, not $ isPartialAtom x =
+          rawIdea' Suggestion msg (getLoc o) (pretty o) (Just (pretty (gen x))) [] [r] : g x
+      where
+        typ = findType (unLoc v)
+        r = Replace typ (toSS' v) [("x", toSS' x)] "x"
+    -- Regardless of the context, there are no parentheses to remove
+    -- from 'x'.
+    f _ x = g x
 
-        g :: (Data (a S), ExactP a, Pretty (a S), Brackets (a S)) => a S -> [Idea]
-        g o = concat [f (Just (i,o,gen)) x | (i,(x,gen)) <- zip [0..] $ holes o]
+    g :: (HasSrcSpan a, Data a, Outputable a, Brackets' a) => a -> [Idea]
+    -- Enumerate over all the immediate children of 'o' looking for
+    -- redundant parentheses in each.
+    g o = concat [f (Just (i, o, gen)) x | (i, (x, gen)) <- zip [0..] $ holes o]
 
-bracketWarning :: (Pretty (a1 S), Pretty (a2 SrcSpanInfo),
-                    Data (a1 S), Annotated a2, Annotated a1) =>
-                  String -> a2 SrcSpanInfo -> a1 S -> Idea
+bracketWarning :: (HasSrcSpan a, HasSrcSpan b, Data (SrcSpanLess b), Outputable a, Outputable b) => String -> a -> b -> Idea
 bracketWarning msg o x =
-  suggest msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
+  suggest' msg o x [Replace (findType (unLoc x)) (toSS' o) [("x", toSS' x)] "x"]
 
-bracketError :: (Pretty (a1 S), Pretty (a2 SrcSpanInfo),
-                  Data (a1 S), Annotated a2, Annotated a1) =>
-                String -> a2 SrcSpanInfo -> a1 S -> Idea
+bracketError :: (HasSrcSpan a, HasSrcSpan b, Data (SrcSpanLess b), Outputable a, Outputable b ) => String -> a -> b -> Idea
 bracketError msg o x =
-  warn msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
+  warn' msg o x [Replace (findType (unLoc x)) (toSS' o) [("x", toSS' x)] "x"]
 
+fieldDecl ::  LConDeclField GhcPs -> [Idea]
+fieldDecl o@(LL loc f@ConDeclField{cd_fld_type=v@(LL l (HsParTy _ c))}) =
+   let r = LL loc (f{cd_fld_type=c}) :: LConDeclField GhcPs in
+   [rawIdea' Suggestion "Redundant bracket" loc
+    (showSDocUnsafe $ ppr_fld o) -- Note this custom printer!
+    (Just (showSDocUnsafe $ ppr_fld r))
+    []
+    [Replace Type (toSS' v) [("x", toSS' c)] "x"]]
+   where
+     -- If we call 'unsafePrettyPrint' on a field decl, we won't like
+     -- the output (e.g. "[foo, bar] :: T"). Here we use a custom
+     -- printer to work around (snarfed from
+     -- https://hackage.haskell.org/package/ghc-lib-parser-8.8.1/docs/src/HsTypes.html#pprConDeclFields).
+     ppr_fld (LL _ ConDeclField { cd_fld_names = ns, cd_fld_type = ty, cd_fld_doc = doc })
+       = ppr_names ns <+> dcolon <+> ppr ty <+> ppr_mbDoc doc
+     ppr_fld (LL _ (XConDeclField x)) = ppr x
+     ppr_fld _ = undefined -- '{-# COMPLETE LL #-}'
 
-fieldDecl :: FieldDecl S -> [Idea]
-fieldDecl o@(FieldDecl a b v@(TyParen _ c))
-    = [suggest "Redundant bracket" o (FieldDecl a b c)  [Replace Type (toSS v) [("x", toSS c)] "x"]]
+     ppr_names [n] = ppr n
+     ppr_names ns = sep (punctuate comma (map ppr ns))
 fieldDecl _ = []
 
-
-dollar :: Exp_ -> [Idea]
+-- This function relies heavily on fixities having been applied to the
+-- raw parse tree (c.f. 'Util.Refact.Fixings').
+dollar :: LHsExpr GhcPs -> [Idea]
 dollar = concatMap f . universe
-    where
-        f x = [suggest "Redundant $" x y [r] | InfixApp _ a d b <- [x], opExp d ~= "$"
-              ,let y = App an a b, not $ needBracket 0 y a, not $ needBracket 1 y b, not $ isPartialAtom b
-              ,let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"]
-              ++
-              [suggest "Move brackets to avoid $" x (t y) [r] |(t, e@(Paren _ (InfixApp _ a1 op1 a2))) <- splitInfix x
-              ,opExp op1 ~= "$", isVar a1 || isApp a1 || isParen a1, not $ isAtom a2
-              ,not $ a1 ~= "select" -- special case for esqueleto, see #224
-              , let y = App an a1 (Paren an a2)
-              , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]
-              ++
-              -- special case of (v1 . v2) <$> v3
-              [suggest "Redundant bracket" x y []
-              | InfixApp _ (Paren _ o1@(InfixApp _ v1 (isDot -> True) v2)) o2 v3 <- [x], opExp o2 ~= "<$>"
-              , let y = InfixApp an o1 o2 v3]
+  where
+    f x = [ suggest' "Redundant $" x y [r]| o@(LL loc (OpApp _ a d b)) <- [x], isDol' d
+            , let y = noLoc (HsApp noExt a b) :: LHsExpr GhcPs
+            , not $ needBracket' 0 y a
+            , not $ needBracket' 1 y b
+            , not $ isPartialAtom b
+            , let r = Replace Expr (toSS' x) [("a", toSS' a), ("b", toSS' b)] "a b"]
+          ++
+          [ suggest' "Move brackets to avoid $" x (t y) [r]
+            |(t, e@(LL _ (HsPar _ (LL _ (OpApp _ a1 op1 a2))))) <- splitInfix x
+            , isDol' op1
+            , isVar' a1 || isApp' a1 || isPar' a1, not $ isAtom' a2
+            , varToStr' a1 /= "select" -- special case for esqueleto, see #224
+            , let y = noLoc $ HsApp noExt a1 (noLoc (HsPar noExt a2))
+            , let r = Replace Expr (toSS' e) [("a", toSS' a1), ("b", toSS' a2)] "a (b)" ]
+          ++  -- Special case of (v1 . v2) <$> v3
+          [ suggest' "Redundant bracket" x y []
+          | LL _ (OpApp _ (LL _ (HsPar _ o1@(LL _ (OpApp _ v1 (isDot' -> True) v2)))) o2 v3) <- [x], varToStr' o2 == "<$>"
+          , let y = noLoc (OpApp noExt o1 o2 v3) :: LHsExpr GhcPs]
 
-
--- return both sides, and a way to put them together again
-splitInfix :: Exp_ -> [(Exp_ -> Exp_, Exp_)]
-splitInfix (InfixApp s a b c) = [(InfixApp s a b, c), (\a -> InfixApp s a b c, a)]
+splitInfix :: LHsExpr GhcPs -> [(LHsExpr GhcPs -> LHsExpr GhcPs, LHsExpr GhcPs)]
+splitInfix (LL l (OpApp _ lhs op rhs)) =
+  [(LL l . OpApp noExt lhs op, rhs), (\lhs -> LL l (OpApp noExt lhs op rhs), lhs)]
 splitInfix _ = []

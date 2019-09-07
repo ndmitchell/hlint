@@ -131,12 +131,13 @@ combine x@(LL _ x') y@(LL _ y')
         ass = mapMaybe ideclAs [x', y']
         specs = transformBi (const noSrcSpan) (ideclHiding x') ==
                     transformBi (const noSrcSpan) (ideclHiding y')
+combine _ _ = Nothing -- {-# COMPLETE LL #-}
 
 stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
 stripRedundantAlias x@(LL loc i@ImportDecl {..})
   -- Suggest 'import M as M' be just 'import M'.
   | Just (unLoc ideclName) == fmap unLoc ideclAs =
-      [suggest' "Redundant as" x (cL loc i{ideclAs=Nothing}) [RemoveAsKeyword (toSS' x)]]
+      [suggest' "Redundant as" x (cL loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS' x)]]
 stripRedundantAlias _ = []
 
 preferHierarchicalImports :: LImportDecl GhcPs -> [Idea]
@@ -155,7 +156,7 @@ preferHierarchicalImports x@(LL loc i@ImportDecl{ideclName=L _ n,ideclPkgQual=No
     let newModuleName = y ++ "." ++ moduleNameString n
         r = [Replace R.ModuleName (toSS' x) [] newModuleName] in
     [suggest' "Use hierarchical imports"
-     x (noLoc (desugarQual i){ideclName=noLoc (mkModuleName newModuleName)}) r]
+     x (noLoc (desugarQual i){ideclName=noLoc (mkModuleName newModuleName)} :: LImportDecl GhcPs) r]
   where
     -- Substitute a new module name.
     f a b = (desugarQual i){ideclName=noLoc (mkModuleName a), ideclHiding=b}

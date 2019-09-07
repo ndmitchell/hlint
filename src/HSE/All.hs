@@ -33,7 +33,6 @@ import System.IO.Extra
 import Data.Functor
 import Prelude
 
-import GHC.Util
 import qualified "ghc-lib-parser" HsSyn
 import qualified "ghc-lib-parser" FastString
 import qualified "ghc-lib-parser" SrcLoc as GHC
@@ -42,6 +41,9 @@ import qualified "ghc-lib-parser" Outputable
 import qualified "ghc-lib-parser" Lexer as GHC
 import qualified "ghc-lib-parser" GHC.LanguageExtensions.Type as GHC
 import qualified "ghc-lib-parser" ApiAnnotation as GHC
+
+import GHC.Util
+import qualified GHC.Util.Refact.Fixity as GHC
 
 -- | Convert a GHC source loc into an HSE equivalent.
 ghcSrcLocToHSE :: GHC.SrcLoc -> SrcLoc
@@ -297,7 +299,8 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                           ( Map.fromListWith (++) $ GHC.annotations pst
                           , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
                           ) in
-                    return $ Right (ModuleEx (applyFixity fixity x) cs a anns)
+                    let (_, a') = GHC.applyFixities Map.empty a in
+                    return $ Right (ModuleEx (applyFixity fixity x) cs a' anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
                 (ParseOk _,  GHC.PFailed _ loc err) ->

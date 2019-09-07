@@ -75,7 +75,7 @@ naming seen originalDecl =
     where
         suggestedNames =
             [ (originalName, suggestedName)
-            | not $ isForD' $ unLoc originalDecl
+            | not $ isForD' originalDecl
             , originalName <- nubOrd $ getNames originalDecl
             , Just suggestedName <- [suggestName originalName]
             , not $ suggestedName `Set.member` seen
@@ -104,6 +104,7 @@ shortenLGRHS x = x
 
 getNames :: LHsDecl GhcPs -> [String]
 getNames (LL _ decl) = maybeToList (declName decl) ++ getConstructorNames decl
+getNames _ = [] -- {-# COMPLETE LL #-}
 
 getConstructorNames :: HsDecl GhcPs -> [String]
 getConstructorNames (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ _ cons _))) =

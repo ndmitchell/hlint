@@ -14,8 +14,8 @@
   - name: [ExistentialQuantification, MultiParamTypeClasses, NamedFieldPuns]
   - name: [FlexibleContexts, FlexibleInstances]
   - name: [PackageImports]
+  - name: [ConstraintKinds, RankNTypes, TypeFamilies]
   - {name: CPP, within: [HsColour]} # so it can be disabled to avoid GPL code
-  - {name: TypeFamilies, within: [GHC.Util.HsExpr, GHC.Util.FreeVars, Hint.Export, Hint.Restrict]} # type family constraints here
 
 - flags:
   - default: false
@@ -31,7 +31,7 @@
 - functions:
   - {name: unsafeInterleaveIO, within: Parallel}
   - {name: unsafePerformIO, within: [Util.exitMessageImpure, Test.Util.ref, Timing]}
-  - {name: unsafeCoerce, within: [Util.gzip]}
+  - {name: unsafeCoerce, within: [Util.gzip, GHC.Util.Refact.Utils]}
   - {name: nub, within: []}
 
 
@@ -70,3 +70,7 @@
 - ignore: {name: Use const, within: Config.Yaml}
 # temporary disable while we have unused top binds here
 - ignore: {name : Avoid restricted flags, within: GHC.Util.HsExpr}
+# ghc-exactprint, apply-refact code
+- ignore: {name : Use newtype instead of data, within: [GHC.Util.Language.Haskell.GHC.ExactPrint.Types]}
+# It is used and on Ubuntu 8.8, GHC errors if it's not enabled.
+- ignore: {name : Unused LANGUAGE pragma, within: [GHC.Util.Language.Haskell.GHC.ExactPrint.Types]}
