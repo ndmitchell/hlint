@@ -61,7 +61,7 @@ library
         refact >= 0.3,
         aeson >= 1.1.2.0,
         ghc-lib-parser == 8.8.1,
-        syb >= 0.7.1,
+        syb >= 0.7,
         mtl >= 2.2.2
 
     if flag(gpl)
