@@ -39,11 +39,13 @@ import qualified HsSyn as GHC
 import SrcLoc
 import CmdLine
 import Paths_hlint
+import qualified GHC.Util.Refact.Fixity as GHC
 
 import Data.List.Extra
 import Data.Maybe
 import System.FilePath
 import Data.Functor
+import qualified Data.Map as Map
 import Prelude
 
 
@@ -140,8 +142,12 @@ _docs = do
     print $ applyHints classify hint [m]
 
 
--- | Create a 'ModuleEx' from GHC annotations and module tree.
---   Note that any hints that work on the @haskell-src-exts@ won't work.
+-- | Create a 'ModuleEx' from GHC annotations and module tree.  Note
+-- that any hints that work on the @haskell-src-exts@ won't work. It
+-- is assumed the incoming parse module has not been adjusted to
+-- account for operator fixities.
 createModuleEx:: GHC.ApiAnns -> Located (GHC.HsModule GHC.GhcPs) -> ModuleEx
-createModuleEx anns ast = ModuleEx empty [] ast anns
-    where empty = Module an Nothing [] [] []
+createModuleEx anns ast =
+  let (_, ast') = GHC.applyFixities Map.empty ast in
+  ModuleEx empty [] ast' anns
+   where empty = Module an Nothing [] [] []
