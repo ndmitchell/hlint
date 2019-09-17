@@ -674,7 +674,7 @@
     - warn: {lhs: "concat [a]", rhs: a, name: Evaluate}
     - warn: {lhs: "concat []", rhs: "[]", name: Evaluate}
     - warn: {lhs: "zip [] []", rhs: "[]", name: Evaluate}
-    - warn: {lhs: const x y, rhs: x, name: Evaluate}
+    - warn: {lhs: const x y, rhs: x, name: Evaluate, side: not (isTypeApp x)}
 
     # FOLDABLE + TUPLES
 
@@ -954,6 +954,8 @@
 # mean x = fst $ foldl (\(m, n) x' -> (m+(x'-m)/(n+1),n+1)) (0,0) x
 # {-# LANGUAGE TypeApplications #-} \
 # foo = id @Int
+# {-# LANGUAGE TypeApplications #-} \
+# foo = const @_ @SomeException
 # foo = id 12 -- 12
 # yes = foldr (\ curr acc -> (+ 1) curr : acc) [] -- map (\ curr -> (+ 1) curr)
 # yes = foldr (\ curr acc -> curr + curr : acc) [] -- map (\ curr -> curr + curr)
