@@ -15,6 +15,7 @@ module GHC.Util.HsExpr (
   , Brackets'(..)
   , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps'
   , varToStr', strToVar'
+  , paren', fromChar'
 ) where
 
 import "ghc-lib-parser" HsSyn
@@ -213,6 +214,12 @@ niceLambdaR' [x, y] (view' -> App2' op (view' -> Var_' y1) (view' -> Var_' x1))
 niceLambdaR' ss e =
   let grhs = noLoc $ GRHS noExt [] e :: LGRHS GhcPs (LHsExpr GhcPs)
       grhss = GRHSs {grhssExt = noExt, grhssGRHSs=[grhs], grhssLocalBinds=noLoc $ EmptyLocalBinds noExt}
-      match = noLoc $ Match {m_ext=noExt, m_ctxt=LambdaExpr, m_pats=map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
+      match = noLoc $ Match {m_ext=noExt, m_ctxt=LambdaExpr, m_pats=map strToPat' ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
       matchGroup = MG {mg_ext=noExt, mg_origin=Generated, mg_alts=noLoc [match]}
   in (noLoc $ HsLam noExt matchGroup, const [])
+
+--
+
+fromChar' :: LHsExpr GhcPs -> Maybe Char
+fromChar' (LL _ (HsLit _ (HsChar _ x))) = Just x
+fromChar' _ = Nothing

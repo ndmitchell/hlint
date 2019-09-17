@@ -10,7 +10,6 @@ import Data.Char
 import HSE.Type
 import HSE.Util
 
-
 class View a b where
     view :: a -> b
 

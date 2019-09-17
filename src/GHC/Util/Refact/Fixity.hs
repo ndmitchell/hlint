@@ -10,6 +10,8 @@ import SrcLoc
 
 import "ghc-lib-parser" BasicTypes (Fixity(..), defaultFixity, compareFixity, negateFixity, FixityDirection(..), SourceText(..))
 import "ghc-lib-parser" HsExpr
+import "ghc-lib-parser" HsPat
+import "ghc-lib-parser" HsTypes
 import "ghc-lib-parser" RdrName
 import "ghc-lib-parser" HsExtension
 import "ghc-lib-parser" OccName
@@ -25,15 +27,25 @@ import Data.Tuple
 
 -- | Rearrange infix expressions to account for fixity.
 -- The set of fixities is wired in and includes all fixities in base.
-applyFixities :: Anns -> Module -> (Anns, Module)
-applyFixities as m = let (as', m') = swap $ runState (everywhereM (mkM expFix) m) as
-                     in (as', m') --error (showAnnData as 0 m ++ showAnnData as' 0 m')
+applyFixities :: Anns -> [(String, Fixity)] -> Module -> (Anns, Module)
+applyFixities as fixities m = let (as', m') = swap $ runState (everywhereM (mkM (expFix fixities)) m) as
+                                  (as'', m'') = swap $ runState (everywhereM (mkM (patFix fixities)) m') as'
+                              in (as'', m'') --error (showAnnData as 0 m ++ showAnnData as' 0 m')
 
-expFix :: LHsExpr GhcPs -> M (LHsExpr GhcPs)
-expFix (L loc (OpApp _ l op r)) =
-  mkOpAppRn baseFixities loc l op (findFixity baseFixities op) r
+getFixities fixities =
+  if null fixities then baseFixities else fixities
 
-expFix e = return e
+expFix :: [(String, Fixity)] -> LHsExpr GhcPs -> M (LHsExpr GhcPs)
+expFix fixities (L loc (OpApp _ l op r)) =
+  mkOpAppRn (getFixities fixities) loc l op (findFixity (getFixities fixities) op) r
+
+expFix _ e = return e
+
+patFix :: [(String, Fixity)] -> LPat GhcPs -> M (LPat GhcPs)
+patFix fixities (dL -> L _ (ConPatIn op (InfixCon pat1 pat2))) =
+  mkConOpPatRn (getFixities fixities) op (findFixity' (getFixities fixities) op) pat1 pat2
+
+patFix _ p = return p
 
 getIdent :: Expr -> String
 getIdent (unLoc -> HsVar _ (L _ n)) = occNameString . rdrNameOcc $ n
@@ -48,6 +60,30 @@ moveDelta old new = do
 
 ---------------------------
 -- Modified from GHC Renamer
+
+mkConOpPatRn ::
+             [(String, Fixity)]
+          -> Located RdrName -> Fixity          -- Operator and fixity
+          -> LPat GhcPs
+          -> LPat GhcPs
+          -> M (LPat GhcPs)
+mkConOpPatRn fs op2 fix2 p1@(dL->L loc (ConPatIn op1 (InfixCon p11 p12))) p2
+  | nofix_error
+  = return (ConPatIn op2 (InfixCon p1 p2))
+
+ | associate_right = do
+   new_p <- mkConOpPatRn fs op2 fix2 p12 p2
+   return (ConPatIn op1 (InfixCon p11 (cL loc new_p)))
+
+ | otherwise = return (ConPatIn op2 (InfixCon p1 p2))
+
+  where
+    fix1 = findFixity' fs op1
+    (nofix_error, associate_right) = compareFixity fix1 fix2
+
+mkConOpPatRn _ op _ p1 p2                         -- Default case, no rearrangment
+  = return (ConPatIn op (InfixCon p1 p2))
+
 mkOpAppRn ::
              [(String, Fixity)]
           -> SrcSpan
@@ -109,12 +145,13 @@ mkOpAppRn _ loc e1 op _fix e2                  -- Default case, no rearrangment
 findFixity :: [(String, Fixity)] -> Expr -> Fixity
 findFixity fs r = askFix fs (getIdent r)
 
+findFixity' :: [(String, Fixity)] -> Located RdrName -> Fixity
+findFixity' fs r = askFix fs (occNameString . rdrNameOcc . unLoc $ r)
+
 askFix :: [(String, Fixity)] -> String -> Fixity
 askFix xs = \k -> lookupWithDefault defaultFixity k xs
     where
         lookupWithDefault def_v k mp1 = fromMaybe def_v $ lookup k mp1
-
-
 
 -- | All fixities defined in the Prelude.
 preludeFixities :: [(String, Fixity)]

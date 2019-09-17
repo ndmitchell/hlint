@@ -148,6 +148,7 @@ _docs = do
 -- account for operator fixities.
 createModuleEx:: GHC.ApiAnns -> Located (GHC.HsModule GHC.GhcPs) -> ModuleEx
 createModuleEx anns ast =
-  let (_, ast') = GHC.applyFixities Map.empty ast in
+  let fixities = [] -- Use builtin fixities.
+      (_, ast') = GHC.applyFixities Map.empty fixities ast in
   ModuleEx empty [] ast' anns
    where empty = Module an Nothing [] [] []

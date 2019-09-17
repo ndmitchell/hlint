@@ -4,7 +4,7 @@
 module GHC.Util.W (
     W(..)
   , wrap, unwrap
-  , eqLoc', eqNoLoc') where
+  , eqLoc', eqNoLoc', eqNoLocLists') where
 
 import "ghc-lib-parser" Outputable
 import "ghc-lib-parser" SrcLoc
@@ -42,3 +42,6 @@ eqLoc' a b = wrap a == wrap b
 -- Compare two terms for equality modulo locs.
 eqNoLoc' :: (Data a, Outputable a, HasSrcSpan a) => a -> a -> Bool
 eqNoLoc' a b = wrap (stripLocs' a)  == wrap (stripLocs' b)
+
+eqNoLocLists' :: (Data a, Outputable a, HasSrcSpan a) => [a] -> [a] -> Bool
+eqNoLocLists' as bs = length as == length bs && all (uncurry eqNoLoc') (zip as bs)

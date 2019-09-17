@@ -45,7 +45,7 @@ data HintBuiltin =
 builtin :: HintBuiltin -> Hint
 builtin x = case x of
     -- Hse.
-    HintList       -> decl listHint
+    HintExtensions -> modu extensionsHint
     HintMonad      -> decl monadHint
     HintLambda     -> decl lambdaHint
     HintPattern    -> decl patternHint
@@ -55,9 +55,9 @@ builtin x = case x of
     HintExport     -> modu exportHint
     HintComment    -> modu commentHint
     HintPragma     -> modu pragmaHint
-    HintExtensions -> modu extensionsHint
     HintDuplicate  -> mods duplicateHint
     HintRestrict   -> mempty{hintModule=restrictHint}
+    HintList       -> decl' listHint
     HintNewType    -> decl' newtypeHint
     HintUnsafe     -> decl' unsafeHint
     HintListRec    -> decl' listRecHint

@@ -4,7 +4,7 @@
 module GHC.Util.View (
    fromParen', fromPParen'
   , View'(..)
-  , Var_'(Var_'), PVar_'(PVar_'), App2'(App2')
+  , Var_'(Var_'), PVar_'(PVar_'), PApp_'(PApp_'), App2'(App2')
 ) where
 
 import "ghc-lib-parser" HsSyn
@@ -25,6 +25,7 @@ class View' a b where
 
 data Var_'  = NoVar_' | Var_' String deriving Eq
 data PVar_' = NoPVar_' | PVar_' String
+data PApp_' = NoPApp_' | PApp_' String [Pat GhcPs]
 data App2'  = NoApp2'  | App2' (LHsExpr GhcPs) (LHsExpr GhcPs) (LHsExpr GhcPs)
 
 instance View' (LHsExpr GhcPs) Var_' where
@@ -37,5 +38,12 @@ instance View' (LHsExpr GhcPs) App2' where
   view' _ = NoApp2'
 
 instance View' (Pat GhcPs) PVar_' where
-  view' (LL _ (fromPParen' -> VarPat _ (L _ x))) = PVar_' $ occNameString (rdrNameOcc x)
+  view' (fromPParen' -> LL _ (VarPat _ (L _ x))) = PVar_' $ occNameString (rdrNameOcc x)
   view' _ = NoPVar_'
+
+instance View' (Pat GhcPs) PApp_' where
+  view' (fromPParen' -> LL _ (ConPatIn (L _ x) (PrefixCon args))) =
+    PApp_' (occNameString . rdrNameOcc $ x) args
+  view' (fromPParen' -> LL _ (ConPatIn (L _ x) (InfixCon lhs rhs))) =
+    PApp_' (occNameString . rdrNameOcc $ x) [lhs, rhs]
+  view' _ = NoPApp_'

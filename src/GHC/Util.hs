@@ -6,6 +6,7 @@ module GHC.Util (
   , module GHC.Util.ApiAnnotation
   , module GHC.Util.HsDecl
   , module GHC.Util.HsExpr
+  , module GHC.Util.HsType
   , module GHC.Util.LanguageExtensions.Type
   , module GHC.Util.Pat
   , module GHC.Util.Module
@@ -21,7 +22,7 @@ import GHC.Util.View
 import GHC.Util.FreeVars
 import GHC.Util.ApiAnnotation
 import GHC.Util.HsExpr
-import GHC.Util.HsType ()
+import GHC.Util.HsType
 import GHC.Util.HsDecl
 import GHC.Util.LanguageExtensions.Type
 import GHC.Util.Pat
