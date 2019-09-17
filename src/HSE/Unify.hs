@@ -102,7 +102,8 @@ unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe (Subst Exp_)
 -- in the match even if they aren't in the users code
 unifyExp nm root x y | not root, isParen x, not $ isParen y = unifyExp nm root (fromParen x) y
 
-unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v = Just $ Subst [(v,y)]
+-- don't subsitute for type apps, since no one writes rules imaginging they exist
+unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst [(v,y)]
 unifyExp nm root (Var _ x) (Var _ y) | nm x y = Just mempty
 
 -- Match wildcard operators
