@@ -281,7 +281,7 @@
     - hint: {lhs: \x -> y, rhs: const y, side: isAtom y && not (isWildcard y)}
         # If any isWildcard recursively then x may be used but not mentioned explicitly
     - warn: {lhs: flip f x y, rhs: f y x, side: isApp original}
-    - warn: {lhs: id x, rhs: x, side: not (isTypeApp x)}
+    - warn: {lhs: id x, rhs: x}
     - warn: {lhs: id . x, rhs: x, name: Redundant id}
     - warn: {lhs: x . id, rhs: x, name: Redundant id}
     - warn: {lhs: "((,) x)", rhs: "(_noParen_ x,)", name: Use tuple-section, note: RequiresExtension TupleSections}
@@ -954,6 +954,8 @@
 # mean x = fst $ foldl (\(m, n) x' -> (m+(x'-m)/(n+1),n+1)) (0,0) x
 # {-# LANGUAGE TypeApplications #-} \
 # foo = id @Int
+# {-# LANGUAGE TypeApplications #-} \
+# foo = const @_ @SomeException
 # foo = id 12 -- 12
 # yes = foldr (\ curr acc -> (+ 1) curr : acc) [] -- map (\ curr -> (+ 1) curr)
 # yes = foldr (\ curr acc -> curr + curr : acc) [] -- map (\ curr -> curr + curr)
