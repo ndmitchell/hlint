@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE TupleSections #-}
 
 module HSE.All(
     module X,
@@ -41,6 +42,7 @@ import qualified "ghc-lib-parser" Outputable
 import qualified "ghc-lib-parser" Lexer as GHC
 import qualified "ghc-lib-parser" GHC.LanguageExtensions.Type as GHC
 import qualified "ghc-lib-parser" ApiAnnotation as GHC
+import qualified "ghc-lib-parser" BasicTypes as GHC
 
 import GHC.Util
 import qualified GHC.Util.Refact.Fixity as GHC
@@ -276,6 +278,32 @@ ghcExtensionsFromParseFlags ParseFlags {hseFlags=ParseMode {extensions=exts}}=
        UnknownExtension ('N':'o':e) -> Right <$> readExtension e
        UnknownExtension e -> Left <$> readExtension e
 
+-- A hacky function to get fixities from HSE parse flags suitable for
+-- use by our own 'GHC.Util.Refact.Fixity' module.
+ghcFixitiesFromParseFlags :: ParseFlags -> [(String, GHC.Fixity)]
+ghcFixitiesFromParseFlags ParseFlags {hseFlags=ParseMode{fixities=Just fixities}} =
+  concatMap convert fixities
+  where
+    convert (Fixity (AssocNone _) fix name) = infix_' fix [qNameToStr name]
+    convert (Fixity (AssocLeft _) fix name) = infixl_' fix [qNameToStr name]
+    convert (Fixity (AssocRight _) fix name) = infixr_' fix [qNameToStr name]
+
+    infixr_', infixl_', infix_' :: Int -> [String] -> [(String,GHC.Fixity)]
+    infixr_' = fixity' GHC.InfixR
+    infixl_' = fixity' GHC.InfixL
+    infix_'  = fixity' GHC.InfixN
+
+    fixity' :: GHC.FixityDirection -> Int -> [String] -> [(String, GHC.Fixity)]
+    fixity' a p = map (,GHC.Fixity (GHC.SourceText "") p a)
+
+    qNameToStr :: QName () -> String
+    qNameToStr (Special _ Cons{}) = ":"
+    qNameToStr (Special _ UnitCon{}) = "()"
+    qNameToStr (UnQual _ (X.Ident _ x)) = x
+    qNameToStr (UnQual _ (Symbol _ x)) = x
+    qNameToStr _ = ""
+ghcFixitiesFromParseFlags _ = []
+
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
 -- filename @-@ is treated as @stdin@. Requires some flags (often
@@ -290,6 +318,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
         let enableDisableExts = ghcExtensionsFromParseFlags flags
+            fixities = ghcFixitiesFromParseFlags flags -- Note : Fixities are coming from HSE parse flags.
         dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
           Right ghcFlags ->
@@ -299,7 +328,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                           ( Map.fromListWith (++) $ GHC.annotations pst
                           , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
                           ) in
-                    let (_, a') = GHC.applyFixities Map.empty a in
+                    let (_, a') = GHC.applyFixities Map.empty fixities a in
                     return $ Right (ModuleEx (applyFixity fixity x) cs a' anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
