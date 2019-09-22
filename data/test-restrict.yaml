@@ -9,3 +9,9 @@
 - extensions:
   - {name: DeriveFunctor, within: []}
   - {name: DeriveTraversable, within: [], message: "Custom message"}
+
+
+# Test https://github.com/ndmitchell/hlint/issues/766
+- warn:
+    lhs: "[hamlet| |]"
+    rhs: "mempty"

@@ -308,7 +308,7 @@ getModule _ _ _ = return Nothing
 
 
 getExtensions :: [String] -> (Language, [Extension])
-getExtensions args = (lang, foldl f (if null langs then defaultExtensions else []) exts)
+getExtensions args = (lang, foldl f (if null langs then parseExtensions else []) exts)
     where
         lang = if null langs then baseLanguage defaultParseMode else fromJust $ lookup (last langs) ls
         (langs, exts) = partition (isJust . flip lookup ls) args

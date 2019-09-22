@@ -148,7 +148,7 @@ allowFields v allow = do
 parseHSE :: (ParseMode -> String -> ParseResult v) -> Val -> Parser v
 parseHSE parser v = do
     x <- parseString v
-    case parser defaultParseMode{extensions=defaultExtensions} x of
+    case parser defaultParseMode{extensions=configExtensions} x of
         ParseOk x -> return x
         ParseFailed loc s -> parseFail v $ "Failed to parse " ++ s ++ ", when parsing:\n  " ++ x
 

@@ -1,7 +1,8 @@
 {-# LANGUAGE ExistentialQuantification, Rank2Types #-}
 
 module Util(
-    defaultExtensions,
+    parseExtensions,
+    configExtensions,
     forceList,
     gzip, universeParentBi,
     exitMessage, exitMessageImpure,
@@ -72,8 +73,14 @@ universeParentBi = concatMap universeParent . childrenBi
 ---------------------------------------------------------------------
 -- LANGUAGE.HASKELL.EXTS.EXTENSION
 
-defaultExtensions :: [Extension]
-defaultExtensions = [e | e@EnableExtension{} <- knownExtensions] \\ map EnableExtension badExtensions
+-- | Extensions we turn on by default when parsing. Aim to parse as many files as we can.
+parseExtensions :: [Extension]
+parseExtensions = [e | e@EnableExtension{} <- knownExtensions] \\ map EnableExtension badExtensions
+
+-- | Extensions we turn on when reading config files, don't have to deal with the whole world
+--   of variations - in particular, we might require spaces in some places.
+configExtensions :: [Extension]
+configExtensions = [e | e@EnableExtension{} <- knownExtensions] \\ map EnableExtension reallyBadExtensions
 
 badExtensions =
     [Arrows -- steals proc
@@ -83,4 +90,8 @@ badExtensions =
     ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
     ,DoRec, RecursiveDo -- breaks rec
     ,TypeApplications -- HSE fails on @ patterns
+    ]
+
+reallyBadExtensions =
+    [TransformListComp -- steals the group keyword
     ]

@@ -155,7 +155,7 @@ defaultParseFlags = ParseFlags NoCpp defaultParseMode
     {fixities = Just $ customFixities ++ baseFixities ++ baseNotYetInHSE ++ lensFixities ++ otherFixities
     ,ignoreLinePragmas = False
     ,ignoreFunctionArity = True
-    ,extensions = defaultExtensions}
+    ,extensions = parseExtensions}
 
 parseFlagsNoLocations :: ParseFlags -> ParseFlags
 parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}

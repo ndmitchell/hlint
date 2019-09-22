@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #766, turn on more extensions when parsing config files
     #255, don't match variables with type application
     Switch to ghc-parser-8.8.1
     Slightly restrict the replace case with fromMaybe hint
