@@ -52,6 +52,7 @@ import "ghc-lib-parser" SrcLoc
 import "ghc-lib-parser" BasicTypes
 import "ghc-lib-parser" RdrName
 import "ghc-lib-parser" OccName
+import "ghc-lib-parser" Name
 import "ghc-lib-parser" FastString
 import "ghc-lib-parser" TysWiredIn
 
@@ -67,8 +68,23 @@ listDecl x =
   concatMap listPat (childrenBi x) ++
   concatMap listComp (universeBi x)
 
+-- Refer to https://github.com/ndmitchell/hlint/issues/775 for the
+-- structure of 'listComp'.
+
 listComp :: LHsExpr GhcPs -> [Idea]
 listComp o@(LL _ (HsDo _ ListComp (L _ stmts))) =
+  listCompCheckGuards o ListComp stmts
+listComp o@(LL _ (HsDo _ MonadComp (L _ stmts))) =
+  listCompCheckGuards o MonadComp stmts
+
+listComp o@(view' -> App2' mp f (LL _ (HsDo _ ListComp (L _ stmts)))) =
+  listCompCheckMap o mp f ListComp stmts
+listComp o@(view' -> App2' mp f (LL _ (HsDo _ MonadComp (L _ stmts)))) =
+  listCompCheckMap o mp f MonadComp stmts
+listComp _ = []
+
+listCompCheckGuards :: LHsExpr GhcPs -> HsStmtContext Name -> [ExprLStmt GhcPs] -> [Idea]
+listCompCheckGuards o ctx stmts =
   let revs = reverse stmts
       e@(LL _ LastStmt{}) = head revs -- In a ListComp, this is always last.
       xs = reverse (tail revs) in
@@ -82,20 +98,23 @@ listComp o@(LL _ (HsDo _ ListComp (L _ stmts))) =
       where
         ys = moveGuardsForward xs
         o' = noLoc $ ExplicitList noExt Nothing []
-        o2 = noLoc $ HsDo noExt ListComp (noLoc (filter ((/= Just "True") . qualCon) xs ++ [e]))
-        o3 = noLoc $ HsDo noExt ListComp (noLoc $ ys ++ [e])
+        o2 = noLoc $ HsDo noExt ctx (noLoc (filter ((/= Just "True") . qualCon) xs ++ [e]))
+        o3 = noLoc $ HsDo noExt ctx (noLoc $ ys ++ [e])
         cons = mapMaybe qualCon xs
         qualCon :: ExprLStmt GhcPs -> Maybe String
         qualCon (L _ (BodyStmt _ (LL _ (HsVar _ (L _ x))) _ _)) = Just (occNameString . rdrNameOcc $ x)
         qualCon _ = Nothing
-listComp o@(view' -> App2' mp f (LL _ (HsDo _ ListComp (L _ stmts)))) | varToStr' mp == "map" =
+
+listCompCheckMap ::
+  LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs -> HsStmtContext Name -> [ExprLStmt GhcPs] -> [Idea]
+listCompCheckMap o mp f ctx stmts  | varToStr' mp == "map" =
     [suggest' "Move map inside list comprehension" o o2 (suggestExpr o o2)]
     where
       revs = reverse stmts
       LL _ (LastStmt _ body b s) = head revs -- In a ListComp, this is always last.
       last = noLoc $ LastStmt noExt (noLoc $ HsApp noExt (paren' f) (paren' body)) b s
-      o2 =noLoc $ HsDo noExt ListComp (noLoc $ reverse (tail revs) ++ [last])
-listComp _ = []
+      o2 =noLoc $ HsDo noExt ctx (noLoc $ reverse (tail revs) ++ [last])
+listCompCheckMap _ _ _ _ _ = []
 
 suggestExpr :: LHsExpr GhcPs -> LHsExpr GhcPs -> [Refactoring R.SrcSpan]
 suggestExpr o o2 = [Replace Expr (toSS' o) [] (unsafePrettyPrint o2)]
