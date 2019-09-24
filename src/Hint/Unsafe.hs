@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 
 {-
     Find things that are unsafe
@@ -24,12 +23,12 @@ import Data.Char
 import Refact.Types hiding(Match)
 import Data.Generics.Uniplate.Operations
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" OccName
-import "ghc-lib-parser" RdrName
-import "ghc-lib-parser" FastString
-import "ghc-lib-parser" BasicTypes
-import "ghc-lib-parser" SrcLoc
+import HsSyn
+import OccName
+import RdrName
+import FastString
+import BasicTypes
+import SrcLoc
 import GHC.Util
 
 -- The conditions on which to fire this hint are subtle. We are

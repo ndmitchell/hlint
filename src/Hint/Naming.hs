@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-
@@ -51,13 +50,13 @@ import Data.Maybe
 import Refact.Types hiding (RType(Match))
 import qualified Data.Set as Set
 
-import "ghc-lib-parser" BasicTypes
-import "ghc-lib-parser" FastString
-import "ghc-lib-parser" HsDecls
-import "ghc-lib-parser" HsExtension
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" OccName
-import "ghc-lib-parser" SrcLoc
+import BasicTypes
+import FastString
+import HsDecls
+import HsExtension
+import HsSyn
+import OccName
+import SrcLoc
 
 import GHC.Util
 

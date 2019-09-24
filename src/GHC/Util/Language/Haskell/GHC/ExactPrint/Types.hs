@@ -1,6 +1,5 @@
 -- Adapted from https://github.com/alanz/ghc-exactprint.git.
 
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -51,11 +50,11 @@ module GHC.Util.Language.Haskell.GHC.ExactPrint.Types
 
 import Data.Data (Data, Typeable, toConstr,cast)
 
-import qualified "ghc-lib-parser" DynFlags      as GHC
-import qualified "ghc-lib-parser" HsSyn         as GHC
-import qualified "ghc-lib-parser" Outputable    as GHC
-import           "ghc-lib-parser" SrcLoc        as GHC
-import           "ghc-lib-parser" ApiAnnotation as GHC
+import qualified DynFlags      as GHC
+import qualified HsSyn         as GHC
+import qualified Outputable    as GHC
+import           SrcLoc        as GHC
+import           ApiAnnotation as GHC
 
 import qualified Data.Map as Map
 import qualified Data.Set as Set

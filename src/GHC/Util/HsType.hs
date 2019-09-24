@@ -1,12 +1,11 @@
-{-# LANGUAGE PackageImports #-}
 
 module GHC.Util.HsType (
     Brackets'(..)
   , fromTyParen'
   ) where
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" SrcLoc
+import HsSyn
+import SrcLoc
 
 import GHC.Util.Brackets
 

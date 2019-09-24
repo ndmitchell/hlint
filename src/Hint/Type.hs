@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 
 module Hint.Type(
     DeclHint, DeclHint', ModuHint, CrossHint, Hint(..),
@@ -11,8 +10,8 @@ import HSE.All  as Export
 import Idea     as Export
 import Prelude
 import Refact   as Export
-import "ghc-lib-parser" HsExtension
-import "ghc-lib-parser" HsDecls
+import HsExtension
+import HsDecls
 
 type DeclHint = Scope -> ModuleEx -> Decl_ -> [Idea]
 type DeclHint' = Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]

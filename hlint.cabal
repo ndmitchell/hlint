@@ -43,6 +43,11 @@ flag gpl
     manual: True
     description: Use GPL libraries, specifically hscolour
 
+flag ghc-lib
+  default: False
+  manual: True
+  description: Force dependency on ghc-lib-parser even if GHC API in the ghc package is supported
+
 library
     default-language:   Haskell2010
     build-depends:
@@ -60,9 +65,15 @@ library
         extra >= 1.6.6,
         refact >= 0.3,
         aeson >= 1.1.2.0,
-        ghc-lib-parser == 8.8.1,
         syb >= 0.7,
         mtl >= 2.2.2
+    if !flag(ghc-lib) && impl(ghc >= 8.8.0) && impl(ghc < 8.9.0)
+        build-depends:
+          ghc == 8.8.*,
+          ghc-boot-th
+    else
+        build-depends:
+          ghc-lib-parser == 8.8.1
 
     if flag(gpl)
         build-depends: hscolour >= 1.21

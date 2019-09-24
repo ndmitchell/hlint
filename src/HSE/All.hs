@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TupleSections #-}
 
 module HSE.All(
@@ -34,15 +33,15 @@ import System.IO.Extra
 import Data.Functor
 import Prelude
 
-import qualified "ghc-lib-parser" HsSyn
-import qualified "ghc-lib-parser" FastString
-import qualified "ghc-lib-parser" SrcLoc as GHC
-import qualified "ghc-lib-parser" ErrUtils
-import qualified "ghc-lib-parser" Outputable
-import qualified "ghc-lib-parser" Lexer as GHC
-import qualified "ghc-lib-parser" GHC.LanguageExtensions.Type as GHC
-import qualified "ghc-lib-parser" ApiAnnotation as GHC
-import qualified "ghc-lib-parser" BasicTypes as GHC
+import qualified HsSyn
+import qualified FastString
+import qualified SrcLoc as GHC
+import qualified ErrUtils
+import qualified Outputable
+import qualified Lexer as GHC
+import qualified GHC.LanguageExtensions.Type as GHC
+import qualified ApiAnnotation as GHC
+import qualified BasicTypes as GHC
 
 import GHC.Util
 import qualified GHC.Util.Refact.Fixity as GHC

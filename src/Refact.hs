@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 module Refact
     ( toRefactSrcSpan
     , toSS, toSS'
@@ -8,7 +7,7 @@ module Refact
 import qualified Refact.Types as R
 import HSE.All
 
-import qualified "ghc-lib-parser" SrcLoc as GHC
+import qualified SrcLoc as GHC
 
 toRefactSrcSpan :: SrcSpan -> R.SrcSpan
 toRefactSrcSpan ss = R.SrcSpan (srcSpanStartLine ss)

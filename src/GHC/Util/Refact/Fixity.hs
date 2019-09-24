@@ -1,6 +1,5 @@
 -- Adapted from https://github.com/mpickering/apply-refact.git.
 
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -8,13 +7,13 @@ module GHC.Util.Refact.Fixity (applyFixities) where
 
 import SrcLoc
 
-import "ghc-lib-parser" BasicTypes (Fixity(..), defaultFixity, compareFixity, negateFixity, FixityDirection(..), SourceText(..))
-import "ghc-lib-parser" HsExpr
-import "ghc-lib-parser" HsPat
-import "ghc-lib-parser" HsTypes
-import "ghc-lib-parser" RdrName
-import "ghc-lib-parser" HsExtension
-import "ghc-lib-parser" OccName
+import BasicTypes (Fixity(..), defaultFixity, compareFixity, negateFixity, FixityDirection(..), SourceText(..))
+import HsExpr
+import HsPat
+import HsTypes
+import RdrName
+import HsExtension
+import OccName
 import Data.Generics hiding (Fixity)
 import Data.Maybe
 

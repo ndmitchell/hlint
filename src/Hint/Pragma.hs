@@ -1,6 +1,5 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE PackageImports #-}
 
 {-
     Suggest better pragmas
@@ -37,8 +36,8 @@ import Data.Maybe
 import Refact.Types
 import qualified Refact.Types as R
 
-import "ghc-lib-parser" ApiAnnotation
-import "ghc-lib-parser" SrcLoc
+import ApiAnnotation
+import SrcLoc
 
 import GHC.Util
 

@@ -1,10 +1,9 @@
-{-# LANGUAGE PackageImports #-}
 
 module GHC.Util.LanguageExtensions.Type (
     readExtension
 ) where
 
-import "ghc-lib-parser" GHC.LanguageExtensions.Type
+import GHC.LanguageExtensions.Type
 
 import qualified Data.Map.Strict as Map
 
