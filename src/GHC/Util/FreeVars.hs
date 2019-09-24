@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module GHC.Util.FreeVars (
@@ -10,13 +9,13 @@ module GHC.Util.FreeVars (
   , Vars' (..), FreeVars'(..) , AllVars' (..)
   ) where
 
-import "ghc-lib-parser" RdrName
-import "ghc-lib-parser" HsTypes
-import "ghc-lib-parser" OccName
-import "ghc-lib-parser" Name
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" Bag (bagToList)
+import RdrName
+import HsTypes
+import OccName
+import Name
+import HsSyn
+import SrcLoc
+import Bag (bagToList)
 
 import Data.Generics.Uniplate.Data ()
 import Data.Generics.Uniplate.Operations

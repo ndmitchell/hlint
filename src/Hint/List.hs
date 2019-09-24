@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts #-}
 {-
     Find and match:
@@ -47,13 +46,13 @@ import Hint.Type(DeclHint',Idea,suggest',toSS')
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" BasicTypes
-import "ghc-lib-parser" RdrName
-import "ghc-lib-parser" OccName
-import "ghc-lib-parser" FastString
-import "ghc-lib-parser" TysWiredIn
+import HsSyn
+import SrcLoc
+import BasicTypes
+import RdrName
+import OccName
+import FastString
+import TysWiredIn
 
 import GHC.Util
 

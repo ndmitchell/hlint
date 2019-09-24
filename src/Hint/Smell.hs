@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 
 module Hint.Smell (
   smellModuleHint,
@@ -86,12 +85,12 @@ import Data.Generics.Uniplate.Operations
 import Data.List.Extra
 import qualified Data.Map as Map
 
-import "ghc-lib-parser" BasicTypes
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" RdrName
-import "ghc-lib-parser" Outputable
-import "ghc-lib-parser" Bag
-import "ghc-lib-parser" SrcLoc
+import BasicTypes
+import HsSyn
+import RdrName
+import Outputable
+import Bag
+import SrcLoc
 import GHC.Util
 
 smellModuleHint :: [Setting] -> ModuHint

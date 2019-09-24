@@ -1,5 +1,4 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RecordWildCards #-}
 
 {-
@@ -40,17 +39,17 @@ import Data.Either.Extra
 import Control.Monad
 import Refact.Types hiding (RType(Match))
 
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" HsExtension
-import "ghc-lib-parser" HsPat
-import "ghc-lib-parser" HsTypes
-import "ghc-lib-parser" TysWiredIn
-import "ghc-lib-parser" RdrName
-import "ghc-lib-parser" HsBinds
-import "ghc-lib-parser" HsExpr
-import "ghc-lib-parser" HsDecls
-import "ghc-lib-parser" OccName
-import "ghc-lib-parser" BasicTypes
+import SrcLoc
+import HsExtension
+import HsPat
+import HsTypes
+import TysWiredIn
+import RdrName
+import HsBinds
+import HsExpr
+import HsDecls
+import OccName
+import BasicTypes
 
 import GHC.Util
 

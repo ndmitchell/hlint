@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 
 module GHC.Util (
     module GHC.Util.View
@@ -32,17 +31,17 @@ import GHC.Util.SrcLoc
 import GHC.Util.W
 import GHC.Util.DynFlags
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" Lexer
-import "ghc-lib-parser" Parser
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" FastString
-import "ghc-lib-parser" StringBuffer
-import "ghc-lib-parser" GHC.LanguageExtensions.Type
-import "ghc-lib-parser" Panic
-import "ghc-lib-parser" HscTypes
-import "ghc-lib-parser" HeaderInfo
-import "ghc-lib-parser" DynFlags
+import HsSyn
+import Lexer
+import Parser
+import SrcLoc
+import FastString
+import StringBuffer
+import GHC.LanguageExtensions.Type
+import Panic
+import HscTypes
+import HeaderInfo
+import DynFlags
 
 import Data.List.Extra
 import System.FilePath

@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module GHC.Util.W (
@@ -6,8 +5,8 @@ module GHC.Util.W (
   , wrap, unwrap
   , eqLoc', eqNoLoc', eqNoLocLists') where
 
-import "ghc-lib-parser" Outputable
-import "ghc-lib-parser" SrcLoc
+import Outputable
+import SrcLoc
 
 import GHC.Util.DynFlags
 import GHC.Util.SrcLoc

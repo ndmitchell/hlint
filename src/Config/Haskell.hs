@@ -1,5 +1,4 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, ScopedTypeVariables, TupleSections #-}
-{-# LANGUAGE PackageImports #-}
 module Config.Haskell(
     readPragma,
     readComment,
@@ -17,8 +16,8 @@ import Config.Type
 import Util
 import Prelude
 import GHC.Util
-import "ghc-lib-parser" SrcLoc as GHC
-import "ghc-lib-parser" ApiAnnotation
+import SrcLoc as GHC
+import ApiAnnotation
 
 
 addInfix :: ParseFlags -> ParseFlags

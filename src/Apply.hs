@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 
 module Apply(applyHints, applyHintFile, applyHintFiles) where
 
@@ -15,8 +14,8 @@ import Data.Maybe
 import Data.Ord
 import Config.Type
 import Config.Haskell
-import "ghc-lib-parser" HsSyn
-import qualified "ghc-lib-parser" SrcLoc as GHC
+import HsSyn
+import qualified SrcLoc as GHC
 import qualified Data.HashSet as Set
 import Prelude
 

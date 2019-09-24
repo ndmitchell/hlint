@@ -1,13 +1,12 @@
-{-# LANGUAGE PackageImports #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module GHC.Util.DynFlags (baseDynFlags) where
 
-import "ghc-lib-parser" DynFlags
-import "ghc-lib-parser" Platform
-import "ghc-lib-parser" Config
-import "ghc-lib-parser" Fingerprint
-import "ghc-lib-parser" GHC.LanguageExtensions.Type
+import DynFlags
+import Platform
+import Config
+import Fingerprint
+import GHC.LanguageExtensions.Type
 
 import Data.List.Extra
 

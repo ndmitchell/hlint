@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 
 module GHC.Util.ApiAnnotation (
     comment, commentText, isCommentMultiline
@@ -6,8 +5,8 @@ module GHC.Util.ApiAnnotation (
   , mkFlags, mkLangExts
 ) where
 
-import "ghc-lib-parser" ApiAnnotation
-import "ghc-lib-parser" SrcLoc
+import ApiAnnotation
+import SrcLoc
 
 import Control.Applicative
 import qualified Data.Map.Strict as Map

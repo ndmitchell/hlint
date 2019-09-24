@@ -1,5 +1,4 @@
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE PackageImports #-}
 {-
     Suggest newtype instead of data for type declarations that have
     only one field. Don't suggest newtype for existentially
@@ -34,10 +33,10 @@ module Hint.NewType (newtypeHint) where
 import Hint.Type (Idea, DeclHint', Note(DecreasesLaziness), ideaNote, ignoreNoSuggestion', suggestN')
 
 import Data.List (isSuffixOf)
-import "ghc-lib-parser" HsDecls
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" Outputable
-import "ghc-lib-parser" SrcLoc
+import HsDecls
+import HsSyn
+import Outputable
+import SrcLoc
 
 newtypeHint :: DeclHint'
 newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x

@@ -1,6 +1,5 @@
 -- Adapted from https://github.com/mpickering/apply-refact.git.
 
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
@@ -27,12 +26,12 @@ module GHC.Util.Refact.Utils ( -- * Synonyms
 
                     ) where
 
-import "ghc-lib-parser" HsSyn as GHC hiding (Stmt, Pat)
-import "ghc-lib-parser" SrcLoc
-import qualified "ghc-lib-parser" SrcLoc as GHC
-import qualified "ghc-lib-parser" RdrName as GHC
-import qualified "ghc-lib-parser" ApiAnnotation as GHC
-import qualified "ghc-lib-parser" FastString    as GHC
+import HsSyn as GHC hiding (Stmt, Pat)
+import SrcLoc
+import qualified SrcLoc as GHC
+import qualified RdrName as GHC
+import qualified ApiAnnotation as GHC
+import qualified FastString    as GHC
 
 import GHC.Util.Language.Haskell.GHC.ExactPrint.Types
 

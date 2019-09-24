@@ -9,18 +9,17 @@ module Foo(module Foo) where foo = 1 -- @Ignore module Foo(...) where
 module Foo(module Foo, foo) where foo = 1 -- module Foo(..., foo) where
 </TEST>
 -}
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Hint.Export(exportHint) where
 
 import Hint.Type(ModuHint, ModuleEx(..),ideaNote,ignore',Note(..))
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" Module
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" OccName
-import "ghc-lib-parser" RdrName
+import HsSyn
+import Module
+import SrcLoc
+import OccName
+import RdrName
 
 exportHint :: ModuHint
 exportHint _ (ModuleEx _ _ (LL s m@HsModule {hsmodName = Just name, hsmodExports = exports}) _)
