@@ -31,6 +31,8 @@ foo = [x + 1 | x <- [1..10], let y = even x, y]
 foo = [x + 1 | x <- [1..10], let q = even 1, q] -- [x + 1 | let q = even 1, q, x <- [1..10]]
 foo = [fooValue | Foo{..} <- y, fooField]
 issue619 = [pkgJobs | Pkg{pkgGpd, pkgJobs} <- pkgs, not $ null $ C.condTestSuites pkgGpd]
+{-# LANGUAGE MonadComprehensions #-}\
+foo = [x | False, x <- [1 .. 10]] -- []
 </TEST>
 -}
 
