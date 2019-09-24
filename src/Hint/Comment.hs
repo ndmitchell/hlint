@@ -10,7 +10,6 @@
 <COMMENT> INLINE X
 </TEST>
 -}
-{-# LANGUAGE PackageImports #-}
 
 
 module Hint.Comment(commentHint) where
@@ -19,8 +18,8 @@ import Hint.Type
 import Data.Char
 import Data.List.Extra
 import Refact.Types(Refactoring(ModifyComment))
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" ApiAnnotation
+import SrcLoc
+import ApiAnnotation
 import GHC.Util
 
 directives :: [String]

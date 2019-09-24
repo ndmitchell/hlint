@@ -1,5 +1,4 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Hint.Restrict(restrictHint) where
@@ -27,12 +26,12 @@ import Control.Applicative
 import Control.Monad
 import Prelude
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" RdrName
-import "ghc-lib-parser" ApiAnnotation
-import "ghc-lib-parser" Module
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" OccName
+import HsSyn
+import RdrName
+import ApiAnnotation
+import Module
+import SrcLoc
+import OccName
 import GHC.Util
 
 -- FIXME: The settings should be partially applied, but that's hard to orchestrate right now

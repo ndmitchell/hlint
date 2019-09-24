@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns, MultiParamTypeClasses , FlexibleInstances, FlexibleContexts #-}
 {-# LANGUAGE TupleSections #-}
@@ -18,16 +17,16 @@ module GHC.Util.HsExpr (
   , paren', fromChar'
 ) where
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" BasicTypes
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" FastString
-import "ghc-lib-parser" RdrName
-import "ghc-lib-parser" OccName
-import "ghc-lib-parser" Bag(bagToList)
-import "ghc-lib-parser" TysWiredIn
-import "ghc-lib-parser" TcEvidence
-import "ghc-lib-parser" Name
+import HsSyn
+import BasicTypes
+import SrcLoc
+import FastString
+import RdrName
+import OccName
+import Bag(bagToList)
+import TysWiredIn
+import TcEvidence
+import Name
 
 import GHC.Util.Brackets
 import GHC.Util.View

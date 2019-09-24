@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE MultiParamTypeClasses , FlexibleInstances, FlexibleContexts #-}
 
 module GHC.Util.Pat (
@@ -7,11 +6,11 @@ module GHC.Util.Pat (
   , fromPChar', isPFieldWildcard', hasPFieldsDotDot'
   ) where
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" TysWiredIn
-import "ghc-lib-parser" FastString
-import "ghc-lib-parser" RdrName
+import HsSyn
+import SrcLoc
+import TysWiredIn
+import FastString
+import RdrName
 
 import GHC.Util.Brackets
 

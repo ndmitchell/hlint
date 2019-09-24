@@ -1,5 +1,4 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 {-
@@ -32,10 +31,10 @@ import Data.Tuple.Extra
 import Data.List hiding (find)
 import qualified Data.Map as Map
 
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" Outputable
-import "ghc-lib-parser" Bag
+import SrcLoc
+import HsSyn
+import Outputable
+import Bag
 import GHC.Util
 
 duplicateHint :: CrossHint

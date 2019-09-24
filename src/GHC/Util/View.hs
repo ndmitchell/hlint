@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ViewPatterns, MultiParamTypeClasses, FlexibleInstances #-}
 
 module GHC.Util.View (
@@ -7,10 +6,10 @@ module GHC.Util.View (
   , Var_'(Var_'), PVar_'(PVar_'), PApp_'(PApp_'), App2'(App2')
 ) where
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" RdrName
-import "ghc-lib-parser" OccName
+import HsSyn
+import SrcLoc
+import RdrName
+import OccName
 
 fromParen' :: LHsExpr GhcPs -> LHsExpr GhcPs
 fromParen' (LL _ (HsPar _ x)) = fromParen' x

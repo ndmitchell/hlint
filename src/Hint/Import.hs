@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, RecordWildCards #-}
 {-
     Reduce the number of import declarations.
@@ -50,12 +49,12 @@ import Data.Maybe
 import Control.Applicative
 import Prelude
 
-import "ghc-lib-parser" FastString
-import "ghc-lib-parser" BasicTypes
-import "ghc-lib-parser" RdrName
-import "ghc-lib-parser" Module
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" SrcLoc
+import FastString
+import BasicTypes
+import RdrName
+import Module
+import HsSyn
+import SrcLoc
 import GHC.Util
 
 importHint :: ModuHint

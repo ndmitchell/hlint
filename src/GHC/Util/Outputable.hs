@@ -1,8 +1,7 @@
-{-# LANGUAGE PackageImports #-}
 
 module GHC.Util.Outputable (unsafePrettyPrint) where
 
-import "ghc-lib-parser" Outputable
+import Outputable
 
 -- \"Unsafe\" in this case means that it uses the following
 -- 'DynFlags' for printing -

@@ -1,5 +1,4 @@
 {-# LANGUAGE RecordWildCards, NoMonomorphismRestriction #-}
-{-# LANGUAGE PackageImports #-}
 
 module Idea(
     Idea(..),
@@ -18,8 +17,8 @@ import HsColour
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
 import Prelude
-import qualified "ghc-lib-parser" SrcLoc as GHC
-import qualified "ghc-lib-parser" Outputable
+import qualified SrcLoc as GHC
+import qualified Outputable
 import qualified GHC.Util as GHC
 
 -- | An idea suggest by a 'Hint'.

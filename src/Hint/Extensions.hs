@@ -253,7 +253,6 @@ used RecordWildCards = hasS isPFieldWildcard ||^ hasS isFieldWildcard
 used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun
 used NamedFieldPuns = hasS isPFieldPun ||^ hasS isFieldPun
 used UnboxedTuples = has (not . isBoxed)
-used PackageImports = hasS (isJust . importPkg)
 used QuasiQuotes = hasS isQuasiQuote ||^ hasS isTyQuasiQuote
 used ViewPatterns = hasS isPViewPat
 used DefaultSignatures = hasS isClsDefSig

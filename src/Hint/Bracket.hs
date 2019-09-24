@@ -1,5 +1,4 @@
 {-# LANGUAGE ViewPatterns, ScopedTypeVariables #-}
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
 {-
@@ -95,9 +94,9 @@ import Data.Data
 import Data.Generics.Uniplate.Operations
 import Refact.Types
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" Outputable
-import "ghc-lib-parser" SrcLoc
+import HsSyn
+import Outputable
+import SrcLoc
 import GHC.Util
 
 bracketHint :: DeclHint'

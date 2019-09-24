@@ -1,11 +1,10 @@
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module GHC.Util.HsDecl (declName,isForD') where
 
-import "ghc-lib-parser" HsSyn
-import "ghc-lib-parser" OccName
-import "ghc-lib-parser" SrcLoc
+import HsSyn
+import OccName
+import SrcLoc
 
 isForD' :: LHsDecl GhcPs -> Bool
 isForD' (LL _ ForD{}) = True; isForD' _ = False

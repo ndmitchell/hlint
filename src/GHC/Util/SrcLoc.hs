@@ -1,4 +1,3 @@
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module GHC.Util.SrcLoc (
@@ -6,8 +5,8 @@ module GHC.Util.SrcLoc (
   , SrcSpanD(..)
   ) where
 
-import "ghc-lib-parser" SrcLoc
-import "ghc-lib-parser" Outputable
+import SrcLoc
+import Outputable
 
 import Data.Default
 import Data.Data
