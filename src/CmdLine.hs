@@ -272,8 +272,12 @@ resolveFile cmd = getFile (toPredicate $ cmdIgnoreGlob cmd) (cmdPath cmd) (cmdEx
     where
         toPredicate :: [FilePattern] -> FilePath -> Bool
         toPredicate [] = const False
-        toPredicate globs = \x -> not $ null $ m [((), x)]
+        toPredicate globs = \x -> not $ null $ m [((), cleanup x)]
             where m = matchMany (map ((),) globs)
+
+        cleanup :: FilePath -> FilePath
+        cleanup ('.':x:xs) | isPathSeparator x, not $ null xs = xs
+        cleanup x = x
 
 
 getFile :: (FilePath -> Bool) -> [FilePath] -> [String] -> Maybe FilePath -> FilePath -> IO [FilePath]
