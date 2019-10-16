@@ -1,7 +1,7 @@
 cradle:
   direct:
     arguments:
-      - -package=ghc-lib-parser
+      - -hide-package=ghc-boot-th
       - -fwarn-incomplete-patterns
       - -fwarn-unused-binds
       - -fwarn-unused-imports

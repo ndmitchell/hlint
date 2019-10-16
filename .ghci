@@ -1,4 +1,4 @@
-:set -package=ghc-lib-parser
+:set -hide-package=ghc-boot-th
 :set -fwarn-incomplete-patterns
 :set -fwarn-unused-binds -fwarn-unused-imports -fwarn-orphans
 :set -isrc
