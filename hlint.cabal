@@ -113,7 +113,7 @@ library
         GHC.Util.HsDecl
         GHC.Util.HsExpr
         GHC.Util.HsType
-        GHC.Util.Pat
+        GHC.Util.HsPat
         GHC.Util.LanguageExtensions.Type
         GHC.Util.Module
         GHC.Util.Outputable
