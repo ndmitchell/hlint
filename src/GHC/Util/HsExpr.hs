@@ -32,7 +32,7 @@ import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
 import GHC.Util.W
-import GHC.Util.HsPat
+import GHC.Util.Pat
 
 import Control.Applicative
 import Control.Monad.Trans.State

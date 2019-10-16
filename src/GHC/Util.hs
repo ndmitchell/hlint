@@ -7,7 +7,7 @@ module GHC.Util (
   , module GHC.Util.HsExpr
   , module GHC.Util.HsType
   , module GHC.Util.LanguageExtensions.Type
-  , module GHC.Util.HsPat
+  , module GHC.Util.Pat
   , module GHC.Util.Module
   , module GHC.Util.Outputable
   , module GHC.Util.SrcLoc
@@ -24,7 +24,7 @@ import GHC.Util.HsExpr
 import GHC.Util.HsType
 import GHC.Util.HsDecl
 import GHC.Util.LanguageExtensions.Type
-import GHC.Util.HsPat
+import GHC.Util.Pat
 import GHC.Util.Module
 import GHC.Util.Outputable
 import GHC.Util.SrcLoc
