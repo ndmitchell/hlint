@@ -39,70 +39,138 @@ import IO as X -- import System.IO as X; import System.IO.Error as X; import Con
 
 module Hint.Import(importHint) where
 
-import Control.Applicative
-import Data.Tuple.Extra
-import Hint.Type
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),suggest',toSS',rawIdea',rawIdeaN')
 import Refact.Types hiding (ModuleName)
 import qualified Refact.Types as R
+import Data.Tuple.Extra
 import Data.List.Extra
+import Data.Generics.Uniplate.Operations
 import Data.Maybe
+import Control.Applicative
 import Prelude
 
+import FastString
+import BasicTypes
+import RdrName
+import Module
+import HsSyn
+import SrcLoc
+import GHC.Util
 
 importHint :: ModuHint
-importHint _ x = concatMap (wrap . snd) (groupSort
-                 [((fromNamed $ importModule i,importPkg i),i) | i <- universeBi x, not $ importSrc i]) ++
-                 concatMap (\x -> hierarchy x ++ combine1 x) (universeBi x)
+importHint _ ModuleEx {ghcModule=L _ HsModule{hsmodImports=ms}} =
+  -- Ideas for combining multiple imports.
+  concatMap (reduceImports . snd) (
+    groupSort [((n, pkg), i) | i <- ms
+              , not $ ideclSource (unLoc i)
+              , let i' = unLoc i
+              , let n = unLoc $ ideclName i'
+              , let pkg  = unpackFS . sl_fs <$> ideclPkgQual i']) ++
+  -- Ideas for removing redundant 'as' clauses.
+  concatMap stripRedundantAlias ms ++
+  -- Ideas for replacing deprecated imports by their preferred
+  -- equivalents.
+  concatMap preferHierarchicalImports ms
 
+reduceImports :: [LImportDecl GhcPs] -> [Idea]
+reduceImports ms =
+  [rawIdea' Hint.Type.Warning "Use fewer imports" (getLoc $ head ms) (f ms) (Just $ f x) [] rs
+  | Just (x, rs) <- [simplify ms]]
+  where f = unlines . map unsafePrettyPrint
 
-wrap :: [ImportDecl S] -> [Idea]
-wrap o = [ rawIdea Warning "Use fewer imports" (srcInfoSpan $ ann $ head o) (f o) (Just $ f x) [] rs
-         | Just (x, rs) <- [simplify o]]
-    where f = unlines . map prettyPrint
-
-
-simplify :: [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
+simplify :: [LImportDecl GhcPs]
+         -> Maybe ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
 simplify [] = Nothing
-simplify (x:xs) = case simplifyHead x xs of
+simplify (x : xs) = case simplifyHead x xs of
     Nothing -> first (x:) <$> simplify xs
     Just (xs, rs) -> Just $ maybe (xs, rs) (second (++ rs)) $ simplify xs
 
-
-simplifyHead :: ImportDecl S -> [ImportDecl S] -> Maybe ([ImportDecl S], [Refactoring R.SrcSpan])
-simplifyHead x [] = Nothing
-simplifyHead x (y:ys) = case combine x y of
+simplifyHead :: LImportDecl GhcPs
+             -> [LImportDecl GhcPs]
+             -> Maybe ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
+simplifyHead x (y : ys) = case combine x y of
     Nothing -> first (y:) <$> simplifyHead x ys
     Just (xy, rs) -> Just (xy : ys, rs)
+simplifyHead x [] = Nothing
 
-
-combine :: ImportDecl S -> ImportDecl S -> Maybe (ImportDecl S, [Refactoring R.SrcSpan])
-combine x y | qual, as, specs = Just (x, [Delete Import (toSS y)])
-           | qual, as, Just (ImportSpecList _ False xs) <- importSpecs x, Just (ImportSpecList _ False ys) <- importSpecs y = let newImp = x{importSpecs = Just $ ImportSpecList an False $ nub_ $ xs ++ ys}
-            in Just (newImp, [ Replace Import (toSS x)  [] (prettyPrint newImp)
-                             , Delete Import (toSS y) ] )
-
-           | qual, as, isNothing (importSpecs x) || isNothing (importSpecs y) =
-             let (newImp, toDelete) = if isNothing (importSpecs x) then (x, y) else (y, x)
-             in Just (newImp, [Delete Import (toSS toDelete)])
-           | not (importQualified x), qual, specs, length ass == 1 =
-             let (newImp, toDelete) = if isJust (importAs x) then (x, y) else (y, x)
-             in Just (newImp, [Delete Import (toSS toDelete)])
-
+combine :: LImportDecl GhcPs
+        -> LImportDecl GhcPs
+        -> Maybe (LImportDecl GhcPs, [Refactoring R.SrcSpan])
+combine x@(LL _ x') y@(LL _ y')
+  -- Both (un/)qualified, common 'as', same names : Delete the second.
+  | qual, as, specs = Just (x, [Delete Import (toSS' y)])
+    -- Both (un/)qualified, common 'as', different names : Merge the
+    -- second into the first and delete it.
+  | qual, as
+  , Just (False, xs) <- ideclHiding x'
+  , Just (False, ys) <- ideclHiding y' =
+      let newImp = noLoc x'{ideclHiding = Just (False, noLoc (unLoc xs ++ unLoc ys))}
+      in Just (newImp, [Replace Import (toSS' x) [] (unsafePrettyPrint (unLoc newImp))
+                       , Delete Import (toSS' y)])
+  -- Both (un/qualified), common 'as', one has names the other doesn't
+  -- : Delete the one with names.
+  | qual, as, isNothing (ideclHiding x') || isNothing (ideclHiding y') =
+       let (newImp, toDelete) = if isNothing (ideclHiding x') then (x, y) else (y, x)
+       in Just (newImp, [Delete Import (toSS' toDelete)])
+  -- Both unqualified, same names, one (and only one) has an 'as'
+  -- clause : Delete the one without an 'as'.
+  | not (ideclQualified x'), qual, specs, length ass == 1 =
+       let (newImp, toDelete) = if isJust (ideclAs x') then (x, y) else (y, x)
+       in Just (newImp, [Delete Import (toSS' toDelete)])
+  -- No hints.
+  | otherwise = Nothing
     where
-        qual = importQualified x == importQualified y
-        as = importAs x `eqMaybe` importAs y
-        ass = mapMaybe importAs [x,y]
-        specs = importSpecs x `eqMaybe` importSpecs y
+        eqMaybe:: Eq a => Maybe (Located a) -> Maybe (Located a) -> Bool
+        eqMaybe (Just x) (Just y) = x `eqLocated` y
+        eqMaybe Nothing Nothing = True
+        eqMaybe _ _ = False
 
-combine _ _ = Nothing
+        qual = ideclQualified x' == ideclQualified y'
+        as = ideclAs x' `eqMaybe` ideclAs y'
+        ass = mapMaybe ideclAs [x', y']
+        specs = transformBi (const noSrcSpan) (ideclHiding x') ==
+                    transformBi (const noSrcSpan) (ideclHiding y')
+combine _ _ = Nothing -- {-# COMPLETE LL #-}
 
-combine1 :: ImportDecl S -> [Idea]
-combine1 i@ImportDecl{..}
-    | Just (dropAnn importModule) == fmap dropAnn importAs
-    = [suggest "Redundant as" i i{importAs=Nothing} [RemoveAsKeyword (toSS i)]]
-combine1 _ = []
+stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
+stripRedundantAlias x@(LL loc i@ImportDecl {..})
+  -- Suggest 'import M as M' be just 'import M'.
+  | Just (unLoc ideclName) == fmap unLoc ideclAs =
+      [suggest' "Redundant as" x (cL loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS' x)]]
+stripRedundantAlias _ = []
 
+preferHierarchicalImports :: LImportDecl GhcPs -> [Idea]
+preferHierarchicalImports x@(LL loc i@ImportDecl{ideclName=L _ n,ideclPkgQual=Nothing})
+  -- Suggest 'import IO' be rewritten 'import System.IO, import
+  -- System.IO.Error, import Control.Exception(bracket, bracket_)'.
+  | n == mkModuleName "IO" && isNothing (ideclHiding i) =
+      [rawIdeaN' Suggestion "Use hierarchical imports" loc
+      (trimStart $ unsafePrettyPrint i) (
+          Just $ unlines $ map (trimStart . unsafePrettyPrint)
+          [ f "System.IO" Nothing, f "System.IO.Error" Nothing
+          , f "Control.Exception" $ Just (False, noLoc [mkLIE x | x <- ["bracket","bracket_"]])]) []]
+  -- Suggest that a module import like 'Monad' should be rewritten with
+  -- its hiearchical equivalent e.g. 'Control.Monad'.
+  | Just y <- lookup (moduleNameString n) newNames =
+    let newModuleName = y ++ "." ++ moduleNameString n
+        r = [Replace R.ModuleName (toSS' x) [] newModuleName] in
+    [suggest' "Use hierarchical imports"
+     x (noLoc (desugarQual i){ideclName=noLoc (mkModuleName newModuleName)} :: LImportDecl GhcPs) r]
+  where
+    -- Substitute a new module name.
+    f a b = (desugarQual i){ideclName=noLoc (mkModuleName a), ideclHiding=b}
+    -- Wrap a literal name into an 'IE' (import/export) value.
+    mkLIE :: String -> LIE GhcPs
+    mkLIE n = noLoc $ IEVar noExt (noLoc (IEName (noLoc (mkVarUnqual (fsLit n)))))
+    -- Rewrite 'import qualified X' as 'import qualified X as X'.
+    desugarQual :: ImportDecl GhcPs -> ImportDecl GhcPs
+    desugarQual i
+      | ideclQualified i && isNothing (ideclAs i) = i{ideclAs = Just (ideclName i)}
+      | otherwise = i
 
+preferHierarchicalImports _ = []
+
+newNames :: [(String, String)]
 newNames = let (*) = flip (,) in
     ["Control" * "Monad"
     ,"Data" * "Char"
@@ -118,28 +186,3 @@ newNames = let (*) = flip (,) in
     -- ,"System" * "Locale"
     -- ,"System" * "Time"
     ]
-
-
-hierarchy :: ImportDecl S -> [Idea]
-hierarchy i@ImportDecl{importModule=m@(ModuleName _ x),importPkg=Nothing} | Just y <- lookup x newNames
-    =
-    let newModuleName = y ++ "." ++ x
-        r = [Replace R.ModuleName (toSS m) [] newModuleName] in
-    [suggest "Use hierarchical imports" i (desugarQual i){importModule=ModuleName an newModuleName} r]
-
--- import IO is equivalent to
--- import System.IO, import System.IO.Error, import Control.Exception(bracket, bracket_)
-hierarchy i@ImportDecl{importModule=ModuleName _ "IO", importSpecs=Nothing,importPkg=Nothing}
-    = [rawIdeaN Suggestion "Use hierarchical imports" (srcInfoSpan $ ann i) (trimStart $ prettyPrint i) (
-          Just $ unlines $ map (trimStart . prettyPrint)
-          [f "System.IO" Nothing, f "System.IO.Error" Nothing
-          ,f "Control.Exception" $ Just $ ImportSpecList an False [IVar an $ toNamed x | x <- ["bracket","bracket_"]]]) []]
-    where f a b = (desugarQual i){importModule=ModuleName an a, importSpecs=b}
-
-hierarchy _ = []
-
-
--- import qualified X ==> import qualified X as X
-desugarQual :: ImportDecl S -> ImportDecl S
-desugarQual x | importQualified x && isNothing (importAs x) = x{importAs=Just (importModule x)}
-              | otherwise = x

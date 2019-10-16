@@ -67,7 +67,7 @@ foo = if baz
              then qux'
              else qux''
 OUTPUT
-[("tests/serialise-seven.hs:1:1: Suggestion: Use guards\nFound:\n  foo = if baz then qux else if baz' then qux' else qux''\nPerhaps:\n  foo\n    | baz = qux\n    | baz' = qux'\n    | otherwise = qux''\n",[Replace {rtype = Bind, pos = SrcSpan {startLine = 1, startCol = 1, endLine = 5, endCol = 24}, subts = [("g1001",SrcSpan {startLine = 1, startCol = 10, endLine = 1, endCol = 13}),("g1002",SrcSpan {startLine = 3, startCol = 17, endLine = 3, endCol = 21}),("e1001",SrcSpan {startLine = 2, startCol = 14, endLine = 2, endCol = 17}),("e1002",SrcSpan {startLine = 4, startCol = 19, endLine = 4, endCol = 23}),("e1003",SrcSpan {startLine = 5, startCol = 19, endLine = 5, endCol = 24})], orig = "foo\n  | g1001 = e1001\n  | g1002 = e1002\n  | otherwise = e1003"}])]
+[("tests/serialise-seven.hs:1:1: Suggestion: Use guards\nFound:\n  foo = if baz then qux else if baz' then qux' else qux''\nPerhaps:\n  foo\n    | baz = qux\n    | baz' = qux'\n    | otherwise = qux''\n",[Replace {rtype = Match, pos = SrcSpan {startLine = 1, startCol = 1, endLine = 5, endCol = 24}, subts = [("g1001",SrcSpan {startLine = 1, startCol = 10, endLine = 1, endCol = 13}),("g1002",SrcSpan {startLine = 3, startCol = 17, endLine = 3, endCol = 21}),("e1001",SrcSpan {startLine = 2, startCol = 14, endLine = 2, endCol = 17}),("e1002",SrcSpan {startLine = 4, startCol = 19, endLine = 4, endCol = 23}),("e1003",SrcSpan {startLine = 5, startCol = 19, endLine = 5, endCol = 24})], orig = "foo\n  | g1001 = e1001\n  | g1002 = e1002\n  | otherwise = e1003"}])]
 
 
 

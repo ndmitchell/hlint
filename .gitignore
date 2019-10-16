@@ -1,3 +1,6 @@
+*~
+*_flymake*
+TAGS
 /dist/
 /.hpc/
 /.stack-work/
@@ -5,3 +8,6 @@
 /issues/
 /Sample.hs
 /hlint.prof
+/TAGS
+\#*\#
+.\#*\#

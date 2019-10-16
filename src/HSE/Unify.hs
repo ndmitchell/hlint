@@ -48,14 +48,25 @@ validSubst eq = fmap Subst . mapM f . groupSort . fromSubst
 
 -- | Perform a substitution
 substitute :: Subst Exp_ -> Exp_ -> Exp_
-substitute (Subst bind) = transformBracketOld exp . transformBi pat
+substitute (Subst bind) = transformBracketOld exp . transformBi pat . transformBi typ
     where
         exp (Var _ (fromNamed -> x)) = lookup x bind
+        exp (InfixApp s lhs (fromNamed -> x) rhs) =
+            (\op -> InfixApp s lhs op rhs) <$> lookupOp x
+        exp (LeftSection s exp (fromNamed -> x)) =
+            LeftSection s exp <$> lookupOp x
+        exp (RightSection s (fromNamed -> x) exp) =
+            (\op -> RightSection s op exp) <$> lookupOp x
         exp _ = Nothing
+
+        -- Substition for operator must be an operator name
+        lookupOp x = toNamed . fromNamed <$> lookup x bind
 
         pat (PVar _ (fromNamed -> x)) | Just y <- lookup x bind = toNamed $ fromNamed y
         pat x = x :: Pat_
 
+        typ (TyVar _ (fromNamed -> x)) | Just (TypeApp _ y) <- lookup x bind = y
+        typ x = x :: Type_
 
 ---------------------------------------------------------------------
 -- UNIFICATION
@@ -73,6 +84,7 @@ unify :: Data a => NameMatch -> Bool -> a -> a -> Maybe (Subst Exp_)
 unify nm root x y
     | Just (x,y) <- cast (x,y) = unifyExp nm root x y
     | Just (x,y) <- cast (x,y) = unifyPat nm x y
+    | Just (x,y) <- cast (x,y) = unifyType nm x y
     | Just (x :: S) <- cast x = Just mempty
     | otherwise = unifyDef nm x y
 
@@ -85,14 +97,26 @@ unifyDef nm x y = fmap mconcat . sequence =<< gzip (unify nm False) x y
 -- root = True, this is the outside of the expr
 -- do not expand out a dot at the root, since otherwise you get two matches because of readRule (Bug #570)
 unifyExp :: NameMatch -> Bool -> Exp_ -> Exp_ -> Maybe (Subst Exp_)
-unifyExp nm root x y | not root, isParen x || isParen y =
-    fmap (rebracket y) <$> unifyExp nm root (fromParen x) (fromParen y)
-    where
-        rebracket (Paren l e') e | e' == e = Paren l e
-        rebracket e e' = e'
 
-unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v = Just $ Subst [(v,y)]
+-- brackets are not added when expanding $ in the users code, so tolerate them
+-- in the match even if they aren't in the users code
+unifyExp nm root x y | not root, isParen x, not $ isParen y = unifyExp nm root (fromParen x) y
+
+-- don't subsitute for type apps, since no one writes rules imaginging they exist
+unifyExp nm root (Var _ (fromNamed -> v)) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst [(v,y)]
 unifyExp nm root (Var _ x) (Var _ y) | nm x y = Just mempty
+
+-- Match wildcard operators
+unifyExp nm root (InfixApp _ lhs1 (fromNamed -> v) rhs1) (InfixApp _ lhs2 (fromNamed -> op2) rhs2)
+    | isUnifyVar v =
+        (Subst [(v, toNamed op2)] <>) <$>
+        liftM2 (<>) (unifyExp nm False lhs1 lhs2) (unifyExp nm False rhs1 rhs2)
+unifyExp nm root (LeftSection _ exp1 (fromNamed -> v)) (LeftSection _ exp2 (fromNamed -> op2))
+    | isUnifyVar v =
+        (Subst [(v, toNamed op2)] <>) <$> unifyExp nm False exp1 exp2
+unifyExp nm root (RightSection _ (fromNamed -> v) exp1) (RightSection _ (fromNamed -> op2) exp2)
+    | isUnifyVar v =
+        (Subst [(v, toNamed op2)] <>) <$> unifyExp nm False exp1 exp2
 
 -- Options: match directly, and expand through .
 unifyExp nm root x@(App _ x1 x2) (App _ y1 y2) =
@@ -126,3 +150,8 @@ unifyPat :: NameMatch -> Pat_ -> Pat_ -> Maybe (Subst Exp_)
 unifyPat nm (PVar _ x) (PVar _ y) = Just $ Subst [(fromNamed x, toNamed $ fromNamed y)]
 unifyPat nm (PVar _ x) PWildCard{} = Just $ Subst [(fromNamed x, toNamed $ "_" ++ fromNamed x)]
 unifyPat nm x y = unifyDef nm x y
+
+
+unifyType :: NameMatch -> Type_ -> Type_ -> Maybe (Subst Exp_)
+unifyType nm (TyVar a x) y = Just $ Subst [(fromNamed x, TypeApp a y)]
+unifyType nm x y = unifyDef nm x y

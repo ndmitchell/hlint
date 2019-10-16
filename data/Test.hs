@@ -43,6 +43,8 @@ error = zip [1..length x] x ==> zipFrom 1 x
 
 error = before a ==> after a
 
+warn "noop" = a ? 0 ==> a
+
 {-
 <TEST>
 main = readFile "foo" >>= putStr            \
@@ -95,6 +97,7 @@ test = id Control.Arrow.*** id -- id
 import Control.Arrow as Q; test = id Q.*** id -- id
 zip [1..length x]
 zip [1..length x] x -- zipFrom 1 x
+test = 5 + 0 -- 5
 
 {-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-} \
 {-# LANGUAGE RecordWildCards #-} -- @Ignore ???

@@ -109,8 +109,16 @@ parseString :: Val -> Parser String
 parseString (getVal -> String x) = return $ T.unpack x
 parseString v = parseFail v "Expected a String"
 
+parseInt :: Val -> Parser Int
+parseInt (getVal -> s@Number{}) = parseJSON s
+parseInt v = parseFail v "Expected an Int"
+
 parseArrayString :: Val -> Parser [String]
 parseArrayString = parseArray >=> mapM parseString
+
+maybeParse :: (Val -> Parser a) -> Maybe Val -> Parser (Maybe a)
+maybeParse parseValue Nothing = return Nothing
+maybeParse parseValue (Just value) = Just <$> parseValue value
 
 parseBool :: Val -> Parser Bool
 parseBool (getVal -> Bool b) = return b
@@ -140,7 +148,7 @@ allowFields v allow = do
 parseHSE :: (ParseMode -> String -> ParseResult v) -> Val -> Parser v
 parseHSE parser v = do
     x <- parseString v
-    case parser defaultParseMode{extensions=defaultExtensions} x of
+    case parser defaultParseMode{extensions=configExtensions} x of
         ParseOk x -> return x
         ParseFailed loc s -> parseFail v $ "Failed to parse " ++ s ++ ", when parsing:\n  " ++ x
 
@@ -155,16 +163,18 @@ instance FromJSON ConfigYaml where
 parseConfigYaml :: Val -> Parser ConfigYaml
 parseConfigYaml v = do
     vs <- parseArray v
-    fmap ConfigYaml $ forM vs $ \o@v -> do
-        (s, v) <- parseObject1 v
+    fmap ConfigYaml $ forM vs $ \o -> do
+        (s, v) <- parseObject1 o
         case s of
             "package" -> ConfigPackage <$> parsePackage v
             "group" -> ConfigGroup <$> parseGroup v
             "arguments" -> ConfigSetting . map SettingArgument <$> parseArrayString v
             "fixity" -> ConfigSetting <$> parseFixity v
+            "smell" -> ConfigSetting <$> parseSmell v
             _ | isJust $ getSeverity s -> ConfigGroup . ruleToGroup <$> parseRule o
             _ | Just r <- getRestrictType s -> ConfigSetting . map SettingRestrict <$> (parseArray v >>= mapM (parseRestrict r))
             _ -> parseFail v "Expecting an object with a 'package' or 'group' key, a hint or a restriction"
+
 
 parsePackage :: Val -> Parser Package
 parsePackage v = do
@@ -178,6 +188,17 @@ parseFixity v = parseArray v >>= concatMapM (parseHSE parseDeclWithMode >=> f)
     where
         f x@InfixDecl{} = return $ map Infix $ getFixity x
         f _ = parseFail v "Expected fixity declaration"
+
+parseSmell :: Val -> Parser [Setting]
+parseSmell v = do
+  smellName <- parseField "type" v >>= parseString
+  smellType <- require v "Expected SmellType"  $ getSmellType smellName
+  smellLimit <- parseField "limit" v >>= parseInt
+  return [SettingSmell smellType smellLimit]
+    where
+      require :: Val -> String -> Maybe a -> Parser a
+      require _ _ (Just a) = return a
+      require val err Nothing = parseFail val err
 
 parseGroup :: Val -> Parser Group
 parseGroup v = do
@@ -222,12 +243,13 @@ parseRestrict restrictType v = do
         Just def -> do
             b <- parseBool def
             allowFields v ["default"]
-            return $ Restrict restrictType b [] [] []
+            return $ Restrict restrictType b [] [] [] Nothing
         Nothing -> do
             restrictName <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
             restrictWithin <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
             restrictAs <- parseFieldOpt "as" v >>= maybe (return []) parseArrayString
-            allowFields v $ ["as" | restrictType == RestrictModule] ++ ["name","within"]
+            restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
+            allowFields v $ ["as" | restrictType == RestrictModule] ++ ["name","within", "message"]
             return Restrict{restrictDefault=True,..}
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)

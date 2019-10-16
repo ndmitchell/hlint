@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, ViewPatterns, TupleSections #-}
+{-# LANGUAGE FlexibleContexts, TupleSections #-}
 
 module HSE.Util(module HSE.Util, def) where
 
@@ -70,6 +70,10 @@ fromString _ = Nothing
 fromPString :: Pat_ -> Maybe String
 fromPString (PLit _ _ (String _ x _)) =  Just x
 fromPString _ = Nothing
+
+fromParen1 :: Exp_ -> Exp_
+fromParen1 (Paren _ x) = x
+fromParen1 x = x
 
 fromParen :: Exp_ -> Exp_
 fromParen (Paren _ x) = fromParen x
@@ -231,15 +235,6 @@ descendIndex f x = flip evalState 0 $ flip descendM x $ \y -> do
 
 ---------------------------------------------------------------------
 -- HSE FUNCTIONS
-
-isKindHash :: Type_ -> Bool
-isKindHash (TyParen _ x) = isKindHash x
-isKindHash (TyApp _ x _) = isKindHash x
-isKindHash (TyCon _ (fromQual -> Just (Ident _ s))) = "#" `isSuffixOf`  s
-isKindHash (TyTuple _ Unboxed _) = True
-isKindHash TyUnboxedSum{} = True
-isKindHash _ = False
-
 
 getEquations :: Decl s -> [Decl s]
 getEquations (FunBind s xs) = map (FunBind s . (:[])) xs
@@ -403,7 +398,7 @@ extensionImpliedBy = \x -> Map.findWithDefault [] x mp
 extensionImplications :: [(Extension, [Extension])]
 extensionImplications = map (first EnableExtension) $
     (RebindableSyntax, [DisableExtension ImplicitPrelude]) :
-    map (\(k, vs) -> (k, map EnableExtension vs))
+    map (second (map EnableExtension))
     [ (DerivingVia              , [DerivingStrategies])
     , (RecordWildCards          , [DisambiguateRecordFields])
     , (ExistentialQuantification, [ExplicitForAll])

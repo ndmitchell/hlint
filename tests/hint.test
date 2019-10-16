@@ -76,3 +76,81 @@ foobar :: [Char]
 foobar = []
 OUTPUT
 No hints
+
+---------------------------------------------------------------------
+RUN tests/restricted-module.lhs --with= --hint=data/test-restrict.yaml
+FILE tests/restricted-module.lhs
+> import Restricted.Module
+OUTPUT
+tests/restricted-module.lhs:1:3: Warning: Avoid restricted module
+Found:
+  import Restricted.Module
+Note: may break the code
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/restricted-module-message.lhs --with= --hint=data/test-restrict.yaml
+FILE tests/restricted-module-message.lhs
+> import Restricted.Module.Message
+OUTPUT
+tests/restricted-module-message.lhs:1:3: Warning: Avoid restricted module
+Found:
+  import Restricted.Module.Message
+Note: Custom message
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/restricted-function.lhs --with= --hint=data/test-restrict.yaml
+FILE tests/restricted-function.lhs
+> main = restricted ()
+OUTPUT
+tests/restricted-function.lhs:1:10: Warning: Avoid restricted function
+Found:
+  restricted
+Note: may break the code
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/restricted-function-message.lhs --with= --hint=data/test-restrict.yaml
+FILE tests/restricted-function-message.lhs
+> main = restrictedMessage ()
+OUTPUT
+tests/restricted-function-message.lhs:1:10: Warning: Avoid restricted function
+Found:
+  restrictedMessage
+Note: Custom message
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/restricted-extension.hs --with= --hint=data/test-restrict.yaml
+FILE tests/restricted-extension.hs
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+module Test(A) where
+
+import Data.Foldable (Foldable)
+import Data.Traversable (Traversable)
+import Data.Typeable (Typeable)
+
+newtype A f = A f
+  deriving (Foldable, Functor, Traversable, Typeable)
+OUTPUT
+OUTPUT
+tests/restricted-extension.hs:2:1: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE DeriveFunctor #-}
+Note: may break the code
+
+tests/restricted-extension.hs:3:1: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE DeriveTraversable #-}
+Note: Custom message
+
+2 hints
+

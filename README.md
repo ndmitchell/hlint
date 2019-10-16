@@ -1,6 +1,6 @@
-# HLint [![Hackage version](https://img.shields.io/hackage/v/hlint.svg?label=Hackage)](https://hackage.haskell.org/package/hlint) [![Stackage version](https://www.stackage.org/package/hlint/badge/nightly?label=Stackage)](https://www.stackage.org/package/hlint) [![Linux Build Status](https://img.shields.io/travis/ndmitchell/hlint/master.svg?label=Linux%20build)](https://travis-ci.org/ndmitchell/hlint) [![Windows Build Status](https://img.shields.io/appveyor/ci/ndmitchell/hlint/master.svg?label=Windows%20build)](https://ci.appveyor.com/project/ndmitchell/hlint)
+# HLint [![Hackage version](https://img.shields.io/hackage/v/hlint.svg?label=Hackage)](https://hackage.haskell.org/package/hlint) [![Stackage version](https://www.stackage.org/package/hlint/badge/nightly?label=Stackage)](https://www.stackage.org/package/hlint) [![Linux build status](https://img.shields.io/travis/ndmitchell/hlint/master.svg?label=Linux%20build)](https://travis-ci.org/ndmitchell/hlint) [![Windows build status](https://img.shields.io/appveyor/ci/ndmitchell/hlint/master.svg?label=Windows%20build)](https://ci.appveyor.com/project/ndmitchell/hlint)
 
-HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. You can try HLint online at [lpaste.net](http://lpaste.net/) - suggestions are shown at the bottom. This document is structured as follows:
+HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
 
 * [Installing and running HLint](#installing-and-running-hlint)
 * [FAQ](#faq)
@@ -86,6 +86,8 @@ HLint is integrated into lots of places:
 * [Code Climate](https://docs.codeclimate.com/v1.0/docs/hlint) is a CI for analysis which integrates HLint.
 * [Danger](http://allocinit.io/haskell/danger-and-hlint/) can be used to automatically comment on pull requests with HLint suggestions.
 * [Restyled](https://restyled.io) includes an HLint Restyler to automatically run `hlint --refactor` on files changed in GitHub Pull Requests.
+* [lpaste](http://lpaste.net/) integrates with HLint - suggestions are shown at the bottom.
+* [hlint-test](https://hackage.haskell.org/package/hlint-test) helps you write a small test runner with HLint.
 
 ### Automatically Applying Hints
 
@@ -116,7 +118,7 @@ HLint can generate a lot of information, making it difficult to search for parti
 
 ### Language Extensions
 
-HLint enables most Haskell extensions, disabling only those which steal too much syntax (currently Arrows, TransformListComp, XmlSyntax and RegularPatterns). Individual extensions can be enabled or disabled with, for instance, `-XArrows`, or `-XNoMagicHash`. The flag `-XHaskell2010` selects Haskell 2010 compatibility. You can also pass them via `.hlint.yaml` file. For example: `- arguments: [-XQuasiQuotes]`.
+HLint enables most Haskell extensions, disabling only those which steal too much syntax (e.g. Arrows, TransformListComp and TypeApplications). Individual extensions can be enabled or disabled with, for instance, `-XArrows`, or `-XNoMagicHash`. The flag `-XHaskell2010` selects Haskell 2010 compatibility. You can also pass them via `.hlint.yaml` file. For example: `- arguments: [-XArrows]`.
 
 ### Emacs Integration
 
@@ -171,7 +173,7 @@ HLint doesn't suggest optimisations, it suggests code improvements - the intenti
 
 ### Why doesn't HLint know the fixity for my custom !@%$ operator?
 
-HLint knows the fixities for all the operators in the base library, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file, or passing them on the command line. For example, pass `--with=infixr 5 !@%$`, or put all the fixity declarations in a file and pass `--hint=fixities.hs`. You can also use [--find](https://rawgithub.com/ndmitchell/hlint/master/hlint.htm#find) to automatically produce a list of fixity declarations in a file.
+HLint knows the fixities for all the operators in the base library, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file, or passing them on the command line. For example, pass `--with=infixr 5 !@%$`, or put all the fixity declarations in a `.hlint.yaml` file as `- fixity: "infixr 5 !@%$"`. You can also use [--find](https://rawgithub.com/ndmitchell/hlint/master/hlint.htm#find) to automatically produce a list of fixity declarations in a file.
 
 ### Which hints are used?
 
@@ -245,7 +247,7 @@ Some of the hints are subjective, and some users believe they should be ignored.
 
 For `ANN` pragmas it is important to put them _after_ any `import` statements. If you have the `OverloadedStrings` extension enabled you will need to give an explicit type to the annotation, e.g. `{-# ANN myFunction ("HLint: ignore" :: String) #-}`. The `ANN` pragmas can also increase compile times or cause more recompilation than otherwise required, since they are evaluated by `TemplateHaskell`.
 
-For `{-# HLINT #-}` pragmas GHC may give a warning about an unrecognised pragma, which can be supressed with `-Wno-unrecognised-pragmas`.
+For `{-# HLINT #-}` pragmas GHC may give a warning about an unrecognised pragma, which can be suppressed with `-Wno-unrecognised-pragmas`.
 
 For `{- HLINT -}` comments they are likely to be treated as comments in syntax highlighting, which can lead to them being overlooked.
 
@@ -258,6 +260,8 @@ Ignore directives can also be written in the hint files:
 * `- error: {name: Use concatMap}` - the hint to use `concatMap` is an error (you may also use `warn` or `suggest` in place of `error` for other severity levels).
 
 These directives are applied in the order they are given, with later hints overriding earlier ones.
+
+You can choose to ignore all hints with `- ignore: {}` then selectively enable the ones you want (e.g. `- warn: {name: Use const}`), but it isn't a totally smooth experience (see [#747](https://github.com/ndmitchell/hlint/issues/747) and [#748](https://github.com/ndmitchell/hlint/issues/748)).
 
 Finally, `hlint` defines the `__HLINT__` preprocessor definition (with value `1`), so problematic definitions (including those that don't parse) can be hidden with:
 
@@ -319,6 +323,8 @@ This declares that the `nub` function can't be used in any modules, and thus is 
 ```
 
 This fragment requires that all imports of `Set` must be `qualified Data.Set as Set`, enforcing consistency. It also ensures the module `Control.Arrow` can't be used anywhere.
+
+You can customize the `Note:` for restricted modules, functions and extensions, by providing a `message` field (default: `may break the code`).
 
 ## Hacking HLint
 

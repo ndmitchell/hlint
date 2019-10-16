@@ -9,18 +9,39 @@ module Foo(module Foo) where foo = 1 -- @Ignore module Foo(...) where
 module Foo(module Foo, foo) where foo = 1 -- module Foo(..., foo) where
 </TEST>
 -}
+{-# LANGUAGE TypeFamilies #-}
 
 module Hint.Export(exportHint) where
 
-import Hint.Type
+import Hint.Type(ModuHint, ModuleEx(..),ideaNote,ignore',Note(..))
 
+import HsSyn
+import Module
+import SrcLoc
+import OccName
+import RdrName
 
 exportHint :: ModuHint
-exportHint _ (Module _ (Just o@(ModuleHead a name warning exports)) _ _ _)
-    | Nothing <- exports =
-        let o2 = ModuleHead a name warning $ Just $ ExportSpecList a [EModuleContents a name]
-        in [(ignore "Use module export list" o o2 []){ideaNote = [Note "an explicit list is usually better"]}]
-    | Just (ExportSpecList _ xs) <- exports, EModuleContents a name `elem_` xs =
-        let o2 = ModuleHead a name warning $ Just $ ExportSpecList a $ EVar a ellipses : delete_ (EModuleContents a name) xs
-        in [ignore "Use explicit module export list" o o2 []]
+exportHint _ (ModuleEx _ _ (LL s m@HsModule {hsmodName = Just name, hsmodExports = exports}) _)
+  | Nothing <- exports =
+      let r = o{ hsmodExports = Just (noLoc [noLoc (IEModuleContents noExt name)] )} in
+      [(ignore' "Use module export list" (L s o) (noLoc r) []){ideaNote = [Note "an explicit list is usally better"]}]
+  | Just (L _ xs) <- exports
+  , mods <- [x | x <- xs, isMod x]
+  , modName <- moduleNameString (unLoc name)
+  , names <- [ moduleNameString (unLoc n) | (LL _ (IEModuleContents _ n)) <- mods]
+  , exports' <- [x | x <- xs, not (matchesModName modName x)]
+  , modName `elem` names =
+      let dots = mkRdrUnqual (mkVarOcc " ... ")
+          r = o{ hsmodExports = Just (noLoc (noLoc (IEVar noExt (noLoc (IEName (noLoc dots)))) : exports') )}
+      in
+        [ignore' "Use explicit module export list" (L s o) (noLoc r) []]
+      where
+          o = m{hsmodImports=[], hsmodDecls=[], hsmodDeprecMessage=Nothing, hsmodHaddockModHeader=Nothing }
+          isMod (LL _ (IEModuleContents _ _)) = True
+          isMod _ = False
+
+          matchesModName m (LL _ (IEModuleContents _ (L _ n))) = moduleNameString n == m
+          matchesModName _ _ = False
+
 exportHint _ _ = []

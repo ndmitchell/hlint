@@ -9,7 +9,12 @@ import Data.Char
 import Data.Either.Extra
 import Data.List.Extra
 import Data.Maybe
+import Control.Monad
+import System.FilePath
+import Control.Monad.IO.Class
 import Data.Function
+import Data.Yaml
+import qualified Data.ByteString.Char8 as BS
 
 import Config.Type
 import Idea
@@ -18,23 +23,30 @@ import HSE.All
 import Test.Util
 import Data.Functor
 import Prelude
+import Config.Yaml
 
 
 -- Input, Output
 -- Output = Nothing, should not match
 -- Output = Just xs, should match xs
-data Test = Test SrcLoc String (Maybe String)
+data TestCase = TestCase SrcLoc String (Maybe String) [Setting] deriving (Show)
 
-testAnnotations :: [Setting] -> FilePath -> IO ()
+testAnnotations :: [Setting] -> FilePath -> Test ()
 testAnnotations setting file = do
-    tests <- parseTestFile file
+    tests <- liftIO $ parseTestFile file
     mapM_ f tests
     where
-        f (Test loc inp out) = do
-            ideas <- try_ $ do
-                res <- applyHintFile defaultParseFlags setting file $ Just inp
+        f (TestCase loc inp out additionalSettings) = do
+            ideas <- liftIO $ try_ $ do
+                res <- applyHintFile defaultParseFlags (setting ++ additionalSettings) file $ Just inp
                 evaluate $ length $ show res
                 return res
+
+            -- the hints from data/Test.hs are really fake hints we don't actually deploy
+            -- so don't record them
+            when (takeFileName file /= "Test.hs") $
+                either (const $ return ()) addIdeas ideas
+
             let good = case (out, ideas) of
                     (Nothing, Right []) -> True
                     (Just x, Right [idea]) | match x idea -> True
@@ -66,24 +78,36 @@ testAnnotations setting file = do
         norm = filter $ \x -> not (isSpace x) && x /= ';'
 
 
-parseTestFile :: FilePath -> IO [Test]
+parseTestFile :: FilePath -> IO [TestCase]
 parseTestFile file =
     -- we remove all leading # symbols since Yaml only lets us do comments that way
-    f False . zip [1..] . map (\x -> fromMaybe x $ stripPrefix "# " x) . lines <$> readFile file
+    f Nothing . zip [1..] . map (\x -> fromMaybe x $ stripPrefix "# " x) . lines <$> readFile file
     where
-        open = isPrefixOf "<TEST>"
+        open :: String -> Maybe [Setting]
+        open line
+          |  "<TEST>" `isPrefixOf` line =
+             let suffix = dropPrefix "<TEST>" line
+                 config = decodeEither'  $ BS.pack suffix
+             in case config of
+                  Left err -> Just []
+                  Right config -> Just $ settingsFromConfigYaml [config]
+          | otherwise = Nothing
+
+        shut :: String -> Bool
         shut = isPrefixOf "</TEST>"
 
-        f False ((i,x):xs) = f (open x) xs
-        f True  ((i,x):xs)
-            | shut x = f False xs
-            | null x || "-- " `isPrefixOf` x = f True xs
-            | "\\" `isSuffixOf` x, (_,y):ys <- xs = f True $ (i,init x++"\n"++y):ys
-            | otherwise = parseTest file i x : f True xs
+        f :: Maybe [Setting] -> [(Int, String)] -> [TestCase]
+        f Nothing ((i,x):xs) = f (open x) xs
+        f (Just s)  ((i,x):xs)
+            | shut x = f Nothing xs
+            | null x || "-- " `isPrefixOf` x = f (Just s) xs
+            | "\\" `isSuffixOf` x, (_,y):ys <- xs = f (Just s) $ (i,init x++"\n"++y):ys
+            | otherwise = parseTest file i x s : f (Just s) xs
         f _ [] = []
 
 
-parseTest file i x = uncurry (Test (SrcLoc file i 0)) $ f x
+parseTest :: String -> Int -> String -> [Setting] -> TestCase
+parseTest file i x = uncurry (TestCase (SrcLoc file i 0)) $ f x
     where
         f x | Just x <- stripPrefix "<COMMENT>" x = first ("--"++) $ f x
         f (' ':'-':'-':xs) | null xs || " " `isPrefixOf` xs = ("", Just $ dropWhile isSpace xs)

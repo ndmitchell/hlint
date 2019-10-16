@@ -1,20 +1,15 @@
-sudo: required
+language: minimal
 matrix:
   include:
-  - env: GHCVER=7.4
-  - env: GHCVER=7.6
-  - env: GHCVER=7.8
-  - env: GHCVER=7.10
-  - env: GHCVER=8.0
-  - env: GHCVER=8.2
   - env: GHCVER=8.4
   - env: GHCVER=8.6
+  - env: GHCVER=8.8
   - env: GHCVER=head
   - os: osx
 
 script:
 - export HLINT_ARGUMENTS=src
-- export UNIPLATE_VERBOSE=-1
+# - export UNIPLATE_VERBOSE=-1
 - curl -sSL https://raw.github.com/ndmitchell/neil/master/travis.sh | sh
 
 deploy:

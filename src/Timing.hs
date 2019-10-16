@@ -10,6 +10,8 @@ import Control.Exception
 import Data.IORef.Extra
 import Data.Tuple.Extra
 import Data.List.Extra
+import Control.Monad
+import System.Console.CmdArgs.Verbosity
 import System.Time.Extra
 import System.IO.Unsafe
 
@@ -36,8 +38,11 @@ timed c i x = if not useTimings then x else unsafePerformIO $ timedIO c i $ eval
 
 timedIO :: Category -> Item -> IO a -> IO a
 timedIO c i x = if not useTimings then x else do
+    let quiet = c == "Hint"
+    unless quiet $ whenLoud $ putStr $ "Performing " ++ c ++ " of " ++ i ++ "... "
     (time, x) <- duration x
     atomicModifyIORef' timings $ \mp -> (Map.insertWith (+) (c, i) time mp, ())
+    unless quiet $ whenLoud $ putStrLn $ "took " ++ showDuration time
     return x
 
 startTimings :: IO ()

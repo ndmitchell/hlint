@@ -1,5 +1,85 @@
 Changelog for HLint (* = breaking change)
 
+2.2.3, released 2019-09-29
+    #766, turn on more extensions when parsing config files
+    #255, don't match variables with type application
+    Switch to ghc-parser-8.8.1
+    Slightly restrict the replace case with fromMaybe hint
+    #701, add hints for replacing case with maybe
+    #724, suggest Data.Bifunctor in some places
+    #725, allow custom message for restricted items
+2.2.2, released 2019-07-23
+    #716, upgrade to ghc-lib-parser 8.8.0.20190723
+2.2.1, released 2019-07-22
+    #713, make sure -XNoPatternSynonyms works (fix regression)
+    #700, add some Monoid and Alternative hints
+    Add createModuleEx to the API
+    #698, don't suggest a replacement for DerivingStrategies
+2.2, released 2019-06-26
+*   Remove functions and make some things abstract in HLint3 API
+2.1.26, released 2019-06-26
+    Make sure unknown extensions don't cause errors
+2.1.25, released 2019-06-26
+    #681, fix for extensions on the command line not being used
+    #686, suggest head (drop n x) ==> x !! max 0 n
+    #683, add Use DerivingStrategies hint, ignored by default
+    #685, skip running refactoring tool if there are no hints
+    #675, warn about redundant fmaps on Eithers and Maybes
+    Add back two $ hints removed in error
+2.1.24, released 2019-06-10
+    Add Language.Haskell.HLint4
+    #658, ignore the previously undocumented {- LINT -} comments
+    #658, force parsing of all pragmas and comments eagerly
+    #665, make different fromMaybe hints have different names
+    #664, better name for the Use uncurry hint
+    #659, make hints with brackets at the root work
+2.1.23, released 2019-06-09
+    Make it an error if your code does not parse with GHC
+    #662, don't warn on ($x), since it might not really be TH
+    #660, suggest tuple sections for \y -> (x,y) and similar
+    #667, warn on return x >> m and similar
+    #653, add symmetric versions of some == hints
+    #650, add a group of teaching hints
+    #651, warn on unused NamedFieldPuns
+    #646, switch to an HTML doctype
+2.1.22, released 2019-05-25
+    #634, suggest modifyIORef ==> writeIORef when applicable
+    #642, suggest null in more places
+    #640, reenable GHC parsing
+2.1.21, released 2019-05-19
+    #637, temporary workaround for GHC parser segfaults
+2.1.20, released 2019-05-15
+*   Fix a dumb break in the API on parseModuleEx
+2.1.19, released 2019-05-14
+*   Revert PVP breakage
+2.1.18, released 2019-05-13
+*   Change parseModuleEx/ParseError by accident
+    #633, don't suggest changes inside RULES
+    #631, suggest typeOf ==> typeRep
+    Add matching on type variables
+    #627, restrict to GHC 8.4 and above
+2.1.17, released 2019-04-17
+    #626, add operator wildcards with ?, ??, ??? etc
+    #625, fix an rnf/rhs typo
+    #562, make test --verbose show a list of matched hints
+2.1.16, released 2019-04-15
+    Make `seq` and `rem` hints apply to prefix functions
+    #604, suggest rnf x `seq` () ==> rnf x
+    #619, require haskell-src-exts-util-0.2.5
+    #619, fix move guards forward with record puns
+    #618, add pure x <*> y ==> x <$> y
+    #611, add == and subst for more advanced match conditions
+    #612, add: Suggest f =<< instead of maybe Nothing f
+    #609, add code smells
+    #614, adds refactorings for camelCase and some list suggestions
+    #605, make command line arguments override the .yaml file
+    #603, QuasiQuotes can programatically use any extension
+2.1.15, released 2019-02-27
+    #593, reorder guards in list comps where possible
+    #597, suggest pushing a map over a list comp inside
+    Say redundant pure, when the thing you are removing is pure
+    #554, add more verbosity
+    Don't test with GHC 7.4 to 7.8
     #590, say which extensions should be deleted
     #591, be careful about encoding on stdin
 2.1.14, released 2019-01-28

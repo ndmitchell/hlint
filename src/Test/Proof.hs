@@ -59,6 +59,7 @@ proof reports hints thy = do
             where n = maximum $ map (length . fst) xs
 
 
+missingFuncs :: [(String, String)]
 missingFuncs = let a*b = [(b,a) | b <- words b] in concat
     ["IO" * "putChar putStr print putStrLn getLine getChar getContents hReady hPrint stdin"
     ,"Exit" * "exitSuccess"

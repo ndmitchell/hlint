@@ -1,6 +1,6 @@
 
 module Hint.All(
-    Hint(..), HintBuiltin(..), DeclHint, ModuHint,
+    Hint(..), DeclHint, ModuHint,
     resolveHints, hintRules, builtinHints
     ) where
 
@@ -30,6 +30,7 @@ import Hint.Duplicate
 import Hint.Comment
 import Hint.Unsafe
 import Hint.NewType
+import Hint.Smell
 
 -- | A list of the builtin hints wired into HLint.
 --   This list is likely to grow over time.
@@ -37,34 +38,38 @@ data HintBuiltin =
     HintList | HintListRec | HintMonad | HintLambda |
     HintBracket | HintNaming | HintPattern | HintImport | HintExport |
     HintPragma | HintExtensions | HintUnsafe | HintDuplicate | HintRestrict |
-    HintComment | HintNewType
+    HintComment | HintNewType | HintSmell
     deriving (Show,Eq,Ord,Bounded,Enum)
 
 
 builtin :: HintBuiltin -> Hint
 builtin x = case x of
-    HintList       -> decl listHint
-    HintListRec    -> decl listRecHint
+    -- Hse.
+    HintExtensions -> modu extensionsHint
     HintMonad      -> decl monadHint
     HintLambda     -> decl lambdaHint
-    HintBracket    -> decl bracketHint
-    HintNaming     -> decl namingHint
-    HintPattern    -> decl patternHint
+
+    -- Ghc.
     HintImport     -> modu importHint
     HintExport     -> modu exportHint
+    HintComment    -> modu commentHint
     HintPragma     -> modu pragmaHint
-    HintExtensions -> modu extensionsHint
-    HintUnsafe     -> decl unsafeHint
     HintDuplicate  -> mods duplicateHint
-    HintComment    -> comm commentHint
-    HintNewType    -> decl newtypeHint
     HintRestrict   -> mempty{hintModule=restrictHint}
+    HintList       -> decl' listHint
+    HintNewType    -> decl' newtypeHint
+    HintUnsafe     -> decl' unsafeHint
+    HintListRec    -> decl' listRecHint
+    HintNaming     -> decl' namingHint
+    HintBracket    -> decl' bracketHint
+    HintSmell      -> mempty{hintDecl'=smellHint,hintModule=smellModuleHint}
+    HintPattern    -> decl' patternHint
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList
         decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}
+        decl' f = mempty{hintDecl'=const $ \a b c -> wrap $ f a b c}
         modu f = mempty{hintModule=const $ \a b -> wrap $ f a b}
         mods f = mempty{hintModules=const $ \a -> wrap $ f a}
-        comm f = mempty{hintComment=const $ \a -> wrap $ f a}
 
 -- | A list of builtin hints, currently including entries such as @\"List\"@ and @\"Bracket\"@.
 builtinHints :: [(String, Hint)]

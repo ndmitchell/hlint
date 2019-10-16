@@ -1,16 +1,12 @@
 {-# LANGUAGE PatternGuards, ViewPatterns #-}
 
-module Hint.Util(niceLambda, simplifyExp, niceLambdaR) where
+module Hint.Util(niceLambdaR) where
 
 import HSE.All
 import Data.List.Extra
 import Refact.Types
 import Refact
 import qualified Refact.Types as R (SrcSpan)
-
-niceLambda :: [String] -> Exp_ -> Exp_
-niceLambda ss e = fst (niceLambdaR ss e)
-
 
 -- | Generate a lambda, but prettier (if possible).
 --   Generally no lambda is good, but removing just some arguments isn't so useful.
@@ -97,15 +93,3 @@ niceLambdaR ps x = (Lambda an (map toNamed ps) x, const [])
 niceDotApp :: Exp_ -> Exp_ -> Exp_
 niceDotApp a b | a ~= "$" = b
                | otherwise = dotApp a b
-
-
-
--- | Convert expressions which have redundant junk in them away.
---   Mainly so that later stages can match on fewer alternatives.
-simplifyExp :: Exp_ -> Exp_
-simplifyExp (InfixApp _ x dol y) | isDol dol = App an x (paren y)
-simplifyExp (Let _ (BDecls _ [PatBind _ (view -> PVar_ x) (UnGuardedRhs _ y) Nothing]) z)
-    | x `notElem` vars y && length [() | UnQual _ a <- universeS z, prettyPrint a == x] <= 1 = transform f z
-    where f (view -> Var_ x') | x == x' = paren y
-          f x = x
-simplifyExp x = x

@@ -54,6 +54,7 @@ import Prelude
 import qualified Refact.Types as R
 
 
+fmapAn :: Exp b -> Exp SrcSpanInfo
 fmapAn = fmap (const an)
 
 
@@ -91,13 +92,18 @@ dotVersion _ = []
 ---------------------------------------------------------------------
 -- PERFORM THE MATCHING
 
-findIdeas :: [HintRule] -> Scope -> Module S -> Decl_ -> [Idea]
+findIdeas :: [HintRule] -> Scope -> ModuleEx -> Decl_ -> [Idea]
 findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
     [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
-    | decl <- case decl of InstDecl{} -> children decl; _ -> [decl]
-    , (parent,x) <- universeParentExp decl, not $ isParen x
+    | decl <- findDecls decl
+    , (parent,x) <- universeParentExp decl
     , m <- matches, Just (y,notes, subst) <- [matchIdea s decl m parent x]
     , let r = R.Replace R.Expr (toSS x) subst (prettyPrint $ hintRuleRHS m) ]
+
+findDecls :: Decl_ -> [Decl_]
+findDecls x@InstDecl{} = children x
+findDecls RulePragmaDecl{} = [] -- often rules contain things that HLint would rewrite
+findDecls x = [x]
 
 matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_, [Note], [(String, R.SrcSpan)])
 matchIdea s decl HintRule{..} parent x = do
@@ -126,23 +132,28 @@ matchIdea s decl HintRule{..} parent x = do
 -- SIDE CONDITIONS
 
 checkSide :: Maybe Exp_ -> [(String, Exp_)] -> Bool
-checkSide x bind = maybe True f x
+checkSide x bind = maybe True bool x
     where
-        f (InfixApp _ x op y)
-            | opExp op ~= "&&" = f x && f y
-            | opExp op ~= "||" = f x || f y
-        f (App _ x y) | x ~= "not" = not $ f y
-        f (Paren _ x) = f x
+        bool :: Exp_ -> Bool
+        bool (InfixApp _ x op y)
+            | opExp op ~= "&&" = bool x && bool y
+            | opExp op ~= "||" = bool x || bool y
+            | opExp op ~= "==" = expr (fromParen1 x) =~= expr (fromParen1 y)
+        bool (App _ x y) | x ~= "not" = not $ bool y
+        bool (Paren _ x) = bool x
 
-        f (App _ cond (sub -> y))
-            | 'i':'s':typ <- fromNamed cond
-            = isType typ y
-        f (App _ (App _ cond (sub -> x)) (sub -> y))
+        bool (App _ cond (sub -> y))
+            | 'i':'s':typ <- fromNamed cond = isType typ y
+        bool (App _ (App _ cond (sub -> x)) (sub -> y))
             | cond ~= "notIn" = and [x `notElem` universe y | x <- list x, y <- list y]
             | cond ~= "notEq" = x /=~= y
-        f x | x ~= "noTypeCheck" = True
-        f x | x ~= "noQuickCheck" = True
-        f x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
+        bool x | x ~= "noTypeCheck" = True
+        bool x | x ~= "noQuickCheck" = True
+        bool x = error $ "Hint.Match.checkSide, unknown side condition: " ++ prettyPrint x
+
+        expr :: Exp_ -> Exp_
+        expr (App _ (fromNamed -> "subst") x) = sub $ fromParen1 x
+        expr x = x
 
         isType "Compare" x = True -- just a hint for proof stuff
         isType "Atom" x = isAtom x

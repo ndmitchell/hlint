@@ -1,44 +1,62 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, GeneralizedNewtypeDeriving #-}
 
 module Test.Util(
-    withTests, tested, passed, failed, progress
+    Test, withTests,
+    tested, passed, failed, progress,
+    addIdeas, getIdeas
     ) where
 
-import Data.IORef
-import System.IO.Unsafe
+import Idea
 import Control.Monad
+import Control.Monad.Trans.Reader
+import Control.Monad.IO.Class
+import Data.IORef
 
 
-data Result = Result {failures :: Int, total :: Int} deriving Show
+data S = S
+    {failures :: !Int
+    ,total :: !Int
+    ,ideas :: [[Idea]]
+    }
 
-{-# NOINLINE ref #-}
-ref :: IORef [Result]
-ref = unsafePerformIO $ newIORef []
-
+newtype Test a = Test (ReaderT (IORef S) IO a)
+    deriving (Functor, Applicative, Monad, MonadIO)
 
 -- | Returns the number of failing tests.
---   Warning: Not multithread safe, but is reenterant
-withTests :: IO () -> IO Int
-withTests act = do
-    atomicModifyIORef ref $ \r -> (Result 0 0 : r, ())
-    act
-    Result{..} <- atomicModifyIORef ref $ \(r:rs) -> (rs, r)
+withTests :: Test a -> IO (Int, a)
+withTests (Test act) = do
+    ref <- newIORef $ S 0 0 []
+    res <- runReaderT act ref
+    S{..} <- readIORef ref
     putStrLn ""
     putStrLn $ if failures == 0
         then "Tests passed (" ++ show total ++ ")"
         else "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
-    return failures
+    return (failures, res)
 
-progress :: IO ()
-progress = putChar '.'
+addIdeas :: [Idea] -> Test ()
+addIdeas xs = do
+    ref <- Test ask
+    liftIO $ modifyIORef' ref $ \s -> s{ideas = xs : ideas s}
 
-passed :: IO ()
-passed = atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1}:rs, ())
+getIdeas :: Test [Idea]
+getIdeas = do
+    ref <- Test ask
+    liftIO $ concat . reverse . ideas <$> readIORef ref
 
-failed :: [String] -> IO ()
+progress :: Test ()
+progress = liftIO $ putChar '.'
+
+passed :: Test ()
+passed = do
+    ref <- Test ask
+    liftIO $ modifyIORef' ref $ \s -> s{total=total s+1}
+
+failed :: [String] -> Test ()
 failed xs = do
-    unless (null xs) $ putStrLn $ unlines $ "" : xs
-    atomicModifyIORef ref $ \(r:rs) -> (r{total=total r+1, failures=failures r+1}:rs, ())
+    unless (null xs) $ liftIO $ putStrLn $ unlines $ "" : xs
+    ref <- Test ask
+    liftIO $ modifyIORef' ref $ \s -> s{total=total s+1, failures=failures s+1}
 
-tested :: Bool -> IO ()
+tested :: Bool -> Test ()
 tested b = if b then passed else failed []

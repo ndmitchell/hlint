@@ -2,11 +2,11 @@
 
 module Idea(
     Idea(..),
-    rawIdea, idea, suggest, warn, ignore,
-    rawIdeaN, suggestN,
+    rawIdea, rawIdea', idea, idea', suggest, suggest', warn, warn',ignore, ignore',
+    rawIdeaN, rawIdeaN', suggestN, suggestN', ignoreN, ignoreN', ignoreNoSuggestion',
     showIdeasJson, showANSI,
     Note(..), showNotes,
-    Severity(..)
+    Severity(..),
     ) where
 
 import Data.Functor
@@ -17,7 +17,9 @@ import HsColour
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
 import Prelude
-
+import qualified SrcLoc as GHC
+import qualified Outputable
+import qualified GHC.Util as GHC
 
 -- | An idea suggest by a 'Hint'.
 data Idea = Idea
@@ -79,16 +81,76 @@ showEx tt Idea{..} = unlines $
             where xs = lines $ tt x
 
 
+rawIdea :: Severity -> String -> SrcSpan -> String -> Maybe String -> [Note]-> [Refactoring R.SrcSpan] -> Idea
 rawIdea = Idea [] []
+
+rawIdea' :: Severity -> String -> GHC.SrcSpan -> String -> Maybe String -> [Note]-> [Refactoring R.SrcSpan] -> Idea
+rawIdea' a b c = Idea [] [] a b (ghcSpanToHSE c)
+
+rawIdeaN :: Severity -> String -> SrcSpan -> String -> Maybe String -> [Note] -> Idea
 rawIdeaN a b c d e f = Idea [] [] a b c d e f []
 
+rawIdeaN' :: Severity -> String -> GHC.SrcSpan -> String -> Maybe String -> [Note] -> Idea
+rawIdeaN' a b c d e f = Idea [] [] a b (ghcSpanToHSE c) d e f []
+
+idea :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
+        Severity -> String -> ast SrcSpanInfo -> a -> [Refactoring R.SrcSpan] -> Idea
 idea severity hint from to = rawIdea severity hint (srcInfoSpan $ ann from) (f from) (Just $ f to) []
     where f = trimStart . prettyPrint
 
+idea' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
+         Severity -> String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
+idea' severity hint from to =
+  rawIdea severity hint (ghcSpanToHSE (GHC.getLoc from)) (GHC.unsafePrettyPrint from) (Just $ GHC.unsafePrettyPrint to) []
+
+suggest :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
+           String -> ast SrcSpanInfo -> a -> [Refactoring R.SrcSpan] -> Idea
 suggest = idea Suggestion
+
+suggest' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
+            String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
+suggest' = idea' Suggestion
+
+warn :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
+        String -> ast SrcSpanInfo -> a -> [Refactoring R.SrcSpan] -> Idea
 warn = idea Warning
+
+warn' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
+         String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
+warn' = idea' Warning
+
+ignoreNoSuggestion' :: (GHC.HasSrcSpan a, Outputable.Outputable a)
+                    => String -> a -> Idea
+ignoreNoSuggestion' hint x = rawIdeaN Ignore hint (ghcSpanToHSE (GHC.getLoc x)) (GHC.unsafePrettyPrint x) Nothing []
+
+ignore :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
+          String -> ast SrcSpanInfo -> a -> [Refactoring R.SrcSpan] -> Idea
 ignore = idea Ignore
 
+ignore' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+           String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
+ignore' = idea' Ignore
+
+ideaN :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
+         Severity -> String -> ast SrcSpanInfo -> a -> Idea
 ideaN severity hint from to = idea severity hint from to []
 
+ideaN' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+          Severity -> String -> a -> a -> Idea
+ideaN' severity hint from to = idea' severity hint from to []
+
+suggestN :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
+            String -> ast SrcSpanInfo -> a -> Idea
 suggestN = ideaN Suggestion
+
+suggestN' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+             String -> a -> a -> Idea
+suggestN' = ideaN' Suggestion
+
+ignoreN :: (Annotated ast, Pretty a, Pretty (ast SrcSpanInfo)) =>
+           String -> ast SrcSpanInfo -> a -> Idea
+ignoreN = ideaN Ignore
+
+ignoreN' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
+           String -> a -> a -> Idea
+ignoreN' = ideaN' Ignore

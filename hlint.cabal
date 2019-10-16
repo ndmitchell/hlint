@@ -1,7 +1,7 @@
 cabal-version:      >= 1.18
 build-type:         Simple
 name:               hlint
-version:            2.1.14
+version:            2.2.3
 license:            BSD3
 license-file:       LICENSE
 category:           Development
@@ -27,7 +27,7 @@ data-files:
 extra-doc-files:
     README.md
     CHANGES.txt
-tested-with:        GHC==8.6.3, GHC==8.4.4, GHC==8.2.2, GHC==8.0.2, GHC==7.10.3, GHC==7.8.4, GHC==7.6.3, GHC==7.4.2
+tested-with:        GHC==8.8.1, GHC==8.6.5, GHC==8.4.4
 
 source-repository head
     type:     git
@@ -43,6 +43,11 @@ flag gpl
     manual: True
     description: Use GPL libraries, specifically hscolour
 
+flag ghc-lib
+  default: False
+  manual: True
+  description: Force dependency on ghc-lib-parser even if GHC API in the ghc package is supported
+
 library
     default-language:   Haskell2010
     build-depends:
@@ -54,25 +59,33 @@ library
         cmdargs >= 0.10,
         yaml >= 0.5.0,
         haskell-src-exts >= 1.21 && < 1.22,
-        haskell-src-exts-util >= 0.2.1.2,
+        haskell-src-exts-util >= 0.2.5,
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
         extra >= 1.6.6,
         refact >= 0.3,
         aeson >= 1.1.2.0,
-        filepattern >= 0.1.1
+        filepattern >= 0.1.1,
+        syb >= 0.7,
+        mtl >= 2.2.2
+    if !flag(ghc-lib) && impl(ghc >= 8.8.0) && impl(ghc < 8.9.0)
+        build-depends:
+          ghc == 8.8.*,
+          ghc-boot-th
+    else
+        build-depends:
+          ghc-lib-parser == 8.8.1
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
     else
         cpp-options: -DGPL_SCARES_ME
-    if impl(ghc < 8.0)
-        build-depends: semigroups >= 0.18
 
     hs-source-dirs:     src
     exposed-modules:
         Language.Haskell.HLint
         Language.Haskell.HLint3
+        Language.Haskell.HLint4
     other-modules:
         Paths_hlint
         Apply
@@ -92,6 +105,26 @@ library
         Config.Read
         Config.Type
         Config.Yaml
+
+        GHC.Util
+        GHC.Util.ApiAnnotation
+        GHC.Util.View
+        GHC.Util.Brackets
+        GHC.Util.FreeVars
+        GHC.Util.HsDecl
+        GHC.Util.HsExpr
+        GHC.Util.HsType
+        GHC.Util.Pat
+        GHC.Util.LanguageExtensions.Type
+        GHC.Util.Module
+        GHC.Util.Outputable
+        GHC.Util.SrcLoc
+        GHC.Util.W
+        GHC.Util.DynFlags
+        GHC.Util.Language.Haskell.GHC.ExactPrint.Types
+        GHC.Util.Refact.Utils
+        GHC.Util.Refact.Fixity
+
         HSE.All
         HSE.Match
         HSE.Reduce
@@ -116,6 +149,7 @@ library
         Hint.Pattern
         Hint.Pragma
         Hint.Restrict
+        Hint.Smell
         Hint.Type
         Hint.Unsafe
         Hint.Util

@@ -1,7 +1,8 @@
+:set -package=ghc-lib-parser
 :set -fwarn-incomplete-patterns
 :set -fwarn-unused-binds -fwarn-unused-imports -fwarn-orphans
 :set -isrc
-:load src/Main.hs src/Paths.hs src/Language/Haskell/HLint.hs src/Language/Haskell/HLint3.hs
+:load src/Main.hs src/Paths.hs src/Language/Haskell/HLint.hs src/Language/Haskell/HLint3.hs src/Language/Haskell/HLint4.hs
 
 :def test const $ return ":main test"
 :def testfull const $ return ":main test --typecheck --quickcheck"

@@ -64,7 +64,9 @@ import qualified Refact.Types as R
 import Prelude
 
 
+badFuncs :: [String]
 badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM","traverse","for","sequenceA"]
+unitFuncs :: [String]
 unitFuncs = ["when","unless","void"]
 
 
@@ -91,6 +93,7 @@ monadExp (fromNamed -> decl) (parent, x) = case x of
 
 
 -- Sometimes people write a * do a + b, to avoid brackets
+doOperator :: (Eq a, Num a) => Maybe (a, Exp S) -> Exp l -> Bool
 doOperator (Just (1, InfixApp _ _ op _)) InfixApp{} | not $ isDol op = True
 doOperator _ _ = False
 
@@ -123,13 +126,13 @@ monadNoResult inside wrap (replaceBranches -> (bs, rewrap)) =
 monadStep :: ([Stmt S] -> Exp_) -> [Stmt S] -> [Idea]
 
 -- do return x; $2 ==> do $2
-monadStep wrap o@(Qualifier _ (fromRet -> Just _):x:xs) =
-    [warn "Redundant return" (wrap o) (wrap $ x:xs) [Delete Stmt (toSS (head o))]]
+monadStep wrap o@(Qualifier _ (fromRet -> Just (ret, _)):x:xs) =
+    [warn ("Redundant " ++ ret) (wrap o) (wrap $ x:xs) [Delete Stmt (toSS (head o))]]
 
 -- do a <- $1; return a ==> do $1
-monadStep wrap o@[g@(Generator _ (PVar _ p) x), q@(Qualifier _ (fromRet -> Just (Var _ v)))]
+monadStep wrap o@[g@(Generator _ (PVar _ p) x), q@(Qualifier _ (fromRet -> Just (ret, Var _ v)))]
     | fromNamed v == fromNamed p
-    = [warn "Redundant return" (wrap o) (wrap [Qualifier an x])
+    = [warn ("Redundant " ++ ret) (wrap o) (wrap [Qualifier an x])
             [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)]]
 
 -- do x <- $1; x; $2  ==> do join $1; $2
@@ -144,9 +147,9 @@ monadStep wrap o@(Generator an PWildCard{} x:rest)
     = [warn "Redundant variable capture" (wrap o) (wrap $ Qualifier an x : rest) []]
 
 -- do <return ()>; return ()
-monadStep wrap o@[Qualifier an x, Qualifier _ (fromRet -> Just unit)]
+monadStep wrap o@[Qualifier an x, Qualifier _ (fromRet -> Just (ret, unit))]
     | returnsUnit x, unit ~= "()"
-    = [warn "Redundant return" (wrap o) (wrap $ take 1 o) []]
+    = [warn ("Redundant " ++ ret) (wrap o) (wrap $ take 1 o) []]
 
 -- do x <- $1; return $ f $ g x ==> f . g <$> x
 monadStep wrap
@@ -175,7 +178,7 @@ monadLet xs = if null rs then Nothing else Just (ys, rs)
     where
         (ys, catMaybes -> rs) = unzip $ map mkLet xs
         vs = concatMap pvars [p | Generator _ p _ <- xs]
-        mkLet g@(Generator _ v@(view -> PVar_ p) (fromRet -> Just y))
+        mkLet g@(Generator _ v@(view -> PVar_ p) (fromRet -> Just (_, y)))
             | p `notElem` vars y, p `notElem` delete p vs
             = (template (toNamed p) y, Just refact)
          where
@@ -192,8 +195,8 @@ fromApplies x = ([], x)
 
 
 -- | Match @return x@ to @Just x@.
-fromRet :: Exp_ -> Maybe Exp_
+fromRet :: Exp_ -> Maybe (String, Exp_)
 fromRet (Paren _ x) = fromRet x
 fromRet (InfixApp _ x y z) | opExp y ~= "$" = fromRet $ App an x z
-fromRet (App _ x y) | isReturn x = Just y
+fromRet (App _ x y) | isReturn x = Just (prettyPrint x, y)
 fromRet _ = Nothing
