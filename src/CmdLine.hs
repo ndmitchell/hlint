@@ -187,7 +187,7 @@ mode = cmdArgsMode $ modes
         ,cmdRefactor = nam_ "refactor" &= help "Automatically invoke `refactor` to apply hints"
         ,cmdRefactorOptions = nam_ "refactor-options" &= typ "OPTIONS" &= help "Options to pass to the `refactor` executable"
         ,cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
-        ,cmdIgnoreGlob = nam_ "ignore" &= help "Ignore paths matching glob pattern"
+        ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern"
         } &= auto &= explicit &= name "lint"
     ,CmdGrep
         {cmdFiles = def &= args &= typ "FILE/DIR"
