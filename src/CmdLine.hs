@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, DeriveDataTypeable #-}
+{-# LANGUAGE PatternGuards, DeriveDataTypeable, TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields -fno-cse -O0 #-}
 
 module CmdLine(
@@ -28,7 +28,7 @@ import System.IO
 import System.IO.Error
 import System.Info.Extra
 import System.Process
-import System.FilePattern (FilePattern, (?==))
+import System.FilePattern
 
 import Util
 import Paths_hlint
@@ -123,7 +123,7 @@ data Cmd
         ,cmdRefactor :: Bool            -- ^ Run the `refactor` executable to automatically perform hints
         ,cmdRefactorOptions :: String   -- ^ Options to pass to the `refactor` executable.
         ,cmdWithRefactor :: FilePath    -- ^ Path to refactor tool
-        ,cmdIgnoreGlob :: Maybe FilePattern
+        ,cmdIgnoreGlob :: [FilePattern]
         }
     | CmdGrep
         {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
@@ -270,9 +270,10 @@ resolveFile
     -> IO [FilePath]
 resolveFile cmd = getFile (toPredicate $ cmdIgnoreGlob cmd) (cmdPath cmd) (cmdExtension cmd)
     where
-        toPredicate :: Maybe FilePattern -> FilePath -> Bool
-        toPredicate Nothing _ = False
-        toPredicate (Just glob) p = glob ?== p
+        toPredicate :: [FilePattern] -> FilePath -> Bool
+        toPredicate [] = const False
+        toPredicate globs = \x -> not $ null $ m [((), x)]
+            where m = matchMany (map ((),) globs)
 
 
 getFile :: (FilePath -> Bool) -> [FilePath] -> [String] -> Maybe FilePath -> FilePath -> IO [FilePath]
