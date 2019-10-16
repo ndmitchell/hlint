@@ -268,15 +268,12 @@ resolveFile
     -> Maybe FilePath -- ^ Temporary file
     -> FilePath       -- ^ File to resolve, may be "-" for stdin
     -> IO [FilePath]
-resolveFile cmd
-  = getFile
-  (ignore $ cmdIgnoreGlob cmd)
-  (cmdPath cmd)
-  (cmdExtension cmd)
-  where
-  ignore :: Maybe FilePattern -> FilePath -> Bool
-  ignore Nothing _ = False
-  ignore (Just glob) p = glob ?== p
+resolveFile cmd = getFile (toPredicate $ cmdIgnoreGlob cmd) (cmdPath cmd) (cmdExtension cmd)
+    where
+        toPredicate :: Maybe FilePattern -> FilePath -> Bool
+        toPredicate Nothing _ = False
+        toPredicate (Just glob) p = glob ?== p
+
 
 getFile :: (FilePath -> Bool) -> [FilePath] -> [String] -> Maybe FilePath -> FilePath -> IO [FilePath]
 getFile _ path _ (Just tmpfile) "-" =
