@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses , FlexibleInstances, FlexibleContexts #-}
 
-module GHC.Util.HsPat (
+module GHC.Util.Pat (
     strToPat', patToStr'
   , Brackets'(..)
   , fromPChar', isPFieldWildcard', hasPFieldsDotDot', isPWildCard'
