@@ -70,6 +70,7 @@ import SrcLoc
 import RdrName
 import OccName
 import Bag
+import BasicTypes
 
 import GHC.Util
 
@@ -222,11 +223,12 @@ patHint _ _ o@(LL _ (AsPat _ v (LL _ (WildPat _)))) =
 patHint _ _ _ = []
 
 expHint :: LHsExpr GhcPs -> [Idea]
-expHint o@(LL _ (HsCase _ _ (MG _ (L _ [LL _ (Match _ CaseAlt [LL _ (WildPat _)] (GRHSs _ [LL _ (GRHS _ [] e)] (LL  _ (EmptyLocalBinds _)))) ]) _ ))) =
+ -- Note the 'FromSource' in these equations (don't warn on generated match groups).
+expHint o@(LL _ (HsCase _ _ (MG _ (L _ [LL _ (Match _ CaseAlt [LL _ (WildPat _)] (GRHSs _ [LL _ (GRHS _ [] e)] (LL  _ (EmptyLocalBinds _)))) ]) FromSource ))) =
   [suggest' "Redundant case" o e [r]]
   where
     r = Replace Expr (toSS' o) [("x", toSS' e)] "x"
-expHint o@(LL _ (HsCase _ (LL _ (HsVar _ (L _ x))) (MG _ (L _ [LL _ (Match _ CaseAlt [LL _ (VarPat _ (L _ y))] (GRHSs _ [LL _ (GRHS _ [] e)] (LL  _ (EmptyLocalBinds _)))) ]) _ )))
+expHint o@(LL _ (HsCase _ (LL _ (HsVar _ (L _ x))) (MG _ (L _ [LL _ (Match _ CaseAlt [LL _ (VarPat _ (L _ y))] (GRHSs _ [LL _ (GRHS _ [] e)] (LL  _ (EmptyLocalBinds _)))) ]) FromSource )))
   | occNameString (rdrNameOcc x) == occNameString (rdrNameOcc y) =
       [suggest' "Redundant case" o e [r]]
   where
