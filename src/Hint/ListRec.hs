@@ -127,7 +127,8 @@ asDo :: LHsExpr GhcPs -> [LStmt GhcPs (LHsExpr GhcPs)]
 asDo (view' ->
        App2' bind lhs
          (LL _ (HsLam _ MG {
-             mg_alts=LL _ [
+              mg_origin=FromSource
+            , mg_alts=LL _ [
                  LL _ Match {  m_ctxt=LambdaExpr
                             , m_pats=[LL _ v@VarPat{}]
                             , m_grhss=GRHSs _
@@ -148,7 +149,7 @@ findCase :: LHsDecl GhcPs -> Maybe (ListCase, LHsExpr GhcPs -> LHsDecl GhcPs)
 findCase x = do
   -- Match a function binding with two alternatives.
   (LL _ (ValD _ FunBind {fun_matches=
-              MG{mg_alts=
+              MG{mg_origin=FromSource, mg_alts=
                      (LL _
                             [ x1@(LL _ Match{..}) -- Match fields.
                             , x2]), ..} -- Match group fields.
