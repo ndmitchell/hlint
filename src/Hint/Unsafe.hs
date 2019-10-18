@@ -52,7 +52,7 @@ unsafeHint _ (ModuleEx _ _ (L _ m) _) = \(L loc d) ->
      -- 'x' does not declare a new function.
      | d@(ValD _
            FunBind {fun_id=L _ (Unqual x)
-                      , fun_matches=MG{mg_alts=L _ [L _ Match {m_pats=[]}]}}) <- [d]
+                      , fun_matches=MG{mg_origin=FromSource,mg_alts=L _ [L _ Match {m_pats=[]}]}}) <- [d]
      -- 'x' is a synonym for an appliciation involing 'unsafePerformIO'
      , isUnsafeDecl d
      -- 'x' is not marked 'NOINLINE'.
@@ -68,7 +68,7 @@ unsafeHint _ (ModuleEx _ _ (L _ m) _) = \(L loc d) ->
         ) <- hsmodDecls m]
 
 isUnsafeDecl :: HsDecl GhcPs -> Bool
-isUnsafeDecl (ValD _ FunBind {fun_matches=MG {mg_alts=LL _ alts}}) =
+isUnsafeDecl (ValD _ FunBind {fun_matches=MG {mg_origin=FromSource,mg_alts=LL _ alts}}) =
   any isUnsafeApp (childrenBi alts) || any isUnsafeDecl (childrenBi alts)
 isUnsafeDecl _ = False
 

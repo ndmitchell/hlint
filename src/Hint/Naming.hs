@@ -82,7 +82,7 @@ naming seen originalDecl =
         replacedDecl = replaceNames suggestedNames originalDecl
 
 shorten :: LHsDecl GhcPs -> LHsDecl GhcPs
-shorten (LL locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG _ (LL locMatches matches) _) _ _))) =
+shorten (LL locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG _ (LL locMatches matches) FromSource) _ _))) =
     LL locDecl (ValD ttg0 bind {fun_matches = matchGroup {mg_alts = LL locMatches $ map shortenMatch matches}})
 shorten (LL locDecl (ValD ttg0 bind@(PatBind _ _ grhss@(GRHSs _ rhss _) _))) =
     LL locDecl (ValD ttg0 bind {pat_rhs = grhss {grhssGRHSs = map shortenLGRHS rhss}})
