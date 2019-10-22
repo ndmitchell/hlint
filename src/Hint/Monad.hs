@@ -45,7 +45,7 @@ main = do f a $ sleep 10 -- f a $ sleep 10
 main = do foo x; return 3; bar z -- do foo x; bar z
 main = void $ forM_ f xs -- forM_ f xs
 main = void $ forM f xs -- void $ forM_ f xs
-main = do _ <- forM_ f xs; bar -- do forM_ f xs; bar
+main = do _ <- forM_ f xs; bar -- do forM_ f xs
 main = do bar; forM_ f xs; return () -- do bar; forM_ f xs
 main = do a; when b c; return () -- do a; when b c
 </TEST>
