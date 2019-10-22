@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #788, give less redundant context on unused variable capture
     #334, add --ignore=glob flag
 2.2.3, released 2019-09-29
     #766, turn on more extensions when parsing config files

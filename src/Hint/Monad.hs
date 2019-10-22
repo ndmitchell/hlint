@@ -142,9 +142,9 @@ monadStep wrap o@(g@(Generator _ (view -> PVar_ p) x):q@(Qualifier _ (view -> Va
     where r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete Stmt (toSS q)]
 
 -- do _ <- <return ()>; $1 ==> do <return ()>; $1
-monadStep wrap o@(Generator an PWildCard{} x:rest)
+monadStep wrap (o@(Generator an PWildCard{} x):rest)
     | returnsUnit x
-    = [warn "Redundant variable capture" (wrap o) (wrap $ Qualifier an x : rest) []]
+    = [warn "Redundant variable capture" o (Qualifier an x) []]
 
 -- do <return ()>; return ()
 monadStep wrap o@[Qualifier an x, Qualifier _ (fromRet -> Just (ret, unit))]
