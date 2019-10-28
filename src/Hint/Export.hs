@@ -25,7 +25,7 @@ exportHint :: ModuHint
 exportHint _ (ModuleEx _ _ (LL s m@HsModule {hsmodName = Just name, hsmodExports = exports}) _)
   | Nothing <- exports =
       let r = o{ hsmodExports = Just (noLoc [noLoc (IEModuleContents noExt name)] )} in
-      [(ignore' "Use module export list" (L s o) (noLoc r) []){ideaNote = [Note "an explicit list is usally better"]}]
+      [(ignore' "Use module export list" (L s o) (noLoc r) []){ideaNote = [Note "an explicit list is usually better"]}]
   | Just (L _ xs) <- exports
   , mods <- [x | x <- xs, isMod x]
   , modName <- moduleNameString (unLoc name)
