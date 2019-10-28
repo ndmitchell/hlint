@@ -15,8 +15,8 @@ isForD' (LL _ ForD{}) = True; isForD' _ = False
 -- 'Nothing' is returned instead.  This is useful because we don't
 -- want to tell users to rename binders that they aren't creating
 -- right now and therefore usually cannot change.
-declName :: HsDecl GhcPs -> Maybe String
-declName x = occNameString . occName <$> case x of
+declName :: LHsDecl GhcPs -> Maybe String
+declName (LL _ x) = occNameString . occName <$> case x of
     TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}} -> Just $ unLoc fdLName
     TyClD _ SynDecl{tcdLName} -> Just $ unLoc tcdLName
     TyClD _ DataDecl{tcdLName} -> Just $ unLoc tcdLName
@@ -30,3 +30,4 @@ declName x = occNameString . occName <$> case x of
     ForD _ ForeignImport{fd_name} -> Just $ unLoc fd_name
     ForD _ ForeignExport{fd_name} -> Just $ unLoc fd_name
     _ -> Nothing
+declName _ = Nothing {- COMPLETE LL-}

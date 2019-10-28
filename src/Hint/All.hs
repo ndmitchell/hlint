@@ -46,7 +46,6 @@ builtin :: HintBuiltin -> Hint
 builtin x = case x of
     -- Hse.
     HintExtensions -> modu extensionsHint
-    HintMonad      -> decl monadHint
     HintLambda     -> decl lambdaHint
 
     -- Ghc.
@@ -64,6 +63,7 @@ builtin x = case x of
     HintBracket    -> decl' bracketHint
     HintSmell      -> mempty{hintDecl'=smellHint,hintModule=smellModuleHint}
     HintPattern    -> decl' patternHint
+    HintMonad      -> decl' monadHint
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList
         decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}

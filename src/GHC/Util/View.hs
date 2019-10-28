@@ -3,13 +3,14 @@
 module GHC.Util.View (
    fromParen', fromPParen'
   , View'(..)
-  , Var_'(Var_'), PVar_'(PVar_'), PApp_'(PApp_'), App2'(App2')
+  , Var_'(Var_'), PVar_'(PVar_'), PApp_'(PApp_'), App2'(App2'),LamConst1'(LamConst1')
 ) where
 
 import HsSyn
 import SrcLoc
 import RdrName
 import OccName
+import BasicTypes
 
 fromParen' :: LHsExpr GhcPs -> LHsExpr GhcPs
 fromParen' (LL _ (HsPar _ x)) = fromParen' x
@@ -26,6 +27,12 @@ data Var_'  = NoVar_' | Var_' String deriving Eq
 data PVar_' = NoPVar_' | PVar_' String
 data PApp_' = NoPApp_' | PApp_' String [Pat GhcPs]
 data App2'  = NoApp2'  | App2' (LHsExpr GhcPs) (LHsExpr GhcPs) (LHsExpr GhcPs)
+data LamConst1' = NoLamConst1' | LamConst1' (LHsExpr GhcPs)
+
+instance View' (LHsExpr GhcPs) LamConst1' where
+  view' (fromParen' -> (LL _ (HsLam _ (MG _ (L _ [LL _ (Match _ LambdaExpr [LL _ WildPat {}]
+    (GRHSs _ [LL _ (GRHS _ [] x)] (LL _ (EmptyLocalBinds _))))]) FromSource)))) = LamConst1' x
+  view' _ = NoLamConst1'
 
 instance View' (LHsExpr GhcPs) Var_' where
     view' (fromParen' -> (LL _ (HsVar _ (LL _ (Unqual x))))) = Var_' $ occNameString x

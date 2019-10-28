@@ -51,9 +51,9 @@ duplicateHint ms =
          , let y = bagToList b
          ]
     where
-      ds = [(modName m, fromMaybe "" (declName d), d)
+      ds = [(modName m, fromMaybe "" (declName d), unLoc d)
            | ModuleEx _ _ m _ <- map snd ms
-           , d <- map unLoc (hsmodDecls (unLoc m))]
+           , d <- hsmodDecls (unLoc m)]
 
 dupes :: (Outputable e, Data e) => [(String, String, [Located e])] -> [Idea]
 dupes ys =
