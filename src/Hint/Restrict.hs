@@ -119,7 +119,7 @@ checkFunctions :: String -> [LHsDecl GhcPs] -> (Bool, Map.Map String RestrictIte
 checkFunctions modu decls (def, mp) =
     [ (ideaMessage riMessage $ ideaNoTo $ warn' "Avoid restricted function" x x []){ideaDecl = [dname]}
     | d <- decls
-    , let dname = fromMaybe "" (declName (unLoc d))
+    , let dname = fromMaybe "" (declName d)
     , x <- universeBi d :: [Located RdrName]
     , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] Nothing) (occNameString (rdrNameOcc (unLoc x))) mp
     , not $ within modu dname ri

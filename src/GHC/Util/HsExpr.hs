@@ -8,13 +8,14 @@
 
 module GHC.Util.HsExpr (
     noSyntaxExpr'
-  , isDol', isDot', isSection', isRecConstr', isRecUpdate', isVar', isPar', isApp', isAnyApp', isLexeme', isReturn'
+  , isTag', isDol', isDot', isSection', isRecConstr', isRecUpdate', isVar', isPar', isApp', isAnyApp', isLexeme', isReturn'
   , dotApp'
   , simplifyExp', niceLambda', niceDotApp'
   , Brackets'(..)
-  , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps'
+  , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'
   , varToStr', strToVar'
   , paren', fromChar'
+  , replaceBranches'
 ) where
 
 import HsSyn
@@ -63,17 +64,27 @@ paren' x
   | isAtom' x  = x
   | otherwise = addParen' x
 
-isVar',isReturn',isLexeme',isDotApp',isRecUpdate',isRecConstr',isDol', isDot' :: LHsExpr GhcPs -> Bool
+-- 'True' if the provided expression is a variable with name 'tag'.
+isTag' :: LHsExpr GhcPs -> String -> Bool
+isTag' (LL _ (HsVar _ (L _ s))) tag = occNameString (rdrNameOcc s) == tag
+isTag' _ _ = False
+
+isVar',isReturn',isLexeme',isDotApp',isRecUpdate',isRecConstr',isDol',isDot' :: LHsExpr GhcPs -> Bool
 isPar' (LL _ HsPar{}) = True; isPar' _ = False
 isVar' (LL _ HsVar{}) = True; isVar' _ = False
-isDot' (LL _ (HsVar _ (LL _ ident))) = occNameString (rdrNameOcc ident) == "."; isDot' _ = False
-isDol' (LL _ (HsVar _ (L _ ident))) = occNameString (rdrNameOcc ident) == "$"; isDol' _ = False
+isDot' x = isTag' x "."
+isDol' x = isTag' x "$"
+isReturn' x = isTag' x "return" || isTag' x "pure" -- Allow both 'pure' and 'return' as they have the same semantics.
 isRecConstr' (LL _ RecordCon{}) = True; isRecConstr' _ = False
 isRecUpdate' (LL _ RecordUpd{}) = True; isRecUpdate' _ = False
 isDotApp' (LL _ (OpApp _ _ op _)) = isDot' op; isDotApp' _ = False
 isLexeme' (LL _ HsVar{}) = True;isLexeme' (LL _ HsOverLit{}) = True;isLexeme' (LL _ HsLit{}) = True;isLexeme' _ = False
--- Allow both 'pure' and 'return' as they have the same semantics.
-isReturn' (LL _ (HsVar _ (LL _ (Unqual x)))) = occNameString x == "return" || occNameString x == "pure"; isReturn' _ = False
+
+--
+
+universeParentExp' :: Data a => a -> [(Maybe (Int, LHsExpr GhcPs), LHsExpr GhcPs)]
+universeParentExp' xs = concat [(Nothing, x) : f x | x <- childrenBi xs]
+    where f p = concat [(Just (i,p), c) : f c | (i,c) <- zip [0..] $ children p]
 
 --
 
@@ -222,3 +233,26 @@ niceLambdaR' ss e =
 fromChar' :: LHsExpr GhcPs -> Maybe Char
 fromChar' (LL _ (HsLit _ (HsChar _ x))) = Just x
 fromChar' _ = Nothing
+
+--
+
+-- 'case' and 'if' expressions have branches, nothing else does (this
+-- doesn't consider 'HsMultiIf' perhaps it should?).
+replaceBranches' :: LHsExpr GhcPs -> ([LHsExpr GhcPs], [LHsExpr GhcPs] -> LHsExpr GhcPs)
+replaceBranches' (LL l (HsIf _ _ a b c)) = ([b, c], \[b, c] -> cL l (HsIf noExt Nothing a b c))
+
+replaceBranches' (LL s (HsCase _ a (MG _ (L l bs) FromSource))) =
+  (concatMap f bs, \xs -> cL s (HsCase noExt a (MG noExt (cL l (g bs xs)) Generated)))
+  where
+    f :: LMatch GhcPs (LHsExpr GhcPs) -> [LHsExpr GhcPs]
+    f (LL _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (LL _ (GRHS _ _ x)) <- xs]
+    f _ = undefined -- {-# COMPLETE LL #-}
+
+    g :: [LMatch GhcPs (LHsExpr GhcPs)] -> [LHsExpr GhcPs] -> [LMatch GhcPs (LHsExpr GhcPs)]
+    g (LL s1 (Match _ CaseAlt a (GRHSs _ ns b)) : rest) xs =
+      cL s1 (Match noExt CaseAlt a (GRHSs noExt [cL a (GRHS noExt gs x) | (LL a (GRHS _ gs _), x) <- zip ns as] b)) : g rest bs
+      where  (as, bs) = splitAt (length ns) xs
+    g [] [] = []
+    g _ _ = error "GHC.Util.HsExpr.replaceBranches': internal invariant failed, lists are of differing lengths"
+
+replaceBranches' x = ([], \[] -> x)

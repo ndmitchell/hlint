@@ -3,7 +3,7 @@
 module HSE.Match(
     View(..), Named(..),
     (~=), isSym,
-    App2(App2), LamConst1(LamConst1), PVar_(PVar_), Var_(Var_)
+    App2(App2), PVar_(PVar_), Var_(Var_)
     ) where
 
 import Data.Char
@@ -28,13 +28,6 @@ data App1 = NoApp1 | App1 Exp_ Exp_ deriving Show
 instance View Exp_ App1 where
     view (fromParen -> App _ f x) = App1 f x
     view _ = NoApp1
-
--- \_ -> body
-data LamConst1 = NoLamConst1 | LamConst1 Exp_ deriving Show
-
-instance View Exp_ LamConst1 where
-    view (fromParen -> Lambda _ [PWildCard _] x) = LamConst1 x
-    view _ = NoLamConst1
 
 data PVar_ = NoPVar_ | PVar_ String
 
