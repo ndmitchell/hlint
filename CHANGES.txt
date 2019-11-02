@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.2.4, released 2019-11-02
     Allow haskell-src-exts-1.22
     #788, give less redundant context on unused variable capture
     #334, add --ignore=glob flag
