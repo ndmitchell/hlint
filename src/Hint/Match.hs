@@ -1,5 +1,8 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards, FlexibleContexts, ScopedTypeVariables #-}
 
+-- Kepp until 'checkSide', 'checkDefine', ... are used.
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+
 {-
 The matching does a fairly simple unification between the two terms, treating
 any single letter variable on the left as a free variable. After the matching
@@ -53,6 +56,12 @@ import qualified Data.Set as Set
 import Prelude
 import qualified Refact.Types as R
 
+import qualified HsSyn as GHC
+import qualified SrcLoc as GHC
+import qualified BasicTypes as GHC
+import RdrName
+import OccName
+import GHC.Util
 
 fmapAn :: Exp b -> Exp SrcSpanInfo
 fmapAn = fmap (const an)
@@ -131,6 +140,8 @@ matchIdea s decl HintRule{..} parent x = do
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS
 
+-- old
+
 checkSide :: Maybe Exp_ -> [(String, Exp_)] -> Bool
 checkSide x bind = maybe True bool x
     where
@@ -181,15 +192,81 @@ checkSide x bind = maybe True bool x
             where f (view -> Var_ x) | Just y <- lookup x bind = y
                   f x = x
 
+-- new
+
+checkSide' :: Maybe (GHC.LHsExpr GHC.GhcPs) -> [(String, GHC.LHsExpr GHC.GhcPs)] -> Bool
+checkSide' x bind = maybe True bool x
+    where
+      bool :: GHC.LHsExpr GHC.GhcPs -> Bool
+      bool (GHC.LL _ (GHC.OpApp _ x op y))
+        | varToStr' op == "&&" = bool x && bool y
+        | varToStr' op == "||" = bool x || bool y
+        | varToStr' op == "==" = expr (fromParen1' x) `eqNoLoc'` expr (fromParen1' y)
+      bool (GHC.LL _ (GHC.HsApp _ x y)) | varToStr' x == "not" = not $ bool y
+      bool (GHC.LL _ (GHC.HsPar _ x)) = bool x
+
+      bool (GHC.LL _ (GHC.HsApp _ cond (sub -> y)))
+        | 'i' : 's' : typ <- varToStr' cond = isType typ y
+      bool (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsApp _ cond (sub -> x))) (sub -> y)))
+          | varToStr' cond == "notIn" = and [wrap (stripLocs' x) `notElem` map (wrap . stripLocs') (universe y) | x <- list x, y <- list y]
+          | varToStr' cond == "notEq" = not (x `eqNoLoc'` y)
+      bool x | varToStr' x == "noTypeCheck" = True
+      bool x | varToStr' x == "noQuickCheck" = True
+      bool x = error $ "Hint.Match.checkSide', unknown side condition: " ++ unsafePrettyPrint x
+
+      expr :: GHC.LHsExpr GHC.GhcPs -> GHC.LHsExpr GHC.GhcPs
+      expr (GHC.LL _ (GHC.HsApp _ (varToStr' -> "subst") x)) = sub $ fromParen1' x
+      expr x = x
+
+      isType "Compare" x = True -- Just a hint for proof stuff
+      isType "Atom" x = isAtom' x
+      isType "WHNF" x = isWHNF' x
+      isType "Wildcard" x = any isFieldPun' (universeBi x) || any hasFieldsDotDot' (universeBi x)
+      isType "Nat" (asInt -> Just x) | x >= 0 = True
+      isType "Pos" (asInt -> Just x) | x >  0 = True
+      isType "Neg" (asInt -> Just x) | x <  0 = True
+      isType "NegZero" (asInt -> Just x) | x <= 0 = True
+      isType "LitInt" (GHC.LL _ (GHC.HsLit _ GHC.HsInt{})) = True
+      isType "Var" (GHC.LL _ GHC.HsVar{}) = True
+      isType "App" (GHC.LL _ GHC.HsApp{}) = True
+      isType "InfixAp" (GHC.LL _ GHC.OpApp{}) = True
+      isType "Paren" (GHC.LL _ GHC.HsPar{}) = True
+      isType "Tuple" (GHC.LL _ GHC.ExplicitTuple{}) = True
+      isType typ _ = error $ "Hint.Match.checkSide', unknown side condition: '" ++ "is" ++ typ ++ "'"
+
+      asInt :: GHC.LHsExpr GHC.GhcPs -> Maybe Integer
+      asInt (GHC.LL _ (GHC.HsPar _ x)) = asInt x
+      asInt (GHC.LL _ (GHC.NegApp _ x _)) = negate <$> asInt x
+      asInt (GHC.LL _ (GHC.HsLit _ (GHC.HsInt _ (GHC.IL _ neg x)) )) = Just $ if neg then -x else x
+      asInt _ = Nothing
+
+      list :: GHC.LHsExpr GHC.GhcPs -> [GHC.LHsExpr GHC.GhcPs]
+      list (GHC.LL _ (GHC.ExplicitList _ _ xs)) = xs
+      list x = [x]
+
+      sub :: GHC.LHsExpr GHC.GhcPs -> GHC.LHsExpr GHC.GhcPs
+      sub = transform f
+        where f (view' -> Var_' x) | Just y <- lookup x bind = y
+              f x = x
+
+-- old
 
 -- does the result look very much like the declaration
 checkDefine :: Decl_ -> Maybe (Int, Exp_) -> Exp_ -> Bool
 checkDefine x Nothing y = fromNamed x /= fromNamed (transformBi unqual $ head $ fromApps y)
 checkDefine _ _ _ = True
 
+-- new
+
+-- Does the result look very much like the declaration?
+checkDefine' :: GHC.LHsDecl GHC.GhcPs -> Maybe (Int, GHC.LHsExpr GHC.GhcPs) -> GHC.LHsExpr GHC.GhcPs -> Bool
+checkDefine' x Nothing y = declName x /= Just (varToStr' (transformBi unqual' $ head $ fromApps' y))
+checkDefine' _ _ _ = True
 
 ---------------------------------------------------------------------
 -- TRANSFORMATION
+
+-- old
 
 -- if it has _eval_ do evaluation on it
 performSpecial :: Exp_ -> Exp_
@@ -201,6 +278,20 @@ performSpecial = transform fNoParen . fEval
         fNoParen (App _ e x) | e ~= "_noParen_" = fromParen x
         fNoParen x = x
 
+-- new
+
+-- If it has '_eval_' do evaluation on it.
+performSpecial' :: GHC.LHsExpr GHC.GhcPs -> GHC.LHsExpr GHC.GhcPs
+performSpecial' = transform fNoParen . fEval
+  where
+    fEval, fNoParen :: GHC.LHsExpr GHC.GhcPs -> GHC.LHsExpr GHC.GhcPs
+    fEval (GHC.LL _ (GHC.HsApp _ e x)) | varToStr' e == "_eval_" = reduce' x
+    fEval x = x
+    fNoParen (GHC.LL _ (GHC.HsApp _ e x)) | varToStr' e == "_noParen_" = fromParen' x
+    fNoParen x = x
+
+-- old
+
 -- contract Data.List.foo ==> foo, if Data.List is loaded
 unqualify :: Scope -> Scope -> Exp_ -> Exp_
 unqualify from to = transformBi f
@@ -208,7 +299,24 @@ unqualify from to = transformBi f
         f x@(UnQual _ (Ident _ s)) | isUnifyVar s = x
         f x = scopeMove (from,x) to
 
+-- new
+
+-- Contract : 'Data.List.foo' => 'foo' if 'Data.List' is loaded.
+unqualify' :: Scope' -> Scope' -> GHC.HsExpr GHC.GhcPs -> GHC.HsExpr GHC.GhcPs
+unqualify' from to = transformBi f
+  where
+    f :: GHC.Located RdrName -> GHC.Located RdrName
+    f x@(GHC.L _ (Unqual s)) | isUnifyVar (occNameString s) = x
+    f x = scopeMove' (from, x) to
+
+-- old
 
 addBracket :: Maybe (Int,Exp_) -> Exp_ -> Exp_
 addBracket (Just (i,p)) c | needBracketOld i p c = Paren an c
 addBracket _ x = x
+
+-- new
+
+addBracket' :: Maybe (Int, GHC.LHsExpr GHC.GhcPs) -> GHC.LHsExpr GHC.GhcPs -> GHC.LHsExpr GHC.GhcPs
+addBracket' (Just (i, p)) c | needBracketOld' i p c = GHC.noLoc $ GHC.HsPar GHC.noExt c
+addBracket' _ x = x

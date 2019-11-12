@@ -124,6 +124,9 @@ library
         GHC.Util.Language.Haskell.GHC.ExactPrint.Types
         GHC.Util.Refact.Utils
         GHC.Util.Refact.Fixity
+        GHC.Util.RdrName
+        GHC.Util.Scope
+        GHC.Util.Unify
 
         HSE.All
         HSE.Match
