@@ -166,7 +166,7 @@ bracket pretty isPartialAtom root = f Nothing
       | isAtom' x
       , not $ isPartialAtom x =
           bracketError msg o x : g x
-    -- In some context, removing parentheses from 'x' succeds. Does
+    -- In some context, removing parentheses from 'x' succeeds. Does
     -- 'x' actually need bracketing in this context?
     f (Just (i, o, gen)) v@(remParens' -> Just x)
       | not $ needBracket' i o x, not $ isPartialAtom x =
