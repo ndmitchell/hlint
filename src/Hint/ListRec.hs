@@ -24,6 +24,7 @@ foos [] x = x; foos (y:ys) x = foo y $ foos ys x -- foos ys x = foldr foo x ys
 f [] y = y; f (x:xs) y = f xs $ g x y -- f xs y = foldl (flip g) y xs
 f [] y = y; f (x : xs) y = let z = g x y in f xs z -- f xs y = foldl (flip g) y xs
 f [] y = y; f (x:xs) y = f xs (f xs z)
+fun [] = []; fun (x:xs) = f x xs ++ fun xs
 </TEST>
 -}
 
@@ -101,7 +102,8 @@ matchListRec o@(ListCase vs nil (x, xs, cons))
     = Just $ (,,) "map" Hint.Type.Warning $
       appsBracket' [ strToVar' "map", niceLambda' [x] lhs, strToVar' xs]
     -- Suggest 'foldr'?
-    | [] <- vs, App2' op lhs rhs <- view' cons, vars' op `disjoint` [x, xs]
+    | [] <- vs, App2' op lhs rhs <- view' cons
+    , xs `notElem` (vars' op ++ vars' lhs) -- the meaning of xs changes, see #793
     , eqNoLoc' (fromParen' rhs) recursive
     = Just $ (,,) "foldr" Suggestion $
       appsBracket' [ strToVar' "foldr", niceLambda' [x] $ appsBracket' [op,lhs], nil, strToVar' xs]
