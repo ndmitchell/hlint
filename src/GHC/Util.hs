@@ -13,6 +13,9 @@ module GHC.Util (
   , module GHC.Util.SrcLoc
   , module GHC.Util.W
   , module GHC.Util.DynFlags
+  , module GHC.Util.Scope
+  , module GHC.Util.RdrName
+  , module GHC.Util.Unify
 
   , parsePragmasIntoDynFlags, parseFileGhcLib
   ) where
@@ -30,6 +33,9 @@ import GHC.Util.Outputable
 import GHC.Util.SrcLoc
 import GHC.Util.W
 import GHC.Util.DynFlags
+import GHC.Util.RdrName
+import GHC.Util.Scope
+import GHC.Util.Unify
 
 import HsSyn
 import Lexer
