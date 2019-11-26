@@ -9,7 +9,8 @@ module HSE.All(
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
     freeVars, vars, varss, pvars,
-    ghcSpanToHSE, ghcSrcLocToHSE
+    ghcSpanToHSE, ghcSrcLocToHSE,
+    parseExpGhcWithMode -- like HSE 'parseExpWithMode' from HSE but produces a GHC expression (parse result)
     ) where
 
 import Language.Haskell.Exts.Util hiding (freeVars, Vars(..))
@@ -42,6 +43,7 @@ import qualified Lexer as GHC
 import qualified GHC.LanguageExtensions.Type as GHC
 import qualified ApiAnnotation as GHC
 import qualified BasicTypes as GHC
+import qualified DynFlags as GHC
 
 import GHC.Util
 import qualified GHC.Util.Refact.Fixity as GHC
@@ -264,23 +266,10 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
                ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
    return $ Left $ ParseError sl msg pe
 
--- | Produce a pair of lists from a 'ParseFlags' value representing
--- language extensions to explicitly enable/disable.
-ghcExtensionsFromParseFlags :: ParseFlags
-                             -> ([GHC.Extension], [GHC.Extension])
-ghcExtensionsFromParseFlags ParseFlags {hseFlags=ParseMode {extensions=exts}}=
-   partitionEithers $ mapMaybe toEither exts
-   where
-     toEither ke = case ke of
-       EnableExtension e  -> Left  <$> readExtension (show e)
-       DisableExtension e -> Right <$> readExtension (show e)
-       UnknownExtension ('N':'o':e) -> Right <$> readExtension e
-       UnknownExtension e -> Left <$> readExtension e
-
 -- A hacky function to get fixities from HSE parse flags suitable for
 -- use by our own 'GHC.Util.Refact.Fixity' module.
-ghcFixitiesFromParseFlags :: ParseFlags -> [(String, GHC.Fixity)]
-ghcFixitiesFromParseFlags ParseFlags {hseFlags=ParseMode{fixities=Just fixities}} =
+ghcFixitiesFromParseMode :: ParseMode -> [(String, GHC.Fixity)]
+ghcFixitiesFromParseMode ParseMode {fixities=Just fixities} =
   concatMap convert fixities
   where
     convert (Fixity (AssocNone _) fix name) = infix_' fix [qNameToStr name]
@@ -301,7 +290,40 @@ ghcFixitiesFromParseFlags ParseFlags {hseFlags=ParseMode{fixities=Just fixities}
     qNameToStr (UnQual _ (X.Ident _ x)) = x
     qNameToStr (UnQual _ (Symbol _ x)) = x
     qNameToStr _ = ""
-ghcFixitiesFromParseFlags _ = []
+ghcFixitiesFromParseMode _ = []
+
+-- GHC enabled/disabled extensions given an HSE parse mode.
+ghcExtensionsFromParseMode :: ParseMode
+                           -> ([GHC.Extension], [GHC.Extension])
+ghcExtensionsFromParseMode ParseMode {extensions=exts}=
+   partitionEithers $ mapMaybe toEither exts
+   where
+     toEither ke = case ke of
+       EnableExtension e  -> Left  <$> readExtension (show e)
+       DisableExtension e -> Right <$> readExtension (show e)
+       UnknownExtension ('N':'o':e) -> Right <$> readExtension e
+       UnknownExtension e -> Left <$> readExtension e
+
+-- GHC extensions to enable/disable given HSE parse flags.
+ghcExtensionsFromParseFlags :: ParseFlags
+                             -> ([GHC.Extension], [GHC.Extension])
+ghcExtensionsFromParseFlags ParseFlags {hseFlags=mode} = ghcExtensionsFromParseMode mode
+
+-- GHC fixities given HSE parse flags.
+ghcFixitiesFromParseFlags :: ParseFlags -> [(String, GHC.Fixity)]
+ghcFixitiesFromParseFlags ParseFlags {hseFlags=mode} = ghcFixitiesFromParseMode mode
+
+-- | Parse a Haskell expression with GHC. We're going to call this in
+-- 'Config/Yaml.hs' for user defined hint rules.
+parseExpGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LHsExpr HsSyn.GhcPs)
+parseExpGhcWithMode parseMode s =
+  -- Right now we're taking extensions to enable/disable into account
+  -- but ignoring fixities. It wouldn't be hard to accounting for
+  -- fixities in but let's see how far we get without that for the
+  -- time being.
+  let (enable, disable) = ghcExtensionsFromParseMode parseMode
+      flags = foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
+  in parseExpGhcLib s flags
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The

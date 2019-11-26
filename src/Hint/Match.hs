@@ -114,6 +114,8 @@ findDecls x@InstDecl{} = children x
 findDecls RulePragmaDecl{} = [] -- often rules contain things that HLint would rewrite
 findDecls x = [x]
 
+-- old
+
 matchIdea :: Scope -> Decl_ -> HintRule -> Maybe (Int, Exp_) -> Exp_ -> Maybe (Exp_, [Note], [(String, R.SrcSpan)])
 matchIdea s decl HintRule{..} parent x = do
     let nm a b = scopeMatch (hintRuleScope,a) (s,b)
@@ -136,6 +138,14 @@ matchIdea s decl HintRule{..} parent x = do
     guard $ checkDefine decl parent res
     return (res, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst u, ann pos /= an])
 
+-- new
+
+matchIdea' :: Scope'
+           -> GHC.LHsDecl GHC.GhcPs
+           -> Maybe (Int, GHC.LHsExpr GHC.GhcPs)
+           -> GHC.LHsExpr GHC.GhcPs
+           -> Maybe (GHC.LHsExpr GHC.GhcPs, [Note], [(String, R.SrcSpan)])
+matchIdea' = undefined
 
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS

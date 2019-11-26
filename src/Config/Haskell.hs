@@ -15,6 +15,9 @@ import Data.Maybe
 import Config.Type
 import Util
 import Prelude
+
+import qualified HsSyn as GHC
+import qualified BasicTypes as GHC
 import GHC.Util
 import SrcLoc as GHC
 import ApiAnnotation
@@ -48,7 +51,11 @@ readSetting :: Scope -> Decl_ -> [Setting]
 readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats (UnGuardedRhs _ bod) bind])
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
         let (a,b) = readSide $ childrenBi bind in
-        [SettingMatchExp $ HintRule severity (head $ snoc names defaultHintName) s (fromParen lhs) (fromParen rhs) a b]
+        let unit = W (GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed) in
+        [SettingMatchExp $
+         HintRule severity (head $ snoc names defaultHintName) s (fromParen lhs) (fromParen rhs) a b
+        -- Todo : Replace these with "proper" GHC expressions.
+         unit unit Nothing]
     | otherwise = [SettingClassify $ Classify severity n a b | n <- names2, (a,b) <- readFuncs bod]
     where
         names = filter (not . null) $ getNames pats bod

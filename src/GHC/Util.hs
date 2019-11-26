@@ -17,7 +17,7 @@ module GHC.Util (
   , module GHC.Util.RdrName
   , module GHC.Util.Unify
 
-  , parsePragmasIntoDynFlags, parseFileGhcLib
+  , parsePragmasIntoDynFlags, parseFileGhcLib, parseExpGhcLib
   ) where
 
 import GHC.Util.View
@@ -52,6 +52,16 @@ import DynFlags
 import Data.List.Extra
 import System.FilePath
 import Language.Preprocessor.Unlit
+
+parseExpGhcLib :: String
+                -> DynFlags
+                -> ParseResult (LHsExpr GhcPs)
+parseExpGhcLib str flags =
+  Lexer.unP Parser.parseExpression parseState
+  where
+    location = mkRealSrcLoc (mkFastString "<string>") 1 1
+    buffer = stringToStringBuffer str
+    parseState = mkPState flags buffer location
 
 parseFileGhcLib :: FilePath
                 -> String
