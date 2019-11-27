@@ -27,6 +27,7 @@ wToStr :: Outputable a => W a -> String
 wToStr (W e) = showPpr baseDynFlags e
 instance Outputable a => Eq (W a) where (==) a b = wToStr a == wToStr b
 instance Outputable a => Ord (W a) where compare = compare `on` wToStr
+instance Outputable a => Show (W a) where show = wToStr
 
 wrap :: a -> W a
 wrap = W

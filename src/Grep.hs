@@ -10,6 +10,10 @@ import Data.List
 import Util
 import Idea
 
+import qualified HsSyn as GHC
+import qualified BasicTypes as GHC
+import GHC.Util
+import SrcLoc as GHC hiding (mkSrcSpan)
 
 runGrep :: String -> ParseFlags -> [FilePath] -> IO ()
 runGrep patt flags files = do
@@ -20,7 +24,10 @@ runGrep patt flags files = do
                           patt ++ "\n" ++
                           replicate (srcColumn sl - 1) ' ' ++ "^"
     let scope = scopeCreate $ Module an Nothing [] [] []
-    let rule = hintRules [HintRule Suggestion "grep" scope exp (Tuple an Boxed []) Nothing []]
+    let unit = W (GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed)
+    let rule = hintRules [HintRule Suggestion "grep" scope exp (Tuple an Boxed []) Nothing []
+                         -- Todo : Replace these with "proper" GHC expressions.
+                          unit unit Nothing]
     forM_ files $ \file -> do
         res <- parseModuleEx flags file Nothing
         case res of

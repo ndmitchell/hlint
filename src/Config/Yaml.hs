@@ -25,6 +25,11 @@ import Timing
 import Util
 import Prelude
 
+import qualified Lexer as GHC
+import qualified ErrUtils
+import qualified Outputable
+import GHC.Util (baseDynFlags)
+import GHC.Util.W
 
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
 --   Fails if the YAML doesn't parse or isn't valid HLint YAML
@@ -150,8 +155,18 @@ parseHSE parser v = do
     x <- parseString v
     case parser defaultParseMode{extensions=configExtensions} x of
         ParseOk x -> return x
-        ParseFailed loc s -> parseFail v $ "Failed to parse " ++ s ++ ", when parsing:\n  " ++ x
+        ParseFailed loc s ->
+          parseFail v $ "Failed to parse " ++ s ++ ", when parsing:\n  " ++ x
 
+parseGHC :: (ParseMode -> String -> GHC.ParseResult v) -> Val -> Parser v
+parseGHC parser v = do
+    x <- parseString v
+    case parser defaultParseMode{extensions=configExtensions} x of
+        GHC.POk _ x -> return x
+        GHC.PFailed _ loc err ->
+          let msg = Outputable.showSDoc baseDynFlags $
+                ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
+          in parseFail v $ "Failed to parse " ++ msg ++ ", when parsing:\n " ++ x
 
 ---------------------------------------------------------------------
 -- YAML TO DATA TYPE
@@ -228,6 +243,11 @@ parseRule v = do
         hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (fmap (map asNote) . parseArrayString)
         hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName hintRuleLHS hintRuleRHS) parseString
         hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap Just . parseHSE parseExpWithMode)
+
+        hintRuleGhcLHS <- parseField "lhs" v >>= fmap wrap . parseGHC parseExpGhcWithMode
+        hintRuleGhcRHS <- parseField "rhs" v >>= fmap wrap . parseGHC parseExpGhcWithMode
+        hintRuleGhcSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . wrap) . parseGHC parseExpGhcWithMode)
+
         allowFields v ["lhs","rhs","note","name","side"]
         let hintRuleScope = mempty
         return [Left HintRule{hintRuleSeverity=severity, ..}]
