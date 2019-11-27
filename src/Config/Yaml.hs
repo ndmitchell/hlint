@@ -28,7 +28,7 @@ import Prelude
 import qualified Lexer as GHC
 import qualified ErrUtils
 import qualified Outputable
-import GHC.Util (baseDynFlags)
+import GHC.Util (baseDynFlags, Scope')
 import GHC.Util.W
 
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
@@ -249,7 +249,8 @@ parseRule v = do
         hintRuleGhcSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . wrap) . parseGHC parseExpGhcWithMode)
 
         allowFields v ["lhs","rhs","note","name","side"]
-        let hintRuleScope = mempty
+        let hintRuleScope = mempty :: Scope
+        let hintRuleGhcScope = wrap mempty :: W Scope'
         return [Left HintRule{hintRuleSeverity=severity, ..}]
      else do
         names <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString

@@ -24,10 +24,10 @@ runGrep patt flags files = do
                           patt ++ "\n" ++
                           replicate (srcColumn sl - 1) ' ' ++ "^"
     let scope = scopeCreate $ Module an Nothing [] [] []
-    let unit = W (GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed)
+    let unit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed
     let rule = hintRules [HintRule Suggestion "grep" scope exp (Tuple an Boxed []) Nothing []
                          -- Todo : Replace these with "proper" GHC expressions.
-                          unit unit Nothing]
+                          (wrap mempty) (wrap unit) (wrap unit) Nothing]
     forM_ files $ \file -> do
         res <- parseModuleEx flags file Nothing
         case res of

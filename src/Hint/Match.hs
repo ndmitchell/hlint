@@ -70,9 +70,17 @@ fmapAn = fmap (const an)
 ---------------------------------------------------------------------
 -- READ THE RULE
 
+-- old
+
 readMatch :: [HintRule] -> DeclHint
 readMatch settings = findIdeas (concatMap readRule settings)
 
+-- new
+
+readMatch' :: [HintRule] -> Scope' -> ModuleEx -> GHC.LHsDecl GHC.GhcPs -> [Idea]
+readMatch' settings = findIdeas' (concatMap readRule' settings)
+
+-- old
 
 readRule :: HintRule -> [HintRule]
 readRule m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn -> hintRuleRHS), hintRuleSide=(fmap fmapAn -> hintRuleSide)} =
@@ -88,6 +96,28 @@ readRule m@HintRule{hintRuleLHS=(fmapAn -> hintRuleLHS), hintRuleRHS=(fmapAn -> 
             ,m{hintRuleLHS=dotApps (l++[toNamed v1]), hintRuleRHS=toNamed v1, hintRuleSide=hintRuleSide}]
          else []
 
+-- new
+
+readRule' :: HintRule -> [HintRule]
+readRule' m@HintRule{ hintRuleGhcLHS=(stripLocs' . unwrap -> hintRuleGhcLHS)
+                    , hintRuleGhcRHS=(stripLocs' . unwrap -> hintRuleGhcRHS)
+                    , hintRuleGhcSide=((stripLocs' . unwrap <$>) -> hintRuleGhcSide)
+                    } =
+   (:) m{ hintRuleGhcLHS=wrap hintRuleGhcLHS
+        , hintRuleGhcRHS=wrap hintRuleGhcRHS
+        , hintRuleGhcSide=wrap <$> hintRuleGhcSide } $ do
+    (l, v1) <- dotVersion' hintRuleGhcLHS
+    (r, v2) <- dotVersion' hintRuleGhcRHS
+    guard $ v1 == v2 && not (null l) && (length l > 1 || length r > 1) && Set.notMember v1 (Set.map occNameString (freeVars' $ maybeToList hintRuleGhcSide ++ l ++ r))
+    if not (null r) then
+      [ m{ hintRuleGhcLHS=wrap (dotApps' l), hintRuleGhcRHS=wrap (dotApps' r), hintRuleGhcSide=wrap <$> hintRuleGhcSide }
+      , m{ hintRuleGhcLHS=wrap (dotApps' (l ++ [strToVar' v1])), hintRuleGhcRHS=wrap (dotApps' (r ++ [strToVar' v1])), hintRuleGhcSide=wrap <$> hintRuleGhcSide } ]
+      else if length l > 1 then
+            [ m{ hintRuleGhcLHS=wrap (dotApps' l), hintRuleGhcRHS=wrap (strToVar' "id"), hintRuleGhcSide=wrap <$> hintRuleGhcSide }
+            , m{ hintRuleGhcLHS=wrap (dotApps' (l++[strToVar' v1])), hintRuleGhcRHS=wrap (strToVar' v1), hintRuleGhcSide=wrap <$> hintRuleGhcSide}]
+      else []
+
+-- old
 
 -- find a dot version of this rule, return the sequence of app prefixes, and the var
 dotVersion :: Exp_ -> [([Exp_], String)]
@@ -97,9 +127,21 @@ dotVersion (InfixApp l x op y) = (first (LeftSection l x op :) <$> dotVersion y)
                                  (first (RightSection l op y:) <$> dotVersion x)
 dotVersion _ = []
 
+-- new
+
+-- Find a dot version of this rule, return the sequence of app
+-- prefixes, and the var.
+dotVersion' :: GHC.LHsExpr GHC.GhcPs -> [([GHC.LHsExpr GHC.GhcPs], String)]
+dotVersion' (view' -> Var_' v) | isUnifyVar v = [([], v)]
+dotVersion' (GHC.LL _ (GHC.HsApp _ ls rs)) = first (ls :) <$> dotVersion' (fromParen' rs)
+dotVersion' (GHC.LL l (GHC.OpApp _ x op y)) =(first (GHC.cL l (GHC.SectionL GHC.noExt x op) :) <$> dotVersion' y) ++
+                                             (first (GHC.cL l (GHC.SectionR GHC.noExt op y) :) <$> dotVersion' x)
+dotVersion' _ = []
 
 ---------------------------------------------------------------------
 -- PERFORM THE MATCHING
+
+-- old
 
 findIdeas :: [HintRule] -> Scope -> ModuleEx -> Decl_ -> [Idea]
 findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
@@ -109,10 +151,30 @@ findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
     , m <- matches, Just (y,notes, subst) <- [matchIdea s decl m parent x]
     , let r = R.Replace R.Expr (toSS x) subst (prettyPrint $ hintRuleRHS m) ]
 
+-- new
+
+findIdeas' :: [HintRule] -> Scope' -> ModuleEx -> GHC.LHsDecl GHC.GhcPs -> [Idea]
+findIdeas' matches s _ decl = timed "Hint" "Match apply" $ forceList
+    [ (idea' (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
+    | decl <- findDecls' decl
+    , (parent,x) <- universeParentExp' decl
+    , m <- matches, Just (y, notes, subst) <- [matchIdea' s decl m parent x]
+    , let r = R.Replace R.Expr (toSS' x) subst (unsafePrettyPrint $ unwrap (hintRuleGhcRHS m))
+    ]
+
+-- old
+
 findDecls :: Decl_ -> [Decl_]
 findDecls x@InstDecl{} = children x
-findDecls RulePragmaDecl{} = [] -- often rules contain things that HLint would rewrite
+findDecls RulePragmaDecl{} = []  -- often rules contain things that HLint would rewrite
 findDecls x = [x]
+
+-- new
+
+findDecls' :: GHC.LHsDecl GHC.GhcPs -> [GHC.LHsDecl GHC.GhcPs]
+findDecls' x@(GHC.LL _ GHC.InstD{}) = children x
+findDecls' (GHC.LL _ GHC.RuleD{}) = [] -- Often rules contain things that HLint would rewrite.
+findDecls' x = [x]
 
 -- old
 
@@ -142,10 +204,33 @@ matchIdea s decl HintRule{..} parent x = do
 
 matchIdea' :: Scope'
            -> GHC.LHsDecl GHC.GhcPs
+           -> HintRule
            -> Maybe (Int, GHC.LHsExpr GHC.GhcPs)
            -> GHC.LHsExpr GHC.GhcPs
            -> Maybe (GHC.LHsExpr GHC.GhcPs, [Note], [(String, R.SrcSpan)])
-matchIdea' = undefined
+matchIdea' sb decl HintRule{..} parent x = do
+  let lhs = unwrap hintRuleGhcLHS
+      rhs = unwrap hintRuleGhcRHS
+      sa  = unwrap hintRuleGhcScope
+      nm a b = scopeMatch' (sa, a) (sb, b)
+  u <- unifyExp' nm True lhs x
+  u <- validSubst' eqNoLoc' u
+  -- Need to check free vars before unqualification, but after subst
+  -- (with 'e') need to unqualify before substitution (with 'res').
+  let e = substitute' u rhs
+      res = addBracket' parent $ performSpecial' $ substitute' u $ unqualify' sa sb rhs
+  guard $ (freeVars' e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars' rhs)) `Set.isSubsetOf` freeVars' x
+      -- Check no unexpected new free variables.
+
+  -- Check it isn't going to get broken by QuasiQuotes as per #483. If
+  -- we have lambdas we might be moving, and QuasiQuotes, we might
+  -- inadvertantly break free vars because quasi quotes don't show
+  -- what free vars they make use of.
+  guard $ not (any isLambda' $ universe lhs) || not (any isQuasiQuote' $ universe x)
+
+  guard $ checkSide' (unwrap <$> hintRuleGhcSide) $ ("original", x) : ("result", res) : fromSubst' u
+  guard $ checkDefine' decl parent res
+  return (res, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, GHC.getLoc pos /= GHC.noSrcSpan])
 
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS
@@ -312,7 +397,7 @@ unqualify from to = transformBi f
 -- new
 
 -- Contract : 'Data.List.foo' => 'foo' if 'Data.List' is loaded.
-unqualify' :: Scope' -> Scope' -> GHC.HsExpr GHC.GhcPs -> GHC.HsExpr GHC.GhcPs
+unqualify' :: Scope' -> Scope' -> GHC.LHsExpr GHC.GhcPs -> GHC.LHsExpr GHC.GhcPs
 unqualify' from to = transformBi f
   where
     f :: GHC.Located RdrName -> GHC.Located RdrName

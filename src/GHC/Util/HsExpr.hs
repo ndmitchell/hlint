@@ -8,8 +8,8 @@
 
 module GHC.Util.HsExpr (
     noSyntaxExpr'
-  , isTag', isDol', isDot', isSection', isRecConstr', isRecUpdate', isVar', isPar', isApp', isAnyApp', isLexeme', isTypeApp', isWHNF',isReturn'
-  , dotApp'
+  , isTag', isDol', isDot', isSection', isRecConstr', isRecUpdate', isVar', isPar', isApp', isAnyApp', isLexeme', isLambda', isQuasiQuote', isTypeApp', isWHNF',isReturn'
+  , dotApp', dotApps'
   , simplifyExp', niceLambda', niceDotApp'
   , Brackets'(..)
   , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'
@@ -59,6 +59,11 @@ noSyntaxExpr' =
 dotApp' :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
 dotApp' x y = noLoc $ OpApp noExt x (noLoc $ HsVar noExt (noLoc $ mkVarUnqual (fsLit "."))) y
 
+dotApps' :: [LHsExpr GhcPs] -> LHsExpr GhcPs
+dotApps' [] = error "GHC.Util.HsExpr.dotApps', does not work on an empty list"
+dotApps' [x] = x
+dotApps' (x : xs) = dotApp' x (dotApps' xs)
+
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren' :: LHsExpr GhcPs -> LHsExpr GhcPs
 paren' x
@@ -70,7 +75,7 @@ isTag' :: LHsExpr GhcPs -> String -> Bool
 isTag' (LL _ (HsVar _ (L _ s))) tag = occNameString (rdrNameOcc s) == tag
 isTag' _ _ = False
 
-isVar',isReturn',isLexeme',isTypeApp',isDotApp',isRecUpdate',isRecConstr',isDol',isDot' :: LHsExpr GhcPs -> Bool
+isVar',isReturn',isLexeme',isLambda',isQuasiQuote',isTypeApp',isDotApp',isRecUpdate',isRecConstr',isDol',isDot' :: LHsExpr GhcPs -> Bool
 isPar' (LL _ HsPar{}) = True; isPar' _ = False
 isVar' (LL _ HsVar{}) = True; isVar' _ = False
 isDot' x = isTag' x "."
@@ -81,6 +86,8 @@ isRecUpdate' (LL _ RecordUpd{}) = True; isRecUpdate' _ = False
 isDotApp' (LL _ (OpApp _ _ op _)) = isDot' op; isDotApp' _ = False
 isLexeme' (LL _ HsVar{}) = True;isLexeme' (LL _ HsOverLit{}) = True;isLexeme' (LL _ HsLit{}) = True;isLexeme' _ = False
 isTypeApp' (LL _ HsAppType{}) = True; isTypeApp' _ = False
+isLambda' (LL _ HsLam{}) = True; isLambda' _ = False
+isQuasiQuote' (LL _ (HsSpliceE _ HsQuasiQuote{})) = True; isQuasiQuote' _ = False
 
 isWHNF' :: LHsExpr GhcPs -> Bool
 isWHNF' (LL _ (HsVar _ (L _ x))) = isRdrDataCon x

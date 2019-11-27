@@ -16,13 +16,14 @@ import OccName
 
 import GHC.Util.Module
 import GHC.Util.RdrName
+import Outputable
 
 import Data.List
 import Data.Maybe
 
 -- A scope is a list of import declarations.
 newtype Scope' = Scope' [LImportDecl GhcPs]
-               deriving (Monoid, Semigroup)
+               deriving (Outputable, Monoid, Semigroup)
 
 -- Create a 'Scope' from a module's import declarations.
 scopeCreate' :: HsModule GhcPs -> Scope'
