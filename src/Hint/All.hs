@@ -77,8 +77,14 @@ builtinHints = [(drop 4 $ show h, builtin h) | h <- [minBound .. maxBound]]
 
 -- | Transform a list of 'HintBuiltin' or 'HintRule' into a 'Hint'.
 resolveHints :: [Either HintBuiltin HintRule] -> Hint
-resolveHints xs = mconcat $ mempty{hintDecl=const $ readMatch rights} : map builtin (nubOrd lefts)
-    where (lefts,rights) = partitionEithers xs
+resolveHints xs =
+  if False then
+      -- GHC
+    mconcat $ mempty{hintDecl'=const $ readMatch' rights} : map builtin (nubOrd lefts)
+  else
+      -- HSE
+    mconcat $ mempty{ hintDecl=const $  readMatch rights} : map builtin (nubOrd lefts)
+  where (lefts,rights) = partitionEithers xs
 
 -- | Transform a list of 'HintRule' into a 'Hint'.
 hintRules :: [HintRule] -> Hint

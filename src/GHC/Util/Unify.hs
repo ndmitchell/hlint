@@ -16,7 +16,7 @@ import Data.Tuple.Extra
 import Util
 
 import HsSyn
-import SrcLoc
+import SrcLoc as GHC
 import Outputable hiding ((<>))
 import RdrName
 import OccName
@@ -99,7 +99,7 @@ unify' nm root x y
     | Just (x, y) <- cast (x, y) = unifyExp' nm root x y
     | Just (x, y) <- cast (x, y) = unifyPat' nm x y
     | Just (x, y) <- cast (x, y) = unifyType' nm x y
-    | Just (x :: SrcSpan) <- cast x = Just mempty
+    | Just (x :: GHC.SrcSpan) <- cast x = Just mempty
     | otherwise = unifyDef' nm x y
 
 unifyDef' :: Data a => NameMatch' -> a -> a -> Maybe (Subst' (LHsExpr GhcPs))

@@ -40,7 +40,7 @@ not . not ==> id
 not . not . x ==> x
 -}
 
-module Hint.Match(readMatch) where
+module Hint.Match(readMatch,readMatch') where
 
 import Control.Applicative
 import Data.List.Extra
@@ -61,6 +61,7 @@ import qualified SrcLoc as GHC
 import qualified BasicTypes as GHC
 import RdrName
 import OccName
+import Data.Data
 import GHC.Util
 
 fmapAn :: Exp b -> Exp SrcSpanInfo
@@ -215,6 +216,7 @@ matchIdea' sb decl HintRule{..} parent x = do
       nm a b = scopeMatch' (sa, a) (sb, b)
   u <- unifyExp' nm True lhs x
   u <- validSubst' eqNoLoc' u
+
   -- Need to check free vars before unqualification, but after subst
   -- (with 'e') need to unqualify before substitution (with 'res').
   let e = substitute' u rhs
@@ -230,6 +232,7 @@ matchIdea' sb decl HintRule{..} parent x = do
 
   guard $ checkSide' (unwrap <$> hintRuleGhcSide) $ ("original", x) : ("result", res) : fromSubst' u
   guard $ checkDefine' decl parent res
+
   return (res, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, GHC.getLoc pos /= GHC.noSrcSpan])
 
 ---------------------------------------------------------------------
@@ -269,8 +272,13 @@ checkSide x bind = maybe True bool x
         isType "Pos" (asInt -> Just x) | x >  0 = True
         isType "Neg" (asInt -> Just x) | x <  0 = True
         isType "NegZero" (asInt -> Just x) | x <= 0 = True
-        isType ('L':'i':'t':typ@(_:_)) (Lit _ x) = head (words $ show x) == typ
-        isType typ x = head (words $ show x) == typ
+        isType ('L':'i':'t':typ@(_:_)) (Lit _ x) =
+           -- This case only comes up in the tests with 'LitInt'.
+          let top = head (words $ show x) in
+          typ == top
+        isType typ x =
+          let top = head (words $ show x) in
+          typ == top
 
         asInt :: Exp_ -> Maybe Integer
         asInt (Paren _ x) = asInt x
@@ -322,17 +330,23 @@ checkSide' x bind = maybe True bool x
       isType "Neg" (asInt -> Just x) | x <  0 = True
       isType "NegZero" (asInt -> Just x) | x <= 0 = True
       isType "LitInt" (GHC.LL _ (GHC.HsLit _ GHC.HsInt{})) = True
+      isType "LitInt" (GHC.LL _ (GHC.HsOverLit _ (GHC.OverLit _ GHC.HsIntegral{} _))) = True
       isType "Var" (GHC.LL _ GHC.HsVar{}) = True
       isType "App" (GHC.LL _ GHC.HsApp{}) = True
       isType "InfixAp" (GHC.LL _ GHC.OpApp{}) = True
       isType "Paren" (GHC.LL _ GHC.HsPar{}) = True
       isType "Tuple" (GHC.LL _ GHC.ExplicitTuple{}) = True
-      isType typ _ = error $ "Hint.Match.checkSide', unknown side condition: '" ++ "is" ++ typ ++ "'"
+
+      isType typ (GHC.LL _ x) =
+        let top = showConstr (toConstr x) in
+        typ == top
+      isType _ _ = False -- {-# COMPLETE LL#-}
 
       asInt :: GHC.LHsExpr GHC.GhcPs -> Maybe Integer
       asInt (GHC.LL _ (GHC.HsPar _ x)) = asInt x
       asInt (GHC.LL _ (GHC.NegApp _ x _)) = negate <$> asInt x
       asInt (GHC.LL _ (GHC.HsLit _ (GHC.HsInt _ (GHC.IL _ neg x)) )) = Just $ if neg then -x else x
+      asInt (GHC.LL _ (GHC.HsOverLit _ (GHC.OverLit _ (GHC.HsIntegral (GHC.IL _ neg x)) _))) = Just $ if neg then -x else x
       asInt _ = Nothing
 
       list :: GHC.LHsExpr GHC.GhcPs -> [GHC.LHsExpr GHC.GhcPs]
