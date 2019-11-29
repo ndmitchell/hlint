@@ -36,7 +36,7 @@ scopeCreate' xs = Scope' $ [prelude | not $ any isPrelude res] ++ res
 
     -- The import declaraions contained by the module 'xs'.
     res :: [LImportDecl GhcPs]
-    res = [x | x <- hsmodImports xs, pkg x /= Just (StringLiteral NoSourceText (fsLit "hint"))]
+    res = [x | x <- hsmodImports xs , pkg x /= Just (StringLiteral NoSourceText (fsLit "hint"))]
 
     -- Mock up an import declaraion corresponding to 'import Prelude'.
     prelude :: LImportDecl GhcPs
@@ -59,7 +59,8 @@ scopeMatch' :: (Scope', Located RdrName) -> (Scope', Located RdrName) -> Bool
 scopeMatch' (a, x) (b, y)
   | isSpecial' x && isSpecial' y = rdrNameStr' x == rdrNameStr' y
   | isSpecial' x || isSpecial' y = False
-  | otherwise = rdrNameStr' x == rdrNameStr' y && not (null $ possModules' a x `intersect` possModules' b y)
+  | otherwise =
+     rdrNameStr' (unqual' x) == rdrNameStr' (unqual' y) && not (null $ possModules' a x `intersect` possModules' b y)
 
 -- Given a name in a scope, and a new scope, create a name for the new
 -- scope that will refer to the same thing. If the resulting name is

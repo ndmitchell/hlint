@@ -10,7 +10,7 @@ module HSE.All(
     parseModuleEx, ghcComments,
     freeVars, vars, varss, pvars,
     ghcSpanToHSE, ghcSrcLocToHSE,
-    parseExpGhcWithMode -- like HSE 'parseExpWithMode' from HSE but produces a GHC expression (parse result)
+    parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
 
 import Language.Haskell.Exts.Util hiding (freeVars, Vars(..))
@@ -313,17 +313,23 @@ ghcExtensionsFromParseFlags ParseFlags {hseFlags=mode} = ghcExtensionsFromParseM
 ghcFixitiesFromParseFlags :: ParseFlags -> [(String, GHC.Fixity)]
 ghcFixitiesFromParseFlags ParseFlags {hseFlags=mode} = ghcFixitiesFromParseMode mode
 
--- | Parse a Haskell expression with GHC. We're going to call this in
--- 'Config/Yaml.hs' for user defined hint rules.
+-- These next two functions get called frorm 'Config/Yaml.hs' for user
+-- defined hint rules.
+
 parseExpGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LHsExpr HsSyn.GhcPs)
 parseExpGhcWithMode parseMode s =
-  -- Right now we're taking extensions to enable/disable into account
-  -- but ignoring fixities. It wouldn't be hard to accounting for
-  -- fixities in but let's see how far we get without that for the
-  -- time being.
   let (enable, disable) = ghcExtensionsFromParseMode parseMode
       flags = foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
-  in parseExpGhcLib s flags
+      fixities = ghcFixitiesFromParseMode parseMode
+  in case parseExpGhcLib s flags of
+    GHC.POk pst a -> GHC.POk pst a' where (_, a') = GHC.applyFixities Map.empty fixities a
+    f@GHC.PFailed{} -> f
+
+parseImportDeclGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LImportDecl HsSyn.GhcPs)
+parseImportDeclGhcWithMode parseMode s =
+  let (enable, disable) = ghcExtensionsFromParseMode parseMode
+      flags = foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
+  in parseImportGhcLib s flags
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
