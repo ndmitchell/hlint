@@ -25,7 +25,6 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Prelude
 
-
 ( ^+ ) :: Set OccName -> Set OccName -> Set OccName
 ( ^+ ) = Set.union
 ( ^- ) :: Set OccName -> Set OccName -> Set OccName
@@ -33,6 +32,12 @@ import Prelude
 
 -- See [Note : Spack leaks lurking here?] below.
 data Vars' = Vars'{bound' :: Set OccName, free' :: Set OccName}
+
+-- Useful for debugging.
+instance Show Vars' where
+  show (Vars' bs fs) = "bound : " ++
+    show (map occNameString (Set.toList bs)) ++
+    ", free : " ++ show (map occNameString (Set.toList fs))
 
 instance Semigroup Vars' where
     Vars' x1 x2 <> Vars' y1 y2 = Vars' (x1 ^+ y1) (x2 ^+ y2)
@@ -96,8 +101,8 @@ unqualNames' _ = []
 instance FreeVars' (LHsExpr GhcPs) where
   freeVars' (dL -> L _ (HsVar _ x)) = Set.fromList $ unqualNames' x -- Variable.
   freeVars' (dL -> L _ (HsUnboundVar _ x)) = Set.fromList [unboundVarOcc x] -- Unbound variable; also used for "holes".
-  freeVars' (dL -> L _ (HsLam _ MG{mg_alts=(dL -> L _ ms)})) = free' (allVars' ms) -- Lambda abstraction. Currently always a single match.
-  freeVars' (dL -> L _ (HsLamCase _ MG{mg_alts=(dL -> L _ ms)})) = free' (allVars' ms) -- Lambda-case.
+  freeVars' (dL -> L _ (HsLam _ mg)) = free' (allVars' mg) -- Lambda abstraction. Currently always a single match.
+  freeVars' (dL -> L _ (HsLamCase _ mg)) = free' (allVars' mg) -- Lambda-case.
   freeVars' (dL -> L _ (HsCase _ of_ MG{mg_alts=(dL -> L _ ms)})) = freeVars' of_ ^+ free' (allVars' ms) -- Case expr.
   freeVars' (dL -> L _ (HsLet _ binds e)) = inFree' binds e -- Let (rec).
   freeVars' (dL -> L _ (HsDo _ ctxt (dL -> L _ stmts))) = free' (allVars' stmts) -- Do block.
@@ -212,6 +217,11 @@ instance AllVars' (LHsBind GhcPs) where
   allVars' (dL -> L _ VarBind{}) = mempty -- Typechecker.
   allVars' (dL -> L _ AbsBinds{}) = mempty -- Not sure but I think renamer.
 
+  allVars' _ = mempty -- New ctor.
+
+instance AllVars' (MatchGroup GhcPs (LHsExpr GhcPs)) where
+  allVars' (MG _ _alts@(dL -> L _ alts) _) = inVars' (foldMap (allVars' . m_pats) ms) (allVars' (map m_grhss ms))
+    where ms = map unLoc alts
   allVars' _ = mempty -- New ctor.
 
 instance AllVars' (LMatch GhcPs (LHsExpr GhcPs)) where

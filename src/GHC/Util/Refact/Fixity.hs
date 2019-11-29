@@ -26,7 +26,7 @@ import Data.Tuple
 
 -- | Rearrange infix expressions to account for fixity.
 -- The set of fixities is wired in and includes all fixities in base.
-applyFixities :: Anns -> [(String, Fixity)] -> Module -> (Anns, Module)
+applyFixities :: (Data a) => Anns -> [(String, Fixity)] -> a -> (Anns, a)
 applyFixities as fixities m = let (as', m') = swap $ runState (everywhereM (mkM (expFix fixities)) m) as
                                   (as'', m'') = swap $ runState (everywhereM (mkM (patFix fixities)) m') as'
                               in (as'', m'') --error (showAnnData as 0 m ++ showAnnData as' 0 m')

@@ -19,7 +19,6 @@ import Data.Tuple.Extra
 import Util
 import Prelude
 
-
 ---------------------------------------------------------------------
 -- SUBSTITUTION DATA TYPE
 
@@ -126,7 +125,8 @@ unifyExp nm root x@(App _ x1 x2) (App _ y1 y2) =
             -- because the matching engine auto-generates hints in dot-form
         InfixApp _ y11 dot y12 <- return $ fromParen y1
         guard $ isDot dot
-        unifyExp nm root x (App an y11 (App an y12 y2)))
+        unifyExp nm root x (App an y11 (App an y12 y2))
+    )
 
 -- Options: match directly, then expand through $, then desugar infix
 unifyExp nm root x (InfixApp _ lhs2 op2 rhs2)
