@@ -167,7 +167,10 @@ unifyPat' nm (LL _ (VarPat _ x)) (LL _ (VarPat _ y)) =
   Just $ Subst' [(rdrNameStr' x, strToVar'(rdrNameStr' y))]
 unifyPat' nm (LL _ (VarPat _ x)) (LL _ (WildPat _)) =
   let s = rdrNameStr' x in Just $ Subst' [(s, strToVar'("_" ++ s))]
-unifyPat' nm x y = unifyDef' nm x y
+unifyPat' nm (LL _ (ConPatIn x _)) (LL _ (ConPatIn y _)) | rdrNameStr' x /= rdrNameStr' y =
+  Nothing
+unifyPat' nm x y =
+  unifyDef' nm x y
 
 unifyType' :: NameMatch' -> LHsType GhcPs -> LHsType GhcPs -> Maybe (Subst' (LHsExpr GhcPs))
 unifyType' nm (LL loc (HsTyVar _ _ x)) y =

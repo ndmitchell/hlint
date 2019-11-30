@@ -25,7 +25,6 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Prelude
 
-
 ( ^+ ) :: Set OccName -> Set OccName -> Set OccName
 ( ^+ ) = Set.union
 ( ^- ) :: Set OccName -> Set OccName -> Set OccName
@@ -33,6 +32,12 @@ import Prelude
 
 -- See [Note : Spack leaks lurking here?] below.
 data Vars' = Vars'{bound' :: Set OccName, free' :: Set OccName}
+
+-- Useful for debugging.
+instance Show Vars' where
+  show (Vars' bs fs) = "bound : " ++
+    show (map occNameString (Set.toList bs)) ++
+    ", free : " ++ show (map occNameString (Set.toList fs))
 
 instance Semigroup Vars' where
     Vars' x1 x2 <> Vars' y1 y2 = Vars' (x1 ^+ y1) (x2 ^+ y2)
@@ -217,7 +222,7 @@ instance AllVars' (LHsBind GhcPs) where
 instance AllVars' (LMatch GhcPs (LHsExpr GhcPs)) where
   allVars' (dL -> L _ (Match _ FunRhs {mc_fun=name} pats grhss)) = allVars' (VarPat noExt name :: Pat GhcPs) <> allVars' pats <> allVars' grhss -- A pattern matching on an argument of a function binding.
   allVars' (dL -> L _ (Match _ (StmtCtxt ctxt) pats grhss)) = allVars' ctxt <> allVars' pats <> allVars' grhss -- Pattern of a do-stmt, list comprehension, pattern guard etc.
-  allVars' (dL -> L _ (Match _ _ pats grhss)) = allVars' pats <> allVars' grhss -- Everything else.
+  allVars' (dL -> L _ (Match _ _ pats grhss)) = inVars' (allVars' pats) (allVars' grhss) -- Everything else.
 
   allVars' _ = mempty -- New ctor.
 
@@ -234,7 +239,7 @@ instance AllVars' (GRHSs GhcPs (LHsExpr GhcPs)) where
   allVars' _ = mempty -- New ctor.
 
 instance AllVars' (LGRHS GhcPs (LHsExpr GhcPs)) where
-  allVars' (dL -> L _ (GRHS _ guards expr)) =  let gs = allVars' guards in Vars' (bound' gs) (free' gs ^+ (freeVars' expr ^- bound' gs))
+  allVars' (dL -> L _ (GRHS _ guards expr)) = Vars' (bound' gs) (free' gs ^+ (freeVars' expr ^- bound' gs)) where gs = allVars' guards
 
   allVars' _ = mempty -- New ctor.
 
