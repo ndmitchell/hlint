@@ -289,7 +289,7 @@ replaceBranches' x = ([], \[] -> x)
 -- removed from haskell-src-exts-util-0.2.2.
 needBracketOld' :: Int -> LHsExpr GhcPs -> LHsExpr GhcPs -> Bool
 needBracketOld' i parent child
-  | isDotApp' parent, isDotApp' child, i == 1 = False
+  | isDotApp' parent, isDotApp' child, i == 2 = False
   | otherwise = needBracket' i parent child
 
 transformBracketOld' :: (LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)) -> LHsExpr GhcPs -> LHsExpr GhcPs
