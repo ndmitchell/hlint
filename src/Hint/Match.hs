@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards, FlexibleContexts, ScopedTypeVariables #-}
 
--- Kepp until 'checkSide', 'checkDefine', ... are used.
+-- Keep until 'checkSide', 'checkDefine', ... are used.
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 {-
@@ -333,8 +333,8 @@ checkSide' x bind = maybe True bool x
       isType "LitInt" (GHC.LL _ (GHC.HsOverLit _ (GHC.OverLit _ GHC.HsIntegral{} _))) = True
       isType "Var" (GHC.LL _ GHC.HsVar{}) = True
       isType "App" (GHC.LL _ GHC.HsApp{}) = True
-      isType "InfixAp" (GHC.LL _ GHC.OpApp{}) = True
-      isType "Paren" (GHC.LL _ GHC.HsPar{}) = True
+      isType "InfixApp" (GHC.LL _ x@GHC.OpApp{}) = True
+      isType "Paren" (GHC.LL _ x@GHC.HsPar{}) = True
       isType "Tuple" (GHC.LL _ GHC.ExplicitTuple{}) = True
 
       isType typ (GHC.LL _ x) =
