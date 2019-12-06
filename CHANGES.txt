@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #803, allow newer ghc-lib-8.8.1
     #792, note that reverse/sort changes sort stability
     #793, don't incorrectly suggest foldr
 2.2.4, released 2019-11-02
