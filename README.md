@@ -216,6 +216,10 @@ In this case, a solution is to add the `:: String` type annotation.  For example
 
 See discussion in [issue #372](https://github.com/ndmitchell/hlint/issues/372).
 
+### Why do I get a parse error?
+
+HLint enables/disables a set of extensions designed to allow as many files to parse as possible, but sometimes you'll need to enable an additional extension (e.g. Arrows), or disable some (e.g. MagicHash) to enable your code to parse. In addition, sometimes the underlying parser library ([haskell-src-exts](https://github.com/haskell-suite/haskell-src-exts)) has a bug which causes a parse error.
+
 ## Customizing the hints
 
 To customize the hints given by HLint, create a file `.hlint.yaml` in the root of your project. For a suitable default run:
