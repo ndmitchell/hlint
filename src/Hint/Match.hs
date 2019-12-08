@@ -109,6 +109,7 @@ readRule' m@HintRule{ hintRuleGhcLHS=(stripLocs' . unwrap -> hintRuleGhcLHS)
         , hintRuleGhcSide=wrap <$> hintRuleGhcSide } $ do
     (l, v1) <- dotVersion' hintRuleGhcLHS
     (r, v2) <- dotVersion' hintRuleGhcRHS
+
     guard $ v1 == v2 && not (null l) && (length l > 1 || length r > 1) && Set.notMember v1 (Set.map occNameString (freeVars' $ maybeToList hintRuleGhcSide ++ l ++ r))
     if not (null r) then
       [ m{ hintRuleGhcLHS=wrap (dotApps' l), hintRuleGhcRHS=wrap (dotApps' r), hintRuleGhcSide=wrap <$> hintRuleGhcSide }
@@ -135,8 +136,16 @@ dotVersion _ = []
 dotVersion' :: GHC.LHsExpr GHC.GhcPs -> [([GHC.LHsExpr GHC.GhcPs], String)]
 dotVersion' (view' -> Var_' v) | isUnifyVar v = [([], v)]
 dotVersion' (GHC.LL _ (GHC.HsApp _ ls rs)) = first (ls :) <$> dotVersion' (fromParen' rs)
-dotVersion' (GHC.LL l (GHC.OpApp _ x op y)) =(first (GHC.cL l (GHC.SectionL GHC.noExt x op) :) <$> dotVersion' y) ++
-                                             (first (GHC.cL l (GHC.SectionR GHC.noExt op y) :) <$> dotVersion' x)
+dotVersion' (GHC.LL l (GHC.OpApp _ x op y)) =
+  -- In a GHC parse tree, raw sections aren't valid application terms.
+  -- To be suitable as application terms, they must be enclosed in
+  -- parentheses.
+
+  --   If a == b then
+  --   x is 'a', op is '==' and y is 'b' and,
+  let lSec = addParen' (GHC.cL l (GHC.SectionL GHC.noExt x op)) -- (a == )
+      rSec = addParen' (GHC.cL l (GHC.SectionR GHC.noExt op y)) -- ( == b)
+  in (first (lSec :) <$> dotVersion' y) ++ (first (rSec :) <$> dotVersion' x) -- [([(a ==)], b), ([(b == )], a])].
 dotVersion' _ = []
 
 ---------------------------------------------------------------------
