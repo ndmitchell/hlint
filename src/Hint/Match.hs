@@ -229,7 +229,7 @@ matchIdea' sb decl HintRule{..} parent x = do
   -- Need to check free vars before unqualification, but after subst
   -- (with 'e') need to unqualify before substitution (with 'res').
   let e = substitute' u rhs
-      res = addBracket' parent $ performSpecial' $ substitute' u $ unqualify' sa sb rhs
+      res = addBracketTy' (addBracket' parent $ performSpecial' $ substitute' u $ unqualify' sa sb rhs)
   guard $ (freeVars' e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars' rhs)) `Set.isSubsetOf` freeVars' x
       -- Check no unexpected new free variables.
 
@@ -438,3 +438,14 @@ addBracket _ x = x
 addBracket' :: Maybe (Int, GHC.LHsExpr GHC.GhcPs) -> GHC.LHsExpr GHC.GhcPs -> GHC.LHsExpr GHC.GhcPs
 addBracket' (Just (i, p)) c | needBracketOld' i p c = GHC.noLoc $ GHC.HsPar GHC.noExt c
 addBracket' _ x = x
+
+-- Type substitution e.g. 'Foo Int' for 'a' in 'Proxy a' can lead to a
+-- need to bracket type applications in GHC. This doesn't come up in HSE
+-- because the pretty printer inserts them.
+addBracketTy' :: GHC.LHsExpr GHC.GhcPs -> GHC.LHsExpr GHC.GhcPs
+addBracketTy'= transformBi f
+  where
+    f :: GHC.LHsType GHC.GhcPs -> GHC.LHsType GHC.GhcPs
+    f (GHC.LL _ (GHC.HsAppTy _ t x@(GHC.LL _ GHC.HsAppTy{}))) =
+      GHC.noLoc (GHC.HsAppTy GHC.noExt t (GHC.noLoc (GHC.HsParTy GHC.noExt x)))
+    f x = x
