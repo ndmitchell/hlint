@@ -1,7 +1,7 @@
 
 module HSE.Type(
     S,
-    Module_, Decl_, Exp_, Pat_, Type_,
+    Module_, Decl_, Exp_, Pat_,
     module HSE,
     module Uniplate
     ) where
@@ -16,4 +16,3 @@ type Module_ = Module S
 type Decl_ = Decl S
 type Exp_ = Exp S
 type Pat_ = Pat S
-type Type_ = Type S

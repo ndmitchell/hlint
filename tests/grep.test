@@ -3,12 +3,3 @@ RUN grep A.filter tests/grep1.hs
 FILE tests/grep1.hs
 main = filter
 OUTPUT
-
----------------------------------------------------------------------
-RUN grep "filter a" tests/grep2.hs
-FILE tests/grep2.hs
-main = filter $ foo xs
-OUTPUT
-tests/grep2.hs:1:8:
-Found:
-  filter $ foo xs

@@ -130,10 +130,8 @@ library
 
         HSE.All
         HSE.Match
-        HSE.Reduce
         HSE.Scope
         HSE.Type
-        HSE.Unify
         HSE.Util
         Hint.All
         Hint.Bracket

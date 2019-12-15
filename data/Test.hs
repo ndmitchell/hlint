@@ -46,7 +46,7 @@ error = before a ==> after a
 warn "noop" = a ? 0 ==> a
 
 {-
-<TEST>
+<--! TEST (temporarily disabled see issue https://github.com/ndmitchell/hlint/issues/809) !-->
 main = readFile "foo" >>= putStr            \
   -- bad
 
