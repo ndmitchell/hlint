@@ -164,7 +164,7 @@
     - hint: {lhs: 0 >= length x, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: "x == []", rhs: null x}
     - hint: {lhs: "[] == x", rhs: null x}
-    - hint: {lhs: all (const False), rhs: null}
+    - hint: {lhs: all (const False), rhs: "null"}
     - hint: {lhs: any (const True) x, rhs: not (null x), name: Use null}
     - hint: {lhs: length x /= 0, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - hint: {lhs: 0 /= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
