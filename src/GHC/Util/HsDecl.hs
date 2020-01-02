@@ -1,13 +1,19 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module GHC.Util.HsDecl (declName,isForD') where
+module GHC.Util.HsDecl (declName,isForD',isNewType',isDerivD',isClsDefSig')
+where
 
 import HsSyn
 import OccName
 import SrcLoc
 
-isForD' :: LHsDecl GhcPs -> Bool
+isNewType' :: NewOrData -> Bool
+isNewType' NewType = True
+isNewType' DataType = False
+
+isForD', isDerivD' :: LHsDecl GhcPs -> Bool
 isForD' (LL _ ForD{}) = True; isForD' _ = False
+isDerivD' (LL _ DerivD{}) = True; isDerivD' _ = False
 
 -- | @declName x@ returns the \"new name\" that is created (for
 -- example a function declaration) by @x@.  If @x@ isn't a declaration
@@ -31,3 +37,6 @@ declName (LL _ x) = occNameString . occName <$> case x of
     ForD _ ForeignExport{fd_name} -> Just $ unLoc fd_name
     _ -> Nothing
 declName _ = Nothing {- COMPLETE LL-}
+
+isClsDefSig' :: Sig GhcPs -> Bool
+isClsDefSig' (ClassOpSig _ True _ _) = True; isClsDefSig' _ = False
