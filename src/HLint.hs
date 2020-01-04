@@ -20,7 +20,6 @@ import Data.Version.Extra
 import System.Process.Extra
 import Data.Maybe
 import System.Directory
-import System.FilePath
 
 import CmdLine
 import Config.Read
@@ -37,6 +36,7 @@ import Test.Proof
 import Parallel
 import HSE.All
 import CC
+import EmbedData
 
 
 -- | This function takes a list of command line arguments, and returns the given hints.
@@ -119,9 +119,8 @@ hlintMain args cmd@CmdMain{..}
         ideas <- if null cmdFiles then return [] else withVerbosity Quiet $
             runHlintMain args cmd{cmdJson=False,cmdSerialise=False,cmdRefactor=False} Nothing
         let bad = nubOrd $ map ideaHint ideas
-        src <- readFile $ cmdDataDir </> "default.yaml"
-        if null bad then putStr src else do
-            let group1:groups = splitOn ["",""] $ lines src
+        if null bad then putStr defaultYaml else do
+            let group1:groups = splitOn ["",""] $ lines defaultYaml
             let group2 = "# Warnings currently triggered by your code" :
                          ["- ignore: {name: " ++ show x ++ "}" | x <- bad]
             putStr $ unlines $ intercalate ["",""] $ group1:group2:groups

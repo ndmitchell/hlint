@@ -54,6 +54,8 @@ library
         base == 4.*, process, filepath, directory, containers,
         unordered-containers, vector, text, bytestring,
         transformers,
+        file-embed,
+        utf8-string,
         data-default >= 0.3,
         cpphs >= 1.20.1,
         cmdargs >= 0.10,
@@ -100,6 +102,7 @@ library
         Refact
         Timing
         CC
+        EmbedData
         Config.Compute
         Config.Haskell
         Config.Read

@@ -6,11 +6,12 @@ import Config.Haskell
 import Config.Yaml
 import Data.List.Extra
 import System.FilePath
+import EmbedData
 
 
 readFilesConfig :: [(FilePath, Maybe String)] -> IO [Setting]
 readFilesConfig files = do
-        yaml <- mapM (uncurry readFileConfigYaml) yaml
+        yaml <- mapM (uncurry readFileConfigYaml) (hlintYaml : yaml)
         haskell <- mapM (uncurry readFileConfigHaskell) haskell
         return $ concat haskell ++ settingsFromConfigYaml yaml
     where

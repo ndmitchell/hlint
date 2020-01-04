@@ -217,12 +217,11 @@ mode = cmdArgsMode $ modes
 --   We want more important hints to go last, since they override
 cmdHintFiles :: Cmd -> IO [FilePath]
 cmdHintFiles cmd = do
-    let explicit1 = [cmdDataDir cmd </> "hlint.yaml" | null $ cmdWithHints cmd]
     let explicit2 = cmdGivenHints cmd
-    bad <- filterM (notM . doesFileExist) $ explicit1 ++ explicit2
+    bad <- filterM (notM . doesFileExist) explicit2
     when (bad /= []) $
         fail $ unlines $ "Failed to find requested hint files:" : map ("  "++) bad
-    if cmdWithHints cmd /= [] then return $ explicit1 ++ explicit2 else do
+    if cmdWithHints cmd /= [] then return explicit2 else do
         -- we follow the stylish-haskell config file search policy
         -- 1) current directory or its ancestors; 2) home directory
         curdir <- getCurrentDirectory
@@ -231,7 +230,7 @@ cmdHintFiles cmd = do
         implicit <- findM doesFileExist $
             map (</> ".hlint.yaml") (ancestors curdir ++ home) -- to match Stylish Haskell
             ++ ["HLint.hs"] -- the default in HLint 1.*
-        return $ explicit1 ++ maybeToList implicit ++ explicit2
+        return $ maybeToList implicit ++ explicit2
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
 

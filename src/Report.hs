@@ -7,18 +7,16 @@ import Data.Tuple.Extra
 import Data.List.Extra
 import Data.Maybe
 import Data.Version
-import System.FilePath
-import System.IO.Extra
 import HSE.All
 import Timing
 import Paths_hlint
 import HsColour
+import EmbedData
 
 
 writeTemplate :: FilePath -> [(String,[String])] -> FilePath -> IO ()
-writeTemplate dataDir content to = do
-    src <- readFile' $ dataDir </> "report_template.html"
-    writeFile to $ unlines $ concatMap f $ lines src
+writeTemplate dataDir content to =
+    writeFile to $ unlines $ concatMap f $ lines reportTemplate
     where
         f ('$':xs) = fromMaybe ['$':xs] $ lookup xs content
         f x = [x]
