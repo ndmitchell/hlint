@@ -125,10 +125,11 @@ prettyExpr x = unsafePrettyPrint x
 
 -- Dirty, should add to Brackets type class I think
 tyConToRtype :: String -> RType
-tyConToRtype "Exp"  = Expr
-tyConToRtype "Type" = Type
-tyConToRtype "Pat"  = Pattern
-tyConToRtype _      = Expr
+tyConToRtype "Exp"    = Expr
+tyConToRtype "Type"   = Type
+tyConToRtype "HsType" = Type
+tyConToRtype "Pat"    = Pattern
+tyConToRtype _        = Expr
 
 findType :: (Data a) => a -> RType
 findType = tyConToRtype . dataTypeName . dataTypeOf
