@@ -114,6 +114,7 @@ data Restrict = Restrict
     ,restrictName :: [String]
     ,restrictAs :: [String] -- for RestrictModule only, what module names you can import it as
     ,restrictWithin :: [(String, String)]
+    ,restrictBadIdents :: [String]
     ,restrictMessage :: Maybe String
     } deriving Show
 
