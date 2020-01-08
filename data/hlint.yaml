@@ -210,7 +210,7 @@
     - warn: {lhs: iterate id, rhs: repeat}
     - warn: {lhs: zipWith f (repeat x), rhs: map (f x)}
     - warn: {lhs: zipWith f y (repeat z), rhs: map (\x -> f x z) y}
-    - warn: {lhs: listToMaybe (filter p xs), rhs: find p xs}
+    - warn: {lhs: listToMaybe (filter p x), rhs: find p x}
 
     # MONOIDS
 
