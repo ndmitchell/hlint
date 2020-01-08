@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #814, suggest find instead of listToMaybe/filter
     Allow ghc-lib-parser-8.8.*
 2.2.5, released 2019-12-06
     #803, allow newer ghc-lib-8.8.1
