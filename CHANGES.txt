@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #813, remove any/all with const predicates
     Allow haskell-src-exts-1.23
     #814, suggest find instead of listToMaybe/filter
     Allow ghc-lib-parser-8.8.*
