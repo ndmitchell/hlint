@@ -70,6 +70,8 @@ instance Class Int where {newtype MyIO a = MyIO a deriving NewClass}
 f :: Int -> (# Int, Int #)
 {-# LANGUAGE UnboxedTuples #-} \
 f :: x -> (x, x); f x = (x, x) --
+{-# LANGUAGE UnboxedTuples #-} \
+f x = case x of (# a, b #) -> a
 {-# LANGUAGE DefaultSignatures #-} \
 class Val a where; val :: a --
 {-# LANGUAGE DefaultSignatures #-} \
@@ -275,7 +277,7 @@ used PatternSignatures = hasS isPatTypeSig'
 used RecordWildCards = hasS hasFieldsDotDot' ||^ hasS hasPFieldsDotDot'
 used RecordPuns = hasS isPFieldPun' ||^ hasS isFieldPun'
 used NamedFieldPuns = hasS isPFieldPun' ||^ hasS isFieldPun'
-used UnboxedTuples = has isUnboxedTuple'
+used UnboxedTuples = has isUnboxedTuple' ||^ has (== Unboxed)
 used QuasiQuotes = hasS isQuasiQuote' ||^ hasS isTyQuasiQuote'
 used ViewPatterns = hasS isPViewPat'
 used DefaultSignatures = hasS isClsDefSig'
