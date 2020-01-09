@@ -133,72 +133,87 @@ main = putStrLn [f|{T.intercalate "blah" []}|]
 
 module Hint.Extensions(extensionsHint) where
 
-import Hint.Type
+import Hint.Type(ModuHint, rawIdea',Severity(Warning),Note(..),toSS',ghcAnnotations,ghcModule,extensionImpliedBy,extensionImplies)
+import Language.Haskell.Exts.Extension
+
+import Data.Generics.Uniplate.Operations
 import Control.Monad.Extra
-import Data.Maybe
 import Data.List.Extra
 import Data.Ratio
 import Data.Data
 import Refact.Types
-import Data.Semigroup
 import qualified Data.Set as Set
 import qualified Data.Map as Map
-import Prelude
 
+import SrcLoc
+import HsSyn
+import BasicTypes
+import Class
+import RdrName
+import OccName
+import ForeignCall
+import GHC.Util
 
 extensionsHint :: ModuHint
 extensionsHint _ x =
-    [ rawIdea Warning "Unused LANGUAGE pragma"
-        (srcInfoSpan sl)
-        (prettyPrint o)
+    [ rawIdea' Hint.Type.Warning "Unused LANGUAGE pragma"
+        sl
+        (comment (mkLangExts sl exts))
         (Just newPragma)
         ( [RequiresExtension $ prettyExtension gone | x <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
             [ Note $ "Extension " ++ prettyExtension x ++ " is " ++ reason x
             | x <- explainedRemovals])
-        [ModifyComment (toSS o) newPragma]
-    | o@(LanguagePragma sl exts) <- modulePragmas (hseModule x)
-    , let before = map (parseExtension . prettyPrint) exts
+        [ModifyComment (toSS' (mkLangExts sl exts)) newPragma]
+    | (LL sl _,  exts) <- langExts $ pragmas (ghcAnnotations x)
+    , let before = map parseExtension exts
     , let after = filter (`Set.member` keep) before
     , before /= after
     , let explainedRemovals
             | null after && not (any (`Map.member` implied) before) = []
             | otherwise = before \\ after
-    , let newPragma = if null after then "" else prettyPrint $ LanguagePragma sl $ map (toNamed . prettyExtension) after
+    , let newPragma =
+            if null after then "" else comment (mkLangExts sl $ map prettyExtension after)
     ]
-    where
-        usedTH = used TemplateHaskell (hseModule x) || used QuasiQuotes (hseModule x)
-            -- if TH or QuasiQuotes is on, can use all other extensions programmatically
+  where
+    usedTH :: Bool
+    usedTH = used TemplateHaskell (ghcModule x) || used QuasiQuotes (ghcModule x)
+      -- If TH or QuasiQuotes is on, can use all other extensions
+      -- programmatically.
 
-        -- all the extensions defined to be used
-        extensions = Set.fromList [parseExtension $ fromNamed e | LanguagePragma _ exts <- modulePragmas (hseModule x), e <- exts]
-
-        -- those extensions we detect to be useful
-        useful = if usedTH then extensions  else Set.filter (`usedExt` hseModule x) extensions
-
-        -- those extensions which are useful, but implied by other useful extensions
-        implied = Map.fromList
-            [ (e, a)
-            | e <- Set.toList useful
-            , a:_ <- [filter (`Set.member` useful) $ extensionImpliedBy e]]
-
-        -- those we should keep
-        keep =  useful `Set.difference` Map.keysSet implied
-
-        -- (a,b) means a used to imply b, but has gone, so suggest enabling b
-        disappear =
-            Map.fromListWith (++) $
-            nubOrdOn snd -- only keep one instance for each of a
-            [ (e, [a])
-            | e <- Set.toList $ extensions `Set.difference` keep
-            , a <- extensionImplies e
-            , a `Set.notMember` useful
-            , usedTH || usedExt a (hseModule x)
-            ]
-
-        reason x =
-            case Map.lookup x implied of
-            Just a -> "implied by " ++ prettyExtension a
-            Nothing -> "not used"
+    -- All the extensions defined to be used.
+    extensions :: Set.Set Extension
+    extensions = Set.fromList [ parseExtension e
+                              | let exts = concatMap snd $ langExts (pragmas (ghcAnnotations x))
+                              , e <- exts ]
+    -- Those extensions we detect to be useful.
+    useful :: Set.Set Extension
+    useful = if usedTH then extensions else Set.filter (`usedExt` ghcModule x) extensions
+    -- Those extensions which are useful, but implied by other useful
+    -- extensions.
+    implied :: Map.Map Extension Extension
+    implied = Map.fromList
+        [ (e, a)
+        | e <- Set.toList useful
+        , a:_ <- [filter (`Set.member` useful) $ extensionImpliedBy e]]
+    -- Those we should keep.
+    keep :: Set.Set Extension
+    keep =  useful `Set.difference` Map.keysSet implied
+    -- The meaning of (a,b) is a used to imply b, but has gone, so
+    -- suggest enabling b.
+    disappear =
+        Map.fromListWith (++) $
+        nubOrdOn snd -- Only keep one instance for each of a.
+        [ (e, [a])
+        | e <- Set.toList $ extensions `Set.difference` keep
+        , a <- extensionImplies e
+        , a `Set.notMember` useful
+        , usedTH || usedExt a (ghcModule x)
+        ]
+    reason :: Extension -> String
+    reason x =
+      case Map.lookup x implied of
+        Just a -> "implied by " ++ prettyExtension a
+        Nothing -> "not used"
 
 deriveHaskell = ["Eq","Ord","Enum","Ix","Bounded","Read","Show"]
 deriveGenerics = ["Data","Typeable","Generic","Generic1","Lift"]
@@ -210,150 +225,159 @@ noDeriveNewtype =
     deriveGenerics -- Generics stuff can't newtype derive since it has the ctor in it
 
 -- | Classes that can appear as stock, and can't appear as anyclass
+deriveStock :: [String]
 deriveStock = deriveHaskell ++ deriveGenerics ++ deriveCategory
 
-
-usedExt :: Extension -> Module_ -> Bool
+usedExt :: Extension -> Located (HsModule GhcPs) -> Bool
 usedExt (EnableExtension x) = used x
 usedExt (UnknownExtension "NumDecimals") = hasS isWholeFrac
 usedExt (UnknownExtension "DeriveLift") = hasDerive ["Lift"]
 usedExt (UnknownExtension "DeriveAnyClass") = not . null . derivesAnyclass . derives
 usedExt _ = const True
 
-
-used :: KnownExtension -> Module_ -> Bool
-used RecursiveDo = hasS isMDo ||^ hasS isRecStmt
-used ParallelListComp = hasS isParComp
-used FunctionalDependencies = hasT (un :: FunDep S)
-used ImplicitParams = hasT (un :: IPName S)
-used TypeApplications = hasS isTypeApp
+used :: KnownExtension -> Located (HsModule GhcPs) -> Bool
+used RecursiveDo = hasS isMDo' ||^ hasS isRecStmt'
+used ParallelListComp = hasS isParComp'
+used FunctionalDependencies = hasT (un :: FunDep (Located RdrName))
+used ImplicitParams = hasT (un :: HsIPName)
+used TypeApplications = hasS isTypeApp'
 used EmptyDataDecls = hasS f
-    where f (DataDecl _ _ _ _ [] _) = True
-          f (GDataDecl _ _ _ _ _ [] _) = True
-          f _ = False
+  where
+    f :: HsDataDefn GhcPs -> Bool
+    f (HsDataDefn _ _ _ _ _ [] _) = True
+    f _ = False
 used EmptyCase = hasS f
-    where f (Case _ _ []) = True
-          f (LCase _ []) = True
-          f (_ :: Exp_) = False
-used KindSignatures = hasT (un :: Kind S)
-used BangPatterns = hasS isPBangPat
-used TemplateHaskell = hasT2 (un :: (Bracket S, Splice S)) ||^ hasS f ||^ hasS isSpliceDecl
-    where f VarQuote{} = True
-          f TypQuote{} = True
-          f _ = False
-used ForeignFunctionInterface = hasT (un :: CallConv S)
+  where
+    f :: HsExpr GhcPs -> Bool
+    f (HsCase _ _ (MG _ (LL _ []) _)) = True
+    f (HsLamCase _ (MG _ (LL _ []) _)) = True
+    f _ = False
+used KindSignatures = hasT (un :: HsKind GhcPs)
+used BangPatterns = hasS isPBangPat'
+used TemplateHaskell = hasT2' (un :: (HsBracket GhcPs, HsSplice GhcPs)) ||^ hasS f ||^ hasS isSpliceDecl'
+    where
+      f :: HsBracket GhcPs -> Bool
+      f VarBr{} = True
+      f TypBr{} = True
+      f _ = False
+used ForeignFunctionInterface = hasT (un :: CCallConv)
 used PatternGuards = hasS f
-    where f (GuardedRhs _ xs _) = g xs
-          g [] = False
-          g [Qualifier{}] = False
-          g _ = True
-used StandaloneDeriving = hasS isDerivDecl
-used PatternSignatures = hasS isPatTypeSig
-used RecordWildCards = hasS isPFieldWildcard ||^ hasS isFieldWildcard
-used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun
-used NamedFieldPuns = hasS isPFieldPun ||^ hasS isFieldPun
-used UnboxedTuples = has (not . isBoxed)
-used QuasiQuotes = hasS isQuasiQuote ||^ hasS isTyQuasiQuote
-used ViewPatterns = hasS isPViewPat
-used DefaultSignatures = hasS isClsDefSig
+  where
+    f :: GRHS GhcPs (LHsExpr GhcPs) -> Bool
+    f (GRHS _ xs _) = g xs
+    f _ = False -- new ctor
+    g :: [GuardLStmt GhcPs] -> Bool
+    g [] = False
+    g [LL _ BodyStmt{}] = False
+    g _ = True
+used StandaloneDeriving = hasS isDerivD'
+used PatternSignatures = hasS isPatTypeSig'
+used RecordWildCards = hasS hasFieldsDotDot' ||^ hasS hasPFieldsDotDot'
+used RecordPuns = hasS isPFieldPun' ||^ hasS isFieldPun'
+used NamedFieldPuns = hasS isPFieldPun' ||^ hasS isFieldPun'
+used UnboxedTuples = has isUnboxedTuple'
+used QuasiQuotes = hasS isQuasiQuote' ||^ hasS isTyQuasiQuote'
+used ViewPatterns = hasS isPViewPat'
+used DefaultSignatures = hasS isClsDefSig'
 used DeriveDataTypeable = hasDerive ["Data","Typeable"]
 used DeriveFunctor = hasDerive ["Functor"]
 used DeriveFoldable = hasDerive ["Foldable"]
 used DeriveTraversable = hasDerive ["Traversable","Foldable","Functor"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
-used GeneralizedNewtypeDeriving = not . null . derivesNewtype . derives
-used LambdaCase = hasS isLCase
-used TupleSections = hasS isTupleSection
-used OverloadedStrings = hasS isString
+used GeneralizedNewtypeDeriving = not . null . derivesNewtype' . derives
+used LambdaCase = hasS isLCase'
+used TupleSections = hasS isTupleSection'
+used OverloadedStrings = hasS isString'
 used Arrows = hasS f
-    where f Proc{} = True
-          f LeftArrApp{} = True
-          f RightArrApp{} = True
-          f LeftArrHighApp{} = True
-          f RightArrHighApp{} = True
-          f _ = False
+  where
+    f :: HsExpr GhcPs -> Bool
+    f HsProc{} = True
+    f HsArrApp{} = True
+    f _ = False
 used TransformListComp = hasS f
-    where f QualStmt{} = False
-          f _ = True
-used MagicHash = hasS f ||^ hasS isPrimLiteral
-    where f (Ident _ s) = "#" `isSuffixOf` s
-          f _ = False
-
--- for forwards compatibility, if things ever get added to the extension enumeration
+    where
+      f :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Bool
+      f TransStmt{} = True
+      f _ = False
+used MagicHash = hasS f ||^ hasS isPrimLiteral'
+    where
+      f :: RdrName -> Bool
+      f s = "#" `isSuffixOf` (occNameString . rdrNameOcc) s
+-- For forwards compatibility, if things ever get added to the
+-- extension enumeration.
 used x = usedExt $ UnknownExtension $ show x
 
-
-hasDerive :: [String] -> Module_ -> Bool
-hasDerive want = any (`elem` want) . derivesStock . derives
-
+hasDerive :: [String] -> Located (HsModule GhcPs) -> Bool
+hasDerive want = any (`elem` want) . derivesStock' . derives
 
 -- Derivations can be implemented using any one of 3 strategies, so for each derivation
 -- add it to all the strategies that might plausibly implement it
 data Derives = Derives
-    {derivesStock :: [String]
+    {derivesStock' :: [String]
     ,derivesAnyclass :: [String]
-    ,derivesNewtype :: [String]
+    ,derivesNewtype' :: [String]
     }
 instance Semigroup Derives where
     Derives x1 x2 x3 <> Derives y1 y2 y3 =
-        Derives (x1++y1) (x2++y2) (x3++y3)
+        Derives (x1 ++ y1) (x2 ++ y2) (x3 ++ y3)
 instance Monoid Derives where
     mempty = Derives [] [] []
     mappend = (<>)
 
-addDerives :: Maybe (DataOrNew S) -> Maybe (DerivStrategy S) -> [String] -> Derives
+addDerives :: Maybe NewOrData -> Maybe (DerivStrategy GhcPs) -> [String] -> Derives
 addDerives _ (Just s) xs = case s of
-    DerivStock{} -> mempty{derivesStock = xs}
-    DerivAnyclass{} -> mempty{derivesAnyclass = xs}
-    DerivNewtype{} -> mempty{derivesNewtype = xs}
-    DerivVia{} -> mempty
+    StockStrategy -> mempty{derivesStock' = xs}
+    AnyclassStrategy -> mempty{derivesAnyclass = xs}
+    NewtypeStrategy -> mempty{derivesNewtype' = xs}
+    ViaStrategy{} -> mempty
 addDerives nt _ xs = mempty
-    {derivesStock = stock
+    {derivesStock' = stock
     ,derivesAnyclass = other
-    ,derivesNewtype = if maybe True isNewType nt then filter (`notElem` noDeriveNewtype) xs else []}
+    ,derivesNewtype' = if maybe True isNewType' nt then filter (`notElem` noDeriveNewtype) xs else []}
     where (stock, other) = partition (`elem` deriveStock) xs
 
+derives :: Located (HsModule GhcPs) -> Derives
+derives (LL _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
+  where
+    idecl :: Located (DataFamInstDecl GhcPs) -> Derives
+    idecl (LL _ (DataFamInstDecl (HsIB _ FamEqn {feqn_rhs=HsDataDefn {dd_ND=dn, dd_derivs=(LL _ ds)}}))) = g dn ds
+    idecl _ = mempty
 
--- | What is derived on newtype, and on data type
---   'deriving' declarations may be on either, so we approximate as both newtype and data
-derives :: Module_ -> Derives
-derives m = mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
-    where
-        idecl :: InstDecl S -> Derives
-        idecl (InsData _ dn _ _ ds) = g dn ds
-        idecl (InsGData _ dn _ _ _ ds) = g dn ds
-        idecl _ = mempty
+    decl :: LHsDecl GhcPs -> Derives
+    decl (LL _ (TyClD _ (DataDecl _ _ _ _ HsDataDefn {dd_ND=dn, dd_derivs=(LL _ ds)}))) = g dn ds -- Data declaration.
+    decl (LL _ (DerivD _ (DerivDecl _ (HsWC _ sig) strategy _))) = addDerives Nothing (fmap unLoc strategy) [derivedToStr sig] -- A deriving declaration.
+    decl _ = mempty
 
-        decl :: Decl_ -> Derives
-        decl (DataDecl _ dn _ _ _ ds) = g dn ds
-        decl (GDataDecl _ dn _ _ _ _ ds) = g dn ds
-        decl (DataInsDecl _ dn _ _ ds) = g dn ds
-        decl (GDataInsDecl _ dn _ _ _ ds) = g dn ds
-        decl (DerivDecl _ strategy _ hd) = addDerives Nothing strategy [ir hd]
-        decl _ = mempty
+    g :: NewOrData -> [LHsDerivingClause GhcPs] -> Derives
+    g dn ds = mconcat [addDerives (Just dn) (fmap unLoc strategy) $ map derivedToStr tys | LL _ (HsDerivingClause _ strategy (LL _ tys)) <- ds]
 
-        g dn ds = mconcat [addDerives (Just dn) strategy $ map ir rules | Deriving _ strategy rules <- ds]
+    derivedToStr :: LHsSigType GhcPs -> String
+    derivedToStr (HsIB _ t) = ih t
+      where
+        ih :: LHsType GhcPs -> String
+        ih (LL _ (HsQualTy _ _ a)) = ih a
+        ih (LL _ (HsParTy _ a)) = ih a
+        ih (LL _ (HsAppTy _ a _)) = ih a
+        ih (LL _ (HsTyVar _ _ a)) = unsafePrettyPrint $ unqual' a
+        ih (LL _ a) = unsafePrettyPrint a -- I don't anticipate this case is called.
+        ih _ = "" -- {-# COMPLETE LL #-}
+    derivedToStr _ = "" -- new ctor
 
-        ir (IRule _ _ _ x) = ih x
-        ir (IParen _ x) = ir x
-
-        ih (IHCon _ a) = prettyPrint $ unqual a
-        ih (IHInfix _ _ a) = prettyPrint $ unqual a
-        ih (IHParen _ a) = ih a
-        ih (IHApp _ a _) = ih a
+derives _ = mempty -- {-# COMPLETE LL #-}
 
 un = undefined
 
 hasT t x = not $ null (universeBi x `asTypeOf` [t])
-hasT2 ~(t1,t2) = hasT t1 ||^ hasT t2
+hasT2' ~(t1,t2) = hasT t1 ||^ hasT t2
 
-hasS :: (Data x, Data (f S)) => (f S -> Bool) -> x -> Bool
+hasS :: (Data x, Data a) => (a -> Bool) -> x -> Bool
 hasS test = any test . universeBi
 
 has f = any f . universeBi
 
 -- Only whole number fractions are permitted by NumDecimals extension.
 -- Anything not-whole raises an error.
-isWholeFrac :: Literal S -> Bool
-isWholeFrac (Frac _ v _) = denominator v == 1
+isWholeFrac :: HsExpr GhcPs -> Bool
+isWholeFrac (HsLit _ (HsRat _ (FL _ _ v) _)) = denominator v == 1
+isWholeFrac (HsOverLit _ (OverLit _ (HsFractional (FL _ _ v)) _)) = denominator v == 1
 isWholeFrac _ = False

@@ -18,6 +18,7 @@ module GHC.Util.HsExpr (
   , replaceBranches'
   , needBracketOld', transformBracketOld', descendBracketOld', reduce', reduce1', fromParen1'
   , hasFieldsDotDot', isFieldPun'
+  , isParComp', isMDo', isRecStmt', isLCase', isTupleSection', isString', isPrimLiteral', isSpliceDecl', isFieldWildcard', isUnboxed'
 ) where
 
 import HsSyn
@@ -332,3 +333,48 @@ reduce1' x = x
 fromParen1' :: LHsExpr GhcPs -> LHsExpr GhcPs
 fromParen1' (LL _ (HsPar _ x)) = x
 fromParen1' x = x
+
+--
+
+isMDo' :: HsStmtContext Name -> Bool
+isMDo' MDoExpr = True; isMDo' _ = False
+
+isRecStmt' :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Bool
+isRecStmt' RecStmt{} = True; isRecStmt' _ = False
+
+isParComp' :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Bool
+isParComp' ParStmt{} = True; isParComp' _ = False
+
+
+isLCase' :: LHsExpr GhcPs -> Bool
+isLCase' (LL _ HsLamCase{}) = True; isLCase' _ = False
+
+isTupleSection' :: HsTupArg GhcPs -> Bool
+isTupleSection' Missing{} = True; isTupleSection' _ = False
+
+isString' :: HsLit GhcPs -> Bool
+isString' HsString{} = True; isString' _ = False
+
+isPrimLiteral' :: HsLit GhcPs -> Bool
+isPrimLiteral' HsCharPrim{} = True;
+isPrimLiteral' HsStringPrim{} = True;
+isPrimLiteral' HsIntPrim{} = True;
+isPrimLiteral' HsWordPrim{} = True;
+isPrimLiteral' HsInt64Prim{} = True;
+isPrimLiteral' HsWord64Prim{} = True;
+isPrimLiteral' HsFloatPrim{} = True;
+isPrimLiteral' HsDoublePrim{} = True;
+isPrimLiteral' _ = False
+
+isSpliceDecl' :: HsExpr GhcPs -> Bool
+isSpliceDecl' HsSpliceE{} = True; isSpliceDecl' _ = False
+
+-- Field has a '_' as in '{foo=_} or is punned e.g. '{foo}'.
+isFieldWildcard' :: LHsRecField GhcPs (LHsExpr GhcPs) -> Bool
+isFieldWildcard' (LL _ HsRecField {hsRecFieldArg=(LL _ (EWildPat _))}) = True
+isFieldWildcard' (LL _ HsRecField {hsRecPun=True}) = True
+isFieldWildcard' (LL _ HsRecField {}) = False
+isFieldWildcard' _ = False -- {-# COMPLETE LL #-}
+
+isUnboxed' :: Boxity -> Bool
+isUnboxed' Unboxed = True; isUnboxed' _ = False
