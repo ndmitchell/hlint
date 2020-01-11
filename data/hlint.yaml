@@ -278,15 +278,15 @@
     - hint: {lhs: "\\x y -> f (x,y)", rhs: curry f}
     - hint: {lhs: "\\(x,y) -> f x y", rhs: uncurry f, note: IncreasesLaziness}
     - warn: {lhs: f (fst p) (snd p), rhs: uncurry f p}
-    - warn: {lhs: ($) . f, rhs: f, name: Redundant $}
+    - warn: {lhs: ($) (f x), rhs: f x, name: Redundant $}
     - warn: {lhs: (f $), rhs: f, name: Redundant $}
     - warn: {lhs: (Data.Function.& f), rhs: f, name: Redundant Data.Function.&}
     - hint: {lhs: \x -> y, rhs: const y, side: isAtom y && not (isWildcard y)}
         # If any isWildcard recursively then x may be used but not mentioned explicitly
     - warn: {lhs: flip f x y, rhs: f y x, side: isApp original}
     - warn: {lhs: id x, rhs: x}
-    - warn: {lhs: id . x, rhs: x, name: Redundant id}
-    - warn: {lhs: x . id, rhs: x, name: Redundant id}
+    - warn: {lhs: id (f x), rhs: f x, name: Redundant id}
+    - warn: {lhs: f (id x), rhs: f x, name: Redundant id}
     - warn: {lhs: "((,) x)", rhs: "(_noParen_ x,)", name: Use tuple-section, note: RequiresExtension TupleSections}
     - warn: {lhs: "flip (,) x", rhs: "(,_noParen_ x)", name: Use tuple-section, note: RequiresExtension TupleSections}
     - warn: {lhs: "\\y -> (x,y)", rhs: "(x,)", name: Use tuple-section, note: RequiresExtension TupleSections}
@@ -517,7 +517,7 @@
     - warn: {lhs: if isNothing x then y else f (fromJust x), rhs: maybe y f x}
     - warn: {lhs: if isJust x then f (fromJust x) else y, rhs: maybe y f x}
     - warn: {lhs: maybe Nothing (Just . f), rhs: fmap f}
-    - hint: {lhs: map fromJust . filter isJust , rhs:  Data.Maybe.catMaybes}
+    - hint: {lhs: map fromJust (filter isJust x), rhs:  Data.Maybe.catMaybes x}
     - warn: {lhs: x == Nothing , rhs:  isNothing x}
     - warn: {lhs: Nothing == x , rhs:  isNothing x}
     - warn: {lhs: x /= Nothing , rhs:  Data.Maybe.isJust x}
