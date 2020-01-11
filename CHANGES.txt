@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #821, warn on unless/not
+    #821, avoid curry/uncurry and vice versa
     #819, fix a lot of bifunctor hints
     #812, add some rules for generalised and/or/any/all
 2.2.7, released 2020-01-11
