@@ -285,8 +285,8 @@
         # If any isWildcard recursively then x may be used but not mentioned explicitly
     - warn: {lhs: flip f x y, rhs: f y x, side: isApp original}
     - warn: {lhs: id x, rhs: x}
-    - warn: {lhs: id (f x), rhs: f x, name: Redundant id}
-    - warn: {lhs: f (id x), rhs: f x, name: Redundant id}
+    - warn: {lhs: id . x, rhs: x, name: Redundant id}
+    - warn: {lhs: x . id, rhs: x, name: Redundant id}
     - warn: {lhs: "((,) x)", rhs: "(_noParen_ x,)", name: Use tuple-section, note: RequiresExtension TupleSections}
     - warn: {lhs: "flip (,) x", rhs: "(,_noParen_ x)", name: Use tuple-section, note: RequiresExtension TupleSections}
     - warn: {lhs: "\\y -> (x,y)", rhs: "(x,)", name: Use tuple-section, note: RequiresExtension TupleSections}
