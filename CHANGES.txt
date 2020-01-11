@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #812, add some rules for generalised and/or/any/all
 2.2.7, released 2020-01-11
     #818, fix incorrect unused LANGUAGE BangPatterns hint
 2.2.6, released 2020-01-09
