@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #818, fix incorrect unused LANGUAGE BangPatterns hint
 2.2.6, released 2020-01-09
     #813, remove any/all with const predicates
     Allow haskell-src-exts-1.23

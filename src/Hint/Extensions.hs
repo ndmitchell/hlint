@@ -29,6 +29,10 @@ sort :: (?cmp :: a -> a -> Bool) => [a] -> [a] \
 sort !f = undefined
 {-# LANGUAGE KindSignatures #-} \
 data Set (cxt :: * -> *) a = Set [a]
+{-# LANGUAGE BangPatterns #-} \
+foo x = let !y = x in y
+{-# LANGUAGE BangPatterns #-} \
+data Foo = Foo !Int --
 {-# LANGUAGE RecordWildCards #-} \
 record field = Record{..}
 {-# LANGUAGE RecordWildCards #-} \
@@ -255,7 +259,11 @@ used EmptyCase = hasS f
     f (HsLamCase _ (MG _ (LL _ []) _)) = True
     f _ = False
 used KindSignatures = hasT (un :: HsKind GhcPs)
-used BangPatterns = hasS isPBangPat'
+used BangPatterns = hasS isPBangPat' ||^ hasS isStrictMatch
+  where
+    isStrictMatch :: HsMatchContext RdrName -> Bool
+    isStrictMatch FunRhs{mc_strictness=SrcStrict} = True
+    isStrictMatch _ = False
 used TemplateHaskell = hasT2' (un :: (HsBracket GhcPs, HsSplice GhcPs)) ||^ hasS f ||^ hasS isSpliceDecl'
     where
       f :: HsBracket GhcPs -> Bool
