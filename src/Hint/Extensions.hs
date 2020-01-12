@@ -286,6 +286,11 @@ used RecordWildCards = hasS hasFieldsDotDot' ||^ hasS hasPFieldsDotDot'
 used RecordPuns = hasS isPFieldPun' ||^ hasS isFieldPun'
 used NamedFieldPuns = hasS isPFieldPun' ||^ hasS isFieldPun'
 used UnboxedTuples = has isUnboxedTuple' ||^ has (== Unboxed)
+used PackageImports = hasS f
+    where
+        f :: ImportDecl GhcPs -> Bool
+        f ImportDecl{ideclPkgQual=Just _} = True
+        f _ = False
 used QuasiQuotes = hasS isQuasiQuote' ||^ hasS isTyQuasiQuote'
 used ViewPatterns = hasS isPViewPat'
 used DefaultSignatures = hasS isClsDefSig'
