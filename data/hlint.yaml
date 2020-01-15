@@ -170,7 +170,7 @@
     - hint: {lhs: 0 /= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - hint: {lhs: "\\x -> [x]", rhs: "(:[])", name: "Use :"}
     - warn: {lhs: map (uncurry f) (zip x y), rhs: zipWith f x y}
-    - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: isVar f}
+    - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: not (isApp f)}
     - warn: {lhs: not (elem x y), rhs: notElem x y}
     - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
     - warn: {lhs: "x ++ concatMap (' ':) y", rhs: "unwords (x:y)"}
