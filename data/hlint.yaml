@@ -280,7 +280,7 @@
     - warn: {lhs: f (fst p) (snd p), rhs: uncurry f p}
     - warn: {lhs: uncurry (curry f), rhs: f}
     - warn: {lhs: curry (uncurry f), rhs: f}
-    - warn: {lhs: ($) . f, rhs: f, name: Redundant $}
+    - warn: {lhs: ($) (f x), rhs: f x, name: Redundant $}
     - warn: {lhs: (f $), rhs: f, name: Redundant $}
     - warn: {lhs: (Data.Function.& f), rhs: f, name: Redundant Data.Function.&}
     - hint: {lhs: \x -> y, rhs: const y, side: isAtom y && not (isWildcard y)}
@@ -520,7 +520,7 @@
     - warn: {lhs: if isNothing x then y else f (fromJust x), rhs: maybe y f x}
     - warn: {lhs: if isJust x then f (fromJust x) else y, rhs: maybe y f x}
     - warn: {lhs: maybe Nothing (Just . f), rhs: fmap f}
-    - hint: {lhs: map fromJust . filter isJust , rhs:  Data.Maybe.catMaybes}
+    - hint: {lhs: map fromJust (filter isJust x), rhs:  Data.Maybe.catMaybes x}
     - warn: {lhs: x == Nothing , rhs:  isNothing x}
     - warn: {lhs: Nothing == x , rhs:  isNothing x}
     - warn: {lhs: x /= Nothing , rhs:  Data.Maybe.isJust x}
