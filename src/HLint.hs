@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, TupleSections #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module HLint(hlint, readAllSettings) where
@@ -87,7 +87,7 @@ hlintTest :: Cmd -> IO ()
 hlintTest cmd@CmdTest{..} =
     if not $ null cmdProof then do
         files <- cmdHintFiles cmd
-        s <- readFilesConfig $ map (,Nothing) files
+        s <- readFilesConfig files
         let reps = if cmdReports == ["report.html"] then ["report.txt"] else cmdReports
         mapM_ (proof reps s) cmdProof
      else do
@@ -153,7 +153,7 @@ readAllSettings args1 cmd@CmdMain{..} = do
     files <- cmdHintFiles cmd
     settings1 <-
         readFilesConfig $
-        map (,Nothing) files
+        files
         ++ [("CommandLine.hs",Just x) | x <- cmdWithHints]
         ++ [("CommandLine.yaml",Just (enableGroup x)) | x <- cmdWithGroups]
     let args2 = [x | SettingArgument x <- settings1]
