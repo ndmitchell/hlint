@@ -2,60 +2,42 @@
 
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE RecordWildCards #-}
 module GHC.Util.Refact.Fixity (applyFixities) where
 
-import SrcLoc
-
 import BasicTypes (Fixity(..), defaultFixity, compareFixity, negateFixity, FixityDirection(..), SourceText(..))
-import HsExpr
-import HsPat
-import HsTypes
+import HsSyn
 import RdrName
-import HsExtension
 import OccName
-import Data.Generics hiding (Fixity)
+import SrcLoc
 import Data.Maybe
-
-import GHC.Util.Refact.Utils
-import GHC.Util.Language.Haskell.GHC.ExactPrint.Types hiding (GhcPs, GhcTc, GhcRn)
-
-import Control.Monad.State
-import qualified Data.Map as Map
-import Data.Tuple
+import Data.Data hiding (Fixity)
+import Data.Generics.Uniplate.Data
 
 -- | Rearrange infix expressions to account for fixity.
--- The set of fixities is wired in and includes all fixities in base.
-applyFixities :: (Data a) => Anns -> [(String, Fixity)] -> a -> (Anns, a)
-applyFixities as fixities m = let (as', m') = swap $ runState (everywhereM (mkM (expFix fixities)) m) as
-                                  (as'', m'') = swap $ runState (everywhereM (mkM (patFix fixities)) m') as'
-                              in (as'', m'') --error (showAnnData as 0 m ++ showAnnData as' 0 m')
+applyFixities :: Data a => [(String, Fixity)] -> a -> a
+applyFixities fixities m =
+  let m' = transformBi (expFix fixities) m
+      m'' = transformBi (patFix fixities) m'
+  in m''
 
 getFixities fixities =
   if null fixities then baseFixities else fixities
 
-expFix :: [(String, Fixity)] -> LHsExpr GhcPs -> M (LHsExpr GhcPs)
+expFix :: [(String, Fixity)] -> LHsExpr GhcPs -> LHsExpr GhcPs
 expFix fixities (L loc (OpApp _ l op r)) =
   mkOpAppRn (getFixities fixities) loc l op (findFixity (getFixities fixities) op) r
 
-expFix _ e = return e
+expFix _ e = e
 
-patFix :: [(String, Fixity)] -> LPat GhcPs -> M (LPat GhcPs)
+patFix :: [(String, Fixity)] -> LPat GhcPs -> LPat GhcPs
 patFix fixities (dL -> L _ (ConPatIn op (InfixCon pat1 pat2))) =
   mkConOpPatRn (getFixities fixities) op (findFixity' (getFixities fixities) op) pat1 pat2
 
-patFix _ p = return p
+patFix _ p = p
 
-getIdent :: Expr -> String
+getIdent :: LHsExpr GhcPs -> String
 getIdent (unLoc -> HsVar _ (L _ n)) = occNameString . rdrNameOcc $ n
 getIdent _ = error "Must be HsVar"
-
-
-moveDelta :: AnnKey -> AnnKey -> M ()
-moveDelta old new = do
-  a@Ann{..} <- gets (fromMaybe annNone . Map.lookup old)
-  modify (Map.insert new (annNone { annEntryDelta = annEntryDelta, annPriorComments = annPriorComments }))
-  modify (Map.insert old (a { annEntryDelta = DP (0,0), annPriorComments = []}))
 
 ---------------------------
 -- Modified from GHC Renamer
@@ -65,23 +47,23 @@ mkConOpPatRn ::
           -> Located RdrName -> Fixity          -- Operator and fixity
           -> LPat GhcPs
           -> LPat GhcPs
-          -> M (LPat GhcPs)
+          -> LPat GhcPs
 mkConOpPatRn fs op2 fix2 p1@(dL->L loc (ConPatIn op1 (InfixCon p11 p12))) p2
-  | nofix_error
-  = return (ConPatIn op2 (InfixCon p1 p2))
+  | nofix_error =
+    ConPatIn op2 (InfixCon p1 p2)
 
- | associate_right = do
-   new_p <- mkConOpPatRn fs op2 fix2 p12 p2
-   return (ConPatIn op1 (InfixCon p11 (cL loc new_p)))
+ | associate_right =
+   let new_p = mkConOpPatRn fs op2 fix2 p12 p2 in ConPatIn op1 (InfixCon p11 (cL loc new_p))
 
- | otherwise = return (ConPatIn op2 (InfixCon p1 p2))
+ | otherwise =
+     ConPatIn op2 (InfixCon p1 p2)
 
   where
     fix1 = findFixity' fs op1
     (nofix_error, associate_right) = compareFixity fix1 fix2
 
 mkConOpPatRn _ op _ p1 p2                         -- Default case, no rearrangment
-  = return (ConPatIn op (InfixCon p1 p2))
+  = ConPatIn op (InfixCon p1 p2)
 
 mkOpAppRn ::
              [(String, Fixity)]
@@ -90,17 +72,15 @@ mkOpAppRn ::
           -> LHsExpr GhcPs -> Fixity            -- Operator and fixity
           -> LHsExpr GhcPs                      -- Right operand (not an OpApp, but might
                                                 -- be a NegApp)
-          -> M (LHsExpr GhcPs)
+          -> LHsExpr GhcPs
 
 -- (e11 `op1` e12) `op2` e2
 mkOpAppRn fs loc e1@(L _ (OpApp x1 e11 op1 e12)) op2 fix2 e2
   | nofix_error
-  = return $ L loc (OpApp noExt e1 op2 e2)
+  = L loc (OpApp noExt e1 op2 e2)
 
-  | associate_right = do
-    new_e <- mkOpAppRn fs loc' e12 op2 fix2 e2
-    moveDelta (mkAnnKey e12) (mkAnnKey new_e)
-    return $ L loc (OpApp x1 e11 op1 new_e)
+  | associate_right =
+    let new_e = mkOpAppRn fs loc' e12 op2 fix2 e2 in L loc (OpApp x1 e11 op1 new_e)
   where
     loc'= combineLocs e12 e2
     fix1 = findFixity fs op1
@@ -110,19 +90,12 @@ mkOpAppRn fs loc e1@(L _ (OpApp x1 e11 op1 e12)) op2 fix2 e2
 --      (- neg_arg) `op` e2
 mkOpAppRn fs loc e1@(L _ (NegApp _ neg_arg neg_name)) op2 fix2 e2
   | nofix_error
-  = return (L loc (OpApp noExt e1 op2 e2))
+  = L loc (OpApp noExt e1 op2 e2)
 
   | associate_right
-  = do
-      new_e <- mkOpAppRn fs loc' neg_arg op2 fix2 e2
-      moveDelta (mkAnnKey neg_arg) (mkAnnKey new_e)
-      let res = L loc (NegApp noExt new_e neg_name)
-          key = mkAnnKey res
-          ak  = AnnKey loc (CN "OpApp")
-      opAnn <- gets (fromMaybe annNone . Map.lookup ak)
-      negAnns <- gets (fromMaybe annNone . Map.lookup (mkAnnKey e1))
-      modify (Map.insert key (annNone { annEntryDelta = annEntryDelta opAnn, annsDP = annsDP negAnns }))
-      return res
+  = let new_e = mkOpAppRn fs loc' neg_arg op2 fix2 e2
+        res = L loc (NegApp noExt new_e neg_name) in
+    res
 
   where
     loc' = combineLocs neg_arg e2
@@ -132,16 +105,16 @@ mkOpAppRn fs loc e1@(L _ (NegApp _ neg_arg neg_name)) op2 fix2 e2
 --      e1 `op` - neg_arg
 mkOpAppRn _ loc e1 op1 fix1 e2@(L _ NegApp {})     -- NegApp can occur on the right
   | not associate_right                 -- We *want* right association
-  = return $ L loc (OpApp noExt e1 op1 e2)
+  = L loc (OpApp noExt e1 op1 e2)
   where
     (_, associate_right) = compareFixity fix1 negateFixity
 
 ---------------------------
 --      Default case
 mkOpAppRn _ loc e1 op _fix e2                  -- Default case, no rearrangment
-  = return $ L loc (OpApp noExt e1 op e2)
+  = L loc (OpApp noExt e1 op e2)
 
-findFixity :: [(String, Fixity)] -> Expr -> Fixity
+findFixity :: [(String, Fixity)] -> LHsExpr GhcPs -> Fixity
 findFixity fs r = askFix fs (getIdent r)
 
 findFixity' :: [(String, Fixity)] -> Located RdrName -> Fixity
