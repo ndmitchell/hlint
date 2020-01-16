@@ -65,9 +65,7 @@ library
         extra >= 1.6.6,
         refact >= 0.3,
         aeson >= 1.1.2.0,
-        filepattern >= 0.1.1,
-        syb >= 0.7,
-        mtl >= 2.2.2
+        filepattern >= 0.1.1
     if !flag(ghc-lib) && impl(ghc >= 8.8.0) && impl(ghc < 8.9.0)
         build-depends:
           ghc == 8.8.*,
@@ -121,8 +119,6 @@ library
         GHC.Util.SrcLoc
         GHC.Util.W
         GHC.Util.DynFlags
-        GHC.Util.Language.Haskell.GHC.ExactPrint.Types
-        GHC.Util.Refact.Utils
         GHC.Util.Refact.Fixity
         GHC.Util.RdrName
         GHC.Util.Scope

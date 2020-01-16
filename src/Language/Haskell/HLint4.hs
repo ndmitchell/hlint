@@ -45,7 +45,6 @@ import Data.List.Extra
 import Data.Maybe
 import System.FilePath
 import Data.Functor
-import qualified Data.Map as Map
 import Prelude
 
 
@@ -148,7 +147,6 @@ _docs = do
 -- account for operator fixities.
 createModuleEx:: GHC.ApiAnns -> Located (GHC.HsModule GHC.GhcPs) -> ModuleEx
 createModuleEx anns ast =
-  let fixities = [] -- Use builtin fixities.
-      (_, ast') = GHC.applyFixities Map.empty fixities ast in
-  ModuleEx empty [] ast' anns
+  -- Use builtin fixities.
+  ModuleEx empty [] (GHC.applyFixities [] ast) anns
    where empty = Module an Nothing [] [] []

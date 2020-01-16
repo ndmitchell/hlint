@@ -321,7 +321,7 @@ parseExpGhcWithMode parseMode s =
       flags = foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
       fixities = ghcFixitiesFromParseMode parseMode
   in case parseExpGhcLib s flags of
-    GHC.POk pst a -> GHC.POk pst a' where (_, a') = GHC.applyFixities Map.empty fixities a
+    GHC.POk pst a -> GHC.POk pst (GHC.applyFixities fixities a)
     f@GHC.PFailed{} -> f
 
 parseImportDeclGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LImportDecl HsSyn.GhcPs)
@@ -354,7 +354,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                           ( Map.fromListWith (++) $ GHC.annotations pst
                           , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
                           ) in
-                    let (_, a') = GHC.applyFixities Map.empty fixities a in
+                    let a' = GHC.applyFixities fixities a in
                     return $ Right (ModuleEx (applyFixity fixity x) cs a' anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
