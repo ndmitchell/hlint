@@ -278,6 +278,8 @@
     - hint: {lhs: "\\x y -> f (x,y)", rhs: curry f}
     - hint: {lhs: "\\(x,y) -> f x y", rhs: uncurry f, note: IncreasesLaziness}
     - warn: {lhs: f (fst p) (snd p), rhs: uncurry f p}
+    - warn: {lhs: "uncurry (\\x y -> z)", rhs: "\\(x,y) -> z"}
+    - warn: {lhs: "curry (\\(x,y) -> z)", rhs: "\\x y -> z"}
     - warn: {lhs: uncurry (curry f), rhs: f}
     - warn: {lhs: curry (uncurry f), rhs: f}
     - warn: {lhs: ($) (f x), rhs: f x, name: Redundant $}
