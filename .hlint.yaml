@@ -15,6 +15,7 @@
   - name: [FlexibleContexts, FlexibleInstances]
   - name: [PackageImports]
   - name: [ConstraintKinds, RankNTypes, TypeFamilies]
+  - name: [TemplateHaskell]
   - {name: CPP, within: [HsColour]} # so it can be disabled to avoid GPL code
 
 - flags:
