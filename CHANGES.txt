@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #824, embed HLint data files using TemplateHaskell
     #826, remove curry/uncurry on lambdas
     #820, make some hints work in more situations
     Reenable PackageImport unused extension detectection
