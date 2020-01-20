@@ -37,6 +37,8 @@ import GHC.Util.RdrName
 import GHC.Util.Scope
 import GHC.Util.Unify
 
+import qualified Language.Haskell.GhclibParserEx.Parse as GhclibParserEx
+
 import HsSyn
 import Lexer
 import Parser
@@ -44,33 +46,21 @@ import SrcLoc
 import FastString
 import StringBuffer
 import GHC.LanguageExtensions.Type
-import Panic
-import HscTypes
-import HeaderInfo
 import DynFlags
 
 import Data.List.Extra
 import System.FilePath
 import Language.Preprocessor.Unlit
 
-parseGhcLib :: P a -> String -> DynFlags -> ParseResult a
-parseGhcLib p str flags =
-  Lexer.unP p parseState
-  where
-    location = mkRealSrcLoc (mkFastString "<string>") 1 1
-    buffer = stringToStringBuffer str
-    parseState = mkPState flags buffer location
-
 parseExpGhcLib :: String -> DynFlags -> ParseResult (LHsExpr GhcPs)
-parseExpGhcLib = parseGhcLib Parser.parseExpression
+parseExpGhcLib = GhclibParserEx.parseExpr
 
 parseImportGhcLib :: String -> DynFlags -> ParseResult (LImportDecl GhcPs)
-parseImportGhcLib = parseGhcLib Parser.parseImport
+parseImportGhcLib = GhclibParserEx.parseImport
 
-parseFileGhcLib :: FilePath
-                -> String
-                -> DynFlags
-                -> ParseResult (Located (HsModule GhcPs))
+-- TODO(SF): GhclibParserEx.parseFile doesn't take 'unlit' into
+-- consideration yet.
+parseFileGhcLib :: FilePath -> String -> DynFlags -> ParseResult (Located (HsModule GhcPs))
 parseFileGhcLib filename str flags =
   Lexer.unP Parser.parseModule parseState
   where
@@ -79,21 +69,18 @@ parseFileGhcLib filename str flags =
               if takeExtension filename /= ".lhs" then str else unlit filename str
     parseState = mkPState flags buffer location
 
+-- TODO(SF): GhclibParserEx.parsePragmasIntoDynFlags doesn't take
+-- enabled/disabled extensions into consideration yet.
 parsePragmasIntoDynFlags :: DynFlags
                          -> ([Extension], [Extension])
                          -> FilePath
                          -> String
                          -> IO (Either String DynFlags)
-parsePragmasIntoDynFlags flags (enable, disable) filepath str =
-  catchErrors $ do
-    let opts = getOptions flags (stringToStringBuffer str) filepath
-    (flags, _, _) <- parseDynamicFilePragma flags opts
-    let flags' =  foldl' xopt_set flags enable
-    let flags'' = foldl' xopt_unset flags' disable
-    let flags''' = flags'' `gopt_set` Opt_KeepRawTokenStream
-    return $ Right flags'''
-  where
-    catchErrors :: IO (Either String DynFlags) -> IO (Either String DynFlags)
-    catchErrors act = handleGhcException reportErr
-                        (handleSourceError reportErr act)
-    reportErr e = return $ Left (show e)
+parsePragmasIntoDynFlags flags (enable, disable) filepath str = do
+   flags <- GhclibParserEx.parsePragmasIntoDynFlags flags filepath str
+   case flags of
+     Right flags -> do
+       let flags' =  foldl' xopt_set flags enable
+       let flags'' = foldl' xopt_unset flags' disable
+       return $ Right flags''
+     err -> return err
