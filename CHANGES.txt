@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.2.8, released 2020-01-22
     #802, suggest lambda instead of lambda-case for single alts
     #811, add some foldMap/map hints
     #822, generalise the map/zipWith hint
