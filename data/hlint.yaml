@@ -169,7 +169,6 @@
     - hint: {lhs: length x /= 0, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - hint: {lhs: 0 /= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - hint: {lhs: "\\x -> [x]", rhs: "(:[])", name: "Use :"}
-    - warn: {lhs: map (uncurry f) (zip x y), rhs: zipWith f x y}
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: not (isApp f)}
     - warn: {lhs: not (elem x y), rhs: notElem x y}
     - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
@@ -879,7 +878,8 @@
 # yes = if foo then stuff else return () -- Control.Monad.when foo stuff
 # yes = foo $ \(a, b) -> (a, y + b) -- Data.Bifunctor.second ((+) y)
 # no  = foo $ \(a, b) -> (a, a + b)
-# yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (+) [1 .. 5] [6 .. 10]
+# yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (curry (uncurry (+))) [1 .. 5] [6 .. 10]
+# yes = curry (uncurry (+)) -- (+)
 # no = do iter <- textBufferGetTextIter tb ; textBufferSelectRange tb iter iter
 # no = flip f x $ \y -> y*y+y
 # no = \x -> f x (g x)
