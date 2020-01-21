@@ -1,33 +1,9 @@
-{-# OPTIONS_GHC -fno-warn-missing-fields #-}
-
 module GHC.Util.DynFlags (baseDynFlags) where
 
 import DynFlags
-import Platform
-import Config
-import Fingerprint
 import GHC.LanguageExtensions.Type
-
 import Data.List.Extra
-
-fakeSettings :: Settings
-fakeSettings = Settings
-  { sTargetPlatform=platform
-  , sPlatformConstants=platformConstants
-  , sProjectVersion=cProjectVersion
-  , sProgramName="ghc"
-  , sOpt_P_fingerprint=fingerprint0
-  }
-  where
-    platform =
-      Platform{platformWordSize=8
-              , platformOS=OSUnknown
-              , platformUnregisterised=True}
-    platformConstants =
-      PlatformConstants{pc_DYNAMIC_BY_DEFAULT=False,pc_WORD_SIZE=8}
-
-fakeLlvmConfig :: (LlvmTargets, LlvmPasses)
-fakeLlvmConfig = ([], [])
+import Language.Haskell.GhclibParserEx.Parse
 
 baseDynFlags :: DynFlags
 baseDynFlags =

@@ -39,7 +39,7 @@ import qualified HsSyn as GHC
 import SrcLoc
 import CmdLine
 import Paths_hlint
-import qualified GHC.Util.Refact.Fixity as GHC
+import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
 
 import Data.List.Extra
 import Data.Maybe
@@ -148,5 +148,5 @@ _docs = do
 createModuleEx:: GHC.ApiAnns -> Located (GHC.HsModule GHC.GhcPs) -> ModuleEx
 createModuleEx anns ast =
   -- Use builtin fixities.
-  ModuleEx empty [] (GHC.applyFixities [] ast) anns
+  ModuleEx empty [] (GhclibParserEx.applyFixities [] ast) anns
    where empty = Module an Nothing [] [] []
