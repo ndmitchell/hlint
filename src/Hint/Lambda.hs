@@ -70,6 +70,7 @@ foo a b c = bar (flux ++ quux) c where flux = c
 yes = foo (\x -> Just x) -- @Warning Just
 foo = bar (\x -> (x `f`)) -- f
 baz = bar (\x -> (x +)) -- (+)
+foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b
 no = blah (\ x -> case x of A -> a x; B -> b x)
 yes = blah (\ x -> (y, x, z+q)) -- (y, , z+q)
@@ -162,7 +163,9 @@ lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats 
       munge ident p = PVar (ann p) (Ident (ann p) [ident])
       subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS pats)
 lambdaExp p o@(Lambda _ [view -> PVar_ u] (Case _ (view -> Var_ v) alts))
-    | u == v, u `notElem` vars alts = [(suggestN "Use lambda-case" o $ LCase an alts){ideaNote=[RequiresExtension "LambdaCase"]}]
+    | u == v, u `notElem` vars alts = case alts of
+        [Alt _ pat (UnGuardedRhs _ bod) Nothing] -> [suggestN "Use lambda" o $ Lambda an [pat] bod]
+        _ -> [(suggestN "Use lambda-case" o $ LCase an alts){ideaNote=[RequiresExtension "LambdaCase"]}]
 lambdaExp p o@(Lambda _ [view -> PVar_ u] (Tuple _ boxed xs))
     | ([yes],no) <- partition (~= u) xs, u `notElem` concatMap vars no
     = [(suggestN "Use tuple-section" o $ TupleSection an boxed [if x ~= u then Nothing else Just x | x <- xs])

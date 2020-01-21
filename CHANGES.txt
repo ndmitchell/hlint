@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #802, suggest lambda instead of lambda-case for single alts
     #811, add some foldMap/map hints
     #822, generalise the map/zipWith hint
     #824, embed HLint data files using TemplateHaskell
