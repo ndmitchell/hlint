@@ -212,6 +212,7 @@
     - warn: {lhs: zipWith f (repeat x), rhs: map (f x)}
     - warn: {lhs: zipWith f y (repeat z), rhs: map (\x -> f x z) y}
     - warn: {lhs: listToMaybe (filter p x), rhs: find p x}
+    - warn: {lhs: "head (x ++ [y])", rhs: Data.Maybe.fromMaybe y (Data.Maybe.listToMaybe x), name: Avoid head}
 
     # MONOIDS
 
