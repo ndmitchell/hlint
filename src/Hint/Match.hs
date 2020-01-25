@@ -63,23 +63,23 @@ readMatch' :: [HintRule] -> Scope' -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 readMatch' settings = findIdeas' (concatMap readRule' settings)
 
 readRule' :: HintRule -> [HintRule]
-readRule' m@HintRule{ hintRuleGhcLHS=(stripLocs' . unwrap -> hintRuleGhcLHS)
-                    , hintRuleGhcRHS=(stripLocs' . unwrap -> hintRuleGhcRHS)
-                    , hintRuleGhcSide=((stripLocs' . unwrap <$>) -> hintRuleGhcSide)
+readRule' m@HintRule{ hintRuleGhcLHS=(stripLocs' . unExtendInstances' -> hintRuleGhcLHS)
+                    , hintRuleGhcRHS=(stripLocs' . unExtendInstances' -> hintRuleGhcRHS)
+                    , hintRuleGhcSide=((stripLocs' . unExtendInstances' <$>) -> hintRuleGhcSide)
                     } =
-   (:) m{ hintRuleGhcLHS=wrap hintRuleGhcLHS
-        , hintRuleGhcRHS=wrap hintRuleGhcRHS
-        , hintRuleGhcSide=wrap <$> hintRuleGhcSide } $ do
+   (:) m{ hintRuleGhcLHS=extendInstances' hintRuleGhcLHS
+        , hintRuleGhcRHS=extendInstances' hintRuleGhcRHS
+        , hintRuleGhcSide=extendInstances' <$> hintRuleGhcSide } $ do
     (l, v1) <- dotVersion' hintRuleGhcLHS
     (r, v2) <- dotVersion' hintRuleGhcRHS
 
     guard $ v1 == v2 && not (null l) && (length l > 1 || length r > 1) && Set.notMember v1 (Set.map occNameString (freeVars' $ maybeToList hintRuleGhcSide ++ l ++ r))
     if not (null r) then
-      [ m{ hintRuleGhcLHS=wrap (dotApps' l), hintRuleGhcRHS=wrap (dotApps' r), hintRuleGhcSide=wrap <$> hintRuleGhcSide }
-      , m{ hintRuleGhcLHS=wrap (dotApps' (l ++ [strToVar' v1])), hintRuleGhcRHS=wrap (dotApps' (r ++ [strToVar' v1])), hintRuleGhcSide=wrap <$> hintRuleGhcSide } ]
+      [ m{ hintRuleGhcLHS=extendInstances' (dotApps' l), hintRuleGhcRHS=extendInstances' (dotApps' r), hintRuleGhcSide=extendInstances' <$> hintRuleGhcSide }
+      , m{ hintRuleGhcLHS=extendInstances' (dotApps' (l ++ [strToVar' v1])), hintRuleGhcRHS=extendInstances' (dotApps' (r ++ [strToVar' v1])), hintRuleGhcSide=extendInstances' <$> hintRuleGhcSide } ]
       else if length l > 1 then
-            [ m{ hintRuleGhcLHS=wrap (dotApps' l), hintRuleGhcRHS=wrap (strToVar' "id"), hintRuleGhcSide=wrap <$> hintRuleGhcSide }
-            , m{ hintRuleGhcLHS=wrap (dotApps' (l++[strToVar' v1])), hintRuleGhcRHS=wrap (strToVar' v1), hintRuleGhcSide=wrap <$> hintRuleGhcSide}]
+            [ m{ hintRuleGhcLHS=extendInstances' (dotApps' l), hintRuleGhcRHS=extendInstances' (strToVar' "id"), hintRuleGhcSide=extendInstances' <$> hintRuleGhcSide }
+            , m{ hintRuleGhcLHS=extendInstances' (dotApps' (l++[strToVar' v1])), hintRuleGhcRHS=extendInstances' (strToVar' v1), hintRuleGhcSide=extendInstances' <$> hintRuleGhcSide}]
       else []
 
 -- Find a dot version of this rule, return the sequence of app
@@ -108,7 +108,7 @@ findIdeas' matches s _ decl = timed "Hint" "Match apply" $ forceList
     | decl <- findDecls' decl
     , (parent,x) <- universeParentExp' decl
     , m <- matches, Just (y, notes, subst) <- [matchIdea' s decl m parent x]
-    , let r = R.Replace R.Expr (toSS' x) subst (unsafePrettyPrint $ unwrap (hintRuleGhcRHS m))
+    , let r = R.Replace R.Expr (toSS' x) subst (unsafePrettyPrint $ unExtendInstances' (hintRuleGhcRHS m))
     ]
 
 findDecls' :: LHsDecl GhcPs -> [LHsDecl GhcPs]
@@ -123,12 +123,12 @@ matchIdea' :: Scope'
            -> LHsExpr GhcPs
            -> Maybe (LHsExpr GhcPs, [Note], [(String, R.SrcSpan)])
 matchIdea' sb decl HintRule{..} parent x = do
-  let lhs = unwrap hintRuleGhcLHS
-      rhs = unwrap hintRuleGhcRHS
-      sa  = unwrap hintRuleGhcScope
+  let lhs = unExtendInstances' hintRuleGhcLHS
+      rhs = unExtendInstances' hintRuleGhcRHS
+      sa  = unExtendInstances' hintRuleGhcScope
       nm a b = scopeMatch' (sa, a) (sb, b)
   u <- unifyExp' nm True lhs x
-  u <- validSubst' eqNoLoc' u
+  u <- validSubst' astEq' u
 
   -- Need to check free vars before unqualification, but after subst
   -- (with 'e') need to unqualify before substitution (with 'res').
@@ -143,7 +143,7 @@ matchIdea' sb decl HintRule{..} parent x = do
   -- what free vars they make use of.
   guard $ not (any isLambda' $ universe lhs) || not (any isQuasiQuote' $ universe x)
 
-  guard $ checkSide' (unwrap <$> hintRuleGhcSide) $ ("original", x) : ("result", res) : fromSubst' u
+  guard $ checkSide' (unExtendInstances' <$> hintRuleGhcSide) $ ("original", x) : ("result", res) : fromSubst' u
   guard $ checkDefine' decl parent res
 
   return (res, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
@@ -158,15 +158,15 @@ checkSide' x bind = maybe True bool x
       bool (LL _ (OpApp _ x op y))
         | varToStr' op == "&&" = bool x && bool y
         | varToStr' op == "||" = bool x || bool y
-        | varToStr' op == "==" = expr (fromParen1' x) `eqNoLoc'` expr (fromParen1' y)
+        | varToStr' op == "==" = expr (fromParen1' x) `astEq'` expr (fromParen1' y)
       bool (LL _ (HsApp _ x y)) | varToStr' x == "not" = not $ bool y
       bool (LL _ (HsPar _ x)) = bool x
 
       bool (LL _ (HsApp _ cond (sub -> y)))
         | 'i' : 's' : typ <- varToStr' cond = isType typ y
       bool (LL _ (HsApp _ (LL _ (HsApp _ cond (sub -> x))) (sub -> y)))
-          | varToStr' cond == "notIn" = and [wrap (stripLocs' x) `notElem` map (wrap . stripLocs') (universe y) | x <- list x, y <- list y]
-          | varToStr' cond == "notEq" = not (x `eqNoLoc'` y)
+          | varToStr' cond == "notIn" = and [extendInstances' (stripLocs' x) `notElem` map (extendInstances' . stripLocs') (universe y) | x <- list x, y <- list y]
+          | varToStr' cond == "notEq" = not (x `astEq'` y)
       bool x | varToStr' x == "noTypeCheck" = True
       bool x | varToStr' x == "noQuickCheck" = True
       bool x = error $ "Hint.Match.checkSide', unknown side condition: " ++ unsafePrettyPrint x

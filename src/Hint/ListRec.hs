@@ -98,25 +98,25 @@ matchListRec :: ListCase -> Maybe (String, Severity, LHsExpr GhcPs)
 matchListRec o@(ListCase vs nil (x, xs, cons))
     -- Suggest 'map'?
     | [] <- vs, varToStr' nil == "[]", (LL _ (OpApp _ lhs c rhs)) <- cons, varToStr' c == ":"
-    , eqNoLoc' (fromParen' rhs) recursive, xs `notElem` vars' lhs
+    , astEq' (fromParen' rhs) recursive, xs `notElem` vars' lhs
     = Just $ (,,) "map" Hint.Type.Warning $
       appsBracket' [ strToVar' "map", niceLambda' [x] lhs, strToVar' xs]
     -- Suggest 'foldr'?
     | [] <- vs, App2' op lhs rhs <- view' cons
     , xs `notElem` (vars' op ++ vars' lhs) -- the meaning of xs changes, see #793
-    , eqNoLoc' (fromParen' rhs) recursive
+    , astEq' (fromParen' rhs) recursive
     = Just $ (,,) "foldr" Suggestion $
       appsBracket' [ strToVar' "foldr", niceLambda' [x] $ appsBracket' [op,lhs], nil, strToVar' xs]
     -- Suggest 'foldl'?
     | [v] <- vs, view' nil == Var_' v, (LL _ (HsApp _ r lhs)) <- cons
-    , eqNoLoc' (fromParen' r) recursive
+    , astEq' (fromParen' r) recursive
     , xs `notElem` vars' lhs
     = Just $ (,,) "foldl" Suggestion $
       appsBracket' [ strToVar' "foldl", niceLambda' [v,x] lhs, strToVar' v, strToVar' xs]
     -- Suggest 'foldM'?
     | [v] <- vs, (LL _ (HsApp _ ret res)) <- nil, isReturn' ret, varToStr' res == "()" || view' res == Var_' v
     , [LL _ (BindStmt _ (view' -> PVar_' b1) e _ _), LL _ (BodyStmt _ (fromParen' -> (LL _ (HsApp _ r (view' -> Var_' b2)))) _ _)] <- asDo cons
-    , b1 == b2, eqNoLoc' r recursive, xs `notElem` vars' e
+    , b1 == b2, astEq' r recursive, xs `notElem` vars' e
     , name <- "foldM" ++ ['_' | varToStr' res == "()"]
     = Just $ (,,) name Suggestion $
       appsBracket' [strToVar' name, niceLambda' [v,x] e, strToVar' v, strToVar' xs]
@@ -185,11 +185,11 @@ delCons _ _ _ x = return x
 eliminateArgs :: [String] -> LHsExpr GhcPs -> ([String], LHsExpr GhcPs)
 eliminateArgs ps cons = (remove ps, transform f cons)
   where
-    args = [zs | z : zs <- map fromApps' $ universeApps' cons, eqNoLoc' z recursive]
+    args = [zs | z : zs <- map fromApps' $ universeApps' cons, astEq' z recursive]
     elim = [all (\xs -> length xs > i && view' (xs !! i) == Var_' p) args | (i, p) <- zip [0..] ps] ++ repeat False
     remove = concat . zipWith (\b x -> [x | not b]) elim
 
-    f (fromApps' -> x : xs) | eqNoLoc' x recursive = apps' $ x : remove xs
+    f (fromApps' -> x : xs) | astEq' x recursive = apps' $ x : remove xs
     f x = x
 
 

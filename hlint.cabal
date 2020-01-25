@@ -121,7 +121,7 @@ library
         GHC.Util.Module
         GHC.Util.Outputable
         GHC.Util.SrcLoc
-        GHC.Util.W
+        GHC.Util.HsExtendInstances
         GHC.Util.DynFlags
         GHC.Util.RdrName
         GHC.Util.Scope

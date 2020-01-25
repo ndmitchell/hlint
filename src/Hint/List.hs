@@ -94,7 +94,7 @@ listCompCheckGuards o ctx stmts =
     list_comp_aux e xs
       | "False" `elem` cons =  [suggest' "Short-circuited list comprehension" o o' (suggestExpr o o')]
       | "True" `elem` cons = [suggest' "Redundant True guards" o o2 (suggestExpr o o2)]
-      | not (eqNoLocLists' xs ys) = [suggest' "Move guards forward" o o3 (suggestExpr o o3)]
+      | not (astListEq' xs ys) = [suggest' "Move guards forward" o o3 (suggestExpr o o3)]
       | otherwise = []
       where
         ys = moveGuardsForward xs
@@ -258,6 +258,6 @@ stringType (LL _ x) = case x of
     g :: LHsType GhcPs -> [Idea]
     g e@(fromTyParen' -> x) = [suggest' "Use String" x (transform f x)
                               rs | not . null $ rs]
-      where f x = if eqNoLoc' x typeListChar then typeString else x
-            rs = [Replace Type (toSS' t) [] (unsafePrettyPrint typeString) | t <- universe x, eqNoLoc' t typeListChar]
+      where f x = if astEq' x typeListChar then typeString else x
+            rs = [Replace Type (toSS' t) [] (unsafePrettyPrint typeString) | t <- universe x, astEq' t typeListChar]
 stringType _ = [] -- {-# COMPLETE LL #-}
