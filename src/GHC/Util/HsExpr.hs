@@ -35,7 +35,7 @@ import Name
 import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
-import GHC.Util.W
+import GHC.Util.HsExtendInstances
 import GHC.Util.Pat
 
 import Control.Applicative
@@ -238,10 +238,10 @@ niceLambdaR' [x] y
     factor y@(LL _ (HsApp _ ini lst)) | view' lst == Var_' x = Just (ini, [ini])
     factor y@(LL _ (HsApp _ ini lst)) | Just (z, ss) <- factor lst
       = let r = niceDotApp' ini z
-        in if eqLoc' r z then Just (r, ss) else Just (r, ini : ss)
+        in if astEq' r z then Just (r, ss) else Just (r, ini : ss)
     factor (LL _ (OpApp _ y op (factor -> Just (z, ss))))| isDol' op
       = let r = niceDotApp' y z
-        in if eqLoc' r z then Just (r, ss) else Just (r, y : ss)
+        in if astEq' r z then Just (r, ss) else Just (r, y : ss)
     factor (LL _ (HsPar _ y@(LL _ HsApp{}))) = factor y
     factor _ = Nothing
 -- Rewrite '\x y -> x + y' as '(+)'.
@@ -321,7 +321,7 @@ reduce1' (LL loc (HsApp _ len (LL _ (HsLit _ (HsString _ xs)))))
 reduce1' (LL loc (HsApp _ len (LL _ (ExplicitList _ _ xs))))
   | varToStr' len == "length" = cL loc $ HsLit noExt (HsInt noExt (IL NoSourceText False n))
   where n = fromIntegral $ length xs
-reduce1' (view' -> App2' op (LL _ (HsLit _ x)) (LL _ (HsLit _ y))) | varToStr' op == "==" = strToVar' (show (eqLoc' x y))
+reduce1' (view' -> App2' op (LL _ (HsLit _ x)) (LL _ (HsLit _ y))) | varToStr' op == "==" = strToVar' (show (astEq' x y))
 reduce1' (view' -> App2' op (LL _ (HsLit _ (HsInt _ x))) (LL _ (HsLit _ (HsInt _ y)))) | varToStr' op == ">=" = strToVar' $ show (x >= y)
 reduce1' (view' -> App2' op x y)
     | varToStr' op == "&&" && varToStr' x == "True"  = y

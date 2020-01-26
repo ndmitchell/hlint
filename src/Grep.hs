@@ -27,7 +27,7 @@ runGrep patt flags files = do
     let unit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed
     let rule = hintRules [HintRule Suggestion "grep" scope exp (Tuple an Boxed []) Nothing []
                          -- Todo : Replace these with "proper" GHC expressions.
-                          (wrap mempty) (wrap unit) (wrap unit) Nothing]
+                          (extendInstances' mempty) (extendInstances' unit) (extendInstances' unit) Nothing]
     forM_ files $ \file -> do
         res <- parseModuleEx flags file Nothing
         case res of
