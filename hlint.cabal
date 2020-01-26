@@ -68,7 +68,7 @@ library
         refact >= 0.3,
         aeson >= 1.1.2.0,
         filepattern >= 0.1.1,
-        ghc-lib-parser-ex == 8.8.2
+        ghc-lib-parser-ex == 8.8.3.*
     if !flag(ghc-lib) && impl(ghc >= 8.8.0) && impl(ghc < 8.9.0)
         build-depends:
           ghc == 8.8.*,

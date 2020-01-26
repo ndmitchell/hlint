@@ -17,7 +17,8 @@ module GHC.Util (
   , module GHC.Util.RdrName
   , module GHC.Util.Unify
 
-  , parsePragmasIntoDynFlags, parseFileGhcLib, parseExpGhcLib, parseImportGhcLib
+  , parsePragmasIntoDynFlags
+  , parseFileGhcLib, parseExpGhcLib, parseImportGhcLib
   ) where
 
 import GHC.Util.View
@@ -38,49 +39,23 @@ import GHC.Util.Scope
 import GHC.Util.Unify
 
 import qualified Language.Haskell.GhclibParserEx.Parse as GhclibParserEx
+import Language.Haskell.GhclibParserEx.DynFlags (parsePragmasIntoDynFlags)
 
 import HsSyn
 import Lexer
-import Parser
 import SrcLoc
-import FastString
-import StringBuffer
-import GHC.LanguageExtensions.Type
 import DynFlags
 
-import Data.List.Extra
 import System.FilePath
 import Language.Preprocessor.Unlit
 
 parseExpGhcLib :: String -> DynFlags -> ParseResult (LHsExpr GhcPs)
-parseExpGhcLib = GhclibParserEx.parseExpr
+parseExpGhcLib = GhclibParserEx.parseExpression
 
 parseImportGhcLib :: String -> DynFlags -> ParseResult (LImportDecl GhcPs)
 parseImportGhcLib = GhclibParserEx.parseImport
 
--- TODO(SF): GhclibParserEx.parseFile doesn't take 'unlit' into
--- consideration yet.
 parseFileGhcLib :: FilePath -> String -> DynFlags -> ParseResult (Located (HsModule GhcPs))
 parseFileGhcLib filename str flags =
-  Lexer.unP Parser.parseModule parseState
-  where
-    location = mkRealSrcLoc (mkFastString filename) 1 1
-    buffer = stringToStringBuffer $
-              if takeExtension filename /= ".lhs" then str else unlit filename str
-    parseState = mkPState flags buffer location
-
--- TODO(SF): GhclibParserEx.parsePragmasIntoDynFlags doesn't take
--- enabled/disabled extensions into consideration yet.
-parsePragmasIntoDynFlags :: DynFlags
-                         -> ([Extension], [Extension])
-                         -> FilePath
-                         -> String
-                         -> IO (Either String DynFlags)
-parsePragmasIntoDynFlags flags (enable, disable) filepath str = do
-   flags <- GhclibParserEx.parsePragmasIntoDynFlags flags filepath str
-   case flags of
-     Right flags -> do
-       let flags' =  foldl' xopt_set flags enable
-       let flags'' = foldl' xopt_unset flags' disable
-       return $ Right flags''
-     err -> return err
+  GhclibParserEx.parseFile filename flags
+    (if takeExtension filename /= ".lhs" then str else unlit filename str)
