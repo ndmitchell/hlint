@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module GHC.Util.HsDecl (declName,isForD',isNewType',isDerivD',isClsDefSig')
+module GHC.Util.HsDecl (declName,bindName,isForD',isNewType',isDerivD',isClsDefSig')
 where
 
 import HsSyn
@@ -37,6 +37,12 @@ declName (LL _ x) = occNameString . occName <$> case x of
     ForD _ ForeignExport{fd_name} -> Just $ unLoc fd_name
     _ -> Nothing
 declName _ = Nothing {- COMPLETE LL-}
+
+
+bindName :: LHsBind GhcPs -> Maybe String
+bindName (LL _ FunBind{fun_id}) = Just $ occNameString $ occName $ unLoc fun_id
+bindName (LL _ VarBind{var_id}) = Just $ occNameString $ occName var_id
+bindName _ = Nothing
 
 isClsDefSig' :: Sig GhcPs -> Bool
 isClsDefSig' (ClassOpSig _ True _ _) = True; isClsDefSig' _ = False

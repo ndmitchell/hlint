@@ -1,4 +1,5 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards, FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns, TupleSections #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables #-}
 
 {-
 The matching does a fairly simple unification between the two terms, treating
@@ -51,6 +52,7 @@ import Data.Maybe
 import Config.Type
 import Data.Generics.Uniplate.Operations
 
+import Bag
 import HsSyn
 import SrcLoc
 import BasicTypes
@@ -105,24 +107,26 @@ dotVersion' _ = []
 findIdeas' :: [HintRule] -> Scope' -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 findIdeas' matches s _ decl = timed "Hint" "Match apply" $ forceList
     [ (idea' (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
-    | decl <- findDecls' decl
-    , (parent,x) <- universeParentExp' decl
-    , m <- matches, Just (y, notes, subst) <- [matchIdea' s decl m parent x]
+    | (name, expr) <- findDecls' decl
+    , (parent,x) <- universeParentExp' expr
+    , m <- matches, Just (y, notes, subst) <- [matchIdea' s name m parent x]
     , let r = R.Replace R.Expr (toSS' x) subst (unsafePrettyPrint $ unExtendInstances' (hintRuleGhcRHS m))
     ]
 
-findDecls' :: LHsDecl GhcPs -> [LHsDecl GhcPs]
-findDecls' x@(LL _ InstD{}) = children x
+-- | A list of root expressions, with their associated names
+findDecls' :: LHsDecl GhcPs -> [(String, LHsExpr GhcPs)]
+findDecls' x@(LL _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
+    [(fromMaybe "" $ bindName xs, x) | xs <- bagToList cid_binds, x <- childrenBi xs]
 findDecls' (LL _ RuleD{}) = [] -- Often rules contain things that HLint would rewrite.
-findDecls' x = [x]
+findDecls' x = map (fromMaybe "" $ declName x,) $ childrenBi x
 
 matchIdea' :: Scope'
-           -> LHsDecl GhcPs
+           -> String
            -> HintRule
            -> Maybe (Int, LHsExpr GhcPs)
            -> LHsExpr GhcPs
            -> Maybe (LHsExpr GhcPs, [Note], [(String, R.SrcSpan)])
-matchIdea' sb decl HintRule{..} parent x = do
+matchIdea' sb declName HintRule{..} parent x = do
   let lhs = unExtendInstances' hintRuleGhcLHS
       rhs = unExtendInstances' hintRuleGhcRHS
       sa  = unExtendInstances' hintRuleGhcScope
@@ -144,7 +148,7 @@ matchIdea' sb decl HintRule{..} parent x = do
   guard $ not (any isLambda' $ universe lhs) || not (any isQuasiQuote' $ universe x)
 
   guard $ checkSide' (unExtendInstances' <$> hintRuleGhcSide) $ ("original", x) : ("result", res) : fromSubst' u
-  guard $ checkDefine' decl parent res
+  guard $ checkDefine' declName parent res
 
   return (res, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
 
@@ -213,8 +217,8 @@ checkSide' x bind = maybe True bool x
               f x = x
 
 -- Does the result look very much like the declaration?
-checkDefine' :: LHsDecl GhcPs -> Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
-checkDefine' x Nothing y = declName x /= Just (varToStr' (transformBi unqual' $ head $ fromApps' y))
+checkDefine' :: String -> Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
+checkDefine' declName Nothing y = declName /= varToStr' (transformBi unqual' $ head $ fromApps' y)
 checkDefine' _ _ _ = True
 
 ---------------------------------------------------------------------

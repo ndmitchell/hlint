@@ -988,6 +988,7 @@
 # no = sequenceA (pure a)
 # {-# LANGUAGE QuasiQuotes #-}; no = f (\url -> [hamlet|foo @{url}|])
 # yes = f ((,) x) -- (x,)
+# instance Class X where method = map f (map g x) -- map (f . g) x
 
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM
