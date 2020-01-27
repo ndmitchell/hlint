@@ -69,7 +69,7 @@ scopeMatch' (a, x) (b, y)
 scopeMove' :: (Scope', Located RdrName) -> Scope' -> Located RdrName
 scopeMove' (a, x@(fromQual' -> Just name)) (Scope' b) = case imps of
   [] -> head $ real ++ [x]
-  (imp:_) | all ideclQualified imps -> noLoc $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
+  imp:_ | all ideclQualified imps -> noLoc $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
           | otherwise -> unqual' x
   where
     real :: [Located RdrName]
