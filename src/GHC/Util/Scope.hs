@@ -70,7 +70,7 @@ scopeMove' :: (Scope', Located RdrName) -> Scope' -> Located RdrName
 scopeMove' (a, x@(fromQual' -> Just name)) (Scope' b) = case imps of
   [] -> head $ real ++ [x]
   imp:_ | all ideclQualified imps -> noLoc $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
-          | otherwise -> unqual' x
+        | otherwise -> unqual' x
   where
     real :: [Located RdrName]
     real = [noLoc $ mkRdrQual (mkModuleName m) name | m <- possModules' a x]
