@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    Add any/map and all/map fusion hints
     #837, don't warn about redundant do for BlockArguments
     #842, fix parsing of <% operators in hlint.yaml files
     #839, match hints inside instances
