@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #833, UnboxedTuples can be necessary from newtype deriving
     #817, add the ability to blacklist identifiers from a module
     #834, move not out of any and all
 2.2.8, released 2020-01-22
