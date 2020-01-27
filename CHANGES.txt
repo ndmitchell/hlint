@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.2.9, released 2020-01-27
     Add any/map and all/map fusion hints
     #837, don't warn about redundant do for BlockArguments
     #842, fix parsing of <% operators in hlint.yaml files
