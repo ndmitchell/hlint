@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -18,6 +20,7 @@ import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn',rawIdea')
 import Config.Type
 
 import Data.Generics.Uniplate.Operations
+import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Data.List
 import Data.Maybe
@@ -54,19 +57,20 @@ restrictHint settings scope m =
 data RestrictItem = RestrictItem
     {riAs :: [String]
     ,riWithin :: [(String, String)]
+    ,riBadIdents :: [String]
     ,riMessage :: Maybe String
     }
 instance Semigroup RestrictItem where
-    RestrictItem x1 x2 x3 <> RestrictItem y1 y2 y3 = RestrictItem (x1<>y1) (x2<>y2) (x3<>y3)
+    RestrictItem x1 x2 x3 x4 <> RestrictItem y1 y2 y3 y4 = RestrictItem (x1<>y1) (x2<>y2) (x3<>y3) (x4<>y4)
 instance Monoid RestrictItem where
-    mempty = RestrictItem [] [] Nothing
+    mempty = RestrictItem [] [] [] Nothing
     mappend = (<>)
 
 restrictions :: [Setting] -> Map.Map RestrictType (Bool, Map.Map String RestrictItem)
 restrictions settings = Map.map f $ Map.fromListWith (++) [(restrictType x, [x]) | SettingRestrict x <- settings]
     where
         f rs = (all restrictDefault rs
-               ,Map.fromListWith (<>) [(s, RestrictItem restrictAs restrictWithin restrictMessage) | Restrict{..} <- rs, s <- restrictName])
+               ,Map.fromListWith (<>) [(s, RestrictItem restrictAs restrictWithin restrictBadIdents restrictMessage) | Restrict{..} <- rs, s <- restrictName])
 
 
 ideaMessage :: Maybe String -> Idea -> Idea
@@ -105,15 +109,41 @@ checkPragmas modu flags exts mps =
 
 checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkImports modu imp (def, mp) =
-    [ ideaMessage riMessage $ if not allowImport
-      then ideaNoTo $ warn' "Avoid restricted module" i i []
-      else warn' "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
+    [ ideaMessage riMessage
+      $ if | not allowImport -> ideaNoTo $ warn' "Avoid restricted module" i i []
+           | not allowIdent  -> ideaNoTo $ warn' "Avoid restricted identifiers" i i []
+           | not allowQual   -> warn' "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
+           | otherwise       -> error "checkImports: unexpected case"
     | i@(LL _ ImportDecl {..}) <- imp
-    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] Nothing) (moduleNameString (unLoc ideclName)) mp
+    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] [] Nothing) (moduleNameString (unLoc ideclName)) mp
     , let allowImport = within modu "" ri
+    , let allowIdent = Set.disjoint
+                       (Set.fromList riBadIdents)
+                       (Set.fromList (maybe [] (\(b, lxs) -> if b then [] else concatMap (importListToIdents . unLoc) (unLoc lxs)) ideclHiding))
     , let allowQual = maybe True (\x -> null riAs || moduleNameString (unLoc x) `elem` riAs) ideclAs
-    , not allowImport || not allowQual
+    , not allowImport || not allowQual || not allowIdent
     ]
+
+importListToIdents :: IE GhcPs -> [String]
+importListToIdents =
+  catMaybes .
+  \case (IEVar _ n)              -> [fromName n]
+        (IEThingAbs _ n)         -> [fromName n]
+        (IEThingAll _ n)         -> [fromName n]
+        (IEThingWith _ n _ ns _) -> fromName n : map fromName ns
+        _                        -> []
+  where
+    fromName :: LIEWrappedName (IdP GhcPs) -> Maybe String
+    fromName wrapped = case unLoc wrapped of
+                         IEName    n -> fromId (unLoc n)
+                         IEPattern n -> ("pattern " ++) <$> fromId (unLoc n)
+                         IEType    n -> ("type " ++) <$> fromId (unLoc n)
+
+    fromId :: IdP GhcPs -> Maybe String
+    fromId (Unqual n) = Just $ occNameString n
+    fromId (Qual _ n) = Just $ occNameString n
+    fromId (Orig _ n) = Just $ occNameString n
+    fromId (Exact _)  = Nothing
 
 checkFunctions :: String -> [LHsDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkFunctions modu decls (def, mp) =
@@ -121,6 +151,6 @@ checkFunctions modu decls (def, mp) =
     | d <- decls
     , let dname = fromMaybe "" (declName d)
     , x <- universeBi d :: [Located RdrName]
-    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] Nothing) (occNameString (rdrNameOcc (unLoc x))) mp
+    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] [] Nothing) (occNameString (rdrNameOcc (unLoc x))) mp
     , not $ within modu dname ri
     ]

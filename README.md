@@ -325,9 +325,10 @@ This declares that the `nub` function can't be used in any modules, and thus is 
 - modules:
   - {name: [Data.Set, Data.HashSet], as: Set}
   - {name: Control.Arrow, within: []}
+  - {name: Control.Monad.State, badidents: [modify, get, put], message: "Use Control.Monad.State.Class instead"}
 ```
 
-This fragment requires that all imports of `Set` must be `qualified Data.Set as Set`, enforcing consistency. It also ensures the module `Control.Arrow` can't be used anywhere.
+This fragment requires that all imports of `Set` must be `qualified Data.Set as Set`, enforcing consistency. It also ensures the module `Control.Arrow` can't be used anywhere. It also prevents explicit imports of the `modify` identifier from `Control.Monad.State` (this is meant to allow you to prevent people from importing reexported identifiers).
 
 You can customize the `Note:` for restricted modules, functions and extensions, by providing a `message` field (default: `may break the code`).
 
