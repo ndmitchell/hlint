@@ -67,7 +67,7 @@ scopeMatch' (a, x) (b, y)
 -- ambiguous, pick a plausible candidate.
 scopeMove' :: (Scope', Located RdrName) -> Scope' -> Located RdrName
 scopeMove' (a, x@(fromQual' -> Just name)) (Scope' b)
-  | null imps = head $ real ++ [x]
+  | null imps = foldr const x real
   | any (not . ideclQualified) imps = unqual' x
   | otherwise = noLoc $ mkRdrQual (unLoc $ head (mapMaybe ideclAs imps ++ map ideclName imps)) name
   where
