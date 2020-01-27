@@ -82,10 +82,8 @@ parseExtensions = [e | e@EnableExtension{} <- knownExtensions] \\ map EnableExte
 configExtensions :: [Extension]
 configExtensions = [e | e@EnableExtension{} <- knownExtensions] \\ map EnableExtension reallyBadExtensions
 
-badExtensions =
+badExtensions = reallyBadExtensions ++
     [Arrows -- steals proc
-    ,TransformListComp -- steals the group keyword
-    ,XmlSyntax, RegularPatterns -- steals a-b
     ,UnboxedTuples, UnboxedSums -- breaks (#) lens operator
     ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
     ,DoRec, RecursiveDo -- breaks rec
@@ -94,4 +92,5 @@ badExtensions =
 
 reallyBadExtensions =
     [TransformListComp -- steals the group keyword
+    ,XmlSyntax, RegularPatterns -- steals a-b and < operators
     ]
