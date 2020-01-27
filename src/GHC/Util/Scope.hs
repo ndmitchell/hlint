@@ -68,8 +68,8 @@ scopeMatch' (a, x) (b, y)
 scopeMove' :: (Scope', Located RdrName) -> Scope' -> Located RdrName
 scopeMove' (a, x@(fromQual' -> Just name)) (Scope' b)
   | null imps = head $ real ++ [x]
-  | any (not . ideclQualified) imps = unqual' x
-  | otherwise = noLoc $ mkRdrQual (unLoc $ head (mapMaybe ideclAs imps ++ map ideclName imps)) name
+  | all ideclQualified imps = noLoc $ mkRdrQual (unLoc $ head (mapMaybe ideclAs imps ++ map ideclName imps)) name
+  | otherwise = unqual' x
   where
     real :: [Located RdrName]
     real = [noLoc $ mkRdrQual (mkModuleName m) name | m <- possModules' a x]
