@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #837, don't warn about redundant do for BlockArguments
     #842, fix parsing of <% operators in hlint.yaml files
     #839, match hints inside instances
     #833, UnboxedTuples can be necessary from newtype deriving
