@@ -19,6 +19,7 @@ import GHC.Util.RdrName
 import Outputable
 
 import Data.List
+import Data.List.Extra
 import Data.Maybe
 
 -- A scope is a list of import declarations.
@@ -66,10 +67,10 @@ scopeMatch' (a, x) (b, y)
 -- scope that will refer to the same thing. If the resulting name is
 -- ambiguous, pick a plausible candidate.
 scopeMove' :: (Scope', Located RdrName) -> Scope' -> Located RdrName
-scopeMove' (a, x@(fromQual' -> Just name)) (Scope' b)
-  | null imps = foldr const x real
-  | any (not . ideclQualified) imps = unqual' x
-  | otherwise = noLoc $ mkRdrQual (unLoc $ head (mapMaybe ideclAs imps ++ map ideclName imps)) name
+scopeMove' (a, x@(fromQual' -> Just name)) (Scope' b) = case imps of
+  [] -> foldr const x real
+  imp:_ | all ideclQualified imps -> noLoc $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
+        | otherwise -> unqual' x
   where
     real :: [Located RdrName]
     real = [noLoc $ mkRdrQual (mkModuleName m) name | m <- possModules' a x]

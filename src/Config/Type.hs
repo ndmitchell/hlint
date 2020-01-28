@@ -98,11 +98,11 @@ data HintRule = HintRule
     ,hintRuleRHS :: Exp SrcSpanInfo -- ^ RHS
     ,hintRuleSide :: Maybe (Exp SrcSpanInfo) -- ^ Side condition, typically specified with @where _ = ...@.
     ,hintRuleNotes :: [Note] -- ^ Notes about application of the hint.
-    -- We wrap these GHC elements in 'W' in order that we may derive 'Show'.
-    ,hintRuleGhcScope :: W Scope' -- ^ Module scope in which the hint operates (GHC parse tree).
-    ,hintRuleGhcLHS :: W (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ LHS (GHC parse tree).
-    ,hintRuleGhcRHS :: W (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ RHS (GHC parse tree).
-    ,hintRuleGhcSide :: Maybe (W (HsSyn.LHsExpr HsSyn.GhcPs))  -- ^ Side condition (GHC parse tree).
+    -- We wrap these GHC elements in 'HsExtendInstances' in order that we may derive 'Show'.
+    ,hintRuleGhcScope :: HsExtendInstances Scope' -- ^ Module scope in which the hint operates (GHC parse tree).
+    ,hintRuleGhcLHS :: HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ LHS (GHC parse tree).
+    ,hintRuleGhcRHS :: HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ RHS (GHC parse tree).
+    ,hintRuleGhcSide :: Maybe (HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs))  -- ^ Side condition (GHC parse tree).
     }
     deriving Show
 
@@ -114,6 +114,7 @@ data Restrict = Restrict
     ,restrictName :: [String]
     ,restrictAs :: [String] -- for RestrictModule only, what module names you can import it as
     ,restrictWithin :: [(String, String)]
+    ,restrictBadIdents :: [String]
     ,restrictMessage :: Maybe String
     } deriving Show
 

@@ -154,6 +154,8 @@
     - warn: {lhs: concatMap id, rhs: concat}
     - warn: {lhs: or (map p x), rhs: any p x}
     - warn: {lhs: and (map p x), rhs: all p x}
+    - warn: {lhs: any f (map g x), rhs: any (f . g) x}
+    - warn: {lhs: all f (map g x), rhs: all (f . g) x}
     - warn: {lhs: "zipWith (,)", rhs: zip}
     - warn: {lhs: "zipWith3 (,,)", rhs: zip3}
     - hint: {lhs: length x == 0, rhs: null x, note: IncreasesLaziness}
@@ -181,6 +183,8 @@
     - warn: {lhs: "filter f x /= []", rhs: any f x}
     - warn: {lhs: any id, rhs: or}
     - warn: {lhs: all id, rhs: and}
+    - warn: {lhs: any (not . f) x, rhs: not (all f x), name: Hoist not}
+    - warn: {lhs: all (not . f) x, rhs: not (any f x), name: Hoist not}
     - warn: {lhs: any ((==) a), rhs: elem a, note: ValidInstance Eq a}
     - warn: {lhs: any (== a), rhs: elem a}
     - warn: {lhs: any (a ==), rhs: elem a, note: ValidInstance Eq a}
@@ -987,6 +991,7 @@
 # no = sequenceA (pure a)
 # {-# LANGUAGE QuasiQuotes #-}; no = f (\url -> [hamlet|foo @{url}|])
 # yes = f ((,) x) -- (x,)
+# instance Class X where method = map f (map g x) -- map (f . g) x
 
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM

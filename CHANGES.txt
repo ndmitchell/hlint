@@ -1,5 +1,13 @@
 Changelog for HLint (* = breaking change)
 
+2.2.9, released 2020-01-27
+    Add any/map and all/map fusion hints
+    #837, don't warn about redundant do for BlockArguments
+    #842, fix parsing of <% operators in hlint.yaml files
+    #839, match hints inside instances
+    #833, UnboxedTuples can be necessary from newtype deriving
+    #817, add the ability to blacklist identifiers from a module
+    #834, move not out of any and all
 2.2.8, released 2020-01-22
     #802, suggest lambda instead of lambda-case for single alts
     #811, add some foldMap/map hints

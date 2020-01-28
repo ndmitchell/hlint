@@ -76,6 +76,8 @@ f :: Int -> (# Int, Int #)
 f :: x -> (x, x); f x = (x, x) --
 {-# LANGUAGE UnboxedTuples #-} \
 f x = case x of (# a, b #) -> a
+{-# LANGUAGE GeneralizedNewtypeDeriving,UnboxedTuples #-} \
+newtype T m a = T (m a) deriving (PrimMonad)
 {-# LANGUAGE DefaultSignatures #-} \
 class Val a where; val :: a --
 {-# LANGUAGE DefaultSignatures #-} \
@@ -285,7 +287,13 @@ used PatternSignatures = hasS isPatTypeSig'
 used RecordWildCards = hasS hasFieldsDotDot' ||^ hasS hasPFieldsDotDot'
 used RecordPuns = hasS isPFieldPun' ||^ hasS isFieldPun'
 used NamedFieldPuns = hasS isPFieldPun' ||^ hasS isFieldPun'
-used UnboxedTuples = has isUnboxedTuple' ||^ has (== Unboxed)
+used UnboxedTuples = has isUnboxedTuple' ||^ has (== Unboxed) ||^ hasS isDeriving
+    where
+        -- detect if there are deriving declarations or data ... deriving stuff
+        -- by looking for the deriving strategy both contain (even if its Nothing)
+        -- see https://github.com/ndmitchell/hlint/issues/833 for why we care
+        isDeriving :: Maybe (LDerivStrategy GhcPs) -> Bool
+        isDeriving _ = True
 used PackageImports = hasS f
     where
         f :: ImportDecl GhcPs -> Bool

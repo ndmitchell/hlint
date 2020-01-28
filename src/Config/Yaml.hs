@@ -30,7 +30,7 @@ import qualified ErrUtils
 import qualified Outputable
 import qualified HsSyn
 import GHC.Util (baseDynFlags, Scope',scopeCreate')
-import GHC.Util.W
+import GHC.Util.HsExtendInstances
 
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
 --   Fails if the YAML doesn't parse or isn't valid HLint YAML
@@ -58,14 +58,14 @@ data ConfigItem
 data Package = Package
     {packageName :: String
     ,packageModules :: [ImportDecl S]
-    ,packageGhcModules :: [W (HsSyn.LImportDecl HsSyn.GhcPs)]
+    ,packageGhcModules :: [HsExtendInstances (HsSyn.LImportDecl HsSyn.GhcPs)]
     } deriving Show
 
 data Group = Group
     {groupName :: String
     ,groupEnabled :: Bool
     ,groupImports :: [Either String (ImportDecl S)] -- Left for package imports
-    ,groupGhcImports :: [Either String (W (HsSyn.LImportDecl HsSyn.GhcPs))]
+    ,groupGhcImports :: [Either String (HsExtendInstances (HsSyn.LImportDecl HsSyn.GhcPs))]
     ,groupRules :: [Either HintRule Classify] -- HintRule has scope set to mempty
     } deriving Show
 
@@ -198,7 +198,7 @@ parsePackage :: Val -> Parser Package
 parsePackage v = do
     packageName <- parseField "name" v >>= parseString
     packageModules <- parseField "modules" v >>= parseArray >>= mapM (parseHSE parseImportDeclWithMode)
-    packageGhcModules <- parseField "modules" v >>= parseArray >>= mapM (fmap wrap <$> parseGHC parseImportDeclGhcWithMode)
+    packageGhcModules <- parseField "modules" v >>= parseArray >>= mapM (fmap extendInstances' <$> parseGHC parseImportDeclGhcWithMode)
     allowFields v ["name","modules"]
     return Package{..}
 
@@ -238,7 +238,7 @@ parseGroup v = do
             x <- parseString v
             case word1 x of
                  ("package", x) -> return $ Left x
-                 _ -> Right . wrap <$> parseGHC parseImportDeclGhcWithMode v
+                 _ -> Right . extendInstances' <$> parseGHC parseImportDeclGhcWithMode v
 
 ruleToGroup :: [Either HintRule Classify] -> Group
 ruleToGroup = Group "" True [] []
@@ -254,13 +254,13 @@ parseRule v = do
         hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName hintRuleLHS hintRuleRHS) parseString
         hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap Just . parseHSE parseExpWithMode)
 
-        hintRuleGhcLHS <- parseField "lhs" v >>= fmap wrap . parseGHC parseExpGhcWithMode
-        hintRuleGhcRHS <- parseField "rhs" v >>= fmap wrap . parseGHC parseExpGhcWithMode
-        hintRuleGhcSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . wrap) . parseGHC parseExpGhcWithMode)
+        hintRuleGhcLHS <- parseField "lhs" v >>= fmap extendInstances' . parseGHC parseExpGhcWithMode
+        hintRuleGhcRHS <- parseField "rhs" v >>= fmap extendInstances' . parseGHC parseExpGhcWithMode
+        hintRuleGhcSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . extendInstances') . parseGHC parseExpGhcWithMode)
 
         allowFields v ["lhs","rhs","note","name","side"]
         let hintRuleScope = mempty :: Scope
-        let hintRuleGhcScope = wrap mempty :: W Scope'
+        let hintRuleGhcScope = extendInstances' mempty :: HsExtendInstances Scope'
         return [Left HintRule{hintRuleSeverity=severity, ..}]
      else do
         names <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
@@ -274,13 +274,14 @@ parseRestrict restrictType v = do
         Just def -> do
             b <- parseBool def
             allowFields v ["default"]
-            return $ Restrict restrictType b [] [] [] Nothing
+            return $ Restrict restrictType b [] [] [] [] Nothing
         Nothing -> do
             restrictName <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
             restrictWithin <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
             restrictAs <- parseFieldOpt "as" v >>= maybe (return []) parseArrayString
+            restrictBadIdents <- parseFieldOpt "badidents" v >>= maybe (pure []) parseArrayString
             restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
-            allowFields v $ ["as" | restrictType == RestrictModule] ++ ["name","within", "message"]
+            allowFields v $ ["as" | restrictType == RestrictModule] ++ ["badidents", "name", "within", "message"]
             return Restrict{restrictDefault=True,..}
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
@@ -330,7 +331,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
         groups = [x | ConfigGroup x <- configs]
         settings = concat [x | ConfigSetting x <- configs]
         packageMap = Map.fromListWith (++) [(packageName, packageModules) | Package{..} <- packages]
-        packageMap' = Map.fromListWith (++) [(packageName, fmap unwrap packageGhcModules) | Package{..} <- packages]
+        packageMap' = Map.fromListWith (++) [(packageName, fmap unExtendInstances' packageGhcModules) | Package{..} <- packages]
         groupMap = Map.fromListWith (\new old -> new) [(groupName, groupEnabled) | Group{..} <- groups]
 
         f Group{..}
@@ -338,7 +339,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
             | otherwise = map (either (\r -> SettingMatchExp r{hintRuleScope=scope,hintRuleGhcScope=scope'}) SettingClassify) groupRules
             where
               scope = asScope packageMap groupImports
-              scope'= asScope' packageMap' (map (fmap unwrap) groupGhcImports)
+              scope'= asScope' packageMap' (map (fmap unExtendInstances') groupGhcImports)
 
 asScope :: Map.HashMap String [ImportDecl S] -> [Either String (ImportDecl S)] -> Scope
 asScope packages xs = scopeCreate $ Module an Nothing [] (concatMap f xs) []
@@ -347,8 +348,8 @@ asScope packages xs = scopeCreate $ Module an Nothing [] (concatMap f xs) []
         f (Left x) | Just pkg <- Map.lookup x packages = pkg
                    | otherwise = error $ "asScope failed to do lookup, " ++ x
 
-asScope' :: Map.HashMap String [HsSyn.LImportDecl HsSyn.GhcPs] -> [Either String (HsSyn.LImportDecl HsSyn.GhcPs)] -> W Scope'
-asScope' packages xs = W $ scopeCreate' (HsSyn.HsModule Nothing Nothing (concatMap f xs) [] Nothing Nothing)
+asScope' :: Map.HashMap String [HsSyn.LImportDecl HsSyn.GhcPs] -> [Either String (HsSyn.LImportDecl HsSyn.GhcPs)] -> HsExtendInstances Scope'
+asScope' packages xs = HsExtendInstances $ scopeCreate' (HsSyn.HsModule Nothing Nothing (concatMap f xs) [] Nothing Nothing)
     where
         f (Right x) = [x]
         f (Left x) | Just pkg <- Map.lookup x packages = pkg
