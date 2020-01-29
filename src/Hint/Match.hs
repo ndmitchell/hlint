@@ -218,9 +218,12 @@ checkSide' x bind = maybe True bool x
 
 -- Does the result look very much like the declaration?
 checkDefine' :: String -> Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
-checkDefine' declName Nothing y = declName /= case transformBi unqual' $ head $ fromApps' y of
-  LL _ (OpApp _ _ op _) -> varToStr' op
-  other -> varToStr' other
+checkDefine' declName Nothing y =
+  let funOrOp expr = case expr of
+        LL _ (HsApp _ fun _) -> funOrOp fun
+        LL _ (OpApp _ _ op _) -> funOrOp op
+        other -> other
+   in declName /= varToStr' (transformBi unqual' $ funOrOp y)
 checkDefine' _ _ _ = True
 
 ---------------------------------------------------------------------
