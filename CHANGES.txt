@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #846, add splitAt warnings
     #774, don't warn about 'Redundant compare' in == and /=
 2.2.9, released 2020-01-27
     Add any/map and all/map fusion hints
