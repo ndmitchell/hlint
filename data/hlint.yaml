@@ -144,11 +144,14 @@
     - warn: {lhs: "foldr (\\c a -> x : a) []", rhs: "map (\\c -> x)"}
     - warn: {lhs: span (not . p), rhs: break p}
     - warn: {lhs: break (not . p), rhs: span p}
-    - warn: {lhs: "(takeWhile p x, dropWhile p x)", rhs: span p x}
+    - warn: {lhs: "(takeWhile p x, dropWhile p x)", rhs: span p x, note: DecreasesLaziness}
     - warn: {lhs: fst (span p x), rhs: takeWhile p x}
     - warn: {lhs: snd (span p x), rhs: dropWhile p x}
     - warn: {lhs: fst (break p x), rhs: takeWhile (not . p) x}
     - warn: {lhs: snd (break p x), rhs: dropWhile (not . p) x}
+    - warn: {lhs: "(take n x, drop n x)", rhs: splitAt n x, note: DecreasesLaziness}
+    - warn: {lhs: fst (splitAt p x), rhs: take p x}
+    - warn: {lhs: snd (splitAt p x), rhs: drop p x}
     - warn: {lhs: concatMap (++ "\n"), rhs: unlines}
     - warn: {lhs: map id, rhs: id}
     - warn: {lhs: concatMap id, rhs: concat}
@@ -942,6 +945,9 @@
 # main = take (-y) x
 # main = take 4 x
 # main = let (first, rest) = (takeWhile p l, dropWhile p l) in rest -- span p l
+# main = let (first, rest) = (take n l, drop n l) in rest -- splitAt n l
+# main = fst (splitAt n l) -- take n l
+# main = snd $ splitAt n l -- drop n l
 # main = map $ \ d -> ([| $d |], [| $d |])
 # pairs (x:xs) = map (x,) xs ++ pairs xs
 # {-# ANN foo "HLint: ignore" #-};foo = map f (map g x) -- @Ignore ???
