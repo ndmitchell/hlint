@@ -1,7 +1,7 @@
 # Because hsdev hasn't upgraded we need our own Snapshot, see:
 # * https://github.com/commercialhaskell/stackage/issues/4673
 # * https://github.com/commercialhaskell/stackage/issues/4731
-resolver: nightly-2020-01-25
+resolver: nightly-2019-08-07 # Don't roll to an 8.8.1 or 8.8.2 resolver because of the Windows linker bug
 packages: [.]
 extra-deps:
   - ghc-lib-parser-8.8.2
