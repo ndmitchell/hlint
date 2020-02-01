@@ -21,6 +21,7 @@ import Outputable hiding ((<>))
 import RdrName
 import OccName
 
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import GHC.Util.Outputable
 import GHC.Util.HsExpr
 import GHC.Util.Pat
@@ -77,7 +78,7 @@ substitute' (Subst' bind) = transformBracketOld' exp . transformBi pat . transfo
     pat :: LPat GhcPs -> LPat GhcPs
     -- Pattern variables.
     pat (LL _ (VarPat _ x))
-      | Just y@(LL _ HsVar{}) <- lookup (rdrNameStr' x) bind = strToPat' (varToStr' y)
+      | Just y@(LL _ HsVar{}) <- lookup (rdrNameStr' x) bind = strToPat' (varToStr y)
     pat x = x :: LPat GhcPs
 
     typ :: LHsType GhcPs -> LHsType GhcPs
@@ -112,24 +113,24 @@ unifyDef' nm x y = fmap mconcat . sequence =<< gzip (unify' nm False) x y
 unifyExp' :: NameMatch' -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst' (LHsExpr GhcPs) )
 -- Brackets are not added when expanding '$' in user code, so tolerate
 -- them in the match even if they aren't in the user code.
-unifyExp' nm root x y | not root, isPar' x, not $ isPar' y = unifyExp' nm root (fromParen' x) y
+unifyExp' nm root x y | not root, isPar x, not $ isPar y = unifyExp' nm root (fromParen' x) y
 -- Don't subsitute for type apps, since no one writes rules imaginging
 -- they exist.
-unifyExp' nm root (LL _ (HsVar _ (rdrNameStr' -> v))) y | isUnifyVar v, not $ isTypeApp' y = Just $ Subst' [(v, y)]
+unifyExp' nm root (LL _ (HsVar _ (rdrNameStr' -> v))) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst' [(v, y)]
 unifyExp' nm root (LL _ (HsVar _ x)) (LL _ (HsVar _ y)) | nm x y = Just mempty
 
 -- Match wildcard operators.
 unifyExp' nm root (LL _ (OpApp _ lhs1 (LL _ (HsVar _ (rdrNameStr' -> v))) rhs1))
                   (LL _ (OpApp _ lhs2 (LL _ (HsVar _ (rdrNameStr' -> op2))) rhs2))
     | isUnifyVar v =
-        (Subst' [(v, strToVar' op2)] <>) <$>
+        (Subst' [(v, strToVar op2)] <>) <$>
         liftM2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
 unifyExp' nm root (LL _ (SectionL _ exp1 (LL _ (HsVar _ (rdrNameStr' -> v)))))
                   (LL _ (SectionL _ exp2 (LL _ (HsVar _ (rdrNameStr' -> op2)))))
-    | isUnifyVar v = (Subst' [(v, strToVar' op2)] <>) <$> unifyExp' nm False exp1 exp2
+    | isUnifyVar v = (Subst' [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
 unifyExp' nm root (LL _ (SectionR _ (LL _ (HsVar _ (rdrNameStr' -> v))) exp1))
                   (LL _ (SectionR _ (LL _ (HsVar _ (rdrNameStr' -> op2))) exp2))
-    | isUnifyVar v = (Subst' [(v, strToVar' op2)] <>) <$> unifyExp' nm False exp1 exp2
+    | isUnifyVar v = (Subst' [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
 
 -- Options: match directly, and expand through '.'
 unifyExp' nm root x@(LL _ (HsApp _ x1 x2)) (LL _ (HsApp _ y1 y2)) =
@@ -139,14 +140,14 @@ unifyExp' nm root x@(LL _ (HsApp _ x1 x2)) (LL _ (HsApp _ y1 y2)) =
             -- duplicate matches because the matching engine
             -- auto-generates hints in dot-form.
         (LL _ (OpApp _ y11 dot y12)) <- return $ fromParen' y1
-        guard $ isDot' dot
+        guard $ isDot dot
         unifyExp' nm root x (noLoc (HsApp noExt y11 (noLoc (HsApp noExt y12 y2))))
     )
 
 -- Options: match directly, then expand through '$', then desugar infix.
 unifyExp' nm root x (LL _ (OpApp _ lhs2 op2@(LL _ (HsVar _ op2')) rhs2))
     | (LL _ (OpApp _ lhs1 op1@(LL _ (HsVar _ op1')) rhs1)) <- x = guard (nm op1' op2') >> liftM2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
-    | isDol' op2 = unifyExp' nm root x $ noLoc (HsApp noExt lhs2 rhs2)
+    | isDol op2 = unifyExp' nm root x $ noLoc (HsApp noExt lhs2 rhs2)
     | otherwise  = unifyExp' nm root x $ noLoc (HsApp noExt (noLoc (HsApp noExt op2 lhs2)) rhs2)
 
 unifyExp' nm root x y | isOther x, isOther y = unifyDef' nm x y
@@ -164,9 +165,9 @@ unifyExp' _ _ _ _ = Nothing
 
 unifyPat' :: NameMatch' -> LPat GhcPs -> LPat GhcPs -> Maybe (Subst' (LHsExpr GhcPs))
 unifyPat' nm (LL _ (VarPat _ x)) (LL _ (VarPat _ y)) =
-  Just $ Subst' [(rdrNameStr' x, strToVar'(rdrNameStr' y))]
+  Just $ Subst' [(rdrNameStr' x, strToVar(rdrNameStr' y))]
 unifyPat' nm (LL _ (VarPat _ x)) (LL _ (WildPat _)) =
-  let s = rdrNameStr' x in Just $ Subst' [(s, strToVar'("_" ++ s))]
+  let s = rdrNameStr' x in Just $ Subst' [(s, strToVar("_" ++ s))]
 unifyPat' nm (LL _ (ConPatIn x _)) (LL _ (ConPatIn y _)) | rdrNameStr' x /= rdrNameStr' y =
   Nothing
 unifyPat' nm x y =

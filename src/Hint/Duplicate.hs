@@ -36,6 +36,7 @@ import HsSyn
 import Outputable
 import Bag
 import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
 duplicateHint :: CrossHint
 duplicateHint ms =
@@ -67,7 +68,7 @@ dupes ys =
     | ((m1, d1, SrcSpanD p1), (m2, d2, SrcSpanD p2), xs) <- duplicateOrdered 3 $ map f ys]
     where
       f (m, d, xs) =
-        [((m, d, SrcSpanD (getLoc x)), extendInstances' (stripLocs' x)) | x <- xs]
+        [((m, d, SrcSpanD (getLoc x)), extendInstances (stripLocs' x)) | x <- xs]
 
 ---------------------------------------------------------------------
 -- DUPLICATE FINDING

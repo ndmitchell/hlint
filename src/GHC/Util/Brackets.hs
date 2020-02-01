@@ -1,9 +1,10 @@
 {-# LANGUAGE MultiParamTypeClasses , FlexibleInstances, FlexibleContexts #-}
-module GHC.Util.Brackets (Brackets'(..), isApp',isOpApp',isAnyApp',isSection') where
+module GHC.Util.Brackets (Brackets'(..), isApp,isOpApp,isAnyApp) where
 
 import HsSyn
 import SrcLoc
 import BasicTypes
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 
 class Brackets' a where
   remParen' :: a -> Maybe a -- Remove one paren or nothing if there is no paren.
@@ -14,12 +15,6 @@ class Brackets' a where
   -- | Is the child safe free from brackets in the parent
   -- position. Err on the side of caution, True = don't know.
   needBracket' :: Int -> a -> a -> Bool
-
-isOpApp', isApp', isSection' :: LHsExpr GhcPs -> Bool
-isApp' (LL _ HsApp{}) = True; isApp' _ = False
-isOpApp' (LL _ OpApp{}) = True; isOpApp' _ = False
-isAnyApp' x = isApp' x || isOpApp' x
-isSection' (LL _ SectionL{}) = True; isSection' (LL _ SectionR{}) = True; isSection' _ = False
 
 instance Brackets' (LHsExpr GhcPs) where
   -- When GHC parses a section in concrete syntax, it will produce an
@@ -69,18 +64,18 @@ instance Brackets' (LHsExpr GhcPs) where
 
   needBracket' i parent child -- Note: i is the index in children, not in the AST.
      | isAtom' child = False
-     | isSection' parent, LL _ HsApp{} <- child = False
+     | isSection parent, LL _ HsApp{} <- child = False
      | LL _ OpApp{} <- parent, LL _ HsApp{} <- child = False
      | LL _ HsLet{} <- parent, LL _ HsApp{} <- child = False
      | LL _ HsDo{} <- parent = False
      | LL _ ExplicitList{} <- parent = False
      | LL _ ExplicitTuple{} <- parent = False
-     | LL _ HsIf{} <- parent, isAnyApp' child = False
+     | LL _ HsIf{} <- parent, isAnyApp child = False
      | LL _ HsApp{} <- parent, i == 0, LL _ HsApp{} <- child = False
-     | LL _ ExprWithTySig{} <- parent, i == 0, isApp' child = False
+     | LL _ ExprWithTySig{} <- parent, i == 0, isApp child = False
      | LL _ RecordCon{} <- parent = False
      | LL _ RecordUpd{} <- parent, i /= 0 = False
-     | LL _ HsCase{} <- parent, i /= 0 || isAnyApp' child = False
+     | LL _ HsCase{} <- parent, i /= 0 || isAnyApp child = False
      | LL _ HsLam{} <- parent = False -- might be either the RHS of a PViewPat, or the lambda body (neither needs brackets)
      | LL _ HsPar{} <- parent = False
      | LL _ HsDo {} <- parent = False

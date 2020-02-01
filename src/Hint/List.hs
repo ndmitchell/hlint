@@ -58,6 +58,8 @@ import FastString
 import TysWiredIn
 
 import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
+import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
 listHint :: DeclHint'
 listHint _ _ = listDecl
@@ -94,7 +96,7 @@ listCompCheckGuards o ctx stmts =
     list_comp_aux e xs
       | "False" `elem` cons =  [suggest' "Short-circuited list comprehension" o o' (suggestExpr o o')]
       | "True" `elem` cons = [suggest' "Redundant True guards" o o2 (suggestExpr o o2)]
-      | not (astListEq' xs ys) = [suggest' "Move guards forward" o o3 (suggestExpr o o3)]
+      | not (astListEq xs ys) = [suggest' "Move guards forward" o o3 (suggestExpr o o3)]
       | otherwise = []
       where
         ys = moveGuardsForward xs
@@ -108,7 +110,7 @@ listCompCheckGuards o ctx stmts =
 
 listCompCheckMap ::
   LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs -> HsStmtContext Name -> [ExprLStmt GhcPs] -> [Idea]
-listCompCheckMap o mp f ctx stmts  | varToStr' mp == "map" =
+listCompCheckMap o mp f ctx stmts  | varToStr mp == "map" =
     [suggest' "Move map inside list comprehension" o o2 (suggestExpr o o2)]
     where
       revs = reverse stmts
@@ -152,7 +154,7 @@ listPat x = if null res then concatMap listPat $ children x else [head res]
                   , Just (x2, subts, temp) <- [f x]
                   , let r = Replace Pattern (toSS' x) subts temp ]
 isAppend :: View' a App2' => a -> Bool
-isAppend (view' -> App2' op _ _) = varToStr' op == "++"
+isAppend (view' -> App2' op _ _) = varToStr op == "++"
 isAppend _ = False
 
 checks ::[(String, Bool -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String))]
@@ -193,7 +195,7 @@ usePList =
     g c p = ([c], VarPat noExt (noLoc $ mkVarUnqual (fsLit [c])))
 
 useString :: p -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [a], String)
-useString b (LL _ (ExplicitList _ _ xs)) | not $ null xs, Just s <- mapM fromChar' xs =
+useString b (LL _ (ExplicitList _ _ xs)) | not $ null xs, Just s <- mapM fromChar xs =
   let literal = noLoc (HsLit noExt (HsString NoSourceText (fsLit (show s))))
   in Just (literal, [], unsafePrettyPrint literal)
 useString _ _ = Nothing
@@ -209,27 +211,27 @@ useList b =
         )
   . f True ['a'..'z']
   where
-    f first _ x | varToStr' x == "[]" = if first then Nothing else Just []
-    f first (ident:cs) (view' -> App2' c a b) | varToStr' c == ":" =
+    f first _ x | varToStr x == "[]" = if first then Nothing else Just []
+    f first (ident:cs) (view' -> App2' c a b) | varToStr c == ":" =
           ((a, g ident a) :) <$> f False cs b
     f first _ _ = Nothing
 
     g :: Char -> LHsExpr GhcPs -> (String, LHsExpr GhcPs)
-    g c p = ([c], strToVar' [c])
+    g c p = ([c], strToVar [c])
 
 useCons :: View' a App2' => Bool -> a -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String)
-useCons False (view' -> App2' op x y) | varToStr' op == "++"
+useCons False (view' -> App2' op x y) | varToStr op == "++"
                                        , Just (x2, build) <- f x
                                        , not $ isAppend y =
     Just (gen (build x2) y
          , [("x", toSS' x2), ("xs", toSS' y)]
-         , unsafePrettyPrint $ gen (build $ strToVar' "x") (strToVar' "xs")
+         , unsafePrettyPrint $ gen (build $ strToVar "x") (strToVar "xs")
          )
   where
     f :: LHsExpr GhcPs ->
       Maybe (LHsExpr GhcPs, LHsExpr GhcPs -> LHsExpr GhcPs)
     f (LL _ (ExplicitList _ _ [x]))=
-      Just (x, \v -> if isApp' x then v else paren' v)
+      Just (x, \v -> if isApp x then v else paren' v)
     f _ = Nothing
 
     gen :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
@@ -258,6 +260,6 @@ stringType (LL _ x) = case x of
     g :: LHsType GhcPs -> [Idea]
     g e@(fromTyParen' -> x) = [suggest' "Use String" x (transform f x)
                               rs | not . null $ rs]
-      where f x = if astEq' x typeListChar then typeString else x
-            rs = [Replace Type (toSS' t) [] (unsafePrettyPrint typeString) | t <- universe x, astEq' t typeListChar]
+      where f x = if astEq x typeListChar then typeString else x
+            rs = [Replace Type (toSS' t) [] (unsafePrettyPrint typeString) | t <- universe x, astEq t typeListChar]
 stringType _ = [] -- {-# COMPLETE LL #-}

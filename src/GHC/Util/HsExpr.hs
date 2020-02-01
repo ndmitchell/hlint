@@ -7,18 +7,13 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module GHC.Util.HsExpr (
-    noSyntaxExpr'
-  , isTag', isDol', isDot', isSection', isRecConstr', isRecUpdate', isVar', isPar', isApp', isAnyApp', isLexeme', isLambda', isQuasiQuote', isTypeApp', isWHNF',isReturn'
-  , dotApp', dotApps'
+    dotApp', dotApps'
   , simplifyExp', niceLambda', niceDotApp'
   , Brackets'(..)
   , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'
-  , varToStr', strToVar'
-  , paren', fromChar'
+  , paren'
   , replaceBranches'
   , needBracketOld', transformBracketOld', descendBracketOld', reduce', reduce1', fromParen1'
-  , hasFieldsDotDot', isFieldPun'
-  , isParComp', isMDo', isRecStmt', isLCase', isTupleSection', isString', isPrimLiteral', isSpliceDecl', isFieldWildcard', isUnboxed'
 ) where
 
 import HsSyn
@@ -28,14 +23,10 @@ import FastString
 import RdrName
 import OccName
 import Bag(bagToList)
-import TysWiredIn
-import TcEvidence
-import Name
 
 import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
-import GHC.Util.HsExtendInstances
 import GHC.Util.Pat
 
 import Control.Applicative
@@ -48,13 +39,8 @@ import Data.List.Extra
 import Refact.Types hiding (Match)
 import qualified Refact.Types as R (SrcSpan)
 
-
-noSyntaxExpr' :: SyntaxExpr GhcPs
-noSyntaxExpr' =
-  SyntaxExpr
-    (HsLit noExt
-    (HsString NoSourceText (fsLit "noSyntaxExpr")))
-    [] WpHole
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
+import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
 -- | 'dotApp a b' makes 'a . b'.
 dotApp' :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
@@ -70,50 +56,6 @@ paren' :: LHsExpr GhcPs -> LHsExpr GhcPs
 paren' x
   | isAtom' x  = x
   | otherwise = addParen' x
-
--- 'True' if the provided expression is a variable with name 'tag'.
-isTag' :: LHsExpr GhcPs -> String -> Bool
-isTag' (LL _ (HsVar _ (L _ s))) tag = occNameString (rdrNameOcc s) == tag
-isTag' _ _ = False
-
-isVar',isReturn',isLexeme',isLambda',isQuasiQuote',isTypeApp',isDotApp',isRecUpdate',isRecConstr',isDol',isDot' :: LHsExpr GhcPs -> Bool
-isPar' (LL _ HsPar{}) = True; isPar' _ = False
-isVar' (LL _ HsVar{}) = True; isVar' _ = False
-isDot' x = isTag' x "."
-isDol' x = isTag' x "$"
-isReturn' x = isTag' x "return" || isTag' x "pure" -- Allow both 'pure' and 'return' as they have the same semantics.
-isRecConstr' (LL _ RecordCon{}) = True; isRecConstr' _ = False
-isRecUpdate' (LL _ RecordUpd{}) = True; isRecUpdate' _ = False
-isDotApp' (LL _ (OpApp _ _ op _)) = isDot' op; isDotApp' _ = False
-isLexeme' (LL _ HsVar{}) = True;isLexeme' (LL _ HsOverLit{}) = True;isLexeme' (LL _ HsLit{}) = True;isLexeme' _ = False
-isTypeApp' (LL _ HsAppType{}) = True; isTypeApp' _ = False
-isLambda' (LL _ HsLam{}) = True; isLambda' _ = False
-isQuasiQuote' (LL _ (HsSpliceE _ HsQuasiQuote{})) = True; isQuasiQuote' _ = False
-
-isWHNF' :: LHsExpr GhcPs -> Bool
-isWHNF' (LL _ (HsVar _ (L _ x))) = isRdrDataCon x
-isWHNF' (LL _ (HsLit _ x)) = case x of HsString{} -> False; HsInt{} -> False; HsRat{} -> False; _ -> True
-isWHNF' (LL _ HsLam{}) = True
-isWHNF' (LL _ ExplicitTuple{}) = True
-isWHNF' (LL _ ExplicitList{}) = True
-isWHNF' (LL _ (HsPar _ x)) = isWHNF' x
-isWHNF' (LL _ (ExprWithTySig _ x _)) = isWHNF' x
--- Other (unknown) constructors may have bang patterns in them, so
--- approximate.
-isWHNF' (LL _ (HsApp _ (LL _ (HsVar _ (L _ x))) _))| occNameString (rdrNameOcc x) `elem` ["Just", "Left", "Right"] = True
-isWHNF' _ = False
-
-
--- Contains a '..' as in 'Foo{..}'
-hasFieldsDotDot' :: HsRecFields GhcPs (LHsExpr GhcPs) -> Bool
-hasFieldsDotDot' HsRecFields {rec_dotdot=Just _} = True
-hasFieldsDotDot' _ = False
-
--- Field is punned e.g. '{foo}'.
-isFieldPun' :: LHsRecField GhcPs (LHsExpr GhcPs) -> Bool
-isFieldPun' (LL _ HsRecField {hsRecPun=True}) = True
-isFieldPun' _ = False
-
 
 universeParentExp' :: Data a => a -> [(Maybe (Int, LHsExpr GhcPs), LHsExpr GhcPs)]
 universeParentExp' xs = concat [(Nothing, x) : f x | x <- childrenBi xs]
@@ -174,21 +116,9 @@ appsBracket' = foldl1 mkApp
   where mkApp x y = rebracket1' (noLoc $ HsApp noExt x y)
 
 
-varToStr' :: LHsExpr GhcPs -> String
-varToStr' (LL _ (HsVar _ (L _ n)))
-  | n == consDataCon_RDR = ":"
-  | n == nameRdrName nilDataConName = "[]"
-  | n == nameRdrName (getName (tupleDataCon Boxed 0)) = "()"
-  | otherwise = occNameString (rdrNameOcc n)
-varToStr' _ = ""
-
-strToVar' :: String -> LHsExpr GhcPs
-strToVar' x = noLoc $ HsVar noExt (noLoc $ mkRdrUnqual (mkVarOcc x))
-
-
 simplifyExp' :: LHsExpr GhcPs -> LHsExpr GhcPs
 -- Replace appliciations 'f $ x' with 'f (x)'.
-simplifyExp' (LL l (OpApp _ x op y)) | isDol' op = LL l (HsApp noExt x (noLoc (HsPar noExt y)))
+simplifyExp' (LL l (OpApp _ x op y)) | isDol op = LL l (HsApp noExt x (noLoc (HsPar noExt y)))
 simplifyExp' e@(LL _ (HsLet _ (LL _ (HsValBinds _ (ValBinds _ binds []))) z)) =
   -- An expression of the form, 'let x = y in z'.
   case bagToList binds of
@@ -226,7 +156,7 @@ niceLambdaR' xs (LL _ (HsPar _ x)) = niceLambdaR' xs x
 -- Rewrite '\x -> x + a' as '(+ a)' (heuristic: 'a' must be a single
 -- lexeme, or it all gets too complex).
 niceLambdaR' [x] (view' -> App2' op@(LL _ (HsVar _ (L _ tag))) l r)
-  | isLexeme' r, view' l == Var_' x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
+  | isLexeme r, view' l == Var_' x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
       let e = rebracket1' $ addParen' (noLoc $ SectionR noExt op r)
       in (e, const [])
 -- Rewrite (1) '\x -> f (b x)' as 'f . b', (2) '\x -> f $ b x' as 'f . b'.
@@ -238,10 +168,10 @@ niceLambdaR' [x] y
     factor y@(LL _ (HsApp _ ini lst)) | view' lst == Var_' x = Just (ini, [ini])
     factor y@(LL _ (HsApp _ ini lst)) | Just (z, ss) <- factor lst
       = let r = niceDotApp' ini z
-        in if astEq' r z then Just (r, ss) else Just (r, ini : ss)
-    factor (LL _ (OpApp _ y op (factor -> Just (z, ss))))| isDol' op
+        in if astEq r z then Just (r, ss) else Just (r, ini : ss)
+    factor (LL _ (OpApp _ y op (factor -> Just (z, ss))))| isDol op
       = let r = niceDotApp' y z
-        in if astEq' r z then Just (r, ss) else Just (r, y : ss)
+        in if astEq r z then Just (r, ss) else Just (r, y : ss)
     factor (LL _ (HsPar _ y@(LL _ HsApp{}))) = factor y
     factor _ = Nothing
 -- Rewrite '\x y -> x + y' as '(+)'.
@@ -249,7 +179,7 @@ niceLambdaR' [x,y] (LL _ (OpApp _ (view' -> Var_' x1) op@(LL _ HsVar {}) (view' 
     | x == x1, y == y1, vars' op `disjoint` [x, y] = (op, const [])
 -- Rewrite '\x y -> f y x' as 'flip f'.
 niceLambdaR' [x, y] (view' -> App2' op (view' -> Var_' y1) (view' -> Var_' x1))
-  | x == x1, y == y1, vars' op `disjoint` [x, y] = (noLoc $ HsApp noExt (strToVar' "flip") op, const [])
+  | x == x1, y == y1, vars' op `disjoint` [x, y] = (noLoc $ HsApp noExt (strToVar "flip") op, const [])
 -- Base case. Just a good old fashioned lambda.
 niceLambdaR' ss e =
   let grhs = noLoc $ GRHS noExt [] e :: LGRHS GhcPs (LHsExpr GhcPs)
@@ -257,11 +187,6 @@ niceLambdaR' ss e =
       match = noLoc $ Match {m_ext=noExt, m_ctxt=LambdaExpr, m_pats=map strToPat' ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
       matchGroup = MG {mg_ext=noExt, mg_origin=Generated, mg_alts=noLoc [match]}
   in (noLoc $ HsLam noExt matchGroup, const [])
-
-
-fromChar' :: LHsExpr GhcPs -> Maybe Char
-fromChar' (LL _ (HsLit _ (HsChar _ x))) = Just x
-fromChar' _ = Nothing
 
 
 -- 'case' and 'if' expressions have branches, nothing else does (this
@@ -290,7 +215,7 @@ replaceBranches' x = ([], \[] -> x)
 -- removed from haskell-src-exts-util-0.2.2.
 needBracketOld' :: Int -> LHsExpr GhcPs -> LHsExpr GhcPs -> Bool
 needBracketOld' i parent child
-  | isDotApp' parent, isDotApp' child, i == 2 = False
+  | isDotApp parent, isDotApp child, i == 2 = False
   | otherwise = needBracket' i parent child
 
 transformBracketOld' :: (LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)) -> LHsExpr GhcPs -> LHsExpr GhcPs
@@ -316,16 +241,16 @@ reduce' = fromParen' . transform reduce1'
 
 reduce1' :: LHsExpr GhcPs -> LHsExpr GhcPs
 reduce1' (LL loc (HsApp _ len (LL _ (HsLit _ (HsString _ xs)))))
-  | varToStr' len == "length" = cL loc $ HsLit noExt (HsInt noExt (IL NoSourceText False n))
+  | varToStr len == "length" = cL loc $ HsLit noExt (HsInt noExt (IL NoSourceText False n))
   where n = fromIntegral $ length (unpackFS xs)
 reduce1' (LL loc (HsApp _ len (LL _ (ExplicitList _ _ xs))))
-  | varToStr' len == "length" = cL loc $ HsLit noExt (HsInt noExt (IL NoSourceText False n))
+  | varToStr len == "length" = cL loc $ HsLit noExt (HsInt noExt (IL NoSourceText False n))
   where n = fromIntegral $ length xs
-reduce1' (view' -> App2' op (LL _ (HsLit _ x)) (LL _ (HsLit _ y))) | varToStr' op == "==" = strToVar' (show (astEq' x y))
-reduce1' (view' -> App2' op (LL _ (HsLit _ (HsInt _ x))) (LL _ (HsLit _ (HsInt _ y)))) | varToStr' op == ">=" = strToVar' $ show (x >= y)
+reduce1' (view' -> App2' op (LL _ (HsLit _ x)) (LL _ (HsLit _ y))) | varToStr op == "==" = strToVar (show (astEq x y))
+reduce1' (view' -> App2' op (LL _ (HsLit _ (HsInt _ x))) (LL _ (HsLit _ (HsInt _ y)))) | varToStr op == ">=" = strToVar $ show (x >= y)
 reduce1' (view' -> App2' op x y)
-    | varToStr' op == "&&" && varToStr' x == "True"  = y
-    | varToStr' op == "&&" && varToStr' x == "False" = x
+    | varToStr op == "&&" && varToStr x == "True"  = y
+    | varToStr op == "&&" && varToStr x == "False" = x
 reduce1' (LL _ (HsPar _ x)) | isAtom' x = x
 reduce1' x = x
 
@@ -333,48 +258,3 @@ reduce1' x = x
 fromParen1' :: LHsExpr GhcPs -> LHsExpr GhcPs
 fromParen1' (LL _ (HsPar _ x)) = x
 fromParen1' x = x
-
---
-
-isMDo' :: HsStmtContext Name -> Bool
-isMDo' MDoExpr = True; isMDo' _ = False
-
-isRecStmt' :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Bool
-isRecStmt' RecStmt{} = True; isRecStmt' _ = False
-
-isParComp' :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Bool
-isParComp' ParStmt{} = True; isParComp' _ = False
-
-
-isLCase' :: LHsExpr GhcPs -> Bool
-isLCase' (LL _ HsLamCase{}) = True; isLCase' _ = False
-
-isTupleSection' :: HsTupArg GhcPs -> Bool
-isTupleSection' Missing{} = True; isTupleSection' _ = False
-
-isString' :: HsLit GhcPs -> Bool
-isString' HsString{} = True; isString' _ = False
-
-isPrimLiteral' :: HsLit GhcPs -> Bool
-isPrimLiteral' HsCharPrim{} = True;
-isPrimLiteral' HsStringPrim{} = True;
-isPrimLiteral' HsIntPrim{} = True;
-isPrimLiteral' HsWordPrim{} = True;
-isPrimLiteral' HsInt64Prim{} = True;
-isPrimLiteral' HsWord64Prim{} = True;
-isPrimLiteral' HsFloatPrim{} = True;
-isPrimLiteral' HsDoublePrim{} = True;
-isPrimLiteral' _ = False
-
-isSpliceDecl' :: HsExpr GhcPs -> Bool
-isSpliceDecl' HsSpliceE{} = True; isSpliceDecl' _ = False
-
--- Field has a '_' as in '{foo=_} or is punned e.g. '{foo}'.
-isFieldWildcard' :: LHsRecField GhcPs (LHsExpr GhcPs) -> Bool
-isFieldWildcard' (LL _ HsRecField {hsRecFieldArg=(LL _ (EWildPat _))}) = True
-isFieldWildcard' (LL _ HsRecField {hsRecPun=True}) = True
-isFieldWildcard' (LL _ HsRecField {}) = False
-isFieldWildcard' _ = False -- {-# COMPLETE LL #-}
-
-isUnboxed' :: Boxity -> Bool
-isUnboxed' Unboxed = True; isUnboxed' _ = False
