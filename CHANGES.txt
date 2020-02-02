@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.2.10, released 2020-02-02
     #846, add splitAt warnings
     #774, don't warn about 'Redundant compare' in == and /=
 2.2.9, released 2020-01-27
