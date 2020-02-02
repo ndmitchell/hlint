@@ -516,6 +516,7 @@
     # MAYBE
 
     - warn: {lhs: maybe x id, rhs: Data.Maybe.fromMaybe x}
+    - warn: {lhs: maybe Nothing Just, rhs: id, name: Redundant maybe}
     - warn: {lhs: maybe False (const True), rhs: Data.Maybe.isJust}
     - warn: {lhs: maybe True (const False), rhs: Data.Maybe.isNothing}
     - warn: {lhs: maybe False (== x), rhs: (== Just x)}
