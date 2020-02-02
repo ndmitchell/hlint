@@ -94,6 +94,12 @@ import Data.Maybe
 import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 
+import qualified GHC.Util.Brackets as GHC
+import qualified HsSyn as GHC
+import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC
+import qualified OccName as GHC
+import qualified RdrName as GHC
+import qualified SrcLoc as GHC
 
 --lambdaHint :: DeclHint
 --lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatMap lambdaDecl (universe x)
@@ -144,6 +150,17 @@ etaReduce ps x = (ps,x)
 
 --Section refactoring is not currently implemented.
 lambdaExp' :: Maybe (GHC.LHsExpr GHC.GhcPs) -> GHC.LHsExpr GHC.GhcPs -> [Idea]
+lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVar _ (GHC.LL _ (GHC.rdrNameOcc -> f)))) y))
+  | GHC.isSymOcc f -- is this an operator?
+  , GHC.isAtom' y
+  , allowLeftSection $ GHC.occNameString f
+  , not $ GHC.isTypeApp y =
+    [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.SectionL GHC.NoExt y o]
+  -- TODO:
+  -- why check if y requires no bracketing here?
+  -- is allowLeftSection still relevant?
+  -- what is the section refactoring stuff?
+  
 lambdaExp' _ _ = []
 
 --Section refactoring is not currently implemented.
