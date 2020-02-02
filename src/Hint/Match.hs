@@ -60,28 +60,30 @@ import RdrName
 import OccName
 import Data.Data
 import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
+import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
 readMatch' :: [HintRule] -> Scope' -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 readMatch' settings = findIdeas' (concatMap readRule' settings)
 
 readRule' :: HintRule -> [HintRule]
-readRule' m@HintRule{ hintRuleGhcLHS=(stripLocs' . unExtendInstances' -> hintRuleGhcLHS)
-                    , hintRuleGhcRHS=(stripLocs' . unExtendInstances' -> hintRuleGhcRHS)
-                    , hintRuleGhcSide=((stripLocs' . unExtendInstances' <$>) -> hintRuleGhcSide)
+readRule' m@HintRule{ hintRuleGhcLHS=(stripLocs' . unextendInstances -> hintRuleGhcLHS)
+                    , hintRuleGhcRHS=(stripLocs' . unextendInstances -> hintRuleGhcRHS)
+                    , hintRuleGhcSide=((stripLocs' . unextendInstances <$>) -> hintRuleGhcSide)
                     } =
-   (:) m{ hintRuleGhcLHS=extendInstances' hintRuleGhcLHS
-        , hintRuleGhcRHS=extendInstances' hintRuleGhcRHS
-        , hintRuleGhcSide=extendInstances' <$> hintRuleGhcSide } $ do
+   (:) m{ hintRuleGhcLHS=extendInstances hintRuleGhcLHS
+        , hintRuleGhcRHS=extendInstances hintRuleGhcRHS
+        , hintRuleGhcSide=extendInstances <$> hintRuleGhcSide } $ do
     (l, v1) <- dotVersion' hintRuleGhcLHS
     (r, v2) <- dotVersion' hintRuleGhcRHS
 
     guard $ v1 == v2 && not (null l) && (length l > 1 || length r > 1) && Set.notMember v1 (Set.map occNameString (freeVars' $ maybeToList hintRuleGhcSide ++ l ++ r))
     if not (null r) then
-      [ m{ hintRuleGhcLHS=extendInstances' (dotApps' l), hintRuleGhcRHS=extendInstances' (dotApps' r), hintRuleGhcSide=extendInstances' <$> hintRuleGhcSide }
-      , m{ hintRuleGhcLHS=extendInstances' (dotApps' (l ++ [strToVar' v1])), hintRuleGhcRHS=extendInstances' (dotApps' (r ++ [strToVar' v1])), hintRuleGhcSide=extendInstances' <$> hintRuleGhcSide } ]
+      [ m{ hintRuleGhcLHS=extendInstances (dotApps' l), hintRuleGhcRHS=extendInstances (dotApps' r), hintRuleGhcSide=extendInstances <$> hintRuleGhcSide }
+      , m{ hintRuleGhcLHS=extendInstances (dotApps' (l ++ [strToVar v1])), hintRuleGhcRHS=extendInstances (dotApps' (r ++ [strToVar v1])), hintRuleGhcSide=extendInstances <$> hintRuleGhcSide } ]
       else if length l > 1 then
-            [ m{ hintRuleGhcLHS=extendInstances' (dotApps' l), hintRuleGhcRHS=extendInstances' (strToVar' "id"), hintRuleGhcSide=extendInstances' <$> hintRuleGhcSide }
-            , m{ hintRuleGhcLHS=extendInstances' (dotApps' (l++[strToVar' v1])), hintRuleGhcRHS=extendInstances' (strToVar' v1), hintRuleGhcSide=extendInstances' <$> hintRuleGhcSide}]
+            [ m{ hintRuleGhcLHS=extendInstances (dotApps' l), hintRuleGhcRHS=extendInstances (strToVar "id"), hintRuleGhcSide=extendInstances <$> hintRuleGhcSide }
+            , m{ hintRuleGhcLHS=extendInstances (dotApps' (l++[strToVar v1])), hintRuleGhcRHS=extendInstances (strToVar v1), hintRuleGhcSide=extendInstances <$> hintRuleGhcSide}]
       else []
 
 -- Find a dot version of this rule, return the sequence of app
@@ -110,7 +112,7 @@ findIdeas' matches s _ decl = timed "Hint" "Match apply" $ forceList
     | (name, expr) <- findDecls' decl
     , (parent,x) <- universeParentExp' expr
     , m <- matches, Just (y, notes, subst) <- [matchIdea' s name m parent x]
-    , let r = R.Replace R.Expr (toSS' x) subst (unsafePrettyPrint $ unExtendInstances' (hintRuleGhcRHS m))
+    , let r = R.Replace R.Expr (toSS' x) subst (unsafePrettyPrint $ unextendInstances (hintRuleGhcRHS m))
     ]
 
 -- | A list of root expressions, with their associated names
@@ -127,12 +129,12 @@ matchIdea' :: Scope'
            -> LHsExpr GhcPs
            -> Maybe (LHsExpr GhcPs, [Note], [(String, R.SrcSpan)])
 matchIdea' sb declName HintRule{..} parent x = do
-  let lhs = unExtendInstances' hintRuleGhcLHS
-      rhs = unExtendInstances' hintRuleGhcRHS
-      sa  = unExtendInstances' hintRuleGhcScope
+  let lhs = unextendInstances hintRuleGhcLHS
+      rhs = unextendInstances hintRuleGhcRHS
+      sa  = unextendInstances hintRuleGhcScope
       nm a b = scopeMatch' (sa, a) (sb, b)
   u <- unifyExp' nm True lhs x
-  u <- validSubst' astEq' u
+  u <- validSubst' astEq u
 
   -- Need to check free vars before unqualification, but after subst
   -- (with 'e') need to unqualify before substitution (with 'res').
@@ -145,9 +147,9 @@ matchIdea' sb declName HintRule{..} parent x = do
   -- we have lambdas we might be moving, and QuasiQuotes, we might
   -- inadvertantly break free vars because quasi quotes don't show
   -- what free vars they make use of.
-  guard $ not (any isLambda' $ universe lhs) || not (any isQuasiQuote' $ universe x)
+  guard $ not (any isLambda $ universe lhs) || not (any isQuasiQuote $ universe x)
 
-  guard $ checkSide' (unExtendInstances' <$> hintRuleGhcSide) $ ("original", x) : ("result", res) : fromSubst' u
+  guard $ checkSide' (unextendInstances <$> hintRuleGhcSide) $ ("original", x) : ("result", res) : fromSubst' u
   guard $ checkDefine' declName parent res
 
   return (res, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
@@ -160,29 +162,29 @@ checkSide' x bind = maybe True bool x
     where
       bool :: LHsExpr GhcPs -> Bool
       bool (LL _ (OpApp _ x op y))
-        | varToStr' op == "&&" = bool x && bool y
-        | varToStr' op == "||" = bool x || bool y
-        | varToStr' op == "==" = expr (fromParen1' x) `astEq'` expr (fromParen1' y)
-      bool (LL _ (HsApp _ x y)) | varToStr' x == "not" = not $ bool y
+        | varToStr op == "&&" = bool x && bool y
+        | varToStr op == "||" = bool x || bool y
+        | varToStr op == "==" = expr (fromParen1' x) `astEq` expr (fromParen1' y)
+      bool (LL _ (HsApp _ x y)) | varToStr x == "not" = not $ bool y
       bool (LL _ (HsPar _ x)) = bool x
 
       bool (LL _ (HsApp _ cond (sub -> y)))
-        | 'i' : 's' : typ <- varToStr' cond = isType typ y
+        | 'i' : 's' : typ <- varToStr cond = isType typ y
       bool (LL _ (HsApp _ (LL _ (HsApp _ cond (sub -> x))) (sub -> y)))
-          | varToStr' cond == "notIn" = and [extendInstances' (stripLocs' x) `notElem` map (extendInstances' . stripLocs') (universe y) | x <- list x, y <- list y]
-          | varToStr' cond == "notEq" = not (x `astEq'` y)
-      bool x | varToStr' x == "noTypeCheck" = True
-      bool x | varToStr' x == "noQuickCheck" = True
+          | varToStr cond == "notIn" = and [extendInstances (stripLocs' x) `notElem` map (extendInstances . stripLocs') (universe y) | x <- list x, y <- list y]
+          | varToStr cond == "notEq" = not (x `astEq` y)
+      bool x | varToStr x == "noTypeCheck" = True
+      bool x | varToStr x == "noQuickCheck" = True
       bool x = error $ "Hint.Match.checkSide', unknown side condition: " ++ unsafePrettyPrint x
 
       expr :: LHsExpr GhcPs -> LHsExpr GhcPs
-      expr (LL _ (HsApp _ (varToStr' -> "subst") x)) = sub $ fromParen1' x
+      expr (LL _ (HsApp _ (varToStr -> "subst") x)) = sub $ fromParen1' x
       expr x = x
 
       isType "Compare" x = True -- Just a hint for proof stuff
       isType "Atom" x = isAtom' x
-      isType "WHNF" x = isWHNF' x
-      isType "Wildcard" x = any isFieldPun' (universeBi x) || any hasFieldsDotDot' (universeBi x)
+      isType "WHNF" x = isWHNF x
+      isType "Wildcard" x = any isFieldPun (universeBi x) || any hasFieldsDotDot (universeBi x)
       isType "Nat" (asInt -> Just x) | x >= 0 = True
       isType "Pos" (asInt -> Just x) | x >  0 = True
       isType "Neg" (asInt -> Just x) | x <  0 = True
@@ -223,7 +225,7 @@ checkDefine' declName Nothing y =
         LL _ (HsApp _ fun _) -> funOrOp fun
         LL _ (OpApp _ _ op _) -> funOrOp op
         other -> other
-   in declName /= varToStr' (transformBi unqual' $ funOrOp y)
+   in declName /= varToStr (transformBi unqual' $ funOrOp y)
 checkDefine' _ _ _ = True
 
 ---------------------------------------------------------------------
@@ -234,9 +236,9 @@ performSpecial' :: LHsExpr GhcPs -> LHsExpr GhcPs
 performSpecial' = transform fNoParen . fEval
   where
     fEval, fNoParen :: LHsExpr GhcPs -> LHsExpr GhcPs
-    fEval (LL _ (HsApp _ e x)) | varToStr' e == "_eval_" = reduce' x
+    fEval (LL _ (HsApp _ e x)) | varToStr e == "_eval_" = reduce' x
     fEval x = x
-    fNoParen (LL _ (HsApp _ e x)) | varToStr' e == "_noParen_" = fromParen' x
+    fNoParen (LL _ (HsApp _ e x)) | varToStr e == "_noParen_" = fromParen' x
     fNoParen x = x
 
 -- Contract : 'Data.List.foo' => 'foo' if 'Data.List' is loaded.

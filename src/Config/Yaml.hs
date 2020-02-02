@@ -30,7 +30,7 @@ import qualified ErrUtils
 import qualified Outputable
 import qualified HsSyn
 import GHC.Util (baseDynFlags, Scope',scopeCreate')
-import GHC.Util.HsExtendInstances
+import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
 --   Fails if the YAML doesn't parse or isn't valid HLint YAML
@@ -198,7 +198,7 @@ parsePackage :: Val -> Parser Package
 parsePackage v = do
     packageName <- parseField "name" v >>= parseString
     packageModules <- parseField "modules" v >>= parseArray >>= mapM (parseHSE parseImportDeclWithMode)
-    packageGhcModules <- parseField "modules" v >>= parseArray >>= mapM (fmap extendInstances' <$> parseGHC parseImportDeclGhcWithMode)
+    packageGhcModules <- parseField "modules" v >>= parseArray >>= mapM (fmap extendInstances <$> parseGHC parseImportDeclGhcWithMode)
     allowFields v ["name","modules"]
     return Package{..}
 
@@ -238,7 +238,7 @@ parseGroup v = do
             x <- parseString v
             case word1 x of
                  ("package", x) -> return $ Left x
-                 _ -> Right . extendInstances' <$> parseGHC parseImportDeclGhcWithMode v
+                 _ -> Right . extendInstances <$> parseGHC parseImportDeclGhcWithMode v
 
 ruleToGroup :: [Either HintRule Classify] -> Group
 ruleToGroup = Group "" True [] []
@@ -254,13 +254,13 @@ parseRule v = do
         hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName hintRuleLHS hintRuleRHS) parseString
         hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap Just . parseHSE parseExpWithMode)
 
-        hintRuleGhcLHS <- parseField "lhs" v >>= fmap extendInstances' . parseGHC parseExpGhcWithMode
-        hintRuleGhcRHS <- parseField "rhs" v >>= fmap extendInstances' . parseGHC parseExpGhcWithMode
-        hintRuleGhcSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . extendInstances') . parseGHC parseExpGhcWithMode)
+        hintRuleGhcLHS <- parseField "lhs" v >>= fmap extendInstances . parseGHC parseExpGhcWithMode
+        hintRuleGhcRHS <- parseField "rhs" v >>= fmap extendInstances . parseGHC parseExpGhcWithMode
+        hintRuleGhcSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . extendInstances) . parseGHC parseExpGhcWithMode)
 
         allowFields v ["lhs","rhs","note","name","side"]
         let hintRuleScope = mempty :: Scope
-        let hintRuleGhcScope = extendInstances' mempty :: HsExtendInstances Scope'
+        let hintRuleGhcScope = extendInstances mempty :: HsExtendInstances Scope'
         return [Left HintRule{hintRuleSeverity=severity, ..}]
      else do
         names <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
@@ -331,7 +331,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
         groups = [x | ConfigGroup x <- configs]
         settings = concat [x | ConfigSetting x <- configs]
         packageMap = Map.fromListWith (++) [(packageName, packageModules) | Package{..} <- packages]
-        packageMap' = Map.fromListWith (++) [(packageName, fmap unExtendInstances' packageGhcModules) | Package{..} <- packages]
+        packageMap' = Map.fromListWith (++) [(packageName, fmap unextendInstances packageGhcModules) | Package{..} <- packages]
         groupMap = Map.fromListWith (\new old -> new) [(groupName, groupEnabled) | Group{..} <- groups]
 
         f Group{..}
@@ -339,7 +339,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
             | otherwise = map (either (\r -> SettingMatchExp r{hintRuleScope=scope,hintRuleGhcScope=scope'}) SettingClassify) groupRules
             where
               scope = asScope packageMap groupImports
-              scope'= asScope' packageMap' (map (fmap unExtendInstances') groupGhcImports)
+              scope'= asScope' packageMap' (map (fmap unextendInstances) groupGhcImports)
 
 asScope :: Map.HashMap String [ImportDecl S] -> [Either String (ImportDecl S)] -> Scope
 asScope packages xs = scopeCreate $ Module an Nothing [] (concatMap f xs) []

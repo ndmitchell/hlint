@@ -161,6 +161,7 @@ import RdrName
 import OccName
 import ForeignCall
 import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 
 extensionsHint :: ModuHint
 extensionsHint _ x =
@@ -244,11 +245,11 @@ usedExt (UnknownExtension "DeriveAnyClass") = not . null . derivesAnyclass . der
 usedExt _ = const True
 
 used :: KnownExtension -> Located (HsModule GhcPs) -> Bool
-used RecursiveDo = hasS isMDo' ||^ hasS isRecStmt'
-used ParallelListComp = hasS isParComp'
+used RecursiveDo = hasS isMDo ||^ hasS isRecStmt
+used ParallelListComp = hasS isParComp
 used FunctionalDependencies = hasT (un :: FunDep (Located RdrName))
 used ImplicitParams = hasT (un :: HsIPName)
-used TypeApplications = hasS isTypeApp'
+used TypeApplications = hasS isTypeApp
 used EmptyDataDecls = hasS f
   where
     f :: HsDataDefn GhcPs -> Bool
@@ -266,7 +267,7 @@ used BangPatterns = hasS isPBangPat' ||^ hasS isStrictMatch
     isStrictMatch :: HsMatchContext RdrName -> Bool
     isStrictMatch FunRhs{mc_strictness=SrcStrict} = True
     isStrictMatch _ = False
-used TemplateHaskell = hasT2' (un :: (HsBracket GhcPs, HsSplice GhcPs)) ||^ hasS f ||^ hasS isSpliceDecl'
+used TemplateHaskell = hasT2' (un :: (HsBracket GhcPs, HsSplice GhcPs)) ||^ hasS f ||^ hasS isSpliceDecl
     where
       f :: HsBracket GhcPs -> Bool
       f VarBr{} = True
@@ -284,9 +285,9 @@ used PatternGuards = hasS f
     g _ = True
 used StandaloneDeriving = hasS isDerivD'
 used PatternSignatures = hasS isPatTypeSig'
-used RecordWildCards = hasS hasFieldsDotDot' ||^ hasS hasPFieldsDotDot'
-used RecordPuns = hasS isPFieldPun' ||^ hasS isFieldPun'
-used NamedFieldPuns = hasS isPFieldPun' ||^ hasS isFieldPun'
+used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot'
+used RecordPuns = hasS isPFieldPun' ||^ hasS isFieldPun
+used NamedFieldPuns = hasS isPFieldPun' ||^ hasS isFieldPun
 used UnboxedTuples = has isUnboxedTuple' ||^ has (== Unboxed) ||^ hasS isDeriving
     where
         -- detect if there are deriving declarations or data ... deriving stuff
@@ -299,7 +300,7 @@ used PackageImports = hasS f
         f :: ImportDecl GhcPs -> Bool
         f ImportDecl{ideclPkgQual=Just _} = True
         f _ = False
-used QuasiQuotes = hasS isQuasiQuote' ||^ hasS isTyQuasiQuote'
+used QuasiQuotes = hasS isQuasiQuote ||^ hasS isTyQuasiQuote'
 used ViewPatterns = hasS isPViewPat'
 used DefaultSignatures = hasS isClsDefSig'
 used DeriveDataTypeable = hasDerive ["Data","Typeable"]
@@ -308,9 +309,9 @@ used DeriveFoldable = hasDerive ["Foldable"]
 used DeriveTraversable = hasDerive ["Traversable","Foldable","Functor"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
 used GeneralizedNewtypeDeriving = not . null . derivesNewtype' . derives
-used LambdaCase = hasS isLCase'
-used TupleSections = hasS isTupleSection'
-used OverloadedStrings = hasS isString'
+used LambdaCase = hasS isLCase
+used TupleSections = hasS isTupleSection
+used OverloadedStrings = hasS isString
 used Arrows = hasS f
   where
     f :: HsExpr GhcPs -> Bool
@@ -322,7 +323,7 @@ used TransformListComp = hasS f
       f :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Bool
       f TransStmt{} = True
       f _ = False
-used MagicHash = hasS f ||^ hasS isPrimLiteral'
+used MagicHash = hasS f ||^ hasS isPrimLiteral
     where
       f :: RdrName -> Bool
       f s = "#" `isSuffixOf` (occNameString . rdrNameOcc) s

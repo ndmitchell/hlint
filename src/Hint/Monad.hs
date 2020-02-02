@@ -64,6 +64,7 @@ import TcEvidence
 import RdrName
 import OccName
 import Bag
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import GHC.Util
 
 import Data.Tuple.Extra
@@ -83,10 +84,10 @@ monadHint _ _ d = concatMap (monadExp d) $ universeParentExp' d
 monadExp :: LHsDecl GhcPs -> (Maybe (Int, LHsExpr GhcPs), LHsExpr GhcPs) -> [Idea]
 monadExp (declName -> decl) (parent, x) =
   case x of
-    (view' -> App2' op x1 x2) | isTag' op ">>" -> f x1
-    (view' -> App2' op x1 (view' -> LamConst1' _)) | isTag' op ">>=" -> f x1
-    (LL l (HsApp _ op x)) | isTag' op "void" -> seenVoid (cL l . HsApp noExt op) x
-    (LL l (OpApp _ op dol x)) | isTag' op "void", isDol' dol -> seenVoid (cL l . OpApp noExt op dol) x
+    (view' -> App2' op x1 x2) | isTag ">>" op -> f x1
+    (view' -> App2' op x1 (view' -> LamConst1' _)) | isTag ">>=" op -> f x1
+    (LL l (HsApp _ op x)) | isTag "void" op -> seenVoid (cL l . HsApp noExt op) x
+    (LL l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (cL l . OpApp noExt op dol) x
     (LL loc (HsDo _ _ (LL _ [LL _ (BodyStmt _ y _ _ )]))) -> [warn' "Redundant do" x y [Replace Expr (toSS' x) [("y", toSS' y)] "y"] | not $ doOperator parent y]
     (LL loc (HsDo _ DoExpr (L _ xs))) ->
       monadSteps (cL loc . HsDo noExt DoExpr . noLoc) xs ++
@@ -101,14 +102,14 @@ monadExp (declName -> decl) (parent, x) =
 -- Sometimes people write 'a * do a + b', to avoid brackets.
 -- or using BlockArguments they can write 'a do a b'
 doOperator :: (Eq a, Num a) => Maybe (a, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
-doOperator (Just (2, LL _ (OpApp _ _ op _ )))  (LL _ OpApp {}) | not $ isDol' op = True
+doOperator (Just (2, LL _ (OpApp _ _ op _ )))  (LL _ OpApp {}) | not $ isDol op = True
 doOperator (Just (1, LL _ HsApp{})) b | not $ isAtom' b = True
 doOperator _ _ = False
 
 returnsUnit :: LHsExpr GhcPs -> Bool
 returnsUnit (LL _ (HsPar _ x)) = returnsUnit x
 returnsUnit (LL _ (HsApp _ x _)) = returnsUnit x
-returnsUnit (LL _ (OpApp _ x op _)) | isDol' op = returnsUnit x
+returnsUnit (LL _ (OpApp _ x op _)) | isDol op = returnsUnit x
 returnsUnit (LL _ (HsVar _ (L _ x))) = occNameString (rdrNameOcc x) `elem` map (++ "_") badFuncs ++ unitFuncs
 returnsUnit _ = False
 
@@ -118,12 +119,12 @@ monadNoResult :: String -> (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> 
 monadNoResult inside wrap (LL l (HsPar _ x)) = monadNoResult inside (wrap . cL l . HsPar noExt) x
 monadNoResult inside wrap (LL l (HsApp _ x y)) = monadNoResult inside (\x -> wrap $ cL l (HsApp noExt x y)) x
 monadNoResult inside wrap (LL l (OpApp _ x tag@(LL _ (HsVar _ (L _ op))) y))
-    | isDol' tag = monadNoResult inside (\x -> wrap $ cL l (OpApp noExt x tag y)) x
+    | isDol tag = monadNoResult inside (\x -> wrap $ cL l (OpApp noExt x tag y)) x
     | occNameString (rdrNameOcc op) == ">>=" = monadNoResult inside (wrap . cL l . OpApp noExt x tag) y
 monadNoResult inside wrap x
-    | x2 : _ <- filter (isTag' x) badFuncs
+    | x2 : _ <- filter (`isTag` x) badFuncs
     , let x3 = x2 ++ "_"
-    = [warn' ("Use " ++ x3) (wrap x) (wrap $ strToVar' x3) [Replace Expr (toSS' x) [] x3] | inside /= x3]
+    = [warn' ("Use " ++ x3) (wrap x) (wrap $ strToVar x3) [Replace Expr (toSS' x) [] x3] | inside /= x3]
 monadNoResult inside wrap (replaceBranches' -> (bs, rewrap)) =
     map (\x -> x{ideaNote=nubOrd $ Note "May require adding void to other branches" : ideaNote x}) $ concat
         [monadNoResult inside id b | b <- bs]
@@ -139,14 +140,14 @@ monadStep wrap o@(LL _ (BodyStmt _ (fromRet -> Just (ret, _)) _ _ ) : x : xs)
 monadStep wrap o@[ g@(LL _ (BindStmt _ (LL _ (VarPat _ (L _ p))) x _ _ ))
                   , q@(LL _ (BodyStmt _ (fromRet -> Just (ret, LL _ (HsVar _ (L _ v)))) _ _))]
   | occNameString (rdrNameOcc p) == occNameString (rdrNameOcc v)
-  = [warn' ("Redundant " ++ ret) (wrap o) (wrap [noLoc $ BodyStmt noExt x noSyntaxExpr' noSyntaxExpr'])
+  = [warn' ("Redundant " ++ ret) (wrap o) (wrap [noLoc $ BodyStmt noExt x noSyntaxExpr noSyntaxExpr])
       [Replace Stmt (toSS' g) [("x", toSS' x)] "x", Delete Stmt (toSS' q)]]
 
 -- Suggest to use join. Rewrite 'do x <- $1; x; $2' as 'do join $1; $2'.
 monadStep wrap o@(g@(LL _ (BindStmt _ (view' -> PVar_' p) x _ _)):q@(LL _ (BodyStmt _ (view' -> Var_' v) _ _)):xs)
   | p == v && v `notElem` varss' xs
-  = let app = noLoc $ HsApp noExt (strToVar' "join") x
-        body = noLoc $ BodyStmt noExt (rebracket1' app) noSyntaxExpr' noSyntaxExpr'
+  = let app = noLoc $ HsApp noExt (strToVar "join") x
+        body = noLoc $ BodyStmt noExt (rebracket1' app) noSyntaxExpr noSyntaxExpr
         stmts = body : xs
     in [warn' "Use join" (wrap o) (wrap stmts) r]
   where r = [Replace Stmt (toSS' g) [("x", toSS' x)] "join x", Delete Stmt (toSS' q)]
@@ -155,7 +156,7 @@ monadStep wrap o@(g@(LL _ (BindStmt _ (view' -> PVar_' p) x _ _)):q@(LL _ (BodyS
 -- 'do <return ()>; $1'.
 monadStep wrap (o@(LL loc (BindStmt _ p x _ _)) : rest)
     | isPWildCard' p, returnsUnit x
-    = let body = cL loc $ BodyStmt noExt x noSyntaxExpr' noSyntaxExpr' :: ExprLStmt GhcPs
+    = let body = cL loc $ BodyStmt noExt x noSyntaxExpr noSyntaxExpr :: ExprLStmt GhcPs
       in [warn' "Redundant variable capture" o body []]
 
 -- Redundant unit return : 'do <return ()>; return ()'.
@@ -169,16 +170,16 @@ monadStep
 monadStep wrap
   o@[g@(LL _ (BindStmt _ (view' -> PVar_' u) x _ _))
     , q@(LL _ (BodyStmt _ (fromApplies -> (ret:f:fs, view' -> Var_' v)) _ _))]
-  | isReturn' ret, notDol x, u == v, length fs < 3, all isSimple (f : fs), v `notElem` vars' (f : fs)
+  | isReturn ret, notDol x, u == v, length fs < 3, all isSimple (f : fs), v `notElem` vars' (f : fs)
   =
-      [warn' "Use <$>" (wrap o) (wrap [noLoc $ BodyStmt noExt (noLoc $ OpApp noExt (foldl' (\acc e -> noLoc $ OpApp noExt acc (strToVar' ".") e) f fs) (strToVar' "<$>") x) noSyntaxExpr' noSyntaxExpr'])
+      [warn' "Use <$>" (wrap o) (wrap [noLoc $ BodyStmt noExt (noLoc $ OpApp noExt (foldl' (\acc e -> noLoc $ OpApp noExt acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr])
       [Replace Stmt (toSS' g) (("x", toSS' x):zip vs (toSS' <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSS' q)]]
   where
     isSimple (fromApps' -> xs) = all isAtom' (x : xs)
     vs = ('f':) . show <$> [0..]
 
     notDol :: LHsExpr GhcPs -> Bool
-    notDol (LL _ (OpApp _ _ op _)) = not $ isDol' op
+    notDol (LL _ (OpApp _ _ op _)) = not $ isDol op
     notDol _ = True
 
 monadStep _ _ = []
@@ -201,7 +202,7 @@ monadLet xs = if null rs then Nothing else Just (ys, rs)
       = (template p y, Just refact)
       where
         refact = Replace Stmt (toSS' g) [("lhs", toSS' v), ("rhs", toSS' y)]
-                      (unsafePrettyPrint $ template "lhs" (strToVar' "rhs"))
+                      (unsafePrettyPrint $ template "lhs" (strToVar "rhs"))
     mkLet x = (x, Nothing)
 
     template :: String -> LHsExpr GhcPs -> ExprLStmt GhcPs
@@ -218,11 +219,11 @@ monadLet xs = if null rs then Nothing else Just (ys, rs)
 
 fromApplies :: LHsExpr GhcPs -> ([LHsExpr GhcPs], LHsExpr GhcPs)
 fromApplies (LL _ (HsApp _ f x)) = first (f:) $ fromApplies (fromParen' x)
-fromApplies (LL _ (OpApp _ f (isDol' -> True) x)) = first (f:) $ fromApplies x
+fromApplies (LL _ (OpApp _ f (isDol -> True) x)) = first (f:) $ fromApplies x
 fromApplies x = ([], x)
 
 fromRet :: LHsExpr GhcPs -> Maybe (String, LHsExpr GhcPs)
 fromRet (LL _ (HsPar _ x)) = fromRet x
 fromRet (LL _ (OpApp _ x (LL _ (HsVar _ (L _ y))) z)) | occNameString (rdrNameOcc y) == "$" = fromRet $ noLoc (HsApp noExt x z)
-fromRet (LL _ (HsApp _ x y)) | isReturn' x = Just (unsafePrettyPrint x, y)
+fromRet (LL _ (HsApp _ x y)) | isReturn x = Just (unsafePrettyPrint x, y)
 fromRet _ = Nothing

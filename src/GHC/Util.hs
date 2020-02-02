@@ -11,7 +11,6 @@ module GHC.Util (
   , module GHC.Util.Module
   , module GHC.Util.Outputable
   , module GHC.Util.SrcLoc
-  , module GHC.Util.HsExtendInstances
   , module GHC.Util.DynFlags
   , module GHC.Util.Scope
   , module GHC.Util.RdrName
@@ -32,7 +31,6 @@ import GHC.Util.Pat
 import GHC.Util.Module
 import GHC.Util.Outputable
 import GHC.Util.SrcLoc
-import GHC.Util.HsExtendInstances
 import GHC.Util.DynFlags
 import GHC.Util.RdrName
 import GHC.Util.Scope

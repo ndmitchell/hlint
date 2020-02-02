@@ -73,6 +73,7 @@ import Bag
 import BasicTypes
 
 import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 
 patternHint :: DeclHint'
 patternHint _scope modu x =
@@ -111,7 +112,7 @@ hints gen (Pattern l rtype pat (GRHSs _ [LL _ (GRHS _ [] bod)] bind))
     rawGuards = asGuards bod
 
     mkGuard :: LHsExpr GhcPs -> (LHsExpr GhcPs -> GRHS GhcPs (LHsExpr GhcPs))
-    mkGuard a = GRHS noExt [noLoc $ BodyStmt noExt a noSyntaxExpr' noSyntaxExpr']
+    mkGuard a = GRHS noExt [noLoc $ BodyStmt noExt a noSyntaxExpr noSyntaxExpr]
 
     guards :: [LGRHS GhcPs (LHsExpr GhcPs)]
     guards = map (noLoc . uncurry mkGuard) rawGuards
@@ -135,7 +136,7 @@ hints gen (Pattern l rtype pat (GRHSs _ [LL _ (GRHS _ [] bod)] bind))
     templateGuards = map noLoc (zipWith (mkGuard `on` toString) guardSubts exprSubts)
 
     toString (Left e) = e
-    toString (Right (v, _)) = strToVar' v
+    toString (Right (v, _)) = strToVar v
     toString' (Left e) = e
     toString' (Right (v, _)) = strToPat' v
 
@@ -157,7 +158,7 @@ hints gen (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
 hints gen (Pattern l t pats o@(GRHSs _ (unsnoc -> Just (gs, LL _ (GRHS _ [test] bod))) binds))
   | unsafePrettyPrint test == "True"
   = let tag = noLoc (mkRdrUnqual $ mkVarOcc "otherwise")
-        otherwise_ = noLoc $ BodyStmt noExt (noLoc (HsVar noExt tag)) noSyntaxExpr' noSyntaxExpr' in
+        otherwise_ = noLoc $ BodyStmt noExt (noLoc (HsVar noExt tag)) noSyntaxExpr noSyntaxExpr in
       [gen "Use otherwise" (Pattern l t pats o{grhssGRHSs = gs ++ [noLoc (GRHS noExt [otherwise_] bod)]}) [Replace Expr (toSS' test) [] "otherwise"]]
 hints _ _ = []
 

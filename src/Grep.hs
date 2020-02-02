@@ -12,7 +12,7 @@ import Idea
 
 import qualified HsSyn as GHC
 import qualified BasicTypes as GHC
-import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import SrcLoc as GHC hiding (mkSrcSpan)
 
 runGrep :: String -> ParseFlags -> [FilePath] -> IO ()
@@ -27,7 +27,7 @@ runGrep patt flags files = do
     let unit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed
     let rule = hintRules [HintRule Suggestion "grep" scope exp (Tuple an Boxed []) Nothing []
                          -- Todo : Replace these with "proper" GHC expressions.
-                          (extendInstances' mempty) (extendInstances' unit) (extendInstances' unit) Nothing]
+                          (extendInstances mempty) (extendInstances unit) (extendInstances unit) Nothing]
     forM_ files $ \file -> do
         res <- parseModuleEx flags file Nothing
         case res of

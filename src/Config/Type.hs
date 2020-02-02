@@ -12,6 +12,7 @@ import Prelude
 
 import qualified HsSyn
 import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
 getSeverity :: String -> Maybe Severity
 getSeverity "ignore" = Just Ignore
