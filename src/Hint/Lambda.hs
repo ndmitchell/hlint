@@ -95,9 +95,15 @@ import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 
 
-lambdaHint :: DeclHint
-lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatMap lambdaDecl (universe x)
+--lambdaHint :: DeclHint
+--lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatMap lambdaDecl (universe x)
+lambdaHint :: DeclHint'
+lambdaHint _ _ x =
+  concatMap (uncurry lambdaExp') (universeParentBi x) ++
+  concatMap lambdaDecl' (universe x)
 
+lambdaDecl' :: GHC.LHsDecl GHC.GhcPs -> [Idea]
+lambdaDecl' _ = []
 
 lambdaDecl :: Decl_ -> [Idea]
 lambdaDecl (toFunBind -> o@(FunBind loc1 [Match _ name pats (UnGuardedRhs loc2 bod) bind]))
@@ -136,6 +142,9 @@ etaReduce ps (App _ x (Var _ (UnQual _ (Ident _ y))))
 etaReduce ps (InfixApp a x (isDol -> True) y) = etaReduce ps (App a x y)
 etaReduce ps x = (ps,x)
 
+--Section refactoring is not currently implemented.
+lambdaExp' :: Maybe (GHC.LHsExpr GHC.GhcPs) -> GHC.LHsExpr GHC.GhcPs -> [Idea]
+lambdaExp' _ _ = []
 
 --Section refactoring is not currently implemented.
 lambdaExp :: Maybe Exp_ -> Exp_ -> [Idea]
