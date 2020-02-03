@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #852, change maybe to fromMaybe, when the function is duplicated
     #851, add a rule for maybe Nothing Just
 2.2.10, released 2020-02-02
     #846, add splitAt warnings
