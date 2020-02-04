@@ -30,7 +30,7 @@ import Prelude
 ( ^- ) :: Set OccName -> Set OccName -> Set OccName
 ( ^- ) = Set.difference
 
--- See [Note : Spack leaks lurking here?] below.
+-- See [Note : Space leaks lurking here?] below.
 data Vars' = Vars'{bound' :: Set OccName, free' :: Set OccName}
 
 -- Useful for debugging.
