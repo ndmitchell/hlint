@@ -94,13 +94,13 @@ import Data.Maybe
 import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 
-import qualified GHC.Util.Brackets as GHC
+import qualified GHC.Util.Brackets as GHC (isAtom')
+import qualified GHC.Util.HsExpr as GHC (allowLeftSection)
 import qualified HsSyn as GHC
-import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC
+import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC (isTypeApp)
 import qualified OccName as GHC
 import qualified RdrName as GHC
 import qualified SrcLoc as GHC
-import qualified GHC.Util.HsExpr as GHC (allowLeftSection)
 
 --lambdaHint :: DeclHint
 --lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatMap lambdaDecl (universe x)
