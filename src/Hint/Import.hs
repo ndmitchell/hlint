@@ -73,8 +73,9 @@ importHint _ ModuleEx {ghcModule=L _ HsModule{hsmodImports=ms}} =
   concatMap preferHierarchicalImports ms
 
 reduceImports :: [LImportDecl GhcPs] -> [Idea]
-reduceImports ms =
-  [rawIdea' Hint.Type.Warning "Use fewer imports" (getLoc $ head ms) (f ms) (Just $ f x) [] rs
+reduceImports [] = []
+reduceImports ms@(m:_) =
+  [rawIdea' Hint.Type.Warning "Use fewer imports" (getLoc m) (f ms) (Just $ f x) [] rs
   | Just (x, rs) <- [simplify ms]]
   where f = unlines . map unsafePrettyPrint
 
