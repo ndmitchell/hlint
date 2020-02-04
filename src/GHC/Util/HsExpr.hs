@@ -14,6 +14,7 @@ module GHC.Util.HsExpr (
   , paren'
   , replaceBranches'
   , needBracketOld', transformBracketOld', descendBracketOld', reduce', reduce1', fromParen1'
+  , allowLeftSection
 ) where
 
 import HsSyn
