@@ -133,8 +133,8 @@ monadStep :: ([ExprLStmt GhcPs] -> LHsExpr GhcPs)
            -> [ExprLStmt GhcPs] -> [Idea]
 
 -- Rewrite 'do return x; $2' as 'do $2'.
-monadStep wrap o@(LL _ (BodyStmt _ (fromRet -> Just (ret, _)) _ _ ) : x : xs)
-  = [warn' ("Redundant " ++ ret) (wrap o) (wrap $ x:xs) [Delete Stmt (toSS' (head o))]]
+monadStep wrap os@(o@(LL _ (BodyStmt _ (fromRet -> Just (ret, _)) _ _ )) : xs@(_:_))
+  = [warn' ("Redundant " ++ ret) (wrap os) (wrap xs) [Delete Stmt (toSS' o)]]
 
 -- Rewrite 'do a <- $1; return a' as 'do $1'.
 monadStep wrap o@[ g@(LL _ (BindStmt _ (LL _ (VarPat _ (L _ p))) x _ _ ))
