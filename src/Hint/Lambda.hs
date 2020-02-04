@@ -106,9 +106,9 @@ import qualified SrcLoc as GHC
 --lambdaHint :: DeclHint
 --lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatMap lambdaDecl (universe x)
 lambdaHint :: DeclHint'
-lambdaHint _ _ x =
-  concatMap (uncurry lambdaExp') (universeParentBi x) ++
-  concatMap lambdaDecl' (universe x)
+lambdaHint _ _ x
+    =  concatMap (uncurry lambdaExp') (universeParentBi x)
+    ++ concatMap lambdaDecl' (universe x)
 
 lambdaDecl' :: GHC.LHsDecl GHC.GhcPs -> [Idea]
 lambdaDecl' _ = []
@@ -153,19 +153,19 @@ etaReduce ps x = (ps,x)
 --Section refactoring is not currently implemented.
 lambdaExp' :: Maybe (GHC.LHsExpr GHC.GhcPs) -> GHC.LHsExpr GHC.GhcPs -> [Idea]
 lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVar _ (GHC.LL _ (GHC.rdrNameOcc -> f)))) y))
-  | GHC.isSymOcc f -- is this an operator?
-  , GHC.isAtom' y
-  , GHC.allowLeftSection $ GHC.occNameString f
-  , not $ GHC.isTypeApp y =
-    [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.SectionL GHC.NoExt y o]
-  -- TODO:
-  -- why check if y requires no bracketing here?
-  -- is allowLeftSection still relevant?
-  -- what is the section refactoring stuff?
+    | GHC.isSymOcc f -- is this an operator?
+    , GHC.isAtom' y
+    , GHC.allowLeftSection $ GHC.occNameString f
+    , not $ GHC.isTypeApp y =
+      [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.SectionL GHC.NoExt y o]
+    -- TODO:
+    -- why check if y requires no bracketing here?
+    -- is allowLeftSection still relevant?
+    -- what is the section refactoring stuff?
 
 lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVar _ (GHC.rdrNameStr' -> "flip"))) origf@(GHC.LL _ (GHC.HsVar _ (GHC.rdrNameStr' -> f))))) y))
-  | GHC.allowRightSection f
-  = [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.HsPar GHC.NoExt $ GHC.LL GHC.noSrcSpan $ GHC.SectionR GHC.NoExt origf y]
+    | GHC.allowRightSection f
+    = [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.HsPar GHC.NoExt $ GHC.LL GHC.noSrcSpan $ GHC.SectionR GHC.NoExt origf y]
 -- TODO: perhaps PatternSynonyms?
 lambdaExp' _ _ = []
 
