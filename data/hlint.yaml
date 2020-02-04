@@ -814,9 +814,17 @@
     - warn: {lhs: Data.Maybe.fromMaybe mempty, rhs: Data.Foldable.fold}
     - warn: {lhs: Data.Maybe.fromMaybe False, rhs: or}
     - warn: {lhs: Data.Maybe.fromMaybe True, rhs: and}
+    - warn: {lhs: Data.Maybe.fromMaybe 0, rhs: sum}
+    - warn: {lhs: Data.Maybe.fromMaybe 1, rhs: product}
+    - warn: {lhs: Data.Maybe.fromMaybe empty, rhs: Data.Foldable.asum}
+    - warn: {lhs: Data.Maybe.fromMaybe mzero, rhs: Data.Foldable.msum}
     - warn: {lhs: Data.Either.fromRight mempty, rhs: Data.Foldable.fold}
     - warn: {lhs: Data.Either.fromRight False, rhs: or}
     - warn: {lhs: Data.Either.fromRight True, rhs: and}
+    - warn: {lhs: Data.Either.fromRight 0, rhs: sum}
+    - warn: {lhs: Data.Either.fromRight 1, rhs: product}
+    - warn: {lhs: Data.Either.fromRight empty, rhs: Data.Foldable.asum}
+    - warn: {lhs: Data.Either.fromRight mzero, rhs: Data.Foldable.msum}
     - warn: {lhs: if f x then Just x else Nothing, rhs: mfilter f (Just x)}
     - hint: {lhs: maybe (pure ()), rhs: traverse_, note: IncreasesLaziness}
     - hint: {lhs: fromMaybe (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
