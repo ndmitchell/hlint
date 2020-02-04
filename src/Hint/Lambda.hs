@@ -95,7 +95,8 @@ import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 
 import qualified GHC.Util.Brackets as GHC (isAtom')
-import qualified GHC.Util.HsExpr as GHC (allowLeftSection)
+import qualified GHC.Util.HsExpr as GHC (allowLeftSection, allowRightSection)
+import qualified GHC.Util.RdrName as GHC (rdrNameStr')
 import qualified HsSyn as GHC
 import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC (isTypeApp)
 import qualified OccName as GHC
@@ -161,7 +162,11 @@ lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVar _ (GHC.LL _ (GHC.rdrN
   -- why check if y requires no bracketing here?
   -- is allowLeftSection still relevant?
   -- what is the section refactoring stuff?
-  
+
+lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVar _ (GHC.rdrNameStr' -> "flip"))) origf@(GHC.LL _ (GHC.HsVar _ (GHC.rdrNameStr' -> f))))) y))
+  | GHC.allowRightSection f
+  = [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.HsPar GHC.NoExt $ GHC.LL GHC.noSrcSpan $ GHC.SectionR GHC.NoExt origf y]
+-- TODO: perhaps PatternSynonyms?
 lambdaExp' _ _ = []
 
 --Section refactoring is not currently implemented.
