@@ -96,8 +96,10 @@ import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 
 import qualified GHC.Util.Brackets as GHC (isAtom')
+import qualified GHC.Util.FreeVars as GHC (freeVars')
 import qualified GHC.Util.HsExpr as GHC (allowLeftSection, allowRightSection)
 import qualified GHC.Util.RdrName as GHC (rdrNameStr')
+import qualified GHC.Util.View as GHC
 import qualified HsSyn as GHC
 import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC (isTypeApp)
 import qualified OccName as GHC
@@ -168,6 +170,23 @@ lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVa
     | GHC.allowRightSection f
     = [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.HsPar GHC.NoExt $ GHC.LL GHC.noSrcSpan $ GHC.SectionR GHC.NoExt origf y]
 -- TODO: perhaps PatternSynonyms?
+lambdaExp' _ o@(GHC.LL _ (GHC.HsLam _ (GHC.MG _ (GHC.LL _ [GHC.LL _ (GHC.Match _ _ [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.GRHSs _ [GHC.LL _ (GHC.GRHS _ [] (GHC.LL _ (GHC.ExplicitTuple _ args boxity)))] (GHC.LL _ (GHC.EmptyLocalBinds _))))]) _)))
+    | ([_x], ys) <- partition ((==Just x) . tupArgVar) args
+    -- ^ is there exactly one argument that is exactly x
+    , Set.notMember x $ Set.map GHC.occNameString $ GHC.freeVars' ys
+    -- ^ the other arguments must not have a nested x somewhere in them
+    = [(suggestN' "Use tuple-section" o $ GHC.LL GHC.noSrcSpan $ GHC.ExplicitTuple GHC.NoExt (map removeX args) boxity)
+        {ideaNote = [RequiresExtension "TupleSections"]}]
+    where
+        removeX :: GHC.LHsTupArg GHC.GhcPs -> GHC.LHsTupArg GHC.GhcPs
+        removeX arg@(GHC.LL _ (GHC.Present _ (GHC.view' -> GHC.Var_' x')))
+            | x == x' = GHC.LL GHC.noSrcSpan $ GHC.Missing GHC.NoExt
+        removeX y = y
+        -- | Extract the name of an argument of a tuple if it's present and a variable.
+        tupArgVar :: GHC.LHsTupArg GHC.GhcPs -> Maybe String
+        tupArgVar (GHC.LL _ (GHC.Present _ (GHC.view' -> GHC.Var_' x))) = Just x
+        tupArgVar _ = Nothing
+
 lambdaExp' _ _ = []
 
 --Section refactoring is not currently implemented.
