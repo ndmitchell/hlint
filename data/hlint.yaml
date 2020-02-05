@@ -1039,7 +1039,7 @@
 # main = hello .~ Just 12 -- hello ?~ 12
 # foo = liftIO $ window `on` deleteEvent $ do a; b
 # no = sort <$> f input `shouldBe` sort <$> x
-# sortBy (comparing snd) -- sortOn snd
+# sortBy (comparing length) -- sortOn length
 # myJoin = on $ child ^. ChildParentId ==. parent ^. ParentId
 # foo = typeOf (undefined :: Foo Int) -- typeRep (Proxy :: Proxy (Foo Int))
 # foo = typeOf (undefined :: a) -- typeRep (Proxy :: Proxy a)
