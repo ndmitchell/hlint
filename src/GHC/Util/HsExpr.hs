@@ -144,7 +144,9 @@ niceDotApp' a b = dotApp' a b
 niceLambda' :: [String] -> LHsExpr GhcPs -> LHsExpr GhcPs
 niceLambda' ss e = fst (niceLambdaR' ss e)-- We don't support refactorings yet.
 
+allowRightSection :: String -> Bool
 allowRightSection x = x `notElem` ["-","#"]
+allowLeftSection :: String -> Bool
 allowLeftSection x = x /= "#"
 
 -- Implementation. Try to produce special forms (e.g. sections,
