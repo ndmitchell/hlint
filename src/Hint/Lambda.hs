@@ -74,6 +74,7 @@ foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z @NoRefactor
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b @NoRefactor
 no = blah (\ x -> case x of A -> a x; B -> b x)
 yes = blah (\ x -> (y, x, z+q)) -- (y, , z+q) @NoRefactor
+yes = blah (\ x -> (y, x, z+q)) -- @Note may require `{-# LANGUAGE TupleSections #-}` adding to the top of the file
 yes = blah (\ x -> (y, x, z+x))
 tmp = map (\ x -> runST $ action x)
 yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>)
