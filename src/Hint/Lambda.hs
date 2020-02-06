@@ -72,6 +72,7 @@ foo = bar (\x -> (x `f`)) -- f
 baz = bar (\x -> (x +)) -- (+)
 foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z @NoRefactor
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b @NoRefactor
+yes = blah (\ x -> case x of A -> a; B -> b) -- @Note may require `{-# LANGUAGE LambdaCase #-}` adding to the top of the file
 no = blah (\ x -> case x of A -> a x; B -> b x)
 yes = blah (\ x -> (y, x)) -- (y,)
 yes = blah (\ x -> (y, x, z+q)) -- (y, , z+q) @NoRefactor
