@@ -98,7 +98,7 @@ import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 
 import qualified GHC.Util.Brackets as GHC (isAtom')
-import qualified GHC.Util.FreeVars as GHC (freeVars')
+import qualified GHC.Util.FreeVars as GHC (free', allVars', freeVars')
 import qualified GHC.Util.HsExpr as GHC (allowLeftSection, allowRightSection)
 import qualified GHC.Util.RdrName as GHC (rdrNameStr')
 import qualified GHC.Util.View as GHC
@@ -183,6 +183,31 @@ lambdaExp' _ o@(GHC.LL _ (GHC.HsLam _ (GHC.MG _ (GHC.LL _ [GHC.LL _ (GHC.Match _
             -> [(suggestN' "Use tuple-section" o $ GHC.LL GHC.noSrcSpan $ GHC.ExplicitTuple GHC.NoExt (map removeX args) boxity)
                   {ideaNote = [RequiresExtension "TupleSections"]}]
             -- ^ the other arguments must not have a nested x somewhere in them
+        GHC.HsCase _ (GHC.view' -> GHC.Var_' x') matchGroup
+        -- ^ suggest LambdaCase/directly matching in a lambda instead of doing @\x -> case x of ...@
+            | x == x'
+            -- ^ is the case being done on the variable from our original lambda
+            , Set.notMember x $ Set.map GHC.occNameString $ GHC.free' $ GHC.allVars' matchGroup
+            -- ^ x must not be used in some other way inside the matches
+            -> case matchGroup of
+                 oldMG@(GHC.MG _ (GHC.LL _ [GHC.LL _ oldmatch]) _) ->
+                 -- ^ is there a single match? - suggest match inside the lambda
+                     [suggestN' "Use lambda" o $ GHC.LL GHC.noSrcSpan $ GHC.HsLam GHC.NoExt oldMG
+                         { GHC.mg_alts = GHC.LL GHC.noSrcSpan
+                             [GHC.LL GHC.noSrcSpan oldmatch
+                                 { GHC.m_pats = map GHC.mkParPat $ GHC.m_pats oldmatch
+                                 , GHC.m_ctxt = GHC.LambdaExpr
+                                 }
+                             ] }
+                         -- ^ we need to
+                         -- * add brackets to the match
+                         -- * mark match as being in a lambda context so that it's printed properly
+                     ]
+                 GHC.MG _ (GHC.LL _ xs) _ ->
+                 -- ^ otherwise we should use LambdaCase
+                     [(suggestN' "Use lambda-case" o $ GHC.LL GHC.noSrcSpan $ GHC.HsLamCase GHC.NoExt matchGroup)
+                         {ideaNote=[RequiresExtension "LambdaCase"]}]
+                 _ -> []
         _ -> []
     where
         -- | Filter out tuple arguments, converting the @x@ (matched in the lambda) variable argument
