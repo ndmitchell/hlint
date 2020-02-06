@@ -378,7 +378,6 @@
     - hint: {lhs: "(f (fst x), g (snd x))", rhs: Data.Bifunctor.bimap f g x}
     - hint: {lhs: "(f (fst x), snd x)", rhs: Data.Bifunctor.first f x}
     - hint: {lhs: "(fst x, g (snd x))", rhs: Data.Bifunctor.second g x}
-    - hint: {lhs: "[fst x, snd x]", rhs: Data.Bifunctor.biList x}
 
     # FUNCTOR
 
@@ -513,6 +512,7 @@
 
     - warn: {lhs: fst (unzip x), rhs: map fst x}
     - warn: {lhs: snd (unzip x), rhs: map snd x}
+    - hint: {lhs: "[fst x, snd x]", rhs: Data.Bifoldable.biList x}
 
     # MAYBE
 
