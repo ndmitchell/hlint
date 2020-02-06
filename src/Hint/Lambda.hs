@@ -172,15 +172,18 @@ lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVa
     | GHC.allowRightSection f
     = [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.HsPar GHC.NoExt $ GHC.LL GHC.noSrcSpan $ GHC.SectionR GHC.NoExt origf y]
 -- TODO: perhaps PatternSynonyms?
-lambdaExp' _ o@(GHC.LL _ (GHC.HsLam _ (GHC.MG _ (GHC.LL _ [GHC.LL _ (GHC.Match _ _ [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.GRHSs _ [GHC.LL _ (GHC.GRHS _ [] (GHC.LL _ (GHC.ExplicitTuple _ args boxity)))] (GHC.LL _ (GHC.EmptyLocalBinds _))))]) _)))
--- ^ suggest TupleSections instead of lambdas
--- the match checks if this is a lambda with a variable pattern, with no guards and no where clauses
-    | ([_x], ys) <- partition ((==Just x) . tupArgVar) args
-    -- ^ is there exactly one argument that is exactly x
-    , Set.notMember x $ Set.map GHC.occNameString $ GHC.freeVars' ys
-    -- ^ the other arguments must not have a nested x somewhere in them
-    = [(suggestN' "Use tuple-section" o $ GHC.LL GHC.noSrcSpan $ GHC.ExplicitTuple GHC.NoExt (map removeX args) boxity)
-        {ideaNote = [RequiresExtension "TupleSections"]}]
+lambdaExp' _ o@(GHC.LL _ (GHC.HsLam _ (GHC.MG _ (GHC.LL _ [GHC.LL _ (GHC.Match _ _ [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.GRHSs _ [GHC.LL _ (GHC.GRHS _ [] (GHC.LL _ expr))] (GHC.LL _ (GHC.EmptyLocalBinds _))))]) _))) =
+-- ^ match a lambda with a variable pattern, with no guards and no where clauses
+    case expr of
+        GHC.ExplicitTuple _ args boxity
+        -- ^ suggest TupleSections instead of lambdas
+            | ([_x], ys) <- partition ((==Just x) . tupArgVar) args
+            -- ^ is there exactly one argument that is exactly x
+            , Set.notMember x $ Set.map GHC.occNameString $ GHC.freeVars' ys
+            -> [(suggestN' "Use tuple-section" o $ GHC.LL GHC.noSrcSpan $ GHC.ExplicitTuple GHC.NoExt (map removeX args) boxity)
+                  {ideaNote = [RequiresExtension "TupleSections"]}]
+            -- ^ the other arguments must not have a nested x somewhere in them
+        _ -> []
     where
         -- | Filter out tuple arguments, converting the @x@ (matched in the lambda) variable argument
         -- to an missing argument, so that we get the proper section.
