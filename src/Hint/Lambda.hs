@@ -182,6 +182,8 @@ lambdaExp' _ o@(GHC.LL _ (GHC.HsLam _ (GHC.MG _ (GHC.LL _ [GHC.LL _ (GHC.Match _
     = [(suggestN' "Use tuple-section" o $ GHC.LL GHC.noSrcSpan $ GHC.ExplicitTuple GHC.NoExt (map removeX args) boxity)
         {ideaNote = [RequiresExtension "TupleSections"]}]
     where
+        -- | Filter out tuple arguments, converting the @x@ (matched in the lambda) variable argument
+        -- to an missing argument, so that we get the proper section.
         removeX :: GHC.LHsTupArg GHC.GhcPs -> GHC.LHsTupArg GHC.GhcPs
         removeX arg@(GHC.LL _ (GHC.Present _ (GHC.view' -> GHC.Var_' x')))
             | x == x' = GHC.LL GHC.noSrcSpan $ GHC.Missing GHC.NoExt
