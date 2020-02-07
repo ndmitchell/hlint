@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #862, only suggest TupleSections for 2-tuples once
     #854, add more generalise-for-conciseness hints for Either/Maybe
     #852, change maybe to fromMaybe, when the function is duplicated
     #851, add a rule for maybe Nothing Just
