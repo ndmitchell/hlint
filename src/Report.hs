@@ -5,6 +5,7 @@ module Report(writeReport) where
 import Idea
 import Data.Tuple.Extra
 import Data.List.Extra
+import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import Data.Version
 import HSE.All
@@ -26,7 +27,7 @@ writeReport :: FilePath -> FilePath -> [Idea] -> IO ()
 writeReport dataDir file ideas = timedIO "Report" file $ writeTemplate dataDir inner file
     where
         generateIds :: [String] -> [(String,Int)] -- sorted by name
-        generateIds = map (head &&& length) . group -- must be already sorted
+        generateIds = map (NE.head &&& length) . NE.group -- must be already sorted
         files = generateIds $ sort $ map (srcSpanFilename . ideaSpan) ideas
         hints = generateIds $ map hintName $ sortOn (negate . fromEnum . ideaSeverity &&& hintName) ideas
         hintName x = show (ideaSeverity x) ++ ": " ++ ideaHint x

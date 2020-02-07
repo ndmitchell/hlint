@@ -32,6 +32,7 @@ module Hint.Pragma(pragmaHint) where
 
 import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),toSS',rawIdea',prettyExtension,glasgowExts)
 import Data.List.Extra
+import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import Refact.Types
 import qualified Refact.Types as R
@@ -52,7 +53,7 @@ optToPragma :: [(Located AnnotationComment, [String])]
              -> [(Located AnnotationComment, [String])]
              -> [Idea]
 optToPragma flags langExts =
-  [pragmaIdea (OptionsToComment (map fst old) ys rs) | old /= []]
+  [pragmaIdea (OptionsToComment (fst <$> old2) ys rs) | Just old2 <- [NE.nonEmpty old]]
   where
       (old, new, ns, rs) =
         unzip4 [(old, new, ns, r)
@@ -73,7 +74,7 @@ optToPragma flags langExts =
 
 data PragmaIdea = SingleComment (Located AnnotationComment) (Located AnnotationComment)
                  | MultiComment (Located AnnotationComment) (Located AnnotationComment) (Located AnnotationComment)
-                 | OptionsToComment [Located AnnotationComment] [Located AnnotationComment] [Refactoring R.SrcSpan]
+                 | OptionsToComment (NE.NonEmpty (Located AnnotationComment)) [Located AnnotationComment] [Refactoring R.SrcSpan]
 
 pragmaIdea :: PragmaIdea -> Idea
 pragmaIdea pidea =
@@ -87,8 +88,8 @@ pragmaIdea pidea =
         [ ModifyComment (toSS' repl) (comment new)
         , ModifyComment (toSS' delete) ""]
     OptionsToComment old new r ->
-      mkLanguage (getLoc . head $ old)
-        (f old) (Just $ f new) []
+      mkLanguage (getLoc . NE.head $ old)
+        (f $ NE.toList old) (Just $ f new) []
         r
     where
           f = unlines . map comment
