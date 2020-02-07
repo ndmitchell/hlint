@@ -395,6 +395,7 @@ extensionImpliedBy = \x -> Map.findWithDefault [] x mp
 
 -- | (a, bs) means extension a implies all of bs.
 --   Taken from https://downloads.haskell.org/~ghc/master/users-guide/glasgow_exts.html#language-options
+--   In the GHC source at DynFlags.impliedXFlags
 extensionImplications :: [(Extension, [Extension])]
 extensionImplications = map (first EnableExtension) $
     (RebindableSyntax, [DisableExtension ImplicitPrelude]) :
