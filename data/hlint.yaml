@@ -330,6 +330,7 @@
     - warn: {lhs: if a then (if b then t else f) else f, rhs: if a && b then t else f, name: Redundant if}
     - warn: {lhs: if x then True else y, rhs: x || y, side: notEq y False, name: Redundant if}
     - warn: {lhs: if x then y else False, rhs: x && y, side: notEq y True, name: Redundant if}
+    - warn: {lhs: if | b -> t | otherwise -> f, rhs: if b then t else f, name: Redundant multi-way if}
     - hint: {lhs: "case a of {True -> t; False -> f}", rhs: if a then t else f, name: Use if}
     - hint: {lhs: "case a of {False -> f; True -> t}", rhs: if a then t else f, name: Use if}
     - hint: {lhs: "case a of {True -> t; _ -> f}", rhs: if a then t else f, name: Use if}
