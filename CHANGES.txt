@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #859, suggest regular if instead of a simple multi-way if
     #860, improve the sortBy/sortOn hints
     #862, only suggest TupleSections for 2-tuples once
     #854, add more generalise-for-conciseness hints for Either/Maybe
