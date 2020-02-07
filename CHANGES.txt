@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #865, suggest biList if generalise-for-conciseness is turned on
     #859, suggest regular if instead of a simple multi-way if
     #860, improve the sortBy/sortOn hints
     #862, only suggest TupleSections for 2-tuples once
