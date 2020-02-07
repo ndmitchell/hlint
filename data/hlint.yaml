@@ -828,6 +828,8 @@
     - hint: {lhs: maybe (pure ()), rhs: traverse_, note: IncreasesLaziness}
     - hint: {lhs: fromMaybe (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
     - hint: {lhs: fromRight (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
+    - hint: {lhs: "[fst x, snd x]", rhs: Data.Bifoldable.biList x}
+    - hint: {lhs: "\\(x, y) -> [x, y]", rhs: Data.Bifoldable.biList, note: IncreasesLaziness}
 
 - group:
     name: dollar
