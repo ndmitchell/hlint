@@ -512,7 +512,6 @@
 
     - warn: {lhs: fst (unzip x), rhs: map fst x}
     - warn: {lhs: snd (unzip x), rhs: map snd x}
-    - hint: {lhs: "[fst x, snd x]", rhs: Data.Bifoldable.biList x}
 
     # MAYBE
 
@@ -830,6 +829,7 @@
     - hint: {lhs: maybe (pure ()), rhs: traverse_, note: IncreasesLaziness}
     - hint: {lhs: fromMaybe (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
     - hint: {lhs: fromRight (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
+    - hint: {lhs: "[fst x, snd x]", rhs: Data.Bifoldable.biList x}
 
 - group:
     name: dollar
