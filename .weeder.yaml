@@ -8,4 +8,4 @@
 
 - message:
   - name: Redundant build-depends entry
-  - depends: [ghc-lib, ghc, ghc-boot-th] # Only some subset is supported
+  - depends: [ghc-lib, ghc, ghc-boot-th, ghc-boot] # Only some subset is supported
