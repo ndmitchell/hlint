@@ -35,6 +35,7 @@ import Control.Monad.Trans.State
 import Data.Data
 import Data.Generics.Uniplate.Data
 import Data.List.Extra
+import Data.Tuple.Extra
 
 import Refact.Types hiding (Match)
 import qualified Refact.Types as R (SrcSpan)
@@ -211,30 +212,38 @@ replaceBranches' (LL s (HsCase _ a (MG _ (L l bs) FromSource))) =
 replaceBranches' x = ([], \[] -> x)
 
 
--- Like needBracket, but with a special case for 'a . b . b', which was
+-- Like needBracket', but with a special case for 'a . b . b', which was
 -- removed from haskell-src-exts-util-0.2.2.
 needBracketOld' :: Int -> LHsExpr GhcPs -> LHsExpr GhcPs -> Bool
 needBracketOld' i parent child
   | isDotApp parent, isDotApp child, i == 2 = False
   | otherwise = needBracket' i parent child
 
-transformBracketOld' :: (LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)) -> LHsExpr GhcPs -> LHsExpr GhcPs
-transformBracketOld' op = snd . g
+transformBracketOld' :: (LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
+transformBracketOld' op = first snd . g
   where
-    g = f . descendBracketOld' g
+    g = first f . descendBracketOld' (fst . g)
     f x = maybe (False, x) (True, ) (op x)
 
 -- Descend, and if something changes then add/remove brackets
--- appropriately
-descendBracketOld' :: (LHsExpr GhcPs -> (Bool, LHsExpr GhcPs)) -> LHsExpr GhcPs -> LHsExpr GhcPs
-descendBracketOld' op x = descendIndex' g x
+-- appropriately. Returns (suggested replacement, refactor template).
+-- Whenever a bracket is added to the suggested replacement, a
+-- corresponding bracket is added to the refactor template.
+descendBracketOld' :: (LHsExpr GhcPs -> (Bool, LHsExpr GhcPs)) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
+descendBracketOld' op x = (descendIndex' g1 x, descendIndex' g2 x)
   where
-    g i y = if a then f i b else b
+    g i y = if a then (f1 i b y, f2 i b y) else (b, y)
       where (a, b) = op y
 
-    f i (LL _ (HsPar _ y)) | not $ needBracketOld' i x y = y
-    f i y                  | needBracketOld' i x y = addParen' y
-    f _ y                  = y
+    g1 = (fst .) . g
+    g2 = (snd .) . g
+
+    f i (LL _ (HsPar _ y)) z | not $ needBracketOld' i x y = (y, z)
+    f i y z                  | needBracketOld' i x y = (addParen' y, addParen' z)
+    f _ y z                  = (y, z)
+
+    f1 = ((fst .) .) . f
+    f2 = ((snd .) .) . f
 
 reduce' :: LHsExpr GhcPs -> LHsExpr GhcPs
 reduce' = fromParen' . transform reduce1'
