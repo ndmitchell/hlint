@@ -111,8 +111,8 @@ findIdeas' matches s _ decl = timed "Hint" "Match apply" $ forceList
     [ (idea' (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
     | (name, expr) <- findDecls' decl
     , (parent,x) <- universeParentExp' expr
-    , m <- matches, Just (y, notes, subst) <- [matchIdea' s name m parent x]
-    , let r = R.Replace R.Expr (toSS' x) subst (unsafePrettyPrint $ unextendInstances (hintRuleGhcRHS m))
+    , m <- matches, Just (y, tpl, notes, subst) <- [matchIdea' s name m parent x]
+    , let r = R.Replace R.Expr (toSS' x) subst (unsafePrettyPrint tpl)
     ]
 
 -- | A list of root expressions, with their associated names
@@ -127,7 +127,7 @@ matchIdea' :: Scope'
            -> HintRule
            -> Maybe (Int, LHsExpr GhcPs)
            -> LHsExpr GhcPs
-           -> Maybe (LHsExpr GhcPs, [Note], [(String, R.SrcSpan)])
+           -> Maybe (LHsExpr GhcPs, LHsExpr GhcPs, [Note], [(String, R.SrcSpan)])
 matchIdea' sb declName HintRule{..} parent x = do
   let lhs = unextendInstances hintRuleGhcLHS
       rhs = unextendInstances hintRuleGhcRHS
@@ -138,8 +138,8 @@ matchIdea' sb declName HintRule{..} parent x = do
 
   -- Need to check free vars before unqualification, but after subst
   -- (with 'e') need to unqualify before substitution (with 'res').
-  let e = substitute' u rhs
-      res = addBracketTy' (addBracket' parent $ performSpecial' $ substitute' u $ unqualify' sa sb rhs)
+  let (e, tpl) = substitute' u rhs
+      res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs)
   guard $ (freeVars' e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars' rhs)) `Set.isSubsetOf` freeVars' x
       -- Check no unexpected new free variables.
 
@@ -152,7 +152,7 @@ matchIdea' sb declName HintRule{..} parent x = do
   guard $ checkSide' (unextendInstances <$> hintRuleGhcSide) $ ("original", x) : ("result", res) : fromSubst' u
   guard $ checkDefine' declName parent res
 
-  return (res, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
+  return (res, tpl, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
 
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS

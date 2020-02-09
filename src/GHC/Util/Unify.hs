@@ -58,7 +58,10 @@ validSubst' eq = fmap Subst' . mapM f . groupSort . fromSubst'
           f _ = Nothing
 
 -- Peform a substition.
-substitute' :: Subst' (LHsExpr GhcPs) -> LHsExpr GhcPs -> LHsExpr GhcPs
+-- Returns (suggested replacement, refactor template), both with brackets added
+-- as needed.
+-- Example: (traverse foo (bar baz), traverse f (x))
+substitute' :: Subst' (LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
 substitute' (Subst' bind) = transformBracketOld' exp . transformBi pat . transformBi typ
   where
     exp :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
