@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+2.2.11, released 2020-02-09
     #868, fix some brackets in refactoring suggestions
     #865, suggest biList if generalise-for-conciseness is turned on
     #859, suggest regular if instead of a simple multi-way if
