@@ -222,18 +222,20 @@ needBracketOld' i parent child
 transformBracketOld' :: (LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
 transformBracketOld' op = first snd . g
   where
-    g = first f . descendBracketOld' (fst . g)
+    g = first f . descendBracketOld' g
     f x = maybe (False, x) (True, ) (op x)
 
 -- Descend, and if something changes then add/remove brackets
 -- appropriately. Returns (suggested replacement, refactor template).
 -- Whenever a bracket is added to the suggested replacement, a
 -- corresponding bracket is added to the refactor template.
-descendBracketOld' :: (LHsExpr GhcPs -> (Bool, LHsExpr GhcPs)) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
+descendBracketOld' :: (LHsExpr GhcPs -> ((Bool, LHsExpr GhcPs), LHsExpr GhcPs))
+                   -> LHsExpr GhcPs
+                   -> (LHsExpr GhcPs, LHsExpr GhcPs)
 descendBracketOld' op x = (descendIndex' g1 x, descendIndex' g2 x)
   where
-    g i y = if a then (f1 i b y, f2 i b y) else (b, y)
-      where (a, b) = op y
+    g i y = if a then (f1 i b z, f2 i b z) else (b, z)
+      where ((a, b), z) = op y
 
     g1 = (fst .) . g
     g2 = (snd .) . g
