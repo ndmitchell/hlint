@@ -518,8 +518,10 @@
     - warn: {lhs: maybe Nothing Just, rhs: id, name: Redundant maybe}
     - warn: {lhs: maybe False (const True), rhs: Data.Maybe.isJust}
     - warn: {lhs: maybe True (const False), rhs: Data.Maybe.isNothing}
-    - warn: {lhs: maybe False (== x), rhs: (Just x ==)}
-    - warn: {lhs: maybe True (/= x), rhs: (Just x /=)}
+    - warn: {lhs: maybe False (x ==), rhs: (Just x ==)}
+    - warn: {lhs: maybe True (x /=), rhs: (Just x /=)}
+    - warn: {lhs: maybe False (== x), rhs: (Just x ==), note: ValidInstance Eq x}
+    - warn: {lhs: maybe True (/= x), rhs: (Just x /=), note: ValidInstance Eq x}
     - warn: {lhs: fromMaybe False, rhs: (Just True ==)}
     - warn: {lhs: fromMaybe True, rhs: (Just False /=)}
     - warn: {lhs: not (isNothing x), rhs: isJust x}
