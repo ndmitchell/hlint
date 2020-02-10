@@ -518,8 +518,12 @@
     - warn: {lhs: maybe Nothing Just, rhs: id, name: Redundant maybe}
     - warn: {lhs: maybe False (const True), rhs: Data.Maybe.isJust}
     - warn: {lhs: maybe True (const False), rhs: Data.Maybe.isNothing}
-    - warn: {lhs: maybe False (== x), rhs: (== Just x)}
-    - warn: {lhs: maybe True (/= x), rhs: (/= Just x)}
+    - warn: {lhs: maybe False (x ==), rhs: (Just x ==)}
+    - warn: {lhs: maybe True (x /=), rhs: (Just x /=)}
+    - warn: {lhs: maybe False (== x), rhs: (Just x ==), note: ValidInstance Eq x}
+    - warn: {lhs: maybe True (/= x), rhs: (Just x /=), note: ValidInstance Eq x}
+    - warn: {lhs: fromMaybe False, rhs: (Just True ==)}
+    - warn: {lhs: fromMaybe True, rhs: (Just False /=)}
     - warn: {lhs: not (isNothing x), rhs: isJust x}
     - warn: {lhs: not (isJust x), rhs: isNothing x}
     - warn: {lhs: "maybe [] (:[])", rhs: maybeToList}
@@ -811,8 +815,6 @@
     - warn: {lhs: either (const False), rhs: any}
     - warn: {lhs: either (const True), rhs: all}
     - warn: {lhs: Data.Maybe.fromMaybe mempty, rhs: Data.Foldable.fold}
-    - warn: {lhs: Data.Maybe.fromMaybe False, rhs: or}
-    - warn: {lhs: Data.Maybe.fromMaybe True, rhs: and}
     - warn: {lhs: Data.Maybe.fromMaybe 0, rhs: sum}
     - warn: {lhs: Data.Maybe.fromMaybe 1, rhs: product}
     - warn: {lhs: Data.Maybe.fromMaybe empty, rhs: Data.Foldable.asum}
