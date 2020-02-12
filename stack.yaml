@@ -7,6 +7,7 @@ extra-deps:
   - ghc-lib-parser-8.8.2.20200205
   - ghc-lib-parser-ex-8.8.5.1
   - haskell-src-exts-1.23.0
+  - extra-1.6.19
 ghc-options:
     "$locals": -Wunused-imports -Worphans -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns
 # If the compiler is 8.8.*, by default, ghc-lib-parser won't be a

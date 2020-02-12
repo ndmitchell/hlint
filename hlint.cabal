@@ -64,7 +64,7 @@ library
         haskell-src-exts-util >= 0.2.5,
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
-        extra >= 1.6.6,
+        extra >= 1.6.19,
         refact >= 0.3,
         aeson >= 1.1.2.0,
         filepattern >= 0.1.1,
