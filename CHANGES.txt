@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #871, warn when fmapping the result of gets or asks
     #869, improve hints for maybe/fromMaybe on Bool
 2.2.11, released 2020-02-09
     #868, fix some brackets in refactoring suggestions
