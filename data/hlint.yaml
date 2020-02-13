@@ -656,8 +656,12 @@
 
     - warn: {lhs: f <$> Control.Monad.State.get, rhs: gets f}
     - warn: {lhs: fmap f  Control.Monad.State.get, rhs: gets f}
+    - warn: {lhs: f <$> Control.Monad.State.gets g, rhs: gets (f . g)}
+    - warn: {lhs: fmap f (Control.Monad.State.gets g), rhs: gets (f . g)}
     - warn: {lhs: f <$> Control.Monad.Reader.ask, rhs: asks f}
     - warn: {lhs: fmap f Control.Monad.Reader.ask, rhs: asks f}
+    - warn: {lhs: f <$> Control.Monad.Reader.asks g, rhs: asks (f . g)}
+    - warn: {lhs: fmap f (Control.Monad.Reader.asks g), rhs: asks (f . g)}
     - warn: {lhs: fst (runState m s), rhs: evalState m s}
     - warn: {lhs: snd (runState m s), rhs: execState m s}
 
