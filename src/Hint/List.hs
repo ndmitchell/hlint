@@ -217,7 +217,7 @@ useList b =
     f first _ _ = Nothing
 
     g :: Char -> LHsExpr GhcPs -> (String, LHsExpr GhcPs)
-    g c p = ([c], strToVar [c])
+    g c p = let LL _ e = strToVar [c] in ([c], LL (getLoc p) e)
 
 useCons :: View' a App2' => Bool -> a -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String)
 useCons False (view' -> App2' op x y) | varToStr op == "++"
