@@ -7,6 +7,7 @@ TAGS
 /.hpc/
 /.stack-work/
 /cc/.stack-work/
+stack.yaml.lock
 /issues/
 /Sample.hs
 /hlint.prof
