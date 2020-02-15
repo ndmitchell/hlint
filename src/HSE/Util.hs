@@ -15,7 +15,7 @@ import System.FilePath
 import HSE.Type
 import Data.Functor
 import Prelude
-
+import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER
@@ -393,28 +393,11 @@ extensionImpliedBy :: Extension -> [Extension]
 extensionImpliedBy = \x -> Map.findWithDefault [] x mp
     where mp = Map.fromListWith (++) [(b, [a]) | (a,bs) <- extensionImplications, b <- bs]
 
--- | (a, bs) means extension a implies all of bs.
---   Taken from https://downloads.haskell.org/~ghc/master/users-guide/glasgow_exts.html#language-options
---   In the GHC source at DynFlags.impliedXFlags
+-- | (a, bs) means extension a implies all of bs. Uses GHC source at
+-- DynFlags.impliedXFlags
 extensionImplications :: [(Extension, [Extension])]
-extensionImplications = map (first EnableExtension) $
-    (RebindableSyntax, [DisableExtension ImplicitPrelude]) :
-    map (second (map EnableExtension))
-    [ (DerivingVia              , [DerivingStrategies])
-    , (RecordWildCards          , [DisambiguateRecordFields])
-    , (ExistentialQuantification, [ExplicitForAll])
-    , (FlexibleInstances        , [TypeSynonymInstances])
-    , (FunctionalDependencies   , [MultiParamTypeClasses])
-    , (GADTs                    , [MonoLocalBinds])
-    , (IncoherentInstances      , [OverlappingInstances])
---    Incorrect, see https://github.com/ndmitchell/hlint/issues/587
---    , (ImplicitParams           , [FlexibleContexts, FlexibleInstances])
-    , (ImpredicativeTypes       , [ExplicitForAll, RankNTypes])
-    , (LiberalTypeSynonyms      , [ExplicitForAll])
-    , (PolyKinds                , [KindSignatures])
-    , (RankNTypes               , [ExplicitForAll])
-    , (ScopedTypeVariables      , [ExplicitForAll])
-    , (TypeOperators            , [ExplicitNamespaces])
-    , (TypeFamilies             , [ExplicitNamespaces, KindSignatures, MonoLocalBinds])
-    , (TypeFamilyDependencies   , [ExplicitNamespaces, KindSignatures, MonoLocalBinds, TypeFamilies])
-    ]
+extensionImplications = map toHse GhclibParserEx.extensionImplications
+  where
+    enable ext = parseExtension (show ext)
+    disable ext = parseExtension ("No" ++ show ext)
+    toHse (e, (enables, disables)) = (enable e, map enable enables ++ map disable disables)

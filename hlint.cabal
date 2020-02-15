@@ -68,7 +68,7 @@ library
         refact >= 0.3,
         aeson >= 1.1.2.0,
         filepattern >= 0.1.1,
-        ghc-lib-parser-ex == 8.8.5.*
+        ghc-lib-parser-ex >= 8.8.5.2 && < 8.8.6
     if !flag(ghc-lib) && impl(ghc >= 8.8.0) && impl(ghc < 8.9.0)
         build-depends:
           ghc == 8.8.*,
@@ -118,7 +118,6 @@ library
         GHC.Util.HsExpr
         GHC.Util.HsType
         GHC.Util.Pat
-        GHC.Util.LanguageExtensions.Type
         GHC.Util.Module
         GHC.Util.Outputable
         GHC.Util.SrcLoc

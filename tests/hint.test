@@ -1,9 +1,7 @@
 ---------------------------------------------------------------------
 RUN tests/newtype-derive.hs --with= --hint=data/hlint.yaml
 FILE tests/newtype-derive.hs
-{-# LANGUAGE DeriveFoldable #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DeriveTraversable #-} -- Implies DeriveFoldable and DeriveFunctor
 {-# LANGUAGE DeriveDataTypeable #-}
 module Test(A) where
 
@@ -142,6 +140,18 @@ newtype A f = A f
   deriving (Foldable, Functor, Traversable, Typeable)
 OUTPUT
 OUTPUT
+tests/restricted-extension.hs:1:1: Warning: Unused LANGUAGE pragma
+Found:
+  {-# LANGUAGE DeriveFoldable #-}
+Perhaps you should remove it.
+Note: Extension DeriveFoldable is implied by DeriveTraversable
+
+tests/restricted-extension.hs:2:1: Warning: Unused LANGUAGE pragma
+Found:
+  {-# LANGUAGE DeriveFunctor #-}
+Perhaps you should remove it.
+Note: Extension DeriveFunctor is implied by DeriveTraversable
+
 tests/restricted-extension.hs:2:1: Warning: Avoid restricted extensions
 Found:
   {-# LANGUAGE DeriveFunctor #-}
@@ -152,4 +162,4 @@ Found:
   {-# LANGUAGE DeriveTraversable #-}
 Note: Custom message
 
-2 hints
+4 hints

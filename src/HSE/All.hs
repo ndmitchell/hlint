@@ -46,6 +46,7 @@ import qualified DynFlags as GHC
 
 import GHC.Util
 import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
+import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 
 -- | Convert a GHC source loc into an HSE equivalent.
 ghcSrcLocToHSE :: GHC.SrcLoc -> SrcLoc
@@ -298,10 +299,10 @@ ghcExtensionsFromParseMode ParseMode {extensions=exts}=
    partitionEithers $ mapMaybe toEither exts
    where
      toEither ke = case ke of
-       EnableExtension e  -> Left  <$> readExtension (show e)
-       DisableExtension e -> Right <$> readExtension (show e)
-       UnknownExtension ('N':'o':e) -> Right <$> readExtension e
-       UnknownExtension e -> Left <$> readExtension e
+       EnableExtension e  -> Left  <$> GhclibParserEx.readExtension (show e)
+       DisableExtension e -> Right <$> GhclibParserEx.readExtension (show e)
+       UnknownExtension ('N':'o':e) -> Right <$> GhclibParserEx.readExtension e
+       UnknownExtension e -> Left <$> GhclibParserEx.readExtension e
 
 -- GHC extensions to enable/disable given HSE parse flags.
 ghcExtensionsFromParseFlags :: ParseFlags
