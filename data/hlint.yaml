@@ -845,6 +845,16 @@
     - hint: {lhs: "[fst x, snd x]", rhs: Data.Bifoldable.biList x}
     - hint: {lhs: "\\(x, y) -> [x, y]", rhs: Data.Bifoldable.biList, note: IncreasesLaziness}
 
+# hints that use the 'extra' library
+- group:
+    name: extra
+    enabled: false
+    rules:
+    - warn: {lhs: fmap concat (forM a b), rhs: concatForM a b}
+    - warn: {lhs: concat <$> forM a b, rhs: concatForM a b}
+    - warn: {lhs: fmap concat (forM_ a b), rhs: concatForM_ a b}
+    - warn: {lhs: concat <$> forM_ a b, rhs: concatForM_ a b}
+
 - group:
     name: dollar
     enabled: false

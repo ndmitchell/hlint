@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    Add --with-group=extra to give extra library hints
     #873, add more Applicative hints
     #872, fix refactoring in hints to use lists
     #871, warn when fmapping the result of gets or asks
