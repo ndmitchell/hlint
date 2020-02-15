@@ -209,7 +209,7 @@ patHint lang strict o@(LL _ (BangPat _ pat@(LL _ x)))
     f (SigPat _ (LL _ p) _) = f p
     f _ = False
     r = Replace R.Pattern (toSS' o) [("x", toSS' pat)] "x"
-patHint False _ o@(LL _ (LazyPat _ (LL _ x)))
+patHint False _ o@(LL _ (LazyPat _ pat@(LL _ x)))
   | f x = [warn' "Redundant irrefutable pattern" o x [r]]
   where
     f :: Pat GhcPs -> Bool
@@ -218,7 +218,7 @@ patHint False _ o@(LL _ (LazyPat _ (LL _ x)))
     f WildPat{} = True
     f VarPat{} = True
     f _ = False
-    r = Replace R.Pattern (toSS' o) [("x", toSS' x)] "x"
+    r = Replace R.Pattern (toSS' o) [("x", toSS' pat)] "x"
 patHint _ _ o@(LL _ (AsPat _ v (LL _ (WildPat _)))) =
   [warn' "Redundant as-pattern" o v []]
 patHint _ _ _ = []
