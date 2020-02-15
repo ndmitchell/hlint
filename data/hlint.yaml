@@ -445,11 +445,11 @@
     - hint: {lhs: \x -> f =<< g x, rhs: f Control.Monad.<=< g}
     - warn: {lhs: a >> forever a, rhs: forever a}
     - hint: {lhs: liftM2 id, rhs: ap}
-    - warn: {lhs: liftA2 f (return x), rhs: fmap (f x), name: "Applicative law, homomorphism"}
-    - warn: {lhs: liftM2 f (pure x), rhs: fmap (f x), name: "Applicative law, homomorphism"}
-    - warn: {lhs: liftM2 f (return x), rhs: fmap (f x), name: "Applicative law, homomorphism"}
-    - warn: {lhs: fmap f (return x), rhs: return (f x), name: "Applicative law, homomorphism"}
-    - warn: {lhs: f <$> return x, rhs: return (f x), name: "Applicative law, homomorphism"}
+    - warn: {lhs: liftA2 f (return x), rhs: fmap (f x)}
+    - warn: {lhs: liftM2 f (pure x), rhs: fmap (f x)}
+    - warn: {lhs: liftM2 f (return x), rhs: fmap (f x)}
+    - warn: {lhs: fmap f (return x), rhs: return (f x)}
+    - warn: {lhs: f <$> return x, rhs: return (f x)}
     - warn: {lhs: mapM (uncurry f) (zip l m), rhs: zipWithM f l m}
     - warn: {lhs: mapM_ (void . f), rhs: mapM_ f}
     - warn: {lhs: forM_ x (void . f), rhs: forM_ x f}
@@ -489,9 +489,9 @@
     - warn: {lhs: foldr (*>) (pure ()), rhs: sequenceA_}
     - warn: {lhs: foldr (<|>) empty, rhs: asum}
     - warn: {lhs: liftA2 (flip ($)), rhs: (<**>)}
-    - warn: {lhs: liftA2 f (pure x), rhs: fmap (f x), name: "Applicative law, homomorphism"}
-    - warn: {lhs: fmap f (pure x), rhs: pure (f x), name: "Applicative law, homomorphism"}
-    - warn: {lhs: f <$> pure x, rhs: pure (f x), name: "Applicative law, homomorphism"}
+    - warn: {lhs: liftA2 f (pure x), rhs: fmap (f x)}
+    - warn: {lhs: fmap f (pure x), rhs: pure (f x)}
+    - warn: {lhs: f <$> pure x, rhs: pure (f x)}
     - warn: {lhs: Just <$> a <|> pure Nothing, rhs: optional a}
     - hint: {lhs: m >>= pure . f, rhs: f <$> m}
     - hint: {lhs: pure . f =<< m, rhs: f <$> m}
