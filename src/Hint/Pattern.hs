@@ -195,7 +195,7 @@ patHint _ _ o@(LL _ (ConPatIn name (PrefixCon args)))
 patHint _ _ o@(LL _ (VarPat _ (L _ name)))
   | occNameString (rdrNameOcc name) == "otherwise" =
     [warn' "Used otherwise as a pattern" o (noLoc (WildPat noExt) :: Pat GhcPs) []]
-patHint lang strict o@(LL _ (BangPat _ (LL _ x)))
+patHint lang strict o@(LL _ (BangPat _ pat@(LL _ x)))
   | strict, f x = [warn' "Redundant bang pattern" o x [r]]
   where
     f :: Pat GhcPs -> Bool
@@ -208,7 +208,7 @@ patHint lang strict o@(LL _ (BangPat _ (LL _ x)))
     f ListPat {} = True
     f (SigPat _ (LL _ p) _) = f p
     f _ = False
-    r = Replace R.Pattern (toSS' o) [("x", toSS' x)] "x"
+    r = Replace R.Pattern (toSS' o) [("x", toSS' pat)] "x"
 patHint False _ o@(LL _ (LazyPat _ (LL _ x)))
   | f x = [warn' "Redundant irrefutable pattern" o x [r]]
   where
