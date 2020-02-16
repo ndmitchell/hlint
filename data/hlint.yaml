@@ -854,6 +854,60 @@
     - warn: {lhs: concat <$> forM a b, rhs: concatForM a b}
     - warn: {lhs: fmap concat (forM_ a b), rhs: concatForM_ a b}
     - warn: {lhs: concat <$> forM_ a b, rhs: concatForM_ a b}
+    - warn: {lhs: Control.Arrow.(***), rhs: Data.Tuple.(***)}
+    - warn: {lhs: Control.Arrow.(&&&), rhs: Data.Tuple.(&&&)}
+    - warn: {lhs: Control.Arrow.first, rhs: Data.Tuple.first}
+    - warn: {lhs: Control.Arrow.second, rhs: Data.Tuple.second}
+    - warn: {lhs: "maybe (pure ()) b a", rhs: "whenJust a b"}
+    - warn: {lhs: "maybe (return ()) b a", rhs: "whenJust a b"}
+    - warn: {lhs: "maybe (pure ()) b =<< a", rhs: "whenJustM a b"}
+    - warn: {lhs: "maybe (return ()) b =<< a", rhs: "whenJustM a b"}
+    - warn: {lhs: "if a then Just <$> b else pure Nothing", rhs: "whenMaybe a b"}
+    - warn: {lhs: "maybe a b =<< c", rhs: "maybeM a b c"}
+    - warn: {lhs: "maybe a pure =<< b", rhs: "fromMaybeM a b"}
+    - warn: {lhs: "either a b =<< c", rhs: "eitherM a b c"}
+    - warn: {lhs: "fold1M a b >> return ()", rhs: "fold1M_ a b"}
+    - warn: {lhs: "fold1M a b >> pure ()", rhs: "fold1M_ a b"}
+    - warn: {lhs: "flip concatMapM", rhs: "concatForM"}
+    - warn: {lhs: "liftM mconcat (mapM a b)", rhs: "mconcatMapM a b"}
+    - warn: {lhs: "ifM a b (return ())", rhs: "whenM a b"}
+    - warn: {lhs: "ifM a (return ()) b", rhs: "unlessM a b"}
+    - warn: {lhs: "fmap not", rhs: "notM"}
+    - warn: {lhs: "ifM a (return True) b", rhs: "(||^) a b"}
+    - warn: {lhs: "ifM a b (return False)", rhs: "(&&^) a b"}
+    - warn: {lhs: "anyM id", rhs: "orM"}
+    - warn: {lhs: "allM id", rhs: "andM"}
+    - warn: {lhs: "either id id", rhs: "fromEither"}
+    - warn: {lhs: "either (const Nothing) Just", rhs: "eitherToMaybe"}
+    - warn: {lhs: "either (Left . a) Right", rhs: "mapLeft a"}
+    - warn: {lhs: "atomicModifyIORef a (\\ v -> (b v, ()))", rhs: "atomicModifyIORef_ a b"}
+    - warn: {lhs: "atomicModifyIORef' a (\\ v -> (b v, ()))", rhs: "atomicModifyIORef'_ a b"}
+    - warn: {lhs: "null (intersect a b)", rhs: "disjoint a b"}
+    - warn: {lhs: "not (null a)", rhs: "notNull a"}
+    - warn: {lhs: "a ++ [b]", rhs: "snoc a b"}
+    - warn: {lhs: "[minBound .. maxBound]", rhs: "enumerate"}
+    - warn: {lhs: "zipWithFrom (,)", rhs: "zipFrom"}
+    - warn: {lhs: "dropWhile isSpace", rhs: "trimStart"}
+    - warn: {lhs: "dropWhileEnd isSpace", rhs: "trimEnd"}
+    - warn: {lhs: "trimEnd (trimStart a)", rhs: "trim a"}
+    - warn: {lhs: "map toLower", rhs: "lower"}
+    - warn: {lhs: "map toUpper", rhs: "upper"}
+    - warn: {lhs: "mergeBy compare", rhs: "merge"}
+    - warn: {lhs: "breakEnd (not . a)", rhs: "spanEnd a"}
+    - warn: {lhs: "spanEnd (not . a)", rhs: "breakEnd a"}
+    - warn: {lhs: "mconcat (map a b)", rhs: "mconcatMap a b"}
+    - warn: {lhs: "fromMaybe b (stripPrefix a b)", rhs: "dropPrefix a b"}
+    - warn: {lhs: "fromMaybe b (stripSuffix a b)", rhs: "dropSuffix a b"}
+    - warn: {lhs: "nubSortBy compare", rhs: "nubSort"}
+    - warn: {lhs: "nubSortBy (compare `on` a)", rhs: "nubSortOn a"}
+    - warn: {lhs: "nubOrdBy compare", rhs: "nubOrd"}
+    - warn: {lhs: "\\a -> (a, a)", rhs: "dupe"}
+    - warn: {lhs: "showFFloat (Just a) b \"\"", rhs: "showDP a b"}
+    - warn: {lhs: "readFileEncoding utf8", rhs: "readFileUTF8"}
+    - warn: {lhs: "withFile a ReadMode hGetContents'", rhs: "readFile' a"}
+    - warn: {lhs: "readFileEncoding' utf8", rhs: "readFileUTF8'"}
+    - warn: {lhs: "withBinaryFile a ReadMode hGetContents'", rhs: "readFileBinary' a"}
+    - warn: {lhs: "writeFileEncoding utf8", rhs: "writeFileUTF8"}
 
 - group:
     name: dollar
