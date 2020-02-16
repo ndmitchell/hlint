@@ -1,5 +1,4 @@
 
-import Control.Exception.Extra
 import System.Time.Extra
 import System.Process.Extra
 
