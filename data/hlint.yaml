@@ -872,7 +872,6 @@
     - warn: {lhs: "liftM mconcat (mapM a b)", rhs: "mconcatMapM a b"}
     - warn: {lhs: "ifM a b (return ())", rhs: "whenM a b"}
     - warn: {lhs: "ifM a (return ()) b", rhs: "unlessM a b"}
-    - warn: {lhs: "fmap not", rhs: "notM"}
     - warn: {lhs: "ifM a (return True) b", rhs: "(||^) a b"}
     - warn: {lhs: "ifM a b (return False)", rhs: "(&&^) a b"}
     - warn: {lhs: "anyM id", rhs: "orM"}
@@ -883,8 +882,6 @@
     - warn: {lhs: "atomicModifyIORef a (\\ v -> (b v, ()))", rhs: "atomicModifyIORef_ a b"}
     - warn: {lhs: "atomicModifyIORef' a (\\ v -> (b v, ()))", rhs: "atomicModifyIORef'_ a b"}
     - warn: {lhs: "null (intersect a b)", rhs: "disjoint a b"}
-    - warn: {lhs: "not (null a)", rhs: "notNull a"}
-    - warn: {lhs: "a ++ [b]", rhs: "snoc a b"}
     - warn: {lhs: "[minBound .. maxBound]", rhs: "enumerate"}
     - warn: {lhs: "zipWithFrom (,)", rhs: "zipFrom"}
     - warn: {lhs: "dropWhile isSpace", rhs: "trimStart"}
