@@ -39,8 +39,8 @@ folder f a xs = foldM f a xs >> return () -- foldM_ f a xs
 folder f a xs = foldM f a xs >>= \_ -> return () -- foldM_ f a xs
 yes = mapM async ds >>= mapM wait >> return () -- mapM async ds >>= mapM_ wait
 main = "wait" ~> do f a $ sleep 10
-main = print do 17 + 25
-main = print do 17 -- 17
+main = print do 17 + 25  @NoRefactor: needs -XBlockArguments which isn't available before GHC 8.6
+main = print do 17 -- 17 @NoRefactor
 main = f $ do g a $ sleep 10 -- g a $ sleep 10
 main = do f a $ sleep 10 -- f a $ sleep 10
 main = do foo x; return 3; bar z -- do foo x; bar z

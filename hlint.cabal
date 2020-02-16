@@ -78,6 +78,11 @@ library
         build-depends:
           ghc-lib-parser == 8.8.*
 
+    -- apply-refact does not yet support GHC 8.10
+    if impl(ghc < 8.9.0)
+        build-depends:
+          apply-refact >= 0.5
+
     if flag(gpl)
         build-depends: hscolour >= 1.21
     else

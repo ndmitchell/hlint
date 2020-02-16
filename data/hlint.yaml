@@ -920,9 +920,9 @@
 # yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True \
 #     -- if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
 # yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
-#     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff
+#     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff @NoRefactor: hlint bug
 # yes = if foo then stuff else return () -- Control.Monad.when foo stuff
-# yes = foo $ \(a, b) -> (a, y + b) -- Data.Bifunctor.second ((+) y)
+# yes = foo $ \(a, b) -> (a, y + b) -- Data.Bifunctor.second ((+) y) @NoRefactor: hlint bug, subts = []
 # no  = foo $ \(a, b) -> (a, a + b)
 # yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (curry (uncurry (+))) [1 .. 5] [6 .. 10]
 # yes = curry (uncurry (+)) -- (+)
@@ -950,7 +950,7 @@
 # yes = case x z of Nothing -> y; Just pat -> pat -- Data.Maybe.fromMaybe y (x z)
 # yes = if p then s else return () -- Control.Monad.when p s
 # warn = a $$$$ b $$$$ c ==> a . b $$$$$ c
-# yes = when (not . null $ asdf) -- unless (null asdf)
+# yes = when (not . null $ asdf) -- unless (null asdf) @NoRefactor: hlint bug, subts = []
 # yes = id 1 -- 1
 # yes = case concat (map f x) of [] -> [] -- concatMap f x
 # yes = [v | v <- xs] -- xs
@@ -983,7 +983,7 @@
 # main = let (first, rest) = (take n l, drop n l) in rest -- splitAt n l
 # main = fst (splitAt n l) -- take n l
 # main = snd $ splitAt n l -- drop n l
-# main = map $ \ d -> ([| $d |], [| $d |])
+# {-# LANGUAGE TemplateHaskell #-}; main = map $ \ d -> ([| $d |], [| $d |])
 # pairs (x:xs) = map (x,) xs ++ pairs xs
 # {-# ANN foo "HLint: ignore" #-};foo = map f (map g x) -- @Ignore ???
 # {-# HLINT ignore foo #-};foo = map f (map g x) -- @Ignore ???
@@ -1030,7 +1030,7 @@
 # no = sequence (return x)
 # no = sequenceA (pure a)
 # {-# LANGUAGE QuasiQuotes #-}; no = f (\url -> [hamlet|foo @{url}|])
-# yes = f ((,) x) -- (x,)
+# yes = f ((,) x) -- (x,) @NoRefactor: hlint bug
 # instance Class X where method = map f (map g x) -- map (f . g) x
 # instance Eq X where x == y = compare x y == EQ
 
@@ -1045,7 +1045,8 @@
 # import qualified Control.Monad \
 # yes = flip mapM -- Control.Monad.forM
 # import qualified Control.Monad as CM \
-# yes = flip mapM -- CM.forM
+# yes = flip mapM -- CM.forM @NoRefactor hlint bug: expected CM.forM, actual Control.Monad.forM
+# @NoRefactor hlint bug: expected CM.forM, actual Control.Monad.forM \
 # import qualified Control.Monad as CM(forM,filterM) \
 # yes = flip mapM -- CM.forM
 # import Control.Monad as CM(forM,filterM) \
@@ -1060,13 +1061,14 @@
 # main = A.id (stringValue id')
 # import Prelude((==)) \
 # import qualified Prelude as P \
-# main = P.length xs == 0 -- P.null xs
+# main = P.length xs == 0 -- P.null xs @NoRefactor hlint bug: null xs (missing "P.")
 # main = hello .~ Just 12 -- hello ?~ 12
 # foo = liftIO $ window `on` deleteEvent $ do a; b
 # no = sort <$> f input `shouldBe` sort <$> x
 # sortBy (comparing length) -- sortOn length
 # myJoin = on $ child ^. ChildParentId ==. parent ^. ParentId
+# @NoRefactor hlint bug: foo = typeRep (Proxy :: Proxy Foo Int) (missing brackets) \
 # foo = typeOf (undefined :: Foo Int) -- typeRep (Proxy :: Proxy (Foo Int))
-# foo = typeOf (undefined :: a) -- typeRep (Proxy :: Proxy a)
+# foo = typeOf (undefined :: a) -- typeRep (Proxy :: Proxy a) @NoRefactor hlint bug: incorrect serialisation
 # {-# RULES "Id-fmap-id" forall (x :: Id a). fmap id x = x #-}
 # </TEST>

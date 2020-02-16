@@ -3,10 +3,10 @@
 
 <TEST>
 main = 1
-module Foo where foo = 1 -- module Foo(module Foo) where
+module Foo where foo = 1 -- module Foo(module Foo) where @NoRefactor
 module Foo(foo) where foo = 1
-module Foo(module Foo) where foo = 1 -- @Ignore module Foo(...) where
-module Foo(module Foo, foo) where foo = 1 -- module Foo(..., foo) where
+module Foo(module Foo) where foo = 1 -- @Ignore module Foo(...) where @NoRefactor
+module Foo(module Foo, foo) where foo = 1 -- module Foo(..., foo) where @NoRefactor
 </TEST>
 -}
 {-# LANGUAGE TypeFamilies #-}

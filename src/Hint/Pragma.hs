@@ -14,12 +14,12 @@
 {-# OPTIONS     -cpp #-} -- {-# LANGUAGE CPP #-}
 {-# OPTIONS_YHC -cpp #-}
 {-# OPTIONS_GHC -XFoo #-} -- {-# LANGUAGE Foo #-}
-{-# OPTIONS_GHC -fglasgow-exts #-} -- ???
+{-# OPTIONS_GHC -fglasgow-exts #-} -- ??? @NoRefactor
 {-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields, RebindableSyntax #-} -- {-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields #-}
 {-# LANGUAGE RebindableSyntax #-}
-{-# OPTIONS_GHC -cpp -foo #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -foo #-}
+{-# OPTIONS_GHC -cpp -w #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -w #-} @NoRefactor: the two pragmas are switched in the refactoring output
 {-# OPTIONS_GHC -cpp #-} \
-{-# LANGUAGE CPP, Text #-} --
+{-# LANGUAGE CPP, Text #-} -- @NoRefactor
 {-# LANGUAGE RebindableSyntax #-} \
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE RebindableSyntax #-} \

@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE CPP, PatternGuards, RecordWildCards, ViewPatterns #-}
 
 -- | Check the <TEST> annotations within source and hint files.
 module Test.Annotations(testAnnotations) where
@@ -11,6 +11,7 @@ import Data.List.Extra
 import Data.Maybe
 import Control.Monad
 import System.FilePath
+import System.IO.Extra
 import Control.Monad.IO.Class
 import Data.Function
 import Data.Yaml
@@ -25,18 +26,23 @@ import Data.Functor
 import Prelude
 import Config.Yaml
 
+#if __GLASGOW_HASKELL__ < 810
+import qualified Refact.Apply as R
+#endif
 
 -- Input, Output
 -- Output = Nothing, should not match
 -- Output = Just xs, should match xs
-data TestCase = TestCase SrcLoc String (Maybe String) [Setting] deriving (Show)
+data TestCase = TestCase SrcLoc Refactor String (Maybe String) [Setting] deriving (Show)
+
+data Refactor = TestRefactor | SkipRefactor deriving (Eq, Show)
 
 testAnnotations :: [Setting] -> FilePath -> Test ()
 testAnnotations setting file = do
     tests <- liftIO $ parseTestFile file
     mapM_ f tests
     where
-        f (TestCase loc inp out additionalSettings) = do
+        f (TestCase loc refact inp out additionalSettings) = do
             ideas <- liftIO $ try_ $ do
                 res <- applyHintFile defaultParseFlags (setting ++ additionalSettings) file $ Just inp
                 evaluate $ length $ show res
@@ -65,7 +71,47 @@ testAnnotations setting file = do
                         ,"INPUT: " ++ inp
                         ,"OUTPUT: " ++ show i]
                         | i@Idea{..} <- fromRight [] ideas, let SrcLoc{..} = getPointLoc ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
-            if null bad then passed else sequence_ bad
+
+#if __GLASGOW_HASKELL__ < 810
+            let -- Returns an empty list if the refactoring test passes, otherwise
+                -- returns error messages.
+                testRefactor :: Maybe Idea -> IO [String]
+                testRefactor midea = withTempFile $ \temp -> do
+                  writeFile temp inp
+                  let refacts = map (show &&& ideaRefactoring) (maybeToList midea)
+                      -- Ignores spaces and semicolons since apply-refact may change them.
+                      process = filter (\c -> not (isSpace c) && c /= ';')
+                      matched expected g actual = process expected `g` process actual
+                  res <- R.applyRefactorings Nothing refacts temp >>= try_ . evaluate
+                  pure $ case res of
+                    Left err -> ["Refactoring failed: " ++ show err]
+                    Right refactored ->
+                      case fmap ideaTo midea of
+                        -- No hints. Refactoring should be a no-op.
+                        Nothing | not (matched inp (==) refactored) ->
+                          ["Expected refactor output: " ++ inp, "Actual: " ++ refactored]
+                        -- The hint has a suggested replacement. The suggested replacement
+                        -- should be a substring of the refactoring output.
+                        Just (Just to) | not (matched to isInfixOf refactored) ->
+                          ["Refactor output is expected to contain: " ++ to, "Actual: " ++ refactored]
+                        _ -> []
+
+            let skipRefactor = notNull bad || refact == SkipRefactor
+            badRefactor <- liftIO $ if skipRefactor then pure [] else do
+              refactorErr <- case ideas of
+                Right [] -> testRefactor Nothing
+                Right [idea] -> testRefactor (Just idea)
+                _ -> pure []
+              pure $ [failed $
+                         ["TEST FAILURE (BAD REFACTORING)"
+                         ,"SRC: " ++ showSrcLoc loc
+                         ,"INPUT: " ++ inp] ++ refactorErr
+                         | notNull refactorErr]
+#else
+            let badRefactor = []
+#endif
+
+            if null bad && null badRefactor then passed else sequence_ (bad ++ badRefactor)
 
         match "???" _ = True
         match (word1 -> ("@Message",msg)) i = ideaHint i == msg
@@ -81,7 +127,7 @@ testAnnotations setting file = do
 parseTestFile :: FilePath -> IO [TestCase]
 parseTestFile file =
     -- we remove all leading # symbols since Yaml only lets us do comments that way
-    f Nothing . zip [1..] . map (\x -> fromMaybe x $ stripPrefix "# " x) . lines <$> readFile file
+    f Nothing TestRefactor . zip [1..] . map (\x -> fromMaybe x $ stripPrefix "# " x) . lines <$> readFile file
     where
         open :: String -> Maybe [Setting]
         open line
@@ -96,18 +142,20 @@ parseTestFile file =
         shut :: String -> Bool
         shut = isPrefixOf "</TEST>"
 
-        f :: Maybe [Setting] -> [(Int, String)] -> [TestCase]
-        f Nothing ((i,x):xs) = f (open x) xs
-        f (Just s)  ((i,x):xs)
-            | shut x = f Nothing xs
-            | null x || "-- " `isPrefixOf` x = f (Just s) xs
-            | "\\" `isSuffixOf` x, (_,y):ys <- xs = f (Just s) $ (i,init x++"\n"++y):ys
-            | otherwise = parseTest file i x s : f (Just s) xs
-        f _ [] = []
+        f :: Maybe [Setting] -> Refactor -> [(Int, String)] -> [TestCase]
+        f Nothing _ ((i,x):xs) = f (open x) TestRefactor xs
+        f (Just s) refact ((i,x):xs)
+            | shut x = f Nothing TestRefactor xs
+            | Just (x',_) <- stripInfix "@NoRefactor" x =
+                f (Just s) SkipRefactor ((i, trimEnd x' ++ ['\\' | "\\" `isSuffixOf` x]) : xs)
+            | null x || "-- " `isPrefixOf` x = f (Just s) refact xs
+            | "\\" `isSuffixOf` x, (_,y):ys <- xs = f (Just s) refact $ (i,init x++"\n"++y):ys
+            | otherwise = parseTest refact file i x s : f (Just s) TestRefactor xs
+        f _ _ [] = []
 
 
-parseTest :: String -> Int -> String -> [Setting] -> TestCase
-parseTest file i x = uncurry (TestCase (SrcLoc file i 0)) $ f x
+parseTest :: Refactor -> String -> Int -> String -> [Setting] -> TestCase
+parseTest refact file i x = uncurry (TestCase (SrcLoc file i 0) refact) $ f x
     where
         f x | Just x <- stripPrefix "<COMMENT>" x = first ("--"++) $ f x
         f (' ':'-':'-':xs) | null xs || " " `isPrefixOf` xs = ("", Just $ dropWhile isSpace xs)

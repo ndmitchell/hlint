@@ -13,7 +13,7 @@ yes = [x] ++ xs -- x : xs
 no = "x" ++ xs
 no = [x] ++ xs ++ ys
 no = xs ++ [x] ++ ys
-yes = [if a then b else c] ++ xs -- (if a then b else c) : xs
+yes = [if a then b else c] ++ xs -- (if a then b else c) : xs @NoRefactor: hlint bug, missing brackets in refactoring template
 yes = [1] : [2] : [3] : [4] : [5] : [] -- [[1], [2], [3], [4], [5]]
 yes = if x == e then l2 ++ xs else [x] ++ check_elem xs -- x : check_elem xs
 data Yes = Yes (Maybe [Char]) -- Maybe String
