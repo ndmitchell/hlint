@@ -860,11 +860,12 @@
     - warn: {lhs: Control.Arrow.second, rhs: Data.Tuple.second}
     - warn: {lhs: "maybe (pure ()) b a", rhs: "whenJust a b"}
     - warn: {lhs: "maybe (return ()) b a", rhs: "whenJust a b"}
-    - warn: {lhs: "maybe (pure ()) b =<< a", rhs: "whenJustM a b"}
-    - warn: {lhs: "maybe (return ()) b =<< a", rhs: "whenJustM a b"}
+    - warn: {lhs: "maybeM (pure ()) b a", rhs: "whenJustM a b"}
+    - warn: {lhs: "maybeM (return ()) b a", rhs: "whenJustM a b"}
     - warn: {lhs: "if a then Just <$> b else pure Nothing", rhs: "whenMaybe a b"}
     - warn: {lhs: "maybe a b =<< c", rhs: "maybeM a b c"}
-    - warn: {lhs: "maybe a pure =<< b", rhs: "fromMaybeM a b"}
+    - warn: {lhs: "maybeM a pure x", rhs: "fromMaybeM a b"}
+    - warn: {lhs: "maybeM a return x", rhs: "fromMaybeM a b"}
     - warn: {lhs: "either a b =<< c", rhs: "eitherM a b c"}
     - warn: {lhs: "fold1M a b >> return ()", rhs: "fold1M_ a b"}
     - warn: {lhs: "fold1M a b >> pure ()", rhs: "fold1M_ a b"}
@@ -905,6 +906,10 @@
     - warn: {lhs: "readFileEncoding' utf8", rhs: "readFileUTF8'"}
     - warn: {lhs: "withBinaryFile a ReadMode hGetContents'", rhs: "readFileBinary' a"}
     - warn: {lhs: "writeFileEncoding utf8", rhs: "writeFileUTF8"}
+    - warn: {lhs: "head $ x ++ [y]", rhs: "headDef y x"}
+    - warn: {lhs: "last $ x : y", rhs: "lastDef x y"}
+    - warn: {lhs: "drop 1", rhs: "drop1"}
+    - warn: {lhs: "dropEnd 1", rhs: "dropEnd1"}
 
 - group:
     name: dollar
