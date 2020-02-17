@@ -1,15 +1,16 @@
-{-# LANGUAGE CPP, PatternGuards, RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE PatternGuards, RecordWildCards, ViewPatterns #-}
 
 -- | Check the <TEST> annotations within source and hint files.
 module Test.Annotations(testAnnotations) where
 
 import Control.Exception.Extra
+import Control.Monad
 import Data.Tuple.Extra
 import Data.Char
 import Data.Either.Extra
 import Data.List.Extra
 import Data.Maybe
-import Control.Monad
+import System.Exit
 import System.FilePath
 import System.IO.Extra
 import Control.Monad.IO.Class
@@ -20,15 +21,13 @@ import qualified Data.ByteString.Char8 as BS
 import Config.Type
 import Idea
 import Apply
+import Refact
 import HSE.All
 import Test.Util
 import Data.Functor
 import Prelude
 import Config.Yaml
 
-#if __GLASGOW_HASKELL__ < 810
-import qualified Refact.Apply as R
-#endif
 
 -- Input, Output
 -- Output = Nothing, should not match
@@ -37,8 +36,8 @@ data TestCase = TestCase SrcLoc Refactor String (Maybe String) [Setting] derivin
 
 data Refactor = TestRefactor | SkipRefactor deriving (Eq, Show)
 
-testAnnotations :: [Setting] -> FilePath -> Test ()
-testAnnotations setting file = do
+testAnnotations :: [Setting] -> FilePath -> Maybe FilePath -> Test ()
+testAnnotations setting file rpath = do
     tests <- liftIO $ parseTestFile file
     mapM_ f tests
     where
@@ -72,44 +71,17 @@ testAnnotations setting file = do
                         ,"OUTPUT: " ++ show i]
                         | i@Idea{..} <- fromRight [] ideas, let SrcLoc{..} = getPointLoc ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
 
-#if __GLASGOW_HASKELL__ < 810
-            let -- Returns an empty list if the refactoring test passes, otherwise
-                -- returns error messages.
-                testRefactor :: Maybe Idea -> IO [String]
-                testRefactor midea = withTempFile $ \temp -> do
-                  writeFile temp inp
-                  let refacts = map (show &&& ideaRefactoring) (maybeToList midea)
-                      -- Ignores spaces and semicolons since apply-refact may change them.
-                      process = filter (\c -> not (isSpace c) && c /= ';')
-                      matched expected g actual = process expected `g` process actual
-                  res <- R.applyRefactorings Nothing refacts temp >>= try_ . evaluate
-                  pure $ case res of
-                    Left err -> ["Refactoring failed: " ++ show err]
-                    Right refactored ->
-                      case fmap ideaTo midea of
-                        -- No hints. Refactoring should be a no-op.
-                        Nothing | not (matched inp (==) refactored) ->
-                          ["Expected refactor output: " ++ inp, "Actual: " ++ refactored]
-                        -- The hint has a suggested replacement. The suggested replacement
-                        -- should be a substring of the refactoring output.
-                        Just (Just to) | not (matched to isInfixOf refactored) ->
-                          ["Refactor output is expected to contain: " ++ to, "Actual: " ++ refactored]
-                        _ -> []
-
             let skipRefactor = notNull bad || refact == SkipRefactor
-            badRefactor <- liftIO $ if skipRefactor then pure [] else do
-              refactorErr <- case ideas of
-                Right [] -> testRefactor Nothing
-                Right [idea] -> testRefactor (Just idea)
-                _ -> pure []
-              pure $ [failed $
-                         ["TEST FAILURE (BAD REFACTORING)"
-                         ,"SRC: " ++ showSrcLoc loc
-                         ,"INPUT: " ++ inp] ++ refactorErr
-                         | notNull refactorErr]
-#else
-            let badRefactor = []
-#endif
+            badRefactor <- if skipRefactor then pure [] else liftIO $ do
+                refactorErr <- case ideas of
+                    Right [] -> testRefactor rpath Nothing inp
+                    Right [idea] -> testRefactor rpath (Just idea) inp
+                    _ -> pure []
+                pure $ [failed $
+                           ["TEST FAILURE (BAD REFACTORING)"
+                           ,"SRC: " ++ showSrcLoc loc
+                           ,"INPUT: " ++ inp] ++ refactorErr
+                           | notNull refactorErr]
 
             if null bad && null badRefactor then passed else sequence_ (bad ++ badRefactor)
 
@@ -161,3 +133,29 @@ parseTest refact file i x = uncurry (TestCase (SrcLoc file i 0) refact) $ f x
         f (' ':'-':'-':xs) | null xs || " " `isPrefixOf` xs = ("", Just $ dropWhile isSpace xs)
         f (x:xs) = first (x:) $ f xs
         f [] = ([], Nothing)
+
+
+-- Returns an empty list if the refactoring test passes, otherwise
+-- returns error messages.
+testRefactor :: Maybe FilePath -> Maybe Idea -> String -> IO [String]
+testRefactor Nothing _ _ = pure []
+testRefactor (Just rpath) midea inp = withTempFile $ \tempInp -> withTempFile $ \tempHints -> do
+    let refacts = map (show &&& ideaRefactoring) (maybeToList midea)
+        -- Ignores spaces and semicolons since apply-refact may change them.
+        process = filter (\c -> not (isSpace c) && c /= ';')
+        matched expected g actual = process expected `g` process actual
+    writeFile tempInp inp
+    writeFile tempHints (show refacts)
+    exitCode <- runRefactoring rpath tempInp tempHints "--inplace"
+    refactored <- readFile tempInp
+    pure $ case exitCode of
+        ExitFailure ec -> ["Refactoring failed: exit code " ++ show ec]
+        ExitSuccess -> case fmap ideaTo midea of
+            -- No hints. Refactoring should be a no-op.
+            Nothing | not (matched inp (==) refactored) ->
+                ["Expected refactor output: " ++ inp, "Actual: " ++ refactored]
+            -- The hint has a suggested replacement. The suggested replacement
+            -- should be a substring of the refactoring output.
+            Just (Just to) | not (matched to isInfixOf refactored) ->
+                ["Refactor output is expected to contain: " ++ to, "Actual: " ++ refactored]
+            _ -> []

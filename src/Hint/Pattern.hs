@@ -26,6 +26,7 @@ foo = case v of v -> x -- x
 foo = case v of z -> z
 foo = case v of _ | False -> x
 foo x | x < -2 * 3 = 4 @NoRefactor: ghc-exactprint bug; -2 becomes 2.
+foo = case v of !True -> x -- True @NoRefactor: apply-refact requires BangPatterns pragma
 {-# LANGUAGE BangPatterns #-}; foo = case v of !True -> x -- True
 {-# LANGUAGE BangPatterns #-}; foo = case v of !(Just x) -> x -- (Just x)
 {-# LANGUAGE BangPatterns #-}; foo = case v of !(x : xs) -> x -- (x:xs)

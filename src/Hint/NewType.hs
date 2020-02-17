@@ -10,7 +10,8 @@ data Foo = Foo Int deriving (Show, Eq) -- newtype Foo = Foo Int deriving (Show, 
 data Foo = Foo { field :: Int } deriving Show -- newtype Foo = Foo { field :: Int } deriving Show @NoRefactor
 data Foo a b = Foo a -- newtype Foo a b = Foo a @NoRefactor
 data Foo = Foo { field1, field2 :: Int}
-{-# LANGUAGE ExistentialQuantification #-}; data S a = forall b . Show b => S b
+data S a = forall b . Show b => S b @NoRefactor: apply-refact 0.6 requires RankNTypes pragma
+{-# LANGUAGE RankNTypes #-}; data S a = forall b . Show b => S b
 {-# LANGUAGE RankNTypes #-}; data Foo = Foo (forall a. a) -- newtype Foo = Foo (forall a. a) @NoRefactor
 data Color a = Red a | Green a | Blue a
 data Pair a b = Pair a b

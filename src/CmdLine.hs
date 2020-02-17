@@ -147,6 +147,7 @@ data Cmd
         ,cmdTempDir :: FilePath          -- ^ temporary directory to put the files in
         ,cmdQuickCheck :: Bool
         ,cmdTypeCheck :: Bool
+        ,cmdWithRefactor :: FilePath
         }
     | CmdHSE
         {cmdFiles :: [FilePath]

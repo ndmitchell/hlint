@@ -983,6 +983,7 @@
 # main = let (first, rest) = (take n l, drop n l) in rest -- splitAt n l
 # main = fst (splitAt n l) -- take n l
 # main = snd $ splitAt n l -- drop n l
+# main = map $ \ d -> ([| $d |], [| $d |]) @NoRefactor: apply-refact requires TemplateHaskell pragma
 # {-# LANGUAGE TemplateHaskell #-}; main = map $ \ d -> ([| $d |], [| $d |])
 # pairs (x:xs) = map (x,) xs ++ pairs xs
 # {-# ANN foo "HLint: ignore" #-};foo = map f (map g x) -- @Ignore ???
