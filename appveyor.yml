@@ -3,6 +3,7 @@ cache: "c:\\sr -> appveyor.yml"
 
 test_script:
 - set HLINT_ARGUMENTS=src
+- set HASKELL_DEPENDENCIES=apply-refact
 - ps: Invoke-Expression (Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/neil/master/appveyor.ps1')
 # - set UNIPLATE_VERBOSE=-1 # Temporary
 - stack exec -- hlint test
