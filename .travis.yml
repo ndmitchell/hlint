@@ -10,7 +10,8 @@ matrix:
 script:
 - export HLINT_ARGUMENTS=src
 # - export UNIPLATE_VERBOSE=-1
-- export HASKELL_DEPENDENCIES=apply-refact
+# apply-refact doesn't compile with GHC head
+- "[ \"$GHCVER\" = \"head\" ] || export HASKELL_DEPENDENCIES=apply-refact"
 - curl -sSL https://raw.github.com/ndmitchell/neil/master/travis.sh | sh
 
 deploy:
