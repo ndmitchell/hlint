@@ -8,6 +8,7 @@ import System.Console.CmdArgs
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Char
+import Data.Either.Extra
 import Data.List
 import System.Directory
 import System.FilePath
@@ -17,6 +18,7 @@ import Prelude
 import Config.Type
 import Config.Read
 import CmdLine
+import Refact
 import HSE.All
 import Hint.All
 import Test.Util
@@ -28,6 +30,8 @@ import System.IO.Extra
 
 test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
 test CmdTest{..} main dataDir files = do
+    rpath <- refactorPath (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
+
     (failures, ideas) <- withBuffering stdout NoBuffering $ withTests $ do
         hasSrc <- liftIO $ doesFileExist "hlint.cabal"
         useSrc <- return $ hasSrc && null files
@@ -46,11 +50,13 @@ test CmdTest{..} main dataDir files = do
             config <- liftIO $ readFilesConfig [(".hlint.yaml",Nothing)]
             forM_ builtinHints $ \(name,_) -> do
                 progress
-                testAnnotations (Builtin name : if name == "Restrict" then config else []) $ "src/Hint" </> name <.> "hs"
+                testAnnotations (Builtin name : if name == "Restrict" then config else [])
+                                ("src/Hint" </> name <.> "hs")
+                                (eitherToMaybe rpath)
         when useSrc $ wrap "Input/outputs" $ testInputOutput main
 
         wrap "Hint names" $ mapM_ (\x -> do progress; testNames $ snd x) testFiles
-        wrap "Hint annotations" $ forM_ testFiles $ \(file,h) -> do progress; testAnnotations h file
+        wrap "Hint annotations" $ forM_ testFiles $ \(file,h) -> do progress; testAnnotations h file (eitherToMaybe rpath)
         let hs = [h | (file, h) <- testFiles, takeFileName file /= "Test.hs"]
         when cmdTypeCheck $ wrap "Hint typechecking" $
             progress >> testTypeCheck cmdDataDir cmdTempDir hs
@@ -60,6 +66,9 @@ test CmdTest{..} main dataDir files = do
         when (null files && not hasSrc) $ liftIO $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
         getIdeas
     whenLoud $ mapM_ print ideas
+    case rpath of
+        Left refactorNotFound -> putStrLn $ unlines [refactorNotFound, "Refactoring tests skipped"]
+        _ -> return ()
     return failures
 
 

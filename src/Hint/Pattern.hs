@@ -25,28 +25,30 @@ foo = case f v of _ -> x -- x
 foo = case v of v -> x -- x
 foo = case v of z -> z
 foo = case v of _ | False -> x
-foo = case v of !True -> x -- True
-foo = case v of !(Just x) -> x -- (Just x)
-foo = case v of !(x : xs) -> x -- (x:xs)
-foo = case v of !1 -> x -- 1
-foo = case v of !x -> x
-foo = case v of !(I# x) -> y -- (I# x)
+foo x | x < -2 * 3 = 4 @NoRefactor: ghc-exactprint bug; -2 becomes 2.
+foo = case v of !True -> x -- True @NoRefactor: apply-refact requires BangPatterns pragma
+{-# LANGUAGE BangPatterns #-}; foo = case v of !True -> x -- True
+{-# LANGUAGE BangPatterns #-}; foo = case v of !(Just x) -> x -- (Just x)
+{-# LANGUAGE BangPatterns #-}; foo = case v of !(x : xs) -> x -- (x:xs)
+{-# LANGUAGE BangPatterns #-}; foo = case v of !1 -> x -- 1
+{-# LANGUAGE BangPatterns #-}; foo = case v of !x -> x
+{-# LANGUAGE BangPatterns #-}; foo = case v of !(I# x) -> y -- (I# x) @NoRefactor
 foo = let ~x = 1 in y -- x
 foo = let ~(x:xs) = y in z
-foo = let !x = undefined in y
-foo = let !(I# x) = 4 in x
-foo = let !(Just x) = Nothing in 3
-foo = 1 where f !False = 2 -- False
-foo = 1 where !False = True
-foo = 1 where g (Just !True) = Nothing -- True
-foo = 1 where Just !True = Nothing
-foo otherwise = 1 -- _
+{-# LANGUAGE BangPatterns #-}; foo = let !x = undefined in y
+{-# LANGUAGE BangPatterns #-}; foo = let !(I# x) = 4 in x @NoRefactor
+{-# LANGUAGE BangPatterns #-}; foo = let !(Just x) = Nothing in 3
+{-# LANGUAGE BangPatterns #-}; foo = 1 where f !False = 2 -- False
+{-# LANGUAGE BangPatterns #-}; foo = 1 where !False = True
+{-# LANGUAGE BangPatterns #-}; foo = 1 where g (Just !True) = Nothing -- True
+{-# LANGUAGE BangPatterns #-}; foo = 1 where Just !True = Nothing
+foo otherwise = 1 -- _ @NoRefactor
 foo ~x = y -- x
 {-# LANGUAGE Strict #-} foo ~x = y
-foo !(x, y) = x -- (x, y)
-foo ![x] = x -- [x]
+{-# LANGUAGE BangPatterns #-}; foo !(x, y) = x -- (x, y)
+{-# LANGUAGE BangPatterns #-}; foo ![x] = x -- [x]
 foo !Bar { bar = x } = x -- Bar { bar = x }
-l !(() :: ()) = x -- (() :: ())
+{-# LANGUAGE BangPatterns #-}; l !(() :: ()) = x -- (() :: ())
 foo x@_ = x -- x
 foo x@Foo = x
 </TEST>

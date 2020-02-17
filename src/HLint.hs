@@ -16,11 +16,6 @@ import System.Time.Extra
 import Data.Tuple.Extra
 import Prelude
 
-import Data.Version.Extra
-import System.Process.Extra
-import Data.Maybe
-import System.Directory
-
 import CmdLine
 import Config.Read
 import Config.Type
@@ -31,6 +26,7 @@ import Apply
 import Test.All
 import Hint.All
 import Grep
+import Refact
 import Timing
 import Test.Proof
 import Parallel
@@ -227,27 +223,6 @@ handleReporting showideas cmd@CmdMain{..} = do
     unless cmdNoSummary $ do
         let n = length showideas
         outStrLn $ if n == 0 then "No hints" else show n ++ " hint" ++ ['s' | n/=1]
-
-runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
-runRefactoring rpath fin hints opts =  do
-    let args = [fin, "-v0"] ++ words opts ++ ["--refact-file", hints]
-    (_, _, _, phand) <- createProcess $ proc rpath args
-    try $ hSetBuffering stdin LineBuffering :: IO (Either IOException ())
-    hSetBuffering stdout LineBuffering
-    -- Propagate the exit code from the spawn process
-    waitForProcess phand
-
-checkRefactor :: Maybe FilePath -> IO FilePath
-checkRefactor rpath = do
-    let excPath = fromMaybe "refactor" rpath
-    mexc <- findExecutable excPath
-    case mexc of
-        Just exc ->  do
-            ver <- readVersion . tail <$> readProcess exc ["--version"] ""
-            if versionBranch ver >= [0,1,0,0]
-                then return exc
-                else error "Your version of refactor is too old, please upgrade to the latest version"
-        Nothing -> error $ unlines [ "Could not find refactor", "Tried with: " ++ excPath ]
 
 evaluateList :: [a] -> IO [a]
 evaluateList xs = do

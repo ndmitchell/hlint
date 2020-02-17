@@ -56,6 +56,7 @@ yes = white $ keysymbol -- white keysymbol
 yes = operator foo $ operator -- operator foo operator
 no = operator foo $ operator bar
 yes = return $ Record{a=b}
+no = f $ [1,2..5] -- f [1,2..5] @NoRefactor: apply-refact bug; see apply-refact #51
 
 -- $/bracket rotation tests
 yes = (b $ c d) ++ e -- b (c d) ++ e
@@ -68,7 +69,7 @@ foo = (case x of y -> z; q -> w) :: Int
 main = do a += b . c; return $ a . b
 
 -- <$> bracket tests
-yes = (foo . bar x) <$> baz q -- foo . bar x <$> baz q
+yes = (foo . bar x) <$> baz q -- foo . bar x <$> baz q @NoRefactor hlint bug: ideaRefactoring = []
 no = foo . bar x <$> baz q
 
 -- annotations

@@ -2,8 +2,17 @@ module Refact
     ( toRefactSrcSpan, toRefactSrcSpan'
     , toSS, toSS'
     , toSrcSpan'
+    , checkRefactor, refactorPath, runRefactoring
     ) where
 
+import Control.Exception
+import Control.Monad
+import Data.Maybe
+import Data.Version.Extra
+import System.Directory.Extra
+import System.Exit
+import System.IO.Extra
+import System.Process.Extra
 import qualified Refact.Types as R
 import HSE.All
 
@@ -35,3 +44,27 @@ toSrcSpan' x = case GHC.getLoc x of
 
 toSS' :: GHC.HasSrcSpan e => e -> R.SrcSpan
 toSS' = toRefactSrcSpan' . GHC.getLoc
+
+checkRefactor :: Maybe FilePath -> IO FilePath
+checkRefactor = refactorPath >=> either error pure
+
+refactorPath :: Maybe FilePath -> IO (Either String FilePath)
+refactorPath rpath = do
+    let excPath = fromMaybe "refactor" rpath
+    mexc <- findExecutable excPath
+    case mexc of
+        Just exc -> do
+            ver <- readVersion . tail <$> readProcess exc ["--version"] ""
+            pure $ if versionBranch ver >= [0,1,0,0]
+                       then Right exc
+                       else Left "Your version of refactor is too old, please upgrade to the latest version"
+        Nothing -> pure $ Left $ unlines [ "Could not find refactor", "Tried with: " ++ excPath ]
+
+runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
+runRefactoring rpath fin hints opts =  do
+    let args = [fin, "-v0"] ++ words opts ++ ["--refact-file", hints]
+    (_, _, _, phand) <- createProcess $ proc rpath args
+    try $ hSetBuffering stdin LineBuffering :: IO (Either IOException ())
+    hSetBuffering stdout LineBuffering
+    -- Propagate the exit code from the spawn process
+    waitForProcess phand

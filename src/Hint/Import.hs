@@ -28,11 +28,11 @@ import A; import B; import A -- import A
 import qualified A; import A
 import B; import A; import A -- import A
 import A hiding(Foo); import A hiding(Bar)
-import List -- import Data.List
-import qualified List -- import qualified Data.List as List
-import Char(foo) -- import Data.Char(foo)
+import List -- import Data.List @NoRefactor: apply-refact bug
+import qualified List -- import qualified Data.List as List @NoRefactor
+import Char(foo) -- import Data.Char(foo) @NoRefactor
 import IO(foo)
-import IO as X -- import System.IO as X; import System.IO.Error as X; import Control.Exception  as X (bracket,bracket_)
+import IO as X -- import System.IO as X; import System.IO.Error as X; import Control.Exception  as X (bracket,bracket_) @NoRefactor
 </TEST>
 -}
 
