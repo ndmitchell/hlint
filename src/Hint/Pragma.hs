@@ -101,7 +101,7 @@ languageDupes :: [(Located AnnotationComment, [String])] -> [Idea]
 languageDupes ( (a@(LL l _), les) : cs ) =
   (if nubOrd les /= les
        then [pragmaIdea (SingleComment a (mkLangExts l $ nubOrd les))]
-       else [pragmaIdea (MultiComment a b (mkLangExts l (nubOrd $ les ++ les'))) | ( b@(LL _ _), les' ) <- cs, not $ null $ intersect les les']
+       else [pragmaIdea (MultiComment a b (mkLangExts l (nubOrd $ les ++ les'))) | ( b@(LL _ _), les' ) <- cs, not $ disjoint les les']
   ) ++ languageDupes cs
 languageDupes _ = []
 

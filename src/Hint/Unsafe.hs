@@ -19,7 +19,7 @@ slaves = unsafePerformIO . baz $ x -- {-# NOINLINE slaves #-} ; slaves = unsafeP
 module Hint.Unsafe(unsafeHint) where
 
 import Hint.Type(DeclHint',ModuleEx(..),Severity(..),rawIdea',toSS')
-import Data.Char
+import Data.List.Extra
 import Refact.Types hiding(Match)
 import Data.Generics.Uniplate.Operations
 
@@ -48,7 +48,7 @@ unsafeHint :: DeclHint'
 unsafeHint _ (ModuleEx _ _ (L _ m) _) = \(L loc d) ->
   [rawIdea' Hint.Type.Warning "Missing NOINLINE pragma" loc
          (unsafePrettyPrint d)
-         (Just $ dropWhile isSpace (unsafePrettyPrint $ gen x) ++ "\n" ++ unsafePrettyPrint d)
+         (Just $ trimStart (unsafePrettyPrint $ gen x) ++ "\n" ++ unsafePrettyPrint d)
          [] [InsertComment (toSS' (L loc d)) (unsafePrettyPrint $ gen x)]
      -- 'x' does not declare a new function.
      | d@(ValD _

@@ -21,6 +21,7 @@ import Data.Generics.Uniplate.Data ()
 import Data.Generics.Uniplate.Operations
 import Data.Monoid
 import Data.Semigroup
+import Data.List.Extra
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Prelude
@@ -69,7 +70,7 @@ instance FreeVars' (Set OccName) where freeVars' = id
 -- ==================================
 -- We make use of `foldr`. @cocreature suggests we want bangs on `data
 -- Vars` and replace usages of `mconcat` with `foldl'`.
-instance (AllVars' a) => AllVars' [a] where  allVars' = mconcat . map allVars'
+instance (AllVars' a) => AllVars' [a] where  allVars' = mconcatMap allVars'
 instance (FreeVars' a) => FreeVars' [a] where  freeVars' = Set.unions . map freeVars'
 
 -- Construct a `Vars` value with no bound vars.
@@ -239,7 +240,7 @@ instance AllVars' (HsStmtContext RdrName) where
   allVars' _ = mempty -- Everything else (correct).
 
 instance AllVars' (GRHSs GhcPs (LHsExpr GhcPs)) where
-  allVars' (GRHSs _ grhss binds) = inVars' binds (mconcat (map allVars' grhss))
+  allVars' (GRHSs _ grhss binds) = inVars' binds (mconcatMap allVars' grhss)
 
   allVars' _ = mempty -- New ctor.
 

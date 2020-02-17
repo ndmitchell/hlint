@@ -19,7 +19,7 @@ import Test.Util
 runMains :: FilePath -> FilePath -> [String] -> Test ()
 runMains datadir tmpdir xs = do
     res <- liftIO $ (if tmpdir == "" then withTempDir else ($ tmpdir)) $ \dir -> do
-        ms <- forM (zip [1..] xs) $ \(i,x) -> do
+        ms <- forM (zipFrom 1 xs) $ \(i,x) -> do
             let m = "I" ++ show i
             writeFile (dir </> m <.> "hs") $ replace "module Main" ("module " ++ m) x
             return m
@@ -64,7 +64,7 @@ toTypeCheck hints =
     ,"main = return ()"] ++
     ["{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
      prettyPrint (PatBind an (toNamed $ "test" ++ show i) bod Nothing)
-    | (i, HintRule _ _ _ lhs rhs side _notes  _ghcScope  _ghcLhs _ghcRhs _ghcSide) <- zip [1..] hints, "noTypeCheck" `notElem` vars (maybeToList side)
+    | (i, HintRule _ _ _ lhs rhs side _notes  _ghcScope  _ghcLhs _ghcRhs _ghcSide) <- zipFrom 1 hints, "noTypeCheck" `notElem` vars (maybeToList side)
     , let vs = map toNamed $ nubOrd $ filter isUnifyVar $ vars lhs ++ vars rhs
     , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
     , let bod = UnGuardedRhs an $ if null vs then inner else Lambda an vs inner]
@@ -88,7 +88,7 @@ toQuickCheck hints =
                 Let an (BDecls an [PatBind an (toNamed "t") (UnGuardedRhs an bod) Nothing]) $
                 (toNamed "test" `app` str (fileName $ ann rhs) `app` int (startLine $ ann rhs) `app`
                  str (prettyPrint lhs ++ " ==> " ++ prettyPrint rhs)) `app` toNamed "t"
-            | (i, HintRule _ _ _ lhs rhs side note _ghcScope _ghcLhs _ghcRhs _ghcSide) <- zip [1..] hints, "noQuickCheck" `notElem` vars (maybeToList side)
+            | (i, HintRule _ _ _ lhs rhs side note _ghcScope _ghcLhs _ghcRhs _ghcSide) <- zipFrom 1 hints, "noQuickCheck" `notElem` vars (maybeToList side)
             , let vs = map (restrict side) $ nubOrd $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let op = if any isRemovesError note then "?==>" else "==>"
             , let inner = InfixApp an (Paren an lhs) (toNamed op) (Paren an rhs)

@@ -60,7 +60,7 @@ paren' x
 
 universeParentExp' :: Data a => a -> [(Maybe (Int, LHsExpr GhcPs), LHsExpr GhcPs)]
 universeParentExp' xs = concat [(Nothing, x) : f x | x <- childrenBi xs]
-    where f p = concat [(Just (i,p), c) : f c | (i,c) <- zip [0..] $ children p]
+    where f p = concat [(Just (i,p), c) : f c | (i,c) <- zipFrom 0 $ children p]
 
 
 apps' :: [LHsExpr GhcPs] -> LHsExpr GhcPs

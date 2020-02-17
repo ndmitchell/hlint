@@ -41,7 +41,7 @@ timedIO c i x = if not useTimings then x else do
     let quiet = c == "Hint"
     unless quiet $ whenLoud $ putStr $ "Performing " ++ c ++ " of " ++ i ++ "... "
     (time, x) <- duration x
-    atomicModifyIORef' timings $ \mp -> (Map.insertWith (+) (c, i) time mp, ())
+    atomicModifyIORef'_ timings $ Map.insertWith (+) (c, i) time
     unless quiet $ whenLoud $ putStrLn $ "took " ++ showDuration time
     return x
 

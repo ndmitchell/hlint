@@ -99,7 +99,7 @@ testAnnotations setting file rpath = do
 parseTestFile :: FilePath -> IO [TestCase]
 parseTestFile file =
     -- we remove all leading # symbols since Yaml only lets us do comments that way
-    f Nothing TestRefactor . zip [1..] . map (\x -> fromMaybe x $ stripPrefix "# " x) . lines <$> readFile file
+    f Nothing TestRefactor . zipFrom 1 . map (dropPrefix "# ") . lines <$> readFile file
     where
         open :: String -> Maybe [Setting]
         open line
@@ -130,7 +130,7 @@ parseTest :: Refactor -> String -> Int -> String -> [Setting] -> TestCase
 parseTest refact file i x = uncurry (TestCase (SrcLoc file i 0) refact) $ f x
     where
         f x | Just x <- stripPrefix "<COMMENT>" x = first ("--"++) $ f x
-        f (' ':'-':'-':xs) | null xs || " " `isPrefixOf` xs = ("", Just $ dropWhile isSpace xs)
+        f (' ':'-':'-':xs) | null xs || " " `isPrefixOf` xs = ("", Just $ trimStart xs)
         f (x:xs) = first (x:) $ f xs
         f [] = ([], Nothing)
 

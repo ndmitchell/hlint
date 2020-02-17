@@ -73,7 +73,7 @@ builtin x = case x of
 
 -- | A list of builtin hints, currently including entries such as @\"List\"@ and @\"Bracket\"@.
 builtinHints :: [(String, Hint)]
-builtinHints = [(drop 4 $ show h, builtin h) | h <- [minBound .. maxBound]]
+builtinHints = [(drop 4 $ show h, builtin h) | h <- enumerate]
 
 -- | Transform a list of 'HintBuiltin' or 'HintRule' into a 'Hint'.
 resolveHints :: [Either HintBuiltin HintRule] -> Hint

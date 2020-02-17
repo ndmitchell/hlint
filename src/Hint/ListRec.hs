@@ -188,7 +188,7 @@ eliminateArgs :: [String] -> LHsExpr GhcPs -> ([String], LHsExpr GhcPs)
 eliminateArgs ps cons = (remove ps, transform f cons)
   where
     args = [zs | z : zs <- map fromApps' $ universeApps' cons, astEq z recursive]
-    elim = [all (\xs -> length xs > i && view' (xs !! i) == Var_' p) args | (i, p) <- zip [0..] ps] ++ repeat False
+    elim = [all (\xs -> length xs > i && view' (xs !! i) == Var_' p) args | (i, p) <- zipFrom 0 ps] ++ repeat False
     remove = concat . zipWith (\b x -> [x | not b]) elim
 
     f (fromApps' -> x : xs) | astEq x recursive = apps' $ x : remove xs

@@ -63,7 +63,7 @@ readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats 
         names = filter (not . null) $ getNames pats bod
         names2 = ["" | null names] ++ names
 
-readSetting s x | "test" `isPrefixOf` map toLower (fromNamed x) = []
+readSetting s x | "test" `isPrefixOf` lower (fromNamed x) = []
 readSetting s (AnnPragma _ x) | Just y <- readPragma x = [SettingClassify y]
 readSetting s (PatBind an (PVar _ name) bod bind) = readSetting s $ FunBind an [Match an name [] bod bind]
 readSetting s (FunBind an xs) | length xs /= 1 = concatMap (readSetting s . FunBind an . return) xs
@@ -80,7 +80,7 @@ readPragma o = case o of
     TypeAnn _ name x -> f (fromNamed name) x
     ModuleAnn _ x -> f "" x
     where
-        f name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` map toLower s =
+        f name (Lit _ (String _ s _)) | "hlint:" `isPrefixOf` lower s =
                 case getSeverity a of
                     Nothing -> errorOn o "bad classify pragma"
                     Just severity -> Just $ Classify severity (trimStart b) "" name

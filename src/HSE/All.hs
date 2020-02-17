@@ -341,7 +341,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             Just x -> return x
             Nothing | file == "-" -> getContentsUTF8
                     | otherwise -> readFileUTF8' file
-        str <- return $ fromMaybe str $ stripPrefix "\65279" str -- remove the BOM if it exists, see #130
+        str <- return $ dropPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
         let enableDisableExts = ghcExtensionsFromParseFlags flags
             fixities = ghcFixitiesFromParseFlags flags -- Note : Fixities are coming from HSE parse flags.

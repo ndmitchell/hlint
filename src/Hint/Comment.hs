@@ -38,7 +38,7 @@ commentHint _ m = concatMap chk (ghcComments m)
                where
                  isMultiline = isCommentMultiline comm
                  s = commentText comm
-                 name = takeWhile (\x -> isAlphaNum x || x == '_') $ dropWhile isSpace s
+                 name = takeWhile (\x -> isAlphaNum x || x == '_') $ trimStart s
         chk _ = []
 
         grab :: String -> Located AnnotationComment -> String -> Idea

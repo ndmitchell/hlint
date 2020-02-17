@@ -158,14 +158,14 @@ isAppend (view' -> App2' op _ _) = varToStr op == "++"
 isAppend _ = False
 
 checks ::[(String, Bool -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String))]
-checks = let (*) = (,) in drop 1 -- see #174
+checks = let (*) = (,) in drop1 -- see #174
   [ "Use string literal" * useString
   , "Use list literal" * useList
   , "Use :" * useCons
   ]
 
 pchecks :: [(String, Pat GhcPs -> Maybe (Pat GhcPs, [(String, R.SrcSpan)], String))]
-pchecks = let (*) = (,) in drop 1 -- see #174
+pchecks = let (*) = (,) in drop1 -- see #174
     [ "Use string literal pattern" * usePString
     , "Use list literal pattern" * usePList
     ]

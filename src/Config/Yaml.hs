@@ -99,7 +99,7 @@ parseFail (Val focus path) msg = fail $
         dotDot x = let (a,b) = BS.splitAt 250 x in BS.unpack a ++ (if BS.null b then "" else "...")
 
 parseArray :: Val -> Parser [Val]
-parseArray v@(getVal -> Array xs) = concatMapM parseArray $ zipWith (\i x -> addVal (show i) x v) [0..] $ V.toList xs
+parseArray v@(getVal -> Array xs) = concatMapM parseArray $ zipWithFrom (\i x -> addVal (show i) x v) 0 $ V.toList xs
 parseArray v = return [v]
 
 parseObject :: Val -> Parser (Map.HashMap T.Text Value)

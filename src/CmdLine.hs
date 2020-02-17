@@ -10,7 +10,7 @@ module CmdLine(
 import Control.Monad.Extra
 import qualified Data.ByteString as BS
 import Data.Char
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Data.Functor
 import HSE.All(CppFlags(..))
@@ -249,7 +249,7 @@ cmdCpp cmd
         {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi cmd}
         ,includes = cmdCppInclude cmd
         ,preInclude = cmdCppFile cmd
-        ,defines = ("__HLINT__","1") : [(a,drop 1 b) | x <- cmdCppDefine cmd, let (a,b) = break (== '=') x]
+        ,defines = ("__HLINT__","1") : [(a,drop1 b) | x <- cmdCppDefine cmd, let (a,b) = break (== '=') x]
         }
     | otherwise = NoCpp
 
@@ -295,7 +295,7 @@ getFile ignore (p:ath) exts t file = do
         let avoidDir x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y))
             avoidFile x = let y = takeFileName x in "." `isPrefixOf` y || ignore x
         xs <- listFilesInside (return . not . avoidDir) $ p <\> file
-        return [x | x <- xs, drop 1 (takeExtension x) `elem` exts, not $ avoidFile x]
+        return [x | x <- xs, drop1 (takeExtension x) `elem` exts, not $ avoidFile x]
      else do
         isFil <- doesFileExist $ p <\> file
         if isFil then return [p <\> file]

@@ -27,7 +27,7 @@ testInputOutput main = do
     xs <- return $ filter ((==) ".test" . takeExtension) xs
     forM_ xs $ \file -> do
         ios <- liftIO $ parseInputOutputs <$> readFile ("tests" </> file)
-        forM_ (zip [1..] ios) $ \(i,io@InputOutput{..}) -> do
+        forM_ (zipFrom 1 ios) $ \(i,io@InputOutput{..}) -> do
             progress
             liftIO $ forM_ files $ \(name,contents) -> do
                 createDirectoryIfMissing True $ takeDirectory name

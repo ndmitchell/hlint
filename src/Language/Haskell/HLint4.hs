@@ -120,7 +120,7 @@ splitSettings :: [Setting] -> ([Fixity], [Classify], Hint)
 splitSettings xs =
     ([x | Infix x <- xs]
     ,[x | SettingClassify x <- xs]
-    ,H.resolveHints $ [Right x | SettingMatchExp x <- xs] ++ map Left [minBound..maxBound])
+    ,H.resolveHints $ [Right x | SettingMatchExp x <- xs] ++ map Left enumerate)
 
 
 -- | Given a way of classifying results, and a 'Hint', apply to a set of modules generating a list of 'Idea's.

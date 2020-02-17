@@ -92,6 +92,7 @@ module Hint.Bracket(bracketHint) where
 
 import Hint.Type(DeclHint',Idea(..),rawIdea',warn',suggest',Severity(..),toSS')
 import Data.Data
+import Data.List.Extra
 import Data.Generics.Uniplate.Operations
 import Refact.Types
 
@@ -184,7 +185,7 @@ bracket pretty isPartialAtom root = f Nothing
     g :: (HasSrcSpan a, Data a, Outputable a, Brackets' a) => a -> [Idea]
     -- Enumerate over all the immediate children of 'o' looking for
     -- redundant parentheses in each.
-    g o = concat [f (Just (i, o, gen)) x | (i, (x, gen)) <- zip [0..] $ holes o]
+    g o = concat [f (Just (i, o, gen)) x | (i, (x, gen)) <- zipFrom 0 $ holes o]
 
 bracketWarning :: (HasSrcSpan a, HasSrcSpan b, Data (SrcSpanLess b), Outputable a, Outputable b) => String -> a -> b -> Idea
 bracketWarning msg o x =
