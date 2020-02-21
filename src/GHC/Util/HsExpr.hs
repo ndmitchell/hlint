@@ -7,7 +7,7 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module GHC.Util.HsExpr (
-    dotApp', dotApps'
+    dotApp', dotApps', lambda
   , simplifyExp', niceLambda', niceLambdaR', niceDotApp'
   , Brackets'(..)
   , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'

@@ -101,8 +101,8 @@ import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 
 import qualified GHC.Util.Brackets as GHC (isAtom')
-import qualified GHC.Util.FreeVars as GHC (free', allVars', freeVars')
-import qualified GHC.Util.HsExpr as GHC (allowLeftSection, allowRightSection, niceLambdaR')
+import qualified GHC.Util.FreeVars as GHC (free', allVars', freeVars', pvars')
+import qualified GHC.Util.HsExpr as GHC (allowLeftSection, allowRightSection, niceLambdaR', lambda)
 import qualified GHC.Util.RdrName as GHC (rdrNameStr')
 import qualified GHC.Util.View as GHC
 import qualified HsSyn as GHC
@@ -110,6 +110,7 @@ import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC (isTypeApp, 
 import qualified OccName as GHC
 import qualified RdrName as GHC
 import qualified SrcLoc as GHC
+import qualified GHC.Util.Outputable as GHC
 
 --lambdaHint :: DeclHint
 --lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatMap lambdaDecl (universe x)
@@ -186,6 +187,22 @@ lambdaExp' p o@(GHC.LL _ GHC.HsLam{})
     where
         countRightSections :: GHC.LHsExpr GHC.GhcPs -> Int
         countRightSections x = length [() | GHC.LL _ (GHC.SectionR _ (GHC.view' -> GHC.Var_' _) _) <- universe x]
+lambdaExp' p o@(GHC.SimpleLambda origPats origBody)
+    | GHC.isLambda (GHC.fromParen' origBody)
+    , null (universeBi origPats :: [GHC.HsExpr GHC.GhcPs]) -- TODO: I think this checks for view patterns only, so maybe be more explicit about that?
+    , maybe True (not . GHC.isLambda) p =
+    [suggest' "Collapse lambdas" o (GHC.lambda pats body) [Replace Expr (toSS' o) subts template]]
+    where
+      (pats, body) = fromLambda' o
+
+      template = GHC.unsafePrettyPrint $ GHC.lambda (zipWith munge ['a'..'z'] pats) $ GHC.noLoc $ GHC.HsVar GHC.noExt $ GHC.noLoc $ GHC.mkRdrUnqual $ GHC.mkVarOcc "body"
+
+      munge :: Char -> GHC.LPat GHC.GhcPs -> GHC.LPat GHC.GhcPs
+      munge ident p@(GHC.LL _ (GHC.WildPat _)) = p
+      munge ident (GHC.LL ploc p) = GHC.LL ploc (GHC.VarPat GHC.noExt (GHC.LL ploc $ GHC.mkRdrUnqual $ GHC.mkVarOcc [ident]))
+
+      subts = ("body", toSS' body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' pats)
+
 lambdaExp' _ o@(GHC.SimpleLambda [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.LL _ expr)) =
 -- ^ match a lambda with a variable pattern, with no guards and no where clauses
     case expr of
@@ -279,3 +296,12 @@ fromLambda (Lambda _ ps1 (fromLambda . fromParen -> (ps2,x))) = (transformBi (f 
     where f bad x@PVar{} | prettyPrint x `elem` bad = PWildCard an
           f bad x = x
 fromLambda x = ([], x)
+
+-- Squash lambdas and replace any repeated pattern variable with _
+fromLambda' :: GHC.LHsExpr GHC.GhcPs -> ([GHC.LPat GHC.GhcPs], GHC.LHsExpr GHC.GhcPs)
+fromLambda' (GHC.SimpleLambda ps1 (fromLambda' . GHC.fromParen' -> (ps2,x))) = (transformBi (f $ GHC.pvars' ps2) ps1 ++ ps2, x)
+    where f :: [String] -> GHC.Pat GHC.GhcPs -> GHC.Pat GHC.GhcPs
+          f bad (GHC.VarPat _ (GHC.LL _ (GHC.rdrNameOcc -> x)))
+              | GHC.occNameString x `elem` bad = GHC.WildPat GHC.noExt
+          f bad x = x
+fromLambda' x = ([], x)
