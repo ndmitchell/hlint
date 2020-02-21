@@ -100,11 +100,11 @@ import Refact.Types hiding (RType(Match))
 
 import qualified GHC.Util.Brackets as GHC (isAtom')
 import qualified GHC.Util.FreeVars as GHC (free', allVars', freeVars')
-import qualified GHC.Util.HsExpr as GHC (allowLeftSection, allowRightSection)
+import qualified GHC.Util.HsExpr as GHC (allowLeftSection, allowRightSection, niceLambdaR')
 import qualified GHC.Util.RdrName as GHC (rdrNameStr')
 import qualified GHC.Util.View as GHC
 import qualified HsSyn as GHC
-import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC (isTypeApp)
+import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar)
 import qualified OccName as GHC
 import qualified RdrName as GHC
 import qualified SrcLoc as GHC
@@ -173,6 +173,17 @@ lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVa
     | GHC.allowRightSection f
     = [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.HsPar GHC.NoExt $ GHC.LL GHC.noSrcSpan $ GHC.SectionR GHC.NoExt origf y]
 -- TODO: perhaps PatternSynonyms?
+lambdaExp' p o@(GHC.LL _ GHC.HsLam{})
+    | all (not . GHC.isOpApp) p
+    , (res, refact) <- GHC.niceLambdaR' [] o
+    , not $ GHC.isLambda res
+    , not $ any GHC.isQuasiQuote $ universe res
+    , not $ "runST" `Set.member` (Set.map GHC.occNameString $ GHC.freeVars' o)
+    , let name = "Avoid lambda" ++ (if countRightSections res > countRightSections o then " using `infix`" else "")
+    = [(if GHC.isVar res then warn' else suggest') name o res (refact $ toSS' o)]
+    where
+        countRightSections :: GHC.LHsExpr GHC.GhcPs -> Int
+        countRightSections x = length [() | GHC.LL _ (GHC.SectionR _ (GHC.view' -> GHC.Var_' _) _) <- universe x]
 lambdaExp' _ o@(GHC.LL _ (GHC.HsLam _ (GHC.MG _ (GHC.LL _ [GHC.LL _ (GHC.Match _ _ [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.GRHSs _ [GHC.LL _ (GHC.GRHS _ [] (GHC.LL _ expr))] (GHC.LL _ (GHC.EmptyLocalBinds _))))]) _))) =
 -- TODO: use SimpleLambda here?
 -- ^ match a lambda with a variable pattern, with no guards and no where clauses
