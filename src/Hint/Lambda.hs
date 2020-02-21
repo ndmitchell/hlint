@@ -186,8 +186,7 @@ lambdaExp' p o@(GHC.LL _ GHC.HsLam{})
     where
         countRightSections :: GHC.LHsExpr GHC.GhcPs -> Int
         countRightSections x = length [() | GHC.LL _ (GHC.SectionR _ (GHC.view' -> GHC.Var_' _) _) <- universe x]
-lambdaExp' _ o@(GHC.LL _ (GHC.HsLam _ (GHC.MG _ (GHC.LL _ [GHC.LL _ (GHC.Match _ _ [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.GRHSs _ [GHC.LL _ (GHC.GRHS _ [] (GHC.LL _ expr))] (GHC.LL _ (GHC.EmptyLocalBinds _))))]) _))) =
--- TODO: use SimpleLambda here?
+lambdaExp' _ o@(GHC.SimpleLambda [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.LL _ expr)) =
 -- ^ match a lambda with a variable pattern, with no guards and no where clauses
     case expr of
         GHC.ExplicitTuple _ args boxity
