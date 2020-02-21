@@ -8,7 +8,7 @@
 
 module GHC.Util.HsExpr (
     dotApp', dotApps'
-  , simplifyExp', niceLambda', niceDotApp'
+  , simplifyExp', niceLambda', niceLambdaR', niceDotApp'
   , Brackets'(..)
   , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'
   , paren'
@@ -52,6 +52,10 @@ dotApps' :: [LHsExpr GhcPs] -> LHsExpr GhcPs
 dotApps' [] = error "GHC.Util.HsExpr.dotApps', does not work on an empty list"
 dotApps' [x] = x
 dotApps' (x : xs) = dotApp' x (dotApps' xs)
+
+-- | @lambda [p0, p1..pn] body@ makes @\p1 p1 .. pn -> body@
+lambda :: [Pat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
+lambda vs body = noLoc $ HsLam noExt (MG noExt (noLoc [noLoc $ Match noExt LambdaExpr vs (GRHSs noExt [noLoc $ GRHS noExt [] body] (noLoc $ EmptyLocalBinds noExt))]) Generated)
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren' :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -155,8 +159,41 @@ niceLambdaR' :: [String]
              -> LHsExpr GhcPs
              -> (LHsExpr GhcPs, R.SrcSpan
              -> [Refactoring R.SrcSpan])
+-- Rewrite @\ -> e@ as @e@
+-- These are encountered as recursive calls.
+niceLambdaR' xs (SimpleLambda [] x) = niceLambdaR' xs x
+
 -- Rewrite '\xs -> (e)' as '\xs -> e'.
 niceLambdaR' xs (LL _ (HsPar _ x)) = niceLambdaR' xs x
+
+-- \vs v -> ($) e v ==> \vs -> e
+niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
+  | isDol f
+  , v == v'
+  , vars' e `disjoint` [v]
+  = niceLambdaR' vs e
+
+-- \v -> thing + v ==> \vs -> (thing +)
+niceLambdaR' [v] (view' -> App2' f e (view' -> Var_' v'))
+  | v == v'
+  , vars' e `disjoint` [v]
+  , LL _ (HsVar _ (LL _ fname)) <- f
+  , isSymOcc $ rdrNameOcc fname = (noLoc $ HsPar noExt $ noLoc $ SectionL noExt e f, const [])
+
+-- \vs v -> f x v ==> \vs -> f x
+niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
+  | v == v'
+  , vars' e `disjoint` [v]
+  = niceLambdaR' vs $ apps' [f, e]
+
+-- \vs v -> (v `f`) ==> \vs -> f
+niceLambdaR' (unsnoc -> Just (vs, v)) (LL _ (SectionL _ (view' -> Var_' v') f))
+  | v == v' = niceLambdaR' vs f
+
+-- Strip one variable pattern from the end of a lambdas match, and place it in our list of factoring variables.
+niceLambdaR' xs (SimpleLambda ((view' -> PVar_' v):vs) x)
+  | v `notElem` xs = niceLambdaR' (xs++[v]) $ lambda vs x
+
 -- Rewrite '\x -> x + a' as '(+ a)' (heuristic: 'a' must be a single
 -- lexeme, or it all gets too complex).
 niceLambdaR' [x] (view' -> App2' op@(LL _ (HsVar _ (L _ tag))) l r)
@@ -184,6 +221,10 @@ niceLambdaR' [x,y] (LL _ (OpApp _ (view' -> Var_' x1) op@(LL _ HsVar {}) (view' 
 -- Rewrite '\x y -> f y x' as 'flip f'.
 niceLambdaR' [x, y] (view' -> App2' op (view' -> Var_' y1) (view' -> Var_' x1))
   | x == x1, y == y1, vars' op `disjoint` [x, y] = (noLoc $ HsApp noExt (strToVar "flip") op, const [])
+
+-- We're done factoring, but have no variables left, so we shouldn't make a lambda.
+-- @\ -> e@ ==> @e@
+niceLambdaR' [] e = (e, const [])
 -- Base case. Just a good old fashioned lambda.
 niceLambdaR' ss e =
   let grhs = noLoc $ GRHS noExt [] e :: LGRHS GhcPs (LHsExpr GhcPs)
