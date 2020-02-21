@@ -174,6 +174,7 @@ lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVa
     = [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.HsPar GHC.NoExt $ GHC.LL GHC.noSrcSpan $ GHC.SectionR GHC.NoExt origf y]
 -- TODO: perhaps PatternSynonyms?
 lambdaExp' _ o@(GHC.LL _ (GHC.HsLam _ (GHC.MG _ (GHC.LL _ [GHC.LL _ (GHC.Match _ _ [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.GRHSs _ [GHC.LL _ (GHC.GRHS _ [] (GHC.LL _ expr))] (GHC.LL _ (GHC.EmptyLocalBinds _))))]) _))) =
+-- TODO: use SimpleLambda here?
 -- ^ match a lambda with a variable pattern, with no guards and no where clauses
     case expr of
         GHC.ExplicitTuple _ args boxity
