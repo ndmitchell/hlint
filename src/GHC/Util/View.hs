@@ -12,6 +12,7 @@ import SrcLoc
 import RdrName
 import OccName
 import BasicTypes
+import GHC.Util.RdrName (rdrNameStr')
 
 fromParen' :: LHsExpr GhcPs -> LHsExpr GhcPs
 fromParen' (LL _ (HsPar _ x)) = fromParen' x
@@ -36,7 +37,7 @@ instance View' (LHsExpr GhcPs) LamConst1' where
   view' _ = NoLamConst1'
 
 instance View' (LHsExpr GhcPs) Var_' where
-    view' (fromParen' -> (LL _ (HsVar _ (LL _ (Unqual x))))) = Var_' $ occNameString x
+    view' (fromParen' -> (LL _ (HsVar _ (rdrNameStr' -> x)))) = Var_' x
     view' _ = NoVar_'
 
 instance View' (LHsExpr GhcPs) App2' where
