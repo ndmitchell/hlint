@@ -58,6 +58,8 @@ import HsSyn
 import OccName
 import SrcLoc
 
+import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
+import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
 import GHC.Util
 
 namingHint :: DeclHint'
@@ -74,7 +76,7 @@ naming seen originalDecl =
     where
         suggestedNames =
             [ (originalName, suggestedName)
-            | not $ isForD' originalDecl
+            | not $ isForD originalDecl
             , originalName <- nubOrd $ getNames originalDecl
             , Just suggestedName <- [suggestName originalName]
             , not $ suggestedName `Set.member` seen

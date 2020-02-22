@@ -58,7 +58,9 @@ import FastString
 import TysWiredIn
 
 import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
+import Language.Haskell.GhclibParserEx.GHC.Hs.Types
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
 listHint :: DeclHint'
@@ -127,8 +129,8 @@ moveGuardsForward = reverse . f [] . reverse
   where
     f guards (x@(L _ (BindStmt _ p _ _ _)) : xs) = reverse stop ++ x : f move xs
       where (move, stop) =
-              span (if any hasPFieldsDotDot' (universeBi x)
-                       || any isPFieldWildcard' (universeBi x)
+              span (if any hasPFieldsDotDot (universeBi x)
+                       || any isPFieldWildcard (universeBi x)
                       then const False
                       else \x -> pvars' p `disjoint` vars_ x) guards
     f guards (x@(L _ BodyStmt{}):xs) = f (x:guards) xs
@@ -171,7 +173,7 @@ pchecks = let (*) = (,) in drop1 -- see #174
     ]
 
 usePString :: Pat GhcPs -> Maybe (Pat GhcPs, [a], String)
-usePString (LL _ (ListPat _ xs)) | not $ null xs, Just s <- mapM fromPChar' xs =
+usePString (LL _ (ListPat _ xs)) | not $ null xs, Just s <- mapM fromPChar xs =
   let literal = noLoc $ LitPat noExt (HsString NoSourceText (fsLit (show s)))
   in Just (literal, [], unsafePrettyPrint literal)
 usePString _ = Nothing
@@ -187,7 +189,7 @@ usePList =
         )
   . f True ['a'..'z']
   where
-    f first _ x | patToStr' x == "[]" = if first then Nothing else Just []
+    f first _ x | patToStr x == "[]" = if first then Nothing else Just []
     f first (ident:cs) (view' -> PApp_' ":" [a, b]) = ((a, g ident a) :) <$> f False cs b
     f first _ _ = Nothing
 
@@ -258,7 +260,7 @@ stringType (LL _ x) = case x of
     f x = concatMap g $ childrenBi x
 
     g :: LHsType GhcPs -> [Idea]
-    g e@(fromTyParen' -> x) = [suggest' "Use String" x (transform f x)
+    g e@(fromTyParen -> x) = [suggest' "Use String" x (transform f x)
                               rs | not . null $ rs]
       where f x = if astEq x typeListChar then typeString else x
             rs = [Replace Type (toSS' t) [] (unsafePrettyPrint typeString) | t <- universe x, astEq t typeListChar]

@@ -75,6 +75,7 @@ import Bag
 import BasicTypes
 
 import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 
 patternHint :: DeclHint'
@@ -140,7 +141,7 @@ hints gen (Pattern l rtype pat (GRHSs _ [LL _ (GRHS _ [] bod)] bind))
     toString (Left e) = e
     toString (Right (v, _)) = strToVar v
     toString' (Left e) = e
-    toString' (Right (v, _)) = strToPat' v
+    toString' (Right (v, _)) = strToPat v
 
     template = fromMaybe "" $ ideaTo (gen "" (Pattern l rtype (map toString' patSubts) (GRHSs noExt templateGuards bind)) [])
 
@@ -189,7 +190,7 @@ asPattern _ = [] -- {-# COMPLETE LL #-}
 -- if this pattern in this context is going to be evaluated strictly.
 patHint :: Bool -> Bool -> Pat GhcPs -> [Idea]
 patHint _ _ o@(LL _ (ConPatIn name (PrefixCon args)))
-  | length args >= 3 && all isPWildCard' args =
+  | length args >= 3 && all isPWildcard args =
   let rec_fields = HsRecFields [] Nothing :: HsRecFields GhcPs (Pat GhcPs)
       new        = ConPatIn name (RecCon rec_fields) :: Pat GhcPs
   in

@@ -21,10 +21,10 @@ import Outputable hiding ((<>))
 import RdrName
 import OccName
 
+import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import GHC.Util.Outputable
 import GHC.Util.HsExpr
-import GHC.Util.Pat
 import GHC.Util.RdrName
 import GHC.Util.View
 
@@ -81,7 +81,7 @@ substitute' (Subst' bind) = transformBracketOld' exp . transformBi pat . transfo
     pat :: LPat GhcPs -> LPat GhcPs
     -- Pattern variables.
     pat (LL _ (VarPat _ x))
-      | Just y@(LL _ HsVar{}) <- lookup (rdrNameStr' x) bind = strToPat' (varToStr y)
+      | Just y@(LL _ HsVar{}) <- lookup (rdrNameStr' x) bind = strToPat (varToStr y)
     pat x = x :: LPat GhcPs
 
     typ :: LHsType GhcPs -> LHsType GhcPs
