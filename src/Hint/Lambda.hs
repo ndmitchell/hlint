@@ -172,7 +172,7 @@ lambdaExp' _ o@(GHC.LL _ (GHC.HsPar _ (GHC.LL _ (GHC.HsApp _ oper@(GHC.LL _ (GHC
     -- is allowLeftSection still relevant?
     -- what is the section refactoring stuff?
 
-lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVar _ (GHC.rdrNameStr' -> "flip"))) origf@(GHC.LL _ (GHC.HsVar _ (GHC.rdrNameStr' -> f))))) y))
+lambdaExp' _ o@(GHC.LL _ (GHC.HsPar _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVar _ (GHC.rdrNameStr' -> "flip"))) origf@(GHC.LL _ (GHC.HsVar _ (GHC.rdrNameStr' -> f))))) y))))
     | GHC.allowRightSection f
     = [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.HsPar GHC.NoExt $ GHC.LL GHC.noSrcSpan $ GHC.SectionR GHC.NoExt origf y]
 -- TODO: perhaps PatternSynonyms?
