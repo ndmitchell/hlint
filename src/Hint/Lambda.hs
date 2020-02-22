@@ -167,10 +167,6 @@ lambdaExp' _ o@(GHC.LL _ (GHC.HsPar _ (GHC.LL _ (GHC.HsApp _ oper@(GHC.LL _ (GHC
     , GHC.allowLeftSection $ GHC.occNameString f
     , not $ GHC.isTypeApp y =
       [suggestN' "Use section" o $ GHC.noLoc $ GHC.HsPar GHC.noExt $ GHC.noLoc $ GHC.SectionL GHC.NoExt y oper]
-    -- TODO:
-    -- why check if y requires no bracketing here?
-    -- is allowLeftSection still relevant?
-    -- what is the section refactoring stuff?
 
 lambdaExp' _ o@(GHC.LL _ (GHC.HsPar _ (GHC.view' -> GHC.App2' (GHC.view' -> GHC.Var_' "flip") origf@(GHC.view' -> GHC.Var_' f) y)))
     | GHC.allowRightSection f
