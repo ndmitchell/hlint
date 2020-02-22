@@ -161,7 +161,7 @@ etaReduce ps x = (ps,x)
 
 --Section refactoring is not currently implemented.
 lambdaExp' :: Maybe (GHC.LHsExpr GHC.GhcPs) -> GHC.LHsExpr GHC.GhcPs -> [Idea]
-lambdaExp' _ o@(GHC.LL _ (GHC.HsApp _ oper@(GHC.LL _ (GHC.HsVar _ (GHC.LL _ (GHC.rdrNameOcc -> f)))) y))
+lambdaExp' _ o@(GHC.LL _ (GHC.HsPar _ (GHC.LL _ (GHC.HsApp _ oper@(GHC.LL _ (GHC.HsVar _ (GHC.LL _ (GHC.rdrNameOcc -> f)))) y))))
     | GHC.isSymOcc f -- is this an operator?
     , GHC.isAtom' y
     , GHC.allowLeftSection $ GHC.occNameString f
