@@ -301,7 +301,7 @@ fromLambda x = ([], x)
 fromLambda' :: GHC.LHsExpr GHC.GhcPs -> ([GHC.LPat GHC.GhcPs], GHC.LHsExpr GHC.GhcPs)
 fromLambda' (GHC.SimpleLambda ps1 (fromLambda' . GHC.fromParen' -> (ps2,x))) = (transformBi (f $ GHC.pvars' ps2) ps1 ++ ps2, x)
     where f :: [String] -> GHC.Pat GHC.GhcPs -> GHC.Pat GHC.GhcPs
-          f bad (GHC.VarPat _ (GHC.LL _ (GHC.rdrNameOcc -> x)))
-              | GHC.occNameString x `elem` bad = GHC.WildPat GHC.noExt
+          f bad (GHC.VarPat _ (GHC.rdrNameStr' -> x))
+              | x `elem` bad = GHC.WildPat GHC.noExt
           f bad x = x
 fromLambda' x = ([], x)
