@@ -27,7 +27,6 @@ import Bag(bagToList)
 import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
-import GHC.Util.Pat
 
 import Control.Applicative
 import Control.Monad.Trans.State
@@ -40,6 +39,7 @@ import Data.Tuple.Extra
 import Refact.Types hiding (Match)
 import qualified Refact.Types as R (SrcSpan)
 
+import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
@@ -185,7 +185,7 @@ niceLambdaR' [x, y] (view' -> App2' op (view' -> Var_' y1) (view' -> Var_' x1))
 niceLambdaR' ss e =
   let grhs = noLoc $ GRHS noExt [] e :: LGRHS GhcPs (LHsExpr GhcPs)
       grhss = GRHSs {grhssExt = noExt, grhssGRHSs=[grhs], grhssLocalBinds=noLoc $ EmptyLocalBinds noExt}
-      match = noLoc $ Match {m_ext=noExt, m_ctxt=LambdaExpr, m_pats=map strToPat' ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
+      match = noLoc $ Match {m_ext=noExt, m_ctxt=LambdaExpr, m_pats=map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
       matchGroup = MG {mg_ext=noExt, mg_origin=Generated, mg_alts=noLoc [match]}
   in (noLoc $ HsLam noExt matchGroup, const [])
 

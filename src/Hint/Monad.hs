@@ -64,6 +64,7 @@ import TcEvidence
 import RdrName
 import OccName
 import Bag
+import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import GHC.Util
 
@@ -155,7 +156,7 @@ monadStep wrap o@(g@(LL _ (BindStmt _ (view' -> PVar_' p) x _ _)):q@(LL _ (BodyS
 -- Redundant variable capture. Rewrite 'do _ <- <return ()>; $1' as
 -- 'do <return ()>; $1'.
 monadStep wrap (o@(LL loc (BindStmt _ p x _ _)) : rest)
-    | isPWildCard' p, returnsUnit x
+    | isPWildcard p, returnsUnit x
     = let body = cL loc $ BodyStmt noExt x noSyntaxExpr noSyntaxExpr :: ExprLStmt GhcPs
       in [warn' "Redundant variable capture" o body []]
 
