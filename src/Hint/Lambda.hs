@@ -22,6 +22,7 @@
 <TEST>
 f a = \x -> x + x -- f a x = x + x
 f a = \a -> a + a -- f _ a = a + a
+f (Just a) = \a -> a + a -- f (Just _) a = a + a
 f a = \x -> x + x where _ = test
 f (test -> a) = \x -> x + x
 f = \x -> x + x -- f x = x + x
