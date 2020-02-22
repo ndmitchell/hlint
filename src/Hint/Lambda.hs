@@ -190,12 +190,7 @@ lambdaExp' p o@(GHC.SimpleLambda origPats origBody)
     where
       (pats, body) = fromLambda' o
 
-      template = GHC.unsafePrettyPrint $ GHC.lambda (zipWith munge ['a'..'z'] pats) $ GHC.noLoc $ GHC.HsVar GHC.noExt $ GHC.noLoc $ GHC.mkRdrUnqual $ GHC.mkVarOcc "body"
-
-      munge :: Char -> GHC.LPat GHC.GhcPs -> GHC.LPat GHC.GhcPs
-      munge ident p@(GHC.LL _ (GHC.WildPat _)) = p
-      munge ident (GHC.LL ploc p) = GHC.LL ploc (GHC.VarPat GHC.noExt (GHC.LL ploc $ GHC.mkRdrUnqual $ GHC.mkVarOcc [ident]))
-      munge _ x = x -- "{-# COMPLETE LL #-}"
+      template = GHC.unsafePrettyPrint $ GHC.lambda (zipWith munge' ['a'..'z'] pats) $ GHC.noLoc $ GHC.HsVar GHC.noExt $ GHC.noLoc $ GHC.mkRdrUnqual $ GHC.mkVarOcc "body"
 
       subts = ("body", toSS' body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' pats)
 
@@ -301,3 +296,9 @@ fromLambda' (GHC.SimpleLambda ps1 (fromLambda' . GHC.fromParen' -> (ps2,x))) = (
               | x `elem` bad = GHC.WildPat GHC.noExt
           f bad x = x
 fromLambda' x = ([], x)
+
+-- | Replaces all non-wildcard patterns with a variable pattern with the given identifier.
+munge' :: Char -> GHC.LPat GHC.GhcPs -> GHC.LPat GHC.GhcPs
+munge' ident p@(GHC.LL _ (GHC.WildPat _)) = p
+munge' ident (GHC.LL ploc p) = GHC.LL ploc (GHC.VarPat GHC.noExt (GHC.LL ploc $ GHC.mkRdrUnqual $ GHC.mkVarOcc [ident]))
+munge' _ x = x -- "{-# COMPLETE LL #-}"
