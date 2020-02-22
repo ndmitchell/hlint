@@ -174,7 +174,7 @@ lambdaExp' _ o@(GHC.LL _ (GHC.HsPar _ (GHC.LL _ (GHC.HsApp _ oper@(GHC.LL _ (GHC
 
 lambdaExp' _ o@(GHC.LL _ (GHC.HsPar _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsApp _ (GHC.LL _ (GHC.HsVar _ (GHC.rdrNameStr' -> "flip"))) origf@(GHC.LL _ (GHC.HsVar _ (GHC.rdrNameStr' -> f))))) y))))
     | GHC.allowRightSection f
-    = [suggestN' "Use section" o $ GHC.LL GHC.noSrcSpan $ GHC.HsPar GHC.NoExt $ GHC.LL GHC.noSrcSpan $ GHC.SectionR GHC.NoExt origf y]
+    = [suggestN' "Use section" o $ GHC.noLoc $ GHC.HsPar GHC.NoExt $ GHC.noLoc $ GHC.SectionR GHC.NoExt origf y]
 -- TODO: perhaps PatternSynonyms?
 lambdaExp' p o@(GHC.LL _ GHC.HsLam{})
     | all (not . GHC.isOpApp) p
@@ -212,7 +212,7 @@ lambdaExp' _ o@(GHC.SimpleLambda [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.LL 
             | ([_x], ys) <- partition ((==Just x) . tupArgVar) args
             -- ^ is there exactly one argument that is exactly x
             , Set.notMember x $ Set.map GHC.occNameString $ GHC.freeVars' ys
-            -> [(suggestN' "Use tuple-section" o $ GHC.LL GHC.noSrcSpan $ GHC.ExplicitTuple GHC.NoExt (map removeX args) boxity)
+            -> [(suggestN' "Use tuple-section" o $ GHC.noLoc $ GHC.ExplicitTuple GHC.NoExt (map removeX args) boxity)
                   {ideaNote = [RequiresExtension "TupleSections"]}]
             -- ^ the other arguments must not have a nested x somewhere in them
         GHC.HsCase _ (GHC.view' -> GHC.Var_' x') matchGroup
@@ -224,9 +224,9 @@ lambdaExp' _ o@(GHC.SimpleLambda [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.LL 
             -> case matchGroup of
                  oldMG@(GHC.MG _ (GHC.LL _ [GHC.LL _ oldmatch]) _) ->
                  -- ^ is there a single match? - suggest match inside the lambda
-                     [suggestN' "Use lambda" o $ GHC.LL GHC.noSrcSpan $ GHC.HsLam GHC.NoExt oldMG
-                         { GHC.mg_alts = GHC.LL GHC.noSrcSpan
-                             [GHC.LL GHC.noSrcSpan oldmatch
+                     [suggestN' "Use lambda" o $ GHC.noLoc $ GHC.HsLam GHC.NoExt oldMG
+                         { GHC.mg_alts = GHC.noLoc
+                             [GHC.noLoc oldmatch
                                  { GHC.m_pats = map GHC.mkParPat $ GHC.m_pats oldmatch
                                  , GHC.m_ctxt = GHC.LambdaExpr
                                  }
@@ -237,7 +237,7 @@ lambdaExp' _ o@(GHC.SimpleLambda [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.LL 
                      ]
                  GHC.MG _ (GHC.LL _ xs) _ ->
                  -- ^ otherwise we should use LambdaCase
-                     [(suggestN' "Use lambda-case" o $ GHC.LL GHC.noSrcSpan $ GHC.HsLamCase GHC.NoExt matchGroup)
+                     [(suggestN' "Use lambda-case" o $ GHC.noLoc $ GHC.HsLamCase GHC.NoExt matchGroup)
                          {ideaNote=[RequiresExtension "LambdaCase"]}]
                  _ -> []
         _ -> []
@@ -246,7 +246,7 @@ lambdaExp' _ o@(GHC.SimpleLambda [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.LL 
         -- to an missing argument, so that we get the proper section.
         removeX :: GHC.LHsTupArg GHC.GhcPs -> GHC.LHsTupArg GHC.GhcPs
         removeX arg@(GHC.LL _ (GHC.Present _ (GHC.view' -> GHC.Var_' x')))
-            | x == x' = GHC.LL GHC.noSrcSpan $ GHC.Missing GHC.NoExt
+            | x == x' = GHC.noLoc $ GHC.Missing GHC.NoExt
         removeX y = y
         -- | Extract the name of an argument of a tuple if it's present and a variable.
         tupArgVar :: GHC.LHsTupArg GHC.GhcPs -> Maybe String
