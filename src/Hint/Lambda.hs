@@ -200,6 +200,7 @@ lambdaExp' p o@(GHC.SimpleLambda origPats origBody)
       munge :: Char -> GHC.LPat GHC.GhcPs -> GHC.LPat GHC.GhcPs
       munge ident p@(GHC.LL _ (GHC.WildPat _)) = p
       munge ident (GHC.LL ploc p) = GHC.LL ploc (GHC.VarPat GHC.noExt (GHC.LL ploc $ GHC.mkRdrUnqual $ GHC.mkVarOcc [ident]))
+      munge _ x = x -- "{-# COMPLETE LL #-}"
 
       subts = ("body", toSS' body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' pats)
 
