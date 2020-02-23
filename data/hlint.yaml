@@ -443,6 +443,8 @@
     - warn: {lhs: flip (=<<), rhs: (>>=)}
     - hint: {lhs: \x -> f x >>= g, rhs: f Control.Monad.>=> g}
     - hint: {lhs: \x -> f =<< g x, rhs: f Control.Monad.<=< g}
+    - hint: {lhs: (>>= f) . g, rhs: f Control.Monad.<=< g}
+    - hint: {lhs: (f =<<) . g, rhs: f Control.Monad.<=< g}
     - warn: {lhs: a >> forever a, rhs: forever a}
     - hint: {lhs: liftM2 id, rhs: ap}
     - warn: {lhs: liftA2 f (return x), rhs: fmap (f x)}
