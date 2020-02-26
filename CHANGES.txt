@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #888, suggest foldr from (.) to ($) in some cases
     #884, add more >=> operator hints
     #875, fix the extension implication information
     Add --with-group=extra to give extra library hints
