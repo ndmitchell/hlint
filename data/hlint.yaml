@@ -142,6 +142,7 @@
     - warn: {lhs: foldl f (head x) (tail x), rhs: foldl1 f x}
     - warn: {lhs: foldr f (last x) (init x), rhs: foldr1 f x}
     - warn: {lhs: "foldr (\\c a -> x : a) []", rhs: "map (\\c -> x)"}
+    - warn: {lhs: foldr (.) id l z, rhs: foldr ($) z l}
     - warn: {lhs: span (not . p), rhs: break p}
     - warn: {lhs: break (not . p), rhs: span p}
     - warn: {lhs: "(takeWhile p x, dropWhile p x)", rhs: span p x, note: DecreasesLaziness}
