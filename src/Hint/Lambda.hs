@@ -102,16 +102,17 @@ import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 
 import qualified GHC.Util.Brackets as GHC (isAtom')
-import qualified GHC.Util.FreeVars as GHC (free', allVars', freeVars', pvars')
+import qualified GHC.Util.FreeVars as GHC (free', allVars', freeVars', pvars', vars', varss')
 import qualified GHC.Util.HsExpr as GHC (allowLeftSection, allowRightSection, niceLambdaR', lambda)
 import qualified GHC.Util.RdrName as GHC (rdrNameStr')
 import qualified GHC.Util.View as GHC
 import qualified HsSyn as GHC
-import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar)
+import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol)
 import qualified OccName as GHC
 import qualified RdrName as GHC
 import qualified SrcLoc as GHC
 import qualified GHC.Util.Outputable as GHC
+import qualified BasicTypes as GHC
 
 --lambdaHint :: DeclHint
 --lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatMap lambdaDecl (universe x)
@@ -120,7 +121,40 @@ lambdaHint _ _ x
     =  concatMap (uncurry lambdaExp') (universeParentBi x)
     ++ concatMap lambdaDecl' (universe x)
 
+-- TODO: handle PatBinds
 lambdaDecl' :: GHC.LHsDecl GHC.GhcPs -> [Idea]
+lambdaDecl'
+    o@(GHC.LL loc1 (GHC.ValD _
+        origBind@(GHC.FunBind {GHC.fun_matches =
+            (GHC.MG {GHC.mg_alts =
+                GHC.LL _ [GHC.LL _ (GHC.Match _ ctxt pats (GHC.GRHSs _ [GHC.LL loc2 (GHC.GRHS _ [] origBody)] bind))]})})))
+    | GHC.LL _ (GHC.EmptyLocalBinds noExt) <- bind
+    , GHC.isLambda $ GHC.fromParen' origBody
+    , null (universeBi pats :: [GHC.HsExpr GHC.GhcPs])
+    = [warn' "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS' o) s1 t1]]
+    | length pats2 < length pats, GHC.pvars' (drop (length pats2) pats) `disjoint` GHC.varss' bind
+    = [warn' "Eta reduce" (reform' pats origBody) (reform' pats2 bod2)
+          [ -- Disabled, see apply-refact #3
+            -- Replace Decl (toSS' $ reform' pats origBody) s2 t2]]
+          ]]
+    where reform' :: [GHC.LPat GHC.GhcPs] -> GHC.LHsExpr GHC.GhcPs -> GHC.LHsDecl GHC.GhcPs
+          reform' ps b = GHC.LL loc $ GHC.ValD GHC.noExt $
+            origBind
+              {GHC.fun_matches = GHC.MG GHC.noExt (GHC.noLoc [GHC.noLoc $ GHC.Match GHC.noExt ctxt ps $ GHC.GRHSs GHC.noExt [GHC.noLoc $ GHC.GRHS GHC.noExt [] b] $ GHC.noLoc $ GHC.EmptyLocalBinds GHC.noExt]) GHC.Generated}
+
+          loc = GHC.combineSrcSpans loc1 loc2
+
+          gen :: [GHC.Pat GHC.GhcPs] -> GHC.LHsExpr GHC.GhcPs -> GHC.LHsDecl GHC.GhcPs
+          gen ps = uncurry reform' . fromLambda' . GHC.lambda ps
+
+          (finalpats, body) = fromLambda' . GHC.lambda pats $ origBody
+          (pats2, bod2) = etaReduce' pats origBody
+          template fps = GHC.unsafePrettyPrint $ reform' (zipWith munge' ['a'..'z'] fps) varBody
+          subts fps b = ("body", toSS' b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' fps)
+          s1 = subts finalpats body
+          --s2 = subts pats2 bod2
+          t1 = template finalpats
+          --t2 = template pats2 bod2
 lambdaDecl' _ = []
 
 lambdaDecl :: Decl_ -> [Idea]
@@ -151,6 +185,16 @@ lambdaDecl _ = []
 
 setSpanInfoEnd ssi (line, col) = ssi{srcInfoSpan = (srcInfoSpan ssi){srcSpanEndLine=line, srcSpanEndColumn=col}}
 
+etaReduce' :: [GHC.Pat GHC.GhcPs] -> GHC.LHsExpr GHC.GhcPs -> ([GHC.Pat GHC.GhcPs], GHC.LHsExpr GHC.GhcPs)
+etaReduce' (unsnoc -> Just (ps, GHC.view' -> GHC.PVar_' p)) (GHC.LL _ (GHC.HsApp _ x (GHC.view' -> GHC.Var_' y)))
+    | p == y
+    , p /= "mr"
+    -- TODO: what is this "mr" thing??
+    , y `notElem` GHC.vars' x
+    , not $ any GHC.isQuasiQuote $ universe x
+    = etaReduce' ps x
+etaReduce' ps (GHC.LL loc (GHC.OpApp _ x (GHC.isDol -> True) y)) = etaReduce' ps (GHC.LL loc (GHC.HsApp GHC.noExt x y))
+etaReduce' ps x = (ps, x)
 
 etaReduce :: [Pat_] -> Exp_ -> ([Pat_], Exp_)
 etaReduce ps (App _ x (Var _ (UnQual _ (Ident _ y))))
@@ -191,7 +235,7 @@ lambdaExp' p o@(GHC.SimpleLambda origPats origBody)
     where
       (pats, body) = fromLambda' o
 
-      template = GHC.unsafePrettyPrint $ GHC.lambda (zipWith munge' ['a'..'z'] pats) $ GHC.noLoc $ GHC.HsVar GHC.noExt $ GHC.noLoc $ GHC.mkRdrUnqual $ GHC.mkVarOcc "body"
+      template = GHC.unsafePrettyPrint $ GHC.lambda (zipWith munge' ['a'..'z'] pats) varBody
 
       subts = ("body", toSS' body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' pats)
 
@@ -245,6 +289,9 @@ lambdaExp' _ o@(GHC.SimpleLambda [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.LL 
         tupArgVar _ = Nothing
 
 lambdaExp' _ _ = []
+
+varBody :: GHC.LHsExpr GHC.GhcPs
+varBody = GHC.noLoc $ GHC.HsVar GHC.noExt $ GHC.noLoc $ GHC.mkRdrUnqual $ GHC.mkVarOcc "body"
 
 --Section refactoring is not currently implemented.
 lambdaExp :: Maybe Exp_ -> Exp_ -> [Idea]
