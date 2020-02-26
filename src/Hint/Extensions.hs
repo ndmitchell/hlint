@@ -161,7 +161,11 @@ import RdrName
 import OccName
 import ForeignCall
 import GHC.Util
+
+import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
+import Language.Haskell.GhclibParserEx.GHC.Hs.Types
+import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
 
 extensionsHint :: ModuHint
 extensionsHint _ x =
@@ -262,7 +266,7 @@ used EmptyCase = hasS f
     f (HsLamCase _ (MG _ (LL _ []) _)) = True
     f _ = False
 used KindSignatures = hasT (un :: HsKind GhcPs)
-used BangPatterns = hasS isPBangPat' ||^ hasS isStrictMatch
+used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
   where
     isStrictMatch :: HsMatchContext RdrName -> Bool
     isStrictMatch FunRhs{mc_strictness=SrcStrict} = True
@@ -278,17 +282,17 @@ used PatternGuards = hasS f
   where
     f :: GRHS GhcPs (LHsExpr GhcPs) -> Bool
     f (GRHS _ xs _) = g xs
-    f _ = False -- new ctor
+    f _ = False -- Extension constructor
     g :: [GuardLStmt GhcPs] -> Bool
     g [] = False
     g [LL _ BodyStmt{}] = False
     g _ = True
-used StandaloneDeriving = hasS isDerivD'
-used PatternSignatures = hasS isPatTypeSig'
-used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot'
-used RecordPuns = hasS isPFieldPun' ||^ hasS isFieldPun
-used NamedFieldPuns = hasS isPFieldPun' ||^ hasS isFieldPun
-used UnboxedTuples = has isUnboxedTuple' ||^ has (== Unboxed) ||^ hasS isDeriving
+used StandaloneDeriving = hasS isDerivD
+used PatternSignatures = hasS isPatTypeSig
+used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
+used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun
+used NamedFieldPuns = hasS isPFieldPun ||^ hasS isFieldPun
+used UnboxedTuples = has isUnboxedTuple ||^ has (== Unboxed) ||^ hasS isDeriving
     where
         -- detect if there are deriving declarations or data ... deriving stuff
         -- by looking for the deriving strategy both contain (even if its Nothing)
@@ -300,9 +304,9 @@ used PackageImports = hasS f
         f :: ImportDecl GhcPs -> Bool
         f ImportDecl{ideclPkgQual=Just _} = True
         f _ = False
-used QuasiQuotes = hasS isQuasiQuote ||^ hasS isTyQuasiQuote'
-used ViewPatterns = hasS isPViewPat'
-used DefaultSignatures = hasS isClsDefSig'
+used QuasiQuotes = hasS isQuasiQuote ||^ hasS isTyQuasiQuote
+used ViewPatterns = hasS isPViewPat
+used DefaultSignatures = hasS isClsDefSig
 used DeriveDataTypeable = hasDerive ["Data","Typeable"]
 used DeriveFunctor = hasDerive ["Functor"]
 used DeriveFoldable = hasDerive ["Foldable"]
@@ -357,7 +361,7 @@ addDerives _ (Just s) xs = case s of
 addDerives nt _ xs = mempty
     {derivesStock' = stock
     ,derivesAnyclass = other
-    ,derivesNewtype' = if maybe True isNewType' nt then filter (`notElem` noDeriveNewtype) xs else []}
+    ,derivesNewtype' = if maybe True isNewType nt then filter (`notElem` noDeriveNewtype) xs else []}
     where (stock, other) = partition (`elem` deriveStock) xs
 
 derives :: Located (HsModule GhcPs) -> Derives
