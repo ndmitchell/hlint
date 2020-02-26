@@ -336,7 +336,7 @@ fromLambda (Lambda _ ps1 (fromLambda . fromParen -> (ps2,x))) = (transformBi (f 
           f bad x = x
 fromLambda x = ([], x)
 
--- Squash lambdas and replace any repeated pattern variable with _
+-- | Squash lambdas and replace any repeated pattern variable with @_@
 fromLambda' :: GHC.LHsExpr GHC.GhcPs -> ([GHC.LPat GHC.GhcPs], GHC.LHsExpr GHC.GhcPs)
 fromLambda' (GHC.SimpleLambda ps1 (fromLambda' . GHC.fromParen' -> (ps2,x))) = (transformBi (f $ GHC.pvars' ps2) ps1 ++ ps2, x)
     where f :: [String] -> GHC.Pat GHC.GhcPs -> GHC.Pat GHC.GhcPs
