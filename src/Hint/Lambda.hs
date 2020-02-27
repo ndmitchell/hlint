@@ -122,9 +122,9 @@ lambdaHint _ _ x
 lambdaDecl :: LHsDecl GhcPs -> [Idea]
 lambdaDecl
     o@(LL loc1 (ValD _
-        origBind@(FunBind {fun_matches =
-            (MG {mg_alts =
-                LL _ [LL _ (Match _ ctxt pats (GRHSs _ [LL loc2 (GRHS _ [] origBody)] bind))]})})))
+        origBind@FunBind {fun_matches =
+            MG {mg_alts =
+                LL _ [LL _ (Match _ ctxt pats (GRHSs _ [LL loc2 (GRHS _ [] origBody)] bind))]}}))
     | LL _ (EmptyLocalBinds noExt) <- bind
     , isLambda $ fromParen' origBody
     , null (universeBi pats :: [HsExpr GhcPs])
@@ -179,11 +179,11 @@ lambdaExp _ o@(LL _ (HsPar _ (view' -> App2' (view' -> Var_' "flip") origf@(view
     | allowRightSection f
     = [suggestN' "Use section" o $ noLoc $ HsPar NoExt $ noLoc $ SectionR NoExt origf y]
 lambdaExp p o@(LL _ HsLam{})
-    | all (not . isOpApp) p
+    | not $ any isOpApp p
     , (res, refact) <- niceLambdaR' [] o
     , not $ isLambda res
     , not $ any isQuasiQuote $ universe res
-    , not $ "runST" `Set.member` (Set.map occNameString $ freeVars' o)
+    , not $ "runST" `Set.member` Set.map occNameString (freeVars' o)
     , let name = "Avoid lambda" ++ (if countRightSections res > countRightSections o then " using `infix`" else "")
     = [(if isVar res then warn' else suggest') name o res (refact $ toSS' o)]
     where
