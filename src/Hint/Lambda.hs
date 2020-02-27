@@ -115,12 +115,12 @@ import SrcLoc
 
 lambdaHint :: DeclHint'
 lambdaHint _ _ x
-    =  concatMap (uncurry lambdaExp') (universeParentBi x)
-    ++ concatMap lambdaDecl' (universe x)
+    =  concatMap (uncurry lambdaExp) (universeParentBi x)
+    ++ concatMap lambdaDecl (universe x)
 
 -- TODO: handle PatBinds
-lambdaDecl' :: LHsDecl GhcPs -> [Idea]
-lambdaDecl'
+lambdaDecl :: LHsDecl GhcPs -> [Idea]
+lambdaDecl
     o@(LL loc1 (ValD _
         origBind@(FunBind {fun_matches =
             (MG {mg_alts =
@@ -130,55 +130,55 @@ lambdaDecl'
     , null (universeBi pats :: [HsExpr GhcPs])
     = [warn' "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS' o) s1 t1]]
     | length pats2 < length pats, pvars' (drop (length pats2) pats) `disjoint` varss' bind
-    = [warn' "Eta reduce" (reform' pats origBody) (reform' pats2 bod2)
+    = [warn' "Eta reduce" (reform pats origBody) (reform pats2 bod2)
           [ -- Disabled, see apply-refact #3
             -- Replace Decl (toSS' $ reform' pats origBody) s2 t2]]
           ]]
-    where reform' :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
-          reform' ps b = LL loc $ ValD noExt $
+    where reform :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
+          reform ps b = LL loc $ ValD noExt $
             origBind
               {fun_matches = MG noExt (noLoc [noLoc $ Match noExt ctxt ps $ GRHSs noExt [noLoc $ GRHS noExt [] b] $ noLoc $ EmptyLocalBinds noExt]) Generated}
 
           loc = combineSrcSpans loc1 loc2
 
           gen :: [Pat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
-          gen ps = uncurry reform' . fromLambda' . lambda ps
+          gen ps = uncurry reform . fromLambda . lambda ps
 
-          (finalpats, body) = fromLambda' . lambda pats $ origBody
-          (pats2, bod2) = etaReduce' pats origBody
-          template fps = unsafePrettyPrint $ reform' (zipWith munge' ['a'..'z'] fps) varBody
+          (finalpats, body) = fromLambda . lambda pats $ origBody
+          (pats2, bod2) = etaReduce pats origBody
+          template fps = unsafePrettyPrint $ reform (zipWith munge ['a'..'z'] fps) varBody
           subts fps b = ("body", toSS' b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' fps)
           s1 = subts finalpats body
           --s2 = subts pats2 bod2
           t1 = template finalpats
           --t2 = template pats2 bod2
-lambdaDecl' _ = []
+lambdaDecl _ = []
 
 
-etaReduce' :: [Pat GhcPs] -> LHsExpr GhcPs -> ([Pat GhcPs], LHsExpr GhcPs)
-etaReduce' (unsnoc -> Just (ps, view' -> PVar_' p)) (LL _ (HsApp _ x (view' -> Var_' y)))
+etaReduce :: [Pat GhcPs] -> LHsExpr GhcPs -> ([Pat GhcPs], LHsExpr GhcPs)
+etaReduce (unsnoc -> Just (ps, view' -> PVar_' p)) (LL _ (HsApp _ x (view' -> Var_' y)))
     | p == y
     , p /= "mr"
     -- TODO: what is this "mr" thing??
     , y `notElem` vars' x
     , not $ any isQuasiQuote $ universe x
-    = etaReduce' ps x
-etaReduce' ps (LL loc (OpApp _ x (isDol -> True) y)) = etaReduce' ps (LL loc (HsApp noExt x y))
-etaReduce' ps x = (ps, x)
+    = etaReduce ps x
+etaReduce ps (LL loc (OpApp _ x (isDol -> True) y)) = etaReduce ps (LL loc (HsApp noExt x y))
+etaReduce ps x = (ps, x)
 
 --Section refactoring is not currently implemented.
-lambdaExp' :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
-lambdaExp' _ o@(LL _ (HsPar _ (LL _ (HsApp _ oper@(LL _ (HsVar _ (LL _ (rdrNameOcc -> f)))) y))))
+lambdaExp :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
+lambdaExp _ o@(LL _ (HsPar _ (LL _ (HsApp _ oper@(LL _ (HsVar _ (LL _ (rdrNameOcc -> f)))) y))))
     | isSymOcc f -- is this an operator?
     , isAtom' y
     , allowLeftSection $ occNameString f
     , not $ isTypeApp y =
       [suggestN' "Use section" o $ noLoc $ HsPar noExt $ noLoc $ SectionL NoExt y oper]
 
-lambdaExp' _ o@(LL _ (HsPar _ (view' -> App2' (view' -> Var_' "flip") origf@(view' -> Var_' f) y)))
+lambdaExp _ o@(LL _ (HsPar _ (view' -> App2' (view' -> Var_' "flip") origf@(view' -> Var_' f) y)))
     | allowRightSection f
     = [suggestN' "Use section" o $ noLoc $ HsPar NoExt $ noLoc $ SectionR NoExt origf y]
-lambdaExp' p o@(LL _ HsLam{})
+lambdaExp p o@(LL _ HsLam{})
     | all (not . isOpApp) p
     , (res, refact) <- niceLambdaR' [] o
     , not $ isLambda res
@@ -189,19 +189,19 @@ lambdaExp' p o@(LL _ HsLam{})
     where
         countRightSections :: LHsExpr GhcPs -> Int
         countRightSections x = length [() | LL _ (SectionR _ (view' -> Var_' _) _) <- universe x]
-lambdaExp' p o@(SimpleLambda origPats origBody)
+lambdaExp p o@(SimpleLambda origPats origBody)
     | isLambda (fromParen' origBody)
     , null (universeBi origPats :: [HsExpr GhcPs]) -- TODO: I think this checks for view patterns only, so maybe be more explicit about that?
     , maybe True (not . isLambda) p =
     [suggest' "Collapse lambdas" o (lambda pats body) [Replace Expr (toSS' o) subts template]]
     where
-      (pats, body) = fromLambda' o
+      (pats, body) = fromLambda o
 
-      template = unsafePrettyPrint $ lambda (zipWith munge' ['a'..'z'] pats) varBody
+      template = unsafePrettyPrint $ lambda (zipWith munge ['a'..'z'] pats) varBody
 
       subts = ("body", toSS' body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' pats)
 
-lambdaExp' _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (LL _ expr)) =
+lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (LL _ expr)) =
 -- ^ match a lambda with a variable pattern, with no guards and no where clauses
     case expr of
         ExplicitTuple _ args boxity
@@ -250,22 +250,22 @@ lambdaExp' _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (LL _ expr)) =
         tupArgVar (LL _ (Present _ (view' -> Var_' x))) = Just x
         tupArgVar _ = Nothing
 
-lambdaExp' _ _ = []
+lambdaExp _ _ = []
 
 varBody :: LHsExpr GhcPs
 varBody = noLoc $ HsVar noExt $ noLoc $ mkRdrUnqual $ mkVarOcc "body"
 
 -- | Squash lambdas and replace any repeated pattern variable with @_@
-fromLambda' :: LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
-fromLambda' (SimpleLambda ps1 (fromLambda' . fromParen' -> (ps2,x))) = (transformBi (f $ pvars' ps2) ps1 ++ ps2, x)
+fromLambda :: LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
+fromLambda (SimpleLambda ps1 (fromLambda . fromParen' -> (ps2,x))) = (transformBi (f $ pvars' ps2) ps1 ++ ps2, x)
     where f :: [String] -> Pat GhcPs -> Pat GhcPs
           f bad (VarPat _ (rdrNameStr' -> x))
               | x `elem` bad = WildPat noExt
           f bad x = x
-fromLambda' x = ([], x)
+fromLambda x = ([], x)
 
 -- | Replaces all non-wildcard patterns with a variable pattern with the given identifier.
-munge' :: Char -> LPat GhcPs -> LPat GhcPs
-munge' ident p@(LL _ (WildPat _)) = p
-munge' ident (LL ploc p) = LL ploc (VarPat noExt (LL ploc $ mkRdrUnqual $ mkVarOcc [ident]))
-munge' _ x = x -- "{-# COMPLETE LL #-}"
+munge :: Char -> LPat GhcPs -> LPat GhcPs
+munge ident p@(LL _ (WildPat _)) = p
+munge ident (LL ploc p) = LL ploc (VarPat noExt (LL ploc $ mkRdrUnqual $ mkVarOcc [ident]))
+munge _ x = x -- "{-# COMPLETE LL #-}"
