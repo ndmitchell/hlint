@@ -93,11 +93,9 @@ yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>)
 
 module Hint.Lambda(lambdaHint) where
 
-import Hint.Util
 import Hint.Type
 import Util
 import Data.List.Extra
-import Data.Maybe
 import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 
@@ -114,8 +112,6 @@ import qualified SrcLoc as GHC
 import qualified GHC.Util.Outputable as GHC
 import qualified BasicTypes as GHC
 
---lambdaHint :: DeclHint
---lambdaHint _ _ x = concatMap (uncurry lambdaExp) (universeParentBi x) ++ concatMap lambdaDecl (universe x)
 lambdaHint :: DeclHint'
 lambdaHint _ _ x
     =  concatMap (uncurry lambdaExp') (universeParentBi x)
@@ -157,33 +153,6 @@ lambdaDecl'
           --t2 = template pats2 bod2
 lambdaDecl' _ = []
 
-lambdaDecl :: Decl_ -> [Idea]
-lambdaDecl (toFunBind -> o@(FunBind loc1 [Match _ name pats (UnGuardedRhs loc2 bod) bind]))
-    | isNothing bind, isLambda $ fromParen bod, null (universeBi pats :: [Exp_]) =
-      [warn "Redundant lambda" o (gen pats bod) [Replace Decl (toSS o) s1 t1]]
-    | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
-        = [warn "Eta reduce" (reform pats bod) (reform pats2 bod2)
-            [ -- Disabled, see apply-refact #3
-              -- Replace Decl (toSS $ reform pats bod) s2 t2]]
-            ]]
-        where reform p b = FunBind loc [Match an name p (UnGuardedRhs an b) Nothing]
-              loc = setSpanInfoEnd loc1 $ srcSpanEnd $ srcInfoSpan loc2
-              gen ps = uncurry reform . fromLambda . Lambda an ps
-              (finalpats, body) = fromLambda . Lambda an pats $ bod
-              (pats2, bod2) = etaReduce pats bod
-              template fps b = prettyPrint $ reform (zipWith munge ['a'..'z'] fps) (toNamed "body")
-              munge :: Char -> Pat_ -> Pat_
-              munge ident p@(PWildCard _) = p
-              munge ident p = PVar (ann p) (Ident (ann p) [ident])
-              subts fps b = ("body", toSS b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS fps)
-              s1 = subts finalpats body
-              --s2 = subts pats2 bod2
-              t1 = template finalpats body
-              --t2 = template pats2 bod2
-
-lambdaDecl _ = []
-
-setSpanInfoEnd ssi (line, col) = ssi{srcInfoSpan = (srcInfoSpan ssi){srcSpanEndLine=line, srcSpanEndColumn=col}}
 
 etaReduce' :: [GHC.Pat GHC.GhcPs] -> GHC.LHsExpr GHC.GhcPs -> ([GHC.Pat GHC.GhcPs], GHC.LHsExpr GHC.GhcPs)
 etaReduce' (unsnoc -> Just (ps, GHC.view' -> GHC.PVar_' p)) (GHC.LL _ (GHC.HsApp _ x (GHC.view' -> GHC.Var_' y)))
@@ -195,14 +164,6 @@ etaReduce' (unsnoc -> Just (ps, GHC.view' -> GHC.PVar_' p)) (GHC.LL _ (GHC.HsApp
     = etaReduce' ps x
 etaReduce' ps (GHC.LL loc (GHC.OpApp _ x (GHC.isDol -> True) y)) = etaReduce' ps (GHC.LL loc (GHC.HsApp GHC.noExt x y))
 etaReduce' ps x = (ps, x)
-
-etaReduce :: [Pat_] -> Exp_ -> ([Pat_], Exp_)
-etaReduce ps (App _ x (Var _ (UnQual _ (Ident _ y))))
-    | ps /= [], PVar _ (Ident _ p) <- last ps, p == y, p /= "mr", y `notElem` vars x
-    , not $ any isQuasiQuote $ universe x
-    = etaReduce (init ps) x
-etaReduce ps (InfixApp a x (isDol -> True) y) = etaReduce ps (App a x y)
-etaReduce ps x = (ps,x)
 
 --Section refactoring is not currently implemented.
 lambdaExp' :: Maybe (GHC.LHsExpr GHC.GhcPs) -> GHC.LHsExpr GHC.GhcPs -> [Idea]
@@ -292,49 +253,6 @@ lambdaExp' _ _ = []
 
 varBody :: GHC.LHsExpr GHC.GhcPs
 varBody = GHC.noLoc $ GHC.HsVar GHC.noExt $ GHC.noLoc $ GHC.mkRdrUnqual $ GHC.mkVarOcc "body"
-
---Section refactoring is not currently implemented.
-lambdaExp :: Maybe Exp_ -> Exp_ -> [Idea]
-lambdaExp p o@(Paren _ (App _ v@(Var l (UnQual _ (Symbol _ x))) y)) | isAtom y, not $ isTypeApp y, allowLeftSection x =
-    [suggestN "Use section" o (exp y x)] -- [Replace Expr (toSS o) subts template]]
-    where
-      exp op rhs = LeftSection an op (toNamed rhs)
---      template = prettyPrint (exp (toNamed "a") "*")
---      subts = [("a", toSS y), ("*", toSS v)]
-lambdaExp p o@(Paren _ (App _ (App _ (view -> Var_ "flip") (Var _ x)) y)) | allowRightSection $ fromNamed x =
-    [suggestN "Use section" o $ RightSection an (QVarOp an x) y]
-lambdaExp p o@Lambda{}
-    | maybe True (not . isInfixApp) p, (res, refact) <- niceLambdaR [] o
-    , not $ isLambda res, not $ any isQuasiQuote $ universe res, not $ "runST" `Set.member` freeVars o
-    , let name = "Avoid lambda" ++ (if countInfixNames res > countInfixNames o then " using `infix`" else "") =
-    [(if isVar res || isCon res then warn else suggest) name o res (refact $ toSS o)]
-    where countInfixNames x = length [() | RightSection _ (QVarOp _ (UnQual _ (Ident _ _))) _ <- universe x]
-lambdaExp p o@(Lambda _ pats x) | isLambda (fromParen x), null (universeBi pats :: [Exp_]), maybe True (not . isLambda) p =
-    [suggest "Collapse lambdas" o (Lambda an pats body) [Replace Expr (toSS o) subts template]]
-    where
-      (pats, body) = fromLambda o
-      template = prettyPrint $  Lambda an (zipWith munge ['a'..'z'] pats) (toNamed "body")
-      munge :: Char -> Pat_ -> Pat_
-      munge ident p@(PWildCard _) = p
-      munge ident p = PVar (ann p) (Ident (ann p) [ident])
-      subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS pats)
-lambdaExp p o@(Lambda _ [view -> PVar_ u] (Case _ (view -> Var_ v) alts))
-    | u == v, u `notElem` vars alts = case alts of
-        [Alt _ pat (UnGuardedRhs _ bod) Nothing] -> [suggestN "Use lambda" o $ Lambda an [pat] bod]
-        _ -> [(suggestN "Use lambda-case" o $ LCase an alts){ideaNote=[RequiresExtension "LambdaCase"]}]
-lambdaExp p o@(Lambda _ [view -> PVar_ u] (Tuple _ boxed xs))
-    | ([yes],no) <- partition (~= u) xs, u `notElem` concatMap vars no
-    = [(suggestN "Use tuple-section" o $ TupleSection an boxed [if x ~= u then Nothing else Just x | x <- xs])
-        {ideaNote=[RequiresExtension "TupleSections"]}]
-lambdaExp _ _ = []
-
-
--- replace any repeated pattern variable with _
-fromLambda :: Exp_ -> ([Pat_], Exp_)
-fromLambda (Lambda _ ps1 (fromLambda . fromParen -> (ps2,x))) = (transformBi (f $ pvars ps2) ps1 ++ ps2, x)
-    where f bad x@PVar{} | prettyPrint x `elem` bad = PWildCard an
-          f bad x = x
-fromLambda x = ([], x)
 
 -- | Squash lambdas and replace any repeated pattern variable with @_@
 fromLambda' :: GHC.LHsExpr GHC.GhcPs -> ([GHC.LPat GHC.GhcPs], GHC.LHsExpr GHC.GhcPs)
