@@ -3,7 +3,7 @@
 module HSE.Match(
     View(..), Named(..),
     (~=), isSym,
-    App2(App2), PVar_(PVar_), Var_(Var_)
+    PVar_(PVar_), Var_(Var_)
     ) where
 
 import Data.Char
@@ -13,14 +13,6 @@ import HSE.Util
 
 class View a b where
     view :: a -> b
-
-
-data App2 = NoApp2 | App2 Exp_ Exp_ Exp_ deriving Show
-
-instance View Exp_ App2 where
-    view (fromParen -> InfixApp _ lhs op rhs) = App2 (opExp op) lhs rhs
-    view (fromParen -> App _ (fromParen -> App _ f x) y) = App2 f x y
-    view _ = NoApp2
 
 
 data App1 = NoApp1 | App1 Exp_ Exp_ deriving Show
