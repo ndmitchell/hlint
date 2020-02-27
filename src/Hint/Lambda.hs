@@ -93,24 +93,25 @@ yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>)
 
 module Hint.Lambda(lambdaHint) where
 
-import Hint.Type
+import Hint.Type (DeclHint', Idea, Note(RequiresExtension), suggest', warn', toSS', suggestN', ideaNote)
 import Util
 import Data.List.Extra
 import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
+import Data.Generics.Uniplate.Operations (universe, universeBi, transformBi)
 
-import qualified GHC.Util.Brackets as GHC (isAtom')
-import qualified GHC.Util.FreeVars as GHC (free', allVars', freeVars', pvars', vars', varss')
-import qualified GHC.Util.HsExpr as GHC (allowLeftSection, allowRightSection, niceLambdaR', lambda)
-import qualified GHC.Util.RdrName as GHC (rdrNameStr')
-import qualified GHC.Util.View as GHC
-import qualified HsSyn as GHC
-import qualified Language.Haskell.GhclibParserEx.GHC.Hs.Expr as GHC (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol)
-import qualified OccName as GHC
-import qualified RdrName as GHC
-import qualified SrcLoc as GHC
-import qualified GHC.Util.Outputable as GHC
-import qualified BasicTypes as GHC
+import BasicTypes
+import GHC.Util.Brackets (isAtom')
+import GHC.Util.FreeVars (free', allVars', freeVars', pvars', vars', varss')
+import GHC.Util.HsExpr (allowLeftSection, allowRightSection, niceLambdaR', lambda)
+import GHC.Util.Outputable
+import GHC.Util.RdrName (rdrNameStr')
+import GHC.Util.View
+import HsSyn
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol)
+import OccName
+import RdrName
+import SrcLoc
 
 lambdaHint :: DeclHint'
 lambdaHint _ _ x
@@ -118,34 +119,34 @@ lambdaHint _ _ x
     ++ concatMap lambdaDecl' (universe x)
 
 -- TODO: handle PatBinds
-lambdaDecl' :: GHC.LHsDecl GHC.GhcPs -> [Idea]
+lambdaDecl' :: LHsDecl GhcPs -> [Idea]
 lambdaDecl'
-    o@(GHC.LL loc1 (GHC.ValD _
-        origBind@(GHC.FunBind {GHC.fun_matches =
-            (GHC.MG {GHC.mg_alts =
-                GHC.LL _ [GHC.LL _ (GHC.Match _ ctxt pats (GHC.GRHSs _ [GHC.LL loc2 (GHC.GRHS _ [] origBody)] bind))]})})))
-    | GHC.LL _ (GHC.EmptyLocalBinds noExt) <- bind
-    , GHC.isLambda $ GHC.fromParen' origBody
-    , null (universeBi pats :: [GHC.HsExpr GHC.GhcPs])
+    o@(LL loc1 (ValD _
+        origBind@(FunBind {fun_matches =
+            (MG {mg_alts =
+                LL _ [LL _ (Match _ ctxt pats (GRHSs _ [LL loc2 (GRHS _ [] origBody)] bind))]})})))
+    | LL _ (EmptyLocalBinds noExt) <- bind
+    , isLambda $ fromParen' origBody
+    , null (universeBi pats :: [HsExpr GhcPs])
     = [warn' "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS' o) s1 t1]]
-    | length pats2 < length pats, GHC.pvars' (drop (length pats2) pats) `disjoint` GHC.varss' bind
+    | length pats2 < length pats, pvars' (drop (length pats2) pats) `disjoint` varss' bind
     = [warn' "Eta reduce" (reform' pats origBody) (reform' pats2 bod2)
           [ -- Disabled, see apply-refact #3
             -- Replace Decl (toSS' $ reform' pats origBody) s2 t2]]
           ]]
-    where reform' :: [GHC.LPat GHC.GhcPs] -> GHC.LHsExpr GHC.GhcPs -> GHC.LHsDecl GHC.GhcPs
-          reform' ps b = GHC.LL loc $ GHC.ValD GHC.noExt $
+    where reform' :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
+          reform' ps b = LL loc $ ValD noExt $
             origBind
-              {GHC.fun_matches = GHC.MG GHC.noExt (GHC.noLoc [GHC.noLoc $ GHC.Match GHC.noExt ctxt ps $ GHC.GRHSs GHC.noExt [GHC.noLoc $ GHC.GRHS GHC.noExt [] b] $ GHC.noLoc $ GHC.EmptyLocalBinds GHC.noExt]) GHC.Generated}
+              {fun_matches = MG noExt (noLoc [noLoc $ Match noExt ctxt ps $ GRHSs noExt [noLoc $ GRHS noExt [] b] $ noLoc $ EmptyLocalBinds noExt]) Generated}
 
-          loc = GHC.combineSrcSpans loc1 loc2
+          loc = combineSrcSpans loc1 loc2
 
-          gen :: [GHC.Pat GHC.GhcPs] -> GHC.LHsExpr GHC.GhcPs -> GHC.LHsDecl GHC.GhcPs
-          gen ps = uncurry reform' . fromLambda' . GHC.lambda ps
+          gen :: [Pat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
+          gen ps = uncurry reform' . fromLambda' . lambda ps
 
-          (finalpats, body) = fromLambda' . GHC.lambda pats $ origBody
+          (finalpats, body) = fromLambda' . lambda pats $ origBody
           (pats2, bod2) = etaReduce' pats origBody
-          template fps = GHC.unsafePrettyPrint $ reform' (zipWith munge' ['a'..'z'] fps) varBody
+          template fps = unsafePrettyPrint $ reform' (zipWith munge' ['a'..'z'] fps) varBody
           subts fps b = ("body", toSS' b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' fps)
           s1 = subts finalpats body
           --s2 = subts pats2 bod2
@@ -154,117 +155,117 @@ lambdaDecl'
 lambdaDecl' _ = []
 
 
-etaReduce' :: [GHC.Pat GHC.GhcPs] -> GHC.LHsExpr GHC.GhcPs -> ([GHC.Pat GHC.GhcPs], GHC.LHsExpr GHC.GhcPs)
-etaReduce' (unsnoc -> Just (ps, GHC.view' -> GHC.PVar_' p)) (GHC.LL _ (GHC.HsApp _ x (GHC.view' -> GHC.Var_' y)))
+etaReduce' :: [Pat GhcPs] -> LHsExpr GhcPs -> ([Pat GhcPs], LHsExpr GhcPs)
+etaReduce' (unsnoc -> Just (ps, view' -> PVar_' p)) (LL _ (HsApp _ x (view' -> Var_' y)))
     | p == y
     , p /= "mr"
     -- TODO: what is this "mr" thing??
-    , y `notElem` GHC.vars' x
-    , not $ any GHC.isQuasiQuote $ universe x
+    , y `notElem` vars' x
+    , not $ any isQuasiQuote $ universe x
     = etaReduce' ps x
-etaReduce' ps (GHC.LL loc (GHC.OpApp _ x (GHC.isDol -> True) y)) = etaReduce' ps (GHC.LL loc (GHC.HsApp GHC.noExt x y))
+etaReduce' ps (LL loc (OpApp _ x (isDol -> True) y)) = etaReduce' ps (LL loc (HsApp noExt x y))
 etaReduce' ps x = (ps, x)
 
 --Section refactoring is not currently implemented.
-lambdaExp' :: Maybe (GHC.LHsExpr GHC.GhcPs) -> GHC.LHsExpr GHC.GhcPs -> [Idea]
-lambdaExp' _ o@(GHC.LL _ (GHC.HsPar _ (GHC.LL _ (GHC.HsApp _ oper@(GHC.LL _ (GHC.HsVar _ (GHC.LL _ (GHC.rdrNameOcc -> f)))) y))))
-    | GHC.isSymOcc f -- is this an operator?
-    , GHC.isAtom' y
-    , GHC.allowLeftSection $ GHC.occNameString f
-    , not $ GHC.isTypeApp y =
-      [suggestN' "Use section" o $ GHC.noLoc $ GHC.HsPar GHC.noExt $ GHC.noLoc $ GHC.SectionL GHC.NoExt y oper]
+lambdaExp' :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
+lambdaExp' _ o@(LL _ (HsPar _ (LL _ (HsApp _ oper@(LL _ (HsVar _ (LL _ (rdrNameOcc -> f)))) y))))
+    | isSymOcc f -- is this an operator?
+    , isAtom' y
+    , allowLeftSection $ occNameString f
+    , not $ isTypeApp y =
+      [suggestN' "Use section" o $ noLoc $ HsPar noExt $ noLoc $ SectionL NoExt y oper]
 
-lambdaExp' _ o@(GHC.LL _ (GHC.HsPar _ (GHC.view' -> GHC.App2' (GHC.view' -> GHC.Var_' "flip") origf@(GHC.view' -> GHC.Var_' f) y)))
-    | GHC.allowRightSection f
-    = [suggestN' "Use section" o $ GHC.noLoc $ GHC.HsPar GHC.NoExt $ GHC.noLoc $ GHC.SectionR GHC.NoExt origf y]
-lambdaExp' p o@(GHC.LL _ GHC.HsLam{})
-    | all (not . GHC.isOpApp) p
-    , (res, refact) <- GHC.niceLambdaR' [] o
-    , not $ GHC.isLambda res
-    , not $ any GHC.isQuasiQuote $ universe res
-    , not $ "runST" `Set.member` (Set.map GHC.occNameString $ GHC.freeVars' o)
+lambdaExp' _ o@(LL _ (HsPar _ (view' -> App2' (view' -> Var_' "flip") origf@(view' -> Var_' f) y)))
+    | allowRightSection f
+    = [suggestN' "Use section" o $ noLoc $ HsPar NoExt $ noLoc $ SectionR NoExt origf y]
+lambdaExp' p o@(LL _ HsLam{})
+    | all (not . isOpApp) p
+    , (res, refact) <- niceLambdaR' [] o
+    , not $ isLambda res
+    , not $ any isQuasiQuote $ universe res
+    , not $ "runST" `Set.member` (Set.map occNameString $ freeVars' o)
     , let name = "Avoid lambda" ++ (if countRightSections res > countRightSections o then " using `infix`" else "")
-    = [(if GHC.isVar res then warn' else suggest') name o res (refact $ toSS' o)]
+    = [(if isVar res then warn' else suggest') name o res (refact $ toSS' o)]
     where
-        countRightSections :: GHC.LHsExpr GHC.GhcPs -> Int
-        countRightSections x = length [() | GHC.LL _ (GHC.SectionR _ (GHC.view' -> GHC.Var_' _) _) <- universe x]
-lambdaExp' p o@(GHC.SimpleLambda origPats origBody)
-    | GHC.isLambda (GHC.fromParen' origBody)
-    , null (universeBi origPats :: [GHC.HsExpr GHC.GhcPs]) -- TODO: I think this checks for view patterns only, so maybe be more explicit about that?
-    , maybe True (not . GHC.isLambda) p =
-    [suggest' "Collapse lambdas" o (GHC.lambda pats body) [Replace Expr (toSS' o) subts template]]
+        countRightSections :: LHsExpr GhcPs -> Int
+        countRightSections x = length [() | LL _ (SectionR _ (view' -> Var_' _) _) <- universe x]
+lambdaExp' p o@(SimpleLambda origPats origBody)
+    | isLambda (fromParen' origBody)
+    , null (universeBi origPats :: [HsExpr GhcPs]) -- TODO: I think this checks for view patterns only, so maybe be more explicit about that?
+    , maybe True (not . isLambda) p =
+    [suggest' "Collapse lambdas" o (lambda pats body) [Replace Expr (toSS' o) subts template]]
     where
       (pats, body) = fromLambda' o
 
-      template = GHC.unsafePrettyPrint $ GHC.lambda (zipWith munge' ['a'..'z'] pats) varBody
+      template = unsafePrettyPrint $ lambda (zipWith munge' ['a'..'z'] pats) varBody
 
       subts = ("body", toSS' body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' pats)
 
-lambdaExp' _ o@(GHC.SimpleLambda [GHC.LL _ (GHC.view' -> GHC.PVar_' x)] (GHC.LL _ expr)) =
+lambdaExp' _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (LL _ expr)) =
 -- ^ match a lambda with a variable pattern, with no guards and no where clauses
     case expr of
-        GHC.ExplicitTuple _ args boxity
+        ExplicitTuple _ args boxity
         -- ^ suggest TupleSections instead of lambdas
             | ([_x], ys) <- partition ((==Just x) . tupArgVar) args
             -- ^ is there exactly one argument that is exactly x
-            , Set.notMember x $ Set.map GHC.occNameString $ GHC.freeVars' ys
-            -> [(suggestN' "Use tuple-section" o $ GHC.noLoc $ GHC.ExplicitTuple GHC.NoExt (map removeX args) boxity)
+            , Set.notMember x $ Set.map occNameString $ freeVars' ys
+            -> [(suggestN' "Use tuple-section" o $ noLoc $ ExplicitTuple NoExt (map removeX args) boxity)
                   {ideaNote = [RequiresExtension "TupleSections"]}]
             -- ^ the other arguments must not have a nested x somewhere in them
-        GHC.HsCase _ (GHC.view' -> GHC.Var_' x') matchGroup
+        HsCase _ (view' -> Var_' x') matchGroup
         -- ^ suggest LambdaCase/directly matching in a lambda instead of doing @\x -> case x of ...@
             | x == x'
             -- ^ is the case being done on the variable from our original lambda
-            , Set.notMember x $ Set.map GHC.occNameString $ GHC.free' $ GHC.allVars' matchGroup
+            , Set.notMember x $ Set.map occNameString $ free' $ allVars' matchGroup
             -- ^ x must not be used in some other way inside the matches
             -> case matchGroup of
-                 oldMG@(GHC.MG _ (GHC.LL _ [GHC.LL _ oldmatch]) _) ->
+                 oldMG@(MG _ (LL _ [LL _ oldmatch]) _) ->
                  -- ^ is there a single match? - suggest match inside the lambda
-                     [suggestN' "Use lambda" o $ GHC.noLoc $ GHC.HsLam GHC.NoExt oldMG
-                         { GHC.mg_alts = GHC.noLoc
-                             [GHC.noLoc oldmatch
-                                 { GHC.m_pats = map GHC.mkParPat $ GHC.m_pats oldmatch
-                                 , GHC.m_ctxt = GHC.LambdaExpr
+                     [suggestN' "Use lambda" o $ noLoc $ HsLam NoExt oldMG
+                         { mg_alts = noLoc
+                             [noLoc oldmatch
+                                 { m_pats = map mkParPat $ m_pats oldmatch
+                                 , m_ctxt = LambdaExpr
                                  }
                              ] }
                          -- ^ we need to
                          -- * add brackets to the match
                          -- * mark match as being in a lambda context so that it's printed properly
                      ]
-                 GHC.MG _ (GHC.LL _ xs) _ ->
+                 MG _ (LL _ xs) _ ->
                  -- ^ otherwise we should use LambdaCase
-                     [(suggestN' "Use lambda-case" o $ GHC.noLoc $ GHC.HsLamCase GHC.NoExt matchGroup)
+                     [(suggestN' "Use lambda-case" o $ noLoc $ HsLamCase NoExt matchGroup)
                          {ideaNote=[RequiresExtension "LambdaCase"]}]
                  _ -> []
         _ -> []
     where
         -- | Filter out tuple arguments, converting the @x@ (matched in the lambda) variable argument
         -- to an missing argument, so that we get the proper section.
-        removeX :: GHC.LHsTupArg GHC.GhcPs -> GHC.LHsTupArg GHC.GhcPs
-        removeX arg@(GHC.LL _ (GHC.Present _ (GHC.view' -> GHC.Var_' x')))
-            | x == x' = GHC.noLoc $ GHC.Missing GHC.NoExt
+        removeX :: LHsTupArg GhcPs -> LHsTupArg GhcPs
+        removeX arg@(LL _ (Present _ (view' -> Var_' x')))
+            | x == x' = noLoc $ Missing NoExt
         removeX y = y
         -- | Extract the name of an argument of a tuple if it's present and a variable.
-        tupArgVar :: GHC.LHsTupArg GHC.GhcPs -> Maybe String
-        tupArgVar (GHC.LL _ (GHC.Present _ (GHC.view' -> GHC.Var_' x))) = Just x
+        tupArgVar :: LHsTupArg GhcPs -> Maybe String
+        tupArgVar (LL _ (Present _ (view' -> Var_' x))) = Just x
         tupArgVar _ = Nothing
 
 lambdaExp' _ _ = []
 
-varBody :: GHC.LHsExpr GHC.GhcPs
-varBody = GHC.noLoc $ GHC.HsVar GHC.noExt $ GHC.noLoc $ GHC.mkRdrUnqual $ GHC.mkVarOcc "body"
+varBody :: LHsExpr GhcPs
+varBody = noLoc $ HsVar noExt $ noLoc $ mkRdrUnqual $ mkVarOcc "body"
 
 -- | Squash lambdas and replace any repeated pattern variable with @_@
-fromLambda' :: GHC.LHsExpr GHC.GhcPs -> ([GHC.LPat GHC.GhcPs], GHC.LHsExpr GHC.GhcPs)
-fromLambda' (GHC.SimpleLambda ps1 (fromLambda' . GHC.fromParen' -> (ps2,x))) = (transformBi (f $ GHC.pvars' ps2) ps1 ++ ps2, x)
-    where f :: [String] -> GHC.Pat GHC.GhcPs -> GHC.Pat GHC.GhcPs
-          f bad (GHC.VarPat _ (GHC.rdrNameStr' -> x))
-              | x `elem` bad = GHC.WildPat GHC.noExt
+fromLambda' :: LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
+fromLambda' (SimpleLambda ps1 (fromLambda' . fromParen' -> (ps2,x))) = (transformBi (f $ pvars' ps2) ps1 ++ ps2, x)
+    where f :: [String] -> Pat GhcPs -> Pat GhcPs
+          f bad (VarPat _ (rdrNameStr' -> x))
+              | x `elem` bad = WildPat noExt
           f bad x = x
 fromLambda' x = ([], x)
 
 -- | Replaces all non-wildcard patterns with a variable pattern with the given identifier.
-munge' :: Char -> GHC.LPat GHC.GhcPs -> GHC.LPat GHC.GhcPs
-munge' ident p@(GHC.LL _ (GHC.WildPat _)) = p
-munge' ident (GHC.LL ploc p) = GHC.LL ploc (GHC.VarPat GHC.noExt (GHC.LL ploc $ GHC.mkRdrUnqual $ GHC.mkVarOcc [ident]))
+munge' :: Char -> LPat GhcPs -> LPat GhcPs
+munge' ident p@(LL _ (WildPat _)) = p
+munge' ident (LL ploc p) = LL ploc (VarPat noExt (LL ploc $ mkRdrUnqual $ mkVarOcc [ident]))
 munge' _ x = x -- "{-# COMPLETE LL #-}"
