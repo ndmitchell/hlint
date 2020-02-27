@@ -44,10 +44,8 @@ data HintBuiltin =
 
 builtin :: HintBuiltin -> Hint
 builtin x = case x of
-    -- Hse.
-    HintLambda     -> decl' lambdaHint
-
     -- Ghc.
+    HintLambda     -> decl' lambdaHint
     HintImport     -> modu importHint
     HintExport     -> modu exportHint
     HintComment    -> modu commentHint
