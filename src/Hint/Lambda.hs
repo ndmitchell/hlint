@@ -107,7 +107,7 @@ import GHC.Util.Outputable
 import GHC.Util.RdrName (rdrNameStr')
 import GHC.Util.View
 import HsSyn
-import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol)
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol, strToVar)
 import OccName
 import RdrName
 import SrcLoc
@@ -252,7 +252,7 @@ lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (LL _ expr)) =
 lambdaExp _ _ = []
 
 varBody :: LHsExpr GhcPs
-varBody = noLoc $ HsVar noExt $ noLoc $ mkRdrUnqual $ mkVarOcc "body"
+varBody = strToVar "body"
 
 -- | Squash lambdas and replace any repeated pattern variable with @_@
 fromLambda :: LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
