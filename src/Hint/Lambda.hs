@@ -197,26 +197,31 @@ lambdaExp p o@(SimpleLambda origPats origBody)
 
       subts = ("body", toSS' body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' pats)
 
+-- match a lambda with a variable pattern, with no guards and no where clauses
 lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (LL _ expr)) =
--- ^ match a lambda with a variable pattern, with no guards and no where clauses
     case expr of
+        -- suggest TupleSections instead of lambdas
         ExplicitTuple _ args boxity
-        -- ^ suggest TupleSections instead of lambdas
+            -- is there exactly one argument that is exactly x?
             | ([_x], ys) <- partition ((==Just x) . tupArgVar) args
-            -- ^ is there exactly one argument that is exactly x
+            -- the other arguments must not have a nested x somewhere in them
             , Set.notMember x $ Set.map occNameString $ freeVars' ys
             -> [(suggestN' "Use tuple-section" o $ noLoc $ ExplicitTuple NoExt (map removeX args) boxity)
                   {ideaNote = [RequiresExtension "TupleSections"]}]
-            -- ^ the other arguments must not have a nested x somewhere in them
+
+        -- suggest @LambdaCase@/directly matching in a lambda instead of doing @\x -> case x of ...@
         HsCase _ (view' -> Var_' x') matchGroup
-        -- ^ suggest LambdaCase/directly matching in a lambda instead of doing @\x -> case x of ...@
+            -- is the case being done on the variable from our original lambda?
             | x == x'
-            -- ^ is the case being done on the variable from our original lambda
+            -- x must not be used in some other way inside the matches
             , Set.notMember x $ Set.map occNameString $ free' $ allVars' matchGroup
-            -- ^ x must not be used in some other way inside the matches
             -> case matchGroup of
+                 -- is there a single match? - suggest match inside the lambda
+                 --
+                 -- we need to
+                 -- * add brackets to the match, because matches in lambdas require them
+                 -- * mark match as being in a lambda context so that it's printed properly
                  oldMG@(MG _ (LL _ [LL _ oldmatch]) _) ->
-                 -- ^ is there a single match? - suggest match inside the lambda
                      [suggestN' "Use lambda" o $ noLoc $ HsLam NoExt oldMG
                          { mg_alts = noLoc
                              [noLoc oldmatch
@@ -224,19 +229,17 @@ lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (LL _ expr)) =
                                  , m_ctxt = LambdaExpr
                                  }
                              ] }
-                         -- ^ we need to
-                         -- * add brackets to the match
-                         -- * mark match as being in a lambda context so that it's printed properly
                      ]
+
+                 -- otherwise we should use @LambdaCase@
                  MG _ (LL _ xs) _ ->
-                 -- ^ otherwise we should use LambdaCase
                      [(suggestN' "Use lambda-case" o $ noLoc $ HsLamCase NoExt matchGroup)
                          {ideaNote=[RequiresExtension "LambdaCase"]}]
                  _ -> []
         _ -> []
     where
         -- | Filter out tuple arguments, converting the @x@ (matched in the lambda) variable argument
-        -- to an missing argument, so that we get the proper section.
+        -- to a missing argument, so that we get the proper section.
         removeX :: LHsTupArg GhcPs -> LHsTupArg GhcPs
         removeX arg@(LL _ (Present _ (view' -> Var_' x')))
             | x == x' = noLoc $ Missing NoExt
