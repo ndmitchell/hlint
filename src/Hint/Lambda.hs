@@ -29,7 +29,6 @@ f = \x -> x + x -- f x = x + x
 fun x y z = f x y z -- fun = f @NoRefactor: hlint bug, ideaRefactoring = []
 fun x y z = f x x y z -- fun x = f x x @NoRefactor
 fun x y z = f g z -- fun x y = f g @NoRefactor
-fun mr = y mr
 fun x = f . g $ x -- fun = f . g @NoRefactor
 f = foo (\y -> g x . h $ y) -- g x . h
 f = foo (\y -> g x . h $ y) -- @Message Avoid lambda
@@ -157,8 +156,6 @@ lambdaDecl _ = []
 etaReduce :: [Pat GhcPs] -> LHsExpr GhcPs -> ([Pat GhcPs], LHsExpr GhcPs)
 etaReduce (unsnoc -> Just (ps, view' -> PVar_' p)) (LL _ (HsApp _ x (view' -> Var_' y)))
     | p == y
-    , p /= "mr"
-    -- TODO: what is this "mr" thing??
     , y `notElem` vars' x
     , not $ any isQuasiQuote $ universe x
     = etaReduce ps x
