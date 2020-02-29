@@ -118,7 +118,6 @@ lambdaHint _ _ x
     =  concatMap (uncurry lambdaExp) (universeParentBi x)
     ++ concatMap lambdaDecl (universe x)
 
--- TODO: handle PatBinds
 lambdaDecl :: LHsDecl GhcPs -> [Idea]
 lambdaDecl
     o@(LL loc1 (ValD _
