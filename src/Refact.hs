@@ -1,5 +1,7 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Refact
-    ( toRefactSrcSpan, toRefactSrcSpan'
+    ( toRefactSrcSpan'
     , toSS'
     , toSrcSpan'
     , checkRefactor, refactorPath, runRefactoring
@@ -14,33 +16,26 @@ import System.Exit
 import System.IO.Extra
 import System.Process.Extra
 import qualified Refact.Types as R
-import HSE.All
 
 import qualified SrcLoc as GHC
 
-toRefactSrcSpan :: SrcSpan -> R.SrcSpan
-toRefactSrcSpan ss = R.SrcSpan (srcSpanStartLine ss)
-                               (srcSpanStartColumn ss)
-                               (srcSpanEndLine ss)
-                               (srcSpanEndColumn ss)
-
 toRefactSrcSpan' :: GHC.SrcSpan -> R.SrcSpan
-toRefactSrcSpan' = toRefactSrcSpan . ghcSpanToHSE
-
--- | Don't crash in case ghc gives us a \"fake\" span,
--- opting instead to show @0 0 0 0@ coordinates.
-toSrcSpan' :: GHC.HasSrcSpan a => a -> R.SrcSpan
-toSrcSpan' x = case GHC.getLoc x of
+toRefactSrcSpan' = \case
     GHC.RealSrcSpan span ->
         R.SrcSpan (GHC.srcSpanStartLine span)
                   (GHC.srcSpanStartCol span)
                   (GHC.srcSpanEndLine span)
                   (GHC.srcSpanEndCol span)
     GHC.UnhelpfulSpan _ ->
-        R.SrcSpan 0 0 0 0
+        R.SrcSpan (-1) (-1) (-1) (-1)
+
+-- | Don't crash in case ghc gives us a \"fake\" span,
+-- opting instead to show @-1 -1 -1 -1@ coordinates.
+toSrcSpan' :: GHC.HasSrcSpan a => a -> R.SrcSpan
+toSrcSpan' = toRefactSrcSpan' . GHC.getLoc
 
 toSS' :: GHC.HasSrcSpan e => e -> R.SrcSpan
-toSS' = toRefactSrcSpan' . GHC.getLoc
+toSS' = toSrcSpan'
 
 checkRefactor :: Maybe FilePath -> IO FilePath
 checkRefactor = refactorPath >=> either error pure

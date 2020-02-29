@@ -46,4 +46,4 @@ commentHint _ m = concatMap chk (ghcComments m)
           let s1 = commentText o in
           rawIdea' Suggestion msg pos (f s1) (Just $ f s2) [] refact
             where f s = if isCommentMultiline o then "{-" ++ s ++ "-}" else "--" ++ s
-                  refact = [ModifyComment (toRefactSrcSpan (ghcSpanToHSE pos)) (f s2)]
+                  refact = [ModifyComment (toRefactSrcSpan' pos) (f s2)]
