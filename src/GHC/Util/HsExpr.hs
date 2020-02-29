@@ -163,30 +163,30 @@ niceLambdaR' :: [String]
 -- These are encountered as recursive calls.
 niceLambdaR' xs (SimpleLambda [] x) = niceLambdaR' xs x
 
--- Rewrite '\xs -> (e)' as '\xs -> e'.
+-- Rewrite @\xs -> (e)@ as @\xs -> e@.
 niceLambdaR' xs (LL _ (HsPar _ x)) = niceLambdaR' xs x
 
--- \vs v -> ($) e v ==> \vs -> e
+-- @\vs v -> ($) e v@ ==> @\vs -> e@
 niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
   | isDol f
   , v == v'
   , vars' e `disjoint` [v]
   = niceLambdaR' vs e
 
--- \v -> thing + v ==> \vs -> (thing +)
+-- @\v -> thing + v@ ==> @\vs -> (thing +)@
 niceLambdaR' [v] (view' -> App2' f e (view' -> Var_' v'))
   | v == v'
   , vars' e `disjoint` [v]
   , LL _ (HsVar _ (LL _ fname)) <- f
   , isSymOcc $ rdrNameOcc fname = (noLoc $ HsPar noExt $ noLoc $ SectionL noExt e f, const [])
 
--- \vs v -> f x v ==> \vs -> f x
+-- @\vs v -> f x v@ ==> @\vs -> f x@
 niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
   | v == v'
   , vars' e `disjoint` [v]
   = niceLambdaR' vs $ apps' [f, e]
 
--- \vs v -> (v `f`) ==> \vs -> f
+-- @\vs v -> (v `f`)@ ==> @\vs -> f@
 niceLambdaR' (unsnoc -> Just (vs, v)) (LL _ (SectionL _ (view' -> Var_' v') f))
   | v == v' = niceLambdaR' vs f
 
@@ -194,13 +194,13 @@ niceLambdaR' (unsnoc -> Just (vs, v)) (LL _ (SectionL _ (view' -> Var_' v') f))
 niceLambdaR' xs (SimpleLambda ((view' -> PVar_' v):vs) x)
   | v `notElem` xs = niceLambdaR' (xs++[v]) $ lambda vs x
 
--- Rewrite '\x -> x + a' as '(+ a)' (heuristic: 'a' must be a single
+-- Rewrite @\x -> x + a@ as @(+ a)@ (heuristic: @a@ must be a single
 -- lexeme, or it all gets too complex).
 niceLambdaR' [x] (view' -> App2' op@(LL _ (HsVar _ (L _ tag))) l r)
   | isLexeme r, view' l == Var_' x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
       let e = rebracket1' $ addParen' (noLoc $ SectionR noExt op r)
       in (e, const [])
--- Rewrite (1) '\x -> f (b x)' as 'f . b', (2) '\x -> f $ b x' as 'f . b'.
+-- Rewrite (1) @\x -> f (b x)@ as @f . b@, (2) @\x -> f $ b x@ as @f . b@.
 niceLambdaR' [x] y
   | Just (z, subts) <- factor y, x `notElem` vars' z = (z, const [])
   where
@@ -215,10 +215,10 @@ niceLambdaR' [x] y
         in if astEq r z then Just (r, ss) else Just (r, y : ss)
     factor (LL _ (HsPar _ y@(LL _ HsApp{}))) = factor y
     factor _ = Nothing
--- Rewrite '\x y -> x + y' as '(+)'.
+-- Rewrite @\x y -> x + y@ as @(+)@.
 niceLambdaR' [x,y] (LL _ (OpApp _ (view' -> Var_' x1) op@(LL _ HsVar {}) (view' -> Var_' y1)))
     | x == x1, y == y1, vars' op `disjoint` [x, y] = (op, const [])
--- Rewrite '\x y -> f y x' as 'flip f'.
+-- Rewrite @\x y -> f y x@ as @flip f@.
 niceLambdaR' [x, y] (view' -> App2' op (view' -> Var_' y1) (view' -> Var_' x1))
   | x == x1, y == y1, vars' op `disjoint` [x, y] = (noLoc $ HsApp noExt (strToVar "flip") op, const [])
 
