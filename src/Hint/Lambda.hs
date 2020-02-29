@@ -22,7 +22,7 @@
 <TEST>
 f a = \x -> x + x -- f a x = x + x
 f a = \a -> a + a -- f _ a = a + a
-f (Just a) = \a -> a + a -- f (Just _) a = a + a
+f (Just a) = \a -> a + a -- f (Just _) a = a + a @NoRefactor
 f a = \x -> x + x where _ = test
 f (test -> a) = \x -> x + x
 f = \x -> x + x -- f x = x + x
@@ -36,16 +36,16 @@ f = foo ((*) x) -- (x *) @NoRefactor
 f = (*) x
 f = foo (flip op x) -- (`op` x) @NoRefactor
 f = foo (flip op x) -- @Message Use section @NoRefactor
-foo x = bar (\ d -> search d table) -- (`search` table)
-foo x = bar (\ d -> search d table) -- @Message Avoid lambda using `infix`
+foo x = bar (\ d -> search d table) -- (`search` table) @NoRefactor
+foo x = bar (\ d -> search d table) -- @Message Avoid lambda using `infix` @NoRefactor
 f = flip op x
 f = foo (flip (*) x) -- (* x) @NoRefactor
 f = foo (flip (-) x)
 f = foo (\x y -> fun x y) -- @Warning fun
 f = foo (\x y z -> fun x y z) -- @Warning fun
 f = foo (\z -> f x $ z) -- f x
-f = foo (\x y -> x + y) -- (+)
-f = foo (\x -> x * y) -- @Suggestion (* y)
+f = foo (\x y -> x + y) -- (+) @NoRefactor
+f = foo (\x -> x * y) -- @Suggestion (* y) @NoRefactor
 f = foo (\x -> x # y)
 f = foo (\x -> \y -> x x y y) -- \x y -> x x y y
 f = foo (\x -> \x -> foo x x) -- \_ x -> foo x x
@@ -55,14 +55,14 @@ f = foo (\x -> \y -> \z -> x x y y z z) -- \x y z -> x x y y z z
 x ! y = fromJust $ lookup x y
 f = foo (\i -> writeIdea (getClass i) i)
 f = bar (flip Foo.bar x) -- (`Foo.bar` x) @NoRefactor
-f = a b (\x -> c x d)  -- (`c` d)
+f = a b (\x -> c x d)  -- (`c` d) @NoRefactor
 yes = \x -> a x where -- a
-yes = \x y -> op y x where -- flip op
-f = \y -> nub $ reverse y where -- nub . reverse
-f = \z -> foo $ bar $ baz z where -- foo . bar . baz
-f = \z -> foo $ bar x $ baz z where -- foo . bar x . baz
+yes = \x y -> op y x where -- flip op @NoRefactor
+f = \y -> nub $ reverse y where -- nub . reverse @NoRefactor
+f = \z -> foo $ bar $ baz z where -- foo . bar . baz @NoRefactor
+f = \z -> foo $ bar x $ baz z where -- foo . bar x . baz @NoRefactor
 f = \z -> foo $ z $ baz z where
-f = \x -> bar map (filter x) where -- bar map . filter
+f = \x -> bar map (filter x) where -- bar map . filter @NoRefactor
 f = bar &+& \x -> f (g x)
 foo = [\column -> set column [treeViewColumnTitle := printf "%s (match %d)" name (length candidnates)]]
 foo = [\x -> x]
@@ -71,18 +71,18 @@ foo a b c = bar (flux ++ quux) c where flux = a -- foo a b = bar (flux ++ quux) 
 foo a b c = bar (flux ++ quux) c where flux = c
 yes = foo (\x -> Just x) -- @Warning Just
 foo = bar (\x -> (x `f`)) -- f
-baz = bar (\x -> (x +)) -- (+)
+baz = bar (\x -> (x +)) -- (+) @NoRefactor
 foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z @NoRefactor
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b @NoRefactor
-yes = blah (\ x -> case x of A -> a; B -> b) -- @Note may require `{-# LANGUAGE LambdaCase #-}` adding to the top of the file
+yes = blah (\ x -> case x of A -> a; B -> b) -- @Note may require `{-# LANGUAGE LambdaCase #-}` adding to the top of the file @NoRefactor
 no = blah (\ x -> case x of A -> a x; B -> b x)
-yes = blah (\ x -> (y, x)) -- (y,)
+yes = blah (\ x -> (y, x)) -- (y,) @NoRefactor
 yes = blah (\ x -> (y, x, z+q)) -- (y, , z+q) @NoRefactor
-yes = blah (\ x -> (y, x, y, u, v)) -- (y, , y, u, v)
-yes = blah (\ x -> (y, x, z+q)) -- @Note may require `{-# LANGUAGE TupleSections #-}` adding to the top of the file
+yes = blah (\ x -> (y, x, y, u, v)) -- (y, , y, u, v) @NoRefactor
+yes = blah (\ x -> (y, x, z+q)) -- @Note may require `{-# LANGUAGE TupleSections #-}` adding to the top of the file @NoRefactor
 yes = blah (\ x -> (y, x, z+x))
 tmp = map (\ x -> runST $ action x)
-yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>)
+yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>) @NoRefactor
 {-# LANGUAGE TypeApplications #-}; noBug545 = coerce ((<>) @[a])
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 name = authOAuth2Widget [whamlet|Login via #{name}|] name
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 = foo (\name -> authOAuth2Widget [whamlet|Login via #{name}|] name)
