@@ -167,6 +167,7 @@ niceLambdaR' xs (SimpleLambda [] x) = niceLambdaR' xs x
 niceLambdaR' xs (LL _ (HsPar _ x)) = niceLambdaR' xs x
 
 -- @\vs v -> ($) e v@ ==> @\vs -> e@
+-- @\vs v -> e $ v@ ==> @\vs -> e@
 niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
   | isDol f
   , v == v'
