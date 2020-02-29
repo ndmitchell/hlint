@@ -219,8 +219,8 @@ lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (LL _ expr)) =
                  -- is there a single match? - suggest match inside the lambda
                  --
                  -- we need to
-                 -- * add brackets to the match, because matches in lambdas require them
-                 -- * mark match as being in a lambda context so that it's printed properly
+                 --     * add brackets to the match, because matches in lambdas require them
+                 --     * mark match as being in a lambda context so that it's printed properly
                  oldMG@(MG _ (LL _ [LL _ oldmatch]) _) ->
                      [suggestN' "Use lambda" o $ noLoc $ HsLam NoExt oldMG
                          { mg_alts = noLoc
