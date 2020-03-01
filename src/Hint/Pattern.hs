@@ -57,7 +57,7 @@ foo x@Foo = x
 
 module Hint.Pattern(patternHint) where
 
-import Hint.Type(DeclHint',Idea,ghcAnnotations,ideaTo,toSS',toRefactSrcSpan,ghcSpanToHSE,suggest',warn')
+import Hint.Type(DeclHint',Idea,ghcAnnotations,ideaTo,toSS',toRefactSrcSpan',suggest',warn')
 import Data.Generics.Uniplate.Operations
 import Data.Function
 import Data.List.Extra
@@ -147,7 +147,7 @@ hints gen (Pattern l rtype pat (GRHSs _ [LL _ (GRHS _ [] bod)] bind))
 
     f :: [Either a (String, R.SrcSpan)] -> [(String, R.SrcSpan)]
     f = rights
-    refactoring = Replace rtype (toRefactSrcSpan$ ghcSpanToHSE l) (f patSubts ++ f guardSubts ++ f exprSubts) template
+    refactoring = Replace rtype (toRefactSrcSpan' l) (f patSubts ++ f guardSubts ++ f exprSubts) template
 hints gen (Pattern l t pats o@(GRHSs _ [LL _ (GRHS _ [test] bod)] bind))
   | unsafePrettyPrint test `elem` ["otherwise", "True"]
   = [gen "Redundant guard" (Pattern l t pats o{grhssGRHSs=[noLoc (GRHS noExt [] bod)]}) [Delete Stmt (toSS' test)]]

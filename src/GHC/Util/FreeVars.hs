@@ -151,6 +151,10 @@ instance FreeVars' (LHsExpr GhcPs) where
 
   freeVars' e = freeVars' $ children e
 
+instance FreeVars' (LHsTupArg GhcPs) where
+  freeVars' (dL -> L _ (Present _ args)) = freeVars' args
+  freeVars' _ = mempty
+
 instance FreeVars' (LHsRecField GhcPs (LHsExpr GhcPs)) where
    freeVars' (dL -> L _ (HsRecField _ x _)) = freeVars' x
 

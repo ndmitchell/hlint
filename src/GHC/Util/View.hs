@@ -1,9 +1,10 @@
-{-# LANGUAGE ViewPatterns, MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE ViewPatterns, MultiParamTypeClasses, FlexibleInstances, PatternSynonyms #-}
 
 module GHC.Util.View (
    fromParen', fromPParen'
   , View'(..)
   , Var_'(Var_'), PVar_'(PVar_'), PApp_'(PApp_'), App2'(App2'),LamConst1'(LamConst1')
+  , pattern SimpleLambda
 ) where
 
 import HsSyn
@@ -11,6 +12,7 @@ import SrcLoc
 import RdrName
 import OccName
 import BasicTypes
+import GHC.Util.RdrName (rdrNameStr')
 
 fromParen' :: LHsExpr GhcPs -> LHsExpr GhcPs
 fromParen' (LL _ (HsPar _ x)) = fromParen' x
@@ -35,7 +37,7 @@ instance View' (LHsExpr GhcPs) LamConst1' where
   view' _ = NoLamConst1'
 
 instance View' (LHsExpr GhcPs) Var_' where
-    view' (fromParen' -> (LL _ (HsVar _ (LL _ (Unqual x))))) = Var_' $ occNameString x
+    view' (fromParen' -> (LL _ (HsVar _ (rdrNameStr' -> x)))) = Var_' x
     view' _ = NoVar_'
 
 instance View' (LHsExpr GhcPs) App2' where
@@ -53,3 +55,7 @@ instance View' (Pat GhcPs) PApp_' where
   view' (fromPParen' -> LL _ (ConPatIn (L _ x) (InfixCon lhs rhs))) =
     PApp_' (occNameString . rdrNameOcc $ x) [lhs, rhs]
   view' _ = NoPApp_'
+
+-- A lambda with no guards and no where clauses
+pattern SimpleLambda :: [Pat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
+pattern SimpleLambda vs body <- LL _ (HsLam _ (MG _ (LL _ [LL _ (Match _ _ vs (GRHSs _ [LL _ (GRHS _ [] body)] (LL _ (EmptyLocalBinds _))))]) _))

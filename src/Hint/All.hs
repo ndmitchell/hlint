@@ -44,10 +44,8 @@ data HintBuiltin =
 
 builtin :: HintBuiltin -> Hint
 builtin x = case x of
-    -- Hse.
-    HintLambda     -> decl lambdaHint
-
     -- Ghc.
+    HintLambda     -> decl' lambdaHint
     HintImport     -> modu importHint
     HintExport     -> modu exportHint
     HintComment    -> modu commentHint
@@ -66,7 +64,6 @@ builtin x = case x of
     HintExtensions -> modu extensionsHint
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList
-        decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}
         decl' f = mempty{hintDecl'=const $ \a b c -> wrap $ f a b c}
         modu f = mempty{hintModule=const $ \a b -> wrap $ f a b}
         mods f = mempty{hintModules=const $ \a -> wrap $ f a}

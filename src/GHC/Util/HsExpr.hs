@@ -7,13 +7,14 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module GHC.Util.HsExpr (
-    dotApp', dotApps'
-  , simplifyExp', niceLambda', niceDotApp'
+    dotApp', dotApps', lambda
+  , simplifyExp', niceLambda', niceLambdaR', niceDotApp'
   , Brackets'(..)
   , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'
   , paren'
   , replaceBranches'
   , needBracketOld', transformBracketOld', descendBracketOld', reduce', reduce1', fromParen1'
+  , allowLeftSection, allowRightSection
 ) where
 
 import HsSyn
@@ -27,6 +28,7 @@ import Bag(bagToList)
 import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
+import GHC.Util.Outputable (unsafePrettyPrint)
 
 import Control.Applicative
 import Control.Monad.Trans.State
@@ -36,7 +38,8 @@ import Data.Generics.Uniplate.Data
 import Data.List.Extra
 import Data.Tuple.Extra
 
-import Refact.Types hiding (Match)
+import Refact (toSS')
+import Refact.Types hiding (SrcSpan, Match)
 import qualified Refact.Types as R (SrcSpan)
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
@@ -51,6 +54,10 @@ dotApps' :: [LHsExpr GhcPs] -> LHsExpr GhcPs
 dotApps' [] = error "GHC.Util.HsExpr.dotApps', does not work on an empty list"
 dotApps' [x] = x
 dotApps' (x : xs) = dotApp' x (dotApps' xs)
+
+-- | @lambda [p0, p1..pn] body@ makes @\p1 p1 .. pn -> body@
+lambda :: [Pat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
+lambda vs body = noLoc $ HsLam noExt (MG noExt (noLoc [noLoc $ Match noExt LambdaExpr vs (GRHSs noExt [noLoc $ GRHS noExt [] body] (noLoc $ EmptyLocalBinds noExt))]) Generated)
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren' :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -143,7 +150,9 @@ niceDotApp' a b = dotApp' a b
 niceLambda' :: [String] -> LHsExpr GhcPs -> LHsExpr GhcPs
 niceLambda' ss e = fst (niceLambdaR' ss e)-- We don't support refactorings yet.
 
+allowRightSection :: String -> Bool
 allowRightSection x = x `notElem` ["-","#"]
+allowLeftSection :: String -> Bool
 allowLeftSection x = x /= "#"
 
 -- Implementation. Try to produce special forms (e.g. sections,
@@ -152,17 +161,51 @@ niceLambdaR' :: [String]
              -> LHsExpr GhcPs
              -> (LHsExpr GhcPs, R.SrcSpan
              -> [Refactoring R.SrcSpan])
--- Rewrite '\xs -> (e)' as '\xs -> e'.
+-- Rewrite @\ -> e@ as @e@
+-- These are encountered as recursive calls.
+niceLambdaR' xs (SimpleLambda [] x) = niceLambdaR' xs x
+
+-- Rewrite @\xs -> (e)@ as @\xs -> e@.
 niceLambdaR' xs (LL _ (HsPar _ x)) = niceLambdaR' xs x
--- Rewrite '\x -> x + a' as '(+ a)' (heuristic: 'a' must be a single
+
+-- @\vs v -> ($) e v@ ==> @\vs -> e@
+-- @\vs v -> e $ v@ ==> @\vs -> e@
+niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
+  | isDol f
+  , v == v'
+  , vars' e `disjoint` [v]
+  = niceLambdaR' vs e
+
+-- @\v -> thing + v@ ==> @\vs -> (thing +)@
+niceLambdaR' [v] (view' -> App2' f e (view' -> Var_' v'))
+  | v == v'
+  , vars' e `disjoint` [v]
+  , LL _ (HsVar _ (LL _ fname)) <- f
+  , isSymOcc $ rdrNameOcc fname = (noLoc $ HsPar noExt $ noLoc $ SectionL noExt e f, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
+
+-- @\vs v -> f x v@ ==> @\vs -> f x@
+niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
+  | v == v'
+  , vars' e `disjoint` [v]
+  = niceLambdaR' vs $ apps' [f, e]
+
+-- @\vs v -> (v `f`)@ ==> @\vs -> f@
+niceLambdaR' (unsnoc -> Just (vs, v)) (LL _ (SectionL _ (view' -> Var_' v') f))
+  | v == v' = niceLambdaR' vs f
+
+-- Strip one variable pattern from the end of a lambdas match, and place it in our list of factoring variables.
+niceLambdaR' xs (SimpleLambda ((view' -> PVar_' v):vs) x)
+  | v `notElem` xs = niceLambdaR' (xs++[v]) $ lambda vs x
+
+-- Rewrite @\x -> x + a@ as @(+ a)@ (heuristic: @a@ must be a single
 -- lexeme, or it all gets too complex).
 niceLambdaR' [x] (view' -> App2' op@(LL _ (HsVar _ (L _ tag))) l r)
   | isLexeme r, view' l == Var_' x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
       let e = rebracket1' $ addParen' (noLoc $ SectionR noExt op r)
-      in (e, const [])
--- Rewrite (1) '\x -> f (b x)' as 'f . b', (2) '\x -> f $ b x' as 'f . b'.
+      in (e, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
+-- Rewrite (1) @\x -> f (b x)@ as @f . b@, (2) @\x -> f $ b x@ as @f . b@.
 niceLambdaR' [x] y
-  | Just (z, subts) <- factor y, x `notElem` vars' z = (z, const [])
+  | Just (z, subts) <- factor y, x `notElem` vars' z = (z, \s -> [mkRefact subts s])
   where
     -- Factor the expression with respect to x.
     factor :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [LHsExpr GhcPs])
@@ -175,12 +218,26 @@ niceLambdaR' [x] y
         in if astEq r z then Just (r, ss) else Just (r, y : ss)
     factor (LL _ (HsPar _ y@(LL _ HsApp{}))) = factor y
     factor _ = Nothing
--- Rewrite '\x y -> x + y' as '(+)'.
+    mkRefact :: [LHsExpr GhcPs] -> R.SrcSpan -> Refactoring R.SrcSpan
+    mkRefact subts s =
+      let tempSubts = zipWith (\a b -> ([a], toSS' b)) ['a' .. 'z'] subts
+          template = dotApps' (map (strToVar . fst) tempSubts)
+      in Replace Expr s tempSubts (unsafePrettyPrint template)
+-- Rewrite @\x y -> x + y@ as @(+)@.
 niceLambdaR' [x,y] (LL _ (OpApp _ (view' -> Var_' x1) op@(LL _ HsVar {}) (view' -> Var_' y1)))
-    | x == x1, y == y1, vars' op `disjoint` [x, y] = (op, const [])
--- Rewrite '\x y -> f y x' as 'flip f'.
+    | x == x1, y == y1, vars' op `disjoint` [x, y] = (op, \s -> [Replace Expr s [] (unsafePrettyPrint op)])
+-- Rewrite @\x y -> f y x@ as @flip f@.
 niceLambdaR' [x, y] (view' -> App2' op (view' -> Var_' y1) (view' -> Var_' x1))
-  | x == x1, y == y1, vars' op `disjoint` [x, y] = (noLoc $ HsApp noExt (strToVar "flip") op, const [])
+  | x == x1, y == y1, vars' op `disjoint` [x, y] =
+      ( gen op
+      , \s -> [Replace Expr s [("x", toSS' op)] (unsafePrettyPrint $ gen (strToVar "x"))]
+      )
+  where
+    gen = noLoc . HsApp noExt (strToVar "flip")
+
+-- We're done factoring, but have no variables left, so we shouldn't make a lambda.
+-- @\ -> e@ ==> @e@
+niceLambdaR' [] e = (e, const [])
 -- Base case. Just a good old fashioned lambda.
 niceLambdaR' ss e =
   let grhs = noLoc $ GRHS noExt [] e :: LGRHS GhcPs (LHsExpr GhcPs)

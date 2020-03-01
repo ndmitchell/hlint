@@ -8,7 +8,7 @@ module HSE.All(
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
-    freeVars, vars, varss, pvars,
+    vars,
     ghcSpanToHSE, ghcSrcLocToHSE,
     parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
@@ -26,7 +26,6 @@ import Data.Maybe
 import Timing
 import Language.Preprocessor.Cpphs
 import Data.Either
-import Data.Set (Set)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import System.IO.Extra
@@ -71,12 +70,7 @@ ghcSpanToHSE (GHC.RealSrcSpan s) =
 ghcSpanToHSE (GHC.UnhelpfulSpan _) = mkSrcSpan noLoc noLoc
 
 vars :: FreeVars a => a -> [String]
-freeVars :: FreeVars a => a -> Set String
-varss, pvars :: AllVars a => a -> [String]
 vars  = Set.toList . Set.map prettyPrint . X.freeVars
-varss = Set.toList . Set.map prettyPrint . X.free . X.allVars
-pvars = Set.toList . Set.map prettyPrint . X.bound . X.allVars
-freeVars = Set.map prettyPrint . X.freeVars
 
 -- | What C pre processor should be used.
 data CppFlags

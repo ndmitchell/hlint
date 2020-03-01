@@ -10,7 +10,7 @@
 - extensions:
   - default: false
   - name: [DeriveDataTypeable, GeneralizedNewtypeDeriving, NoMonomorphismRestriction, OverloadedStrings]
-  - name: [MultiWayIf, PatternGuards, RecordWildCards, ViewPatterns, TupleSections, LambdaCase]
+  - name: [MultiWayIf, PatternGuards, RecordWildCards, ViewPatterns, PatternSynonyms, TupleSections, LambdaCase]
   - name: [Rank2Types, ScopedTypeVariables]
   - name: [ExistentialQuantification, MultiParamTypeClasses, NamedFieldPuns]
   - name: [FlexibleContexts, FlexibleInstances]
