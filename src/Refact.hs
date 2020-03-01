@@ -1,6 +1,6 @@
 module Refact
     ( toRefactSrcSpan, toRefactSrcSpan'
-    , toSS, toSS'
+    , toSS'
     , toSrcSpan'
     , checkRefactor, refactorPath, runRefactoring
     ) where
@@ -26,9 +26,6 @@ toRefactSrcSpan ss = R.SrcSpan (srcSpanStartLine ss)
 
 toRefactSrcSpan' :: GHC.SrcSpan -> R.SrcSpan
 toRefactSrcSpan' = toRefactSrcSpan . ghcSpanToHSE
-
-toSS :: Annotated a => a S -> R.SrcSpan
-toSS = toRefactSrcSpan . srcInfoSpan . ann
 
 -- | Don't crash in case ghc gives us a \"fake\" span,
 -- opting instead to show @0 0 0 0@ coordinates.

@@ -149,7 +149,6 @@ library
         Hint.Smell
         Hint.Type
         Hint.Unsafe
-        Hint.Util
         Test.All
         Test.Annotations
         Test.InputOutput
