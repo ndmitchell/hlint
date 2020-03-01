@@ -912,6 +912,13 @@
     - warn: {lhs: "drop 1", rhs: "drop1"}
     - warn: {lhs: "dropEnd 1", rhs: "dropEnd1"}
 
+# hints that will be enabled in future
+- group:
+    name: future
+    enabled: false
+    rules:
+    - warn: {lhs: return, rhs: pure}
+
 - group:
     name: dollar
     enabled: false
