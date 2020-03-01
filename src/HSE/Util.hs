@@ -230,7 +230,7 @@ descendIndex :: Data a => (Int -> a -> a) -> a -> a
 descendIndex f x = flip evalState 0 $ flip descendM x $ \y -> do
     i <- get
     modify (+1)
-    return $ f i y
+    pure $ f i y
 
 
 ---------------------------------------------------------------------

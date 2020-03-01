@@ -102,7 +102,7 @@ descendIndex' :: Data a => (Int -> a -> a) -> a -> a
 descendIndex' f x = flip evalState 0 $ flip descendM x $ \y -> do
     i <- get
     modify (+1)
-    return $ f i y
+    pure $ f i y
 
 --  There are differences in pretty-printing between GHC and HSE. This
 --  version never removes brackets.

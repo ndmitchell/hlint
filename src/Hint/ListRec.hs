@@ -68,7 +68,7 @@ listRecHint _ _ = concatMap f . universe
             guard $ recursiveStr `notElem` varss' y
             -- Maybe we can do better here maintaining source
             -- formatting?
-            return $ idea' severity ("Use " ++ use) o y [Replace Decl (toSS' o) [] (unsafePrettyPrint y)]
+            pure $ idea' severity ("Use " ++ use) o y [Replace Decl (toSS' o) [] (unsafePrettyPrint y)]
 
 recursiveStr :: String
 recursiveStr = "_recursive_"
@@ -176,14 +176,14 @@ findCase x = do
       matchGroup e = MG{mg_alts=noLoc [noLoc $ match e], mg_origin=Generated, ..} -- Match group.
       funBind e = FunBind {fun_matches=matchGroup e, ..} :: HsBindLR GhcPs GhcPs -- Fun bind.
 
-  return (ListCase ps b1 (x, xs, b2), noLoc . ValD noExt . funBind)
+  pure (ListCase ps b1 (x, xs, b2), noLoc . ValD noExt . funBind)
 
 delCons :: String -> Int -> String -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
 delCons func pos var (fromApps' -> (view' -> Var_' x) : xs) | func == x = do
     (pre, (view' -> Var_' v) : post) <- return $ splitAt pos xs
     guard $ v == var
-    return $ apps' $ recursive : pre ++ post
-delCons _ _ _ x = return x
+    pure $ apps' $ recursive : pre ++ post
+delCons _ _ _ x = pure x
 
 eliminateArgs :: [String] -> LHsExpr GhcPs -> ([String], LHsExpr GhcPs)
 eliminateArgs ps cons = (remove ps, transform f cons)
@@ -210,7 +210,7 @@ findBranch (L _ x) = do
                         }
             } <- return x
   (a, b, c) <- findPat ps
-  return $ Branch (occNameString $rdrNameOcc name) a b c $ simplifyExp' body
+  pure $ Branch (occNameString $rdrNameOcc name) a b c $ simplifyExp' body
 
 findPat :: [LPat GhcPs] -> Maybe ([String], Int, BList)
 findPat ps = do
@@ -218,7 +218,7 @@ findPat ps = do
   [i] <- return $ findIndices isRight ps
   let (left, [right]) = partitionEithers ps
 
-  return (left, i, right)
+  pure (left, i, right)
 
 readPat :: Pat GhcPs -> Maybe (Either String BList)
 readPat (view' -> PVar_' x) = Just $ Left x

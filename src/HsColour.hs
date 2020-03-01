@@ -4,7 +4,7 @@ module HsColour(hsColourHTML, hsColourConsole) where
 #ifdef GPL_SCARES_ME
 
 hsColourConsole :: IO (String -> String)
-hsColourConsole = return id
+hsColourConsole = pure id
 
 hsColourHTML :: String -> String
 hsColourHTML = id

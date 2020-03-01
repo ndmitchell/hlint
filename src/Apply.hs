@@ -24,7 +24,7 @@ import Prelude
 applyHintFile :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO [Idea]
 applyHintFile flags s file src = do
     res <- parseModuleApply flags s file src
-    return $ case res of
+    pure $ case res of
         Left err -> [err]
         Right m -> executeHints s [m]
 
@@ -33,7 +33,7 @@ applyHintFile flags s file src = do
 applyHintFiles :: ParseFlags -> [Setting] -> [FilePath] -> IO [Idea]
 applyHintFiles flags s files = do
     (err, ms) <- partitionEithers <$> mapM (\file -> parseModuleApply flags s file Nothing) files
-    return $ err ++ executeHints s ms
+    pure $ err ++ executeHints s ms
 
 
 -- | Given a way of classifying results, and a 'Hint', apply to a set of modules generating a list of 'Idea's.
@@ -87,9 +87,9 @@ parseModuleApply :: ParseFlags -> [Setting] -> FilePath -> Maybe String -> IO (E
 parseModuleApply flags s file src = do
     res <- parseModuleEx (parseFlagsAddFixities [x | Infix x <- s] flags) file src
     case res of
-      Right r -> return $ Right r
+      Right r -> pure $ Right r
       Left (ParseError sl msg ctxt) ->
-            return $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
+            pure $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error "Parse error" (mkSrcSpan sl sl) ctxt Nothing []
 
 
 -- | Find which hints a list of settings implies.

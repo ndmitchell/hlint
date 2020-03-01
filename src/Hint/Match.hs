@@ -152,7 +152,7 @@ matchIdea' sb declName HintRule{..} parent x = do
   guard $ checkSide' (unextendInstances <$> hintRuleGhcSide) $ ("original", x) : ("result", res) : fromSubst' u
   guard $ checkDefine' declName parent res
 
-  return (res, tpl, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
+  pure (res, tpl, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
 
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS

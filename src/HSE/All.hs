@@ -166,8 +166,8 @@ parseFlagsSetLanguage (l, es) x = x{hseFlags=(hseFlags x){baseLanguage = l, exte
 
 
 runCpp :: CppFlags -> FilePath -> String -> IO String
-runCpp NoCpp _ x = return x
-runCpp CppSimple _ x = return $ unlines [if "#" `isPrefixOf` trimStart x then "" else x | x <- lines x]
+runCpp NoCpp _ x = pure x
+runCpp CppSimple _ x = pure $ unlines [if "#" `isPrefixOf` trimStart x then "" else x | x <- lines x]
 runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
     where
         -- LINE pragmas always inserted when locations=True
@@ -236,7 +236,7 @@ hseFailOpParseModuleEx ppstr flags file str sl msg = do
     let pe = case parseFileContentsWithMode (mkMode flags file) ppstr2 of
                ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
                _ -> context (srcLine sl) ppstr
-    return $ Left $ ParseError sl msg pe
+    pure $ Left $ ParseError sl msg pe
 
 -- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String
@@ -258,7 +258,7 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
        pe = context (srcLine sl) ppstr
        msg = Outputable.showSDoc baseDynFlags $
                ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
-   return $ Left $ ParseError sl msg pe
+   pure $ Left $ ParseError sl msg pe
 
 -- A hacky function to get fixities from HSE parse flags suitable for
 -- use by our own 'GHC.Util.Refact.Fixity' module.
@@ -350,7 +350,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                           , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
                           ) in
                     let a' = GhclibParserEx.applyFixities fixities a in
-                    return $ Right (ModuleEx (applyFixity fixity x) cs a' anns)
+                    pure $ Right (ModuleEx (applyFixity fixity x) cs a' anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
                 (ParseOk _,  GHC.PFailed _ loc err) ->
@@ -364,7 +364,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             -- location so we skip that for now. Synthesize a parse
             -- error.
             let loc = SrcLoc file (1 :: Int) (1 :: Int)
-            return $ Left (ParseError loc msg (context (srcLine loc) ppstr))
+            pure $ Left (ParseError loc msg (context (srcLine loc) ppstr))
 
     where
         fromPFailed (GHC.PFailed _ loc err) = Just (loc, err)

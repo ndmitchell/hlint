@@ -32,7 +32,7 @@ withTests (Test act) = do
     putStrLn $ if failures == 0
         then "Tests passed (" ++ show total ++ ")"
         else "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
-    return (failures, res)
+    pure (failures, res)
 
 addIdeas :: [Idea] -> Test ()
 addIdeas xs = do

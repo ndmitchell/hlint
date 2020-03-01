@@ -143,8 +143,8 @@ hintTheorems xs =
                 f (ValidInstance cls var) x = evalState (transformM g x) True
                     where g v@Var{} | v ~= var = do
                                 b <- get; put False
-                                return $ if b then Paren an $ toNamed $ prettyPrint v ++ "::'a::" ++ cls ++ "_sym" else v
-                          g v = return v :: State Bool Exp_
+                                pure $ if b then Paren an $ toNamed $ prettyPrint v ++ "::'a::" ++ cls ++ "_sym" else v
+                          g v = pure v :: State Bool Exp_
                 f _  x = x
 
         relationship hintRuleNotes a b | any lazier hintRuleNotes = a ++ " \\<sqsubseteq> " ++ b

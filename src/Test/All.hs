@@ -37,11 +37,11 @@ test CmdTest{..} main dataDir files = do
         useSrc <- return $ hasSrc && null files
         testFiles <- if files /= [] then return files else do
             xs <- liftIO $ getDirectoryContents dataDir
-            return [dataDir </> x | x <- xs, takeExtension x `elem` [".hs",".yml",".yaml"]
+            pure [dataDir </> x | x <- xs, takeExtension x `elem` [".hs",".yml",".yaml"]
                                 , not $ "HLint_" `isPrefixOf` takeBaseName x]
         testFiles <- liftIO $ forM testFiles $ \file -> do
             hints <- readFilesConfig [(file, Nothing)]
-            return (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
+            pure (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
         let wrap msg act = do liftIO $ putStr (msg ++ " "); act; liftIO $ putStrLn ""
 
         liftIO $ putStrLn "Testing"
@@ -69,7 +69,7 @@ test CmdTest{..} main dataDir files = do
     case rpath of
         Left refactorNotFound -> putStrLn $ unlines [refactorNotFound, "Refactoring tests skipped"]
         _ -> return ()
-    return failures
+    pure failures
 
 
 ---------------------------------------------------------------------

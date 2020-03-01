@@ -22,7 +22,7 @@ runMains datadir tmpdir xs = do
         ms <- forM (zipFrom 1 xs) $ \(i,x) -> do
             let m = "I" ++ show i
             writeFile (dir </> m <.> "hs") $ replace "module Main" ("module " ++ m) x
-            return m
+            pure m
         writeFile (dir </> "Main.hs") $ unlines $
             ["import qualified " ++ m | m <- ms] ++
             ["main = do"] ++
@@ -61,7 +61,7 @@ wrap f datadir tmpdir hints = runMains datadir tmpdir [unlines $ body [x | Setti
 toTypeCheck :: [HintRule] -> [String]
 toTypeCheck hints =
     ["import HLint_TypeCheck hiding(main)"
-    ,"main = return ()"] ++
+    ,"main = pure ()"] ++
     ["{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
      prettyPrint (PatBind an (toNamed $ "test" ++ show i) bod Nothing)
     | (i, HintRule _ _ _ lhs rhs side _notes  _ghcScope  _ghcLhs _ghcRhs _ghcSide) <- zipFrom 1 hints, "noTypeCheck" `notElem` vars (maybeToList side)

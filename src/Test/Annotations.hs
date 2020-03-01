@@ -45,12 +45,12 @@ testAnnotations setting file rpath = do
             ideas <- liftIO $ try_ $ do
                 res <- applyHintFile defaultParseFlags (setting ++ additionalSettings) file $ Just inp
                 evaluate $ length $ show res
-                return res
+                pure res
 
             -- the hints from data/Test.hs are really fake hints we don't actually deploy
             -- so don't record them
             when (takeFileName file /= "Test.hs") $
-                either (const $ return ()) addIdeas ideas
+                either (const $ pure ()) addIdeas ideas
 
             let good = case (out, ideas) of
                     (Nothing, Right []) -> True
@@ -61,7 +61,7 @@ testAnnotations setting file rpath = do
                         ["TEST FAILURE (" ++ show (either (const 1) length ideas) ++ " hints generated)"
                         ,"SRC: " ++ showSrcLoc loc
                         ,"INPUT: " ++ inp] ++
-                        map ("OUTPUT: " ++) (either (return . show) (map show) ideas) ++
+                        map ("OUTPUT: " ++) (either (pure . show) (map show) ideas) ++
                         ["WANTED: " ++ fromMaybe "<failure>" out]
                         | not good] ++
                     [failed

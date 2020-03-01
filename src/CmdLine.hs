@@ -47,18 +47,18 @@ automatic cmd = case cmd of
     CmdMain{} -> dataDir =<< path =<< git =<< extension cmd
     CmdGrep{} -> path =<< extension cmd
     CmdTest{} -> dataDir cmd
-    _ -> return cmd
+    _ -> pure cmd
     where
-        path cmd = return $ if null $ cmdPath cmd then cmd{cmdPath=["."]} else cmd
-        extension cmd = return $ if null $ cmdExtension cmd then cmd{cmdExtension=["hs","lhs"]} else cmd
+        path cmd = pure $ if null $ cmdPath cmd then cmd{cmdPath=["."]} else cmd
+        extension cmd = pure $ if null $ cmdExtension cmd then cmd{cmdExtension=["hs","lhs"]} else cmd
         dataDir cmd
-            | cmdDataDir cmd  /= "" = return cmd
+            | cmdDataDir cmd  /= "" = pure cmd
             | otherwise = do
                 x <- getDataDir
                 b <- doesDirectoryExist x
-                if b then return cmd{cmdDataDir=x} else do
+                if b then pure cmd{cmdDataDir=x} else do
                     exe <- getExecutablePath
-                    return cmd{cmdDataDir = takeDirectory exe </> "data"}
+                    pure cmd{cmdDataDir = takeDirectory exe </> "data"}
         git cmd
             | cmdGit cmd = do
                 mgit <- findExecutable "git"
@@ -68,8 +68,8 @@ automatic cmd = case cmd of
                         let args = ["ls-files", "--cached", "--others", "--exclude-standard"] ++
                                    map ("*." ++) (cmdExtension cmd)
                         files <- readProcess git args ""
-                        return cmd{cmdFiles = cmdFiles cmd ++ lines files}
-            | otherwise = return cmd
+                        pure cmd{cmdFiles = cmdFiles cmd ++ lines files}
+            | otherwise = pure cmd
 
 
 exitWithHelp :: IO a
@@ -225,7 +225,7 @@ cmdHintFiles cmd = do
     let explicit2' = map (,Nothing) explicit2
     when (bad /= []) $
         fail $ unlines $ "Failed to find requested hint files:" : map ("  "++) bad
-    if cmdWithHints cmd /= [] then return $ explicit1 ++ explicit2' else do
+    if cmdWithHints cmd /= [] then pure $ explicit1 ++ explicit2' else do
         -- we follow the stylish-haskell config file search policy
         -- 1) current directory or its ancestors; 2) home directory
         curdir <- getCurrentDirectory
@@ -234,7 +234,7 @@ cmdHintFiles cmd = do
         implicit <- findM doesFileExist $
             map (</> ".hlint.yaml") (ancestors curdir ++ home) -- to match Stylish Haskell
             ++ ["HLint.hs"] -- the default in HLint 1.*
-        return $ explicit1 ++ map (,Nothing) (maybeToList implicit) ++ explicit2'
+        pure $ explicit1 ++ map (,Nothing) (maybeToList implicit) ++ explicit2'
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
 
@@ -286,7 +286,7 @@ resolveFile cmd = getFile (toPredicate $ cmdIgnoreGlob cmd) (cmdPath cmd) (cmdEx
 getFile :: (FilePath -> Bool) -> [FilePath] -> [String] -> Maybe FilePath -> FilePath -> IO [FilePath]
 getFile _ path _ (Just tmpfile) "-" =
     -- make sure we don't reencode any Unicode
-    BS.getContents >>= BS.writeFile tmpfile >> return [tmpfile]
+    BS.getContents >>= BS.writeFile tmpfile >> pure [tmpfile]
 getFile _ path _ Nothing "-" = return ["-"]
 getFile _ [] exts _ file = exitMessage $ "Couldn't find file: " ++ file
 getFile ignore (p:ath) exts t file = do
@@ -295,10 +295,10 @@ getFile ignore (p:ath) exts t file = do
         let avoidDir x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y))
             avoidFile x = let y = takeFileName x in "." `isPrefixOf` y || ignore x
         xs <- listFilesInside (return . not . avoidDir) $ p <\> file
-        return [x | x <- xs, drop1 (takeExtension x) `elem` exts, not $ avoidFile x]
+        pure [x | x <- xs, drop1 (takeExtension x) `elem` exts, not $ avoidFile x]
      else do
         isFil <- doesFileExist $ p <\> file
-        if isFil then return [p <\> file]
+        if isFil then pure [p <\> file]
          else do
             res <- getModule p exts file
             case res of
@@ -314,12 +314,12 @@ getModule path exts x | not (any isSpace x) && all isMod xs = f exts
         isMod _ = False
         pre = path <\> joinPath xs
 
-        f [] = return Nothing
+        f [] = pure Nothing
         f (x:xs) = do
             let s = pre <.> x
             b <- doesFileExist s
-            if b then return $ Just s else f xs
-getModule _ _ _ = return Nothing
+            if b then pure $ Just s else f xs
+getModule _ _ _ = pure Nothing
 
 
 getExtensions :: [String] -> (Language, [Extension])

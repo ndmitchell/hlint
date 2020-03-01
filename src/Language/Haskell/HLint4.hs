@@ -66,7 +66,7 @@ getHLintDataDir = getDataDir
 autoSettings :: IO (ParseFlags, [Classify], Hint)
 autoSettings = do
     (fixities, classify, hints) <- findSettings (readSettingsFile Nothing) Nothing
-    return (parseFlagsAddFixities fixities defaultParseFlags, classify, hints)
+    pure (parseFlagsAddFixities fixities defaultParseFlags, classify, hints)
 
 
 -- | The identity function. In previous versions of HLint this function was useful. Now, it isn't.
@@ -87,7 +87,7 @@ argsSettings args = do
             let flags = parseFlagsSetLanguage (cmdExtensions cmd) $ parseFlagsAddFixities fixities $
                         defaultParseFlags{cppFlags = cmdCpp cmd}
             let ignore = [Classify Ignore x "" "" | x <- cmdIgnore]
-            return (flags, classify ++ ignore, hints)
+            pure (flags, classify ++ ignore, hints)
         _ -> error "Can only invoke autoSettingsArgs with the root process"
 
 
@@ -101,11 +101,11 @@ readSettingsFile :: Maybe FilePath -> String -> IO (FilePath, Maybe String)
 readSettingsFile dir x
     | takeExtension x `elem` [".yml",".yaml"] = do
         dir <- maybe getHLintDataDir return dir
-        return (dir </> x, Nothing)
+        pure (dir </> x, Nothing)
     | Just x <- "HLint." `stripPrefix` x = do
         dir <- maybe getHLintDataDir return dir
-        return (dir </> x <.> "hs", Nothing)
-    | otherwise = return (x <.> "hs", Nothing)
+        pure (dir </> x <.> "hs", Nothing)
+    | otherwise = pure (x <.> "hs", Nothing)
 
 
 -- | Given a function to load a module (typically 'readSettingsFile'), and a module to start from

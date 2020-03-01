@@ -7,4 +7,4 @@ version :: Version
 version = makeVersion [0,0]
 
 getDataDir :: IO FilePath
-getDataDir = return "data"
+getDataDir = pure "data"

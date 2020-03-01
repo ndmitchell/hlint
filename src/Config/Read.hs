@@ -12,6 +12,6 @@ readFilesConfig :: [(FilePath, Maybe String)] -> IO [Setting]
 readFilesConfig files = do
         yaml <- mapM (uncurry readFileConfigYaml) yaml
         haskell <- mapM (uncurry readFileConfigHaskell) haskell
-        return $ concat haskell ++ settingsFromConfigYaml yaml
+        pure $ concat haskell ++ settingsFromConfigYaml yaml
     where
         (yaml, haskell) = partition (\(x,_) -> lower (takeExtension x) `elem` [".yml",".yaml"]) files

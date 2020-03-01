@@ -66,7 +66,7 @@ readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats 
 readSetting s x | "test" `isPrefixOf` lower (fromNamed x) = []
 readSetting s (AnnPragma _ x) | Just y <- readPragma x = [SettingClassify y]
 readSetting s (PatBind an (PVar _ name) bod bind) = readSetting s $ FunBind an [Match an name [] bod bind]
-readSetting s (FunBind an xs) | length xs /= 1 = concatMap (readSetting s . FunBind an . return) xs
+readSetting s (FunBind an xs) | length xs /= 1 = concatMap (readSetting s . FunBind an . pure) xs
 readSetting s (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting s $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an (Signless an) y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
 readSetting s x@InfixDecl{} = map Infix $ getFixity x
 readSetting s x = errorOn x "bad hint"

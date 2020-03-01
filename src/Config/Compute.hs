@@ -17,12 +17,12 @@ computeSettings flags file = do
     x <- parseModuleEx flags file Nothing
     case x of
         Left (ParseError sl msg _) ->
-            return ("# Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
+            pure ("# Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
         Right (ModuleEx m _ _ _) -> do
             let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
                 r = concatMap (readSetting mempty) xs
                 s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting r ++ ["# no hints found" | null xs]
-            return (s,r)
+            pure (s,r)
 
 renderSetting :: Setting -> [String]
 renderSetting (SettingMatchExp HintRule{..}) =
@@ -52,7 +52,7 @@ findExp name vs bod = [PatBind an (toNamed "warn") (UnGuardedRhs an $ InfixApp a
         lhs = g $ transform f bod
         rhs = apps $ Var an name : map snd rep
 
-        rep = zip vs $ map (toNamed . return) ['a'..]
+        rep = zip vs $ map (toNamed . pure) ['a'..]
         f xx | Var_ x <- view xx, Just y <- lookup x rep = y
         f (InfixApp _ x dol y) | isDol dol = App an x (paren y)
         f x = x

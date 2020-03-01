@@ -43,7 +43,7 @@ timedIO c i x = if not useTimings then x else do
     (time, x) <- duration x
     atomicModifyIORef'_ timings $ Map.insertWith (+) (c, i) time
     unless quiet $ whenLoud $ putStrLn $ "took " ++ showDuration time
-    return x
+    pure x
 
 startTimings :: IO ()
 startTimings = do

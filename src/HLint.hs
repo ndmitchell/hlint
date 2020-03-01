@@ -57,7 +57,7 @@ hlint args = do
             when (cmdTiming cmd) $ do
                 printTimings
                 putStrLn $ "Took " ++ showDuration time
-            return $ if cmdNoExitCode cmd then [] else xs
+            pure $ if cmdNoExitCode cmd then [] else xs
         CmdGrep{} -> hlintGrep cmd >> return []
         CmdHSE{}  -> hlintHSE  cmd >> return []
         CmdTest{} -> hlintTest cmd >> return []
@@ -120,10 +120,10 @@ hlintMain args cmd@CmdMain{..}
             let group2 = "# Warnings currently triggered by your code" :
                          ["- ignore: {name: " ++ show x ++ "}" | x <- bad]
             putStr $ unlines $ intercalate ["",""] $ group1:group2:groups
-        return []
+        pure []
     | null cmdFiles && not (null cmdFindHints) = do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
-        mapM_ (putStrLn . fst <=< computeSettings (cmdParseFlags cmd)) hints >> return []
+        mapM_ (putStrLn . fst <=< computeSettings (cmdParseFlags cmd)) hints >> pure []
     | null cmdFiles =
         exitWithHelp
     | cmdRefactor =
@@ -156,7 +156,7 @@ readAllSettings args1 cmd@CmdMain{..} = do
     cmd@CmdMain{..} <- if null args2 then return cmd else getCmd $ args2 ++ args1 -- command line arguments are passed last
     settings2 <- concatMapM (fmap snd . computeSettings (cmdParseFlags cmd)) cmdFindHints
     settings3 <- return [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
-    return (cmd, settings1 ++ settings2 ++ settings3)
+    pure (cmd, settings1 ++ settings2 ++ settings3)
     where
         enableGroup groupName =
             unlines
@@ -186,7 +186,7 @@ runHints args settings cmd@CmdMain{..} = do
             showItem <- if usecolour then showANSI else return show
             mapM_ (outStrLn . showItem) ideas
             handleReporting ideas cmd
-        return ideas
+        pure ideas
 
 getIdeas :: Cmd -> [Setting] -> IO [Idea]
 getIdeas cmd@CmdMain{..} settings = do
@@ -195,7 +195,7 @@ getIdeas cmd@CmdMain{..} settings = do
     ideas <- if cmdCross
         then applyHintFiles flags settings cmdFiles
         else concat <$> parallel cmdThreads [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
-    return $ if not (null cmdOnly)
+    pure $ if not (null cmdOnly)
         then [i | i <- ideas, ideaHint i `elem` cmdOnly]
         else ideas
 
@@ -227,4 +227,4 @@ handleReporting showideas cmd@CmdMain{..} = do
 evaluateList :: [a] -> IO [a]
 evaluateList xs = do
     evaluate $ length xs
-    return xs
+    pure xs

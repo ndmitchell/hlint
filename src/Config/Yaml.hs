@@ -100,7 +100,7 @@ parseFail (Val focus path) msg = fail $
 
 parseArray :: Val -> Parser [Val]
 parseArray v@(getVal -> Array xs) = concatMapM parseArray $ zipWithFrom (\i x -> addVal (show i) x v) 0 $ V.toList xs
-parseArray v = return [v]
+parseArray v = pure [v]
 
 parseObject :: Val -> Parser (Map.HashMap T.Text Value)
 parseObject (getVal -> Object x) = return x
@@ -125,7 +125,7 @@ parseArrayString :: Val -> Parser [String]
 parseArrayString = parseArray >=> mapM parseString
 
 maybeParse :: (Val -> Parser a) -> Maybe Val -> Parser (Maybe a)
-maybeParse parseValue Nothing = return Nothing
+maybeParse parseValue Nothing = pure Nothing
 maybeParse parseValue (Just value) = Just <$> parseValue value
 
 parseBool :: Val -> Parser Bool
@@ -175,7 +175,7 @@ parseGHC parser v = do
 -- YAML TO DATA TYPE
 
 instance FromJSON ConfigYaml where
-    parseJSON Null = return mempty
+    parseJSON Null = pure mempty
     parseJSON x = parseConfigYaml $ newVal x
 
 parseConfigYaml :: Val -> Parser ConfigYaml
@@ -200,12 +200,12 @@ parsePackage v = do
     packageModules <- parseField "modules" v >>= parseArray >>= mapM (parseHSE parseImportDeclWithMode)
     packageGhcModules <- parseField "modules" v >>= parseArray >>= mapM (fmap extendInstances <$> parseGHC parseImportDeclGhcWithMode)
     allowFields v ["name","modules"]
-    return Package{..}
+    pure Package{..}
 
 parseFixity :: Val -> Parser [Setting]
 parseFixity v = parseArray v >>= concatMapM (parseHSE parseDeclWithMode >=> f)
     where
-        f x@InfixDecl{} = return $ map Infix $ getFixity x
+        f x@InfixDecl{} = pure $ map Infix $ getFixity x
         f _ = parseFail v "Expected fixity declaration"
 
 parseSmell :: Val -> Parser [Setting]
@@ -213,10 +213,10 @@ parseSmell v = do
   smellName <- parseField "type" v >>= parseString
   smellType <- require v "Expected SmellType"  $ getSmellType smellName
   smellLimit <- parseField "limit" v >>= parseInt
-  return [SettingSmell smellType smellLimit]
+  pure [SettingSmell smellType smellLimit]
     where
       require :: Val -> String -> Maybe a -> Parser a
-      require _ _ (Just a) = return a
+      require _ _ (Just a) = pure a
       require val err Nothing = parseFail val err
 
 parseGroup :: Val -> Parser Group
@@ -227,7 +227,7 @@ parseGroup v = do
     groupGhcImports <- parseFieldOpt "imports" v >>= maybe (return []) (parseArray >=> mapM parseImportGHC)
     groupRules <- parseFieldOpt "rules" v >>= maybe (return []) parseArray >>= concatMapM parseRule
     allowFields v ["name","enabled","imports","rules"]
-    return Group{..}
+    pure Group{..}
     where
         parseImport v = do
             x <- parseString v
@@ -261,11 +261,11 @@ parseRule v = do
         allowFields v ["lhs","rhs","note","name","side"]
         let hintRuleScope = mempty :: Scope
         let hintRuleGhcScope = extendInstances mempty :: HsExtendInstances Scope'
-        return [Left HintRule{hintRuleSeverity=severity, ..}]
+        pure [Left HintRule{hintRuleSeverity=severity, ..}]
      else do
         names <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
         within <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
-        return [Right $ Classify severity n a b | (a,b) <- within, n <- ["" | null names] ++ names]
+        pure [Right $ Classify severity n a b | (a,b) <- within, n <- ["" | null names] ++ names]
 
 parseRestrict :: RestrictType -> Val -> Parser Restrict
 parseRestrict restrictType v = do
@@ -274,7 +274,7 @@ parseRestrict restrictType v = do
         Just def -> do
             b <- parseBool def
             allowFields v ["default"]
-            return $ Restrict restrictType b [] [] [] [] Nothing
+            pure $ Restrict restrictType b [] [] [] [] Nothing
         Nothing -> do
             restrictName <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
             restrictWithin <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
@@ -282,7 +282,7 @@ parseRestrict restrictType v = do
             restrictBadIdents <- parseFieldOpt "badidents" v >>= maybe (pure []) parseArrayString
             restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
             allowFields v $ ["as" | restrictType == RestrictModule] ++ ["badidents", "name", "within", "message"]
-            return Restrict{restrictDefault=True,..}
+            pure Restrict{restrictDefault=True,..}
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
 parseWithin v = do
