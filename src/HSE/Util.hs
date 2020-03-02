@@ -3,7 +3,7 @@ module HSE.Util(
     fromParen, fromPParen, an, getFixity, moduleDecls, isAssocNone,
     isAssocLeft, showSrcLoc, childrenS, getEquations, modulePragmas, opExp,
     fromApps, fromString, fromPString, toInfixDecl, isDol, apps, isDot, isAnyApp, extensionImpliedBy,
-    extensionImplies, moduleName,  moduleExtensions,
+    extensionImplies,
     ) where
 
 import Control.Monad
@@ -29,17 +29,9 @@ moduleDecls :: Module_ -> [Decl_]
 moduleDecls (Module _ _ _ _ xs) = xs
 moduleDecls _ = [] -- XmlPage/XmlHybrid
 
-moduleName :: Module_ -> String
-moduleName (Module _ Nothing _ _ _) = "Main"
-moduleName (Module _ (Just (ModuleHead _ (ModuleName _ x) _ _)) _ _ _) = x
-moduleName _ = "" -- XmlPage/XmlHybrid
-
 modulePragmas :: Module_ -> [ModulePragma S]
 modulePragmas (Module _ _ x _ _) = x
 modulePragmas _ = [] -- XmlPage/XmlHybrid
-
-moduleExtensions :: Module_ -> [Name S]
-moduleExtensions x = concat [y | LanguagePragma _ y <- modulePragmas x]
 
 fromString :: Exp_ -> Maybe String
 fromString (Lit _ (String _ x _)) = Just x
