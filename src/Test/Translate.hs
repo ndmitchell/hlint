@@ -6,11 +6,11 @@ import Config.Type
 import Test.Util
 
 testTypeCheck :: FilePath -> FilePath -> [[Setting]] -> Test ()
-testTypeCheck _ _ _ = error "Test.Translate is disabled."
+testTypeCheck _ _ _ = fail "Test.Translate is disabled."
 
 -- | Given a set of hints, do all the HintRule hints satisfy QuickCheck
 testQuickCheck :: FilePath -> FilePath -> [[Setting]] -> Test ()
-testQuickCheck _ _ _ = error "Test.Translate is disabled."
+testQuickCheck _ _ _ = fail "Test.Translate is disabled."
 
 {-
 import Control.Monad
