@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 
 -- | Given a file, guess settings from it by looking at the hints.
 module Config.Compute(computeSettings) where
