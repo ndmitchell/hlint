@@ -71,6 +71,7 @@ foo a b c = bar (flux ++ quux) c where flux = a -- foo a b = bar (flux ++ quux) 
 foo a b c = bar (flux ++ quux) c where flux = c
 yes = foo (\x -> Just x) -- @Warning Just
 foo = bar (\x -> (x `f`)) -- f
+foo = bar (\x -> shakeRoot </> "src" </> x)
 baz = bar (\x -> (x +)) -- (+) @NoRefactor
 foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z @NoRefactor
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b @NoRefactor

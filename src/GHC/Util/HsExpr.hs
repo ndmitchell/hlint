@@ -176,15 +176,18 @@ niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
   , vars' e `disjoint` [v]
   = niceLambdaR' vs e
 
--- @\v -> thing + v@ ==> @\vs -> (thing +)@
-niceLambdaR' [v] (view' -> App2' f e (view' -> Var_' v'))
-  | v == v'
+-- @\v -> thing + v@ ==> @\v -> (thing +)@  (heuristic: @v@ must be a single
+-- lexeme, or it all gets too complex)
+niceLambdaR' [v] (L _ (OpApp _ e f (view' -> Var_' v')))
+  | isLexeme e
+  , v == v'
   , vars' e `disjoint` [v]
   , LL _ (HsVar _ (LL _ fname)) <- f
-  , isSymOcc $ rdrNameOcc fname = (noLoc $ HsPar noExt $ noLoc $ SectionL noExt e f, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
+  , isSymOcc $ rdrNameOcc fname
+  = (noLoc $ HsPar noExt $ noLoc $ SectionL noExt e f, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 
 -- @\vs v -> f x v@ ==> @\vs -> f x@
-niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
+niceLambdaR' (unsnoc -> Just (vs, v)) (LL _ (HsApp _ (LL _ (HsApp _ f e)) (view' -> Var_' v')))
   | v == v'
   , vars' e `disjoint` [v]
   = niceLambdaR' vs $ apps' [f, e]
