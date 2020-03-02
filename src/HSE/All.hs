@@ -13,8 +13,7 @@ module HSE.All(
     parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
 
-import Language.Haskell.Exts.Util(FreeVars, paren, isAtom)
-import qualified Language.Haskell.Exts.Util as X(freeVars, paren, isAtom)
+import Language.Haskell.Exts.Util(FreeVars, freeVars)
 import HSE.Util as X
 import HSE.Type as X
 import HSE.Match as X
@@ -69,7 +68,7 @@ ghcSpanToHSE (GHC.RealSrcSpan s) =
 ghcSpanToHSE (GHC.UnhelpfulSpan _) = mkSrcSpan noLoc noLoc
 
 vars :: FreeVars a => a -> [String]
-vars  = Set.toList . Set.map prettyPrint . X.freeVars
+vars  = Set.toList . Set.map prettyPrint . freeVars
 
 -- | What C pre processor should be used.
 data CppFlags

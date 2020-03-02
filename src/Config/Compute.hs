@@ -6,6 +6,7 @@ module Config.Compute(computeSettings) where
 import HSE.All
 import Config.Type
 import Config.Haskell
+import Language.Haskell.Exts.Util(isAtom, paren)
 import Prelude
 
 

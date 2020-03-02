@@ -7,6 +7,7 @@ import Data.Tuple.Extra
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.State
+import Language.Haskell.Exts.Util(paren)
 import Data.Char
 import Data.List.Extra
 import Data.Maybe
