@@ -8,6 +8,7 @@ module Test.Util(
 
 import Idea
 import Control.Monad
+import Control.Monad.Fail
 import Control.Monad.Trans.Reader
 import Control.Monad.IO.Class
 import Data.IORef
@@ -20,7 +21,7 @@ data S = S
     }
 
 newtype Test a = Test (ReaderT (IORef S) IO a)
-    deriving (Functor, Applicative, Monad, MonadIO)
+    deriving (Functor, Applicative, Monad, MonadIO, MonadFail)
 
 -- | Returns the number of failing tests.
 withTests :: Test a -> IO (Int, a)
