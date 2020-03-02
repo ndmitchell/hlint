@@ -8,7 +8,6 @@ module Test.Util(
 
 import Idea
 import Control.Monad
-import Control.Monad.Fail
 import Control.Monad.Trans.Reader
 import Control.Monad.IO.Class
 import Data.IORef
