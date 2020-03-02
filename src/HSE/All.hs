@@ -334,8 +334,8 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
           Right ghcFlags ->
-            case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of
-                (ParseOk (x, _), GHC.POk pst a) ->
+            case (parseFileContentsWithMode (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of
+                (ParseOk x, GHC.POk pst a) ->
                     let anns =
                           ( Map.fromListWith (++) $ GHC.annotations pst
                           , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
