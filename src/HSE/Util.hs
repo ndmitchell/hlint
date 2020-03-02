@@ -1,7 +1,7 @@
 
 module HSE.Util(
     fromParen, fromPParen, an, getFixity, moduleDecls, isAssocNone,
-    isAssocLeft, showSrcLoc, isLambda, isIf, unqual, childrenS, getEquations, modulePragmas, opExp,
+    isAssocLeft, showSrcLoc, childrenS, getEquations, modulePragmas, opExp,
     fromApps, fromString, fromPString, toInfixDecl, isDol, apps, isDot, isAnyApp, extensionImpliedBy,
     extensionImplies, moduleName,  moduleExtensions,
     ) where
@@ -62,13 +62,7 @@ fromPParen x = x
 isApp App{} = True; isApp _ = False
 isInfixApp InfixApp{} = True; isInfixApp _ = False
 isAnyApp x = isApp x || isInfixApp x
-isIf If{} = True; isIf _ = False
-isLambda Lambda{} = True; isLambda _ = False
 
-
-unqual :: QName S -> QName S
-unqual (Qual an _ x) = UnQual an x
-unqual x = x
 
 fromQual :: QName a -> Maybe (Name a)
 fromQual (Qual _ _ x) = Just x

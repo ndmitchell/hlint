@@ -2,7 +2,7 @@
 
 module Test.Util(
     Test, withTests,
-    tested, passed, failed, progress,
+    passed, failed, progress,
     addIdeas, getIdeas
     ) where
 
@@ -57,6 +57,3 @@ failed xs = do
     unless (null xs) $ liftIO $ putStrLn $ unlines $ "" : xs
     ref <- Test ask
     liftIO $ modifyIORef' ref $ \s -> s{total=total s+1, failures=failures s+1}
-
-tested :: Bool -> Test ()
-tested b = if b then passed else failed []
