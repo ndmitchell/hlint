@@ -56,7 +56,7 @@ applyHintsReal settings hints_ ms = concat $
     , seq (length classifiers) True -- to force any errors from readPragma or readComment
     , (nm',m') <- mns'
     , let decHints = hintDecl hints settings nm' m' -- partially apply
-    , let order n = map (\i -> i{ideaModule= f $ moduleName (hseModule m) : ideaModule i, ideaDecl = f $ n ++ ideaDecl i}) . sortOn ideaSpan
+    , let order n = map (\i -> i{ideaModule = f $ modName (ghcModule m) : ideaModule i, ideaDecl = f $ n ++ ideaDecl i}) . sortOn ideaSpan
     , let merge = mergeBy (comparing ideaSpan)] ++
     [map (classify cls) (hintModules hints settings mns')]
     where
