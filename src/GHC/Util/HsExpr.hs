@@ -249,7 +249,7 @@ replaceBranches' (L s (HsCase _ a (MG _ (L l bs) FromSource))) =
   where
     f :: LMatch GhcPs (LHsExpr GhcPs) -> [LHsExpr GhcPs]
     f (L _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (L _ (GRHS _ _ x)) <- xs]
-    f _ = undefined -- {-# COMPLETE L #-}
+    f _ = error "GHC.Util.HsExpr.replaceBranches: unexpected XMatch"
 
     g :: [LMatch GhcPs (LHsExpr GhcPs)] -> [LHsExpr GhcPs] -> [LMatch GhcPs (LHsExpr GhcPs)]
     g (L s1 (Match _ CaseAlt a (GRHSs _ ns b)) : rest) xs =

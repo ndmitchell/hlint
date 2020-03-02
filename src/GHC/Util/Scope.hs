@@ -115,4 +115,4 @@ possImport' (L _ i) (L _ (Unqual x)) = not (ideclQualified i) && maybe True f (i
 
     unwrapName :: LIEWrappedName RdrName -> String
     unwrapName x = occNameString (rdrNameOcc $ ieWrappedName (unLoc x))
-possImport' _ _ = False -- {-# COMPLETE L #-}
+possImport' _ _ = False
