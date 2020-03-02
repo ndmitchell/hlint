@@ -259,7 +259,6 @@ parseRule v = do
         hintRuleGhcSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . extendInstances) . parseGHC parseExpGhcWithMode)
 
         allowFields v ["lhs","rhs","note","name","side"]
-        let hintRuleScope = mempty :: Scope
         let hintRuleGhcScope = extendInstances mempty :: HsExtendInstances Scope'
         pure [Left HintRule{hintRuleSeverity=severity, ..}]
      else do
@@ -330,23 +329,14 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
         packages = [x | ConfigPackage x <- configs]
         groups = [x | ConfigGroup x <- configs]
         settings = concat [x | ConfigSetting x <- configs]
-        packageMap = Map.fromListWith (++) [(packageName, packageModules) | Package{..} <- packages]
         packageMap' = Map.fromListWith (++) [(packageName, fmap unextendInstances packageGhcModules) | Package{..} <- packages]
         groupMap = Map.fromListWith (\new old -> new) [(groupName, groupEnabled) | Group{..} <- groups]
 
         f Group{..}
             | Map.lookup groupName groupMap == Just False = []
-            | otherwise = map (either (\r -> SettingMatchExp r{hintRuleScope=scope,hintRuleGhcScope=scope'}) SettingClassify) groupRules
+            | otherwise = map (either (\r -> SettingMatchExp r{hintRuleGhcScope=scope'}) SettingClassify) groupRules
             where
-              scope = asScope packageMap groupImports
               scope'= asScope' packageMap' (map (fmap unextendInstances) groupGhcImports)
-
-asScope :: Map.HashMap String [ImportDecl S] -> [Either String (ImportDecl S)] -> Scope
-asScope packages xs = scopeCreate $ Module an Nothing [] (concatMap f xs) []
-    where
-        f (Right x) = [x]
-        f (Left x) | Just pkg <- Map.lookup x packages = pkg
-                   | otherwise = error $ "asScope failed to do lookup, " ++ x
 
 asScope' :: Map.HashMap String [HsSyn.LImportDecl HsSyn.GhcPs] -> [Either String (HsSyn.LImportDecl HsSyn.GhcPs)] -> HsExtendInstances Scope'
 asScope' packages xs = HsExtendInstances $ scopeCreate' (HsSyn.HsModule Nothing Nothing (concatMap f xs) [] Nothing Nothing)

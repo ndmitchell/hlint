@@ -23,9 +23,8 @@ runGrep patt flags files = do
             exitMessage $ (if "Parse error" `isPrefixOf` msg then msg else "Parse error in pattern: " ++ msg) ++ "\n" ++
                           patt ++ "\n" ++
                           replicate (srcColumn sl - 1) ' ' ++ "^"
-    let scope = scopeCreate $ Module an Nothing [] [] []
     let unit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed
-    let rule = hintRules [HintRule Suggestion "grep" scope exp (Tuple an Boxed []) Nothing []
+    let rule = hintRules [HintRule Suggestion "grep" exp (Tuple an Boxed []) Nothing []
                          -- Todo : Replace these with "proper" GHC expressions.
                           (extendInstances mempty) (extendInstances unit) (extendInstances unit) Nothing]
     forM_ files $ \file -> do

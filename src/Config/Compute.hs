@@ -6,7 +6,6 @@ module Config.Compute(computeSettings) where
 import HSE.All
 import Config.Type
 import Config.Haskell
-import Data.Monoid
 import Prelude
 
 
@@ -20,7 +19,7 @@ computeSettings flags file = do
             pure ("# Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
         Right (ModuleEx m _ _ _) -> do
             let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
-                r = concatMap (readSetting mempty) xs
+                r = concatMap readSetting xs
                 s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting r ++ ["# no hints found" | null xs]
             pure (s,r)
 

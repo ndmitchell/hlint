@@ -94,7 +94,6 @@ data Classify = Classify
 data HintRule = HintRule
     {hintRuleSeverity :: Severity -- ^ Default severity for the hint.
     ,hintRuleName :: String -- ^ Name for the hint.
-    ,hintRuleScope :: Scope -- ^ Module scope in which the hint operates.
     ,hintRuleLHS :: Exp SrcSpanInfo -- ^ LHS
     ,hintRuleRHS :: Exp SrcSpanInfo -- ^ RHS
     ,hintRuleSide :: Maybe (Exp SrcSpanInfo) -- ^ Side condition, typically specified with @where _ = ...@.

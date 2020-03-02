@@ -46,13 +46,15 @@ wrap f datadir tmpdir hints = runMains datadir tmpdir [unlines $ body [x | Setti
             ["{-# LANGUAGE NoMonomorphismRestriction, ExtendedDefaultRules, ScopedTypeVariables, DeriveDataTypeable #-}"
             ,"{-# LANGUAGE FlexibleInstances, UndecidableInstances, OverlappingInstances #-}"
             ,"module Main(main) where"] ++
-            concat [map (prettyPrint . hackImport) $ scopeImports $ hintRuleScope x | x <- take 1 xs] ++
+            -- concat [map (prettyPrint . hackImport) $ scopeImports $ hintRuleScope x | x <- take 1 xs] ++
             f xs
 
+        {-
         -- Hack around haskell98 not being compatible with base anymore
         hackImport i@ImportDecl{importAs=Just a,importModule=b}
             | prettyPrint b `elem` words "Maybe List Monad IO Char" = i{importAs=Just b,importModule=a}
         hackImport i = i
+        -}
 
 
 ---------------------------------------------------------------------
@@ -64,7 +66,7 @@ toTypeCheck hints =
     ,"main = pure ()"] ++
     ["{-# LINE " ++ show (startLine $ ann rhs) ++ " " ++ show (fileName $ ann rhs) ++ " #-}\n" ++
      prettyPrint (PatBind an (toNamed $ "test" ++ show i) bod Nothing)
-    | (i, HintRule _ _ _ lhs rhs side _notes  _ghcScope  _ghcLhs _ghcRhs _ghcSide) <- zipFrom 1 hints, "noTypeCheck" `notElem` vars (maybeToList side)
+    | (i, HintRule _ _ lhs rhs side _notes  _ghcScope  _ghcLhs _ghcRhs _ghcSide) <- zipFrom 1 hints, "noTypeCheck" `notElem` vars (maybeToList side)
     , let vs = map toNamed $ nubOrd $ filter isUnifyVar $ vars lhs ++ vars rhs
     , let inner = InfixApp an (Paren an lhs) (toNamed "==>") (Paren an rhs)
     , let bod = UnGuardedRhs an $ if null vs then inner else Lambda an vs inner]
@@ -88,7 +90,7 @@ toQuickCheck hints =
                 Let an (BDecls an [PatBind an (toNamed "t") (UnGuardedRhs an bod) Nothing]) $
                 (toNamed "test" `app` str (fileName $ ann rhs) `app` int (startLine $ ann rhs) `app`
                  str (prettyPrint lhs ++ " ==> " ++ prettyPrint rhs)) `app` toNamed "t"
-            | (i, HintRule _ _ _ lhs rhs side note _ghcScope _ghcLhs _ghcRhs _ghcSide) <- zipFrom 1 hints, "noQuickCheck" `notElem` vars (maybeToList side)
+            | (i, HintRule _ _ lhs rhs side note _ghcScope _ghcLhs _ghcRhs _ghcSide) <- zipFrom 1 hints, "noQuickCheck" `notElem` vars (maybeToList side)
             , let vs = map (restrict side) $ nubOrd $ filter isUnifyVar $ vars lhs ++ vars rhs
             , let op = if any isRemovesError note then "?==>" else "==>"
             , let inner = InfixApp an (Paren an lhs) (toNamed op) (Paren an rhs)

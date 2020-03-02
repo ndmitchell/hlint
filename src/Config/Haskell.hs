@@ -45,17 +45,17 @@ readFileConfigHaskell file contents = do
 -- | Given a module containing HLint settings information return the 'Classify' rules and the 'HintRule' expressions.
 --   Any fixity declarations will be discarded, but any other unrecognised elements will result in an exception.
 readSettings :: Module_ -> [Setting]
-readSettings m = concatMap (readSetting $ scopeCreate m) $ concatMap getEquations $
+readSettings m = concatMap readSetting $ concatMap getEquations $
                        [AnnPragma l x | AnnModulePragma l x <- modulePragmas m] ++ moduleDecls m
 
 
-readSetting :: Scope -> Decl_ -> [Setting]
-readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats (UnGuardedRhs _ bod) bind])
+readSetting :: Decl_ -> [Setting]
+readSetting (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats (UnGuardedRhs _ bod) bind])
     | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
         let (a,b) = readSide $ childrenBi bind in
         let unit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed in
         [SettingMatchExp $
-         HintRule severity (headDef defaultHintName names) s (fromParen lhs) (fromParen rhs) a b
+         HintRule severity (headDef defaultHintName names) (fromParen lhs) (fromParen rhs) a b
         -- Todo : Replace these with "proper" GHC expressions.
          (extendInstances mempty) (extendInstances unit) (extendInstances unit) Nothing]
     | otherwise = [SettingClassify $ Classify severity n a b | n <- names2, (a,b) <- readFuncs bod]
@@ -63,13 +63,13 @@ readSetting s (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats 
         names = filter (not . null) $ getNames pats bod
         names2 = ["" | null names] ++ names
 
-readSetting s x | "test" `isPrefixOf` lower (fromNamed x) = []
-readSetting s (AnnPragma _ x) | Just y <- readPragma x = [SettingClassify y]
-readSetting s (PatBind an (PVar _ name) bod bind) = readSetting s $ FunBind an [Match an name [] bod bind]
-readSetting s (FunBind an xs) | length xs /= 1 = concatMap (readSetting s . FunBind an . pure) xs
-readSetting s (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting s $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an (Signless an) y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
-readSetting s x@InfixDecl{} = map Infix $ getFixity x
-readSetting s x = errorOn x "bad hint"
+readSetting x | "test" `isPrefixOf` lower (fromNamed x) = []
+readSetting (AnnPragma _ x) | Just y <- readPragma x = [SettingClassify y]
+readSetting (PatBind an (PVar _ name) bod bind) = readSetting $ FunBind an [Match an name [] bod bind]
+readSetting (FunBind an xs) | length xs /= 1 = concatMap (readSetting . FunBind an . pure) xs
+readSetting (SpliceDecl an (App _ (Var _ x) (Lit _ y))) = readSetting $ FunBind an [Match an (toNamed $ fromNamed x) [PLit an (Signless an) y] (UnGuardedRhs an $ Lit an $ String an "" "") Nothing]
+readSetting x@InfixDecl{} = map Infix $ getFixity x
+readSetting x = errorOn x "bad hint"
 
 
 -- | Read an {-# ANN #-} pragma and determine if it is intended for HLint.
