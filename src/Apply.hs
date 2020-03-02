@@ -70,6 +70,7 @@ applyHintsReal settings hints_ ms = concat $
 removeRequiresExtensionNotes :: Module_ -> Idea -> Idea
 removeRequiresExtensionNotes m = \x -> x{ideaNote = filter keep $ ideaNote x}
     where
+        -- FIXME: Should really use the implied extensions too
         exts = Set.fromList $ map fromNamed $ moduleExtensions m
         keep (RequiresExtension x) = not $ x `Set.member` exts
         keep _ = True
