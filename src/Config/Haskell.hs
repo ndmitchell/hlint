@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, ScopedTypeVariables, TupleSections #-}
 module Config.Haskell(
-    readPragma,
+    readPragma',
     readComment,
     readSetting,
     readFileConfigHaskell
@@ -22,7 +22,14 @@ import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
 import SrcLoc as GHC
+import HsExtension
+import HsDecls hiding (SpliceDecl)
+import HsExpr hiding (Match)
+import FastString
+import HsLit
 import ApiAnnotation
+import OccName
+import Outputable
 
 
 addInfix :: ParseFlags -> ParseFlags
@@ -89,6 +96,26 @@ readPragma o = case o of
         f name (ExpTypeSig _ x _) = f name x
         f _ _ = Nothing
 
+
+-- | Read an {-# ANN #-} pragma and determine if it is intended for HLint.
+--   Return Nothing if it is not an HLint pragma, otherwise what it means.
+readPragma' :: AnnDecl GhcPs -> Maybe Classify
+readPragma' (HsAnnotation _ _ provenance expr) = f expr
+    where
+        name = case provenance of
+            ValueAnnProvenance (L _ x) -> occNameString $ occName x
+            TypeAnnProvenance (L _ x) -> occNameString $ occName x
+            ModuleAnnProvenance -> ""
+
+        f (LL _ (HsLit _ (HsString _ (unpackFS -> s)))) | "hlint:" `isPrefixOf` lower s =
+                case getSeverity a of
+                    Nothing -> errorOn' expr "bad classify pragma"
+                    Just severity -> Just $ Classify severity (trimStart b) "" name
+            where (a,b) = break isSpace $ trimStart $ drop 6 s
+        f (LL _ (HsPar _ x)) = f x
+        f (LL _ (ExprWithTySig _ x _)) = f x
+        f _ = Nothing
+readPragma' _ = Nothing
 
 readComment :: GHC.Located AnnotationComment -> [Classify]
 readComment c@(L pos AnnBlockComment{})
@@ -167,6 +194,12 @@ errorOn val msg = exitMessageImpure $
     showSrcLoc (getPointLoc $ ann val) ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     prettyPrint val
+
+errorOn' :: Outputable a => Located a -> String -> b
+errorOn' (L pos val) msg = exitMessageImpure $
+    showSrcLoc (getPointLoc $ ghcSpanToHSE pos) ++
+    ": Error while reading hint file, " ++ msg ++ "\n" ++
+    unsafePrettyPrint val
 
 errorOnComment :: GHC.Located AnnotationComment -> String -> b
 errorOnComment c@(L s _) msg = exitMessageImpure $
