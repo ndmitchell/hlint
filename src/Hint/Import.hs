@@ -97,7 +97,7 @@ simplifyHead x [] = Nothing
 combine :: LImportDecl GhcPs
         -> LImportDecl GhcPs
         -> Maybe (LImportDecl GhcPs, [Refactoring R.SrcSpan])
-combine x@(LL _ x') y@(LL _ y')
+combine x@(L _ x') y@(L _ y')
   -- Both (un/)qualified, common 'as', same names : Delete the second.
   | qual, as, specs = Just (x, [Delete Import (toSS' y)])
     -- Both (un/)qualified, common 'as', different names : Merge the
@@ -131,17 +131,16 @@ combine x@(LL _ x') y@(LL _ y')
         ass = mapMaybe ideclAs [x', y']
         specs = transformBi (const noSrcSpan) (ideclHiding x') ==
                     transformBi (const noSrcSpan) (ideclHiding y')
-combine _ _ = Nothing -- {-# COMPLETE LL #-}
 
 stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
-stripRedundantAlias x@(LL loc i@ImportDecl {..})
+stripRedundantAlias x@(L loc i@ImportDecl {..})
   -- Suggest 'import M as M' be just 'import M'.
   | Just (unLoc ideclName) == fmap unLoc ideclAs =
       [suggest' "Redundant as" x (cL loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS' x)]]
 stripRedundantAlias _ = []
 
 preferHierarchicalImports :: LImportDecl GhcPs -> [Idea]
-preferHierarchicalImports x@(LL loc i@ImportDecl{ideclName=L _ n,ideclPkgQual=Nothing})
+preferHierarchicalImports x@(L loc i@ImportDecl{ideclName=L _ n,ideclPkgQual=Nothing})
   -- Suggest 'import IO' be rewritten 'import System.IO, import
   -- System.IO.Error, import Control.Exception(bracket, bracket_)'.
   | n == mkModuleName "IO" && isNothing (ideclHiding i) =

@@ -100,7 +100,7 @@ data Branch =
 matchListRec :: ListCase -> Maybe (String, Severity, LHsExpr GhcPs)
 matchListRec o@(ListCase vs nil (x, xs, cons))
     -- Suggest 'map'?
-    | [] <- vs, varToStr nil == "[]", (LL _ (OpApp _ lhs c rhs)) <- cons, varToStr c == ":"
+    | [] <- vs, varToStr nil == "[]", (L _ (OpApp _ lhs c rhs)) <- cons, varToStr c == ":"
     , astEq (fromParen' rhs) recursive, xs `notElem` vars' lhs
     = Just $ (,,) "map" Hint.Type.Warning $
       appsBracket' [ strToVar "map", niceLambda' [x] lhs, strToVar xs]
@@ -111,14 +111,14 @@ matchListRec o@(ListCase vs nil (x, xs, cons))
     = Just $ (,,) "foldr" Suggestion $
       appsBracket' [ strToVar "foldr", niceLambda' [x] $ appsBracket' [op,lhs], nil, strToVar xs]
     -- Suggest 'foldl'?
-    | [v] <- vs, view' nil == Var_' v, (LL _ (HsApp _ r lhs)) <- cons
+    | [v] <- vs, view' nil == Var_' v, (L _ (HsApp _ r lhs)) <- cons
     , astEq (fromParen' r) recursive
     , xs `notElem` vars' lhs
     = Just $ (,,) "foldl" Suggestion $
       appsBracket' [ strToVar "foldl", niceLambda' [v,x] lhs, strToVar v, strToVar xs]
     -- Suggest 'foldM'?
-    | [v] <- vs, (LL _ (HsApp _ ret res)) <- nil, isReturn ret, varToStr res == "()" || view' res == Var_' v
-    , [LL _ (BindStmt _ (view' -> PVar_' b1) e _ _), LL _ (BodyStmt _ (fromParen' -> (LL _ (HsApp _ r (view' -> Var_' b2)))) _ _)] <- asDo cons
+    | [v] <- vs, (L _ (HsApp _ ret res)) <- nil, isReturn ret, varToStr res == "()" || view' res == Var_' v
+    , [L _ (BindStmt _ (view' -> PVar_' b1) e _ _), L _ (BodyStmt _ (fromParen' -> (L _ (HsApp _ r (view' -> Var_' b2)))) _ _)] <- asDo cons
     , b1 == b2, astEq r recursive, xs `notElem` vars' e
     , name <- "foldM" ++ ['_' | varToStr res == "()"]
     = Just $ (,,) name Suggestion $
@@ -131,18 +131,18 @@ matchListRec o@(ListCase vs nil (x, xs, cons))
 asDo :: LHsExpr GhcPs -> [LStmt GhcPs (LHsExpr GhcPs)]
 asDo (view' ->
        App2' bind lhs
-         (LL _ (HsLam _ MG {
+         (L _ (HsLam _ MG {
               mg_origin=FromSource
-            , mg_alts=LL _ [
-                 LL _ Match {  m_ctxt=LambdaExpr
-                            , m_pats=[LL _ v@VarPat{}]
+            , mg_alts=L _ [
+                 L _ Match {  m_ctxt=LambdaExpr
+                            , m_pats=[v@VarPat{}]
                             , m_grhss=GRHSs _
-                                        [LL _ (GRHS _ [] rhs)]
-                                        (LL _ (EmptyLocalBinds _))}]}))
+                                        [L _ (GRHS _ [] rhs)]
+                                        (L _ (EmptyLocalBinds _))}]}))
       ) =
   [ noLoc $ BindStmt noExt v lhs noSyntaxExpr noSyntaxExpr
   , noLoc $ BodyStmt noExt rhs noSyntaxExpr noSyntaxExpr ]
-asDo (LL _ (HsDo _ DoExpr (LL _ stmts))) = stmts
+asDo (L _ (HsDo _ DoExpr (L _ stmts))) = stmts
 asDo x = [noLoc $ BodyStmt noExt x noSyntaxExpr noSyntaxExpr]
 
 
@@ -153,10 +153,10 @@ asDo x = [noLoc $ BodyStmt noExt x noSyntaxExpr noSyntaxExpr]
 findCase :: LHsDecl GhcPs -> Maybe (ListCase, LHsExpr GhcPs -> LHsDecl GhcPs)
 findCase x = do
   -- Match a function binding with two alternatives.
-  (LL _ (ValD _ FunBind {fun_matches=
+  (L _ (ValD _ FunBind {fun_matches=
               MG{mg_origin=FromSource, mg_alts=
-                     (LL _
-                            [ x1@(LL _ Match{..}) -- Match fields.
+                     (L _
+                            [ x1@(L _ Match{..}) -- Match fields.
                             , x2]), ..} -- Match group fields.
           , ..} -- Fun. bind fields.
       )) <- return x
@@ -222,8 +222,8 @@ findPat ps = do
 
 readPat :: Pat GhcPs -> Maybe (Either String BList)
 readPat (view' -> PVar_' x) = Just $ Left x
-readPat (LL _ (ParPat _ (LL _ (ConPatIn (L _ n) (InfixCon (view' -> PVar_' x) (view' -> PVar_' xs))))))
+readPat (ParPat _ (ConPatIn (L _ n) (InfixCon (view' -> PVar_' x) (view' -> PVar_' xs))))
  | n == consDataCon_RDR = Just $ Right $ BCons x xs
-readPat (LL _ (ConPatIn (L _ n) (PrefixCon [])))
+readPat (ConPatIn (L _ n) (PrefixCon []))
   | n == nameRdrName nilDataConName = Just $ Right BNil
 readPat _ = Nothing

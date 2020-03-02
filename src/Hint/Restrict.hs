@@ -114,7 +114,7 @@ checkImports modu imp (def, mp) =
            | not allowIdent  -> ideaNoTo $ warn' "Avoid restricted identifiers" i i []
            | not allowQual   -> warn' "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
            | otherwise       -> error "checkImports: unexpected case"
-    | i@(LL _ ImportDecl {..}) <- imp
+    | i@(L _ ImportDecl {..}) <- imp
     , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] [] Nothing) (moduleNameString (unLoc ideclName)) mp
     , let allowImport = within modu "" ri
     , let allowIdent = Set.disjoint

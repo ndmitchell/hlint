@@ -31,8 +31,7 @@ scopeCreate' xs = Scope' $ [prelude | not $ any isPrelude res] ++ res
   where
     -- Package qualifier of an import declaration.
     pkg :: LImportDecl GhcPs -> Maybe StringLiteral
-    pkg (LL _ x) = ideclPkgQual x
-    pkg _  = Nothing -- {-# COMPLETE LL #-}
+    pkg (L _ x) = ideclPkgQual x
 
     -- The import declaraions contained by the module 'xs'.
     res :: [LImportDecl GhcPs]
@@ -44,8 +43,7 @@ scopeCreate' xs = Scope' $ [prelude | not $ any isPrelude res] ++ res
 
     -- Predicate to test for a 'Prelude' import declaration.
     isPrelude :: LImportDecl GhcPs -> Bool
-    isPrelude (LL _ x) = fromModuleName' (ideclName x) == "Prelude"
-    isPrelude _ = False -- {-# COMPLETE LL #-}
+    isPrelude (L _ x) = fromModuleName' (ideclName x) == "Prelude"
 
 -- Test if two names in two scopes may be referring to the same
 -- thing. This is the case if the names are equal and (1) denote a
@@ -92,10 +90,10 @@ possModules' (Scope' is) x = f x
 -- import declaration 'i'.
 possImport' :: LImportDecl GhcPs -> Located RdrName -> Bool
 possImport' i n | isSpecial' n = False
-possImport' (LL _ i) (L _ (Qual mod x)) =
+possImport' (L _ i) (L _ (Qual mod x)) =
   moduleNameString mod `elem` map fromModuleName' ms && possImport' (noLoc i{ideclQualified=False}) (noLoc $ mkRdrUnqual x)
   where ms = ideclName i : maybeToList (ideclAs i)
-possImport' (LL _ i) (L _ (Unqual x)) = not (ideclQualified i) && maybe True f (ideclHiding i)
+possImport' (L _ i) (L _ (Unqual x)) = not (ideclQualified i) && maybe True f (ideclHiding i)
   where
     f :: (Bool, Located [LIE GhcPs]) -> Bool
     f (hide, L _ xs) =
@@ -117,4 +115,4 @@ possImport' (LL _ i) (L _ (Unqual x)) = not (ideclQualified i) && maybe True f (
 
     unwrapName :: LIEWrappedName RdrName -> String
     unwrapName x = occNameString (rdrNameOcc $ ieWrappedName (unLoc x))
-possImport' _ _ = False -- {-# COMPLETE LL #-}
+possImport' _ _ = False
