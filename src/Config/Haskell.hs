@@ -46,7 +46,7 @@ readFileConfigHaskell file contents = do
     case res of
         Left (ParseError sl msg err) ->
             error $ "Config parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
-        Right modEx@(ModuleEx m _ _ _) -> return $ readSettings m ++ map SettingClassify (concatMap readComment (ghcComments modEx))
+        Right modEx@(ModuleEx m _ _) -> return $ readSettings m ++ map SettingClassify (concatMap readComment (ghcComments modEx))
 
 
 -- | Given a module containing HLint settings information return the 'Classify' rules and the 'HintRule' expressions.

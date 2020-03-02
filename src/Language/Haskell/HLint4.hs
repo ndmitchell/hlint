@@ -148,5 +148,5 @@ _docs = do
 createModuleEx:: GHC.ApiAnns -> Located (GHC.HsModule GHC.GhcPs) -> ModuleEx
 createModuleEx anns ast =
   -- Use builtin fixities.
-  ModuleEx empty [] (GhclibParserEx.applyFixities [] ast) anns
+  ModuleEx empty (GhclibParserEx.applyFixities [] ast) anns
    where empty = Module an Nothing [] [] []

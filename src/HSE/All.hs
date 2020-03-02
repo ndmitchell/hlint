@@ -179,7 +179,6 @@ data ParseError = ParseError
 -- | Result of 'parseModuleEx', representing a parsed module.
 data ModuleEx = ModuleEx {
     hseModule :: Module SrcSpanInfo
-  , hseComments :: [Comment]
   , ghcModule :: GHC.Located (HsSyn.HsModule HsSyn.GhcPs)
   , ghcAnnotations :: GHC.ApiAnns
 }
@@ -336,13 +335,13 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         case dynFlags of
           Right ghcFlags ->
             case (parseFileContentsWithComments (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of
-                (ParseOk (x, cs), GHC.POk pst a) ->
+                (ParseOk (x, _), GHC.POk pst a) ->
                     let anns =
                           ( Map.fromListWith (++) $ GHC.annotations pst
                           , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
                           ) in
                     let a' = GhclibParserEx.applyFixities fixities a in
-                    pure $ Right (ModuleEx (applyFixity fixity x) cs a' anns)
+                    pure $ Right (ModuleEx (applyFixity fixity x) a' anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
                 (ParseOk _,  GHC.PFailed _ loc err) ->
