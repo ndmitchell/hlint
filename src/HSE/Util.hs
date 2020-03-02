@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts, TupleSections #-}
 
 module HSE.Util(
     fromParen, fromPParen, an, getFixity, moduleDecls, isAssocNone,
