@@ -3,6 +3,13 @@
 -- | Check the coverage of the hints given a list of Isabelle theorems
 module Test.Proof(proof) where
 
+import Config.Type
+
+proof :: [FilePath] -> [Setting] -> FilePath -> IO ()
+proof _ _ _ = fail "Test.Proof is disabled."
+
+{-
+
 import Data.Tuple.Extra
 import Control.Applicative
 import Control.Monad
@@ -189,3 +196,4 @@ hintTheorems xs =
 
 vars :: FreeVars a => a -> [String]
 vars  = Set.toList . Set.map prettyPrint . freeVars
+-}
