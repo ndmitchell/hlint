@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards, PatternGuards, FlexibleContexts #-}
 
 -- | Check the coverage of the hints given a list of Isabelle theorems
 module Test.Proof(proof) where
