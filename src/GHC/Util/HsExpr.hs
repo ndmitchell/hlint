@@ -2,10 +2,6 @@
 {-# LANGUAGE ViewPatterns, MultiParamTypeClasses , FlexibleInstances, FlexibleContexts #-}
 {-# LANGUAGE TupleSections #-}
 
---  Keep until 'descendApps', 'transformApps' and 'allowLeftSection'
--- are used.
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 module GHC.Util.HsExpr (
     dotApps', lambda
   , simplifyExp', niceLambda', niceLambdaR'
@@ -84,16 +80,9 @@ childrenApps' x = children x
 universeApps' :: LHsExpr GhcPs -> [LHsExpr GhcPs]
 universeApps' x = x : concatMap universeApps' (childrenApps' x)
 
-descendApps' :: (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> LHsExpr GhcPs
-descendApps' f (L l (HsApp _ x y)) = L l $ HsApp noExt (descendApps' f x) (f y)
-descendApps' f x = descend f x
-
 descendAppsM' :: Monad m => (LHsExpr GhcPs  -> m (LHsExpr GhcPs)) -> LHsExpr GhcPs -> m (LHsExpr GhcPs)
 descendAppsM' f (L l (HsApp _ x y)) = liftA2 (\x y -> L l $ HsApp noExt x y) (descendAppsM' f x) (f y)
 descendAppsM' f x = descendM f x
-
-transformApps' :: (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> LHsExpr GhcPs
-transformApps' f = f . descendApps' (transformApps' f)
 
 transformAppsM' :: Monad m => (LHsExpr GhcPs -> m (LHsExpr GhcPs)) -> LHsExpr GhcPs -> m (LHsExpr GhcPs)
 transformAppsM' f x = f =<< descendAppsM' (transformAppsM' f) x
