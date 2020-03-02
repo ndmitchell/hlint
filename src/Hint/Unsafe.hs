@@ -64,23 +64,23 @@ unsafeHint _ (ModuleEx _ _ (L _ m) _) = \(L loc d) ->
       SigD noExt (InlineSig noExt (noLoc (mkRdrUnqual x))
                       (InlinePragma (SourceText "{-# NOINLINE") NoInline Nothing NeverActive FunLike))
     noinline :: [OccName]
-    noinline = [q | L _(SigD _ (InlineSig _ (L _ (Unqual q))
+    noinline = [q | LL _(SigD _ (InlineSig _ (L _ (Unqual q))
                                                 (InlinePragma _ NoInline Nothing NeverActive FunLike))
         ) <- hsmodDecls m]
 
 isUnsafeDecl :: HsDecl GhcPs -> Bool
-isUnsafeDecl (ValD _ FunBind {fun_matches=MG {mg_origin=FromSource,mg_alts=L _ alts}}) =
+isUnsafeDecl (ValD _ FunBind {fun_matches=MG {mg_origin=FromSource,mg_alts=LL _ alts}}) =
   any isUnsafeApp (childrenBi alts) || any isUnsafeDecl (childrenBi alts)
 isUnsafeDecl _ = False
 
 -- Am I equivalent to @unsafePerformIO x@?
 isUnsafeApp :: HsExpr GhcPs -> Bool
-isUnsafeApp (OpApp _ (L _ l) op _ ) | isDol op = isUnsafeFun l
-isUnsafeApp (HsApp _ (L _ x) _) = isUnsafeFun x
+isUnsafeApp (OpApp _ (LL _ l) op _ ) | isDol op = isUnsafeFun l
+isUnsafeApp (HsApp _ (LL _ x) _) = isUnsafeFun x
 isUnsafeApp _ = False
 
 -- Am I equivalent to @unsafePerformIO . x@?
 isUnsafeFun :: HsExpr GhcPs -> Bool
-isUnsafeFun (HsVar _ (L _ x)) | x == mkVarUnqual (fsLit "unsafePerformIO") = True
-isUnsafeFun (OpApp _ (L _ l) op _) | isDot op = isUnsafeFun l
+isUnsafeFun (HsVar _ (LL _ x)) | x == mkVarUnqual (fsLit "unsafePerformIO") = True
+isUnsafeFun (OpApp _ (LL _ l) op _) | isDot op = isUnsafeFun l
 isUnsafeFun _ = False

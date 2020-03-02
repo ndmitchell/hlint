@@ -120,11 +120,11 @@ lambdaHint _ _ x
 
 lambdaDecl :: LHsDecl GhcPs -> [Idea]
 lambdaDecl
-    o@(L loc1 (ValD _
+    o@(LL loc1 (ValD _
         origBind@FunBind {fun_matches =
             MG {mg_alts =
-                L _ [L _ (Match _ ctxt pats (GRHSs _ [L loc2 (GRHS _ [] origBody)] bind))]}}))
-    | L _ (EmptyLocalBinds noExt) <- bind
+                LL _ [LL _ (Match _ ctxt pats (GRHSs _ [LL loc2 (GRHS _ [] origBody)] bind))]}}))
+    | LL _ (EmptyLocalBinds noExt) <- bind
     , isLambda $ fromParen' origBody
     , null (universeBi pats :: [HsExpr GhcPs])
     = [warn' "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS' o) s1 t1]]
@@ -134,7 +134,7 @@ lambdaDecl
             -- Replace Decl (toSS' $ reform' pats origBody) s2 t2]]
           ]]
     where reform :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
-          reform ps b = L loc $ ValD noExt $
+          reform ps b = LL loc $ ValD noExt $
             origBind
               {fun_matches = MG noExt (noLoc [noLoc $ Match noExt ctxt ps $ GRHSs noExt [noLoc $ GRHS noExt [] b] $ noLoc $ EmptyLocalBinds noExt]) Generated}
 
@@ -155,27 +155,27 @@ lambdaDecl _ = []
 
 
 etaReduce :: [Pat GhcPs] -> LHsExpr GhcPs -> ([Pat GhcPs], LHsExpr GhcPs)
-etaReduce (unsnoc -> Just (ps, view' -> PVar_' p)) (L _ (HsApp _ x (view' -> Var_' y)))
+etaReduce (unsnoc -> Just (ps, view' -> PVar_' p)) (LL _ (HsApp _ x (view' -> Var_' y)))
     | p == y
     , y `notElem` vars' x
     , not $ any isQuasiQuote $ universe x
     = etaReduce ps x
-etaReduce ps (L loc (OpApp _ x (isDol -> True) y)) = etaReduce ps (L loc (HsApp noExt x y))
+etaReduce ps (LL loc (OpApp _ x (isDol -> True) y)) = etaReduce ps (LL loc (HsApp noExt x y))
 etaReduce ps x = (ps, x)
 
 --Section refactoring is not currently implemented.
 lambdaExp :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
-lambdaExp _ o@(L _ (HsPar _ (L _ (HsApp _ oper@(L _ (HsVar _ (L _ (rdrNameOcc -> f)))) y))))
+lambdaExp _ o@(LL _ (HsPar _ (LL _ (HsApp _ oper@(LL _ (HsVar _ (LL _ (rdrNameOcc -> f)))) y))))
     | isSymOcc f -- is this an operator?
     , isAtom' y
     , allowLeftSection $ occNameString f
     , not $ isTypeApp y =
       [suggestN' "Use section" o $ noLoc $ HsPar noExt $ noLoc $ SectionL NoExt y oper]
 
-lambdaExp _ o@(L _ (HsPar _ (view' -> App2' (view' -> Var_' "flip") origf@(view' -> Var_' f) y)))
+lambdaExp _ o@(LL _ (HsPar _ (view' -> App2' (view' -> Var_' "flip") origf@(view' -> Var_' f) y)))
     | allowRightSection f
     = [suggestN' "Use section" o $ noLoc $ HsPar NoExt $ noLoc $ SectionR NoExt origf y]
-lambdaExp p o@(L _ HsLam{})
+lambdaExp p o@(LL _ HsLam{})
     | not $ any isOpApp p
     , (res, refact) <- niceLambdaR' [] o
     , not $ isLambda res
@@ -185,7 +185,7 @@ lambdaExp p o@(L _ HsLam{})
     = [(if isVar res then warn' else suggest') name o res (refact $ toSS' o)]
     where
         countRightSections :: LHsExpr GhcPs -> Int
-        countRightSections x = length [() | L _ (SectionR _ (view' -> Var_' _) _) <- universe x]
+        countRightSections x = length [() | LL _ (SectionR _ (view' -> Var_' _) _) <- universe x]
 lambdaExp p o@(SimpleLambda origPats origBody)
     | isLambda (fromParen' origBody)
     , null (universeBi origPats :: [HsExpr GhcPs]) -- TODO: I think this checks for view patterns only, so maybe be more explicit about that?
@@ -199,7 +199,7 @@ lambdaExp p o@(SimpleLambda origPats origBody)
       subts = ("body", toSS' body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' pats)
 
 -- match a lambda with a variable pattern, with no guards and no where clauses
-lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
+lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (LL _ expr)) =
     case expr of
         -- suggest TupleSections instead of lambdas
         ExplicitTuple _ args boxity
@@ -222,7 +222,7 @@ lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
                  -- we need to
                  --     * add brackets to the match, because matches in lambdas require them
                  --     * mark match as being in a lambda context so that it's printed properly
-                 oldMG@(MG _ (L _ [L _ oldmatch]) _) ->
+                 oldMG@(MG _ (LL _ [LL _ oldmatch]) _) ->
                      [suggestN' "Use lambda" o $ noLoc $ HsLam NoExt oldMG
                          { mg_alts = noLoc
                              [noLoc oldmatch
@@ -233,7 +233,7 @@ lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
                      ]
 
                  -- otherwise we should use @LambdaCase@
-                 MG _ (L _ xs) _ ->
+                 MG _ (LL _ xs) _ ->
                      [(suggestN' "Use lambda-case" o $ noLoc $ HsLamCase NoExt matchGroup)
                          {ideaNote=[RequiresExtension "LambdaCase"]}]
                  _ -> []
@@ -242,12 +242,12 @@ lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
         -- | Filter out tuple arguments, converting the @x@ (matched in the lambda) variable argument
         -- to a missing argument, so that we get the proper section.
         removeX :: LHsTupArg GhcPs -> LHsTupArg GhcPs
-        removeX arg@(L _ (Present _ (view' -> Var_' x')))
+        removeX arg@(LL _ (Present _ (view' -> Var_' x')))
             | x == x' = noLoc $ Missing NoExt
         removeX y = y
         -- | Extract the name of an argument of a tuple if it's present and a variable.
         tupArgVar :: LHsTupArg GhcPs -> Maybe String
-        tupArgVar (L _ (Present _ (view' -> Var_' x))) = Just x
+        tupArgVar (LL _ (Present _ (view' -> Var_' x))) = Just x
         tupArgVar _ = Nothing
 
 lambdaExp _ _ = []
@@ -266,6 +266,6 @@ fromLambda x = ([], x)
 
 -- | Replaces all non-wildcard patterns with a variable pattern with the given identifier.
 munge :: Char -> LPat GhcPs -> LPat GhcPs
-munge ident p@(WildPat _) = p
-munge ident (LL ploc p) = VarPat noExt (L ploc $ mkRdrUnqual $ mkVarOcc [ident])
-munge _ _ = undefined -- LL is COMPLETE
+munge ident p@(LL _ (WildPat _)) = p
+munge ident (LL ploc p) = LL ploc (VarPat noExt (LL ploc $ mkRdrUnqual $ mkVarOcc [ident]))
+munge _ x = x -- "{-# COMPLETE LL #-}"

@@ -96,8 +96,8 @@ langExts ps =
 -- Given a list of flags, make a GHC options pragma.
 mkFlags :: SrcSpan -> [String] -> Located AnnotationComment
 mkFlags loc flags =
-  L loc $ AnnBlockComment ("{-# " ++ "OPTIONS_GHC " ++ unwords flags ++ " #-}")
+  LL loc $ AnnBlockComment ("{-# " ++ "OPTIONS_GHC " ++ unwords flags ++ " #-}")
 
 mkLangExts :: SrcSpan -> [String] -> Located AnnotationComment
 mkLangExts loc exts =
-  L loc $ AnnBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")
+  LL loc $ AnnBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")

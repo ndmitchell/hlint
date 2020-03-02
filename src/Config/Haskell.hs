@@ -107,13 +107,13 @@ readPragma' (HsAnnotation _ _ provenance expr) = f expr
             TypeAnnProvenance (L _ x) -> occNameString $ occName x
             ModuleAnnProvenance -> ""
 
-        f (L _ (HsLit _ (HsString _ (unpackFS -> s)))) | "hlint:" `isPrefixOf` lower s =
+        f (LL _ (HsLit _ (HsString _ (unpackFS -> s)))) | "hlint:" `isPrefixOf` lower s =
                 case getSeverity a of
                     Nothing -> errorOn' expr "bad classify pragma"
                     Just severity -> Just $ Classify severity (trimStart b) "" name
             where (a,b) = break isSpace $ trimStart $ drop 6 s
-        f (L _ (HsPar _ x)) = f x
-        f (L _ (ExprWithTySig _ x _)) = f x
+        f (LL _ (HsPar _ x)) = f x
+        f (LL _ (ExprWithTySig _ x _)) = f x
         f _ = Nothing
 readPragma' _ = Nothing
 

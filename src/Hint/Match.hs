@@ -90,8 +90,8 @@ readRule' m@HintRule{ hintRuleGhcLHS=(stripLocs' . unextendInstances -> hintRule
 -- prefixes, and the var.
 dotVersion' :: LHsExpr GhcPs -> [([LHsExpr GhcPs], String)]
 dotVersion' (view' -> Var_' v) | isUnifyVar v = [([], v)]
-dotVersion' (L _ (HsApp _ ls rs)) = first (ls :) <$> dotVersion' (fromParen' rs)
-dotVersion' (L l (OpApp _ x op y)) =
+dotVersion' (LL _ (HsApp _ ls rs)) = first (ls :) <$> dotVersion' (fromParen' rs)
+dotVersion' (LL l (OpApp _ x op y)) =
   -- In a GHC parse tree, raw sections aren't valid application terms.
   -- To be suitable as application terms, they must be enclosed in
   -- parentheses.
@@ -117,9 +117,9 @@ findIdeas' matches s _ decl = timed "Hint" "Match apply" $ forceList
 
 -- | A list of root expressions, with their associated names
 findDecls' :: LHsDecl GhcPs -> [(String, LHsExpr GhcPs)]
-findDecls' x@(L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
+findDecls' x@(LL _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
     [(fromMaybe "" $ bindName xs, x) | xs <- bagToList cid_binds, x <- childrenBi xs]
-findDecls' (L _ RuleD{}) = [] -- Often rules contain things that HLint would rewrite.
+findDecls' (LL _ RuleD{}) = [] -- Often rules contain things that HLint would rewrite.
 findDecls' x = map (fromMaybe "" $ declName x,) $ childrenBi x
 
 matchIdea' :: Scope'
@@ -161,16 +161,16 @@ checkSide' :: Maybe (LHsExpr GhcPs) -> [(String, LHsExpr GhcPs)] -> Bool
 checkSide' x bind = maybe True bool x
     where
       bool :: LHsExpr GhcPs -> Bool
-      bool (L _ (OpApp _ x op y))
+      bool (LL _ (OpApp _ x op y))
         | varToStr op == "&&" = bool x && bool y
         | varToStr op == "||" = bool x || bool y
         | varToStr op == "==" = expr (fromParen1' x) `astEq` expr (fromParen1' y)
-      bool (L _ (HsApp _ x y)) | varToStr x == "not" = not $ bool y
-      bool (L _ (HsPar _ x)) = bool x
+      bool (LL _ (HsApp _ x y)) | varToStr x == "not" = not $ bool y
+      bool (LL _ (HsPar _ x)) = bool x
 
-      bool (L _ (HsApp _ cond (sub -> y)))
+      bool (LL _ (HsApp _ cond (sub -> y)))
         | 'i' : 's' : typ <- varToStr cond = isType typ y
-      bool (L _ (HsApp _ (L _ (HsApp _ cond (sub -> x))) (sub -> y)))
+      bool (LL _ (HsApp _ (LL _ (HsApp _ cond (sub -> x))) (sub -> y)))
           | varToStr cond == "notIn" = and [extendInstances (stripLocs' x) `notElem` map (extendInstances . stripLocs') (universe y) | x <- list x, y <- list y]
           | varToStr cond == "notEq" = not (x `astEq` y)
       bool x | varToStr x == "noTypeCheck" = True
@@ -178,7 +178,7 @@ checkSide' x bind = maybe True bool x
       bool x = error $ "Hint.Match.checkSide', unknown side condition: " ++ unsafePrettyPrint x
 
       expr :: LHsExpr GhcPs -> LHsExpr GhcPs
-      expr (L _ (HsApp _ (varToStr -> "subst") x)) = sub $ fromParen1' x
+      expr (LL _ (HsApp _ (varToStr -> "subst") x)) = sub $ fromParen1' x
       expr x = x
 
       isType "Compare" x = True -- Just a hint for proof stuff
@@ -189,27 +189,28 @@ checkSide' x bind = maybe True bool x
       isType "Pos" (asInt -> Just x) | x >  0 = True
       isType "Neg" (asInt -> Just x) | x <  0 = True
       isType "NegZero" (asInt -> Just x) | x <= 0 = True
-      isType "LitInt" (L _ (HsLit _ HsInt{})) = True
-      isType "LitInt" (L _ (HsOverLit _ (OverLit _ HsIntegral{} _))) = True
-      isType "Var" (L _ HsVar{}) = True
-      isType "App" (L _ HsApp{}) = True
-      isType "InfixApp" (L _ x@OpApp{}) = True
-      isType "Paren" (L _ x@HsPar{}) = True
-      isType "Tuple" (L _ ExplicitTuple{}) = True
+      isType "LitInt" (LL _ (HsLit _ HsInt{})) = True
+      isType "LitInt" (LL _ (HsOverLit _ (OverLit _ HsIntegral{} _))) = True
+      isType "Var" (LL _ HsVar{}) = True
+      isType "App" (LL _ HsApp{}) = True
+      isType "InfixApp" (LL _ x@OpApp{}) = True
+      isType "Paren" (LL _ x@HsPar{}) = True
+      isType "Tuple" (LL _ ExplicitTuple{}) = True
 
-      isType typ (L _ x) =
+      isType typ (LL _ x) =
         let top = showConstr (toConstr x) in
         typ == top
+      isType _ _ = False -- {-# COMPLETE LL#-}
 
       asInt :: LHsExpr GhcPs -> Maybe Integer
-      asInt (L _ (HsPar _ x)) = asInt x
-      asInt (L _ (NegApp _ x _)) = negate <$> asInt x
-      asInt (L _ (HsLit _ (HsInt _ (IL _ neg x)) )) = Just $ if neg then -x else x
-      asInt (L _ (HsOverLit _ (OverLit _ (HsIntegral (IL _ neg x)) _))) = Just $ if neg then -x else x
+      asInt (LL _ (HsPar _ x)) = asInt x
+      asInt (LL _ (NegApp _ x _)) = negate <$> asInt x
+      asInt (LL _ (HsLit _ (HsInt _ (IL _ neg x)) )) = Just $ if neg then -x else x
+      asInt (LL _ (HsOverLit _ (OverLit _ (HsIntegral (IL _ neg x)) _))) = Just $ if neg then -x else x
       asInt _ = Nothing
 
       list :: LHsExpr GhcPs -> [LHsExpr GhcPs]
-      list (L _ (ExplicitList _ _ xs)) = xs
+      list (LL _ (ExplicitList _ _ xs)) = xs
       list x = [x]
 
       sub :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -221,8 +222,8 @@ checkSide' x bind = maybe True bool x
 checkDefine' :: String -> Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
 checkDefine' declName Nothing y =
   let funOrOp expr = case expr of
-        L _ (HsApp _ fun _) -> funOrOp fun
-        L _ (OpApp _ _ op _) -> funOrOp op
+        LL _ (HsApp _ fun _) -> funOrOp fun
+        LL _ (OpApp _ _ op _) -> funOrOp op
         other -> other
    in declName /= varToStr (transformBi unqual' $ funOrOp y)
 checkDefine' _ _ _ = True
@@ -235,9 +236,9 @@ performSpecial' :: LHsExpr GhcPs -> LHsExpr GhcPs
 performSpecial' = transform fNoParen . fEval
   where
     fEval, fNoParen :: LHsExpr GhcPs -> LHsExpr GhcPs
-    fEval (L _ (HsApp _ e x)) | varToStr e == "_eval_" = reduce' x
+    fEval (LL _ (HsApp _ e x)) | varToStr e == "_eval_" = reduce' x
     fEval x = x
-    fNoParen (L _ (HsApp _ e x)) | varToStr e == "_noParen_" = fromParen' x
+    fNoParen (LL _ (HsApp _ e x)) | varToStr e == "_noParen_" = fromParen' x
     fNoParen x = x
 
 -- Contract : 'Data.List.foo' => 'foo' if 'Data.List' is loaded.
@@ -259,6 +260,6 @@ addBracketTy' :: LHsExpr GhcPs -> LHsExpr GhcPs
 addBracketTy'= transformBi f
   where
     f :: LHsType GhcPs -> LHsType GhcPs
-    f (L _ (HsAppTy _ t x@(L _ HsAppTy{}))) =
+    f (LL _ (HsAppTy _ t x@(LL _ HsAppTy{}))) =
       noLoc (HsAppTy noExt t (noLoc (HsParTy noExt x)))
     f x = x

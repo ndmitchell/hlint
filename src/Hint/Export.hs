@@ -22,14 +22,14 @@ import OccName
 import RdrName
 
 exportHint :: ModuHint
-exportHint _ (ModuleEx _ _ (L s m@HsModule {hsmodName = Just name, hsmodExports = exports}) _)
+exportHint _ (ModuleEx _ _ (LL s m@HsModule {hsmodName = Just name, hsmodExports = exports}) _)
   | Nothing <- exports =
       let r = o{ hsmodExports = Just (noLoc [noLoc (IEModuleContents noExt name)] )} in
       [(ignore' "Use module export list" (L s o) (noLoc r) []){ideaNote = [Note "an explicit list is usually better"]}]
   | Just (L _ xs) <- exports
   , mods <- [x | x <- xs, isMod x]
   , modName <- moduleNameString (unLoc name)
-  , names <- [ moduleNameString (unLoc n) | (L _ (IEModuleContents _ n)) <- mods]
+  , names <- [ moduleNameString (unLoc n) | (LL _ (IEModuleContents _ n)) <- mods]
   , exports' <- [x | x <- xs, not (matchesModName modName x)]
   , modName `elem` names =
       let dots = mkRdrUnqual (mkVarOcc " ... ")
@@ -38,10 +38,10 @@ exportHint _ (ModuleEx _ _ (L s m@HsModule {hsmodName = Just name, hsmodExports 
         [ignore' "Use explicit module export list" (L s o) (noLoc r) []]
       where
           o = m{hsmodImports=[], hsmodDecls=[], hsmodDeprecMessage=Nothing, hsmodHaddockModHeader=Nothing }
-          isMod (L _ (IEModuleContents _ _)) = True
+          isMod (LL _ (IEModuleContents _ _)) = True
           isMod _ = False
 
-          matchesModName m (L _ (IEModuleContents _ (L _ n))) = moduleNameString n == m
+          matchesModName m (LL _ (IEModuleContents _ (L _ n))) = moduleNameString n == m
           matchesModName _ _ = False
 
 exportHint _ _ = []

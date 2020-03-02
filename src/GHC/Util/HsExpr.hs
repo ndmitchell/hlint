@@ -70,18 +70,18 @@ apps' :: [LHsExpr GhcPs] -> LHsExpr GhcPs
 apps' = foldl1' mkApp where mkApp x y = noLoc (HsApp noExt x y)
 
 fromApps' :: LHsExpr GhcPs  -> [LHsExpr GhcPs]
-fromApps' (L _ (HsApp _ x y)) = fromApps' x ++ [y]
+fromApps' (LL _ (HsApp _ x y)) = fromApps' x ++ [y]
 fromApps' x = [x]
 
 childrenApps' :: LHsExpr GhcPs -> [LHsExpr GhcPs]
-childrenApps' (L _ (HsApp _ x y)) = childrenApps' x ++ [y]
+childrenApps' (LL _ (HsApp _ x y)) = childrenApps' x ++ [y]
 childrenApps' x = children x
 
 universeApps' :: LHsExpr GhcPs -> [LHsExpr GhcPs]
 universeApps' x = x : concatMap universeApps' (childrenApps' x)
 
 descendAppsM' :: Monad m => (LHsExpr GhcPs  -> m (LHsExpr GhcPs)) -> LHsExpr GhcPs -> m (LHsExpr GhcPs)
-descendAppsM' f (L l (HsApp _ x y)) = liftA2 (\x y -> L l $ HsApp noExt x y) (descendAppsM' f x) (f y)
+descendAppsM' f (LL l (HsApp _ x y)) = liftA2 (\x y -> LL l $ HsApp noExt x y) (descendAppsM' f x) (f y)
 descendAppsM' f x = descendM f x
 
 transformAppsM' :: Monad m => (LHsExpr GhcPs -> m (LHsExpr GhcPs)) -> LHsExpr GhcPs -> m (LHsExpr GhcPs)
@@ -100,7 +100,7 @@ descendBracket' op x = descendIndex' g x
     where
         g i y = if a then f i b else b
             where (a, b) = op y
-        f i y@(L _ e) | needBracket' i x y = addParen' y
+        f i y@(LL _ e) | needBracket' i x y = addParen' y
         f _ y = y
 
 -- Add brackets as suggested 'needBracket' at 1-level of depth.
@@ -115,11 +115,11 @@ appsBracket' = foldl1 mkApp
 
 simplifyExp' :: LHsExpr GhcPs -> LHsExpr GhcPs
 -- Replace appliciations 'f $ x' with 'f (x)'.
-simplifyExp' (L l (OpApp _ x op y)) | isDol op = L l (HsApp noExt x (noLoc (HsPar noExt y)))
-simplifyExp' e@(L _ (HsLet _ (L _ (HsValBinds _ (ValBinds _ binds []))) z)) =
+simplifyExp' (LL l (OpApp _ x op y)) | isDol op = LL l (HsApp noExt x (noLoc (HsPar noExt y)))
+simplifyExp' e@(LL _ (HsLet _ (LL _ (HsValBinds _ (ValBinds _ binds []))) z)) =
   -- An expression of the form, 'let x = y in z'.
   case bagToList binds of
-    [L _ (FunBind _ _(MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] (L _ (EmptyLocalBinds _))))]) _) _ _)]
+    [LL _ (FunBind _ _(MG _ (LL _ [LL _ (Match _(FunRhs (LL _ x) _ _) [] (GRHSs _[LL _ (GRHS _ [] y)] (LL _ (EmptyLocalBinds _))))]) _) _ _)]
          -- If 'x' is not in the free variables of 'y', beta-reduce to
          -- 'z[(y)/x]'.
       | occNameString (rdrNameOcc x) `notElem` vars' y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
@@ -131,7 +131,7 @@ simplifyExp' e = e
 
 -- Rewrite '($) . b' as 'b'.
 niceDotApp' :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
-niceDotApp' (L _ (HsVar _ (L _ r))) b | occNameString (rdrNameOcc r) == "$" = b
+niceDotApp' (LL _ (HsVar _ (L _ r))) b | occNameString (rdrNameOcc r) == "$" = b
 niceDotApp' a b = dotApp' a b
 
 
@@ -155,7 +155,7 @@ niceLambdaR' :: [String]
 niceLambdaR' xs (SimpleLambda [] x) = niceLambdaR' xs x
 
 -- Rewrite @\xs -> (e)@ as @\xs -> e@.
-niceLambdaR' xs (L _ (HsPar _ x)) = niceLambdaR' xs x
+niceLambdaR' xs (LL _ (HsPar _ x)) = niceLambdaR' xs x
 
 -- @\vs v -> ($) e v@ ==> @\vs -> e@
 -- @\vs v -> e $ v@ ==> @\vs -> e@
@@ -171,18 +171,18 @@ niceLambdaR' [v] (L _ (OpApp _ e f (view' -> Var_' v')))
   | isLexeme e
   , v == v'
   , vars' e `disjoint` [v]
-  , L _ (HsVar _ (L _ fname)) <- f
+  , LL _ (HsVar _ (LL _ fname)) <- f
   , isSymOcc $ rdrNameOcc fname
   = (noLoc $ HsPar noExt $ noLoc $ SectionL noExt e f, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 
 -- @\vs v -> f x v@ ==> @\vs -> f x@
-niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (HsApp _ (L _ (HsApp _ f e)) (view' -> Var_' v')))
+niceLambdaR' (unsnoc -> Just (vs, v)) (LL _ (HsApp _ (LL _ (HsApp _ f e)) (view' -> Var_' v')))
   | v == v'
   , vars' e `disjoint` [v]
   = niceLambdaR' vs $ apps' [f, e]
 
 -- @\vs v -> (v `f`)@ ==> @\vs -> f@
-niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (SectionL _ (view' -> Var_' v') f))
+niceLambdaR' (unsnoc -> Just (vs, v)) (LL _ (SectionL _ (view' -> Var_' v') f))
   | v == v' = niceLambdaR' vs f
 
 -- Strip one variable pattern from the end of a lambdas match, and place it in our list of factoring variables.
@@ -191,7 +191,7 @@ niceLambdaR' xs (SimpleLambda ((view' -> PVar_' v):vs) x)
 
 -- Rewrite @\x -> x + a@ as @(+ a)@ (heuristic: @a@ must be a single
 -- lexeme, or it all gets too complex).
-niceLambdaR' [x] (view' -> App2' op@(L _ (HsVar _ (L _ tag))) l r)
+niceLambdaR' [x] (view' -> App2' op@(LL _ (HsVar _ (L _ tag))) l r)
   | isLexeme r, view' l == Var_' x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
       let e = rebracket1' $ addParen' (noLoc $ SectionR noExt op r)
       in (e, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
@@ -201,14 +201,14 @@ niceLambdaR' [x] y
   where
     -- Factor the expression with respect to x.
     factor :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [LHsExpr GhcPs])
-    factor y@(L _ (HsApp _ ini lst)) | view' lst == Var_' x = Just (ini, [ini])
-    factor y@(L _ (HsApp _ ini lst)) | Just (z, ss) <- factor lst
+    factor y@(LL _ (HsApp _ ini lst)) | view' lst == Var_' x = Just (ini, [ini])
+    factor y@(LL _ (HsApp _ ini lst)) | Just (z, ss) <- factor lst
       = let r = niceDotApp' ini z
         in if astEq r z then Just (r, ss) else Just (r, ini : ss)
-    factor (L _ (OpApp _ y op (factor -> Just (z, ss))))| isDol op
+    factor (LL _ (OpApp _ y op (factor -> Just (z, ss))))| isDol op
       = let r = niceDotApp' y z
         in if astEq r z then Just (r, ss) else Just (r, y : ss)
-    factor (L _ (HsPar _ y@(L _ HsApp{}))) = factor y
+    factor (LL _ (HsPar _ y@(LL _ HsApp{}))) = factor y
     factor _ = Nothing
     mkRefact :: [LHsExpr GhcPs] -> R.SrcSpan -> Refactoring R.SrcSpan
     mkRefact subts s =
@@ -216,7 +216,7 @@ niceLambdaR' [x] y
           template = dotApps' (map (strToVar . fst) tempSubts)
       in Replace Expr s tempSubts (unsafePrettyPrint template)
 -- Rewrite @\x y -> x + y@ as @(+)@.
-niceLambdaR' [x,y] (L _ (OpApp _ (view' -> Var_' x1) op@(L _ HsVar {}) (view' -> Var_' y1)))
+niceLambdaR' [x,y] (LL _ (OpApp _ (view' -> Var_' x1) op@(LL _ HsVar {}) (view' -> Var_' y1)))
     | x == x1, y == y1, vars' op `disjoint` [x, y] = (op, \s -> [Replace Expr s [] (unsafePrettyPrint op)])
 -- Rewrite @\x y -> f y x@ as @flip f@.
 niceLambdaR' [x, y] (view' -> App2' op (view' -> Var_' y1) (view' -> Var_' x1))
@@ -242,18 +242,18 @@ niceLambdaR' ss e =
 -- 'case' and 'if' expressions have branches, nothing else does (this
 -- doesn't consider 'HsMultiIf' perhaps it should?).
 replaceBranches' :: LHsExpr GhcPs -> ([LHsExpr GhcPs], [LHsExpr GhcPs] -> LHsExpr GhcPs)
-replaceBranches' (L l (HsIf _ _ a b c)) = ([b, c], \[b, c] -> cL l (HsIf noExt Nothing a b c))
+replaceBranches' (LL l (HsIf _ _ a b c)) = ([b, c], \[b, c] -> cL l (HsIf noExt Nothing a b c))
 
-replaceBranches' (L s (HsCase _ a (MG _ (L l bs) FromSource))) =
+replaceBranches' (LL s (HsCase _ a (MG _ (L l bs) FromSource))) =
   (concatMap f bs, \xs -> cL s (HsCase noExt a (MG noExt (cL l (g bs xs)) Generated)))
   where
     f :: LMatch GhcPs (LHsExpr GhcPs) -> [LHsExpr GhcPs]
-    f (L _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (L _ (GRHS _ _ x)) <- xs]
-    f _ = []
+    f (LL _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (LL _ (GRHS _ _ x)) <- xs]
+    f _ = undefined -- {-# COMPLETE LL #-}
 
     g :: [LMatch GhcPs (LHsExpr GhcPs)] -> [LHsExpr GhcPs] -> [LMatch GhcPs (LHsExpr GhcPs)]
-    g (L s1 (Match _ CaseAlt a (GRHSs _ ns b)) : rest) xs =
-      cL s1 (Match noExt CaseAlt a (GRHSs noExt [cL a (GRHS noExt gs x) | (L a (GRHS _ gs _), x) <- zip ns as] b)) : g rest bs
+    g (LL s1 (Match _ CaseAlt a (GRHSs _ ns b)) : rest) xs =
+      cL s1 (Match noExt CaseAlt a (GRHSs noExt [cL a (GRHS noExt gs x) | (LL a (GRHS _ gs _), x) <- zip ns as] b)) : g rest bs
       where  (as, bs) = splitAt (length ns) xs
     g [] [] = []
     g _ _ = error "GHC.Util.HsExpr.replaceBranches': internal invariant failed, lists are of differing lengths"
@@ -289,7 +289,7 @@ descendBracketOld' op x = (descendIndex' g1 x, descendIndex' g2 x)
     g1 = (fst .) . g
     g2 = (snd .) . g
 
-    f i (L _ (HsPar _ y)) z | not $ needBracketOld' i x y = (y, z)
+    f i (LL _ (HsPar _ y)) z | not $ needBracketOld' i x y = (y, z)
     f i y z                  | needBracketOld' i x y = (addParen' y, addParen' z)
     f _ y z                  = (y, z)
 
@@ -300,21 +300,21 @@ reduce' :: LHsExpr GhcPs -> LHsExpr GhcPs
 reduce' = fromParen' . transform reduce1'
 
 reduce1' :: LHsExpr GhcPs -> LHsExpr GhcPs
-reduce1' (L loc (HsApp _ len (L _ (HsLit _ (HsString _ xs)))))
+reduce1' (LL loc (HsApp _ len (LL _ (HsLit _ (HsString _ xs)))))
   | varToStr len == "length" = cL loc $ HsLit noExt (HsInt noExt (IL NoSourceText False n))
   where n = fromIntegral $ length (unpackFS xs)
-reduce1' (L loc (HsApp _ len (L _ (ExplicitList _ _ xs))))
+reduce1' (LL loc (HsApp _ len (LL _ (ExplicitList _ _ xs))))
   | varToStr len == "length" = cL loc $ HsLit noExt (HsInt noExt (IL NoSourceText False n))
   where n = fromIntegral $ length xs
-reduce1' (view' -> App2' op (L _ (HsLit _ x)) (L _ (HsLit _ y))) | varToStr op == "==" = strToVar (show (astEq x y))
-reduce1' (view' -> App2' op (L _ (HsLit _ (HsInt _ x))) (L _ (HsLit _ (HsInt _ y)))) | varToStr op == ">=" = strToVar $ show (x >= y)
+reduce1' (view' -> App2' op (LL _ (HsLit _ x)) (LL _ (HsLit _ y))) | varToStr op == "==" = strToVar (show (astEq x y))
+reduce1' (view' -> App2' op (LL _ (HsLit _ (HsInt _ x))) (LL _ (HsLit _ (HsInt _ y)))) | varToStr op == ">=" = strToVar $ show (x >= y)
 reduce1' (view' -> App2' op x y)
     | varToStr op == "&&" && varToStr x == "True"  = y
     | varToStr op == "&&" && varToStr x == "False" = x
-reduce1' (L _ (HsPar _ x)) | isAtom' x = x
+reduce1' (LL _ (HsPar _ x)) | isAtom' x = x
 reduce1' x = x
 
 
 fromParen1' :: LHsExpr GhcPs -> LHsExpr GhcPs
-fromParen1' (L _ (HsPar _ x)) = x
+fromParen1' (LL _ (HsPar _ x)) = x
 fromParen1' x = x

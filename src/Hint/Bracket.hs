@@ -112,7 +112,7 @@ bracketHint _ _ x =
      -- Brackets the roots of annotations are fine, so we strip them.
      annotations :: AnnDecl GhcPs -> AnnDecl GhcPs
      annotations= descendBi $ \x -> case (x :: LHsExpr GhcPs) of
-       L l (HsPar _ x) -> x
+       LL l (HsPar _ x) -> x
        x -> x
 
 -- If we find ourselves in the context of a section and we want to
@@ -122,8 +122,8 @@ bracketHint _ _ x =
 -- latter (in contrast to the HSE pretty printer). This patches things
 -- up.
 prettyExpr :: LHsExpr GhcPs -> String
-prettyExpr s@(L _ SectionL{}) = unsafePrettyPrint (noLoc (HsPar noExt s) :: LHsExpr GhcPs)
-prettyExpr s@(L _ SectionR{}) = unsafePrettyPrint (noLoc (HsPar noExt s) :: LHsExpr GhcPs)
+prettyExpr s@(LL _ SectionL{}) = unsafePrettyPrint (noLoc (HsPar noExt s) :: LHsExpr GhcPs)
+prettyExpr s@(LL _ SectionR{}) = unsafePrettyPrint (noLoc (HsPar noExt s) :: LHsExpr GhcPs)
 prettyExpr x = unsafePrettyPrint x
 
 -- Dirty, should add to Brackets type class I think
@@ -146,8 +146,8 @@ remParens' = fmap go . remParen'
 
 isPartialAtom :: LHsExpr GhcPs -> Bool
 -- Might be '$x', which was really '$ x', but TH enabled misparsed it.
-isPartialAtom (L _ (HsSpliceE _ (HsTypedSplice _ HasDollar _ _) )) = True
-isPartialAtom (L _ (HsSpliceE _ (HsUntypedSplice _ HasDollar _ _) )) = True
+isPartialAtom (LL _ (HsSpliceE _ (HsTypedSplice _ HasDollar _ _) )) = True
+isPartialAtom (LL _ (HsSpliceE _ (HsUntypedSplice _ HasDollar _ _) )) = True
 isPartialAtom x = isRecConstr x || isRecUpdate x
 
 bracket :: forall a . (Data a, Data (SrcSpanLess a), HasSrcSpan a, Outputable a, Brackets' a) => (a -> String) -> (a -> Bool) -> Bool -> a -> [Idea]
@@ -196,8 +196,8 @@ bracketError msg o x =
   warn' msg o x [Replace (findType (unLoc x)) (toSS' o) [("x", toSS' x)] "x"]
 
 fieldDecl ::  LConDeclField GhcPs -> [Idea]
-fieldDecl o@(L loc f@ConDeclField{cd_fld_type=v@(L l (HsParTy _ c))}) =
-   let r = L loc (f{cd_fld_type=c}) :: LConDeclField GhcPs in
+fieldDecl o@(LL loc f@ConDeclField{cd_fld_type=v@(LL l (HsParTy _ c))}) =
+   let r = LL loc (f{cd_fld_type=c}) :: LConDeclField GhcPs in
    [rawIdea' Suggestion "Redundant bracket" loc
     (showSDocUnsafe $ ppr_fld o) -- Note this custom printer!
     (Just (showSDocUnsafe $ ppr_fld r))
@@ -208,9 +208,10 @@ fieldDecl o@(L loc f@ConDeclField{cd_fld_type=v@(L l (HsParTy _ c))}) =
      -- the output (e.g. "[foo, bar] :: T"). Here we use a custom
      -- printer to work around (snarfed from
      -- https://hackage.haskell.org/package/ghc-lib-parser-8.8.1/docs/src/HsTypes.html#pprConDeclFields).
-     ppr_fld (L _ ConDeclField { cd_fld_names = ns, cd_fld_type = ty, cd_fld_doc = doc })
+     ppr_fld (LL _ ConDeclField { cd_fld_names = ns, cd_fld_type = ty, cd_fld_doc = doc })
        = ppr_names ns <+> dcolon <+> ppr ty <+> ppr_mbDoc doc
-     ppr_fld (L _ (XConDeclField x)) = ppr x
+     ppr_fld (LL _ (XConDeclField x)) = ppr x
+     ppr_fld _ = undefined -- '{-# COMPLETE LL #-}'
 
      ppr_names [n] = ppr n
      ppr_names ns = sep (punctuate comma (map ppr ns))
@@ -221,7 +222,7 @@ fieldDecl _ = []
 dollar :: LHsExpr GhcPs -> [Idea]
 dollar = concatMap f . universe
   where
-    f x = [ suggest' "Redundant $" x y [r]| o@(L loc (OpApp _ a d b)) <- [x], isDol d
+    f x = [ suggest' "Redundant $" x y [r]| o@(LL loc (OpApp _ a d b)) <- [x], isDol d
             , let y = noLoc (HsApp noExt a b) :: LHsExpr GhcPs
             , not $ needBracket' 0 y a
             , not $ needBracket' 1 y b
@@ -229,7 +230,7 @@ dollar = concatMap f . universe
             , let r = Replace Expr (toSS' x) [("a", toSS' a), ("b", toSS' b)] "a b"]
           ++
           [ suggest' "Move brackets to avoid $" x (t y) [r]
-            |(t, e@(L _ (HsPar _ (L _ (OpApp _ a1 op1 a2))))) <- splitInfix x
+            |(t, e@(LL _ (HsPar _ (LL _ (OpApp _ a1 op1 a2))))) <- splitInfix x
             , isDol op1
             , isVar a1 || isApp a1 || isPar a1, not $ isAtom' a2
             , varToStr a1 /= "select" -- special case for esqueleto, see #224
@@ -237,10 +238,10 @@ dollar = concatMap f . universe
             , let r = Replace Expr (toSS' e) [("a", toSS' a1), ("b", toSS' a2)] "a (b)" ]
           ++  -- Special case of (v1 . v2) <$> v3
           [ suggest' "Redundant bracket" x y []
-          | L _ (OpApp _ (L _ (HsPar _ o1@(L _ (OpApp _ v1 (isDot -> True) v2)))) o2 v3) <- [x], varToStr o2 == "<$>"
+          | LL _ (OpApp _ (LL _ (HsPar _ o1@(LL _ (OpApp _ v1 (isDot -> True) v2)))) o2 v3) <- [x], varToStr o2 == "<$>"
           , let y = noLoc (OpApp noExt o1 o2 v3) :: LHsExpr GhcPs]
 
 splitInfix :: LHsExpr GhcPs -> [(LHsExpr GhcPs -> LHsExpr GhcPs, LHsExpr GhcPs)]
-splitInfix (L l (OpApp _ lhs op rhs)) =
-  [(L l . OpApp noExt lhs op, rhs), (\lhs -> L l (OpApp noExt lhs op rhs), lhs)]
+splitInfix (LL l (OpApp _ lhs op rhs)) =
+  [(LL l . OpApp noExt lhs op, rhs), (\lhs -> LL l (OpApp noExt lhs op rhs), lhs)]
 splitInfix _ = []

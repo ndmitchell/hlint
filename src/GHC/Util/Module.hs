@@ -6,8 +6,10 @@ import Module
 import SrcLoc
 
 modName :: Located (HsModule GhcPs) -> String
-modName (L _ HsModule {hsmodName=Nothing}) = "Main"
-modName (L _ HsModule {hsmodName=Just (L _ n)}) = moduleNameString n
+modName (LL _ HsModule {hsmodName=Nothing}) = "Main"
+modName (LL _ HsModule {hsmodName=Just (L _ n)}) = moduleNameString n
+modName _ = "" -- {-# COMPLETE LL #-}
 
 fromModuleName' :: Located ModuleName -> String
-fromModuleName' (L _ n) = moduleNameString n
+fromModuleName' (LL _ n) = moduleNameString n
+fromModuleName' _ = "" -- {# COMPLETE LL #}
