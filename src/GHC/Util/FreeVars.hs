@@ -5,8 +5,8 @@
 {-# LANGUAGE ViewPatterns #-}
 
 module GHC.Util.FreeVars (
-    vars', varss', pvars', freeVarSet'
-  , Vars' (..), FreeVars'(..) , AllVars' (..)
+    vars', varss', pvars',
+    Vars' (..), FreeVars'(..) , AllVars' (..)
   ) where
 
 import RdrName
@@ -268,6 +268,3 @@ varss' = Set.toList . Set.map occNameString . free' . allVars'
 
 pvars' :: AllVars' a => a -> [String]
 pvars' = Set.toList . Set.map occNameString . bound' . allVars'
-
-freeVarSet' :: FreeVars' a => a -> Set String
-freeVarSet' = Set.map occNameString . freeVars'

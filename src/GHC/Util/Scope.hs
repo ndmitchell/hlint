@@ -3,7 +3,7 @@
 
 module GHC.Util.Scope (
    Scope'
-  ,scopeCreate',scopeImports',scopeMatch',scopeMove'
+  ,scopeCreate',scopeMatch',scopeMove'
 ) where
 
 import HsSyn
@@ -46,10 +46,6 @@ scopeCreate' xs = Scope' $ [prelude | not $ any isPrelude res] ++ res
     isPrelude :: LImportDecl GhcPs -> Bool
     isPrelude (LL _ x) = fromModuleName' (ideclName x) == "Prelude"
     isPrelude _ = False -- {-# COMPLETE LL #-}
-
--- Access the imports in scope 'x'.
-scopeImports' :: Scope' -> [LImportDecl GhcPs]
-scopeImports' (Scope' x) = x
 
 -- Test if two names in two scopes may be referring to the same
 -- thing. This is the case if the names are equal and (1) denote a

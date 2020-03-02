@@ -7,13 +7,13 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module GHC.Util.HsExpr (
-    dotApp', dotApps', lambda
-  , simplifyExp', niceLambda', niceLambdaR', niceDotApp'
+    dotApps', lambda
+  , simplifyExp', niceLambda', niceLambdaR'
   , Brackets'(..)
   , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'
   , paren'
   , replaceBranches'
-  , needBracketOld', transformBracketOld', descendBracketOld', reduce', reduce1', fromParen1'
+  , needBracketOld', transformBracketOld', reduce', fromParen1'
   , allowLeftSection, allowRightSection
 ) where
 

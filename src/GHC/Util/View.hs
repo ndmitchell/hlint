@@ -1,7 +1,7 @@
 {-# LANGUAGE ViewPatterns, MultiParamTypeClasses, FlexibleInstances, PatternSynonyms #-}
 
 module GHC.Util.View (
-   fromParen', fromPParen'
+   fromParen'
   , View'(..)
   , Var_'(Var_'), PVar_'(PVar_'), PApp_'(PApp_'), App2'(App2'),LamConst1'(LamConst1')
   , pattern SimpleLambda

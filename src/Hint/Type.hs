@@ -1,6 +1,6 @@
 
 module Hint.Type(
-    DeclHint, DeclHint', ModuHint, CrossHint, Hint(..),
+    DeclHint', ModuHint, CrossHint, Hint(..),
     module Export
     ) where
 
@@ -14,7 +14,6 @@ import HsExtension
 import HsDecls
 import GHC.Util.Scope
 
-type DeclHint = Scope -> ModuleEx -> Decl_ -> [Idea]
 type DeclHint' = Scope' -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 type ModuHint = Scope -> ModuleEx -> [Idea]
 type CrossHint = [(Scope, ModuleEx)] -> [Idea]

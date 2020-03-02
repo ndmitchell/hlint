@@ -1,6 +1,6 @@
 
 module Hint.All(
-    Hint(..), DeclHint, ModuHint,
+    Hint(..), ModuHint,
     resolveHints, hintRules, builtinHints
     ) where
 
