@@ -48,7 +48,7 @@ applyHints cs = applyHintsReal $ map SettingClassify cs
 
 applyHintsReal :: [Setting] -> Hint -> [ModuleEx] -> [Idea]
 applyHintsReal settings hints_ ms = concat $
-    [ map (classify classifiers . removeRequiresExtensionNotes (hseModule m)) $
+    [ map (classify classifiers . removeRequiresExtensionNotes m) $
         order [] (hintModule hints settings nm' m) `merge`
         concat [order (maybeToList $ declName d) $ decHints d | d <- hsmodDecls $ GHC.unLoc $ ghcModule m]
     | m <- ms
@@ -67,11 +67,11 @@ applyHintsReal settings hints_ ms = concat $
         noModules h = h{hintModules = \_ _ -> []} `mappend` mempty{hintModule = \s a b -> hintModules h s [(a,b)]}
 
 -- If the hint has said you RequiresExtension Foo, but Foo is enabled, drop the note
-removeRequiresExtensionNotes :: Module_ -> Idea -> Idea
+removeRequiresExtensionNotes :: ModuleEx -> Idea -> Idea
 removeRequiresExtensionNotes m = \x -> x{ideaNote = filter keep $ ideaNote x}
     where
         -- FIXME: Should really use the implied extensions too
-        exts = Set.fromList $ map fromNamed $ moduleExtensions m
+        exts = Set.fromList $ concatMap snd $ langExts $ pragmas $ ghcAnnotations m
         keep (RequiresExtension x) = not $ x `Set.member` exts
         keep _ = True
 
