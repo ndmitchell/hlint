@@ -8,12 +8,10 @@ module HSE.All(
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
-    vars,
     ghcSpanToHSE, ghcSrcLocToHSE,
     parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
 
-import Language.Haskell.Exts.Util(FreeVars, freeVars)
 import HSE.Util as X
 import HSE.Type as X
 import HSE.Match as X
@@ -25,7 +23,6 @@ import Timing
 import Language.Preprocessor.Cpphs
 import Data.Either
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 import System.IO.Extra
 import Data.Functor
 import Prelude
@@ -66,9 +63,6 @@ ghcSpanToHSE (GHC.RealSrcSpan s) =
     , srcSpanEndColumn = GHC.srcSpanEndCol s
     }
 ghcSpanToHSE (GHC.UnhelpfulSpan _) = mkSrcSpan noLoc noLoc
-
-vars :: FreeVars a => a -> [String]
-vars  = Set.toList . Set.map prettyPrint . freeVars
 
 -- | What C pre processor should be used.
 data CppFlags

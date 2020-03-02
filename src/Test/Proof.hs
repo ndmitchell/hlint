@@ -7,7 +7,8 @@ import Data.Tuple.Extra
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.State
-import Language.Haskell.Exts.Util(paren)
+import Language.Haskell.Exts.Util(paren, FreeVars, freeVars)
+import qualified Data.Set as Set
 import Data.Char
 import Data.List.Extra
 import Data.Maybe
@@ -185,3 +186,6 @@ hintTheorems xs =
         pat x = prettyPrint x
 
         fresh x = head $ ("z":["v" ++ show i | i <- [1..]]) \\ vars x
+
+vars :: FreeVars a => a -> [String]
+vars  = Set.toList . Set.map prettyPrint . freeVars

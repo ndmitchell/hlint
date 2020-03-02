@@ -10,6 +10,8 @@ import Data.Maybe
 import System.Process
 import System.Exit
 import System.FilePath
+import Language.Haskell.Exts.Util(FreeVars, freeVars)
+import qualified Data.Set as Set
 
 import Config.Type
 import HSE.All
@@ -106,3 +108,6 @@ toQuickCheck hints =
 isRemovesError :: Note -> Bool
 isRemovesError RemovesError{} = True
 isRemovesError _ = False
+
+vars :: FreeVars a => a -> [String]
+vars  = Set.toList . Set.map prettyPrint . freeVars
