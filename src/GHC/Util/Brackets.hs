@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses , FlexibleInstances, FlexibleContexts #-}
-{-# OPTIONS_GHC -w #-} -- Pattern match checker sucks, so give up on warnings and cry a lot
+{-# OPTIONS_GHC -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
 
 module GHC.Util.Brackets (Brackets'(..), isApp,isOpApp,isAnyApp) where
 
