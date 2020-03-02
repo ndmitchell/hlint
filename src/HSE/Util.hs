@@ -8,10 +8,8 @@ module HSE.Util(
     ) where
 
 import Control.Monad
-import Data.Default
 import Data.Tuple.Extra
 import Data.List.Extra
-import Language.Haskell.Exts.Util() -- Default for SrcSpanInfo
 import qualified Data.Map as Map
 import Data.Maybe
 import Data.Data hiding (Fixity)
@@ -140,7 +138,7 @@ showSrcLoc (SrcLoc file line col) = take 1 file ++ f (drop1 file) ++ ":" ++ show
           f [] = []
 
 an :: SrcSpanInfo
-an = def
+an = noSrcSpan
 
 ---------------------------------------------------------------------
 -- FIXITIES
