@@ -177,7 +177,7 @@ extensionsHint _ x =
             [ Note $ "Extension " ++ prettyExtension x ++ " is " ++ reason x
             | x <- explainedRemovals])
         [ModifyComment (toSS' (mkLangExts sl exts)) newPragma]
-    | (LL sl _,  exts) <- langExts $ pragmas (ghcAnnotations x)
+    | (L sl _,  exts) <- langExts $ pragmas (ghcAnnotations x)
     , let before = map parseExtension exts
     , let after = filter (`Set.member` keep) before
     , before /= after
@@ -262,8 +262,8 @@ used EmptyDataDecls = hasS f
 used EmptyCase = hasS f
   where
     f :: HsExpr GhcPs -> Bool
-    f (HsCase _ _ (MG _ (LL _ []) _)) = True
-    f (HsLamCase _ (MG _ (LL _ []) _)) = True
+    f (HsCase _ _ (MG _ (L _ []) _)) = True
+    f (HsLamCase _ (MG _ (L _ []) _)) = True
     f _ = False
 used KindSignatures = hasT (un :: HsKind GhcPs)
 used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
@@ -285,7 +285,7 @@ used PatternGuards = hasS f
     f _ = False -- Extension constructor
     g :: [GuardLStmt GhcPs] -> Bool
     g [] = False
-    g [LL _ BodyStmt{}] = False
+    g [L _ BodyStmt{}] = False
     g _ = True
 used StandaloneDeriving = hasS isDerivD
 used PatternSignatures = hasS isPatTypeSig
@@ -365,33 +365,30 @@ addDerives nt _ xs = mempty
     where (stock, other) = partition (`elem` deriveStock) xs
 
 derives :: Located (HsModule GhcPs) -> Derives
-derives (LL _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
+derives (L _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
   where
     idecl :: Located (DataFamInstDecl GhcPs) -> Derives
-    idecl (LL _ (DataFamInstDecl (HsIB _ FamEqn {feqn_rhs=HsDataDefn {dd_ND=dn, dd_derivs=(LL _ ds)}}))) = g dn ds
+    idecl (L _ (DataFamInstDecl (HsIB _ FamEqn {feqn_rhs=HsDataDefn {dd_ND=dn, dd_derivs=(L _ ds)}}))) = g dn ds
     idecl _ = mempty
 
     decl :: LHsDecl GhcPs -> Derives
-    decl (LL _ (TyClD _ (DataDecl _ _ _ _ HsDataDefn {dd_ND=dn, dd_derivs=(LL _ ds)}))) = g dn ds -- Data declaration.
-    decl (LL _ (DerivD _ (DerivDecl _ (HsWC _ sig) strategy _))) = addDerives Nothing (fmap unLoc strategy) [derivedToStr sig] -- A deriving declaration.
+    decl (L _ (TyClD _ (DataDecl _ _ _ _ HsDataDefn {dd_ND=dn, dd_derivs=(L _ ds)}))) = g dn ds -- Data declaration.
+    decl (L _ (DerivD _ (DerivDecl _ (HsWC _ sig) strategy _))) = addDerives Nothing (fmap unLoc strategy) [derivedToStr sig] -- A deriving declaration.
     decl _ = mempty
 
     g :: NewOrData -> [LHsDerivingClause GhcPs] -> Derives
-    g dn ds = mconcat [addDerives (Just dn) (fmap unLoc strategy) $ map derivedToStr tys | LL _ (HsDerivingClause _ strategy (LL _ tys)) <- ds]
+    g dn ds = mconcat [addDerives (Just dn) (fmap unLoc strategy) $ map derivedToStr tys | L _ (HsDerivingClause _ strategy (L _ tys)) <- ds]
 
     derivedToStr :: LHsSigType GhcPs -> String
     derivedToStr (HsIB _ t) = ih t
       where
         ih :: LHsType GhcPs -> String
-        ih (LL _ (HsQualTy _ _ a)) = ih a
-        ih (LL _ (HsParTy _ a)) = ih a
-        ih (LL _ (HsAppTy _ a _)) = ih a
-        ih (LL _ (HsTyVar _ _ a)) = unsafePrettyPrint $ unqual' a
-        ih (LL _ a) = unsafePrettyPrint a -- I don't anticipate this case is called.
-        ih _ = "" -- {-# COMPLETE LL #-}
+        ih (L _ (HsQualTy _ _ a)) = ih a
+        ih (L _ (HsParTy _ a)) = ih a
+        ih (L _ (HsAppTy _ a _)) = ih a
+        ih (L _ (HsTyVar _ _ a)) = unsafePrettyPrint $ unqual' a
+        ih (L _ a) = unsafePrettyPrint a -- I don't anticipate this case is called.
     derivedToStr _ = "" -- new ctor
-
-derives _ = mempty -- {-# COMPLETE LL #-}
 
 un = undefined
 

@@ -98,10 +98,10 @@ pragmaIdea pidea =
           mkLanguage = rawIdea' Hint.Type.Warning "Use LANGUAGE pragmas"
 
 languageDupes :: [(Located AnnotationComment, [String])] -> [Idea]
-languageDupes ( (a@(LL l _), les) : cs ) =
+languageDupes ( (a@(L l _), les) : cs ) =
   (if nubOrd les /= les
        then [pragmaIdea (SingleComment a (mkLangExts l $ nubOrd les))]
-       else [pragmaIdea (MultiComment a b (mkLangExts l (nubOrd $ les ++ les'))) | ( b@(LL _ _), les' ) <- cs, not $ disjoint les les']
+       else [pragmaIdea (MultiComment a b (mkLangExts l (nubOrd $ les ++ les'))) | ( b@(L _ _), les' ) <- cs, not $ disjoint les les']
   ) ++ languageDupes cs
 languageDupes _ = []
 
@@ -127,7 +127,7 @@ strToLanguage _ = Nothing
 optToLanguage :: (Located AnnotationComment, [String])
                -> [String]
                -> Maybe (Maybe (Located AnnotationComment), [String])
-optToLanguage (LL loc _, flags) langExts
+optToLanguage (L loc _, flags) langExts
   | any isJust vs =
       -- 'ls' is a list of language features enabled by this
       -- OPTIONS_GHC pragma that are not enabled by LANGUAGE pragmas

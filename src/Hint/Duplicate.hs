@@ -43,7 +43,7 @@ duplicateHint ms =
    -- Do expressions.
    dupes [ (m, d, y)
          | (m, d, x) <- ds
-         , HsDo _ _ (LL _ y) :: HsExpr GhcPs <- universeBi x
+         , HsDo _ _ (L _ y) :: HsExpr GhcPs <- universeBi x
          ] ++
   -- Bindings in a 'let' expression or a 'where' clause.
    dupes [ (m, d, y)
