@@ -45,26 +45,26 @@ data HintBuiltin =
 builtin :: HintBuiltin -> Hint
 builtin x = case x of
     -- Ghc.
-    HintLambda     -> decl' lambdaHint
+    HintLambda     -> decl lambdaHint
     HintImport     -> modu importHint
     HintExport     -> modu exportHint
     HintComment    -> modu commentHint
     HintPragma     -> modu pragmaHint
     HintDuplicate  -> mods duplicateHint
     HintRestrict   -> mempty{hintModule=restrictHint}
-    HintList       -> decl' listHint
-    HintNewType    -> decl' newtypeHint
-    HintUnsafe     -> decl' unsafeHint
-    HintListRec    -> decl' listRecHint
-    HintNaming     -> decl' namingHint
-    HintBracket    -> decl' bracketHint
-    HintSmell      -> mempty{hintDecl'=smellHint,hintModule=smellModuleHint}
-    HintPattern    -> decl' patternHint
-    HintMonad      -> decl' monadHint
+    HintList       -> decl listHint
+    HintNewType    -> decl newtypeHint
+    HintUnsafe     -> decl unsafeHint
+    HintListRec    -> decl listRecHint
+    HintNaming     -> decl namingHint
+    HintBracket    -> decl bracketHint
+    HintSmell      -> mempty{hintDecl=smellHint,hintModule=smellModuleHint}
+    HintPattern    -> decl patternHint
+    HintMonad      -> decl monadHint
     HintExtensions -> modu extensionsHint
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList
-        decl' f = mempty{hintDecl'=const $ \a b c -> wrap $ f a b c}
+        decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}
         modu f = mempty{hintModule=const $ \a b -> wrap $ f a b}
         mods f = mempty{hintModules=const $ \a -> wrap $ f a}
 
@@ -75,7 +75,7 @@ builtinHints = [(drop 4 $ show h, builtin h) | h <- enumerate]
 -- | Transform a list of 'HintBuiltin' or 'HintRule' into a 'Hint'.
 resolveHints :: [Either HintBuiltin HintRule] -> Hint
 resolveHints xs =
-  mconcat $ mempty{hintDecl'=const $ readMatch' rights} : map builtin (nubOrd lefts)
+  mconcat $ mempty{hintDecl=const $ readMatch' rights} : map builtin (nubOrd lefts)
   where (lefts,rights) = partitionEithers xs
 
 -- | Transform a list of 'HintRule' into a 'Hint'.

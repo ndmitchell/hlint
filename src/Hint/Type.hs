@@ -22,7 +22,7 @@ type CrossHint = [(Scope, ModuleEx)] -> [Idea]
 data Hint {- PUBLIC -} = Hint
     { hintModules :: [Setting] -> [(Scope, ModuleEx)] -> [Idea] -- ^ Given a list of modules (and their scope information) generate some 'Idea's.
     , hintModule :: [Setting] -> Scope -> ModuleEx -> [Idea] -- ^ Given a single module and its scope information generate some 'Idea's.
-    , hintDecl' :: [Setting] -> Scope' -> ModuleEx -> LHsDecl GhcPs -> [Idea]
+    , hintDecl :: [Setting] -> Scope' -> ModuleEx -> LHsDecl GhcPs -> [Idea]
         -- ^ Given a declaration (with a module and scope) generate some 'Idea's.
         --   This function will be partially applied with one module/scope, then used on multiple 'Decl' values.
     }

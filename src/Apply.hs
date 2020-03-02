@@ -50,12 +50,12 @@ applyHintsReal :: [Setting] -> Hint -> [ModuleEx] -> [Idea]
 applyHintsReal settings hints_ ms = concat $
     [ map (classify classifiers . removeRequiresExtensionNotes (hseModule m)) $
         order [] (hintModule hints settings nm m) `merge`
-        concat [order (maybeToList $ declName d) $ decHints' d | d <- hsmodDecls $ GHC.unLoc $ ghcModule m]
+        concat [order (maybeToList $ declName d) $ decHints d | d <- hsmodDecls $ GHC.unLoc $ ghcModule m]
     | (nm, m) <- mns
     , let classifiers = cls ++ mapMaybe readPragma (universeBi (hseModule m)) ++ concatMap readComment (ghcComments m)
     , seq (length classifiers) True -- to force any errors from readPragma or readComment
     , (nm',m') <- mns'
-    , let decHints' = hintDecl' hints settings nm' m' -- partially apply
+    , let decHints = hintDecl hints settings nm' m' -- partially apply
     , let order n = map (\i -> i{ideaModule= f $ moduleName (hseModule m) : ideaModule i, ideaDecl = f $ n ++ ideaDecl i}) . sortOn ideaSpan
     , let merge = mergeBy (comparing ideaSpan)] ++
     [map (classify cls) (hintModules hints settings mns)]
