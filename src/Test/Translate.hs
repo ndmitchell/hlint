@@ -2,6 +2,17 @@
 -- | Translate the hints to Haskell and run with GHC.
 module Test.Translate(testTypeCheck, testQuickCheck) where
 
+import Config.Type
+import Test.Util
+
+testTypeCheck :: FilePath -> FilePath -> [[Setting]] -> Test ()
+testTypeCheck _ _ _ = fail "Test.Translate is disabled."
+
+-- | Given a set of hints, do all the HintRule hints satisfy QuickCheck
+testQuickCheck :: FilePath -> FilePath -> [[Setting]] -> Test ()
+testQuickCheck _ _ _ = fail "Test.Translate is disabled."
+
+{-
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.List.Extra
@@ -111,3 +122,4 @@ isRemovesError _ = False
 
 vars :: FreeVars a => a -> [String]
 vars  = Set.toList . Set.map prettyPrint . freeVars
+-}
