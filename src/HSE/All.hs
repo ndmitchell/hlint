@@ -13,8 +13,8 @@ module HSE.All(
     parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
 
-import Language.Haskell.Exts.Util hiding (freeVars, Vars(..))
-import qualified Language.Haskell.Exts.Util as X
+import Language.Haskell.Exts.Util(FreeVars, paren, isAtom)
+import qualified Language.Haskell.Exts.Util as X(freeVars, paren, isAtom)
 import HSE.Util as X
 import HSE.Type as X
 import HSE.Match as X
