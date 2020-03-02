@@ -18,7 +18,6 @@ import qualified Language.Haskell.Exts.Util as X(freeVars, paren, isAtom)
 import HSE.Util as X
 import HSE.Type as X
 import HSE.Match as X
-import HSE.Scope as X
 import Util
 import Data.Char
 import Data.List.Extra

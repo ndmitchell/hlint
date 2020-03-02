@@ -126,7 +126,6 @@ library
 
         HSE.All
         HSE.Match
-        HSE.Scope
         HSE.Type
         HSE.Util
         Hint.All
