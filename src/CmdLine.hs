@@ -1,5 +1,5 @@
 {-# LANGUAGE PatternGuards, DeriveDataTypeable, TupleSections #-}
-{-# OPTIONS_GHC -fno-warn-missing-fields -fno-cse -O0 #-}
+{-# OPTIONS_GHC -Wno-missing-fields -fno-cse -O0 #-}
 
 module CmdLine(
     Cmd(..), getCmd,
