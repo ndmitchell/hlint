@@ -64,6 +64,7 @@ parseFileGhcLib filename str flags =
   GhclibParserEx.parseFile filename flags
     (if takeExtension filename /= ".lhs" then str else unlit filename str)
 
+{-# COMPLETE SrcSpan #-}
 -- | The \"Lin\" thing is because there is already e.g. 'SrcLoc.srcSpanStartLine'
 pattern SrcSpan :: String -> Int -> Int -> Int -> Int -> SrcSpan
 pattern SrcSpan
@@ -100,6 +101,7 @@ toOldeSpan (UnhelpfulSpan str) =
   , -1
   )
 
+{-# COMPLETE SrcLoc #-}
 pattern SrcLoc :: String -> Int -> Int -> SrcLoc
 pattern SrcLoc
   { srcFilename
@@ -133,9 +135,6 @@ hseSpanToGHC span =
   where
     mkLocFile :: (Int, Int) -> SrcLoc
     mkLocFile = uncurry $ mkSrcLoc $ fsLit $ HSE.srcSpanFilename span
-
-hseLocToGHC :: HSE.SrcLoc -> SrcLoc
-hseLocToGHC HSE.SrcLoc{..} = mkSrcLoc (fsLit srcFilename) srcLine srcColumn
 
 showSrcLoc' :: SrcLoc -> String
 showSrcLoc' (SrcLoc file line col) = take 1 file ++ f (drop1 file) ++ ":" ++ show line ++ ":" ++ show col
