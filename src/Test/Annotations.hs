@@ -28,6 +28,9 @@ import Data.Functor
 import Prelude
 import Config.Yaml
 
+import qualified GHC.Util as GHC
+import qualified SrcLoc as GHC
+
 
 -- Input, Output
 -- Output = Nothing, should not match
@@ -69,7 +72,8 @@ testAnnotations setting file rpath = do
                         ,"SRC: " ++ showSrcLoc loc
                         ,"INPUT: " ++ inp
                         ,"OUTPUT: " ++ show i]
-                        | i@Idea{..} <- fromRight [] ideas, let SrcLoc{..} = getPointLoc ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
+                        | i@Idea{..} <- fromRight [] ideas, let GHC.SrcLoc{..} = GHC.srcSpanStart ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
+                        -- TODO: shouldn't these checks be == -1 instead?
 
             let skipRefactor = notNull bad || refact == SkipRefactor
             badRefactor <- if skipRefactor then pure [] else liftIO $ do

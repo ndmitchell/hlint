@@ -20,6 +20,9 @@ import qualified Data.ByteString.Lazy.Char8 as C8
 
 import Idea (Idea(..), Severity(..))
 
+import qualified SrcLoc as GHC
+import qualified GHC.Util as GHC
+
 data Issue = Issue
     { issueType :: Text
     , issueCheckName :: Text
@@ -119,11 +122,11 @@ fromIdea Idea{..} = Issue
     points Warning = 5 * basePoints
     points Error = 10 * basePoints
 
-fromSrcSpan :: SrcSpan -> Location
-fromSrcSpan SrcSpan{..} = Location
+fromSrcSpan :: GHC.SrcSpan -> Location
+fromSrcSpan GHC.SrcSpan{..} = Location
     (locationFileName srcSpanFilename)
-    (Position srcSpanStartLine srcSpanStartColumn)
-    (Position srcSpanEndLine srcSpanEndColumn)
+    (Position srcSpanStartLin srcSpanStartColumn)
+    (Position srcSpanEndLin srcSpanEndColumn)
   where
     locationFileName ('.':'/':x) = x
     locationFileName x = x

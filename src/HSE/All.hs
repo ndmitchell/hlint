@@ -38,7 +38,7 @@ import qualified ApiAnnotation as GHC
 import qualified BasicTypes as GHC
 import qualified DynFlags as GHC
 
-import GHC.Util
+import GHC.Util (parsePragmasIntoDynFlags, parseFileGhcLib, parseExpGhcLib, parseImportGhcLib, baseDynFlags)
 import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
 import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 

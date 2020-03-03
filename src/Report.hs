@@ -13,6 +13,8 @@ import Timing
 import Paths_hlint
 import HsColour
 import EmbedData
+import qualified GHC.Util as GHC
+import qualified SrcLoc as GHC
 
 
 writeTemplate :: FilePath -> [(String,[String])] -> FilePath -> IO ()
@@ -28,7 +30,7 @@ writeReport dataDir file ideas = timedIO "Report" file $ writeTemplate dataDir i
     where
         generateIds :: [String] -> [(String,Int)] -- sorted by name
         generateIds = map (NE.head &&& length) . NE.group -- must be already sorted
-        files = generateIds $ sort $ map (srcSpanFilename . ideaSpan) ideas
+        files = generateIds $ sort $ map (GHC.srcSpanFilename . ideaSpan) ideas
         hints = generateIds $ map hintName $ sortOn (negate . fromEnum . ideaSeverity &&& hintName) ideas
         hintName x = show (ideaSeverity x) ++ ": " ++ ideaHint x
 
@@ -41,7 +43,7 @@ writeReport dataDir file ideas = timedIO "Report" file $ writeTemplate dataDir i
                          ("HINTS",list "hint" hints),("FILES",list "file" files)]
 
         content = concatMap (\i -> writeIdea (getClass i) i) ideas
-        getClass i = "hint" ++ f hints (hintName i) ++ " file" ++ f files (srcSpanFilename $ ideaSpan i)
+        getClass i = "hint" ++ f hints (hintName i) ++ " file" ++ f files (GHC.srcSpanFilename $ ideaSpan i)
             where f xs x = show $ fromJust $ findIndex ((==) x . fst) xs
 
         list mode = zipWithFrom f 0
@@ -54,7 +56,7 @@ writeReport dataDir file ideas = timedIO "Report" file $ writeTemplate dataDir i
 writeIdea :: String -> Idea -> [String]
 writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
-    ,escapeHTML (showSrcLoc (getPointLoc ideaSpan) ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint) ++ "<br/>"
+    ,escapeHTML (GHC.showSrcLoc' (GHC.srcSpanStart ideaSpan) ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint) ++ "<br/>"
     ,"Found<br/>"
     ,hsColourHTML ideaFrom] ++
     (case ideaTo of
