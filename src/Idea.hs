@@ -11,7 +11,6 @@ module Idea(
 
 import Data.Functor
 import Data.List.Extra
-import HSE.All
 import Config.Type
 import HsColour
 import Refact.Types hiding (SrcSpan)
@@ -27,7 +26,7 @@ data Idea = Idea
     ,ideaDecl :: [String] -- ^ The declarations the idea is for, usually a singleton, typically the function name, but may be a type name.
     ,ideaSeverity :: Severity -- ^ The severity of the idea, e.g. 'Warning'.
     ,ideaHint :: String -- ^ The name of the hint that generated the idea, e.g. @\"Use reverse\"@.
-    ,ideaSpan :: SrcSpan -- ^ The source code the idea relates to.
+    ,ideaSpan :: GHC.SrcSpan -- ^ The source code the idea relates to.
     ,ideaFrom :: String -- ^ The contents of the source code the idea relates to.
     ,ideaTo :: Maybe String -- ^ The suggested replacement, or 'Nothing' for no replacement (e.g. on parse errors).
     ,ideaNote :: [Note] -- ^ Notes about the effect of applying the replacement.
@@ -39,15 +38,15 @@ data Idea = Idea
 -- 1) Aeson doesn't esape unicode characters, and I want to (allows me to ignore encoding)
 -- 2) I want to control the format so it's slightly human readable as well
 showIdeaJson :: Idea -> String
-showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = dict
+showIdeaJson idea@Idea{ideaSpan=srcSpan@GHC.SrcSpan{..}, ..} = dict
     [("module", list $ map str ideaModule)
     ,("decl", list $ map str ideaDecl)
     ,("severity", str $ show ideaSeverity)
     ,("hint", str ideaHint)
     ,("file", str srcSpanFilename)
-    ,("startLine", show srcSpanStartLine)
+    ,("startLine", show srcSpanStartLin)
     ,("startColumn", show srcSpanStartColumn)
-    ,("endLine", show srcSpanEndLine)
+    ,("endLine", show srcSpanEndLin)
     ,("endColumn", show srcSpanEndColumn)
     ,("from", str ideaFrom)
     ,("to", maybe "null" str ideaTo)
@@ -71,7 +70,7 @@ showANSI = showEx <$> hsColourConsole
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
-    [showSrcLoc (getPointLoc ideaSpan) ++ ": " ++ (if ideaHint == "" then "" else show ideaSeverity ++ ": " ++ ideaHint)] ++
+    [GHC.showSrcLoc' (GHC.srcSpanStart ideaSpan) ++ ": " ++ (if ideaHint == "" then "" else show ideaSeverity ++ ": " ++ ideaHint)] ++
     f "Found" (Just ideaFrom) ++ f "Perhaps" ideaTo ++
     ["Note: " ++ n | let n = showNotes ideaNote, n /= ""]
     where
@@ -81,22 +80,22 @@ showEx tt Idea{..} = unlines $
             where xs = lines $ tt x
 
 
-rawIdea :: Severity -> String -> SrcSpan -> String -> Maybe String -> [Note]-> [Refactoring R.SrcSpan] -> Idea
+rawIdea :: Severity -> String -> GHC.SrcSpan -> String -> Maybe String -> [Note]-> [Refactoring R.SrcSpan] -> Idea
 rawIdea = Idea [] []
 
 rawIdea' :: Severity -> String -> GHC.SrcSpan -> String -> Maybe String -> [Note]-> [Refactoring R.SrcSpan] -> Idea
-rawIdea' a b c = Idea [] [] a b (ghcSpanToHSE c)
+rawIdea' a b span = Idea [] [] a b span
 
-rawIdeaN :: Severity -> String -> SrcSpan -> String -> Maybe String -> [Note] -> Idea
+rawIdeaN :: Severity -> String -> GHC.SrcSpan -> String -> Maybe String -> [Note] -> Idea
 rawIdeaN a b c d e f = Idea [] [] a b c d e f []
 
 rawIdeaN' :: Severity -> String -> GHC.SrcSpan -> String -> Maybe String -> [Note] -> Idea
-rawIdeaN' a b c d e f = Idea [] [] a b (ghcSpanToHSE c) d e f []
+rawIdeaN' a b span d e f = Idea [] [] a b span d e f []
 
 idea' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
          Severity -> String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
 idea' severity hint from to =
-  rawIdea severity hint (ghcSpanToHSE (GHC.getLoc from)) (GHC.unsafePrettyPrint from) (Just $ GHC.unsafePrettyPrint to) []
+  rawIdea severity hint (GHC.getLoc from) (GHC.unsafePrettyPrint from) (Just $ GHC.unsafePrettyPrint to) []
 
 suggest' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
             String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
@@ -108,7 +107,7 @@ warn' = idea' Warning
 
 ignoreNoSuggestion' :: (GHC.HasSrcSpan a, Outputable.Outputable a)
                     => String -> a -> Idea
-ignoreNoSuggestion' hint x = rawIdeaN Ignore hint (ghcSpanToHSE (GHC.getLoc x)) (GHC.unsafePrettyPrint x) Nothing []
+ignoreNoSuggestion' hint x = rawIdeaN Ignore hint (GHC.getLoc x) (GHC.unsafePrettyPrint x) Nothing []
 
 ignore' :: (GHC.HasSrcSpan a, Outputable.Outputable a) =>
            String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
