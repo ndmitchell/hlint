@@ -18,7 +18,7 @@ module GHC.Util (
 
   , parsePragmasIntoDynFlags
   , parseFileGhcLib, parseExpGhcLib, parseImportGhcLib
-  , hseSpanToGHC, hseLocToGHC
+  , hseSpanToGHC
   , pattern SrcSpan, srcSpanFilename, srcSpanStartLin, srcSpanStartColumn, srcSpanEndLin, srcSpanEndColumn
   , pattern SrcLoc, srcFilename, srcLine, srcColumn
   , showSrcLoc'

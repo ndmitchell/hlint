@@ -12,7 +12,6 @@ import Config.Type
 import Idea
 import HSE.All
 
-import GHC.Util (hseLocToGHC)
 import qualified SrcLoc as GHC
 
 
