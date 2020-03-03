@@ -84,7 +84,7 @@ rawIdea :: Severity -> String -> GHC.SrcSpan -> String -> Maybe String -> [Note]
 rawIdea = Idea [] []
 
 rawIdea' :: Severity -> String -> GHC.SrcSpan -> String -> Maybe String -> [Note]-> [Refactoring R.SrcSpan] -> Idea
-rawIdea' a b span = Idea [] [] a b span
+rawIdea' = Idea [] []
 
 rawIdeaN :: Severity -> String -> GHC.SrcSpan -> String -> Maybe String -> [Note] -> Idea
 rawIdeaN a b c d e f = Idea [] [] a b c d e f []

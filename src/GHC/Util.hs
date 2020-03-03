@@ -94,10 +94,10 @@ toOldeSpan (RealSrcSpan span) =
 -- is this fine? it should be, since noLoc from HSE previously also used (-1) as an invalid location
 toOldeSpan (UnhelpfulSpan str) =
   ( unpackFS str
-  , (-1)
-  , (-1)
-  , (-1)
-  , (-1)
+  , -1
+  , -1
+  , -1
+  , -1
   )
 
 pattern SrcLoc :: String -> Int -> Int -> SrcLoc
@@ -121,8 +121,8 @@ toOldeLoc (RealSrcLoc loc) =
   )
 toOldeLoc (UnhelpfulLoc str) =
   ( unpackFS str
-  , (-1)
-  , (-1)
+  , -1
+  , -1
   )
 
 hseSpanToGHC :: HSE.SrcSpan -> SrcSpan
