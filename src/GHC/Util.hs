@@ -17,7 +17,6 @@ module GHC.Util (
 
   , parsePragmasIntoDynFlags
   , parseFileGhcLib, parseExpGhcLib, parseImportGhcLib
-  , hseSpanToGHC
   , pattern SrcSpan, srcSpanFilename, srcSpanStartLin, srcSpanStartColumn, srcSpanEndLin, srcSpanEndColumn
   , pattern SrcLoc, srcFilename, srcLine, srcColumn
   , showSrcLoc'
@@ -125,15 +124,6 @@ toOldeLoc (UnhelpfulLoc str) =
   , -1
   , -1
   )
-
-hseSpanToGHC :: HSE.SrcSpan -> SrcSpan
-hseSpanToGHC span =
-  mkSrcSpan
-    (mkLocFile $ HSE.srcSpanStart span)
-    (mkLocFile $ HSE.srcSpanEnd span)
-  where
-    mkLocFile :: (Int, Int) -> SrcLoc
-    mkLocFile = uncurry $ mkSrcLoc $ fsLit $ HSE.srcSpanFilename span
 
 showSrcLoc' :: SrcLoc -> String
 showSrcLoc' (SrcLoc file line col) = take 1 file ++ f (drop1 file) ++ ":" ++ show line ++ ":" ++ show col

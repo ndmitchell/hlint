@@ -9,6 +9,7 @@ module HSE.All(
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
     ghcSpanToHSE, ghcSrcLocToHSE,
+    hseSpanToGHC,
     parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
 
@@ -63,6 +64,16 @@ ghcSpanToHSE (GHC.RealSrcSpan s) =
     , srcSpanEndColumn = GHC.srcSpanEndCol s
     }
 ghcSpanToHSE (GHC.UnhelpfulSpan _) = mkSrcSpan noLoc noLoc
+
+-- | Convert an HSE source span into a GHC equivalent.
+hseSpanToGHC :: SrcSpan -> GHC.SrcSpan
+hseSpanToGHC span =
+  GHC.mkSrcSpan
+    (mkLocFile $ srcSpanStart span)
+    (mkLocFile $ srcSpanEnd span)
+  where
+    mkLocFile :: (Int, Int) -> GHC.SrcLoc
+    mkLocFile = uncurry $ GHC.mkSrcLoc $ FastString.fsLit $ srcSpanFilename span
 
 -- | What C pre processor should be used.
 data CppFlags

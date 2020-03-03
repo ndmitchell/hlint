@@ -14,7 +14,6 @@ import qualified HsSyn as GHC
 import qualified BasicTypes as GHC
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import SrcLoc as GHC hiding (mkSrcSpan)
-import GHC.Util (hseSpanToGHC)
 
 runGrep :: String -> ParseFlags -> [FilePath] -> IO ()
 runGrep patt flags files = do
