@@ -49,8 +49,6 @@ import FastString
 import System.FilePath
 import Language.Preprocessor.Unlit
 
-import qualified HSE.Type as HSE
-
 parseExpGhcLib :: String -> DynFlags -> ParseResult (LHsExpr GhcPs)
 parseExpGhcLib = GhclibParserEx.parseExpression
 
