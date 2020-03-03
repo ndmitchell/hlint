@@ -8,7 +8,6 @@ import Data.List.Extra
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import Data.Version
-import HSE.All
 import Timing
 import Paths_hlint
 import HsColour

@@ -13,7 +13,6 @@ module CC
 import Data.Aeson (ToJSON(..), (.=), encode, object)
 import Data.Char (toUpper)
 import Data.Text (Text)
-import Language.Haskell.Exts.SrcLoc (SrcSpan(..))
 
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy.Char8 as C8
