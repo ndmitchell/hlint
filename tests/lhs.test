@@ -5,7 +5,7 @@ BUG 331
 
 > main = print ([1] ++ [2, 3])
 OUTPUT
-tests/lhs-line-numbers.lhs:3:17: Suggestion: Use :
+tests/lhs-line-numbers.lhs:3:17-29: Suggestion: Use :
 Found:
   [1] ++ [2, 3]
 Perhaps:
@@ -38,7 +38,7 @@ RUN tests/lhs-first-line.lhs
 FILE tests/lhs-first-line.lhs
 > main = print ([1] ++ [2, 3])
 OUTPUT
-tests/lhs-first-line.lhs:1:17: Suggestion: Use :
+tests/lhs-first-line.lhs:1:17-29: Suggestion: Use :
 Found:
   [1] ++ [2, 3]
 Perhaps:
