@@ -5,7 +5,7 @@ FILE tests/cpp-full.hs
 
 main = putStrLn $ show "Hello"
 OUTPUT
-tests/cpp-full.hs:3:8: Warning: Use print
+tests/cpp-full.hs:3:8-30: Warning: Use print
 Found:
   putStrLn $ show "Hello"
 Perhaps:
@@ -53,7 +53,7 @@ import Network.Wai.Internal
 #endif
 foo = map f . map g
 OUTPUT
-tests/cpp-file2.hs:5:7: Suggestion: Use map once
+tests/cpp-file2.hs:5:7-19: Suggestion: Use map once
 Found:
   map f . map g
 Perhaps:

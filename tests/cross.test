@@ -12,7 +12,7 @@ bar = 1
         c = 3
 
 FILE tests/cross.hs2
-        
+
 module A(foo) where
 
 foo = 1
@@ -22,7 +22,7 @@ foo = 1
         c = 3
 
 OUTPUT
-tests/cross.hs1:7:9: Suggestion: Reduce duplication
+tests/cross.hs1:7:9-13: Suggestion: Reduce duplication
 Found:
   a = 1
   b = 2

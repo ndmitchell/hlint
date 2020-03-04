@@ -3,7 +3,7 @@ RUN tests/flag-only-one-arg.hs --only="Redundant bracket"
 FILE tests/flag-only-one-arg.hs
 foo xs = if length xs == 0 then 42 else (666) -- should result in 2 suggestions
 OUTPUT
-tests/flag-only-one-arg.hs:1:41: Warning: Redundant bracket
+tests/flag-only-one-arg.hs:1:41-45: Warning: Redundant bracket
 Found:
   (666)
 Perhaps:
@@ -15,13 +15,13 @@ RUN tests/flag-only-many-args.hs --only="Redundant bracket" --only="Use ++"
 FILE tests/flag-only-many-args.hs
 foo xs = if length xs == 0 then concat ["foo", "bar"] else (666) -- should result in 3 suggestions
 OUTPUT
-tests/flag-only-many-args.hs:1:33: Suggestion: Use ++
+tests/flag-only-many-args.hs:1:33-53: Suggestion: Use ++
 Found:
   concat ["foo", "bar"]
 Perhaps:
   "foo" ++ "bar"
 
-tests/flag-only-many-args.hs:1:60: Warning: Redundant bracket
+tests/flag-only-many-args.hs:1:60-64: Warning: Redundant bracket
 Found:
   (666)
 Perhaps:

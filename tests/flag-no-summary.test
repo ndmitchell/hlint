@@ -3,7 +3,7 @@ RUN tests/flag-no-summary1.hs --no-summary
 FILE tests/flag-no-summary1.hs
 main = map f $ map g xs
 OUTPUT
-tests/flag-no-summary1.hs:1:8: Suggestion: Use map once
+tests/flag-no-summary1.hs:1:8-23: Suggestion: Use map once
 Found:
   map f $ map g xs
 Perhaps:
