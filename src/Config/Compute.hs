@@ -4,6 +4,7 @@
 module Config.Compute(computeSettings) where
 
 import HSE.All
+import GHC.Util
 import Config.Type
 import Config.Haskell
 import Language.Haskell.Exts.Util(isAtom, paren)
@@ -17,7 +18,7 @@ computeSettings flags file = do
     x <- parseModuleEx flags file Nothing
     case x of
         Left (ParseError sl msg _) ->
-            pure ("# Parse error " ++ showSrcLoc sl ++ ": " ++ msg, [])
+            pure ("# Parse error " ++ showSrcSpan' sl ++ ": " ++ msg, [])
         Right ModuleEx{hseModule=m} -> do
             let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
                 r = concatMap readSetting xs

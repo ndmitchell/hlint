@@ -45,7 +45,7 @@ readFileConfigHaskell file contents = do
     res <- parseModuleEx flags file contents
     case res of
         Left (ParseError sl msg err) ->
-            error $ "Config parse failure at " ++ showSrcLoc sl ++ ": " ++ msg ++ "\n" ++ err
+            error $ "Config parse failure at " ++ showSrcSpan' sl ++ ": " ++ msg ++ "\n" ++ err
         Right modEx@ModuleEx{hseModule=m} -> return $ readSettings m ++ map SettingClassify (concatMap readComment (ghcComments modEx))
 
 

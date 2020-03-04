@@ -86,7 +86,7 @@ parseModuleApply flags s file src = do
     case res of
       Right r -> pure $ Right r
       Left (ParseError sl msg ctxt) ->
-            pure $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error "Parse error" (hseSpanToGHC $ mkSrcSpan sl sl) ctxt Nothing []
+            pure $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error "Parse error" sl ctxt Nothing []
 
 
 -- | Find which hints a list of settings implies.

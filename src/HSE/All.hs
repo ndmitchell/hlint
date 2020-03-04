@@ -26,10 +26,10 @@ import Data.Either
 import qualified Data.Map as Map
 import System.IO.Extra
 import Data.Functor
+import FastString
 import Prelude
 
 import qualified HsSyn
-import qualified FastString
 import qualified SrcLoc as GHC
 import qualified ErrUtils
 import qualified Outputable
@@ -182,7 +182,7 @@ runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
 
 -- | A parse error.
 data ParseError = ParseError
-    { parseErrorLocation :: SrcLoc -- ^ Location of the error.
+    { parseErrorLocation :: GHC.SrcSpan -- ^ Location of the error.
     , parseErrorMessage :: String  -- ^ Message about the cause of the error.
     , parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
     }
@@ -238,7 +238,7 @@ hseFailOpParseModuleEx ppstr flags file str sl msg = do
     let pe = case parseFileContentsWithMode (mkMode flags file) ppstr2 of
                ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
                _ -> context (srcLine sl) ppstr
-    pure $ Left $ ParseError sl msg pe
+    pure $ Left $ ParseError (hseSpanToGHC $ mkSrcSpan sl sl) msg pe
 
 -- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String
@@ -247,20 +247,12 @@ ghcFailOpParseModuleEx :: String
                        -> (GHC.SrcSpan, ErrUtils.MsgDoc)
                        -> IO (Either ParseError ModuleEx)
 ghcFailOpParseModuleEx ppstr file str (loc, err) = do
-   let sl =
-         case loc of
-           GHC.RealSrcSpan r ->
-             SrcLoc { srcFilename = FastString.unpackFS (GHC.srcSpanFile r)
-                     , srcLine = GHC.srcSpanStartLine r
-                     , srcColumn = GHC.srcSpanStartCol r }
-           GHC.UnhelpfulSpan _ ->
-             SrcLoc { srcFilename = file
-                     , srcLine = 1 :: Int
-                     , srcColumn = 1 :: Int }
-       pe = context (srcLine sl) ppstr
+   let pe = case loc of
+            GHC.RealSrcSpan r -> context (GHC.srcSpanStartLine r) ppstr
+            _ -> ""
        msg = Outputable.showSDoc baseDynFlags $
                ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
-   pure $ Left $ ParseError sl msg pe
+   pure $ Left $ ParseError loc msg pe
 
 -- A hacky function to get fixities from HSE parse flags suitable for
 -- use by our own 'GHC.Util.Refact.Fixity' module.
@@ -365,8 +357,8 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             -- exception. It's impossible or at least fiddly getting a
             -- location so we skip that for now. Synthesize a parse
             -- error.
-            let loc = SrcLoc file (1 :: Int) (1 :: Int)
-            pure $ Left (ParseError loc msg (context (srcLine loc) ppstr))
+            let loc = GHC.mkSrcLoc (mkFastString file) (1 :: Int) (1 :: Int)
+            pure $ Left (ParseError (GHC.mkSrcSpan loc loc) msg "")
 
     where
         fromPFailed (GHC.PFailed _ loc err) = Just (loc, err)
