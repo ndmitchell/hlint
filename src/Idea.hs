@@ -70,7 +70,7 @@ showANSI = showEx <$> hsColourConsole
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
-    [GHC.showSrcLoc' (GHC.srcSpanStart ideaSpan) ++ ": " ++ (if ideaHint == "" then "" else show ideaSeverity ++ ": " ++ ideaHint)] ++
+    [GHC.showSrcSpan' ideaSpan ++ ": " ++ (if ideaHint == "" then "" else show ideaSeverity ++ ": " ++ ideaHint)] ++
     f "Found" (Just ideaFrom) ++ f "Perhaps" ideaTo ++
     ["Note: " ++ n | let n = showNotes ideaNote, n /= ""]
     where

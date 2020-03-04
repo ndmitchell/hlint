@@ -13,7 +13,6 @@ import Paths_hlint
 import HsColour
 import EmbedData
 import qualified GHC.Util as GHC
-import qualified SrcLoc as GHC
 
 
 writeTemplate :: FilePath -> [(String,[String])] -> FilePath -> IO ()
@@ -55,7 +54,7 @@ writeReport dataDir file ideas = timedIO "Report" file $ writeTemplate dataDir i
 writeIdea :: String -> Idea -> [String]
 writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
-    ,escapeHTML (GHC.showSrcLoc' (GHC.srcSpanStart ideaSpan) ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint) ++ "<br/>"
+    ,escapeHTML (GHC.showSrcSpan' ideaSpan ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint) ++ "<br/>"
     ,"Found<br/>"
     ,hsColourHTML ideaFrom] ++
     (case ideaTo of

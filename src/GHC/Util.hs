@@ -19,10 +19,8 @@ module GHC.Util (
   , parseFileGhcLib, parseExpGhcLib, parseImportGhcLib
   , pattern SrcSpan, srcSpanFilename, srcSpanStartLine', srcSpanStartColumn, srcSpanEndLine', srcSpanEndColumn
   , pattern SrcLoc, srcFilename, srcLine, srcColumn
-  , showSrcLoc'
+  , showSrcSpan',
   ) where
-
-import Data.List.Extra (drop1)
 
 import GHC.Util.View
 import GHC.Util.FreeVars
@@ -123,8 +121,5 @@ toOldeLoc (UnhelpfulLoc str) =
   , -1
   )
 
-showSrcLoc' :: SrcLoc -> String
-showSrcLoc' (SrcLoc file line col) = take 1 file ++ f (drop1 file) ++ ":" ++ show line ++ ":" ++ show col
-    where f (x:y:zs) | isPathSeparator x && isPathSeparator y = f $ x:zs
-          f (x:xs) = x : f xs
-          f [] = []
+showSrcSpan' :: SrcSpan -> String
+showSrcSpan' = unsafePrettyPrint
