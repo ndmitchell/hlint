@@ -2,6 +2,7 @@ cradle:
   direct:
     arguments:
       - -hide-package=ghc-boot-th
+      - -hide-package=template-haskell
       - -package=ghc-lib-parser
       - -fwarn-incomplete-patterns
       - -fwarn-unused-binds
