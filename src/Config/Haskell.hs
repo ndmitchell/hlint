@@ -197,7 +197,7 @@ errorOn val msg = exitMessageImpure $
 
 errorOn' :: Outputable a => Located a -> String -> b
 errorOn' (L pos val) msg = exitMessageImpure $
-    showSrcLoc (getPointLoc $ ghcSpanToHSE pos) ++
+    showSrcSpan' pos ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     unsafePrettyPrint val
 

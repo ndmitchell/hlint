@@ -8,7 +8,7 @@ module HSE.All(
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
-    ghcSpanToHSE, ghcSrcLocToHSE,
+    ghcSrcLocToHSE,
     parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
 
@@ -51,18 +51,6 @@ ghcSrcLocToHSE (GHC.RealSrcLoc l) =
     , srcColumn = GHC.srcLocCol l
     }
 ghcSrcLocToHSE (GHC.UnhelpfulLoc _) = noLoc
-
--- | Convert a GHC source span into an HSE equivalent.
-ghcSpanToHSE :: GHC.SrcSpan -> SrcSpan
-ghcSpanToHSE (GHC.RealSrcSpan s) =
-  SrcSpan {
-      srcSpanFilename = FastString.unpackFS (GHC.srcSpanFile s)
-    , srcSpanStartLine = GHC.srcSpanStartLine s
-    , srcSpanStartColumn = GHC.srcSpanStartCol s
-    , srcSpanEndLine = GHC.srcSpanEndLine s
-    , srcSpanEndColumn = GHC.srcSpanEndCol s
-    }
-ghcSpanToHSE (GHC.UnhelpfulSpan _) = mkSrcSpan noLoc noLoc
 
 -- | Convert an HSE source span into a GHC equivalent.
 hseSpanToGHC :: SrcSpan -> GHC.SrcSpan
