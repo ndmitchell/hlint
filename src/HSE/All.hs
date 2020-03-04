@@ -9,7 +9,6 @@ module HSE.All(
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
     ghcSpanToHSE, ghcSrcLocToHSE,
-    hseSpanToGHC,
     parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
 
