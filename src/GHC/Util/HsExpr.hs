@@ -289,12 +289,14 @@ descendBracketOld' op x = (descendIndex' g1 x, descendIndex' g2 x)
     g1 = (fst .) . g
     g2 = (snd .) . g
 
-    f i (L _ (HsPar _ y)) z | not $ needBracketOld' i x y = (y, z)
-    f i y z                  | needBracketOld' i x y = (addParen' y, addParen' z)
-    f _ y z                  = (y, z)
+    f i (L _ (HsPar _ y)) z | not $ needBracketOld' i x y = (y, y `ifNoLocElse` z)
+    f i y z                 | needBracketOld' i x y = (addParen' y, addParen' (y `ifNoLocElse` z))
+    f _ y z                 = (y, y `ifNoLocElse` z)
 
     f1 = ((fst .) .) . f
     f2 = ((snd .) .) . f
+
+    ifNoLocElse y z = if getLoc y == noSrcSpan then y else z
 
 reduce' :: LHsExpr GhcPs -> LHsExpr GhcPs
 reduce' = fromParen' . transform reduce1'

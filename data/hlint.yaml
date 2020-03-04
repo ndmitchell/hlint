@@ -986,7 +986,7 @@
 # yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
 #     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff @NoRefactor: hlint bug
 # yes = if foo then stuff else return () -- Control.Monad.when foo stuff
-# yes = foo $ \(a, b) -> (a, y + b) -- Data.Bifunctor.second ((+) y) @NoRefactor: hlint bug, subts = []
+# yes = foo $ \(a, b) -> (a, y + b) -- Data.Bifunctor.second ((+) y)
 # no  = foo $ \(a, b) -> (a, a + b)
 # yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (curry (uncurry (+))) [1 .. 5] [6 .. 10]
 # yes = curry (uncurry (+)) -- (+)
@@ -1014,7 +1014,7 @@
 # yes = case x z of Nothing -> y; Just pat -> pat -- Data.Maybe.fromMaybe y (x z)
 # yes = if p then s else return () -- Control.Monad.when p s
 # warn = a $$$$ b $$$$ c ==> a . b $$$$$ c
-# yes = when (not . null $ asdf) -- unless (null asdf) @NoRefactor: hlint bug, subts = []
+# yes = when (not . null $ asdf) -- unless (null asdf)
 # yes = id 1 -- 1
 # yes = case concat (map f x) of [] -> [] -- concatMap f x
 # yes = [v | v <- xs] -- xs
