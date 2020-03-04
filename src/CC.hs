@@ -13,12 +13,14 @@ module CC
 import Data.Aeson (ToJSON(..), (.=), encode, object)
 import Data.Char (toUpper)
 import Data.Text (Text)
-import Language.Haskell.Exts.SrcLoc (SrcSpan(..))
 
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy.Char8 as C8
 
 import Idea (Idea(..), Severity(..))
+
+import qualified SrcLoc as GHC
+import qualified GHC.Util as GHC
 
 data Issue = Issue
     { issueType :: Text
@@ -119,11 +121,11 @@ fromIdea Idea{..} = Issue
     points Warning = 5 * basePoints
     points Error = 10 * basePoints
 
-fromSrcSpan :: SrcSpan -> Location
-fromSrcSpan SrcSpan{..} = Location
+fromSrcSpan :: GHC.SrcSpan -> Location
+fromSrcSpan GHC.SrcSpan{..} = Location
     (locationFileName srcSpanFilename)
-    (Position srcSpanStartLine srcSpanStartColumn)
-    (Position srcSpanEndLine srcSpanEndColumn)
+    (Position srcSpanStartLine' srcSpanStartColumn)
+    (Position srcSpanEndLine' srcSpanEndColumn)
   where
     locationFileName ('.':'/':x) = x
     locationFileName x = x

@@ -12,6 +12,8 @@ import Config.Type
 import Idea
 import HSE.All
 
+import qualified SrcLoc as GHC
+
 
 -- | This function takes a list of command line arguments, and returns the given suggestions.
 --   To see a list of arguments type @hlint --help@ at the console.
@@ -35,7 +37,7 @@ instance Show Suggestion where
 
 -- | From a suggestion, extract the file location it refers to.
 suggestionLocation :: Suggestion -> SrcLoc
-suggestionLocation = getPointLoc . ideaSpan . fromSuggestion
+suggestionLocation = ghcSrcLocToHSE . GHC.srcSpanStart . ideaSpan . fromSuggestion
 
 
 -- | From a suggestion, determine how severe it is.
