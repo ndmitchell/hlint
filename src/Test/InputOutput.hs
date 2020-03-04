@@ -96,7 +96,12 @@ checkInputOutput main InputOutput{..} = do
 -- | First string may have stars in it (the want)
 matchStar :: String -> String -> Bool
 matchStar ('*':xs) ys = any (matchStar xs) $ tails ys
-matchStar (x:xs) (y:ys) = x == y && matchStar xs ys
+matchStar ('/':x:xs) ('\\':'\\':ys) | x /= '/' = matchStar (x:xs) ys -- JSON escaped newlines
+matchStar (x:xs) (y:ys) = eq x y && matchStar xs ys
+    where
+        -- allow path differences between Windows and Linux
+        eq '/' y = isPathSeparator y
+        eq x y = x == y
 matchStar [] [] = True
 matchStar _ _ = False
 
