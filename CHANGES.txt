@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+*   Report hints with src-span information, e.g. file:1:1-10
 *   Delete resolveHints (it was the identity)
 *   Change to GHC types in the API
     Add --with-group=future to add return ==> pure hint
