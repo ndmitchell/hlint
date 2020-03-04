@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+*   Change to GHC types in the API
     Add --with-group=future to add return ==> pure hint
     #888, suggest foldr from (.) to ($) in some cases
     #884, add more >=> operator hints
