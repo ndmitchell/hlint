@@ -28,6 +28,6 @@ Found:
   b = 2
   c = 3
 Perhaps:
-  Combine with tests/cross.hs2:6:9
+  Combine with tests/cross.hs2:6:9-13
 
 1 hint
