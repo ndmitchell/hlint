@@ -21,7 +21,7 @@ module Language.Haskell.HLint4(
     getHLintDataDir, autoSettings, argsSettings,
     findSettings, readSettingsFile,
     -- * Hints
-    Hint, resolveHints,
+    Hint,
     -- * Parse files
     ModuleEx, parseModuleEx, createModuleEx, defaultParseFlags, parseFlagsAddFixities, ParseError(..), ParseFlags(..), CppFlags(..)
     ) where
@@ -68,10 +68,6 @@ autoSettings = do
     (fixities, classify, hints) <- findSettings (readSettingsFile Nothing) Nothing
     pure (parseFlagsAddFixities fixities defaultParseFlags, classify, hints)
 
-
--- | The identity function. In previous versions of HLint this function was useful. Now, it isn't.
-resolveHints :: Hint -> Hint
-resolveHints = id
 
 -- | A version of 'autoSettings' which respects some of the arguments supported by HLint.
 --   If arguments unrecognised by HLint are used it will result in an error.
