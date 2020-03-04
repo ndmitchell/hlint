@@ -17,7 +17,7 @@ module GHC.Util (
 
   , parsePragmasIntoDynFlags
   , parseFileGhcLib, parseExpGhcLib, parseImportGhcLib
-  , pattern SrcSpan, srcSpanFilename, srcSpanStartLin, srcSpanStartColumn, srcSpanEndLin, srcSpanEndColumn
+  , pattern SrcSpan, srcSpanFilename, srcSpanStartLine', srcSpanStartColumn, srcSpanEndLine', srcSpanEndColumn
   , pattern SrcLoc, srcFilename, srcLine, srcColumn
   , showSrcLoc'
   ) where
@@ -61,21 +61,21 @@ parseFileGhcLib filename str flags =
     (if takeExtension filename /= ".lhs" then str else unlit filename str)
 
 {-# COMPLETE SrcSpan #-}
--- | The \"Lin\" thing is because there is already e.g. 'SrcLoc.srcSpanStartLine'
+-- | The \"Line'\" thing is because there is already e.g. 'SrcLoc.srcSpanStartLine'
 pattern SrcSpan :: String -> Int -> Int -> Int -> Int -> SrcSpan
 pattern SrcSpan
   { srcSpanFilename
-  , srcSpanStartLin
+  , srcSpanStartLine'
   , srcSpanStartColumn
-  , srcSpanEndLin
+  , srcSpanEndLine'
   , srcSpanEndColumn
   }
   <-
     (toOldeSpan ->
       ( srcSpanFilename
-      , srcSpanStartLin
+      , srcSpanStartLine'
       , srcSpanStartColumn
-      , srcSpanEndLin
+      , srcSpanEndLine'
       , srcSpanEndColumn
       ))
 

@@ -124,8 +124,8 @@ fromIdea Idea{..} = Issue
 fromSrcSpan :: GHC.SrcSpan -> Location
 fromSrcSpan GHC.SrcSpan{..} = Location
     (locationFileName srcSpanFilename)
-    (Position srcSpanStartLin srcSpanStartColumn)
-    (Position srcSpanEndLin srcSpanEndColumn)
+    (Position srcSpanStartLine' srcSpanStartColumn)
+    (Position srcSpanEndLine' srcSpanEndColumn)
   where
     locationFileName ('.':'/':x) = x
     locationFileName x = x
