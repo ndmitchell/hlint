@@ -8,7 +8,6 @@ module HSE.All(
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
-    ghcSrcLocToHSE,
     parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
 
@@ -41,16 +40,6 @@ import qualified DynFlags as GHC
 import GHC.Util (parsePragmasIntoDynFlags, parseFileGhcLib, parseExpGhcLib, parseImportGhcLib, baseDynFlags)
 import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
 import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
-
--- | Convert a GHC source loc into an HSE equivalent.
-ghcSrcLocToHSE :: GHC.SrcLoc -> SrcLoc
-ghcSrcLocToHSE (GHC.RealSrcLoc l) =
-  SrcLoc {
-      srcFilename = FastString.unpackFS (GHC.srcLocFile l)
-    , srcLine = GHC.srcLocLine l
-    , srcColumn = GHC.srcLocCol l
-    }
-ghcSrcLocToHSE (GHC.UnhelpfulLoc _) = noLoc
 
 -- | Convert an HSE source span into a GHC equivalent.
 hseSpanToGHC :: SrcSpan -> GHC.SrcSpan

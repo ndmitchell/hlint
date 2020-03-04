@@ -204,6 +204,6 @@ errorOn' (L pos val) msg = exitMessageImpure $
 errorOnComment :: GHC.Located AnnotationComment -> String -> b
 errorOnComment c@(L s _) msg = exitMessageImpure $
     let isMultiline = isCommentMultiline c in
-    showSrcLoc (ghcSrcLocToHSE $ GHC.srcSpanStart s) ++
+    showSrcSpan' s ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     (if isMultiline then "{-" else "--") ++ commentText c ++ (if isMultiline then "-}" else "")
