@@ -15,6 +15,7 @@ import Data.Maybe
 import Config.Type
 import Util
 import Prelude
+import Control.Exception.Extra
 
 import qualified HsSyn as GHC
 import qualified BasicTypes as GHC
@@ -45,7 +46,7 @@ readFileConfigHaskell file contents = do
     res <- parseModuleEx flags file contents
     case res of
         Left (ParseError sl msg err) ->
-            error $ "Config parse failure at " ++ showSrcSpan' sl ++ ": " ++ msg ++ "\n" ++ err
+            errorIO $ "Config parse failure at " ++ showSrcSpan' sl ++ ": " ++ msg ++ "\n" ++ err
         Right modEx@ModuleEx{hseModule=m} -> return $ readSettings m ++ map SettingClassify (concatMap readComment (ghcComments modEx))
 
 

@@ -5,7 +5,7 @@ module HLint(hlint, readAllSettings) where
 
 import Control.Applicative
 import Control.Monad.Extra
-import Control.Exception
+import Control.Exception.Extra
 import Control.Concurrent.Extra
 import System.Console.CmdArgs.Verbosity
 import Data.List.Extra
@@ -100,7 +100,7 @@ hlintGrep cmd@CmdGrep{..} =
      else do
         files <- concatMapM (resolveFile cmd Nothing) cmdFiles
         if null files then
-            error "No files found"
+            errorIO "No files found"
          else
             runGrep cmdPattern (cmdParseFlags cmd) files
 
@@ -140,7 +140,7 @@ resolveFiles :: Cmd -> Maybe FilePath -> IO Cmd
 resolveFiles cmd@CmdMain{..} tmpFile = do
     files <- concatMapM (resolveFile cmd tmpFile) cmdFiles
     if null files
-        then error "No files found"
+        then errorIO "No files found"
         else pure cmd { cmdFiles = files }
 resolveFiles cmd _ = pure cmd
 
@@ -211,7 +211,7 @@ handleRefactoring ideas files cmd@CmdMain{..} =
             withTempFile $ \f -> do
                 writeFile f hints
                 exitWith =<< runRefactoring path file f cmdRefactorOptions
-        _ -> error "Refactor flag can only be used with an individual file"
+        _ -> errorIO "Refactor flag can only be used with an individual file"
 
 
 handleReporting :: [Idea] -> Cmd -> IO ()

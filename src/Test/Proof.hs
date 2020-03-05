@@ -3,9 +3,10 @@
 module Test.Proof(proof) where
 
 import Config.Type
+import Control.Exception.Extra
 
 proof :: [FilePath] -> [Setting] -> FilePath -> IO ()
-proof _ _ _ = fail "Test.Proof is disabled."
+proof _ _ _ = errorIO "Test.Proof is disabled."
 
 {-
 

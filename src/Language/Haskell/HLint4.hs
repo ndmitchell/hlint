@@ -28,6 +28,7 @@ module Language.Haskell.HLint4(
 
 import Config.Type
 import Config.Read
+import Control.Exception.Extra
 import Idea
 import qualified Apply as H
 import HLint
@@ -84,7 +85,7 @@ argsSettings args = do
                         defaultParseFlags{cppFlags = cmdCpp cmd}
             let ignore = [Classify Ignore x "" "" | x <- cmdIgnore]
             pure (flags, classify ++ ignore, hints)
-        _ -> error "Can only invoke autoSettingsArgs with the root process"
+        _ -> errorIO "Can only invoke autoSettingsArgs with the root process"
 
 
 -- | Given a directory (or 'Nothing' to imply 'getHLintDataDir'), and a module name

@@ -7,7 +7,7 @@ module Refact
     , checkRefactor, refactorPath, runRefactoring
     ) where
 
-import Control.Exception
+import Control.Exception.Extra
 import Control.Monad
 import Data.Maybe
 import Data.Version.Extra
@@ -38,7 +38,7 @@ toSS' :: GHC.HasSrcSpan e => e -> R.SrcSpan
 toSS' = toSrcSpan'
 
 checkRefactor :: Maybe FilePath -> IO FilePath
-checkRefactor = refactorPath >=> either error pure
+checkRefactor = refactorPath >=> either errorIO pure
 
 refactorPath :: Maybe FilePath -> IO (Either String FilePath)
 refactorPath rpath = do

@@ -8,6 +8,7 @@ module CmdLine(
     ) where
 
 import Control.Monad.Extra
+import Control.Exception.Extra
 import qualified Data.ByteString as BS
 import Data.Char
 import Data.List.Extra
@@ -63,7 +64,7 @@ automatic cmd = case cmd of
             | cmdGit cmd = do
                 mgit <- findExecutable "git"
                 case mgit of
-                    Nothing -> error "Could not find git"
+                    Nothing -> errorIO "Could not find git"
                     Just git -> do
                         let args = ["ls-files", "--cached", "--others", "--exclude-standard"] ++
                                    map ("*." ++) (cmdExtension cmd)

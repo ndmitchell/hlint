@@ -3,14 +3,16 @@
 module Test.Translate(testTypeCheck, testQuickCheck) where
 
 import Config.Type
+import Control.Exception.Extra
+import Control.Monad.IO.Class
 import Test.Util
 
 testTypeCheck :: FilePath -> FilePath -> [[Setting]] -> Test ()
-testTypeCheck _ _ _ = error "Test.Translate is disabled."
+testTypeCheck _ _ _ = liftIO $ errorIO "Test.Translate is disabled."
 
 -- | Given a set of hints, do all the HintRule hints satisfy QuickCheck
 testQuickCheck :: FilePath -> FilePath -> [[Setting]] -> Test ()
-testQuickCheck _ _ _ = error "Test.Translate is disabled."
+testQuickCheck _ _ _ = liftIO $ errorIO "Test.Translate is disabled."
 
 {-
 import Control.Monad
