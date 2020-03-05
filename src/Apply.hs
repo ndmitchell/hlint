@@ -62,7 +62,7 @@ applyHintsReal settings hints_ ms = concat $
     where
         f = nubOrd . filter (/= "")
         cls = [x | SettingClassify x <- settings]
-        mns' = map (\x -> (scopeCreate' (GHC.unLoc $ ghcModule x), x)) ms
+        mns' = map (\x -> (scopeCreate (GHC.unLoc $ ghcModule x), x)) ms
         hints = (if length ms <= 1 then noModules else id) hints_
         noModules h = h{hintModules = \_ _ -> []} `mappend` mempty{hintModule = \s a b -> hintModules h s [(a,b)]}
 

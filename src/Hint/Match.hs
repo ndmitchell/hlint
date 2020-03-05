@@ -132,7 +132,7 @@ matchIdea' sb declName HintRule{..} parent x = do
   let lhs = unextendInstances hintRuleGhcLHS
       rhs = unextendInstances hintRuleGhcRHS
       sa  = hintRuleGhcScope
-      nm a b = scopeMatch' (sa, a) (sb, b)
+      nm a b = scopeMatch (sa, a) (sb, b)
   u <- unifyExp' nm True lhs x
   u <- validSubst' astEq u
 
@@ -246,7 +246,7 @@ unqualify' from to = transformBi f
   where
     f :: Located RdrName -> Located RdrName
     f x@(L _ (Unqual s)) | isUnifyVar (occNameString s) = x
-    f x = scopeMove' (from, x) to
+    f x = scopeMove (from, x) to
 
 addBracket' :: Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> LHsExpr GhcPs
 addBracket' (Just (i, p)) c | needBracketOld' i p c = noLoc $ HsPar noExt c
