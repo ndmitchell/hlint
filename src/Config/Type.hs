@@ -98,8 +98,8 @@ data HintRule = HintRule
     ,hintRuleRHS :: Exp SrcSpanInfo -- ^ RHS
     ,hintRuleSide :: Maybe (Exp SrcSpanInfo) -- ^ Side condition, typically specified with @where _ = ...@.
     ,hintRuleNotes :: [Note] -- ^ Notes about application of the hint.
-    -- We wrap these GHC elements in 'HsExtendInstances' in order that we may derive 'Show'.
     ,hintRuleGhcScope :: Scope -- ^ Module scope in which the hint operates (GHC parse tree).
+    -- We wrap these GHC elements in 'HsExtendInstances' in order that we may derive 'Show'.
     ,hintRuleGhcLHS :: HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ LHS (GHC parse tree).
     ,hintRuleGhcRHS :: HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ RHS (GHC parse tree).
     ,hintRuleGhcSide :: Maybe (HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs))  -- ^ Side condition (GHC parse tree).
