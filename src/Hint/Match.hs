@@ -131,7 +131,7 @@ matchIdea' :: Scope'
 matchIdea' sb declName HintRule{..} parent x = do
   let lhs = unextendInstances hintRuleGhcLHS
       rhs = unextendInstances hintRuleGhcRHS
-      sa  = unextendInstances hintRuleGhcScope
+      sa  = hintRuleGhcScope
       nm a b = scopeMatch' (sa, a) (sb, b)
   u <- unifyExp' nm True lhs x
   u <- validSubst' astEq u

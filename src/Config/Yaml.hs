@@ -259,7 +259,7 @@ parseRule v = do
         hintRuleGhcSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . extendInstances) . parseGHC parseExpGhcWithMode)
 
         allowFields v ["lhs","rhs","note","name","side"]
-        let hintRuleGhcScope = extendInstances mempty :: HsExtendInstances Scope'
+        let hintRuleGhcScope = mempty
         pure [Left HintRule{hintRuleSeverity=severity, ..}]
      else do
         names <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
@@ -338,8 +338,8 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
             where
               scope'= asScope' packageMap' (map (fmap unextendInstances) groupGhcImports)
 
-asScope' :: Map.HashMap String [HsSyn.LImportDecl HsSyn.GhcPs] -> [Either String (HsSyn.LImportDecl HsSyn.GhcPs)] -> HsExtendInstances Scope'
-asScope' packages xs = HsExtendInstances $ scopeCreate' (HsSyn.HsModule Nothing Nothing (concatMap f xs) [] Nothing Nothing)
+asScope' :: Map.HashMap String [HsSyn.LImportDecl HsSyn.GhcPs] -> [Either String (HsSyn.LImportDecl HsSyn.GhcPs)] -> Scope'
+asScope' packages xs = scopeCreate' (HsSyn.HsModule Nothing Nothing (concatMap f xs) [] Nothing Nothing)
     where
         f (Right x) = [x]
         f (Left x) | Just pkg <- Map.lookup x packages = pkg

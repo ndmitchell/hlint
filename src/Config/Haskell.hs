@@ -65,7 +65,7 @@ readSetting (FunBind _ [Match _ (Ident _ (getSeverity -> Just severity)) pats (U
         [SettingMatchExp $
          HintRule severity (headDef defaultHintName names) (fromParen lhs) (fromParen rhs) a b
         -- Todo : Replace these with "proper" GHC expressions.
-         (extendInstances mempty) (extendInstances unit) (extendInstances unit) Nothing]
+         mempty (extendInstances unit) (extendInstances unit) Nothing]
     | otherwise = [SettingClassify $ Classify severity n a b | n <- names2, (a,b) <- readFuncs bod]
     where
         names = filter (not . null) $ getNames pats bod
