@@ -140,7 +140,7 @@ resolveFiles :: Cmd -> Maybe FilePath -> IO Cmd
 resolveFiles cmd@CmdMain{..} tmpFile = do
     files <- concatMapM (resolveFile cmd tmpFile) cmdFiles
     if null files
-        then errorIO "No files found"
+        then error "No files found"
         else pure cmd { cmdFiles = files }
 resolveFiles cmd _ = pure cmd
 
