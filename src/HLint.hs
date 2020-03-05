@@ -100,7 +100,7 @@ hlintGrep cmd@CmdGrep{..} =
      else do
         files <- concatMapM (resolveFile cmd Nothing) cmdFiles
         if null files then
-            errorIO "No files found"
+            error "No files found"
          else
             runGrep cmdPattern (cmdParseFlags cmd) files
 
@@ -211,7 +211,7 @@ handleRefactoring ideas files cmd@CmdMain{..} =
             withTempFile $ \f -> do
                 writeFile f hints
                 exitWith =<< runRefactoring path file f cmdRefactorOptions
-        _ -> errorIO "Refactor flag can only be used with an individual file"
+        _ -> error "Refactor flag can only be used with an individual file"
 
 
 handleReporting :: [Idea] -> Cmd -> IO ()
