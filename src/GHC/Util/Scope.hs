@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module GHC.Util.Scope (
-   Scope'
+   Scope
   ,scopeCreate',scopeMatch',scopeMove'
 ) where
 
@@ -22,15 +22,15 @@ import Data.List.Extra
 import Data.Maybe
 
 -- A scope is a list of import declarations.
-newtype Scope' = Scope' [LImportDecl GhcPs]
+newtype Scope = Scope [LImportDecl GhcPs]
                deriving (Monoid, Semigroup)
 
-instance Show Scope' where
-    show (Scope' x) = unsafePrettyPrint x
+instance Show Scope where
+    show (Scope x) = unsafePrettyPrint x
 
--- Create a 'Scope' from a module's import declarations.
-scopeCreate' :: HsModule GhcPs -> Scope'
-scopeCreate' xs = Scope' $ [prelude | not $ any isPrelude res] ++ res
+-- Create a 'Scope from a module's import declarations.
+scopeCreate' :: HsModule GhcPs -> Scope
+scopeCreate' xs = Scope $ [prelude | not $ any isPrelude res] ++ res
   where
     -- Package qualifier of an import declaration.
     pkg :: LImportDecl GhcPs -> Maybe StringLiteral
@@ -52,7 +52,7 @@ scopeCreate' xs = Scope' $ [prelude | not $ any isPrelude res] ++ res
 -- thing. This is the case if the names are equal and (1) denote a
 -- builtin type or data constructor or (2) the intersection of the
 -- candidate modules where the two names arise is non-empty.
-scopeMatch' :: (Scope', Located RdrName) -> (Scope', Located RdrName) -> Bool
+scopeMatch' :: (Scope, Located RdrName) -> (Scope, Located RdrName) -> Bool
 scopeMatch' (a, x) (b, y)
   | isSpecial' x && isSpecial' y = rdrNameStr' x == rdrNameStr' y
   | isSpecial' x || isSpecial' y = False
@@ -62,8 +62,8 @@ scopeMatch' (a, x) (b, y)
 -- Given a name in a scope, and a new scope, create a name for the new
 -- scope that will refer to the same thing. If the resulting name is
 -- ambiguous, pick a plausible candidate.
-scopeMove' :: (Scope', Located RdrName) -> Scope' -> Located RdrName
-scopeMove' (a, x@(fromQual' -> Just name)) (Scope' b) = case imps of
+scopeMove' :: (Scope, Located RdrName) -> Scope -> Located RdrName
+scopeMove' (a, x@(fromQual' -> Just name)) (Scope b) = case imps of
   [] -> headDef x real
   imp:_ | all ideclQualified imps -> noLoc $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
         | otherwise -> unqual' x
@@ -78,8 +78,8 @@ scopeMove' (_, x) _ = x
 -- Calculate which modules a name could possibly lie in. If 'x' is
 -- qualified but no imported element matches it, assume the user just
 -- lacks an import.
-possModules' :: Scope' -> Located RdrName -> [String]
-possModules' (Scope' is) x = f x
+possModules' :: Scope -> Located RdrName -> [String]
+possModules' (Scope is) x = f x
   where
     res :: [String]
     res = [fromModuleName' $ ideclName (unLoc i) | i <- is, possImport' i x]

@@ -29,7 +29,7 @@ import qualified Lexer as GHC
 import qualified ErrUtils
 import qualified Outputable
 import qualified HsSyn
-import GHC.Util (baseDynFlags, Scope',scopeCreate')
+import GHC.Util (baseDynFlags, Scope,scopeCreate')
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
@@ -338,7 +338,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
             where
               scope'= asScope' packageMap' (map (fmap unextendInstances) groupGhcImports)
 
-asScope' :: Map.HashMap String [HsSyn.LImportDecl HsSyn.GhcPs] -> [Either String (HsSyn.LImportDecl HsSyn.GhcPs)] -> Scope'
+asScope' :: Map.HashMap String [HsSyn.LImportDecl HsSyn.GhcPs] -> [Either String (HsSyn.LImportDecl HsSyn.GhcPs)] -> Scope
 asScope' packages xs = scopeCreate' (HsSyn.HsModule Nothing Nothing (concatMap f xs) [] Nothing Nothing)
     where
         f (Right x) = [x]

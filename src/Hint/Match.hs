@@ -63,7 +63,7 @@ import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
-readMatch' :: [HintRule] -> Scope' -> ModuleEx -> LHsDecl GhcPs -> [Idea]
+readMatch' :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 readMatch' settings = findIdeas' (concatMap readRule' settings)
 
 readRule' :: HintRule -> [HintRule]
@@ -106,7 +106,7 @@ dotVersion' _ = []
 ---------------------------------------------------------------------
 -- PERFORM THE MATCHING
 
-findIdeas' :: [HintRule] -> Scope' -> ModuleEx -> LHsDecl GhcPs -> [Idea]
+findIdeas' :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 findIdeas' matches s _ decl = timed "Hint" "Match apply" $ forceList
     [ (idea' (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
     | (name, expr) <- findDecls' decl
@@ -122,7 +122,7 @@ findDecls' x@(L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
 findDecls' (L _ RuleD{}) = [] -- Often rules contain things that HLint would rewrite.
 findDecls' x = map (fromMaybe "" $ declName x,) $ childrenBi x
 
-matchIdea' :: Scope'
+matchIdea' :: Scope
            -> String
            -> HintRule
            -> Maybe (Int, LHsExpr GhcPs)
@@ -241,7 +241,7 @@ performSpecial' = transform fNoParen . fEval
     fNoParen x = x
 
 -- Contract : 'Data.List.foo' => 'foo' if 'Data.List' is loaded.
-unqualify' :: Scope' -> Scope' -> LHsExpr GhcPs -> LHsExpr GhcPs
+unqualify' :: Scope -> Scope -> LHsExpr GhcPs -> LHsExpr GhcPs
 unqualify' from to = transformBi f
   where
     f :: Located RdrName -> Located RdrName
