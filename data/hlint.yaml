@@ -884,8 +884,8 @@
     - warn: {lhs: "null (intersect a b)", rhs: "disjoint a b"}
     - warn: {lhs: "[minBound .. maxBound]", rhs: "enumerate"}
     - warn: {lhs: "zipWithFrom (,)", rhs: "zipFrom"}
-    - warn: {lhs: "zip [i..]", rhs: "zipFrom i", side: "isLitInt i"}
-    - warn: {lhs: "zipWith f [i..]", rhs: "zipWithFrom f i", side: "isLitInt i"}
+    - warn: {lhs: "zip [i..]", rhs: "zipFrom i"}
+    - warn: {lhs: "zipWith f [i..]", rhs: "zipWithFrom f i"}
     - warn: {lhs: "dropWhile isSpace", rhs: "trimStart"}
     - warn: {lhs: "dropWhileEnd isSpace", rhs: "trimEnd"}
     - warn: {lhs: "trimEnd (trimStart a)", rhs: "trim a"}
