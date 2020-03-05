@@ -38,10 +38,10 @@ readFileConfigYaml :: FilePath -> Maybe String -> IO ConfigYaml
 readFileConfigYaml file contents = timedIO "Config" file $ do
     val <- case contents of
         Nothing -> decodeFileEither file
-        Just src -> return $ decodeEither' $ BS.pack src
+        Just src -> pure $ decodeEither' $ BS.pack src
     case val of
         Left e -> fail $ "Failed to read YAML configuration file " ++ file ++ "\n  " ++ displayException e
-        Right v -> return v
+        Right v -> pure v
 
 
 ---------------------------------------------------------------------
@@ -103,7 +103,7 @@ parseArray v@(getVal -> Array xs) = concatMapM parseArray $ zipWithFrom (\i x ->
 parseArray v = pure [v]
 
 parseObject :: Val -> Parser (Map.HashMap T.Text Value)
-parseObject (getVal -> Object x) = return x
+parseObject (getVal -> Object x) = pure x
 parseObject v = parseFail v "Expected an Object"
 
 parseObject1 :: Val -> Parser (String, Val)
@@ -114,7 +114,7 @@ parseObject1 v = do
         _ -> parseFail v $ "Expected exactly one key but got " ++ show (Map.size mp)
 
 parseString :: Val -> Parser String
-parseString (getVal -> String x) = return $ T.unpack x
+parseString (getVal -> String x) = pure $ T.unpack x
 parseString v = parseFail v "Expected a String"
 
 parseInt :: Val -> Parser Int
@@ -129,7 +129,7 @@ maybeParse parseValue Nothing = pure Nothing
 maybeParse parseValue (Just value) = Just <$> parseValue value
 
 parseBool :: Val -> Parser Bool
-parseBool (getVal -> Bool b) = return b
+parseBool (getVal -> Bool b) = pure b
 parseBool v = parseFail v "Expected a Bool"
 
 parseField :: String -> Val -> Parser Val
@@ -137,14 +137,14 @@ parseField s v = do
     x <- parseFieldOpt s v
     case x of
         Nothing -> parseFail v $ "Expected a field named " ++ s
-        Just v -> return v
+        Just v -> pure v
 
 parseFieldOpt :: String -> Val -> Parser (Maybe Val)
 parseFieldOpt s v = do
     mp <- parseObject v
     case Map.lookup (T.pack s) mp of
-        Nothing -> return Nothing
-        Just x -> return $ Just $ addVal s x v
+        Nothing -> pure Nothing
+        Just x -> pure $ Just $ addVal s x v
 
 allowFields :: Val -> [String] -> Parser ()
 allowFields v allow = do
@@ -157,7 +157,7 @@ parseHSE :: (ParseMode -> String -> ParseResult v) -> Val -> Parser v
 parseHSE parser v = do
     x <- parseString v
     case parser defaultParseMode{extensions=configExtensions} x of
-        ParseOk x -> return x
+        ParseOk x -> pure x
         ParseFailed loc s ->
           parseFail v $ "Failed to parse " ++ s ++ ", when parsing:\n  " ++ x
 
@@ -165,7 +165,7 @@ parseGHC :: (ParseMode -> String -> GHC.ParseResult v) -> Val -> Parser v
 parseGHC parser v = do
     x <- parseString v
     case parser defaultParseMode{extensions=configExtensions} x of
-        GHC.POk _ x -> return x
+        GHC.POk _ x -> pure x
         GHC.PFailed _ loc err ->
           let msg = Outputable.showSDoc baseDynFlags $
                 ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
@@ -222,22 +222,22 @@ parseSmell v = do
 parseGroup :: Val -> Parser Group
 parseGroup v = do
     groupName <- parseField "name" v >>= parseString
-    groupEnabled <- parseFieldOpt "enabled" v >>= maybe (return True) parseBool
-    groupImports <- parseFieldOpt "imports" v >>= maybe (return []) (parseArray >=> mapM parseImport)
-    groupGhcImports <- parseFieldOpt "imports" v >>= maybe (return []) (parseArray >=> mapM parseImportGHC)
-    groupRules <- parseFieldOpt "rules" v >>= maybe (return []) parseArray >>= concatMapM parseRule
+    groupEnabled <- parseFieldOpt "enabled" v >>= maybe (pure True) parseBool
+    groupImports <- parseFieldOpt "imports" v >>= maybe (pure []) (parseArray >=> mapM parseImport)
+    groupGhcImports <- parseFieldOpt "imports" v >>= maybe (pure []) (parseArray >=> mapM parseImportGHC)
+    groupRules <- parseFieldOpt "rules" v >>= maybe (pure []) parseArray >>= concatMapM parseRule
     allowFields v ["name","enabled","imports","rules"]
     pure Group{..}
     where
         parseImport v = do
             x <- parseString v
             case word1 x of
-                ("package", x) -> return $ Left x
+                ("package", x) -> pure $ Left x
                 _ -> Right <$> parseHSE parseImportDeclWithMode v
         parseImportGHC v = do
             x <- parseString v
             case word1 x of
-                 ("package", x) -> return $ Left x
+                 ("package", x) -> pure $ Left x
                  _ -> Right . extendInstances <$> parseGHC parseImportDeclGhcWithMode v
 
 ruleToGroup :: [Either HintRule Classify] -> Group

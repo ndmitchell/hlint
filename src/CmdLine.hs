@@ -231,7 +231,7 @@ cmdHintFiles cmd = do
         -- 1) current directory or its ancestors; 2) home directory
         curdir <- getCurrentDirectory
         -- Ignores home directory when it isn't present.
-        home <- catchIOError ((:[]) <$> getHomeDirectory) (const $ return [])
+        home <- catchIOError ((:[]) <$> getHomeDirectory) (const $ pure [])
         implicit <- findM doesFileExist $
             map (</> ".hlint.yaml") (ancestors curdir ++ home) -- to match Stylish Haskell
             ++ ["HLint.hs"] -- the default in HLint 1.*
@@ -258,8 +258,8 @@ cmdCpp cmd
 -- | Determines whether to use colour or not.
 cmdUseColour :: Cmd -> IO Bool
 cmdUseColour cmd = case cmdColor cmd of
-  Always -> return True
-  Never  -> return False
+  Always -> pure True
+  Never  -> pure False
   Auto   -> hSupportsANSI stdout
 
 
@@ -288,14 +288,14 @@ getFile :: (FilePath -> Bool) -> [FilePath] -> [String] -> Maybe FilePath -> Fil
 getFile _ path _ (Just tmpfile) "-" =
     -- make sure we don't reencode any Unicode
     BS.getContents >>= BS.writeFile tmpfile >> pure [tmpfile]
-getFile _ path _ Nothing "-" = return ["-"]
+getFile _ path _ Nothing "-" = pure ["-"]
 getFile _ [] exts _ file = exitMessage $ "Couldn't find file: " ++ file
 getFile ignore (p:ath) exts t file = do
     isDir <- doesDirectoryExist $ p <\> file
     if isDir then do
         let avoidDir x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y))
             avoidFile x = let y = takeFileName x in "." `isPrefixOf` y || ignore x
-        xs <- listFilesInside (return . not . avoidDir) $ p <\> file
+        xs <- listFilesInside (pure . not . avoidDir) $ p <\> file
         pure [x | x <- xs, drop1 (takeExtension x) `elem` exts, not $ avoidFile x]
      else do
         isFil <- doesFileExist $ p <\> file
@@ -303,7 +303,7 @@ getFile ignore (p:ath) exts t file = do
          else do
             res <- getModule p exts file
             case res of
-                Just x -> return [x]
+                Just x -> pure [x]
                 Nothing -> getFile ignore ath exts t file
 
 

@@ -40,7 +40,7 @@ parallelN j xs = do
         f chan = do
             v <- readChan chan
             case v of
-                Nothing -> return ()
+                Nothing -> pure ()
                 Just (m,x) -> do
                     putMVar m =<< try x
                     f chan
