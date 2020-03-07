@@ -95,7 +95,7 @@ HLint is integrated into lots of places:
 By supplying the `--refactor` flag hlint can automatically apply most
 suggestions. Instead of a list of hints, hlint will instead output the
 refactored file on stdout. In order to do this, it is necessary to have the
-`refactor` executable on you path. `refactor` is provided by the
+`refactor` executable on your path. `refactor` is provided by the
 [`apply-refact`](https://github.com/mpickering/apply-refact) package,
 it uses the GHC API in order to transform source files given a list of
 refactorings to apply. Hlint directly calls the executable to apply the
