@@ -53,7 +53,7 @@ applyHintsReal settings hints_ ms = concat $
         order [] (hintModule hints settings nm' m) `merge`
         concat [order (maybeToList $ declName d) $ decHints d | d <- hsmodDecls $ GHC.unLoc $ ghcModule m]
     | m <- ms
-    , let classifiers = cls ++ mapMaybe readPragma' (universeBi (ghcModule m)) ++ concatMap readComment (ghcComments m)
+    , let classifiers = cls ++ mapMaybe readPragma (universeBi (ghcModule m)) ++ concatMap readComment (ghcComments m)
     , seq (length classifiers) True -- to force any errors from readPragma or readComment
     , (nm',m') <- mns'
     , let decHints = hintDecl hints settings nm' m' -- partially apply
