@@ -1,19 +1,24 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
 -- | Given a file, guess settings from it by looking at the hints.
 module Config.Compute(computeSettings) where
 
 import HSE.All
-import HSE.Type
-import HSE.Match
-import HSE.Util
+import qualified HSE.Type as HSE
+import qualified HSE.Util as HSE
 import GHC.Util
 import Config.Type
-import Language.Haskell.Exts.Util(isAtom, paren)
-import qualified HsSyn as GHC
-import qualified BasicTypes as GHC
+import Data.Char
+import Data.Generics.Uniplate.Data
+import HsSyn hiding (Warning)
+import RdrName
+import Name
+import Bag
+import BasicTypes hiding (Infix)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
-import SrcLoc as GHC
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
+import SrcLoc
 import Prelude
 
 
@@ -25,51 +30,66 @@ computeSettings flags file = do
     case x of
         Left (ParseError sl msg _) ->
             pure ("# Parse error " ++ showSrcSpan' sl ++ ": " ++ msg, [])
-        Right ModuleEx{hseModule=m} -> do
-            let xs = concatMap findSetting (moduleDecls m)
+        Right ModuleEx{ghcModule=m} -> do
+            let xs = concatMap findSetting (hsmodDecls $ unLoc m)
                 s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting xs ++ ["# no hints found" | null xs]
             pure (s,xs)
 
 
-
 renderSetting :: Setting -> [String]
+-- Only need to convert the subset of Setting we generate
 renderSetting (SettingMatchExp HintRule{..}) =
-    ["- warn: {lhs: " ++ show (prettyPrint hintRuleLHS) ++ ", rhs: " ++ show (prettyPrint hintRuleRHS) ++ "}"]
-renderSetting (Infix x) = ["- infix: " ++ show (prettyPrint (toInfixDecl x))]
+    ["- warn: {lhs: " ++ show (unsafePrettyPrint hintRuleGhcLHS) ++ ", rhs: " ++ show (unsafePrettyPrint hintRuleGhcRHS) ++ "}"]
+renderSetting (Infix x) = ["- infix: " ++ show (HSE.prettyPrint (HSE.toInfixDecl x))]
 renderSetting _ = []
 
-findSetting :: Decl_ -> [Setting]
-findSetting (InstDecl _ _ _ (Just xs)) = concatMap findSetting [x | InsDecl _ x <- xs]
-findSetting (PatBind _ (PVar _ name) (UnGuardedRhs _ bod) Nothing) = findExp name [] bod
-findSetting (FunBind _ [InfixMatch _ p1 name ps rhs bind]) = findSetting $ FunBind an [Match an name (p1:ps) rhs bind]
-findSetting (FunBind _ [Match _ name ps (UnGuardedRhs _ bod) Nothing]) = findExp name [] $ Lambda an ps bod
-findSetting x@InfixDecl{} = map Infix $ getFixity x
-findSetting _ = []
+findSetting :: LHsDecl GhcPs -> [Setting]
+findSetting (L _ (ValD _ x)) = findBind x
+findSetting (L _ (InstD _ (ClsInstD _ (ClsInstDecl{cid_binds})))) =
+    concatMap (findBind . unLoc) $ bagToList cid_binds
+findSetting (L _ (SigD _ (FixSig _ (FixitySig _ names (Fixity _ i dir))))) =
+        [Infix $ HSE.Fixity assoc i $ f name | name <- names]
+    where
+        assoc = case dir of
+            InfixL -> HSE.AssocLeft ()
+            InfixR -> HSE.AssocRight ()
+            InfixN -> HSE.AssocNone ()
+
+        f :: Located RdrName -> HSE.QName ()
+        f (L _ x) = case occNameString $ occName x of
+            xs@(x:_) | isAlpha x -> HSE.UnQual () $ HSE.Ident () xs
+            xs -> HSE.UnQual () $ HSE.Symbol () xs
+findSetting x = []
 
 
--- given a result function name, a list of variables, a body expression, give some hints
-findExp :: Name S -> [String] -> Exp_ -> [Setting]
-findExp name vs (Lambda _ ps bod) | length ps2 == length ps = findExp name (vs++ps2) bod
-                                  | otherwise = []
-    where ps2 = [x | PVar_ x <- map view ps]
-findExp name vs Var{} = []
-findExp name vs (InfixApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $ App an x $ Paren an $ App an y (toNamed "_hlint")
+findBind :: HsBind GhcPs -> [Setting]
+findBind VarBind{var_id, var_rhs} = findExp var_id [] $ unLoc var_rhs
+findBind FunBind{fun_id, fun_matches} = findExp (unLoc fun_id) [] $ HsLam NoExt fun_matches
+findBind _ = []
+
+findExp :: IdP GhcPs -> [String] -> HsExpr GhcPs -> [Setting]
+findExp name vs (HsLam _ MG{mg_alts=L _ [L _ Match{m_pats, m_grhss=GRHSs{grhssGRHSs=[L _ (GRHS _ [] x)], grhssLocalBinds=L _ (EmptyLocalBinds _)}}]})
+    = if length m_pats == length ps then findExp name (vs++ps) $ unLoc x else []
+    where ps = [occNameString $ occName $ unLoc x | XPat (L _ (VarPat _ x)) <- m_pats]
+findExp name vs HsLam{} = []
+findExp name vs HsVar{} = []
+findExp name vs (OpApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $
+    HsApp NoExt x $ noLoc $ HsPar NoExt $ noLoc $ HsApp NoExt y $ noLoc $ mkVar "_hlint"
 
 findExp name vs bod = [SettingMatchExp $
-        HintRule Warning defaultHintName (fromParen lhs) (fromParen rhs) Nothing []
-        -- Todo : Replace these with "proper" GHC expressions.
-        mempty (extendInstances unit) (extendInstances unit) Nothing]
+        HintRule Warning defaultHintName hseUnit hseUnit Nothing []
+        mempty (extendInstances lhs) (extendInstances $ fromParen' rhs) Nothing]
     where
-        unit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed
+        hseUnit = HSE.Tuple HSE.an HSE.Boxed []
 
-        lhs = g $ transform f bod
-        rhs = apps $ Var an (UnQual an name) : map snd rep
+        lhs = fromParen' $ noLoc $ transform f bod
+        rhs = apps' $ map noLoc $ HsVar NoExt (noLoc name) : map snd rep
 
-        rep = zip vs $ map (toNamed . pure) ['a'..]
-        f xx | Var_ x <- view xx, Just y <- lookup x rep = y
-        f (InfixApp _ x dol y) | isDol dol = App an x (paren y)
+        rep = zip vs $ map (mkVar . pure) ['a'..]
+        f (HsVar _ x) | Just y <- lookup (occNameString $ occName $ unLoc x) rep = y
+        f (OpApp _ x dol y) | isDol dol = HsApp NoExt x $ noLoc $ HsPar NoExt y
         f x = x
 
-        g o@(InfixApp _ _ _ x) | isAnyApp x || isAtom x = o
-        g o@App{} = o
-        g o = paren o
+
+mkVar :: String -> HsExpr GhcPs
+mkVar = HsVar NoExt . noLoc . Unqual . mkVarOcc
