@@ -12,6 +12,9 @@ import Data.Function
 
 infixr 4 %^&, `wheeeee`
 
+instance Foo a where
+    bar = baz + qux
+
 listM' :: Monad m => [a] -> m [a]
 listM' x = length x `seq` return x
 
@@ -32,6 +35,7 @@ OUTPUT
 # hints found in tests/find.hs
 - infix: "infixr 4 %^&"
 - infix: "infixr 4 `wheeeee`"
+- warn: {lhs: "baz + qux", rhs: "bar"}
 - warn: {lhs: "length a `seq` return a", rhs: "listM' a"}
 - warn: {lhs: "not (null a)", rhs: "notNull a"}
 - warn: {lhs: "not (isLeft a)", rhs: "isRight a"}
