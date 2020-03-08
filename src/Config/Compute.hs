@@ -77,11 +77,9 @@ findExp name vs (OpApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $
     HsApp NoExt x $ noLoc $ HsPar NoExt $ noLoc $ HsApp NoExt y $ noLoc $ mkVar "_hlint"
 
 findExp name vs bod = [SettingMatchExp $
-        HintRule Warning defaultHintName hseUnit hseUnit Nothing []
+        HintRule Warning defaultHintName []
         mempty (extendInstances lhs) (extendInstances $ fromParen' rhs) Nothing]
     where
-        hseUnit = HSE.Tuple HSE.an HSE.Boxed []
-
         lhs = fromParen' $ noLoc $ transform f bod
         rhs = apps' $ map noLoc $ HsVar NoExt (noLoc name) : map snd rep
 

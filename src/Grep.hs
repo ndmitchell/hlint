@@ -5,8 +5,6 @@ import Hint.All
 import Apply
 import Config.Type
 import HSE.All
-import HSE.Type
-import HSE.Util
 import Control.Monad
 import Data.List
 import Util
@@ -31,8 +29,7 @@ runGrep patt flags files = do
                 ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
           in "Failed to parse " ++ msg ++ ", when parsing:\n " ++ patt
     let ghcUnit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed
-    let hseUnit = Tuple an Boxed []
-    let rule = hintRules [HintRule Suggestion "grep" hseUnit hseUnit Nothing [] mempty (extendInstances exp) (extendInstances ghcUnit) Nothing]
+    let rule = hintRules [HintRule Suggestion "grep" [] mempty (extendInstances exp) (extendInstances ghcUnit) Nothing]
     forM_ files $ \file -> do
         res <- parseModuleEx flags file Nothing
         case res of

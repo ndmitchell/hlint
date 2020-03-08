@@ -255,7 +255,6 @@ parseRule v = do
         hintRuleRHS <- parseField "rhs" v >>= parseHSE parseExpWithMode
         hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (fmap (map asNote) . parseArrayString)
         hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName hintRuleLHS hintRuleRHS) parseString
-        hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap Just . parseHSE parseExpWithMode)
 
         hintRuleGhcLHS <- parseField "lhs" v >>= fmap extendInstances . parseGHC parseExpGhcWithMode
         hintRuleGhcRHS <- parseField "rhs" v >>= fmap extendInstances . parseGHC parseExpGhcWithMode

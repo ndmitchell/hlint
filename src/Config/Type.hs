@@ -94,9 +94,6 @@ data Classify = Classify
 data HintRule = HintRule
     {hintRuleSeverity :: Severity -- ^ Default severity for the hint.
     ,hintRuleName :: String -- ^ Name for the hint.
-    ,hintRuleLHS :: Exp SrcSpanInfo -- ^ LHS
-    ,hintRuleRHS :: Exp SrcSpanInfo -- ^ RHS
-    ,hintRuleSide :: Maybe (Exp SrcSpanInfo) -- ^ Side condition, typically specified with @where _ = ...@.
     ,hintRuleNotes :: [Note] -- ^ Notes about application of the hint.
     ,hintRuleGhcScope :: Scope -- ^ Module scope in which the hint operates (GHC parse tree).
     -- We wrap these GHC elements in 'HsExtendInstances' in order that we may derive 'Show'.
