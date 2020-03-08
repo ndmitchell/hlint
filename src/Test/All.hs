@@ -37,8 +37,7 @@ test CmdTest{..} main dataDir files = do
         useSrc <- return $ hasSrc && null files
         testFiles <- if files /= [] then return files else do
             xs <- liftIO $ getDirectoryContents dataDir
-            pure [dataDir </> x | x <- xs, takeExtension x `elem` [".hs",".yml",".yaml"]
-                                , not $ "HLint_" `isPrefixOf` takeBaseName x]
+            pure [dataDir </> x | x <- xs, takeExtension x `elem` [".yml",".yaml"]]
         testFiles <- liftIO $ forM testFiles $ \file -> do
             hints <- readFilesConfig [(file, Nothing)]
             pure (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
