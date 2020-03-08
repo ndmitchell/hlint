@@ -6,7 +6,7 @@ module Config.Compute(computeSettings) where
 import HSE.All
 import GHC.Util
 import Config.Type
-import Config.Haskell
+import Config.Haskell(readSetting)
 import Language.Haskell.Exts.Util(isAtom, paren)
 import Prelude
 
@@ -21,9 +21,10 @@ computeSettings flags file = do
             pure ("# Parse error " ++ showSrcSpan' sl ++ ": " ++ msg, [])
         Right ModuleEx{hseModule=m} -> do
             let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
-                r = concatMap readSetting xs
-                s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting r ++ ["# no hints found" | null xs]
-            pure (s,r)
+                s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting xs ++ ["# no hints found" | null xs]
+            pure (s,xs)
+
+
 
 renderSetting :: Setting -> [String]
 renderSetting (SettingMatchExp HintRule{..}) =
@@ -31,12 +32,12 @@ renderSetting (SettingMatchExp HintRule{..}) =
 renderSetting (Infix x) = ["- infix: " ++ show (prettyPrint (toInfixDecl x))]
 renderSetting _ = []
 
-findSetting :: (Name S -> QName S) -> Decl_ -> [Decl_]
+findSetting :: (Name S -> QName S) -> Decl_ -> [Setting]
 findSetting qual (InstDecl _ _ _ (Just xs)) = concatMap (findSetting qual) [x | InsDecl _ x <- xs]
-findSetting qual (PatBind _ (PVar _ name) (UnGuardedRhs _ bod) Nothing) = findExp (qual name) [] bod
+findSetting qual (PatBind _ (PVar _ name) (UnGuardedRhs _ bod) Nothing) = concatMap readSetting $ findExp (qual name) [] bod
 findSetting qual (FunBind _ [InfixMatch _ p1 name ps rhs bind]) = findSetting qual $ FunBind an [Match an name (p1:ps) rhs bind]
-findSetting qual (FunBind _ [Match _ name ps (UnGuardedRhs _ bod) Nothing]) = findExp (qual name) [] $ Lambda an ps bod
-findSetting _ x@InfixDecl{} = [x]
+findSetting qual (FunBind _ [Match _ name ps (UnGuardedRhs _ bod) Nothing]) = concatMap readSetting $ findExp (qual name) [] $ Lambda an ps bod
+findSetting _ x@InfixDecl{} = readSetting x
 findSetting _ _ = []
 
 
