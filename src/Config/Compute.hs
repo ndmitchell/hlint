@@ -4,6 +4,9 @@
 module Config.Compute(computeSettings) where
 
 import HSE.All
+import HSE.Type
+import HSE.Match
+import HSE.Util
 import GHC.Util
 import Config.Type
 import Language.Haskell.Exts.Util(isAtom, paren)

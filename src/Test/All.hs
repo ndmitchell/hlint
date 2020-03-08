@@ -19,7 +19,7 @@ import Config.Type
 import Config.Read
 import CmdLine
 import Refact
-import HSE.All
+import HSE.Type
 import Hint.All
 import Test.Util
 import Test.InputOutput

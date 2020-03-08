@@ -31,6 +31,7 @@ import Timing
 import Test.Proof
 import Parallel
 import HSE.All
+import HSE.Type
 import CC
 import EmbedData
 

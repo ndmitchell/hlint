@@ -7,6 +7,9 @@ module Config.Haskell(
     ) where
 
 import HSE.All
+import HSE.Type
+import HSE.Match
+import HSE.Util
 import Data.Char
 import Data.List.Extra
 import Text.Read.Extra(readMaybe)

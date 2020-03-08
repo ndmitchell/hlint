@@ -23,6 +23,8 @@ import Idea
 import Apply
 import Refact
 import HSE.All
+import HSE.Type
+import HSE.Util
 import Test.Util
 import Data.Functor
 import Prelude

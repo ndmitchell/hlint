@@ -18,7 +18,10 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.HashMap.Strict as Map
-import HSE.All hiding (Rule, String)
+import HSE.All
+import HSE.Type hiding (Rule, String)
+import HSE.Util
+import HSE.Match
 import Data.Functor
 import Data.Semigroup
 import Timing

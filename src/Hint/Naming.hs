@@ -41,7 +41,8 @@ foreign import ccall hexml_node_child :: IO ()
 
 module Hint.Naming(namingHint) where
 
-import Hint.Type (Idea,DeclHint',suggest',isSym,toSrcSpan',ghcModule)
+import Hint.Type (Idea,DeclHint',suggest',toSrcSpan',ghcModule)
+import HSE.Match(isSym)
 import Data.Generics.Uniplate.Operations
 import Data.List.Extra (nubOrd, isPrefixOf)
 import Data.Data

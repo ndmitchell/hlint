@@ -141,7 +141,8 @@ main = putStrLn [f|{T.intercalate "blah" []}|]
 
 module Hint.Extensions(extensionsHint) where
 
-import Hint.Type(ModuHint, rawIdea',Severity(Warning),Note(..),toSS',ghcAnnotations,ghcModule,extensionImpliedBy,extensionImplies)
+import Hint.Type(ModuHint, rawIdea',Severity(Warning),Note(..),toSS',ghcAnnotations,ghcModule)
+import HSE.Util(extensionImpliedBy,extensionImplies)
 import Language.Haskell.Exts.Extension
 
 import Data.Generics.Uniplate.Operations

@@ -5,6 +5,8 @@ import Hint.All
 import Apply
 import Config.Type
 import HSE.All
+import HSE.Type
+import HSE.Util
 import Control.Monad
 import Data.List
 import Util

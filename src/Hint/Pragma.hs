@@ -31,7 +31,8 @@
 
 module Hint.Pragma(pragmaHint) where
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),toSS',rawIdea',prettyExtension,glasgowExts)
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),toSS',rawIdea')
+import HSE.Type(prettyExtension,glasgowExts)
 import Data.List.Extra
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe

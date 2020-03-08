@@ -3,7 +3,6 @@
 {-# LANGUAGE TupleSections #-}
 
 module HSE.All(
-    module X,
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
@@ -11,9 +10,9 @@ module HSE.All(
     parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
 
-import HSE.Util as X
-import HSE.Type as X
-import HSE.Match as X
+import HSE.Util
+import HSE.Type
+import HSE.Match
 import Util
 import Data.Char
 import Data.List.Extra
@@ -251,7 +250,7 @@ ghcFixitiesFromParseMode ParseMode {fixities=Just fixities} =
     qNameToStr :: QName () -> String
     qNameToStr (Special _ Cons{}) = ":"
     qNameToStr (Special _ UnitCon{}) = "()"
-    qNameToStr (UnQual _ (X.Ident _ x)) = x
+    qNameToStr (UnQual _ (HSE.Type.Ident _ x)) = x
     qNameToStr (UnQual _ (Symbol _ x)) = x
     qNameToStr _ = ""
 ghcFixitiesFromParseMode _ = []

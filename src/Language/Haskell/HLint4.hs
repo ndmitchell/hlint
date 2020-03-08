@@ -33,6 +33,8 @@ import Idea
 import qualified Apply as H
 import HLint
 import HSE.All
+import HSE.Type
+import HSE.Util
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
 import qualified ApiAnnotation as GHC
