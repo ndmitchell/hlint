@@ -19,13 +19,13 @@ import Config.Type
 import Config.Read
 import CmdLine
 import Refact
-import HSE.Type
 import Hint.All
 import Test.Util
 import Test.InputOutput
 import Test.Annotations
 import Test.Translate
 import System.IO.Extra
+import GHC.Util.Outputable
 
 
 test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
@@ -78,7 +78,7 @@ test CmdTest{..} main dataDir files = do
 -- Check all hints in the standard config files get sensible names
 testNames :: [Setting] -> Test ()
 testNames hints = sequence_
-    [ failed ["No name for the hint " ++ prettyPrint hintRuleLHS ++ " ==> " ++ prettyPrint hintRuleRHS]
+    [ failed ["No name for the hint " ++ unsafePrettyPrint hintRuleGhcLHS ++ " ==> " ++ unsafePrettyPrint hintRuleGhcRHS]
     | SettingMatchExp x@HintRule{..} <- hints, hintRuleName == defaultHintName]
 
 
