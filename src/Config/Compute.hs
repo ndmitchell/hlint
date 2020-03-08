@@ -6,8 +6,11 @@ module Config.Compute(computeSettings) where
 import HSE.All
 import GHC.Util
 import Config.Type
-import Config.Haskell(readSetting)
 import Language.Haskell.Exts.Util(isAtom, paren)
+import qualified HsSyn as GHC
+import qualified BasicTypes as GHC
+import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
+import SrcLoc as GHC
 import Prelude
 
 
@@ -62,3 +65,12 @@ findExp name vs bod = readSetting $ FunBind an [Match an (toNamed "warn") [] (Un
         g o@(InfixApp _ _ _ x) | isAnyApp x || isAtom x = o
         g o@App{} = o
         g o = paren o
+
+readSetting (FunBind _ [Match _ (Ident _ _) pats (UnGuardedRhs _ bod) bind])
+    | InfixApp _ lhs op rhs <- bod, opExp op ~= "==>" =
+        let unit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed in
+        [SettingMatchExp $
+         HintRule Warning defaultHintName (fromParen lhs) (fromParen rhs) Nothing []
+        -- Todo : Replace these with "proper" GHC expressions.
+         mempty (extendInstances unit) (extendInstances unit) Nothing]
+readSetting _ = undefined
