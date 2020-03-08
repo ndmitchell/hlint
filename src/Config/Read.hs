@@ -2,7 +2,8 @@
 module Config.Read(readFilesConfig) where
 
 import Config.Type
-import Config.Haskell
+import Control.Monad
+import Control.Exception.Extra
 import Config.Yaml
 import Data.List.Extra
 import System.FilePath
@@ -10,8 +11,10 @@ import System.FilePath
 
 readFilesConfig :: [(FilePath, Maybe String)] -> IO [Setting]
 readFilesConfig files = do
-        yaml <- mapM (uncurry readFileConfigYaml) yaml
-        haskell <- mapM (uncurry readFileConfigHaskell) haskell
-        pure $ concat haskell ++ settingsFromConfigYaml yaml
-    where
-        (yaml, haskell) = partition (\(x,_) -> lower (takeExtension x) `elem` [".yml",".yaml"]) files
+    let (yaml, haskell) = partition (\(x,_) -> lower (takeExtension x) `elem` [".yml",".yaml"]) files
+    unless (null haskell) $
+        errorIO $ "HLint 2.3 and beyond cannot use Haskell configuration files.\n" ++
+                  "Convert it to .yaml file format, following the example at\n" ++
+                  "  <https://github.com/ndmitchell/hlint/blob/master/data/hlint.yaml>"
+    yaml <- mapM (uncurry readFileConfigYaml) yaml
+    pure $ settingsFromConfigYaml yaml
