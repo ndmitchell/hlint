@@ -2,7 +2,6 @@
 module Config.Haskell(
     readPragma',
     readComment,
-    readSetting,
     readFileConfigHaskell
     ) where
 
