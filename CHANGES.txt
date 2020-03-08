@@ -1,7 +1,7 @@
 Changelog for HLint (* = breaking change)
 
 *   --with=flag hints must now be in YAML format
-*   Haskell hint definitions are no longer supported (use Yaml)
+*   Haskell hint definitions are no longer supported (use YAML)
 *   Report hints with src-span information, e.g. file:1:1-10
 *   Delete resolveHints (it was the identity)
 *   Change to GHC types in the API
