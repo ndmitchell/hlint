@@ -50,7 +50,12 @@ refactorPath rpath = do
             pure $ if versionBranch ver >= [0,1,0,0]
                        then Right exc
                        else Left "Your version of refactor is too old, please upgrade to the latest version"
-        Nothing -> pure $ Left $ unlines [ "Could not find refactor", "Tried with: " ++ excPath ]
+        Nothing -> pure $ Left $ unlines
+                       [ "Could not find 'refactor' executable"
+                       , "Tried to find '" ++ excPath ++ "' on the PATH"
+                       , "'refactor' is provided by the 'apply-refact' package and has to be installed"
+                       , "<https://github.com/mpickering/apply-refact>"
+                       ]
 
 runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
 runRefactoring rpath fin hints opts =  do
