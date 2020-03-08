@@ -37,7 +37,7 @@ findSetting qual (InstDecl _ _ _ (Just xs)) = concatMap (findSetting qual) [x | 
 findSetting qual (PatBind _ (PVar _ name) (UnGuardedRhs _ bod) Nothing) = findExp (qual name) [] bod
 findSetting qual (FunBind _ [InfixMatch _ p1 name ps rhs bind]) = findSetting qual $ FunBind an [Match an name (p1:ps) rhs bind]
 findSetting qual (FunBind _ [Match _ name ps (UnGuardedRhs _ bod) Nothing]) = findExp (qual name) [] $ Lambda an ps bod
-findSetting _ x@InfixDecl{} = readSetting x
+findSetting _ x@InfixDecl{} = map Infix $ getFixity x
 findSetting _ _ = []
 
 
@@ -49,7 +49,7 @@ findExp name vs (Lambda _ ps bod) | length ps2 == length ps = findExp name (vs++
 findExp name vs Var{} = []
 findExp name vs (InfixApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $ App an x $ Paren an $ App an y (toNamed "_hlint")
 
-findExp name vs bod = readSetting $ PatBind an (toNamed "warn") (UnGuardedRhs an $ InfixApp an lhs (toNamed "==>") rhs) Nothing
+findExp name vs bod = readSetting $ FunBind an [Match an (toNamed "warn") [] (UnGuardedRhs an $ InfixApp an lhs (toNamed "==>") rhs) Nothing]
     where
         lhs = g $ transform f bod
         rhs = apps $ Var an name : map snd rep
