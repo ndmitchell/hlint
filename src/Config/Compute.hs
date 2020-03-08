@@ -23,7 +23,7 @@ computeSettings flags file = do
         Left (ParseError sl msg _) ->
             pure ("# Parse error " ++ showSrcSpan' sl ++ ": " ++ msg, [])
         Right ModuleEx{hseModule=m} -> do
-            let xs = concatMap (findSetting $ UnQual an) (moduleDecls m)
+            let xs = concatMap findSetting (moduleDecls m)
                 s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting xs ++ ["# no hints found" | null xs]
             pure (s,xs)
 
@@ -35,17 +35,17 @@ renderSetting (SettingMatchExp HintRule{..}) =
 renderSetting (Infix x) = ["- infix: " ++ show (prettyPrint (toInfixDecl x))]
 renderSetting _ = []
 
-findSetting :: (Name S -> QName S) -> Decl_ -> [Setting]
-findSetting qual (InstDecl _ _ _ (Just xs)) = concatMap (findSetting qual) [x | InsDecl _ x <- xs]
-findSetting qual (PatBind _ (PVar _ name) (UnGuardedRhs _ bod) Nothing) = findExp (qual name) [] bod
-findSetting qual (FunBind _ [InfixMatch _ p1 name ps rhs bind]) = findSetting qual $ FunBind an [Match an name (p1:ps) rhs bind]
-findSetting qual (FunBind _ [Match _ name ps (UnGuardedRhs _ bod) Nothing]) = findExp (qual name) [] $ Lambda an ps bod
-findSetting _ x@InfixDecl{} = map Infix $ getFixity x
-findSetting _ _ = []
+findSetting :: Decl_ -> [Setting]
+findSetting (InstDecl _ _ _ (Just xs)) = concatMap findSetting [x | InsDecl _ x <- xs]
+findSetting (PatBind _ (PVar _ name) (UnGuardedRhs _ bod) Nothing) = findExp name [] bod
+findSetting (FunBind _ [InfixMatch _ p1 name ps rhs bind]) = findSetting $ FunBind an [Match an name (p1:ps) rhs bind]
+findSetting (FunBind _ [Match _ name ps (UnGuardedRhs _ bod) Nothing]) = findExp name [] $ Lambda an ps bod
+findSetting x@InfixDecl{} = map Infix $ getFixity x
+findSetting _ = []
 
 
 -- given a result function name, a list of variables, a body expression, give some hints
-findExp :: QName S -> [String] -> Exp_ -> [Setting]
+findExp :: Name S -> [String] -> Exp_ -> [Setting]
 findExp name vs (Lambda _ ps bod) | length ps2 == length ps = findExp name (vs++ps2) bod
                                   | otherwise = []
     where ps2 = [x | PVar_ x <- map view ps]
@@ -60,7 +60,7 @@ findExp name vs bod = [SettingMatchExp $
         unit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed
 
         lhs = g $ transform f bod
-        rhs = apps $ Var an name : map snd rep
+        rhs = apps $ Var an (UnQual an name) : map snd rep
 
         rep = zip vs $ map (toNamed . pure) ['a'..]
         f xx | Var_ x <- view xx, Just y <- lookup x rep = y
