@@ -151,7 +151,7 @@ readAllSettings args1 cmd@CmdMain{..} = do
     settings1 <-
         readFilesConfig $
         files
-        ++ [("CommandLine.hs",Just x) | x <- cmdWithHints]
+        ++ [("CommandLine.yaml",Just x) | x <- cmdWithHints]
         ++ [("CommandLine.yaml",Just (enableGroup x)) | x <- cmdWithGroups]
     let args2 = [x | SettingArgument x <- settings1]
     cmd@CmdMain{..} <- if null args2 then pure cmd else getCmd $ args2 ++ args1 -- command line arguments are passed last
