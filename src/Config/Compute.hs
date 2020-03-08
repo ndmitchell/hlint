@@ -52,8 +52,13 @@ findExp name vs (Lambda _ ps bod) | length ps2 == length ps = findExp name (vs++
 findExp name vs Var{} = []
 findExp name vs (InfixApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $ App an x $ Paren an $ App an y (toNamed "_hlint")
 
-findExp name vs bod = readSetting lhs rhs
+findExp name vs bod = [SettingMatchExp $
+        HintRule Warning defaultHintName (fromParen lhs) (fromParen rhs) Nothing []
+        -- Todo : Replace these with "proper" GHC expressions.
+        mempty (extendInstances unit) (extendInstances unit) Nothing]
     where
+        unit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed
+
         lhs = g $ transform f bod
         rhs = apps $ Var an name : map snd rep
 
@@ -65,10 +70,3 @@ findExp name vs bod = readSetting lhs rhs
         g o@(InfixApp _ _ _ x) | isAnyApp x || isAtom x = o
         g o@App{} = o
         g o = paren o
-
-readSetting lhs rhs =
-    let unit = GHC.noLoc $ GHC.ExplicitTuple GHC.noExt [] GHC.Boxed in
-    [SettingMatchExp $
-        HintRule Warning defaultHintName (fromParen lhs) (fromParen rhs) Nothing []
-    -- Todo : Replace these with "proper" GHC expressions.
-        mempty (extendInstances unit) (extendInstances unit) Nothing]
