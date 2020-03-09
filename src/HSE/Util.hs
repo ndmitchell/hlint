@@ -1,17 +1,15 @@
 
 module HSE.Util(
     fromParen, fromPParen, an, getFixity, moduleDecls, isAssocNone,
-    isAssocLeft, showSrcLoc, childrenS, getEquations, modulePragmas, opExp,
-    fromApps, fromString, fromPString, toInfixDecl, isDol, apps, isDot, isAnyApp, extensionImpliedBy,
+    isAssocLeft, showSrcLoc,
+    toInfixDecl, extensionImpliedBy,
     extensionImplies,
     ) where
 
 import Control.Monad
-import Data.Tuple.Extra
 import Data.List.Extra
 import qualified Data.Map as Map
 import Data.Maybe
-import Data.Data hiding (Fixity)
 import System.FilePath
 import HSE.Type
 import Data.Functor
@@ -21,25 +19,9 @@ import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER
 
-opExp :: QOp S -> Exp_
-opExp (QVarOp s op) = Var s op
-opExp (QConOp s op) = Con s op
-
 moduleDecls :: Module_ -> [Decl_]
 moduleDecls (Module _ _ _ _ xs) = xs
 moduleDecls _ = [] -- XmlPage/XmlHybrid
-
-modulePragmas :: Module_ -> [ModulePragma S]
-modulePragmas (Module _ _ x _ _) = x
-modulePragmas _ = [] -- XmlPage/XmlHybrid
-
-fromString :: Exp_ -> Maybe String
-fromString (Lit _ (String _ x _)) = Just x
-fromString _ = Nothing
-
-fromPString :: Pat_ -> Maybe String
-fromPString (PLit _ _ (String _ x _)) =  Just x
-fromPString _ = Nothing
 
 fromParen :: Exp_ -> Exp_
 fromParen (Paren _ x) = fromParen x
@@ -49,62 +31,15 @@ fromPParen :: Pat s -> Pat s
 fromPParen (PParen _ x) = fromPParen x
 fromPParen x = x
 
--- is* :: Exp_ -> Bool
--- is* :: Decl_ -> Bool
-isApp App{} = True; isApp _ = False
-isInfixApp InfixApp{} = True; isInfixApp _ = False
-isAnyApp x = isApp x || isInfixApp x
-
 
 fromQual :: QName a -> Maybe (Name a)
 fromQual (Qual _ _ x) = Just x
 fromQual (UnQual _ x) = Just x
 fromQual _ = Nothing
 
-isDol :: QOp S -> Bool
-isDol (QVarOp _ (UnQual _ (Symbol _ "$"))) = True
-isDol _ = False
-
-isDot :: QOp S -> Bool
-isDot (QVarOp _ (UnQual _ (Symbol _ "."))) = True
-isDot _ = False
-
 isAssocLeft AssocLeft{} = True; isAssocLeft _ = False
 isAssocNone AssocNone{} = True; isAssocNone _ = False
 
-
----------------------------------------------------------------------
--- HSE FUNCTIONS
-
-getEquations :: Decl s -> [Decl s]
-getEquations (FunBind s xs) = map (FunBind s . (:[])) xs
-getEquations x@PatBind{} = [toFunBind x]
-getEquations x = [x]
-
-
-toFunBind :: Decl s -> Decl s
-toFunBind (PatBind s (PVar _ name) bod bind) = FunBind s [Match s name [] bod bind]
-toFunBind x = x
-
-
----------------------------------------------------------------------
--- VECTOR APPLICATION
-
-
-apps :: [Exp_] -> Exp_
-apps = foldl1 (App an)
-
-fromApps :: Exp_ -> [Exp_]
-fromApps = map fst . fromAppsWithLoc
-
-fromAppsWithLoc :: Exp_ -> [(Exp_, S)]
-fromAppsWithLoc (App l x y) = fromAppsWithLoc x ++ [(y, l)]
-fromAppsWithLoc x = [(x, ann x)]
-
-
-
-childrenS :: (Data x, Data (f S)) => x -> [f S]
-childrenS = childrenBi
 
 ---------------------------------------------------------------------
 -- SRCLOC FUNCTIONS
