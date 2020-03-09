@@ -3,7 +3,7 @@ module Config.Read(readFilesConfig) where
 
 import Config.Type
 import Control.Monad
-import Control.Exception.Extra
+import qualified Control.Exception.Extra
 import Config.Yaml
 import Data.List.Extra
 import System.FilePath
@@ -19,3 +19,8 @@ readFilesConfig files = do
                   "  <https://github.com/ndmitchell/hlint/blob/master/data/hlint.yaml>"
     yaml <- mapM (uncurry readFileConfigYaml) yaml
     pure $ settingsFromConfigYaml yaml
+
+
+{-# NOINLINE errorIO #-}
+errorIO :: String -> IO a
+errorIO x = Control.Exception.Extra.errorIO x
