@@ -1,6 +1,7 @@
 Changelog for HLint (* = breaking change)
 
-*   --with=flag hints must now be in YAML format
+*   Make any --hint flag disable implicit .hlint.yaml search
+*   Delete the --with flag
 *   Haskell hint definitions are no longer supported (use YAML)
 *   Report hints with src-span information, e.g. file:1:1-10
 *   Delete resolveHints (it was the identity)

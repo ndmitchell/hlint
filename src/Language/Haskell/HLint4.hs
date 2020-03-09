@@ -80,7 +80,7 @@ argsSettings args = do
     cmd <- getCmd args
     case cmd of
         CmdMain{..} -> do
-            -- FIXME: Two things that could be supported (but aren't) are 'cmdGivenHints' and 'cmdWithHints'.
+            -- FIXME: One thing that could be supported (but isn't) is 'cmdGivenHints'
             (_,settings) <- readAllSettings args cmd
             let (fixities, classify, hints) = splitSettings settings
             let flags = parseFlagsSetLanguage (cmdExtensions cmd) $ parseFlagsAddFixities fixities $

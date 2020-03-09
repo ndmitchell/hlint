@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------
-RUN tests/newtype-derive.hs --with= --hint=data/hlint.yaml
+RUN tests/newtype-derive.hs --hint=data/hlint.yaml
 FILE tests/newtype-derive.hs
 {-# LANGUAGE DeriveTraversable #-} -- Implies DeriveFoldable and DeriveFunctor
 {-# LANGUAGE DeriveDataTypeable #-}
@@ -76,7 +76,7 @@ OUTPUT
 No hints
 
 ---------------------------------------------------------------------
-RUN tests/restricted-module.lhs --with= --hint=data/test-restrict.yaml
+RUN tests/restricted-module.lhs --hint=data/test-restrict.yaml
 FILE tests/restricted-module.lhs
 > import Restricted.Module
 OUTPUT
@@ -88,7 +88,7 @@ Note: may break the code
 1 hint
 
 ---------------------------------------------------------------------
-RUN tests/restricted-module-message.lhs --with= --hint=data/test-restrict.yaml
+RUN tests/restricted-module-message.lhs --hint=data/test-restrict.yaml
 FILE tests/restricted-module-message.lhs
 > import Restricted.Module.Message
 OUTPUT
@@ -100,7 +100,7 @@ Note: Custom message
 1 hint
 
 ---------------------------------------------------------------------
-RUN tests/restricted-function.lhs --with= --hint=data/test-restrict.yaml
+RUN tests/restricted-function.lhs --hint=data/test-restrict.yaml
 FILE tests/restricted-function.lhs
 > main = restricted ()
 OUTPUT
@@ -112,7 +112,7 @@ Note: may break the code
 1 hint
 
 ---------------------------------------------------------------------
-RUN tests/restricted-function-message.lhs --with= --hint=data/test-restrict.yaml
+RUN tests/restricted-function-message.lhs --hint=data/test-restrict.yaml
 FILE tests/restricted-function-message.lhs
 > main = restrictedMessage ()
 OUTPUT
@@ -124,7 +124,7 @@ Note: Custom message
 1 hint
 
 ---------------------------------------------------------------------
-RUN tests/restricted-extension.hs --with= --hint=data/test-restrict.yaml
+RUN tests/restricted-extension.hs --hint=data/test-restrict.yaml
 FILE tests/restricted-extension.hs
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}

@@ -96,7 +96,6 @@ data Cmd
         {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
-        ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
         ,cmdWithGroups :: [String]       -- ^ groups that are given on the command line
         ,cmdGit :: Bool                  -- ^ use git ls-files to find files
         ,cmdColor :: ColorMode           -- ^ color the result
@@ -144,7 +143,6 @@ data Cmd
         ,cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
         ,cmdDataDir :: FilePath          -- ^ the data directory
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
-        ,cmdWithHints :: [String]        -- ^ hints that are given on the command line
         ,cmdTempDir :: FilePath          -- ^ temporary directory to put the files in
         ,cmdQuickCheck :: Bool
         ,cmdTypeCheck :: Bool
@@ -161,7 +159,6 @@ mode = cmdArgsMode $ modes
         {cmdFiles = def &= args &= typ "FILE/DIR"
         ,cmdReports = nam "report" &= opt "report.html" &= typFile &= help "Generate a report in HTML"
         ,cmdGivenHints = nam "hint" &= typFile &= help "Hint/ignore file to use"
-        ,cmdWithHints = nam "with" &= typ "HINT" &= help "Extra hints to use"
         ,cmdWithGroups = nam_ "with-group" &= typ "GROUP" &= help "Extra hint groups to use"
         ,cmdGit = nam "git" &= help "Run on files tracked by git"
         ,cmdColor = nam "colour" &= name "color" &= opt Always &= typ "always/never/auto" &= help "Color output (requires ANSI terminal; auto means on when $TERM is supported; by itself, selects always)"
@@ -215,27 +212,25 @@ mode = cmdArgsMode $ modes
         nam_ xs = def &= explicit &= name xs
 
 -- | Where should we find the configuration files?
---   * If someone passes cmdWithHints, only look at files they explicitly request
---   * If someone passes an explicit hint name, automatically merge in data/hlint.yaml
+--   Either we use the implicit search, or we follow the cmdGivenHints
 --   We want more important hints to go last, since they override
 cmdHintFiles :: Cmd -> IO [(FilePath, Maybe String)]
 cmdHintFiles cmd = do
-    let explicit1 = [hlintYaml | null $ cmdWithHints cmd]
-    let explicit2 = cmdGivenHints cmd
-    bad <- filterM (notM . doesFileExist) explicit2
-    let explicit2' = map (,Nothing) explicit2
+    let explicit = cmdGivenHints cmd
+    bad <- filterM (notM . doesFileExist) explicit
     when (bad /= []) $
         fail $ unlines $ "Failed to find requested hint files:" : map ("  "++) bad
-    if cmdWithHints cmd /= [] then pure $ explicit1 ++ explicit2' else do
+
+    -- if the user has given any explicit hints, ignore the local ones
+    implicit <- if explicit /= [] then pure Nothing else do
         -- we follow the stylish-haskell config file search policy
         -- 1) current directory or its ancestors; 2) home directory
         curdir <- getCurrentDirectory
         -- Ignores home directory when it isn't present.
         home <- catchIOError ((:[]) <$> getHomeDirectory) (const $ pure [])
-        implicit <- findM doesFileExist $
+        findM doesFileExist $
             map (</> ".hlint.yaml") (ancestors curdir ++ home) -- to match Stylish Haskell
-            ++ ["HLint.hs"] -- the default in HLint 1.*
-        pure $ explicit1 ++ map (,Nothing) (maybeToList implicit) ++ explicit2'
+    pure $ [hlintYaml] ++ map (,Nothing) (maybeToList implicit ++ explicit)
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
 
