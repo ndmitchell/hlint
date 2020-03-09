@@ -1,6 +1,6 @@
 
 module HSE.Util(
-    fromParen, fromPParen, an, getFixity, moduleDecls, isAssocNone,
+    an, getFixity, moduleDecls, isAssocNone,
     isAssocLeft, showSrcLoc,
     toInfixDecl, extensionImpliedBy,
     extensionImplies,
@@ -22,14 +22,6 @@ import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 moduleDecls :: Module_ -> [Decl_]
 moduleDecls (Module _ _ _ _ xs) = xs
 moduleDecls _ = [] -- XmlPage/XmlHybrid
-
-fromParen :: Exp_ -> Exp_
-fromParen (Paren _ x) = fromParen x
-fromParen x = x
-
-fromPParen :: Pat s -> Pat s
-fromPParen (PParen _ x) = fromPParen x
-fromPParen x = x
 
 
 fromQual :: QName a -> Maybe (Name a)
