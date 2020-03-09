@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards, GeneralizedNewtypeDeriving, TupleSections #-}
 
 module Config.Yaml(
@@ -32,6 +33,9 @@ import qualified Lexer as GHC
 import qualified ErrUtils
 import qualified Outputable
 import qualified HsSyn
+import SrcLoc
+import qualified RdrName as GHC
+import qualified OccName as GHC
 import GHC.Util (baseDynFlags, Scope,scopeCreate)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
@@ -251,18 +255,15 @@ parseRule v = do
     (severity, v) <- parseSeverityKey v
     isRule <- isJust <$> parseFieldOpt "lhs" v
     if isRule then do
-        hintRuleLHS <- parseField "lhs" v >>= parseHSE parseExpWithMode
-        hintRuleRHS <- parseField "rhs" v >>= parseHSE parseExpWithMode
         hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (fmap (map asNote) . parseArrayString)
-        hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName hintRuleLHS hintRuleRHS) parseString
-
-        hintRuleGhcLHS <- parseField "lhs" v >>= fmap extendInstances . parseGHC parseExpGhcWithMode
-        hintRuleGhcRHS <- parseField "rhs" v >>= fmap extendInstances . parseGHC parseExpGhcWithMode
+        lhs <- parseField "lhs" v >>= parseGHC parseExpGhcWithMode
+        rhs <- parseField "rhs" v >>= parseGHC parseExpGhcWithMode
         hintRuleGhcSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . extendInstances) . parseGHC parseExpGhcWithMode)
+        hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName lhs rhs) parseString
 
         allowFields v ["lhs","rhs","note","name","side"]
         let hintRuleGhcScope = mempty
-        pure [Left HintRule{hintRuleSeverity=severity, ..}]
+        pure [Left HintRule{hintRuleSeverity=severity,hintRuleGhcLHS=extendInstances lhs,hintRuleGhcRHS=extendInstances rhs, ..}]
      else do
         names <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
         within <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
@@ -303,14 +304,15 @@ parseSeverityKey v = do
         _ -> parseFail v $ "Key should be a severity (e.g. warn/error/suggest) but got " ++ s
 
 
-guessName :: Exp_ -> Exp_ -> String
+guessName :: HsSyn.LHsExpr HsSyn.GhcPs -> HsSyn.LHsExpr HsSyn.GhcPs -> String
 guessName lhs rhs
     | n:_ <- rs \\ ls = "Use " ++ n
     | n:_ <- ls \\ rs = "Redundant " ++ n
     | otherwise = defaultHintName
     where
         (ls, rs) = both f (lhs, rhs)
-        f = filter (not . isUnifyVar) . map (\x -> fromNamed (x :: Name S)) . childrenS
+        f :: HsSyn.LHsExpr HsSyn.GhcPs -> [String]
+        f x = [y | L _ (HsSyn.HsVar _ (L _ x)) <- universe x, let y = GHC.occNameString $ GHC.rdrNameOcc x,  not $ isUnifyVar y]
 
 
 asNote :: String -> Note
