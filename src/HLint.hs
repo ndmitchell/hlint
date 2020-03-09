@@ -233,4 +233,4 @@ evaluateList xs = do
 
 {-# NOINLINE errorIO #-}
 errorIO :: String -> IO a
-errorIO x = Control.Exception.Extra.errorIO x
+errorIO = Control.Exception.Extra.errorIO
