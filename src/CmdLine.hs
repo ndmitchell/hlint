@@ -230,7 +230,7 @@ cmdHintFiles cmd = do
         home <- catchIOError ((:[]) <$> getHomeDirectory) (const $ pure [])
         findM doesFileExist $
             map (</> ".hlint.yaml") (ancestors curdir ++ home) -- to match Stylish Haskell
-    pure $ [hlintYaml] ++ map (,Nothing) (maybeToList implicit ++ explicit)
+    pure $ hlintYaml : map (,Nothing) (maybeToList implicit ++ explicit)
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
 

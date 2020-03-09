@@ -45,7 +45,7 @@ renderSetting _ = []
 
 findSetting :: LHsDecl GhcPs -> [Setting]
 findSetting (L _ (ValD _ x)) = findBind x
-findSetting (L _ (InstD _ (ClsInstD _ (ClsInstDecl{cid_binds})))) =
+findSetting (L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
     concatMap (findBind . unLoc) $ bagToList cid_binds
 findSetting (L _ (SigD _ (FixSig _ (FixitySig _ names (Fixity _ i dir))))) =
         [Infix $ HSE.Fixity assoc i $ f name | name <- names]
