@@ -258,12 +258,12 @@ parseRule v = do
         hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (fmap (map asNote) . parseArrayString)
         lhs <- parseField "lhs" v >>= parseGHC parseExpGhcWithMode
         rhs <- parseField "rhs" v >>= parseGHC parseExpGhcWithMode
-        hintRuleGhcSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . extendInstances) . parseGHC parseExpGhcWithMode)
+        hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . extendInstances) . parseGHC parseExpGhcWithMode)
         hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName lhs rhs) parseString
 
         allowFields v ["lhs","rhs","note","name","side"]
-        let hintRuleGhcScope = mempty
-        pure [Left HintRule{hintRuleSeverity=severity,hintRuleGhcLHS=extendInstances lhs,hintRuleGhcRHS=extendInstances rhs, ..}]
+        let hintRuleScope = mempty
+        pure [Left HintRule{hintRuleSeverity=severity,hintRuleLHS=extendInstances lhs,hintRuleRHS=extendInstances rhs, ..}]
      else do
         names <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
         within <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
@@ -338,7 +338,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
 
         f Group{..}
             | Map.lookup groupName groupMap == Just False = []
-            | otherwise = map (either (\r -> SettingMatchExp r{hintRuleGhcScope=scope'}) SettingClassify) groupRules
+            | otherwise = map (either (\r -> SettingMatchExp r{hintRuleScope=scope'}) SettingClassify) groupRules
             where
               scope'= asScope' packageMap' (map (fmap unextendInstances) groupGhcImports)
 

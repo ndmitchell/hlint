@@ -67,23 +67,23 @@ readMatch' :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 readMatch' settings = findIdeas' (concatMap readRule' settings)
 
 readRule' :: HintRule -> [HintRule]
-readRule' m@HintRule{ hintRuleGhcLHS=(stripLocs' . unextendInstances -> hintRuleGhcLHS)
-                    , hintRuleGhcRHS=(stripLocs' . unextendInstances -> hintRuleGhcRHS)
-                    , hintRuleGhcSide=((stripLocs' . unextendInstances <$>) -> hintRuleGhcSide)
+readRule' m@HintRule{ hintRuleLHS=(stripLocs' . unextendInstances -> hintRuleLHS)
+                    , hintRuleRHS=(stripLocs' . unextendInstances -> hintRuleRHS)
+                    , hintRuleSide=((stripLocs' . unextendInstances <$>) -> hintRuleSide)
                     } =
-   (:) m{ hintRuleGhcLHS=extendInstances hintRuleGhcLHS
-        , hintRuleGhcRHS=extendInstances hintRuleGhcRHS
-        , hintRuleGhcSide=extendInstances <$> hintRuleGhcSide } $ do
-    (l, v1) <- dotVersion' hintRuleGhcLHS
-    (r, v2) <- dotVersion' hintRuleGhcRHS
+   (:) m{ hintRuleLHS=extendInstances hintRuleLHS
+        , hintRuleRHS=extendInstances hintRuleRHS
+        , hintRuleSide=extendInstances <$> hintRuleSide } $ do
+    (l, v1) <- dotVersion' hintRuleLHS
+    (r, v2) <- dotVersion' hintRuleRHS
 
-    guard $ v1 == v2 && not (null l) && (length l > 1 || length r > 1) && Set.notMember v1 (Set.map occNameString (freeVars' $ maybeToList hintRuleGhcSide ++ l ++ r))
+    guard $ v1 == v2 && not (null l) && (length l > 1 || length r > 1) && Set.notMember v1 (Set.map occNameString (freeVars' $ maybeToList hintRuleSide ++ l ++ r))
     if not (null r) then
-      [ m{ hintRuleGhcLHS=extendInstances (dotApps' l), hintRuleGhcRHS=extendInstances (dotApps' r), hintRuleGhcSide=extendInstances <$> hintRuleGhcSide }
-      , m{ hintRuleGhcLHS=extendInstances (dotApps' (l ++ [strToVar v1])), hintRuleGhcRHS=extendInstances (dotApps' (r ++ [strToVar v1])), hintRuleGhcSide=extendInstances <$> hintRuleGhcSide } ]
+      [ m{ hintRuleLHS=extendInstances (dotApps' l), hintRuleRHS=extendInstances (dotApps' r), hintRuleSide=extendInstances <$> hintRuleSide }
+      , m{ hintRuleLHS=extendInstances (dotApps' (l ++ [strToVar v1])), hintRuleRHS=extendInstances (dotApps' (r ++ [strToVar v1])), hintRuleSide=extendInstances <$> hintRuleSide } ]
       else if length l > 1 then
-            [ m{ hintRuleGhcLHS=extendInstances (dotApps' l), hintRuleGhcRHS=extendInstances (strToVar "id"), hintRuleGhcSide=extendInstances <$> hintRuleGhcSide }
-            , m{ hintRuleGhcLHS=extendInstances (dotApps' (l++[strToVar v1])), hintRuleGhcRHS=extendInstances (strToVar v1), hintRuleGhcSide=extendInstances <$> hintRuleGhcSide}]
+            [ m{ hintRuleLHS=extendInstances (dotApps' l), hintRuleRHS=extendInstances (strToVar "id"), hintRuleSide=extendInstances <$> hintRuleSide }
+            , m{ hintRuleLHS=extendInstances (dotApps' (l++[strToVar v1])), hintRuleRHS=extendInstances (strToVar v1), hintRuleSide=extendInstances <$> hintRuleSide}]
       else []
 
 -- Find a dot version of this rule, return the sequence of app
@@ -129,9 +129,9 @@ matchIdea' :: Scope
            -> LHsExpr GhcPs
            -> Maybe (LHsExpr GhcPs, LHsExpr GhcPs, [Note], [(String, R.SrcSpan)])
 matchIdea' sb declName HintRule{..} parent x = do
-  let lhs = unextendInstances hintRuleGhcLHS
-      rhs = unextendInstances hintRuleGhcRHS
-      sa  = hintRuleGhcScope
+  let lhs = unextendInstances hintRuleLHS
+      rhs = unextendInstances hintRuleRHS
+      sa  = hintRuleScope
       nm a b = scopeMatch (sa, a) (sb, b)
   u <- unifyExp' nm True lhs x
   u <- validSubst' astEq u
@@ -149,7 +149,7 @@ matchIdea' sb declName HintRule{..} parent x = do
   -- what free vars they make use of.
   guard $ not (any isLambda $ universe lhs) || not (any isQuasiQuote $ universe x)
 
-  guard $ checkSide' (unextendInstances <$> hintRuleGhcSide) $ ("original", x) : ("result", res) : fromSubst' u
+  guard $ checkSide' (unextendInstances <$> hintRuleSide) $ ("original", x) : ("result", res) : fromSubst' u
   guard $ checkDefine' declName parent res
 
   pure (res, tpl, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])

@@ -95,11 +95,11 @@ data HintRule = HintRule
     {hintRuleSeverity :: Severity -- ^ Default severity for the hint.
     ,hintRuleName :: String -- ^ Name for the hint.
     ,hintRuleNotes :: [Note] -- ^ Notes about application of the hint.
-    ,hintRuleGhcScope :: Scope -- ^ Module scope in which the hint operates (GHC parse tree).
+    ,hintRuleScope :: Scope -- ^ Module scope in which the hint operates (GHC parse tree).
     -- We wrap these GHC elements in 'HsExtendInstances' in order that we may derive 'Show'.
-    ,hintRuleGhcLHS :: HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ LHS (GHC parse tree).
-    ,hintRuleGhcRHS :: HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ RHS (GHC parse tree).
-    ,hintRuleGhcSide :: Maybe (HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs))  -- ^ Side condition (GHC parse tree).
+    ,hintRuleLHS :: HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ LHS (GHC parse tree).
+    ,hintRuleRHS :: HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ RHS (GHC parse tree).
+    ,hintRuleSide :: Maybe (HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs))  -- ^ Side condition (GHC parse tree).
     }
     deriving Show
 

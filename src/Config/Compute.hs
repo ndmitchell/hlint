@@ -39,7 +39,7 @@ computeSettings flags file = do
 renderSetting :: Setting -> [String]
 -- Only need to convert the subset of Setting we generate
 renderSetting (SettingMatchExp HintRule{..}) =
-    ["- warn: {lhs: " ++ show (unsafePrettyPrint hintRuleGhcLHS) ++ ", rhs: " ++ show (unsafePrettyPrint hintRuleGhcRHS) ++ "}"]
+    ["- warn: {lhs: " ++ show (unsafePrettyPrint hintRuleLHS) ++ ", rhs: " ++ show (unsafePrettyPrint hintRuleRHS) ++ "}"]
 renderSetting (Infix x) = ["- infix: " ++ show (HSE.prettyPrint (HSE.toInfixDecl x))]
 renderSetting _ = []
 

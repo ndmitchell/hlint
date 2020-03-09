@@ -77,7 +77,7 @@ test CmdTest{..} main dataDir files = do
 -- Check all hints in the standard config files get sensible names
 testNames :: [Setting] -> Test ()
 testNames hints = sequence_
-    [ failed ["No name for the hint " ++ unsafePrettyPrint hintRuleGhcLHS ++ " ==> " ++ unsafePrettyPrint hintRuleGhcRHS]
+    [ failed ["No name for the hint " ++ unsafePrettyPrint hintRuleLHS ++ " ==> " ++ unsafePrettyPrint hintRuleRHS]
     | SettingMatchExp x@HintRule{..} <- hints, hintRuleName == defaultHintName]
 
 
