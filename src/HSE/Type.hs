@@ -1,7 +1,7 @@
 
 module HSE.Type(
     S,
-    Module_, Decl_, Exp_, Pat_,
+    Module_, Decl_,
     module HSE,
     module Uniplate
     ) where
@@ -14,5 +14,3 @@ import Data.Generics.Uniplate.Data as Uniplate
 type S = SrcSpanInfo
 type Module_ = Module S
 type Decl_ = Decl S
-type Exp_ = Exp S
-type Pat_ = Pat S
