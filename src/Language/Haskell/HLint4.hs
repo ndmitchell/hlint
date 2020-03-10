@@ -99,10 +99,10 @@ argsSettings args = do
 readSettingsFile :: Maybe FilePath -> String -> IO (FilePath, Maybe String)
 readSettingsFile dir x
     | takeExtension x `elem` [".yml",".yaml"] = do
-        dir <- maybe getHLintDataDir return dir
+        dir <- maybe getHLintDataDir pure dir
         pure (dir </> x, Nothing)
     | Just x <- "HLint." `stripPrefix` x = do
-        dir <- maybe getHLintDataDir return dir
+        dir <- maybe getHLintDataDir pure dir
         pure (dir </> x <.> "hs", Nothing)
     | otherwise = pure (x <.> "hs", Nothing)
 

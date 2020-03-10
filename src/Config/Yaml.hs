@@ -255,18 +255,18 @@ parseRule v = do
     (severity, v) <- parseSeverityKey v
     isRule <- isJust <$> parseFieldOpt "lhs" v
     if isRule then do
-        hintRuleNotes <- parseFieldOpt "note" v >>= maybe (return []) (fmap (map asNote) . parseArrayString)
+        hintRuleNotes <- parseFieldOpt "note" v >>= maybe (pure []) (fmap (map asNote) . parseArrayString)
         lhs <- parseField "lhs" v >>= parseGHC parseExpGhcWithMode
         rhs <- parseField "rhs" v >>= parseGHC parseExpGhcWithMode
-        hintRuleSide <- parseFieldOpt "side" v >>= maybe (return Nothing) (fmap (Just . extendInstances) . parseGHC parseExpGhcWithMode)
-        hintRuleName <- parseFieldOpt "name" v >>= maybe (return $ guessName lhs rhs) parseString
+        hintRuleSide <- parseFieldOpt "side" v >>= maybe (pure Nothing) (fmap (Just . extendInstances) . parseGHC parseExpGhcWithMode)
+        hintRuleName <- parseFieldOpt "name" v >>= maybe (pure $ guessName lhs rhs) parseString
 
         allowFields v ["lhs","rhs","note","name","side"]
         let hintRuleScope = mempty
         pure [Left HintRule{hintRuleSeverity=severity,hintRuleLHS=extendInstances lhs,hintRuleRHS=extendInstances rhs, ..}]
      else do
-        names <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
-        within <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
+        names <- parseFieldOpt "name" v >>= maybe (pure []) parseArrayString
+        within <- parseFieldOpt "within" v >>= maybe (pure [("","")]) (parseArray >=> concatMapM parseWithin)
         pure [Right $ Classify severity n a b | (a,b) <- within, n <- ["" | null names] ++ names]
 
 parseRestrict :: RestrictType -> Val -> Parser Restrict
@@ -278,9 +278,9 @@ parseRestrict restrictType v = do
             allowFields v ["default"]
             pure $ Restrict restrictType b [] [] [] [] Nothing
         Nothing -> do
-            restrictName <- parseFieldOpt "name" v >>= maybe (return []) parseArrayString
-            restrictWithin <- parseFieldOpt "within" v >>= maybe (return [("","")]) (parseArray >=> concatMapM parseWithin)
-            restrictAs <- parseFieldOpt "as" v >>= maybe (return []) parseArrayString
+            restrictName <- parseFieldOpt "name" v >>= maybe (pure []) parseArrayString
+            restrictWithin <- parseFieldOpt "within" v >>= maybe (pure [("","")]) (parseArray >=> concatMapM parseWithin)
+            restrictAs <- parseFieldOpt "as" v >>= maybe (pure []) parseArrayString
             restrictBadIdents <- parseFieldOpt "badidents" v >>= maybe (pure []) parseArrayString
             restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
             allowFields v $ ["as" | restrictType == RestrictModule] ++ ["badidents", "name", "within", "message"]
@@ -290,17 +290,17 @@ parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
 parseWithin v = do
     x <- parseHSE parseExpWithMode v
     case x of
-        Var _ (UnQual _ name) -> return [("",fromNamed name)]
-        Var _ (Qual _ (ModuleName _ mod) name) -> return [(mod, fromNamed name)]
-        Con _ (UnQual _ name) -> return [(fromNamed name,""),("",fromNamed name)]
-        Con _ (Qual _ (ModuleName _ mod) name) -> return [(mod ++ "." ++ fromNamed name,""),(mod,fromNamed name)]
+        Var _ (UnQual _ name) -> pure [("",fromNamed name)]
+        Var _ (Qual _ (ModuleName _ mod) name) -> pure [(mod, fromNamed name)]
+        Con _ (UnQual _ name) -> pure [(fromNamed name,""),("",fromNamed name)]
+        Con _ (Qual _ (ModuleName _ mod) name) -> pure [(mod ++ "." ++ fromNamed name,""),(mod,fromNamed name)]
         _ -> parseFail v "Bad classification rule"
 
 parseSeverityKey :: Val -> Parser (Severity, Val)
 parseSeverityKey v = do
     (s, v) <- parseObject1 v
     case getSeverity s of
-        Just sev -> return (sev, v)
+        Just sev -> pure (sev, v)
         _ -> parseFail v $ "Key should be a severity (e.g. warn/error/suggest) but got " ++ s
 
 

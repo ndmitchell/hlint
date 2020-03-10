@@ -24,7 +24,7 @@ import Test.Util
 testInputOutput :: ([String] -> IO ()) -> Test ()
 testInputOutput main = do
     xs <- liftIO $ getDirectoryContents "tests"
-    xs <- return $ filter ((==) ".test" . takeExtension) xs
+    xs <- pure $ filter ((==) ".test" . takeExtension) xs
     forM_ xs $ \file -> do
         ios <- liftIO $ parseInputOutputs <$> readFile ("tests" </> file)
         forM_ (zipFrom 1 ios) $ \(i,io@InputOutput{..}) -> do
@@ -71,7 +71,7 @@ checkInputOutput main InputOutput{..} = do
         handle (\(e::ExitCode) -> writeIORef code e) $
         bracket getVerbosity setVerbosity $ const $ setVerbosity Normal >> main run
     code <- liftIO $ readIORef code
-    (want,got) <- return $ matchStarStar (lines output) got
+    (want,got) <- pure $ matchStarStar (lines output) got
 
     if maybe False (/= code) exit then
         failed

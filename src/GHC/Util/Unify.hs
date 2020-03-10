@@ -142,7 +142,7 @@ unifyExp' nm root x@(L _ (HsApp _ x1 x2)) (L _ (HsApp _ y1 y2)) =
             -- Don't expand '.' f at the root, otherwise you can get
             -- duplicate matches because the matching engine
             -- auto-generates hints in dot-form.
-        (L _ (OpApp _ y11 dot y12)) <- return $ fromParen' y1
+        (L _ (OpApp _ y11 dot y12)) <- pure $ fromParen' y1
         guard $ isDot dot
         unifyExp' nm root x (noLoc (HsApp noExt y11 (noLoc (HsApp noExt y12 y2))))
     )

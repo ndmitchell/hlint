@@ -208,7 +208,7 @@ hseFailOpParseModuleEx :: String
                        -> String
                        -> IO (Either ParseError ModuleEx)
 hseFailOpParseModuleEx ppstr flags file str sl msg = do
-    flags <- return $ parseFlagsNoLocations flags
+    flags <- pure $ parseFlagsNoLocations flags
     ppstr2 <- runCpp (cppFlags flags) file str
     let pe = case parseFileContentsWithMode (mkMode flags file) ppstr2 of
                ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
@@ -302,10 +302,10 @@ parseImportDeclGhcWithMode parseMode s =
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ModuleEx)
 parseModuleEx flags file str = timedIO "Parse" file $ do
         str <- case str of
-            Just x -> return x
+            Just x -> pure x
             Nothing | file == "-" -> getContentsUTF8
                     | otherwise -> readFileUTF8' file
-        str <- return $ dropPrefix "\65279" str -- remove the BOM if it exists, see #130
+        str <- pure $ dropPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
         let enableDisableExts = ghcExtensionsFromParseFlags flags
             fixities = ghcFixitiesFromParseFlags flags -- Note : Fixities are coming from HSE parse flags.

@@ -34,8 +34,8 @@ test CmdTest{..} main dataDir files = do
 
     (failures, ideas) <- withBuffering stdout NoBuffering $ withTests $ do
         hasSrc <- liftIO $ doesFileExist "hlint.cabal"
-        useSrc <- return $ hasSrc && null files
-        testFiles <- if files /= [] then return files else do
+        useSrc <- pure $ hasSrc && null files
+        testFiles <- if files /= [] then pure files else do
             xs <- liftIO $ getDirectoryContents dataDir
             pure [dataDir </> x | x <- xs, takeExtension x `elem` [".yml",".yaml"]]
         testFiles <- liftIO $ forM testFiles $ \file -> do
@@ -67,7 +67,7 @@ test CmdTest{..} main dataDir files = do
     whenLoud $ mapM_ print ideas
     case rpath of
         Left refactorNotFound -> putStrLn $ unlines [refactorNotFound, "Refactoring tests skipped"]
-        _ -> return ()
+        _ -> pure ()
     pure failures
 
 

@@ -159,14 +159,14 @@ findCase x = do
                             [ x1@(L _ Match{..}) -- Match fields.
                             , x2]), ..} -- Match group fields.
           , ..} -- Fun. bind fields.
-      )) <- return x
+      )) <- pure x
 
   Branch name1 ps1 p1 c1 b1 <- findBranch x1
   Branch name2 ps2 p2 c2 b2 <- findBranch x2
   guard (name1 == name2 && ps1 == ps2 && p1 == p2)
-  [(BNil, b1), (BCons x xs, b2)] <- return $ sortOn fst [(c1, b1), (c2, b2)]
+  [(BNil, b1), (BCons x xs, b2)] <- pure $ sortOn fst [(c1, b1), (c2, b2)]
   b2 <- transformAppsM' (delCons name1 p1 xs) b2
-  (ps, b2) <- return $ eliminateArgs ps1 b2
+  (ps, b2) <- pure $ eliminateArgs ps1 b2
 
   let ps12 = let (a, b) = splitAt p1 ps1 in map strToPat (a ++ xs : b) -- Function arguments.
       emptyLocalBinds = noLoc $ EmptyLocalBinds noExt -- Empty where clause.
@@ -180,7 +180,7 @@ findCase x = do
 
 delCons :: String -> Int -> String -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
 delCons func pos var (fromApps' -> (view' -> Var_' x) : xs) | func == x = do
-    (pre, (view' -> Var_' v) : post) <- return $ splitAt pos xs
+    (pre, (view' -> Var_' v) : post) <- pure $ splitAt pos xs
     guard $ v == var
     pure $ apps' $ recursive : pre ++ post
 delCons _ _ _ x = pure x
@@ -208,14 +208,14 @@ findBranch (L _ x) = do
               GRHSs {grhssGRHSs=[L l (GRHS _ [] body)]
                         , grhssLocalBinds=L _ (EmptyLocalBinds _)
                         }
-            } <- return x
+            } <- pure x
   (a, b, c) <- findPat ps
   pure $ Branch (occNameString $rdrNameOcc name) a b c $ simplifyExp' body
 
 findPat :: [LPat GhcPs] -> Maybe ([String], Int, BList)
 findPat ps = do
   ps <- mapM readPat ps
-  [i] <- return $ findIndices isRight ps
+  [i] <- pure $ findIndices isRight ps
   let (left, [right]) = partitionEithers ps
 
   pure (left, i, right)
