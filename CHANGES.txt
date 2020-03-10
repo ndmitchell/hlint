@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #898, don't suggest removing NamedFieldPuns with record updates
 *   Make any --hint flag disable implicit .hlint.yaml search
 *   Delete the --with flag
 *   Haskell hint definitions are no longer supported (use YAML)

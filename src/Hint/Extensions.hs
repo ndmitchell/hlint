@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-
@@ -135,6 +136,8 @@ main = case () of x -> x --
 data Set (cxt :: * -> *) a = Set [a] -- @Note Extension KindSignatures is implied by PolyKinds
 {-# LANGUAGE QuasiQuotes, OverloadedStrings #-} \
 main = putStrLn [f|{T.intercalate "blah" []}|]
+{-# LANGUAGE NamedFieldPuns #-} \
+foo = x{bar}
 </TEST>
 -}
 
@@ -291,8 +294,8 @@ used PatternGuards = hasS f
 used StandaloneDeriving = hasS isDerivD
 used PatternSignatures = hasS isPatTypeSig
 used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
-used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun
-used NamedFieldPuns = hasS isPFieldPun ||^ hasS isFieldPun
+used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
+used NamedFieldPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
 used UnboxedTuples = has isUnboxedTuple ||^ has (== Unboxed) ||^ hasS isDeriving
     where
         -- detect if there are deriving declarations or data ... deriving stuff
@@ -407,3 +410,7 @@ isWholeFrac :: HsExpr GhcPs -> Bool
 isWholeFrac (HsLit _ (HsRat _ (FL _ _ v) _)) = denominator v == 1
 isWholeFrac (HsOverLit _ (OverLit _ (HsFractional (FL _ _ v)) _)) = denominator v == 1
 isWholeFrac _ = False
+
+-- Field puns in updates have a different type to field puns in constructions
+isFieldPunUpdate :: HsRecField' (AmbiguousFieldOcc GhcPs) (LHsExpr GhcPs) -> Bool
+isFieldPunUpdate = \case HsRecField {hsRecPun=True} -> True; _ -> False
