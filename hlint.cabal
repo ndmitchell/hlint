@@ -63,7 +63,7 @@ library
         haskell-src-exts >= 1.21 && < 1.24,
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
-        extra >= 1.6.19,
+        extra >= 1.7.1,
         refact >= 0.3,
         aeson >= 1.1.2.0,
         filepattern >= 0.1.1,
