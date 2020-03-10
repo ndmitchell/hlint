@@ -5,8 +5,7 @@ module HLint(hlint, readAllSettings) where
 
 import Control.Applicative
 import Control.Monad.Extra
-import Control.Exception.Extra hiding (errorIO)
-import qualified Control.Exception.Extra
+import Control.Exception.Extra
 import Control.Concurrent.Extra
 import System.Console.CmdArgs.Verbosity
 import Data.List.Extra
@@ -229,8 +228,3 @@ evaluateList :: [a] -> IO [a]
 evaluateList xs = do
     evaluate $ length xs
     pure xs
-
-
-{-# NOINLINE errorIO #-}
-errorIO :: String -> IO a
-errorIO = Control.Exception.Extra.errorIO
