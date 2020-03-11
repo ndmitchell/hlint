@@ -8,6 +8,7 @@ import Control.Monad.Extra
 import Control.Exception.Extra
 import Control.Concurrent.Extra
 import System.Console.CmdArgs.Verbosity
+import Language.Haskell.Exts
 import Data.List.Extra
 import GHC.Conc
 import System.Exit
@@ -31,7 +32,6 @@ import Timing
 import Test.Proof
 import Parallel
 import HSE.All
-import HSE.Type
 import CC
 import EmbedData
 

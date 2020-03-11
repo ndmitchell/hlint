@@ -5,10 +5,11 @@ module Config.Type(
     defaultHintName, isUnifyVar, showNotes, getSeverity, getRestrictType, getSmellType
     ) where
 
-import HSE.Type
 import Data.Char
 import Data.List.Extra
 import Prelude
+import Language.Haskell.Exts
+
 
 import qualified HsSyn
 import GHC.Util

@@ -6,7 +6,7 @@ module HSE.Match(
     ) where
 
 import Data.Char
-import HSE.Type
+import Language.Haskell.Exts
 
 -- | fromNamed will return \"\" when it cannot be represented
 --   toNamed may crash on \"\"

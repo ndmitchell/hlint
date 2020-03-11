@@ -125,7 +125,6 @@ library
 
         HSE.All
         HSE.Match
-        HSE.Type
         HSE.Util
         Hint.All
         Hint.Bracket

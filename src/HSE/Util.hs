@@ -11,10 +11,10 @@ import Data.List.Extra
 import qualified Data.Map as Map
 import Data.Maybe
 import System.FilePath
-import HSE.Type
 import Data.Functor
 import Prelude
 import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
+import Language.Haskell.Exts
 
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER

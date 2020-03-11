@@ -5,7 +5,7 @@
 module Config.Compute(computeSettings) where
 
 import HSE.All
-import qualified HSE.Type as HSE
+import qualified Language.Haskell.Exts as HSE
 import qualified HSE.Util as HSE
 import GHC.Util
 import Config.Type

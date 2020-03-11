@@ -33,7 +33,7 @@ import Idea
 import qualified Apply as H
 import HLint
 import HSE.All
-import HSE.Type
+import Language.Haskell.Exts
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
 import qualified ApiAnnotation as GHC

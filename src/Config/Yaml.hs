@@ -21,7 +21,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.HashMap.Strict as Map
 import Data.Generics.Uniplate.Data
 import HSE.All
-import HSE.Type hiding (Rule, String)
+import Language.Haskell.Exts as HSE hiding (String)
 import HSE.Util
 import HSE.Match
 import Data.Functor

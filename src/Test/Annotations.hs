@@ -16,14 +16,14 @@ import System.IO.Extra
 import Control.Monad.IO.Class
 import Data.Function
 import Data.Yaml
+import HSE.All
 import qualified Data.ByteString.Char8 as BS
 
 import Config.Type
 import Idea
 import Apply
 import Refact
-import HSE.All
-import HSE.Type
+import Language.Haskell.Exts
 import HSE.Util
 import Test.Util
 import Data.Functor
