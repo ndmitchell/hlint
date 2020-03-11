@@ -45,7 +45,7 @@ import GHC.Util
 -- @
 -- is. We advise that such constants should have a @NOINLINE@ pragma.
 unsafeHint :: DeclHint'
-unsafeHint _ (ModuleEx _ (L _ m) _) = \(L loc d) ->
+unsafeHint _ (ModuleEx (L _ m) _) = \(L loc d) ->
   [rawIdea' Hint.Type.Warning "Missing NOINLINE pragma" loc
          (unsafePrettyPrint d)
          (Just $ trimStart (unsafePrettyPrint $ gen x) ++ "\n" ++ unsafePrettyPrint d)

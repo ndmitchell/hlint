@@ -53,7 +53,7 @@ duplicateHint ms =
          ]
     where
       ds = [(modName m, fromMaybe "" (declName d), unLoc d)
-           | ModuleEx _ m _ <- map snd ms
+           | ModuleEx m _ <- map snd ms
            , d <- hsmodDecls (unLoc m)]
 
 dupes :: (Outputable e, Data e) => [(String, String, [Located e])] -> [Idea]

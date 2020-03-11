@@ -10,9 +10,7 @@ module HSE.All(
     parseExpGhcWithMode, parseImportDeclGhcWithMode
     ) where
 
-import HSE.Util
 import HSE.Type
-import HSE.Match
 import Util
 import Data.Char
 import Data.List.Extra
@@ -164,8 +162,7 @@ data ParseError = ParseError
 
 -- | Result of 'parseModuleEx', representing a parsed module.
 data ModuleEx = ModuleEx {
-    hseModule :: Module SrcSpanInfo
-  , ghcModule :: GHC.Located (HsSyn.HsModule HsSyn.GhcPs)
+    ghcModule :: GHC.Located (HsSyn.HsModule HsSyn.GhcPs)
   , ghcAnnotations :: GHC.ApiAnns
 }
 
@@ -319,7 +316,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                           , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
                           ) in
                     let a' = GhclibParserEx.applyFixities fixities a in
-                    pure $ Right (ModuleEx (applyFixity fixity x) a' anns)
+                    pure $ Right (ModuleEx a' anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
                 (ParseOk _,  GHC.PFailed _ loc err) ->
@@ -339,7 +336,6 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         fromPFailed (GHC.PFailed _ loc err) = Just (loc, err)
         fromPFailed _ = Nothing
 
-        fixity = fromMaybe [] $ fixities $ hseFlags flags
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
 context :: Int -> String -> String
@@ -347,41 +343,3 @@ context lineNo src =
     unlines $ dropWhileEnd (all isSpace) $ dropWhile (all isSpace) $
     zipWith (++) ticks $ take 5 $ drop (lineNo - 3) $ lines src ++ ["","","","",""]
     where ticks = ["  ","  ","> ","  ","  "]
-
-
----------------------------------------------------------------------
--- FIXITIES
-
--- resolve fixities later, so we don't ever get uncatchable ambiguity errors
--- if there are fixity errors, try the cheapFixities (which never fails)
-applyFixity :: [Fixity] -> Module_ -> Module_
-applyFixity base modu = descendBi f modu
-    where
-        f x = fromMaybe (cheapFixities fixs x) $ applyFixities fixs x :: Decl_
-        fixs = concatMap getFixity (moduleDecls modu) ++ base
-
-
--- Apply fixities, but ignoring any ambiguous fixity errors and skipping qualified names,
--- local infix declarations etc. Only use as a backup, if HSE gives an error.
---
--- Inspired by the code at:
--- http://hackage.haskell.org/trac/haskell-prime/attachment/wiki/FixityResolution/resolve.hs
-cheapFixities :: [Fixity] -> Decl_ -> Decl_
-cheapFixities fixs = descendBi (transform f)
-    where
-        ask = askFixity fixs
-
-        f o@(InfixApp s1 (InfixApp s2 x op1 y) op2 z)
-                | p1 == p2 && (a1 /= a2 || isAssocNone a1) = o -- Ambiguous infix expression!
-                | p1 > p2 || p1 == p2 && (isAssocLeft a1 || isAssocNone a2) = o
-                | otherwise = InfixApp s1 x op1 (f $ InfixApp s1 y op2 z)
-            where
-                (a1,p1) = ask op1
-                (a2,p2) = ask op2
-        f x = x
-
-
-askFixity :: [Fixity] -> QOp S -> (Assoc (), Int)
-askFixity xs = \k -> Map.findWithDefault (AssocLeft (), 9) (fromNamed k) mp
-    where
-        mp = Map.fromList [(s,(a,p)) | Fixity a p x <- xs, let s = fromNamed $ fmap (const an) x, s /= ""]

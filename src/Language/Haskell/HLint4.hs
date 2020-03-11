@@ -34,7 +34,6 @@ import qualified Apply as H
 import HLint
 import HSE.All
 import HSE.Type
-import HSE.Util
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
 import qualified ApiAnnotation as GHC
@@ -147,5 +146,4 @@ _docs = do
 createModuleEx:: GHC.ApiAnns -> Located (GHC.HsModule GHC.GhcPs) -> ModuleEx
 createModuleEx anns ast =
   -- Use builtin fixities.
-  ModuleEx empty (GhclibParserEx.applyFixities [] ast) anns
-   where empty = Module an Nothing [] [] []
+  ModuleEx (GhclibParserEx.applyFixities [] ast) anns
