@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #899, warn on unused PatternSynonyms
     #898, don't suggest removing NamedFieldPuns with record updates
 *   Make any --hint flag disable implicit .hlint.yaml search
 *   Delete the --with flag
