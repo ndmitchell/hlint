@@ -138,6 +138,14 @@ data Set (cxt :: * -> *) a = Set [a] -- @Note Extension KindSignatures is implie
 main = putStrLn [f|{T.intercalate "blah" []}|]
 {-# LANGUAGE NamedFieldPuns #-} \
 foo = x{bar}
+{-# LANGUAGE PatternSynonyms #-} \
+module Foo (pattern Bar) where x = 42
+{-# LANGUAGE PatternSynonyms #-} \
+import Foo (pattern Bar); x = 42
+{-# LANGUAGE PatternSynonyms #-} \
+pattern Foo s <- Bar s _ where Foo s = Bar s s
+{-# LANGUAGE PatternSynonyms #-} \
+x = 42 --
 </TEST>
 -}
 
@@ -296,7 +304,7 @@ used PatternSignatures = hasS isPatTypeSig
 used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
 used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
 used NamedFieldPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
-used UnboxedTuples = has isUnboxedTuple ||^ has (== Unboxed) ||^ hasS isDeriving
+used UnboxedTuples = hasS isUnboxedTuple ||^ hasS (== Unboxed) ||^ hasS isDeriving
     where
         -- detect if there are deriving declarations or data ... deriving stuff
         -- by looking for the deriving strategy both contain (even if its Nothing)
@@ -335,6 +343,15 @@ used MagicHash = hasS f ||^ hasS isPrimLiteral
     where
       f :: RdrName -> Bool
       f s = "#" `isSuffixOf` (occNameString . rdrNameOcc) s
+used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
+    where
+      isPatSynBind :: HsBind GhcPs -> Bool
+      isPatSynBind PatSynBind{} = True
+      isPatSynBind _ = False
+
+      isPatSynIE :: IEWrappedName RdrName -> Bool
+      isPatSynIE IEPattern{} = True
+      isPatSynIE _ = False
 -- For forwards compatibility, if things ever get added to the
 -- extension enumeration.
 used x = usedExt $ UnknownExtension $ show x
@@ -401,8 +418,6 @@ hasT2' ~(t1,t2) = hasT t1 ||^ hasT t2
 
 hasS :: (Data x, Data a) => (a -> Bool) -> x -> Bool
 hasS test = any test . universeBi
-
-has f = any f . universeBi
 
 -- Only whole number fractions are permitted by NumDecimals extension.
 -- Anything not-whole raises an error.
