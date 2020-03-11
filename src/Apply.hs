@@ -6,7 +6,7 @@ import Data.Monoid
 import HSE.All
 import Hint.All
 import GHC.Util
-import HSE.Type
+import Data.Generics.Uniplate.Data
 import Idea
 import Data.Tuple.Extra
 import Data.Either
