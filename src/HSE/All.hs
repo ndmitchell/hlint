@@ -38,16 +38,6 @@ import GHC.Util (parsePragmasIntoDynFlags, parseFileGhcLib, parseExpGhcLib, pars
 import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
 import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 
--- | Convert an HSE source span into a GHC equivalent.
-hseSpanToGHC :: SrcSpan -> GHC.SrcSpan
-hseSpanToGHC span =
-  GHC.mkSrcSpan
-    (mkLocFile $ srcSpanStart span)
-    (mkLocFile $ srcSpanEnd span)
-  where
-    mkLocFile :: (Int, Int) -> GHC.SrcLoc
-    mkLocFile = uncurry $ GHC.mkSrcLoc $ FastString.fsLit $ srcSpanFilename span
-
 -- | What C pre processor should be used.
 data CppFlags
     = NoCpp -- ^ No pre processing is done.
@@ -128,10 +118,6 @@ defaultParseFlags = ParseFlags NoCpp defaultParseMode
     ,ignoreFunctionArity = True
     ,extensions = parseExtensions}
 
-parseFlagsNoLocations :: ParseFlags -> ParseFlags
-parseFlagsNoLocations x = x{cppFlags = case cppFlags x of Cpphs y -> Cpphs $ f y; y -> y}
-    where f x = x{boolopts = (boolopts x){locations=False}}
-
 -- | Given some fixities, add them to the existing fixities in 'ParseFlags'.
 parseFlagsAddFixities :: [Fixity] -> ParseFlags -> ParseFlags
 parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = Just $ fx ++ fromMaybe [] (fixities hse)}}
@@ -170,47 +156,6 @@ data ModuleEx = ModuleEx {
 ghcComments :: ModuleEx -> [GHC.Located GHC.AnnotationComment]
 ghcComments m = concat (Map.elems $ snd (ghcAnnotations m))
 
--- | Utility called from 'parseModuleEx' and 'hseFailOpParseModuleEx'.
-mkMode :: ParseFlags -> String -> ParseMode
-mkMode flags file = (hseFlags flags){ parseFilename = file,fixities = Nothing }
-
--- | Error handler dispatcher. Invoked when HSE parsing has failed.
-failOpParseModuleEx :: String
-                    -> ParseFlags
-                    -> FilePath
-                    -> String
-                    -> SrcLoc
-                    -> String
-                    -> Maybe (GHC.SrcSpan, ErrUtils.MsgDoc)
-                    -> IO (Either ParseError ModuleEx)
-failOpParseModuleEx ppstr flags file str sl msg ghc =
-   case ghc of
-     Just err ->
-       -- GHC error info is available (assumed to have come from a
-       -- 'PFailed'). We prefer to construct a 'ParseError' value
-       -- using that.
-       ghcFailOpParseModuleEx ppstr file str err
-     Nothing ->
-       -- No GHC error info provided. This is the traditional approach
-       -- to handling errors.
-       hseFailOpParseModuleEx ppstr flags file str sl msg
-
--- | An error handler of last resort. This is invoked when HSE parsing
--- has failed but apparently GHC has not!
-hseFailOpParseModuleEx :: String
-                       -> ParseFlags
-                       -> FilePath
-                       -> String
-                       -> SrcLoc
-                       -> String
-                       -> IO (Either ParseError ModuleEx)
-hseFailOpParseModuleEx ppstr flags file str sl msg = do
-    flags <- pure $ parseFlagsNoLocations flags
-    ppstr2 <- runCpp (cppFlags flags) file str
-    let pe = case parseFileContentsWithMode (mkMode flags file) ppstr2 of
-               ParseFailed sl2 _ -> context (srcLine sl2) ppstr2
-               _ -> context (srcLine sl) ppstr
-    pure $ Left $ ParseError (hseSpanToGHC $ mkSrcSpan sl sl) msg pe
 
 -- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String
@@ -309,8 +254,8 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
           Right ghcFlags ->
-            case (parseFileContentsWithMode (mkMode flags file) ppstr, parseFileGhcLib file ppstr ghcFlags) of
-                (ParseOk x, GHC.POk pst a) ->
+            case parseFileGhcLib file ppstr ghcFlags of
+                GHC.POk pst a ->
                     let anns =
                           ( Map.fromListWith (++) $ GHC.annotations pst
                           , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
@@ -319,10 +264,8 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                     pure $ Right (ModuleEx a' anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
-                (ParseOk _,  GHC.PFailed _ loc err) ->
+                GHC.PFailed _ loc err ->
                     ghcFailOpParseModuleEx ppstr file str (loc, err)
-                (ParseFailed sl msg, pfailed) ->
-                    failOpParseModuleEx ppstr flags file str sl msg $ fromPFailed pfailed
           Left msg -> do
             -- Parsing GHC flags from dynamic pragmas in the source
             -- has failed. When this happens, it's reported by
@@ -331,10 +274,6 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             -- error.
             let loc = GHC.mkSrcLoc (mkFastString file) (1 :: Int) (1 :: Int)
             pure $ Left (ParseError (GHC.mkSrcSpan loc loc) msg "")
-
-    where
-        fromPFailed (GHC.PFailed _ loc err) = Just (loc, err)
-        fromPFailed _ = Nothing
 
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
