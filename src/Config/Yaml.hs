@@ -65,14 +65,14 @@ data ConfigItem
 
 data Package = Package
     {packageName :: String
-    ,packageModules :: [ImportDecl S]
+    ,packageModules :: [ImportDecl SrcSpanInfo]
     ,packageGhcModules :: [HsExtendInstances (HsSyn.LImportDecl HsSyn.GhcPs)]
     } deriving Show
 
 data Group = Group
     {groupName :: String
     ,groupEnabled :: Bool
-    ,groupImports :: [Either String (ImportDecl S)] -- Left for package imports
+    ,groupImports :: [Either String (ImportDecl SrcSpanInfo)] -- Left for package imports
     ,groupGhcImports :: [Either String (HsExtendInstances (HsSyn.LImportDecl HsSyn.GhcPs))]
     ,groupRules :: [Either HintRule Classify] -- HintRule has scope set to mempty
     } deriving Show

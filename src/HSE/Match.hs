@@ -17,16 +17,16 @@ class Named a where
 isSym (x:_) = not $ isAlpha x || x `elem` "_'"
 isSym _ = False
 
-instance Named (QName S) where
+instance Named (QName SrcSpanInfo) where
     fromNamed (Special _ Cons{}) = ":"
     fromNamed (Special _ UnitCon{}) = "()"
     fromNamed (UnQual _ x) = fromNamed x
     fromNamed _ = ""
 
-instance Named (Name S) where
+instance Named (Name SrcSpanInfo) where
     fromNamed (Ident _ x) = x
     fromNamed (Symbol _ x) = x
 
-instance Named (QOp S) where
+instance Named (QOp SrcSpanInfo) where
     fromNamed (QVarOp _ x) = fromNamed x
     fromNamed (QConOp _ x) = fromNamed x
