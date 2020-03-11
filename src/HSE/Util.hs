@@ -1,7 +1,6 @@
 
 module HSE.Util(
     getFixity,
-    showSrcLoc,
     toInfixDecl, extensionImpliedBy,
     extensionImplies,
     ) where
@@ -10,7 +9,6 @@ import Control.Monad
 import Data.List.Extra
 import qualified Data.Map as Map
 import Data.Maybe
-import System.FilePath
 import Data.Functor
 import Prelude
 import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
@@ -24,15 +22,6 @@ fromQual :: QName a -> Maybe (Name a)
 fromQual (Qual _ _ x) = Just x
 fromQual (UnQual _ x) = Just x
 fromQual _ = Nothing
-
----------------------------------------------------------------------
--- SRCLOC FUNCTIONS
-
-showSrcLoc :: SrcLoc -> String
-showSrcLoc (SrcLoc file line col) = take 1 file ++ f (drop1 file) ++ ":" ++ show line ++ ":" ++ show col
-    where f (x:y:zs) | isPathSeparator x && isPathSeparator y = f $ x:zs
-          f (x:xs) = x : f xs
-          f [] = []
 
 ---------------------------------------------------------------------
 -- FIXITIES

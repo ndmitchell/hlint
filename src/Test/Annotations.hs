@@ -23,12 +23,12 @@ import Config.Type
 import Idea
 import Apply
 import Refact
-import Language.Haskell.Exts
-import HSE.Util
 import Test.Util
 import Data.Functor
 import Prelude
 import Config.Yaml
+import GHC.Util.Outputable
+import FastString
 
 import qualified GHC.Util as GHC
 import qualified SrcLoc as GHC
@@ -37,7 +37,7 @@ import qualified SrcLoc as GHC
 -- Input, Output
 -- Output = Nothing, should not match
 -- Output = Just xs, should match xs
-data TestCase = TestCase SrcLoc Refactor String (Maybe String) [Setting] deriving (Show)
+data TestCase = TestCase GHC.SrcLoc Refactor String (Maybe String) [Setting] deriving (Show)
 
 data Refactor = TestRefactor | SkipRefactor deriving (Eq, Show)
 
@@ -64,14 +64,14 @@ testAnnotations setting file rpath = do
             let bad =
                     [failed $
                         ["TEST FAILURE (" ++ show (either (const 1) length ideas) ++ " hints generated)"
-                        ,"SRC: " ++ showSrcLoc loc
+                        ,"SRC: " ++ unsafePrettyPrint loc
                         ,"INPUT: " ++ inp] ++
                         map ("OUTPUT: " ++) (either (pure . show) (map show) ideas) ++
                         ["WANTED: " ++ fromMaybe "<failure>" out]
                         | not good] ++
                     [failed
                         ["TEST FAILURE (BAD LOCATION)"
-                        ,"SRC: " ++ showSrcLoc loc
+                        ,"SRC: " ++ unsafePrettyPrint loc
                         ,"INPUT: " ++ inp
                         ,"OUTPUT: " ++ show i]
                         | i@Idea{..} <- fromRight [] ideas, let GHC.SrcLoc{..} = GHC.srcSpanStart ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
@@ -85,7 +85,7 @@ testAnnotations setting file rpath = do
                     _ -> pure []
                 pure $ [failed $
                            ["TEST FAILURE (BAD REFACTORING)"
-                           ,"SRC: " ++ showSrcLoc loc
+                           ,"SRC: " ++ unsafePrettyPrint loc
                            ,"INPUT: " ++ inp] ++ refactorErr
                            | notNull refactorErr]
 
@@ -133,7 +133,7 @@ parseTestFile file =
 
 
 parseTest :: Refactor -> String -> Int -> String -> [Setting] -> TestCase
-parseTest refact file i x = uncurry (TestCase (SrcLoc file i 0) refact) $ f x
+parseTest refact file i x = uncurry (TestCase (GHC.mkSrcLoc (mkFastString file) i 0) refact) $ f x
     where
         f x | Just x <- stripPrefix "<COMMENT>" x = first ("--"++) $ f x
         f (' ':'-':'-':xs) | null xs || " " `isPrefixOf` xs = ("", Just $ trimStart xs)
