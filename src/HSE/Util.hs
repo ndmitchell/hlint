@@ -1,7 +1,7 @@
 
 module HSE.Util(
-    an, getFixity, moduleDecls, isAssocNone,
-    isAssocLeft, showSrcLoc,
+    getFixity,
+    showSrcLoc,
     toInfixDecl, extensionImpliedBy,
     extensionImplies,
     ) where
@@ -19,19 +19,11 @@ import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER
 
-moduleDecls :: Module_ -> [Decl_]
-moduleDecls (Module _ _ _ _ xs) = xs
-moduleDecls _ = [] -- XmlPage/XmlHybrid
-
 
 fromQual :: QName a -> Maybe (Name a)
 fromQual (Qual _ _ x) = Just x
 fromQual (UnQual _ x) = Just x
 fromQual _ = Nothing
-
-isAssocLeft AssocLeft{} = True; isAssocLeft _ = False
-isAssocNone AssocNone{} = True; isAssocNone _ = False
-
 
 ---------------------------------------------------------------------
 -- SRCLOC FUNCTIONS
@@ -41,9 +33,6 @@ showSrcLoc (SrcLoc file line col) = take 1 file ++ f (drop1 file) ++ ":" ++ show
     where f (x:y:zs) | isPathSeparator x && isPathSeparator y = f $ x:zs
           f (x:xs) = x : f xs
           f [] = []
-
-an :: SrcSpanInfo
-an = noSrcSpan
 
 ---------------------------------------------------------------------
 -- FIXITIES

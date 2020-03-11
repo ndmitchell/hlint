@@ -1,7 +1,6 @@
 
 module HSE.Type(
     S,
-    Module_, Decl_,
     module HSE,
     module Uniplate
     ) where
@@ -12,5 +11,3 @@ import Language.Haskell.Exts as HSE hiding (parse, loc, paren)
 import Data.Generics.Uniplate.Data as Uniplate
 
 type S = SrcSpanInfo
-type Module_ = Module S
-type Decl_ = Decl S
