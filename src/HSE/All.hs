@@ -19,7 +19,7 @@ import Timing
 import Language.Preprocessor.Cpphs
 import Data.Either
 import Language.Haskell.Exts as HSE.Type
-    ( Language(..), Extension(..), Fixity(..), Assoc(..), QName(..), SpecialCon(..), Name(..)
+    ( Language(..), Extension(..), Fixity(..)
     , infixr_, infix_, infixl_, baseFixities, preludeFixities)
 import qualified Data.Map as Map
 import System.IO.Extra
@@ -193,28 +193,8 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
 -- A hacky function to get fixities from HSE parse flags suitable for
 -- use by our own 'GHC.Util.Refact.Fixity' module.
 ghcFixitiesFromParseMode :: ParseMode -> [(String, GHC.Fixity)]
-ghcFixitiesFromParseMode ParseMode {fixities=Just fixities} =
-  concatMap convert fixities
-  where
-    convert (Fixity (AssocNone _) fix name) = infix_' fix [qNameToStr name]
-    convert (Fixity (AssocLeft _) fix name) = infixl_' fix [qNameToStr name]
-    convert (Fixity (AssocRight _) fix name) = infixr_' fix [qNameToStr name]
+ghcFixitiesFromParseMode = map toFixity . map fromHseFixity . fromMaybe [] . fixities
 
-    infixr_', infixl_', infix_' :: Int -> [String] -> [(String,GHC.Fixity)]
-    infixr_' = fixity' GHC.InfixR
-    infixl_' = fixity' GHC.InfixL
-    infix_'  = fixity' GHC.InfixN
-
-    fixity' :: GHC.FixityDirection -> Int -> [String] -> [(String, GHC.Fixity)]
-    fixity' a p = map (,GHC.Fixity (GHC.SourceText "") p a)
-
-    qNameToStr :: QName () -> String
-    qNameToStr (Special _ Cons{}) = ":"
-    qNameToStr (Special _ UnitCon{}) = "()"
-    qNameToStr (UnQual _ (HSE.Type.Ident _ x)) = x
-    qNameToStr (UnQual _ (Symbol _ x)) = x
-    qNameToStr _ = ""
-ghcFixitiesFromParseMode _ = []
 
 -- GHC enabled/disabled extensions given an HSE parse mode.
 ghcExtensionsFromParseMode :: ParseMode

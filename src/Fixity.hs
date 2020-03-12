@@ -1,12 +1,13 @@
+{-# LANGUAGE ViewPatterns #-}
 
 module Fixity(
     FixityInfo, Associativity(..),
-    toHseFixity,
-    fromFixitySig, toFixitySig
+    toHseFixity, fromHseFixity,
+    fromFixitySig, toFixitySig, toFixity,
     ) where
 
 import GHC.Generics(Associativity(..))
-import qualified Language.Haskell.Exts as HSE (Fixity(..), QName(..), Name(..), Assoc(..))
+import qualified Language.Haskell.Exts as HSE (Fixity(..), QName(..), Name(..), Assoc(..), SpecialCon(..))
 import HsBinds
 import HsExtension
 import OccName
@@ -24,6 +25,19 @@ import BasicTypes
 --   Would create @(\"foo\", RightAssociative, 3)
 type FixityInfo = (String, Associativity, Int)
 
+fromHseFixity :: HSE.Fixity -> FixityInfo
+fromHseFixity (HSE.Fixity dir i name) = (g name, f dir, i)
+    where
+        f HSE.AssocLeft{} = LeftAssociative
+        f HSE.AssocRight{} = RightAssociative
+        f HSE.AssocNone{} = NotAssociative
+
+        g :: HSE.QName () -> String
+        g (HSE.Special _ HSE.Cons{}) = ":"
+        g (HSE.Special _ HSE.UnitCon{}) = "()"
+        g (HSE.UnQual _ (HSE.Ident _ x)) = x
+        g (HSE.UnQual _ (HSE.Symbol _ x)) = x
+        g _ = ""
 
 toHseFixity :: FixityInfo -> HSE.Fixity
 toHseFixity (name, dir, i) = HSE.Fixity (f dir) i $ HSE.UnQual () $ HSE.Ident () name
@@ -41,10 +55,12 @@ fromFixitySig (FixitySig _ names (Fixity _ i dir)) =
         f InfixN = NotAssociative
 fromFixitySig _ = []
 
-
-toFixitySig :: FixityInfo -> FixitySig GhcPs
-toFixitySig (name, dir, i) = FixitySig NoExt [noLoc $ Unqual $ mkVarOcc name] $ Fixity NoSourceText i $ f dir
+toFixity :: FixityInfo -> (String, Fixity)
+toFixity (name, dir, i) = (name, Fixity NoSourceText i $ f dir)
     where
         f LeftAssociative = InfixL
         f RightAssociative = InfixR
         f NotAssociative = InfixN
+
+toFixitySig :: FixityInfo -> FixitySig GhcPs
+toFixitySig (toFixity -> (name, x)) = FixitySig NoExt [noLoc $ Unqual $ mkVarOcc name] x
