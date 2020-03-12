@@ -228,12 +228,12 @@ parseGroup :: Val -> Parser Group
 parseGroup v = do
     groupName <- parseField "name" v >>= parseString
     groupEnabled <- parseFieldOpt "enabled" v >>= maybe (pure True) parseBool
-    groupImports <- parseFieldOpt "imports" v >>= maybe (pure []) (parseArray >=> mapM parseImportGHC)
+    groupImports <- parseFieldOpt "imports" v >>= maybe (pure []) (parseArray >=> mapM parseImport)
     groupRules <- parseFieldOpt "rules" v >>= maybe (pure []) parseArray >>= concatMapM parseRule
     allowFields v ["name","enabled","imports","rules"]
     pure Group{..}
     where
-        parseImportGHC v = do
+        parseImport v = do
             x <- parseString v
             case word1 x of
                  ("package", x) -> pure $ Left x
