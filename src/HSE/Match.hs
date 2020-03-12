@@ -1,11 +1,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module HSE.Match(
-    Named(fromNamed),
-    isSym
+    Named(fromNamed)
     ) where
 
-import Data.Char
 import Language.Haskell.Exts
 
 -- | fromNamed will return \"\" when it cannot be represented
@@ -13,9 +11,6 @@ import Language.Haskell.Exts
 class Named a where
     fromNamed :: a -> String
 
-
-isSym (x:_) = not $ isAlpha x || x `elem` "_'"
-isSym _ = False
 
 instance Named (QName SrcSpanInfo) where
     fromNamed (Special _ Cons{}) = ":"

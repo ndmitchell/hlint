@@ -42,7 +42,6 @@ foreign import ccall hexml_node_child :: IO ()
 module Hint.Naming(namingHint) where
 
 import Hint.Type (Idea,DeclHint',suggest',toSrcSpan',ghcModule)
-import HSE.Match(isSym)
 import Data.Generics.Uniplate.Operations
 import Data.List.Extra (nubOrd, isPrefixOf)
 import Data.Data
@@ -110,6 +109,9 @@ getConstructorNames :: HsDecl GhcPs -> [String]
 getConstructorNames (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ _ cons _))) =
     concatMap (map unsafePrettyPrint . getConNames . unLoc) cons
 getConstructorNames _ = []
+
+isSym (x:_) = not $ isAlpha x || x `elem` "_'"
+isSym _ = False
 
 suggestName :: String -> Maybe String
 suggestName original
