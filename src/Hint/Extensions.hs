@@ -146,6 +146,10 @@ import Foo (pattern Bar); x = 42
 pattern Foo s <- Bar s _ where Foo s = Bar s s
 {-# LANGUAGE PatternSynonyms #-} \
 x = 42 --
+{-# LANGUAGE MultiWayIf #-} \
+x = if | b1 -> v1 | b2 -> v2 | otherwise -> v3
+{-# LANGUAGE MultiWayIf #-} \
+x = if b1 then v1 else if b2 then v2 else v3 --
 </TEST>
 -}
 
@@ -325,6 +329,10 @@ used DeriveFoldable = hasDerive ["Foldable"]
 used DeriveTraversable = hasDerive ["Traversable","Foldable","Functor"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
 used GeneralizedNewtypeDeriving = not . null . derivesNewtype' . derives
+used MultiWayIf = hasS f
+  where
+    f :: HsExpr GhcPs -> Bool
+    f = \case HsMultiIf{} -> True; _ -> False
 used LambdaCase = hasS isLCase
 used TupleSections = hasS isTupleSection
 used OverloadedStrings = hasS isString
