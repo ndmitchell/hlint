@@ -65,7 +65,6 @@ data ConfigItem
 
 data Package = Package
     {packageName :: String
-    ,packageModules :: [ImportDecl SrcSpanInfo]
     ,packageGhcModules :: [HsExtendInstances (HsSyn.LImportDecl HsSyn.GhcPs)]
     } deriving Show
 
@@ -205,7 +204,6 @@ parseConfigYaml v = do
 parsePackage :: Val -> Parser Package
 parsePackage v = do
     packageName <- parseField "name" v >>= parseString
-    packageModules <- parseField "modules" v >>= parseArray >>= mapM (parseHSE parseImportDeclWithMode)
     packageGhcModules <- parseField "modules" v >>= parseArray >>= mapM (fmap extendInstances <$> parseGHC parseImportDeclGhcWithMode)
     allowFields v ["name","modules"]
     pure Package{..}
