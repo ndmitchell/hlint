@@ -1,9 +1,8 @@
-{-# LANGUAGE ViewPatterns #-}
 
 module Fixity(
     FixityInfo, Associativity(..),
     toHseFixity, fromHseFixity,
-    fromFixitySig, toFixitySig, toFixity,
+    fromFixitySig, toFixitySig, toFixity, toHseFixities
     ) where
 
 import GHC.Generics(Associativity(..))
@@ -62,5 +61,19 @@ toFixity (name, dir, i) = (name, Fixity NoSourceText i $ f dir)
         f RightAssociative = InfixR
         f NotAssociative = InfixN
 
+fromFixity :: (String, Fixity) -> FixityInfo
+fromFixity (name, Fixity _ i dir) = (name, assoc dir, i)
+  where
+    assoc dir = case dir of
+      InfixL -> LeftAssociative
+      InfixR -> RightAssociative
+      InfixN -> NotAssociative
+
 toFixitySig :: FixityInfo -> FixitySig GhcPs
-toFixitySig (toFixity -> (name, x)) = FixitySig NoExt [noLoc $ Unqual $ mkVarOcc name] x
+toFixitySig = mkFixitySig . toFixity
+  where
+    mkFixitySig :: (String, Fixity) -> FixitySig GhcPs
+    mkFixitySig (name, x) = FixitySig noExt [noLoc $ mkRdrUnqual (mkVarOcc name)] x
+
+toHseFixities :: [(String, Fixity)] -> [HSE.Fixity]
+toHseFixities = map (toHseFixity  . fromFixity)
