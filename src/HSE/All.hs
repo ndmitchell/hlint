@@ -7,7 +7,7 @@ module HSE.All(
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
-    parseExpGhcWithMode, parseImportDeclGhcWithMode
+    parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
     ) where
 
 import Util
@@ -34,7 +34,7 @@ import qualified ApiAnnotation as GHC
 import qualified BasicTypes as GHC
 import qualified DynFlags as GHC
 
-import GHC.Util (parsePragmasIntoDynFlags, parseFileGhcLib, parseExpGhcLib, parseImportGhcLib, baseDynFlags)
+import GHC.Util (parsePragmasIntoDynFlags, parseFileGhcLib, parseExpGhcLib, parseDeclGhcLib, parseImportGhcLib, baseDynFlags)
 import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
 import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 
@@ -235,6 +235,12 @@ parseImportDeclGhcWithMode parseMode s =
   let (enable, disable) = ghcExtensionsFromParseMode parseMode
       flags = foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
   in parseImportGhcLib s flags
+
+parseDeclGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LHsDecl HsSyn.GhcPs)
+parseDeclGhcWithMode parseMode s =
+  let (enable, disable) = ghcExtensionsFromParseMode parseMode
+      flags = foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
+  in parseDeclGhcLib s flags
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The

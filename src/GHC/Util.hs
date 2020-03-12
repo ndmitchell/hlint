@@ -16,7 +16,7 @@ module GHC.Util (
   , module GHC.Util.Unify
 
   , parsePragmasIntoDynFlags
-  , parseFileGhcLib, parseExpGhcLib, parseImportGhcLib
+  , parseFileGhcLib, parseExpGhcLib, parseImportGhcLib, parseDeclGhcLib
   , pattern SrcSpan, srcSpanFilename, srcSpanStartLine', srcSpanStartColumn, srcSpanEndLine', srcSpanEndColumn
   , pattern SrcLoc, srcFilename, srcLine, srcColumn
   , showSrcSpan',
@@ -52,6 +52,9 @@ parseExpGhcLib = GhclibParserEx.parseExpression
 
 parseImportGhcLib :: String -> DynFlags -> ParseResult (LImportDecl GhcPs)
 parseImportGhcLib = GhclibParserEx.parseImport
+
+parseDeclGhcLib :: String -> DynFlags -> ParseResult (LHsDecl GhcPs)
+parseDeclGhcLib = GhclibParserEx.parseDeclaration
 
 parseFileGhcLib :: FilePath -> String -> DynFlags -> ParseResult (Located (HsModule GhcPs))
 parseFileGhcLib filename str flags =
