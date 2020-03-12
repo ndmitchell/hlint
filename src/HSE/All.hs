@@ -55,33 +55,19 @@ data ParseFlags = ParseFlags
     }
 
 data ParseMode = ParseMode {
-        -- | original name of the file being parsed
-        parseFilename :: String,
         -- | base language (e.g. Haskell98, Haskell2010)
         baseLanguage :: Language,
         -- | list of extensions enabled for parsing
         extensions :: [Extension],
-        -- | if 'True', the parser won't care about further extensions
-        --   in LANGUAGE pragmas in source files
-        ignoreLanguagePragmas :: Bool,
-        -- | if 'True', the parser won't read line position information
-        --   from LINE pragmas in source files
-        ignoreLinePragmas :: Bool,
         -- | list of fixities to be aware of
-        fixities :: Maybe [Fixity],
-        -- | Checks whether functions have a consistent arity
-        ignoreFunctionArity :: Bool
+        fixities :: Maybe [Fixity]
         }
 
 defaultParseMode :: ParseMode
 defaultParseMode = ParseMode {
-        parseFilename = "<unknown>.hs",
         baseLanguage = Haskell2010,
         extensions = [],
-        ignoreLanguagePragmas = False,
-        ignoreLinePragmas = True,
-        fixities = Just preludeFixities,
-        ignoreFunctionArity = False
+        fixities = Just preludeFixities
         }
 
 
@@ -149,8 +135,6 @@ customFixities =
 defaultParseFlags :: ParseFlags
 defaultParseFlags = ParseFlags NoCpp defaultParseMode
     {fixities = Just $ customFixities ++ baseFixities ++ baseNotYetInHSE ++ lensFixities ++ otherFixities
-    ,ignoreLinePragmas = False
-    ,ignoreFunctionArity = True
     ,extensions = parseExtensions}
 
 -- | Given some fixities, add them to the existing fixities in 'ParseFlags'.
