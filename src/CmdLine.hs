@@ -48,7 +48,6 @@ automatic cmd = case cmd of
     CmdMain{} -> dataDir =<< path =<< git =<< extension cmd
     CmdGrep{} -> path =<< extension cmd
     CmdTest{} -> dataDir cmd
-    _ -> pure cmd
     where
         path cmd = pure $ if null $ cmdPath cmd then cmd{cmdPath=["."]} else cmd
         extension cmd = pure $ if null $ cmdExtension cmd then cmd{cmdExtension=["hs","lhs"]} else cmd
@@ -148,10 +147,6 @@ data Cmd
         ,cmdTypeCheck :: Bool
         ,cmdWithRefactor :: FilePath
         }
-    | CmdHSE
-        {cmdFiles :: [FilePath]
-        ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
-        }
     deriving (Data,Typeable,Show)
 
 mode = cmdArgsMode $ modes
@@ -203,8 +198,6 @@ mode = cmdArgsMode $ modes
                    ,""
                    ,"To check all Haskell files in 'src' and generate a report type:"
                    ,"  hlint src --report"]
-    ,CmdHSE
-        {} &= explicit &= name "hse"
     ] &= program "hlint" &= verbosity
     &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2020")
     where

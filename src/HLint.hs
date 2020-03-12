@@ -9,7 +9,6 @@ import Control.Exception.Extra
 import Control.Concurrent.Extra
 import System.Console.CmdArgs.Verbosity
 import GHC.Util.DynFlags
-import Language.Haskell.Exts(ParseMode(..), ParseResult(..), parseFileWithMode, defaultParseMode, prettyPrint)
 import Data.List.Extra
 import GHC.Conc
 import System.Exit
@@ -62,25 +61,7 @@ hlint args = do
                 putStrLn $ "Took " ++ showDuration time
             pure $ if cmdNoExitCode cmd then [] else xs
         CmdGrep{} -> hlintGrep cmd >> pure []
-        CmdHSE{}  -> hlintHSE  cmd >> pure []
         CmdTest{} -> hlintTest cmd >> pure []
-
-hlintHSE :: Cmd -> IO ()
-hlintHSE c@CmdHSE{..} = do
-    v <- getVerbosity
-    forM_ cmdFiles $ \x -> do
-        putStrLn $ "Parse result of " ++ x ++ ":"
-        let (lang,exts) = cmdExtensions c
-        -- We deliberately don't use HSE.All here to avoid any bugs in HLint
-        -- polluting our bug reports (which is the main use of HSE)
-        res <- parseFileWithMode defaultParseMode{baseLanguage=lang, extensions=exts} x
-        case res of
-            x@ParseFailed{} -> print x
-            ParseOk m -> case v of
-                Loud -> print m
-                Quiet -> print $ prettyPrint m
-                _ -> print $ void m
-        putStrLn ""
 
 hlintTest :: Cmd -> IO ()
 hlintTest cmd@CmdTest{..} =
