@@ -9,7 +9,7 @@ import Control.Exception.Extra
 import Control.Concurrent.Extra
 import System.Console.CmdArgs.Verbosity
 import GHC.Util.DynFlags
-import Language.Haskell.Exts
+import Language.Haskell.Exts(ParseMode(..), ParseResult(..), parseFileWithMode, defaultParseMode, prettyPrint)
 import Data.List.Extra
 import GHC.Conc
 import System.Exit

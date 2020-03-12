@@ -158,7 +158,7 @@ module Hint.Extensions(extensionsHint) where
 
 import Hint.Type(ModuHint, rawIdea',Severity(Warning),Note(..),toSS',ghcAnnotations,ghcModule)
 import HSE.Util(extensionImpliedBy,extensionImplies)
-import Language.Haskell.Exts.Extension
+import Language.Haskell.Exts.Extension(Extension(..), KnownExtension(..), prettyExtension, parseExtension)
 
 import Data.Generics.Uniplate.Operations
 import Control.Monad.Extra

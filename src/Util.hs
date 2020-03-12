@@ -16,7 +16,7 @@ import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.Operations
-import Language.Haskell.Exts.Extension
+import Language.Haskell.Exts.Extension(Extension(..), knownExtensions, KnownExtension(..))
 
 
 ---------------------------------------------------------------------

@@ -16,7 +16,7 @@ import Data.Maybe
 import Data.Functor
 import HSE.All(CppFlags(..))
 import Language.Haskell.Exts(defaultParseMode, baseLanguage)
-import Language.Haskell.Exts.Extension
+import Language.Haskell.Exts.Extension(Language, knownLanguages, classifyExtension, Extension(..), KnownExtension(..))
 import Language.Preprocessor.Cpphs
 import System.Console.ANSI(hSupportsANSI)
 import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))

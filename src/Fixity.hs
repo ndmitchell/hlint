@@ -6,7 +6,7 @@ module Fixity(
     ) where
 
 import GHC.Generics(Associativity(..))
-import qualified Language.Haskell.Exts as HSE
+import qualified Language.Haskell.Exts as HSE (Fixity(..), QName(..), Name(..), Assoc(..))
 import HsBinds
 import HsExtension
 import OccName

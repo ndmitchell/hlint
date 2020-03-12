@@ -18,6 +18,8 @@ import Timing
 import Language.Preprocessor.Cpphs
 import Data.Either
 import Language.Haskell.Exts as HSE.Type
+    ( ParseMode(..), Language, Extension(..), Fixity(..), Assoc(..), QName(..), SpecialCon(..), Name(..)
+    , infixr_, infix_, infixl_, defaultParseMode, baseFixities)
 import qualified Data.Map as Map
 import System.IO.Extra
 import Data.Functor

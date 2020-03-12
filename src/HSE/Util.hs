@@ -12,7 +12,7 @@ import Data.Maybe
 import Data.Functor
 import Prelude
 import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
-import Language.Haskell.Exts
+import Language.Haskell.Exts(QName(..), Name(..), Decl(..), Fixity(..), Op(..), Extension(..), parseExtension)
 
 ---------------------------------------------------------------------
 -- ACCESSOR/TESTER
