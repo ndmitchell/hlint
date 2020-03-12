@@ -71,7 +71,6 @@ data Package = Package
 data Group = Group
     {groupName :: String
     ,groupEnabled :: Bool
-    ,groupImports :: [Either String (ImportDecl SrcSpanInfo)] -- Left for package imports
     ,groupGhcImports :: [Either String (HsExtendInstances (HsSyn.LImportDecl HsSyn.GhcPs))]
     ,groupRules :: [Either HintRule Classify] -- HintRule has scope set to mempty
     } deriving Show
@@ -229,17 +228,11 @@ parseGroup :: Val -> Parser Group
 parseGroup v = do
     groupName <- parseField "name" v >>= parseString
     groupEnabled <- parseFieldOpt "enabled" v >>= maybe (pure True) parseBool
-    groupImports <- parseFieldOpt "imports" v >>= maybe (pure []) (parseArray >=> mapM parseImport)
     groupGhcImports <- parseFieldOpt "imports" v >>= maybe (pure []) (parseArray >=> mapM parseImportGHC)
     groupRules <- parseFieldOpt "rules" v >>= maybe (pure []) parseArray >>= concatMapM parseRule
     allowFields v ["name","enabled","imports","rules"]
     pure Group{..}
     where
-        parseImport v = do
-            x <- parseString v
-            case word1 x of
-                ("package", x) -> pure $ Left x
-                _ -> Right <$> parseHSE parseImportDeclWithMode v
         parseImportGHC v = do
             x <- parseString v
             case word1 x of
@@ -247,7 +240,7 @@ parseGroup v = do
                  _ -> Right . extendInstances <$> parseGHC parseImportDeclGhcWithMode v
 
 ruleToGroup :: [Either HintRule Classify] -> Group
-ruleToGroup = Group "" True [] []
+ruleToGroup = Group "" True []
 
 parseRule :: Val -> Parser [Either HintRule Classify]
 parseRule v = do
