@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE TupleSections #-}
 
 module HSE.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
@@ -193,7 +192,7 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
 -- A hacky function to get fixities from HSE parse flags suitable for
 -- use by our own 'GHC.Util.Refact.Fixity' module.
 ghcFixitiesFromParseMode :: ParseMode -> [(String, GHC.Fixity)]
-ghcFixitiesFromParseMode = map toFixity . map fromHseFixity . fromMaybe [] . fixities
+ghcFixitiesFromParseMode = map (toFixity . fromHseFixity) . fromMaybe [] . fixities
 
 
 -- GHC enabled/disabled extensions given an HSE parse mode.
