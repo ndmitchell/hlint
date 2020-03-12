@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #904, suggest map/fromMaybe[] becomes maybe [] map
 *   Remove the hse command line argument, to parse a file with HSE
     #901, warn on unused MultiWayIf
     Don't raise a parse error if haskell-src-exts can't parse code
