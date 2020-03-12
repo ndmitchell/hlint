@@ -8,6 +8,7 @@ import Control.Monad.Extra
 import Control.Exception.Extra
 import Control.Concurrent.Extra
 import System.Console.CmdArgs.Verbosity
+import GHC.Util.DynFlags
 import Language.Haskell.Exts
 import Data.List.Extra
 import GHC.Conc
@@ -50,6 +51,7 @@ import EmbedData
 --   on your server with untrusted input.
 hlint :: [String] -> IO [Idea]
 hlint args = do
+    initGlobalDynFlags
     cmd <- getCmd args
     case cmd of
         CmdMain{} -> do

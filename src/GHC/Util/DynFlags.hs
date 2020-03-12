@@ -1,4 +1,4 @@
-module GHC.Util.DynFlags (baseDynFlags) where
+module GHC.Util.DynFlags (initGlobalDynFlags, baseDynFlags) where
 
 import DynFlags
 import GHC.LanguageExtensions.Type
@@ -17,3 +17,7 @@ baseDynFlags =
   --    hlint.yaml:860
   let enable = [TemplateHaskellQuotes]
   in foldl' xopt_set (defaultDynFlags fakeSettings fakeLlvmConfig) enable
+
+
+initGlobalDynFlags :: IO ()
+initGlobalDynFlags = setUnsafeGlobalDynFlags baseDynFlags
