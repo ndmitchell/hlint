@@ -22,7 +22,7 @@ import qualified Data.HashMap.Strict as Map
 import Data.Generics.Uniplate.Data
 import HSE.All
 import Language.Haskell.Exts as HSE hiding (String)
-import HSE.Util
+import Fixity
 import HSE.Match
 import Data.Functor
 import Data.Semigroup
@@ -211,9 +211,9 @@ parsePackage v = do
     pure Package{..}
 
 parseFixity :: Val -> Parser [Setting]
-parseFixity v = parseArray v >>= concatMapM (parseHSE parseDeclWithMode >=> f)
+parseFixity v = parseArray v >>= concatMapM (parseGHC parseDeclGhcWithMode >=> f)
     where
-        f x@InfixDecl{} = pure $ map Infix $ getFixity x
+        f (L _ (HsSyn.SigD _ (HsSyn.FixSig _ x))) = pure $ map Infix $ fromFixitySig x
         f _ = parseFail v "Expected fixity declaration"
 
 parseSmell :: Val -> Parser [Setting]

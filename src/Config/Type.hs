@@ -8,10 +8,10 @@ module Config.Type(
 import Data.Char
 import Data.List.Extra
 import Prelude
-import Language.Haskell.Exts
 
 
 import qualified HsSyn
+import Fixity
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
@@ -133,5 +133,5 @@ data Setting
     | SettingArgument String -- ^ Extra command-line argument
     | SettingSmell SmellType Int
     | Builtin String -- use a builtin hint set
-    | Infix Fixity
+    | Infix FixityInfo
       deriving Show

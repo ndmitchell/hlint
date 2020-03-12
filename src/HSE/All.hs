@@ -21,6 +21,7 @@ import Language.Haskell.Exts as HSE.Type
 import qualified Data.Map as Map
 import System.IO.Extra
 import Data.Functor
+import Fixity
 import FastString
 import Prelude
 
@@ -119,8 +120,8 @@ defaultParseFlags = ParseFlags NoCpp defaultParseMode
     ,extensions = parseExtensions}
 
 -- | Given some fixities, add them to the existing fixities in 'ParseFlags'.
-parseFlagsAddFixities :: [Fixity] -> ParseFlags -> ParseFlags
-parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = Just $ fx ++ fromMaybe [] (fixities hse)}}
+parseFlagsAddFixities :: [FixityInfo] -> ParseFlags -> ParseFlags
+parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = Just $ map toHseFixity fx ++ fromMaybe [] (fixities hse)}}
     where hse = hseFlags x
 
 parseFlagsSetLanguage :: (Language, [Extension]) -> ParseFlags -> ParseFlags

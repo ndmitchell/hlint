@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -5,17 +6,14 @@
 module Config.Compute(computeSettings) where
 
 import HSE.All
-import qualified Language.Haskell.Exts as HSE
-import qualified HSE.Util as HSE
 import GHC.Util
 import Config.Type
-import Data.Char
+import Fixity
 import Data.Generics.Uniplate.Data
 import HsSyn hiding (Warning)
 import RdrName
 import Name
 import Bag
-import BasicTypes hiding (Infix)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import SrcLoc
@@ -40,25 +38,15 @@ renderSetting :: Setting -> [String]
 -- Only need to convert the subset of Setting we generate
 renderSetting (SettingMatchExp HintRule{..}) =
     ["- warn: {lhs: " ++ show (unsafePrettyPrint hintRuleLHS) ++ ", rhs: " ++ show (unsafePrettyPrint hintRuleRHS) ++ "}"]
-renderSetting (Infix x) = ["- infix: " ++ show (HSE.prettyPrint (HSE.toInfixDecl x))]
+renderSetting (Infix x) =
+    ["- infix: " ++ show (unsafePrettyPrint $ toFixitySig x)]
 renderSetting _ = []
 
 findSetting :: LHsDecl GhcPs -> [Setting]
 findSetting (L _ (ValD _ x)) = findBind x
 findSetting (L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
     concatMap (findBind . unLoc) $ bagToList cid_binds
-findSetting (L _ (SigD _ (FixSig _ (FixitySig _ names (Fixity _ i dir))))) =
-        [Infix $ HSE.Fixity assoc i $ f name | name <- names]
-    where
-        assoc = case dir of
-            InfixL -> HSE.AssocLeft ()
-            InfixR -> HSE.AssocRight ()
-            InfixN -> HSE.AssocNone ()
-
-        f :: Located RdrName -> HSE.QName ()
-        f (L _ x) = case occNameString $ occName x of
-            xs@(x:_) | isAlpha x -> HSE.UnQual () $ HSE.Ident () xs
-            xs -> HSE.UnQual () $ HSE.Symbol () xs
+findSetting (L _ (SigD _ (FixSig _ x))) = map Infix $ fromFixitySig x
 findSetting x = []
 
 

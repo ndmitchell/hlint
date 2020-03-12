@@ -15,7 +15,7 @@
 module Language.Haskell.HLint4(
     hlint, applyHints,
     -- * Idea data type
-    Idea(..), Severity(..), Note(..),
+    Idea(..), Severity(..), Note(..), FixityInfo,
     -- * Settings
     Classify(..),
     getHLintDataDir, autoSettings, argsSettings,
@@ -32,8 +32,8 @@ import Control.Exception.Extra
 import Idea
 import qualified Apply as H
 import HLint
+import Fixity
 import HSE.All
-import Language.Haskell.Exts
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
 import qualified ApiAnnotation as GHC
@@ -108,13 +108,13 @@ readSettingsFile dir x
 
 -- | Given a function to load a module (typically 'readSettingsFile'), and a module to start from
 --   (defaults to @hlint.yaml@) find the information from all settings files.
-findSettings :: (String -> IO (FilePath, Maybe String)) -> Maybe String -> IO ([Fixity], [Classify], Hint)
+findSettings :: (String -> IO (FilePath, Maybe String)) -> Maybe String -> IO ([FixityInfo], [Classify], Hint)
 findSettings load start = do
     (file,contents) <- load $ fromMaybe "hlint.yaml" start
     splitSettings <$> readFilesConfig [(file,contents)]
 
 -- | Split a list of 'Setting' for separate use in parsing and hint resolution
-splitSettings :: [Setting] -> ([Fixity], [Classify], Hint)
+splitSettings :: [Setting] -> ([FixityInfo], [Classify], Hint)
 splitSettings xs =
     ([x | Infix x <- xs]
     ,[x | SettingClassify x <- xs]
