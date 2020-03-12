@@ -19,8 +19,11 @@ type FixityInfo = (String, Associativity, Int)
 
 
 toHseFixity :: FixityInfo -> HSE.Fixity
-toHseFixity = undefined
-
+toHseFixity (name, dir, i) = HSE.Fixity (f dir) i $ HSE.UnQual () $ HSE.Ident () name
+    where
+        f LeftAssociative = HSE.AssocLeft ()
+        f RightAssociative = HSE.AssocRight ()
+        f NotAssociative = HSE.AssocNone ()
 
 fromFixitySig :: FixitySig GhcPs -> [FixityInfo]
 fromFixitySig (FixitySig _ names (Fixity _ i dir)) =
