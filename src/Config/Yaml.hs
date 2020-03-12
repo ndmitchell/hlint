@@ -65,7 +65,7 @@ data ConfigItem
 
 data Package = Package
     {packageName :: String
-    ,packageGhcModules :: [HsExtendInstances (HsSyn.LImportDecl HsSyn.GhcPs)]
+    ,packageModules :: [HsExtendInstances (HsSyn.LImportDecl HsSyn.GhcPs)]
     } deriving Show
 
 data Group = Group
@@ -204,7 +204,7 @@ parseConfigYaml v = do
 parsePackage :: Val -> Parser Package
 parsePackage v = do
     packageName <- parseField "name" v >>= parseString
-    packageGhcModules <- parseField "modules" v >>= parseArray >>= mapM (fmap extendInstances <$> parseGHC parseImportDeclGhcWithMode)
+    packageModules <- parseField "modules" v >>= parseArray >>= mapM (fmap extendInstances <$> parseGHC parseImportDeclGhcWithMode)
     allowFields v ["name","modules"]
     pure Package{..}
 
@@ -332,7 +332,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
         packages = [x | ConfigPackage x <- configs]
         groups = [x | ConfigGroup x <- configs]
         settings = concat [x | ConfigSetting x <- configs]
-        packageMap' = Map.fromListWith (++) [(packageName, fmap unextendInstances packageGhcModules) | Package{..} <- packages]
+        packageMap' = Map.fromListWith (++) [(packageName, fmap unextendInstances packageModules) | Package{..} <- packages]
         groupMap = Map.fromListWith (\new old -> new) [(groupName, groupEnabled) | Group{..} <- groups]
 
         f Group{..}
