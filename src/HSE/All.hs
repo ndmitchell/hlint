@@ -9,6 +9,8 @@ module HSE.All(
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
+-- Not used yet.
+    ParseMode', defaultParseMode'
     ) where
 
 import Util
@@ -70,6 +72,29 @@ defaultParseMode = ParseMode {
         fixities = Just preludeFixities
         }
 
+data Language' =
+    Haskell98'
+  | Haskell2010'
+  | HaskellAllDisabled'
+  | UnknownLanguage' String
+  deriving (Eq, Ord, Read, Show)
+
+data ParseMode' = ParseMode'
+  {
+  -- | base language (e.g. Haskell98, Haskell2010)
+     ghcBaseLanguage :: Language'
+  -- | list of extensions enabled for parsing
+  , ghcExtensions :: [GHC.Extension]
+  -- | list of fixities to be aware of
+   , ghcFixities :: Maybe [(String, GHC.Fixity)]
+  }
+
+defaultParseMode' :: ParseMode'
+defaultParseMode' = ParseMode'
+  {   ghcBaseLanguage = Haskell2010'
+    , ghcExtensions = []
+    , ghcFixities = Just GhclibParserEx.preludeFixities
+  }
 
 lensFixities :: [Fixity]
 lensFixities = concat

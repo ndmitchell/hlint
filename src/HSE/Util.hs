@@ -1,41 +1,12 @@
 
 module HSE.Util(
-    getFixity,
-    toInfixDecl, extensionImpliedBy,
-    extensionImplies,
+    extensionImpliedBy,
+    extensionImplies
     ) where
 
-import Control.Monad
-import Data.List.Extra
 import qualified Data.Map as Map
-import Data.Maybe
-import Data.Functor
-import Prelude
 import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
-import Language.Haskell.Exts(QName(..), Name(..), Decl(..), Fixity(..), Op(..), Extension(..), parseExtension)
-
----------------------------------------------------------------------
--- ACCESSOR/TESTER
-
-
-fromQual :: QName a -> Maybe (Name a)
-fromQual (Qual _ _ x) = Just x
-fromQual (UnQual _ x) = Just x
-fromQual _ = Nothing
-
----------------------------------------------------------------------
--- FIXITIES
-
-getFixity :: Decl a -> [Fixity]
-getFixity (InfixDecl sl a mp ops) = [Fixity (void a) (fromMaybe 9 mp) (UnQual () $ void $ f op) | op <- ops]
-    where f (VarOp _ x) = x
-          f (ConOp _ x) = x
-getFixity _ = []
-
-toInfixDecl :: Fixity -> Decl ()
-toInfixDecl (Fixity a b c) = InfixDecl () a (Just b) $ maybeToList $ VarOp () <$> fromQual c
-
-
+import Language.Haskell.Exts(Extension(..), parseExtension)
 
 -- | This extension implies the following extensions
 extensionImplies :: Extension -> [Extension]
