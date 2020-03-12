@@ -71,7 +71,7 @@ data Package = Package
 data Group = Group
     {groupName :: String
     ,groupEnabled :: Bool
-    ,groupGhcImports :: [Either String (HsExtendInstances (HsSyn.LImportDecl HsSyn.GhcPs))]
+    ,groupImports :: [Either String (HsExtendInstances (HsSyn.LImportDecl HsSyn.GhcPs))]
     ,groupRules :: [Either HintRule Classify] -- HintRule has scope set to mempty
     } deriving Show
 
@@ -228,7 +228,7 @@ parseGroup :: Val -> Parser Group
 parseGroup v = do
     groupName <- parseField "name" v >>= parseString
     groupEnabled <- parseFieldOpt "enabled" v >>= maybe (pure True) parseBool
-    groupGhcImports <- parseFieldOpt "imports" v >>= maybe (pure []) (parseArray >=> mapM parseImportGHC)
+    groupImports <- parseFieldOpt "imports" v >>= maybe (pure []) (parseArray >=> mapM parseImportGHC)
     groupRules <- parseFieldOpt "rules" v >>= maybe (pure []) parseArray >>= concatMapM parseRule
     allowFields v ["name","enabled","imports","rules"]
     pure Group{..}
@@ -332,7 +332,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
             | Map.lookup groupName groupMap == Just False = []
             | otherwise = map (either (\r -> SettingMatchExp r{hintRuleScope=scope'}) SettingClassify) groupRules
             where
-              scope'= asScope' packageMap' (map (fmap unextendInstances) groupGhcImports)
+              scope'= asScope' packageMap' (map (fmap unextendInstances) groupImports)
 
 asScope' :: Map.HashMap String [HsSyn.LImportDecl HsSyn.GhcPs] -> [Either String (HsSyn.LImportDecl HsSyn.GhcPs)] -> Scope
 asScope' packages xs = scopeCreate (HsSyn.HsModule Nothing Nothing (concatMap f xs) [] Nothing Nothing)
