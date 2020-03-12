@@ -125,7 +125,6 @@ library
         GHC.Util.Unify
 
         HSE.All
-        HSE.Match
         HSE.Util
         Hint.All
         Hint.Bracket

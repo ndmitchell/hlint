@@ -23,7 +23,7 @@ import Data.Generics.Uniplate.Data
 import HSE.All
 import Language.Haskell.Exts as HSE hiding (String)
 import Fixity
-import HSE.Match
+import Module
 import Data.Functor
 import Data.Semigroup
 import Timing
@@ -39,6 +39,8 @@ import qualified RdrName as GHC
 import qualified OccName as GHC
 import GHC.Util (baseDynFlags, Scope,scopeCreate)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
+import Data.Char
+
 
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
 --   Fails if the YAML doesn't parse or isn't valid HLint YAML
@@ -159,14 +161,6 @@ allowFields v allow = do
     when (bad /= []) $
         parseFail v $ "Not allowed keys: " ++ unwords bad
 
-parseHSE :: (ParseMode -> String -> ParseResult v) -> Val -> Parser v
-parseHSE parser v = do
-    x <- parseString v
-    case parser defaultParseMode{extensions=configExtensions} x of
-        ParseOk x -> pure x
-        ParseFailed loc s ->
-          parseFail v $ "Failed to parse " ++ s ++ ", when parsing:\n  " ++ x
-
 parseGHC :: (ParseMode -> String -> GHC.ParseResult v) -> Val -> Parser v
 parseGHC parser v = do
     x <- parseString v
@@ -280,13 +274,14 @@ parseRestrict restrictType v = do
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
 parseWithin v = do
-    x <- parseHSE parseExpWithMode v
+    x <- parseGHC parseExpGhcWithMode v
     case x of
-        Var _ (UnQual _ name) -> pure [("",fromNamed name)]
-        Var _ (Qual _ (ModuleName _ mod) name) -> pure [(mod, fromNamed name)]
-        Con _ (UnQual _ name) -> pure [(fromNamed name,""),("",fromNamed name)]
-        Con _ (Qual _ (ModuleName _ mod) name) -> pure [(mod ++ "." ++ fromNamed name,""),(mod,fromNamed name)]
+        L _ (HsSyn.HsVar _ (L _ (GHC.Unqual x))) -> pure $ f "" (GHC.occNameString x)
+        L _ (HsSyn.HsVar _ (L _ (GHC.Qual mod x))) -> pure $ f (moduleNameString mod) (GHC.occNameString x)
         _ -> parseFail v "Bad classification rule"
+    where
+        f mod name@(c:_) | isUpper c = [(mod,name),(mod ++ ['.' | mod /= ""] ++ name, "")]
+        f mod name = [(mod, name)]
 
 parseSeverityKey :: Val -> Parser (Severity, Val)
 parseSeverityKey v = do
