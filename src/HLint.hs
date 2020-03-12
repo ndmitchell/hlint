@@ -32,7 +32,7 @@ import Refact
 import Timing
 import Test.Proof
 import Parallel
-import HSE.All
+import HSE.All hiding (ParseMode(..), defaultParseMode)
 import CC
 import EmbedData
 

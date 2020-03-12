@@ -5,6 +5,7 @@
 module HSE.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
+    ParseMode(..), defaultParseMode,
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
@@ -18,8 +19,8 @@ import Timing
 import Language.Preprocessor.Cpphs
 import Data.Either
 import Language.Haskell.Exts as HSE.Type
-    ( ParseMode(..), Language, Extension(..), Fixity(..), Assoc(..), QName(..), SpecialCon(..), Name(..)
-    , infixr_, infix_, infixl_, defaultParseMode, baseFixities)
+    ( Language(..), Extension(..), Fixity(..), Assoc(..), QName(..), SpecialCon(..), Name(..)
+    , infixr_, infix_, infixl_, baseFixities, preludeFixities)
 import qualified Data.Map as Map
 import System.IO.Extra
 import Data.Functor
@@ -52,6 +53,37 @@ data ParseFlags = ParseFlags
     {cppFlags :: CppFlags -- ^ How the file is preprocessed (defaults to 'NoCpp').
     ,hseFlags :: ParseMode -- ^ How the file is parsed (defaults to all fixities in the @base@ package and most non-conflicting extensions).
     }
+
+data ParseMode = ParseMode {
+        -- | original name of the file being parsed
+        parseFilename :: String,
+        -- | base language (e.g. Haskell98, Haskell2010)
+        baseLanguage :: Language,
+        -- | list of extensions enabled for parsing
+        extensions :: [Extension],
+        -- | if 'True', the parser won't care about further extensions
+        --   in LANGUAGE pragmas in source files
+        ignoreLanguagePragmas :: Bool,
+        -- | if 'True', the parser won't read line position information
+        --   from LINE pragmas in source files
+        ignoreLinePragmas :: Bool,
+        -- | list of fixities to be aware of
+        fixities :: Maybe [Fixity],
+        -- | Checks whether functions have a consistent arity
+        ignoreFunctionArity :: Bool
+        }
+
+defaultParseMode :: ParseMode
+defaultParseMode = ParseMode {
+        parseFilename = "<unknown>.hs",
+        baseLanguage = Haskell2010,
+        extensions = [],
+        ignoreLanguagePragmas = False,
+        ignoreLinePragmas = True,
+        fixities = Just preludeFixities,
+        ignoreFunctionArity = False
+        }
+
 
 lensFixities :: [Fixity]
 lensFixities = concat
