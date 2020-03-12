@@ -15,6 +15,13 @@ import SrcLoc
 import BasicTypes
 
 -- Lots of things define a fixity. None define it quite right, so let's have our own type.
+
+-- | A Fixity definition, comprising the name the fixity applies to,
+--   the direction and the precedence. As an example:
+--
+-- > infixr 3 `foo`
+--
+--   Would create @(\"foo\", RightAssociative, 3)
 type FixityInfo = (String, Associativity, Int)
 
 
