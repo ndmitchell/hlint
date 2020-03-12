@@ -3,9 +3,5 @@
 ##########################
 
 - message:
-  - name: Weeds exported
-  - identifier: [isAssocLeft, isAssocNone] # Weeder bugs?
-
-- message:
   - name: Redundant build-depends entry
   - depends: [ghc-lib, ghc, ghc-boot-th, ghc-boot] # Only some subset is supported
