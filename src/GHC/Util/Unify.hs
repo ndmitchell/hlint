@@ -1,17 +1,19 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables, TupleSections #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module GHC.Util.Unify(
     Subst', fromSubst',
     validSubst', substitute',
-    unifyExp'
+    unifyExp
     ) where
 
+import Control.Applicative
 import Control.Monad
 import Data.Generics.Uniplate.Operations
 import Data.Char
-import Data.List.Extra
 import Data.Data
+import Data.List.Extra
+import Data.Maybe
 import Data.Tuple.Extra
 import Util
 
@@ -109,6 +111,56 @@ unify' nm root x y
 unifyDef' :: Data a => NameMatch' -> a -> a -> Maybe (Subst' (LHsExpr GhcPs))
 unifyDef' nm x y = fmap mconcat . sequence =<< gzip (unify' nm False) x y
 
+unifyComposed' :: NameMatch'
+               -> LHsExpr GhcPs
+               -> LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
+               -> Maybe (Subst' (LHsExpr GhcPs), Maybe (LHsExpr GhcPs))
+unifyComposed' nm x1 y11 dot y12 =
+  ((, Just y11) <$> unifyExp' nm False x1 y12)
+    <|> case y12 of
+          (L _ (OpApp _ y121 dot' y122)) | isDot dot' ->
+            unifyComposed' nm x1 (noLoc (OpApp noExt y11 dot y121)) dot' y122
+          _ -> Nothing
+
+-- unifyExp handles the cases where both x and y are HsApp, or y is OpApp. Otherwise,
+-- delegate to unifyExp'. These are the cases where we potentially need to call
+-- unifyComposed' to handle left composition.
+unifyExp :: NameMatch' -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst' (LHsExpr GhcPs), Maybe (LHsExpr GhcPs))
+-- Match wildcard operators.
+unifyExp nm root (L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr' -> v))) rhs1))
+                 (L _ (OpApp _ lhs2 (L _ (HsVar _ (rdrNameStr' -> op2))) rhs2))
+    | isUnifyVar v =
+        (, Nothing) . (Subst' [(v, strToVar op2)] <>) <$>
+        liftA2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
+
+-- Options: match directly, and expand through '.'
+unifyExp nm root x@(L _ (HsApp _ x1 x2)) (L _ (HsApp _ y1 y2)) =
+    ((, Nothing) <$> liftA2 (<>) (unifyExp' nm False x1 y1) (unifyExp' nm False x2 y2)) <|> unifyComposed
+  where
+    -- Unify a function application where the function is a composition of functions.
+    unifyComposed
+      | (L _ (OpApp _ y11 dot y12)) <- fromParen' y1, isDot dot =
+          -- Attempt #1: rewrite '(fun1 . fun2) arg' as 'fun1 (fun2 arg)', and unify it with 'x'.
+          -- The guard ensures that you don't get duplicate matches because the matching engine
+          -- auto-generates hints in dot-form.
+          (guard (not root) >> (, Nothing) <$> unifyExp' nm root x (noLoc (HsApp noExt y11 (noLoc (HsApp noExt y12 y2)))))
+            -- Attempt #2: rewrite '(fun1 . fun2 ... funn) arg' as 'fun1 $ (fun2 ... funn) arg',
+            -- 'fun1 . fun2 $ (fun3 ... funn) arg', 'fun1 . fun2 . fun3 $ (fun4 ... funn) arg',
+            -- and so on, unify the rhs of '$' with 'x', and store the lhs of '$' into 'extra'.
+            <|> do
+                  rhs <- unifyExp' nm False x2 y2
+                  (lhs, extra) <- unifyComposed' nm x1 y11 dot y12
+                  pure (lhs <> rhs, extra)
+      | otherwise = Nothing
+
+-- Options: match directly, then expand through '$', then desugar infix.
+unifyExp nm root x (L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2))
+    | (L _ (OpApp _ lhs1 op1@(L _ (HsVar _ op1')) rhs1)) <- x =
+        guard (nm op1' op2') >> (, Nothing) <$> liftA2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
+    | isDol op2 = unifyExp nm root x $ noLoc (HsApp noExt lhs2 rhs2)
+    | otherwise  = unifyExp nm root x $ noLoc (HsApp noExt (noLoc (HsApp noExt op2 lhs2)) rhs2)
+unifyExp nm root x y = (, Nothing) <$> unifyExp' nm root x y
+
 -- App/InfixApp are analysed specially for performance reasons. If
 -- 'root = True', this is the outside of the expr. Do not expand out a
 -- dot at the root, since otherwise you get two matches because of
@@ -122,12 +174,9 @@ unifyExp' nm root x y | not root, isPar x, not $ isPar y = unifyExp' nm root (fr
 unifyExp' nm root (L _ (HsVar _ (rdrNameStr' -> v))) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst' [(v, y)]
 unifyExp' nm root (L _ (HsVar _ x)) (L _ (HsVar _ y)) | nm x y = Just mempty
 
--- Match wildcard operators.
-unifyExp' nm root (L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr' -> v))) rhs1))
-                  (L _ (OpApp _ lhs2 (L _ (HsVar _ (rdrNameStr' -> op2))) rhs2))
-    | isUnifyVar v =
-        (Subst' [(v, strToVar op2)] <>) <$>
-        liftM2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
+unifyExp' nm root x@(L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr' -> v))) rhs1))
+                  y@(L _ (OpApp _ lhs2 (L _ (HsVar _ op2)) rhs2)) =
+  fst <$> unifyExp nm root x y
 unifyExp' nm root (L _ (SectionL _ exp1 (L _ (HsVar _ (rdrNameStr' -> v)))))
                   (L _ (SectionL _ exp2 (L _ (HsVar _ (rdrNameStr' -> op2)))))
     | isUnifyVar v = (Subst' [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
@@ -135,23 +184,11 @@ unifyExp' nm root (L _ (SectionR _ (L _ (HsVar _ (rdrNameStr' -> v))) exp1))
                   (L _ (SectionR _ (L _ (HsVar _ (rdrNameStr' -> op2))) exp2))
     | isUnifyVar v = (Subst' [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
 
--- Options: match directly, and expand through '.'
-unifyExp' nm root x@(L _ (HsApp _ x1 x2)) (L _ (HsApp _ y1 y2)) =
-    liftM2 (<>) (unifyExp' nm False x1 y1) (unifyExp' nm False x2 y2) `mplus`
-    (do guard $ not root
-            -- Don't expand '.' f at the root, otherwise you can get
-            -- duplicate matches because the matching engine
-            -- auto-generates hints in dot-form.
-        (L _ (OpApp _ y11 dot y12)) <- pure $ fromParen' y1
-        guard $ isDot dot
-        unifyExp' nm root x (noLoc (HsApp noExt y11 (noLoc (HsApp noExt y12 y2))))
-    )
+unifyExp' nm root x@(L _ (HsApp _ x1 x2)) y@(L _ (HsApp _ y1 y2)) =
+  fst <$> unifyExp nm root x y
 
--- Options: match directly, then expand through '$', then desugar infix.
-unifyExp' nm root x (L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2))
-    | (L _ (OpApp _ lhs1 op1@(L _ (HsVar _ op1')) rhs1)) <- x = guard (nm op1' op2') >> liftM2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
-    | isDol op2 = unifyExp' nm root x $ noLoc (HsApp noExt lhs2 rhs2)
-    | otherwise  = unifyExp' nm root x $ noLoc (HsApp noExt (noLoc (HsApp noExt op2 lhs2)) rhs2)
+unifyExp' nm root x y@(L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2)) =
+  fst <$> unifyExp nm root x y
 
 unifyExp' nm root x y | isOther x, isOther y = unifyDef' nm x y
     where
