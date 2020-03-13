@@ -13,7 +13,6 @@ import Data.Generics.Uniplate.Operations
 import Data.Char
 import Data.Data
 import Data.List.Extra
-import Data.Maybe
 import Data.Tuple.Extra
 import Util
 
