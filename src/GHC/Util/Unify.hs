@@ -124,6 +124,15 @@ unifyComposed' nm x1 y11 dot y12 =
 -- unifyExp handles the cases where both x and y are HsApp, or y is OpApp. Otherwise,
 -- delegate to unifyExp'. These are the cases where we potentially need to call
 -- unifyComposed' to handle left composition.
+--
+-- y is allowed to partially match x (the lhs of the hint), if y is a function application where
+-- the function is a composition of functions. In this case the second component of the result is
+-- the unmatched part of y, which will be attached to the rhs of the hint after substitution.
+--
+-- Example:
+--   x = head (drop n x)
+--   y = foo . bar . baz . head $ drop 2 xs
+--   result = (Subst' [(n, 2), (x, xs)], Just (foo . bar . baz))
 unifyExp :: NameMatch' -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst' (LHsExpr GhcPs), Maybe (LHsExpr GhcPs))
 -- Match wildcard operators.
 unifyExp nm root (L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr' -> v))) rhs1))
