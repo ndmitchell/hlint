@@ -19,7 +19,7 @@ import Language.Preprocessor.Cpphs
 import Data.Either
 import Language.Haskell.Exts as HSE.Type
     ( Language(..), Extension(..), Fixity(..)
-    , infixr_, infix_, infixl_, baseFixities, preludeFixities)
+    , infixr_, infix_, infixl_)
 import qualified Data.Map as Map
 import System.IO.Extra
 import Data.Functor
@@ -63,12 +63,14 @@ data ParseMode = ParseMode {
         }
 
 defaultParseMode :: ParseMode
-defaultParseMode = ParseMode {
-        baseLanguage = Haskell2010,
-        extensions = [],
-        fixities = Just preludeFixities
-        }
-
+defaultParseMode =
+  ParseMode {
+      baseLanguage = Haskell2010
+    , extensions = []
+    , fixities = Just preludeFixities
+    }
+  where
+    preludeFixities = toHseFixities GhclibParserEx.preludeFixities
 
 lensFixities :: [Fixity]
 lensFixities = concat
@@ -112,18 +114,6 @@ otherFixities = concat
     ,infixr_ 6 ["/\\"] -- /\
     ]
 
--- Fixites from the `base` package which are currently
--- missing from `haskell-src-exts`'s baseFixities.
--- see https://github.com/haskell-suite/haskell-src-exts/pull/400
-baseNotYetInHSE :: [Fixity]
-baseNotYetInHSE = concat
-    [infixr_ 9 ["`Compose`"]
-    ,infixr_ 6 ["<>"]
-    ,infixr_ 5 ["<|"]
-    ,infixl_ 4 ["<$!>","<$","$>"]
-    ,infix_ 4 [":~:", ":~~:"]
-    ]
-
 customFixities :: [Fixity]
 customFixities =
     infixl_ 1 ["`on`"]
@@ -132,9 +122,13 @@ customFixities =
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags NoCpp defaultParseMode
-    {fixities = Just $ customFixities ++ baseFixities ++ baseNotYetInHSE ++ lensFixities ++ otherFixities
-    ,extensions = parseExtensions}
+defaultParseFlags =
+  ParseFlags NoCpp defaultParseMode
+    { fixities = Just $ customFixities ++ baseFixities ++ lensFixities ++ otherFixities
+    , extensions = parseExtensions
+    }
+  where
+    baseFixities = toHseFixities GhclibParserEx.baseFixities
 
 -- | Given some fixities, add them to the existing fixities in 'ParseFlags'.
 parseFlagsAddFixities :: [FixityInfo] -> ParseFlags -> ParseFlags
