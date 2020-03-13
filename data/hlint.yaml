@@ -1016,6 +1016,7 @@
 # yes = if p then s else return () -- Control.Monad.when p s
 # warn = a $$$$ b $$$$ c ==> a . b $$$$$ c
 # yes = when (not . null $ asdf) -- unless (null asdf)
+# yes = (foo . bar . when) (not . null $ asdf) -- (foo . bar) (unless (null asdf))
 # yes = id 1 -- 1
 # yes = case concat (map f x) of [] -> [] -- concatMap f x
 # yes = [v | v <- xs] -- xs
@@ -1035,10 +1036,13 @@
 # test = \ a -> f a >>= \ b -> return (a, b)
 # fooer input = catMaybes . map Just $ input -- mapMaybe Just
 # yes = mapMaybe id -- catMaybes
+# foo = magic . isLeft $ fmap f x -- magic (isLeft x)
+# foo = (bar . baz . magic . isRight) (fmap f x) -- (bar . baz . magic) (isRight x)
 # main = print $ map (\_->5) [2,3,5] -- const 5
 # main = head $ drop n x -- x !! max 0 n
 # main = head $ drop (-3) x -- x
 # main = head $ drop 2 x -- x !! 2
+# main = foo . bar . baz . head $ drop 2 x -- (foo . bar . baz) (x !! 2)
 # main = drop 0 x -- x
 # main = take 0 x -- []
 # main = take (-5) x -- []

@@ -133,14 +133,16 @@ matchIdea' sb declName HintRule{..} parent x = do
       rhs = unextendInstances hintRuleRHS
       sa  = hintRuleScope
       nm a b = scopeMatch (sa, a) (sb, b)
-  u <- unifyExp' nm True lhs x
+  (u, extra) <- unifyExp nm True lhs x
   u <- validSubst' astEq u
 
   -- Need to check free vars before unqualification, but after subst
   -- (with 'e') need to unqualify before substitution (with 'res').
-  let (e, tpl) = substitute' u rhs
-      res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs)
-  guard $ (freeVars' e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars' rhs)) `Set.isSubsetOf` freeVars' x
+  let rhs' | Just fun <- extra = rebracket1' $ noLoc (HsApp noExt fun rhs)
+           | otherwise = rhs
+      (e, tpl) = substitute' u rhs'
+      res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs')
+  guard $ (freeVars' e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars' rhs')) `Set.isSubsetOf` freeVars' x
       -- Check no unexpected new free variables.
 
   -- Check it isn't going to get broken by QuasiQuotes as per #483. If
