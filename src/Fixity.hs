@@ -1,10 +1,10 @@
-{-# LANGUAGE TupleSections #-}
 
 module Fixity(
     FixityInfo, Associativity(..),
     toHseFixity, fromHseFixity,
     fromFixitySig, toFixitySig, toFixity, toHseFixities,
-    preludeFixities, baseFixities, lensFixities, otherFixities, customFixities
+    preludeFixities, baseFixities, -- From GhclibParserEx
+    lensFixities, otherFixities, customFixities
     ) where
 
 import GHC.Generics(Associativity(..))
@@ -15,7 +15,7 @@ import OccName
 import RdrName
 import SrcLoc
 import BasicTypes
-import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
+import Language.Haskell.GhclibParserEx.Fixity
 
 -- Lots of things define a fixity. None define it quite right, so let's have our own type.
 
@@ -81,12 +81,6 @@ toFixitySig = mkFixitySig . toFixity
 toHseFixities :: [(String, Fixity)] -> [HSE.Fixity]
 toHseFixities = map (toHseFixity  . fromFixity)
 
-preludeFixities :: [(String, Fixity)]
-preludeFixities = GhclibParserEx.preludeFixities
-
-baseFixities :: [(String, Fixity)]
-baseFixities = GhclibParserEx.baseFixities
-
 -- List as provided at https://github.com/ndmitchell/hlint/issues/416.
 lensFixities :: [(String, Fixity)]
 lensFixities = concat
@@ -135,11 +129,3 @@ customFixities =
         -- See https://github.com/ndmitchell/hlint/issues/425
         -- otherwise GTK apps using `on` at a different fixity have
         -- spurious warnings.
-
-infixr_, infixl_, infix_ :: Int -> [String] -> [(String,Fixity)]
-infixr_ = fixity InfixR
-infixl_ = fixity InfixL
-infix_  = fixity InfixN
-
-fixity :: FixityDirection -> Int -> [String] -> [(String, Fixity)]
-fixity a p = map (,Fixity (SourceText "") p a)
