@@ -1,8 +1,10 @@
+{-# LANGUAGE TupleSections #-}
 
 module Fixity(
     FixityInfo, Associativity(..),
     toHseFixity, fromHseFixity,
-    fromFixitySig, toFixitySig, toFixity, toHseFixities
+    fromFixitySig, toFixitySig, toFixity, toHseFixities,
+    preludeFixities, baseFixities, lensFixities, otherFixities, customFixities
     ) where
 
 import GHC.Generics(Associativity(..))
@@ -13,6 +15,7 @@ import OccName
 import RdrName
 import SrcLoc
 import BasicTypes
+import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
 
 -- Lots of things define a fixity. None define it quite right, so let's have our own type.
 
@@ -77,3 +80,66 @@ toFixitySig = mkFixitySig . toFixity
 
 toHseFixities :: [(String, Fixity)] -> [HSE.Fixity]
 toHseFixities = map (toHseFixity  . fromFixity)
+
+preludeFixities :: [(String, Fixity)]
+preludeFixities = GhclibParserEx.preludeFixities
+
+baseFixities :: [(String, Fixity)]
+baseFixities = GhclibParserEx.baseFixities
+
+-- List as provided at https://github.com/ndmitchell/hlint/issues/416.
+lensFixities :: [(String, Fixity)]
+lensFixities = concat
+    [ infixr_ 4 ["%%@~","<%@~","%%~","<+~","<*~","<-~","<//~","<^~","<^^~","<**~"]
+    , infix_ 4 ["%%@=","<%@=","%%=","<+=","<*=","<-=","<//=","<^=","<^^=","<**="]
+    , infixr_ 2 ["<<~"]
+    , infixr_ 9 ["#."]
+    , infixl_ 8 [".#"]
+    , infixr_ 8 ["^!","^@!"]
+    , infixl_ 1 ["&","<&>","??"]
+    , infixl_ 8 ["^.","^@."]
+    , infixr_ 9 ["<.>","<.",".>"]
+    , infixr_ 4 ["%@~",".~","+~","*~","-~","//~","^~","^^~","**~","&&~","<>~","||~","%~"]
+    , infix_ 4 ["%@=",".=","+=","*=","-=","//=","^=","^^=","**=","&&=","<>=","||=","%="]
+    , infixr_ 2 ["<~"]
+    , infixr_ 2 ["`zoom`","`magnify`"]
+    , infixl_ 8 ["^..","^?","^?!","^@..","^@?","^@?!"]
+    , infixl_ 8 ["^#"]
+    , infixr_ 4 ["<#~","#~","#%~","<#%~","#%%~"]
+    , infix_ 4 ["<#=","#=","#%=","<#%=","#%%="]
+    , infixl_ 9 [":>"]
+    , infixr_ 4 ["</>~","<</>~","<.>~","<<.>~"]
+    , infix_ 4 ["</>=","<</>=","<.>=","<<.>="]
+    , infixr_ 4 [".|.~",".&.~","<.|.~","<.&.~"]
+    , infix_ 4 [".|.=",".&.=","<.|.=","<.&.="]
+    ]
+
+otherFixities :: [(String, Fixity)]
+otherFixities = concat
+  -- hspec
+  [ infix_ 1 ["shouldBe","shouldSatisfy","shouldStartWith","shouldEndWith","shouldContain","shouldMatchList"
+              ,"shouldReturn","shouldNotBe","shouldNotSatisfy","shouldNotContain","shouldNotReturn","shouldThrow"]
+    -- quickcheck
+  , infixr_ 0 ["==>"]
+  , infix_ 4 ["==="]
+    -- esqueleto
+  , infix_ 4 ["==."]
+    -- lattices
+  , infixr_ 5 ["\\/"] -- \/
+  , infixr_ 6 ["/\\"] -- /\
+  ]
+
+customFixities :: [(String, Fixity)]
+customFixities =
+  infixl_ 1 ["`on`"]
+        -- See https://github.com/ndmitchell/hlint/issues/425
+        -- otherwise GTK apps using `on` at a different fixity have
+        -- spurious warnings.
+
+infixr_, infixl_, infix_ :: Int -> [String] -> [(String,Fixity)]
+infixr_ = fixity InfixR
+infixl_ = fixity InfixL
+infix_  = fixity InfixN
+
+fixity :: FixityDirection -> Int -> [String] -> [(String, Fixity)]
+fixity a p = map (,Fixity (SourceText "") p a)

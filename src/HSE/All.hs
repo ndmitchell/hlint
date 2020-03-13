@@ -18,8 +18,7 @@ import Timing
 import Language.Preprocessor.Cpphs
 import Data.Either
 import Language.Haskell.Exts as HSE.Type
-    ( Language(..), Extension(..), Fixity(..)
-    , infixr_, infix_, infixl_)
+    ( Language(..), Extension(..), Fixity(..) )
 import qualified Data.Map as Map
 import System.IO.Extra
 import Data.Functor
@@ -67,68 +66,16 @@ defaultParseMode =
   ParseMode {
       baseLanguage = Haskell2010
     , extensions = []
-    , fixities = Just preludeFixities
+    , fixities = Just $ toHseFixities preludeFixities
     }
-  where
-    preludeFixities = toHseFixities GhclibParserEx.preludeFixities
-
-lensFixities :: [Fixity]
-lensFixities = concat
-    -- List as provided at https://github.com/ndmitchell/hlint/issues/416
-    [infixr_ 4 ["%%@~","<%@~","%%~","<+~","<*~","<-~","<//~","<^~","<^^~","<**~"]
-    ,infix_ 4 ["%%@=","<%@=","%%=","<+=","<*=","<-=","<//=","<^=","<^^=","<**="]
-    ,infixr_ 2 ["<<~"]
-    ,infixr_ 9 ["#."]
-    ,infixl_ 8 [".#"]
-    ,infixr_ 8 ["^!","^@!"]
-    ,infixl_ 1 ["&","<&>","??"]
-    ,infixl_ 8 ["^.","^@."]
-    ,infixr_ 9 ["<.>","<.",".>"]
-    ,infixr_ 4 ["%@~",".~","+~","*~","-~","//~","^~","^^~","**~","&&~","<>~","||~","%~"]
-    ,infix_ 4 ["%@=",".=","+=","*=","-=","//=","^=","^^=","**=","&&=","<>=","||=","%="]
-    ,infixr_ 2 ["<~"]
-    ,infixr_ 2 ["`zoom`","`magnify`"]
-    ,infixl_ 8 ["^..","^?","^?!","^@..","^@?","^@?!"]
-    ,infixl_ 8 ["^#"]
-    ,infixr_ 4 ["<#~","#~","#%~","<#%~","#%%~"]
-    ,infix_ 4 ["<#=","#=","#%=","<#%=","#%%="]
-    ,infixl_ 9 [":>"]
-    ,infixr_ 4 ["</>~","<</>~","<.>~","<<.>~"]
-    ,infix_ 4 ["</>=","<</>=","<.>=","<<.>="]
-    ,infixr_ 4 [".|.~",".&.~","<.|.~","<.&.~"]
-    ,infix_ 4 [".|.=",".&.=","<.|.=","<.&.="]
-    ]
-
-otherFixities :: [Fixity]
-otherFixities = concat
-    -- hspec
-    [infix_ 1 ["`shouldBe`","`shouldSatisfy`","`shouldStartWith`","`shouldEndWith`","`shouldContain`","`shouldMatchList`"
-              ,"`shouldReturn`","`shouldNotBe`","`shouldNotSatisfy`","`shouldNotContain`","`shouldNotReturn`","`shouldThrow`"]
-    -- quickcheck
-    ,infixr_ 0 ["==>"]
-    ,infix_ 4 ["==="]
-    -- esqueleto
-    ,infix_ 4 ["==."]
-    -- lattices
-    ,infixr_ 5 ["\\/"] -- \/
-    ,infixr_ 6 ["/\\"] -- /\
-    ]
-
-customFixities :: [Fixity]
-customFixities =
-    infixl_ 1 ["`on`"]
-        -- see https://github.com/ndmitchell/hlint/issues/425
-        -- otherwise GTK apps using `on` at a different fixity have spurious warnings
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
 defaultParseFlags =
   ParseFlags NoCpp defaultParseMode
-    { fixities = Just $ customFixities ++ baseFixities ++ lensFixities ++ otherFixities
+    { fixities = Just $ toHseFixities (customFixities ++ baseFixities ++ lensFixities ++ otherFixities)
     , extensions = parseExtensions
     }
-  where
-    baseFixities = toHseFixities GhclibParserEx.baseFixities
 
 -- | Given some fixities, add them to the existing fixities in 'ParseFlags'.
 parseFlagsAddFixities :: [FixityInfo] -> ParseFlags -> ParseFlags
