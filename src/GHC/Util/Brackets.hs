@@ -68,8 +68,6 @@ instance Brackets' (LHsExpr GhcPs) where
      | isAtom' child = False
      | isSection parent, L _ HsApp{} <- child = False
      | L _ OpApp{} <- parent, L _ HsApp{} <- child = False
-     | L _ HsLet{} <- parent, L _ HsApp{} <- child = False
-     | L _ HsDo{} <- parent = False
      | L _ ExplicitList{} <- parent = False
      | L _ ExplicitTuple{} <- parent = False
      | L _ HsIf{} <- parent, isAnyApp child = False
@@ -77,10 +75,15 @@ instance Brackets' (LHsExpr GhcPs) where
      | L _ ExprWithTySig{} <- parent, i == 0, isApp child = False
      | L _ RecordCon{} <- parent = False
      | L _ RecordUpd{} <- parent, i /= 0 = False
-     | L _ HsCase{} <- parent, i /= 0 || isAnyApp child = False
-     | L _ HsLam{} <- parent = False -- might be either the RHS of a PViewPat, or the lambda body (neither needs brackets)
+
+     -- These all have view patterns embedded within them, or are naturally followed by ->, so we have to watch out for
+     -- @(x::y) -> z@ which is valid, as either a type annotation, or a view pattern.
+     | L _ HsLet{} <- parent, isApp child = False
+     | L _ HsDo{} <- parent, isAnyApp child = False
+     | L _ HsLam{} <- parent, isAnyApp child = False
+     | L _ HsCase{} <- parent, isAnyApp child = False
+
      | L _ HsPar{} <- parent = False
-     | L _ HsDo {} <- parent = False
      | otherwise = True
 
 instance Brackets' (Pat GhcPs) where

@@ -35,6 +35,11 @@ no = ($1)
 yes = (($1)) -- @Warning ($1)
 no = (+5)
 yes = ((+5)) -- @Warning (+5)
+issue909 = case 0 of { _ | n <- (0 :: Int) -> n }
+issue909 = foo (\((x :: z) -> y) -> 9 + x * 7)
+issue909 = foo (\((x : z) -> y) -> 9 + x * 7) -- \(x : z -> y) -> 9 + x * 7
+issue909 = let ((x:: y) -> z) = q in q
+issue909 = do {((x :: y) -> z) <- e; return 1}
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int

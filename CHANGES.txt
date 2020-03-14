@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #909, be more careful about redundant bracket warnings
     #905, match hints even if there is composition to the left
     #904, suggest map/fromMaybe[] becomes maybe [] map
 *   Remove the hse command line argument, to parse a file with HSE
