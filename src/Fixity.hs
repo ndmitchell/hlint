@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 
 module Fixity(
     FixityInfo, Associativity(..),
@@ -49,10 +50,7 @@ fromFixity (name, Fixity _ i dir) = (name, assoc dir, i)
       InfixN -> NotAssociative
 
 toFixitySig :: FixityInfo -> FixitySig GhcPs
-toFixitySig = mkFixitySig . toFixity
-  where
-    mkFixitySig :: (String, Fixity) -> FixitySig GhcPs
-    mkFixitySig (name, x) = FixitySig noExt [noLoc $ mkRdrUnqual (mkVarOcc name)] x
+toFixitySig (toFixity -> (name, x)) = FixitySig noExt [noLoc $ mkRdrUnqual (mkVarOcc name)] x
 
 defaultFixities :: [FixityInfo]
 defaultFixities = map fromFixity $ customFixities ++ baseFixities ++ lensFixities ++ otherFixities
