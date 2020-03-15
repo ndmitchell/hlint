@@ -15,8 +15,7 @@ import Data.List.Extra
 import Data.Maybe
 import Data.Functor
 import HSE.All(CppFlags(..))
-import Language.Haskell.Exts(defaultParseMode, baseLanguage)
-import Language.Haskell.Exts.Extension(Language, knownLanguages, classifyExtension, Extension(..), KnownExtension(..))
+import Language.Haskell.Exts.Extension(Language(Haskell2010), knownLanguages, classifyExtension, Extension(..), KnownExtension(..))
 import Language.Preprocessor.Cpphs
 import System.Console.ANSI(hSupportsANSI)
 import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
@@ -314,7 +313,7 @@ getModule _ _ _ = pure Nothing
 getExtensions :: [String] -> (Language, [Extension])
 getExtensions args = (lang, foldl f (if null langs then parseExtensions else []) exts)
     where
-        lang = if null langs then baseLanguage defaultParseMode else fromJust $ lookup (last langs) ls
+        lang = if null langs then Haskell2010 else fromJust $ lookup (last langs) ls
         (langs, exts) = partition (isJust . flip lookup ls) args
         ls = [(show x, x) | x <- knownLanguages]
 
