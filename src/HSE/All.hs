@@ -156,27 +156,27 @@ ghcFixitiesFromParseFlags ParseFlags {hseFlags=mode} = ghcFixitiesFromParseMode 
 -- These next two functions get called frorm 'Config/Yaml.hs' for user
 -- defined hint rules.
 
+parseModeToFlags :: ParseMode -> GHC.DynFlags
+parseModeToFlags parseMode =
+    flip GHC.lang_set (baseLanguage parseMode) $ foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
+  where
+    (enable, disable) = ghcExtensionsFromParseMode parseMode
+
 parseExpGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LHsExpr HsSyn.GhcPs)
 parseExpGhcWithMode parseMode s =
-  let (enable, disable) = ghcExtensionsFromParseMode parseMode
-      flags = flip GHC.lang_set (baseLanguage parseMode) $ foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
-      fixities = ghcFixitiesFromParseMode parseMode
-  in case parseExpGhcLib s flags of
+  let fixities = ghcFixitiesFromParseMode parseMode
+  in case parseExpGhcLib s $ parseModeToFlags parseMode of
     GHC.POk pst a -> GHC.POk pst (GhclibParserEx.applyFixities fixities a)
     f@GHC.PFailed{} -> f
 
 parseImportDeclGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LImportDecl HsSyn.GhcPs)
 parseImportDeclGhcWithMode parseMode s =
-  let (enable, disable) = ghcExtensionsFromParseMode parseMode
-      flags = flip GHC.lang_set (baseLanguage parseMode) $ foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
-  in parseImportGhcLib s flags
+  parseImportGhcLib s $ parseModeToFlags parseMode
 
 parseDeclGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LHsDecl HsSyn.GhcPs)
 parseDeclGhcWithMode parseMode s =
-  let (enable, disable) = ghcExtensionsFromParseMode parseMode
-      flags = flip GHC.lang_set (baseLanguage parseMode) $ foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
-      fixities = ghcFixitiesFromParseMode parseMode
-  in case parseDeclGhcLib s flags of
+  let fixities = ghcFixitiesFromParseMode parseMode
+  in case parseDeclGhcLib s $ parseModeToFlags parseMode of
     GHC.POk pst a -> GHC.POk pst (GhclibParserEx.applyFixities fixities a)
     f@GHC.PFailed{} -> f
 
