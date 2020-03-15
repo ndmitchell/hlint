@@ -2,12 +2,10 @@
 module Fixity(
     FixityInfo, Associativity(..),
     defaultFixities,
-    toHseFixity, fromHseFixity,
-    fromFixitySig, toFixitySig, toFixity, toHseFixities,
+    fromFixitySig, toFixitySig, toFixity,
     ) where
 
 import GHC.Generics(Associativity(..))
-import qualified Language.Haskell.Exts as HSE (Fixity(..), QName(..), Name(..), Assoc(..), SpecialCon(..))
 import HsBinds
 import HsExtension
 import OccName
@@ -25,27 +23,6 @@ import Language.Haskell.GhclibParserEx.Fixity
 --
 --   Would create @(\"foo\", RightAssociative, 3)
 type FixityInfo = (String, Associativity, Int)
-
-fromHseFixity :: HSE.Fixity -> FixityInfo
-fromHseFixity (HSE.Fixity dir i name) = (g name, f dir, i)
-    where
-        f HSE.AssocLeft{} = LeftAssociative
-        f HSE.AssocRight{} = RightAssociative
-        f HSE.AssocNone{} = NotAssociative
-
-        g :: HSE.QName () -> String
-        g (HSE.Special _ HSE.Cons{}) = ":"
-        g (HSE.Special _ HSE.UnitCon{}) = "()"
-        g (HSE.UnQual _ (HSE.Ident _ x)) = x
-        g (HSE.UnQual _ (HSE.Symbol _ x)) = x
-        g _ = ""
-
-toHseFixity :: FixityInfo -> HSE.Fixity
-toHseFixity (name, dir, i) = HSE.Fixity (f dir) i $ HSE.UnQual () $ HSE.Ident () name
-    where
-        f LeftAssociative = HSE.AssocLeft ()
-        f RightAssociative = HSE.AssocRight ()
-        f NotAssociative = HSE.AssocNone ()
 
 fromFixitySig :: FixitySig GhcPs -> [FixityInfo]
 fromFixitySig (FixitySig _ names (Fixity _ i dir)) =
@@ -77,14 +54,8 @@ toFixitySig = mkFixitySig . toFixity
     mkFixitySig :: (String, Fixity) -> FixitySig GhcPs
     mkFixitySig (name, x) = FixitySig noExt [noLoc $ mkRdrUnqual (mkVarOcc name)] x
 
-toHseFixities :: [(String, Fixity)] -> [HSE.Fixity]
-toHseFixities = map (toHseFixity  . fromFixity)
-
-
-
 defaultFixities :: [FixityInfo]
 defaultFixities = map fromFixity $ customFixities ++ baseFixities ++ lensFixities ++ otherFixities
-
 
 -- List as provided at https://github.com/ndmitchell/hlint/issues/416.
 lensFixities :: [(String, Fixity)]
