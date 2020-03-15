@@ -23,6 +23,7 @@
   - default: false
   - {name: [-Wno-missing-fields, -fno-cse, -O0], within: CmdLine} # for cmdargs
   - {name: [-Wno-incomplete-patterns, -Wno-overlapping-patterns]} # the pattern match checker is not very good
+  - {name: [-Wno-orphans], within: Extension} # At this time we give 'data Extension' an instance for 'Ord'
 
 - modules:
   - {name: [Data.Set, Data.HashSet], as: Set}

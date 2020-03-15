@@ -156,14 +156,14 @@ x = if b1 then v1 else if b2 then v2 else v3 --
 module Hint.Extensions(extensionsHint) where
 
 import Hint.Type(ModuHint, rawIdea',Severity(Warning),Note(..),toSS',ghcAnnotations,ghcModule)
-import HSE.Util(extensionImpliedBy,extensionImplies)
-import Language.Haskell.Exts.Extension(Extension(..), KnownExtension(..), prettyExtension, parseExtension)
+import Extension
 
 import Data.Generics.Uniplate.Operations
 import Control.Monad.Extra
 import Data.List.Extra
 import Data.Ratio
 import Data.Data
+import Data.Maybe
 import Refact.Types
 import qualified Data.Set as Set
 import qualified Data.Map as Map
@@ -181,6 +181,17 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.Types
 import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
+import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
+import GHC.LanguageExtensions.Type
+
+-- Terrible hack.
+readExtension' e =
+  case e of
+   "CPP" -> Just Cpp
+   "NamedFieldPuns" -> Just RecordPuns
+   "Rank2Types" -> Just RankNTypes
+   'N' : 'o' : _ -> Nothing
+   _ ->  GhclibParserEx.readExtension e
 
 extensionsHint :: ModuHint
 extensionsHint _ x =
@@ -188,19 +199,19 @@ extensionsHint _ x =
         sl
         (comment (mkLangExts sl exts))
         (Just newPragma)
-        ( [RequiresExtension $ prettyExtension gone | x <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
-            [ Note $ "Extension " ++ prettyExtension x ++ " is " ++ reason x
+        ( [RequiresExtension (show gone) | x <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
+            [ Note $ "Extension " ++ show x ++ " is " ++ reason x
             | x <- explainedRemovals])
         [ModifyComment (toSS' (mkLangExts sl exts)) newPragma]
     | (L sl _,  exts) <- langExts $ pragmas (ghcAnnotations x)
-    , let before = map parseExtension exts
+    , let before = mapMaybe readExtension' exts
     , let after = filter (`Set.member` keep) before
     , before /= after
     , let explainedRemovals
             | null after && not (any (`Map.member` implied) before) = []
             | otherwise = before \\ after
     , let newPragma =
-            if null after then "" else comment (mkLangExts sl $ map prettyExtension after)
+            if null after then "" else comment (mkLangExts sl $ map show after)
     ]
   where
     usedTH :: Bool
@@ -210,7 +221,7 @@ extensionsHint _ x =
 
     -- All the extensions defined to be used.
     extensions :: Set.Set Extension
-    extensions = Set.fromList [ parseExtension e
+    extensions = Set.fromList $ catMaybes [ readExtension' e
                               | let exts = concatMap snd $ langExts (pragmas (ghcAnnotations x))
                               , e <- exts ]
     -- Those extensions we detect to be useful.
@@ -222,25 +233,27 @@ extensionsHint _ x =
     implied = Map.fromList
         [ (e, a)
         | e <- Set.toList useful
-        , a:_ <- [filter (`Set.member` useful) $ extensionImpliedBy e]]
+        , a:_ <- [filter (`Set.member` useful) $ extensionImpliedEnabledBy e]
+        ]
     -- Those we should keep.
     keep :: Set.Set Extension
     keep =  useful `Set.difference` Map.keysSet implied
     -- The meaning of (a,b) is a used to imply b, but has gone, so
     -- suggest enabling b.
+    disappear :: Map.Map Extension [Extension]
     disappear =
         Map.fromListWith (++) $
         nubOrdOn snd -- Only keep one instance for each of a.
         [ (e, [a])
         | e <- Set.toList $ extensions `Set.difference` keep
-        , a <- extensionImplies e
+        , a <- fst $ extensionImplies e
         , a `Set.notMember` useful
         , usedTH || usedExt a (ghcModule x)
         ]
     reason :: Extension -> String
     reason x =
       case Map.lookup x implied of
-        Just a -> "implied by " ++ prettyExtension a
+        Just a -> "implied by " ++ show a
         Nothing -> "not used"
 
 deriveHaskell = ["Eq","Ord","Enum","Ix","Bounded","Read","Show"]
@@ -257,13 +270,12 @@ deriveStock :: [String]
 deriveStock = deriveHaskell ++ deriveGenerics ++ deriveCategory
 
 usedExt :: Extension -> Located (HsModule GhcPs) -> Bool
-usedExt (EnableExtension x) = used x
-usedExt (UnknownExtension "NumDecimals") = hasS isWholeFrac
-usedExt (UnknownExtension "DeriveLift") = hasDerive ["Lift"]
-usedExt (UnknownExtension "DeriveAnyClass") = not . null . derivesAnyclass . derives
-usedExt _ = const True
+usedExt NumDecimals = hasS isWholeFrac
+usedExt DeriveLift = hasDerive ["Lift"]
+usedExt DeriveAnyClass = not . null . derivesAnyclass . derives
+usedExt x = used x
 
-used :: KnownExtension -> Located (HsModule GhcPs) -> Bool
+used :: Extension -> Located (HsModule GhcPs) -> Bool
 used RecursiveDo = hasS isMDo ||^ hasS isRecStmt
 used ParallelListComp = hasS isParComp
 used FunctionalDependencies = hasT (un :: FunDep (Located RdrName))
@@ -303,10 +315,8 @@ used PatternGuards = hasS f
     g [L _ BodyStmt{}] = False
     g _ = True
 used StandaloneDeriving = hasS isDerivD
-used PatternSignatures = hasS isPatTypeSig
 used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
 used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
-used NamedFieldPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
 used UnboxedTuples = hasS isUnboxedTuple ||^ hasS (== Unboxed) ||^ hasS isDeriving
     where
         -- detect if there are deriving declarations or data ... deriving stuff
@@ -359,9 +369,7 @@ used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
       isPatSynIE :: IEWrappedName RdrName -> Bool
       isPatSynIE IEPattern{} = True
       isPatSynIE _ = False
--- For forwards compatibility, if things ever get added to the
--- extension enumeration.
-used x = usedExt $ UnknownExtension $ show x
+used _= const True
 
 hasDerive :: [String] -> Located (HsModule GhcPs) -> Bool
 hasDerive want = any (`elem` want) . derivesStock' . derives
