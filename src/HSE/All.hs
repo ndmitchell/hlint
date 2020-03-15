@@ -199,7 +199,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
           Right ghcFlags -> do
-            ghcFlags <- return $ GHC.lang_set ghcFlags $ baseLanguage $ hseFlags flags
+            ghcFlags <- pure $ GHC.lang_set ghcFlags $ baseLanguage $ hseFlags flags
             case parseFileGhcLib file ppstr ghcFlags of
                 GHC.POk pst a ->
                     let anns =
