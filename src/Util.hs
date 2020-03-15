@@ -1,22 +1,18 @@
 {-# LANGUAGE ExistentialQuantification, Rank2Types #-}
 
 module Util(
-    defaultExtensions,
-    configExtensions,
     forceList,
     gzip, universeParentBi,
     exitMessage, exitMessageImpure,
     getContentsUTF8
     ) where
 
-import Data.List
 import System.Exit
 import System.IO
 import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.Operations
-import Language.Haskell.Exts.Extension(Extension(..), knownExtensions, KnownExtension(..))
 
 
 ---------------------------------------------------------------------
@@ -68,29 +64,3 @@ universeParent x = (Nothing,x) : f x
 
 universeParentBi :: Biplate a b => a -> [(Maybe b, b)]
 universeParentBi = concatMap universeParent . childrenBi
-
-
----------------------------------------------------------------------
--- LANGUAGE.HASKELL.EXTS.EXTENSION
-
--- | Extensions we turn on by default when parsing. Aim to parse as many files as we can.
-defaultExtensions :: [Extension]
-defaultExtensions = [e | e@EnableExtension{} <- knownExtensions] \\ map EnableExtension badExtensions
-
--- | Extensions we turn on when reading config files, don't have to deal with the whole world
---   of variations - in particular, we might require spaces in some places.
-configExtensions :: [Extension]
-configExtensions = [e | e@EnableExtension{} <- knownExtensions] \\ map EnableExtension reallyBadExtensions
-
-badExtensions = reallyBadExtensions ++
-    [Arrows -- steals proc
-    ,UnboxedTuples, UnboxedSums -- breaks (#) lens operator
-    ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
-    ,DoRec, RecursiveDo -- breaks rec
-    ,TypeApplications -- HSE fails on @ patterns
-    ]
-
-reallyBadExtensions =
-    [TransformListComp -- steals the group keyword
-    ,XmlSyntax, RegularPatterns -- steals a-b and < operators
-    ]

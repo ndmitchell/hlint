@@ -33,6 +33,7 @@ import System.FilePattern
 
 import EmbedData
 import Util
+import Extension
 import Paths_hlint
 import Data.Version
 import Prelude
@@ -312,7 +313,7 @@ getModule _ _ _ = pure Nothing
 
 
 getExtensions :: [String] -> (Maybe Language, [Extension])
-getExtensions args = (lang, foldl f (if null langs then defaultExtensions else []) exts)
+getExtensions args = (lang, foldl f (if null langs then toHseEnabledExtensions defaultExtensions else []) exts)
     where
         lang = if null langs then Nothing else Just $ fromJust $ lookup (last langs) ls
         (langs, exts) = partition (isJust . flip lookup ls) args

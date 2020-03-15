@@ -23,6 +23,7 @@ import qualified Data.Map as Map
 import System.IO.Extra
 import Data.Functor
 import Fixity
+import Extension
 import FastString
 import Prelude
 
@@ -65,7 +66,7 @@ defaultParseMode :: ParseMode
 defaultParseMode =
   ParseMode {
       baseLanguage = Nothing
-    , extensions = defaultExtensions
+    , extensions = toHseEnabledExtensions defaultExtensions
     , fixities = defaultFixities
     }
 
