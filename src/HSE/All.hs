@@ -227,4 +227,4 @@ context :: Int -> String -> String
 context lineNo src =
     unlines $ dropWhileEnd (all isSpace) $ dropWhile (all isSpace) $
     zipWith (++) ticks $ take 5 $ drop (lineNo - 3) $ lines src ++ ["","","","",""]
-    where ticks = ["  ","  ","> ","  ","  "]
+    where ticks = drop (3 - lineNo) ["  ","  ","> ","  ","  "]
