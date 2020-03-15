@@ -92,6 +92,7 @@ library
         Apply
         CmdLine
         Grep
+        Extension
         Fixity
         HLint
         HsColour
