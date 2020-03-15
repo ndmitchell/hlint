@@ -174,7 +174,10 @@ parseDeclGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LHsDecl Hs
 parseDeclGhcWithMode parseMode s =
   let (enable, disable) = ghcExtensionsFromParseMode parseMode
       flags = foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
-  in parseDeclGhcLib s flags
+      fixities = ghcFixitiesFromParseMode parseMode
+  in case parseDeclGhcLib s flags of
+    GHC.POk pst a -> GHC.POk pst (GhclibParserEx.applyFixities fixities a)
+    f@GHC.PFailed{} -> f
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
