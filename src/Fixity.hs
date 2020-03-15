@@ -1,11 +1,9 @@
 
 module Fixity(
     FixityInfo, Associativity(..),
+    defaultFixities,
     toHseFixity, fromHseFixity,
-    fromFixity,
     fromFixitySig, toFixitySig, toFixity, toHseFixities,
-    preludeFixities, baseFixities, -- From GhclibParserEx
-    lensFixities, otherFixities, customFixities
     ) where
 
 import GHC.Generics(Associativity(..))
@@ -81,6 +79,12 @@ toFixitySig = mkFixitySig . toFixity
 
 toHseFixities :: [(String, Fixity)] -> [HSE.Fixity]
 toHseFixities = map (toHseFixity  . fromFixity)
+
+
+
+defaultFixities :: [FixityInfo]
+defaultFixities = map fromFixity $ customFixities ++ baseFixities ++ lensFixities ++ otherFixities
+
 
 -- List as provided at https://github.com/ndmitchell/hlint/issues/416.
 lensFixities :: [(String, Fixity)]
