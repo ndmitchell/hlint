@@ -17,8 +17,7 @@ import Data.Maybe
 import Timing
 import Language.Preprocessor.Cpphs
 import Data.Either
-import Language.Haskell.Exts as HSE.Type
-    ( Language(..), Extension(..), Fixity(..) )
+import Language.Haskell.Exts ( Language(..), Extension(..), Fixity(..) )
 import qualified Data.Map as Map
 import System.IO.Extra
 import Data.Functor
