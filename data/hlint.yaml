@@ -567,8 +567,9 @@
     - hint: {lhs: case m of Nothing -> Nothing; Just x -> x, rhs: Control.Monad.join m}
     - hint: {lhs: maybe Nothing id, rhs: join}
     - hint: {lhs: maybe Nothing f x, rhs: f =<< x}
-    - hint: {lhs: maybe (f x) (f . g), rhs: f . maybe x g, note: IncreasesLaziness, name: Too strict maybe}
-    - hint: {lhs: maybe (f x) f y, rhs: f (Data.Maybe.fromMaybe x y), note: IncreasesLaziness, name: Too strict maybe}
+#    Disabled because the f might be show or similar, see https://github.com/ndmitchell/hlint/issues/881
+#    - hint: {lhs: maybe (f x) (f . g), rhs: f . maybe x g, note: IncreasesLaziness, name: Too strict maybe}
+#    - hint: {lhs: maybe (f x) f y, rhs: f (Data.Maybe.fromMaybe x y), note: IncreasesLaziness, name: Too strict maybe}
     - warn: {lhs: maybe x f (fmap g y), rhs: maybe x (f . g) y, name: Redundant fmap}
     - warn: {lhs: isJust (fmap f x), rhs: isJust x}
     - warn: {lhs: isNothing (fmap f x), rhs: isNothing x}
