@@ -64,7 +64,7 @@ defaultParseMode :: ParseMode
 defaultParseMode =
   ParseMode {
       baseLanguage = Haskell2010
-    , extensions = []
+    , extensions = defaultExtensions
     , fixities = map fromFixity preludeFixities
     }
 
@@ -73,7 +73,6 @@ defaultParseFlags :: ParseFlags
 defaultParseFlags =
   ParseFlags NoCpp defaultParseMode
     { fixities = map fromFixity $ customFixities ++ baseFixities ++ lensFixities ++ otherFixities
-    , extensions = parseExtensions
     }
 
 -- | Given some fixities, add them to the existing fixities in 'ParseFlags'.

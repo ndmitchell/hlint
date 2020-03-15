@@ -311,7 +311,7 @@ getModule _ _ _ = pure Nothing
 
 
 getExtensions :: [String] -> (Language, [Extension])
-getExtensions args = (lang, foldl f (if null langs then parseExtensions else []) exts)
+getExtensions args = (lang, foldl f (if null langs then defaultExtensions else []) exts)
     where
         lang = if null langs then Haskell2010 else fromJust $ lookup (last langs) ls
         (langs, exts) = partition (isJust . flip lookup ls) args

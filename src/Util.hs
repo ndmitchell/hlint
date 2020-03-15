@@ -1,7 +1,7 @@
 {-# LANGUAGE ExistentialQuantification, Rank2Types #-}
 
 module Util(
-    parseExtensions,
+    defaultExtensions,
     configExtensions,
     forceList,
     gzip, universeParentBi,
@@ -74,8 +74,8 @@ universeParentBi = concatMap universeParent . childrenBi
 -- LANGUAGE.HASKELL.EXTS.EXTENSION
 
 -- | Extensions we turn on by default when parsing. Aim to parse as many files as we can.
-parseExtensions :: [Extension]
-parseExtensions = [e | e@EnableExtension{} <- knownExtensions] \\ map EnableExtension badExtensions
+defaultExtensions :: [Extension]
+defaultExtensions = [e | e@EnableExtension{} <- knownExtensions] \\ map EnableExtension badExtensions
 
 -- | Extensions we turn on when reading config files, don't have to deal with the whole world
 --   of variations - in particular, we might require spaces in some places.
