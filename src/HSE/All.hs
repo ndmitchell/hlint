@@ -17,7 +17,7 @@ import Data.Maybe
 import Timing
 import Language.Preprocessor.Cpphs
 import Data.Either
-import Language.Haskell.Exts ( Language(..), Extension(..), Fixity(..) )
+import Language.Haskell.Exts ( Language(..), Extension(..))
 import qualified Data.Map as Map
 import System.IO.Extra
 import Data.Functor
@@ -57,7 +57,7 @@ data ParseMode = ParseMode {
         -- | list of extensions enabled for parsing
         extensions :: [Extension],
         -- | list of fixities to be aware of
-        fixities :: Maybe [Fixity]
+        fixities :: Maybe [FixityInfo]
         }
 
 defaultParseMode :: ParseMode
@@ -65,20 +65,20 @@ defaultParseMode =
   ParseMode {
       baseLanguage = Haskell2010
     , extensions = []
-    , fixities = Just $ toHseFixities preludeFixities
+    , fixities = Just $ map fromFixity preludeFixities
     }
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
 defaultParseFlags =
   ParseFlags NoCpp defaultParseMode
-    { fixities = Just $ toHseFixities (customFixities ++ baseFixities ++ lensFixities ++ otherFixities)
+    { fixities = Just $ map fromFixity $ customFixities ++ baseFixities ++ lensFixities ++ otherFixities
     , extensions = parseExtensions
     }
 
 -- | Given some fixities, add them to the existing fixities in 'ParseFlags'.
 parseFlagsAddFixities :: [FixityInfo] -> ParseFlags -> ParseFlags
-parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = Just $ map toHseFixity fx ++ fromMaybe [] (fixities hse)}}
+parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = Just $ fx ++ fromMaybe [] (fixities hse)}}
     where hse = hseFlags x
 
 parseFlagsSetLanguage :: (Language, [Extension]) -> ParseFlags -> ParseFlags
@@ -132,7 +132,7 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
 -- A hacky function to get fixities from HSE parse flags suitable for
 -- use by our own 'GHC.Util.Refact.Fixity' module.
 ghcFixitiesFromParseMode :: ParseMode -> [(String, GHC.Fixity)]
-ghcFixitiesFromParseMode = maybe [] (map (toFixity . fromHseFixity)) . fixities
+ghcFixitiesFromParseMode = maybe [] (map toFixity) . fixities
 
 
 -- GHC enabled/disabled extensions given an HSE parse mode.

@@ -2,6 +2,7 @@
 module Fixity(
     FixityInfo, Associativity(..),
     toHseFixity, fromHseFixity,
+    fromFixity,
     fromFixitySig, toFixitySig, toFixity, toHseFixities,
     preludeFixities, baseFixities, -- From GhclibParserEx
     lensFixities, otherFixities, customFixities
