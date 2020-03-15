@@ -17,7 +17,8 @@ import Data.Maybe
 import Timing
 import Language.Preprocessor.Cpphs
 import Data.Either
-import Language.Haskell.Exts ( Language(..), Extension(..))
+import Language.Haskell.Exts ( Extension(..))
+import DynFlags(Language(..))
 import qualified Data.Map as Map
 import System.IO.Extra
 import Data.Functor
@@ -53,7 +54,7 @@ data ParseFlags = ParseFlags
 
 data ParseMode = ParseMode {
         -- | base language (e.g. Haskell98, Haskell2010)
-        baseLanguage :: Language,
+        baseLanguage :: Maybe Language,
         -- | list of extensions enabled for parsing
         extensions :: [Extension],
         -- | list of fixities to be aware of
@@ -63,7 +64,7 @@ data ParseMode = ParseMode {
 defaultParseMode :: ParseMode
 defaultParseMode =
   ParseMode {
-      baseLanguage = Haskell2010
+      baseLanguage = Nothing
     , extensions = defaultExtensions
     , fixities = defaultFixities
     }
@@ -77,7 +78,7 @@ parseFlagsAddFixities :: [FixityInfo] -> ParseFlags -> ParseFlags
 parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = fx ++ fixities hse}}
     where hse = hseFlags x
 
-parseFlagsSetLanguage :: (Language, [Extension]) -> ParseFlags -> ParseFlags
+parseFlagsSetLanguage :: (Maybe Language, [Extension]) -> ParseFlags -> ParseFlags
 parseFlagsSetLanguage (l, es) x = x{hseFlags=(hseFlags x){baseLanguage = l, extensions = es}}
 
 
@@ -158,7 +159,7 @@ ghcFixitiesFromParseFlags ParseFlags {hseFlags=mode} = ghcFixitiesFromParseMode 
 parseExpGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LHsExpr HsSyn.GhcPs)
 parseExpGhcWithMode parseMode s =
   let (enable, disable) = ghcExtensionsFromParseMode parseMode
-      flags = foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
+      flags = flip GHC.lang_set (baseLanguage parseMode) $ foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
       fixities = ghcFixitiesFromParseMode parseMode
   in case parseExpGhcLib s flags of
     GHC.POk pst a -> GHC.POk pst (GhclibParserEx.applyFixities fixities a)
@@ -167,13 +168,13 @@ parseExpGhcWithMode parseMode s =
 parseImportDeclGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LImportDecl HsSyn.GhcPs)
 parseImportDeclGhcWithMode parseMode s =
   let (enable, disable) = ghcExtensionsFromParseMode parseMode
-      flags = foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
+      flags = flip GHC.lang_set (baseLanguage parseMode) $ foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
   in parseImportGhcLib s flags
 
 parseDeclGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LHsDecl HsSyn.GhcPs)
 parseDeclGhcWithMode parseMode s =
   let (enable, disable) = ghcExtensionsFromParseMode parseMode
-      flags = foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
+      flags = flip GHC.lang_set (baseLanguage parseMode) $ foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
       fixities = ghcFixitiesFromParseMode parseMode
   in case parseDeclGhcLib s flags of
     GHC.POk pst a -> GHC.POk pst (GhclibParserEx.applyFixities fixities a)
@@ -196,7 +197,8 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             fixities = ghcFixitiesFromParseFlags flags -- Note : Fixities are coming from HSE parse flags.
         dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
-          Right ghcFlags ->
+          Right ghcFlags -> do
+            ghcflags <- return $ flip GHC.lang_set (baseLanguage $ hseFlags flags) ghcFlags
             case parseFileGhcLib file ppstr ghcFlags of
                 GHC.POk pst a ->
                     let anns =

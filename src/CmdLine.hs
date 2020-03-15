@@ -15,7 +15,8 @@ import Data.List.Extra
 import Data.Maybe
 import Data.Functor
 import HSE.All(CppFlags(..))
-import Language.Haskell.Exts.Extension(Language(Haskell2010), knownLanguages, classifyExtension, Extension(..), KnownExtension(..))
+import DynFlags(Language(..))
+import Language.Haskell.Exts.Extension(classifyExtension, Extension(..), KnownExtension(..))
 import Language.Preprocessor.Cpphs
 import System.Console.ANSI(hSupportsANSI)
 import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
@@ -226,7 +227,7 @@ cmdHintFiles cmd = do
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
 
-cmdExtensions :: Cmd -> (Language, [Extension])
+cmdExtensions :: Cmd -> (Maybe Language, [Extension])
 cmdExtensions = getExtensions . cmdLanguage
 
 
@@ -310,12 +311,12 @@ getModule path exts x | not (any isSpace x) && all isMod xs = f exts
 getModule _ _ _ = pure Nothing
 
 
-getExtensions :: [String] -> (Language, [Extension])
+getExtensions :: [String] -> (Maybe Language, [Extension])
 getExtensions args = (lang, foldl f (if null langs then defaultExtensions else []) exts)
     where
-        lang = if null langs then Haskell2010 else fromJust $ lookup (last langs) ls
+        lang = if null langs then Nothing else Just $ fromJust $ lookup (last langs) ls
         (langs, exts) = partition (isJust . flip lookup ls) args
-        ls = [(show x, x) | x <- knownLanguages]
+        ls = [(show x, x) | x <- [Haskell98, Haskell2010]]
 
         f a "Haskell98" = []
         f a ('N':'o':x) | Just x <- readExtension x = delete x a
