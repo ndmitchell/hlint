@@ -34,7 +34,7 @@ test CmdTest{..} main dataDir files = do
 
     (failures, ideas) <- withBuffering stdout NoBuffering $ withTests $ do
         hasSrc <- liftIO $ doesFileExist "hlint.cabal"
-        useSrc <- pure $ hasSrc && null files
+        let useSrc = hasSrc && null files
         testFiles <- if files /= [] then pure files else do
             xs <- liftIO $ getDirectoryContents dataDir
             pure [dataDir </> x | x <- xs, takeExtension x `elem` [".yml",".yaml"]]
