@@ -163,11 +163,11 @@ import Control.Monad.Extra
 import Data.List.Extra
 import Data.Ratio
 import Data.Data
-import Data.Maybe
 import Refact.Types
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 
+import DynFlags
 import SrcLoc
 import HsSyn
 import BasicTypes
@@ -175,23 +175,14 @@ import Class
 import RdrName
 import OccName
 import ForeignCall
+
 import GHC.Util
+import GHC.LanguageExtensions.Type
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.Types
 import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
-import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
-import GHC.LanguageExtensions.Type
-
--- Terrible hack.
-readExtension' e =
-  case e of
-   "CPP" -> Just Cpp
-   "NamedFieldPuns" -> Just RecordPuns
-   "Rank2Types" -> Just RankNTypes
-   'N' : 'o' : _ -> Nothing
-   _ ->  GhclibParserEx.readExtension e
 
 extensionsHint :: ModuHint
 extensionsHint _ x =
@@ -204,7 +195,7 @@ extensionsHint _ x =
             | x <- explainedRemovals])
         [ModifyComment (toSS' (mkLangExts sl exts)) newPragma]
     | (L sl _,  exts) <- langExts $ pragmas (ghcAnnotations x)
-    , let before = mapMaybe readExtension' exts
+    , let before = map lookupExt (filterEnabled exts)
     , let after = filter (`Set.member` keep) before
     , before /= after
     , let explainedRemovals
@@ -214,6 +205,23 @@ extensionsHint _ x =
             if null after then "" else comment (mkLangExts sl $ map show after)
     ]
   where
+    filterEnabled :: [String] -> [String]
+    filterEnabled  = filter (not . isPrefixOf "No")
+
+    lookupExt :: String -> Extension
+    lookupExt s =
+      case find (\(FlagSpec n _ _ _) -> n == s) xFlags of
+        Just f -> flagSpecFlag f
+        Nothing ->
+          -- Validity checking of extensions happens when the parse
+          -- tree is constructed (via 'getOptions' called from
+          -- 'parsePragmasIntoDynFlags'). If an invalid extension is
+          -- encountered, it results in a parse error (see
+          -- tests/ignore-parse-error3.hs in
+          -- 'tests/parse-error.test'). Thus we are assured that the
+          -- argument 's' must be in 'xFlags' and this case impossible.
+          error ("IMPOSSIBLE: Unrecognized language extension '" ++ s ++ "'")
+
     usedTH :: Bool
     usedTH = used TemplateHaskell (ghcModule x) || used QuasiQuotes (ghcModule x)
       -- If TH or QuasiQuotes is on, can use all other extensions
@@ -221,9 +229,10 @@ extensionsHint _ x =
 
     -- All the extensions defined to be used.
     extensions :: Set.Set Extension
-    extensions = Set.fromList $ catMaybes [ readExtension' e
-                              | let exts = concatMap snd $ langExts (pragmas (ghcAnnotations x))
+    extensions = Set.fromList $ [ lookupExt e
+                              | let exts = concatMap (filterEnabled . snd) $ langExts (pragmas (ghcAnnotations x))
                               , e <- exts ]
+
     -- Those extensions we detect to be useful.
     useful :: Set.Set Extension
     useful = if usedTH then extensions else Set.filter (`usedExt` ghcModule x) extensions

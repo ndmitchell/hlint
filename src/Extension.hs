@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans #-} -- Yes, I know.
 module Extension(
   defaultExtensions,
   configExtensions,
@@ -14,7 +13,6 @@ import Data.Maybe
 import qualified Language.Haskell.Exts.Extension as HSE
 import GHC.LanguageExtensions.Type
 import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
-import Data.Function
 
 badExtensions =
   reallyBadExtensions ++
@@ -47,10 +45,6 @@ toHseEnabledExtensions :: [Extension] -> [HSE.Extension]
 toHseEnabledExtensions = mapMaybe ((HSE.EnableExtension <$>) . readMaybe . show')
   where
     show' e = if ex == "Cpp" then "CPP" else ex where ex = show e
-
--- Oprhan instance. Bad.
-instance Ord Extension where
-  compare = compare `on` show
 
 -- | This extension implies the following extensions are
 -- enabled/disabled.
