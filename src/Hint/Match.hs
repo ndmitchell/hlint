@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards, NamedFieldPuns, TupleSections #-}
-{-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts #-}
 
 {-
 The matching does a fairly simple unification between the two terms, treating

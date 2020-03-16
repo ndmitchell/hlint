@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, ScopedTypeVariables, TupleSections #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, TupleSections #-}
 module Config.Haskell(
     readPragma,
     readComment
