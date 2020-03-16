@@ -1,14 +1,18 @@
 module Extension(
   defaultExtensions,
   configExtensions,
-  toHseEnabledExtensions
+  toHseEnabledExtensions,
+  extensionImpliedEnabledBy,
+  extensionImplies
   ) where
 
 import Text.Read
 import Data.List.Extra
+import qualified Data.Map as Map
 import Data.Maybe
 import qualified Language.Haskell.Exts.Extension as HSE
 import GHC.LanguageExtensions.Type
+import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 
 badExtensions =
   reallyBadExtensions ++
@@ -41,3 +45,26 @@ toHseEnabledExtensions :: [Extension] -> [HSE.Extension]
 toHseEnabledExtensions = mapMaybe ((HSE.EnableExtension <$>) . readMaybe . show')
   where
     show' e = if ex == "Cpp" then "CPP" else ex where ex = show e
+
+-- | This extension implies the following extensions are
+-- enabled/disabled.
+extensionImplies :: Extension -> ([Extension], [Extension])
+extensionImplies = \x ->Map.findWithDefault ([], []) x mp
+  where mp = Map.fromList extensionImplications
+
+-- 'x' is implied enabled by the result extensions.
+extensionImpliedEnabledBy :: Extension -> [Extension]
+extensionImpliedEnabledBy = \x -> Map.findWithDefault [] x mp
+  where
+    mp = Map.fromListWith (++) [(b, [a]) | (a, (bs, _)) <- extensionImplications, b <- bs]
+
+-- 'x' is implied disabled by the result extensions. Not called at this time.
+_extensionImpliedDisabledBy :: Extension -> [Extension]
+_extensionImpliedDisabledBy = \x -> Map.findWithDefault [] x mp
+  where
+    mp = Map.fromListWith (++) [(b, [a]) | (a, (_, bs)) <- extensionImplications, b <- bs]
+
+-- | (a, bs) means extension a implies all of bs. Uses GHC source at
+-- DynFlags.impliedXFlags
+extensionImplications :: [(Extension, ([Extension], [Extension]))]
+extensionImplications = GhclibParserEx.extensionImplications

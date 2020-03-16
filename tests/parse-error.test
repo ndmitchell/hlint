@@ -19,3 +19,12 @@ Found:
   > where
 
 1 hint
+---------------------------------------------------------------------
+RUN tests/ignore-parse-error3.hs
+FILE tests/ignore-parse-error3.hs
+{-# LANGUAGE InvalidExtension #-}
+OUTPUT
+tests/ignore-parse-error3.hs:1:1: Error: Parse error
+Found you should remove it.
+
+1 hint
