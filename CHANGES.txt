@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #916, warn on unused InstanceSigs
     Improve parse error context messages
 *   Most parse errors are fixed
     #881, disable hints about maybe that are sometimes wrong
