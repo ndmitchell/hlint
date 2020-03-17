@@ -350,7 +350,7 @@ used ViewPatterns = hasS isPViewPat
 used InstanceSigs = hasS f
   where
     f :: HsDecl GhcPs -> Bool
-    f (InstD _ decl) | hasT (un :: Sig GhcPs) decl = True
+    f (InstD _ decl) = hasT (un :: Sig GhcPs) decl
     f _ = False
 used DefaultSignatures = hasS isClsDefSig
 used DeriveDataTypeable = hasDerive ["Data","Typeable"]
