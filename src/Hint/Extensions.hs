@@ -78,6 +78,13 @@ f :: x -> (x, x); f x = (x, x) --
 f x = case x of (# a, b #) -> a
 {-# LANGUAGE GeneralizedNewtypeDeriving,UnboxedTuples #-} \
 newtype T m a = T (m a) deriving (PrimMonad)
+{-# LANGUAGE InstanceSigs #-} \
+instance Eq a => Eq (T a) where \
+  (==) :: T a -> T a -> Bool \
+  (==) (T x) (T y) = x==y
+{-# LANGUAGE InstanceSigs #-} \
+instance Eq a => Eq (T a) where \
+  (==) (T x) (T y) = x==y --
 {-# LANGUAGE DefaultSignatures #-} \
 class Val a where; val :: a --
 {-# LANGUAGE DefaultSignatures #-} \
@@ -340,6 +347,11 @@ used PackageImports = hasS f
         f _ = False
 used QuasiQuotes = hasS isQuasiQuote ||^ hasS isTyQuasiQuote
 used ViewPatterns = hasS isPViewPat
+used InstanceSigs = hasS f
+  where
+    f :: HsDecl GhcPs -> Bool
+    f (InstD _ decl) = hasT (un :: Sig GhcPs) decl
+    f _ = False
 used DefaultSignatures = hasS isClsDefSig
 used DeriveDataTypeable = hasDerive ["Data","Typeable"]
 used DeriveFunctor = hasDerive ["Functor"]
