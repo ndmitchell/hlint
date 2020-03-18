@@ -241,8 +241,8 @@
     - warn: {lhs: foldMap id, rhs: fold}
     - warn: {lhs: fold (fmap f x), rhs: foldMap f x}
     - warn: {lhs: fold (map f x), rhs: foldMap f x}
-    - warn: {lhs: foldMap f (fmap g x), rhs: foldMap (f . g) x}
-    - warn: {lhs: foldMap f (map g x), rhs: foldMap (f . g) x}
+    - warn: {lhs: foldMap f (fmap g x), rhs: foldMap (f . g) x, name: Fuse foldMap/fmap}
+    - warn: {lhs: foldMap f (map g x), rhs: foldMap (f . g) x, name: Fuse foldMap/map}
 
     # BY
 
