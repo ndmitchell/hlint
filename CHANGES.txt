@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #918, warn on unused TypeOperators
     #916, warn on unused InstanceSigs
     Improve parse error context messages
 *   Most parse errors are fixed
