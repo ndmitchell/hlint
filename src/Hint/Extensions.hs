@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase, NamedFieldPuns #-}
 
 {-
     Suggest removal of unnecessary extensions
@@ -33,6 +33,33 @@ data Set (cxt :: * -> *) a = Set [a]
 foo x = let !y = x in y
 {-# LANGUAGE BangPatterns #-} \
 data Foo = Foo !Int --
+{-# LANGUAGE TypeOperators #-} \
+data (<+>) a b = Foo a b
+{-# LANGUAGE TypeOperators #-} \
+data Foo a b = a :+ b --
+{-# LANGUAGE TypeOperators #-} \
+type (<+>) a b = Foo a b
+{-# LANGUAGE TypeOperators #-} \
+type Foo a b = a :+ b
+{-# LANGUAGE TypeOperators, TypeFamilies #-} \
+type family Foo a b :: Type where Foo a b = a :+ b
+{-# LANGUAGE TypeOperators, TypeFamilies #-} \
+type family Foo a b :: Type where Foo a b = (<+>) a b -- {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators, TypeFamilies #-} \
+class Foo a where data (<+>) a
+{-# LANGUAGE TypeOperators, TypeFamilies #-} \
+class Foo a where foo :: a -> Int <+> Bool
+{-# LANGUAGE TypeOperators #-} \
+class (<+>) a where
+{-# LANGUAGE TypeOperators #-} \
+foo :: Int -> Double <+> Bool \
+foo x = y
+{-# LANGUAGE TypeOperators #-} \
+foo :: Int -> (<+>) Double Bool \
+foo x = y --
+{-# LANGUAGE TypeOperators #-} \
+(<+>) :: Int -> Int -> Int \
+x <+> y = x + y --
 {-# LANGUAGE RecordWildCards #-} \
 record field = Record{..}
 {-# LANGUAGE RecordWildCards #-} \
@@ -167,6 +194,7 @@ import Extension
 
 import Data.Generics.Uniplate.Operations
 import Control.Monad.Extra
+import Data.Char
 import Data.List.Extra
 import Data.Ratio
 import Data.Data
@@ -331,6 +359,24 @@ used PatternGuards = hasS f
     g [L _ BodyStmt{}] = False
     g _ = True
 used StandaloneDeriving = hasS isDerivD
+used TypeOperators = hasS tyOpInSig ||^ hasS tyOpInDecl
+  where
+    tyOpInSig :: HsType GhcPs -> Bool
+    tyOpInSig = \case
+      HsOpTy{} -> True; _ -> False
+
+    tyOpInDecl :: HsDecl GhcPs -> Bool
+    tyOpInDecl = \case
+      (TyClD _ (FamDecl _ FamilyDecl{fdLName})) -> isOp fdLName
+      (TyClD _ SynDecl{tcdLName}) -> isOp tcdLName
+      (TyClD _ DataDecl{tcdLName}) -> isOp tcdLName
+      (TyClD _ ClassDecl{tcdLName, tcdATs}) -> any isOp (tcdLName : [fdLName famDecl | L _ famDecl <- tcdATs])
+      _ -> False
+
+    isOp :: LIdP GhcPs -> Bool
+    isOp name = case occNameString (rdrNameOcc (unLoc name)) of
+      (c:_) -> not $ isAlpha c || c == '_'
+      _ -> False
 used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
 used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
 used UnboxedTuples = hasS isUnboxedTuple ||^ hasS (== Unboxed) ||^ hasS isDeriving
