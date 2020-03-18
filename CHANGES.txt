@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #919, more specific names for foldMap fusion rules
     #918, warn on unused TypeOperators
     #916, warn on unused InstanceSigs
     Improve parse error context messages
