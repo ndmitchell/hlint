@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #922, reduce the span of "Redundant do" to only cover the "do"
     #919, more specific names for foldMap fusion rules
     #918, warn on unused TypeOperators
     #916, warn on unused InstanceSigs
