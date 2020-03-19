@@ -3,7 +3,12 @@ RUN "--ignore=Parse error" tests/ignore-parse-error.hs
 FILE tests/ignore-parse-error.hs
 where
 OUTPUT
-No hints
+tests/ignore-parse-error.hs:1:1-5: Error: tests/ignore-parse-error.hs:1:1: error:
+    parse error on input `where'
+Found:
+  > where
+
+1 hint
 
 ---------------------------------------------------------------------
 RUN tests/ignore-parse-error2.hs
@@ -12,7 +17,8 @@ module Foo where
 
 where
 OUTPUT
-tests/ignore-parse-error2.hs:3:1-5: Error: Parse error
+tests/ignore-parse-error2.hs:3:1-5: Error: tests/ignore-parse-error2.hs:3:1: error:
+    parse error on input `where'
 Found:
     module Foo where
 
@@ -24,7 +30,9 @@ RUN tests/ignore-parse-error3.hs
 FILE tests/ignore-parse-error3.hs
 {-# LANGUAGE InvalidExtension #-}
 OUTPUT
-tests/ignore-parse-error3.hs:1:1: Error: Parse error
-Found you should remove it.
+tests/ignore-parse-error3.hs:1:1: Error: Unsupported extension: InvalidExtension
+
+Found:
+  {-# LANGUAGE InvalidExtension #-}
 
 1 hint

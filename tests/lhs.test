@@ -25,7 +25,8 @@ BUG 331
 module
 \end{code}
 OUTPUT
-tests/lhs-line-numbers2.lhs:10:1: Error: Parse error
+tests/lhs-line-numbers2.lhs:10:1: Error: tests/lhs-line-numbers2.lhs:10:1: error:
+    parse error (possibly incorrect indentation or mismatched brackets)
 Found:
     \end{code}
 
