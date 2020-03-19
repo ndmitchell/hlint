@@ -219,7 +219,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             -- location so we skip that for now. Synthesize a parse
             -- error.
             let loc = GHC.mkSrcLoc (mkFastString file) (1 :: Int) (1 :: Int)
-            pure $ Left (ParseError (GHC.mkSrcSpan loc loc) msg "")
+            pure $ Left (ParseError (GHC.mkSrcSpan loc loc) msg ppstr)
 
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
