@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts #-}
+{-# LANGUAGE LambdaCase, ViewPatterns, PatternGuards, FlexibleContexts #-}
 {-
     Find and match:
 
@@ -55,7 +55,7 @@ main = do a; when b c; return () -- do a; when b c
 
 module Hint.Monad(monadHint) where
 
-import Hint.Type(DeclHint',Idea,ideaNote,warn',toSS',suggest',Note(Note))
+import Hint.Type(DeclHint',Idea(..),ideaNote,warn',toSS',suggest',Note(Note))
 
 import HsSyn
 import SrcLoc
@@ -89,7 +89,9 @@ monadExp (declName -> decl) (parent, x) =
     (view' -> App2' op x1 (view' -> LamConst1' _)) | isTag ">>=" op -> f x1
     (L l (HsApp _ op x)) | isTag "void" op -> seenVoid (cL l . HsApp noExt op) x
     (L l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (cL l . OpApp noExt op dol) x
-    (L loc (HsDo _ _ (L _ [L _ (BodyStmt _ y _ _ )]))) -> [warn' "Redundant do" x y [Replace Expr (toSS' x) [("y", toSS' y)] "y"] | not $ doOperator parent y]
+    (L loc (HsDo _ ctx (L loc2 [L loc3 (BodyStmt _ y _ _ )]))) ->
+      let idea = warn' "Redundant do" x y [Replace Expr (toSS' x) [("y", toSS' y)] "y"]
+       in [idea{ideaSpan = doSrcSpan ctx loc} | not $ doOperator parent y]
     (L loc (HsDo _ DoExpr (L _ xs))) ->
       monadSteps (cL loc . HsDo noExt DoExpr . noLoc) xs ++
       [suggest' "Use let" x (cL loc (HsDo noExt DoExpr (noLoc y)) :: LHsExpr GhcPs) rs | Just (y, rs) <- [monadLet xs]] ++
@@ -99,6 +101,13 @@ monadExp (declName -> decl) (parent, x) =
   where
     f = monadNoResult (fromMaybe "" decl) id
     seenVoid wrap x = monadNoResult (fromMaybe "" decl) wrap x ++ [warn' "Redundant void" (wrap x) x [] | returnsUnit x]
+    doSrcSpan ctx = \case
+      UnhelpfulSpan s -> UnhelpfulSpan s
+      RealSrcSpan rss ->
+        let start = realSrcSpanStart rss
+            len = case ctx of MDoExpr -> 3; _ -> 2
+            end = mkRealSrcLoc (srcSpanFile rss) (srcLocLine start) (srcLocCol start + len)
+         in RealSrcSpan (mkRealSrcSpan start end)
 
 -- Sometimes people write 'a * do a + b', to avoid brackets.
 -- or using BlockArguments they can write 'a do a b'
