@@ -1,16 +1,12 @@
 module Extension(
   defaultExtensions,
   configExtensions,
-  toHseEnabledExtensions,
   extensionImpliedEnabledBy,
   extensionImplies
   ) where
 
-import Text.Read
 import Data.List.Extra
 import qualified Data.Map as Map
-import Data.Maybe
-import qualified Language.Haskell.Exts.Extension as HSE
 import GHC.LanguageExtensions.Type
 import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 
@@ -26,6 +22,8 @@ badExtensions =
 reallyBadExtensions =
   [ TransformListComp -- steals the group keyword
   {- , XmlSyntax , RegularPatterns -} -- steals a-b and < operators
+  , AlternativeLayoutRule -- Does not play well with 'MultiWayIf'
+  , NegativeLiterals -- Was not enabled by HSE and enabling breaks tests.
   ]
 
 -- | Extensions we turn on by default when parsing. Aim to parse as
@@ -37,14 +35,6 @@ defaultExtensions = enumerate \\ badExtensions
 --   of variations - in particular, we might require spaces in some places.
 configExtensions :: [Extension]
 configExtensions = enumerate \\ reallyBadExtensions
-
--- Note that this silenty ignores extensions that HSE doesn't
--- know. This function won't be here for much longer so shouldn't be a
--- problem.
-toHseEnabledExtensions :: [Extension] -> [HSE.Extension]
-toHseEnabledExtensions = mapMaybe ((HSE.EnableExtension <$>) . readMaybe . show')
-  where
-    show' e = if ex == "Cpp" then "CPP" else ex where ex = show e
 
 -- | This extension implies the following extensions are
 -- enabled/disabled.

@@ -32,7 +32,6 @@
 module Hint.Pragma(pragmaHint) where
 
 import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),toSS',rawIdea')
-import Language.Haskell.Exts(prettyExtension,glasgowExts)
 import Data.List.Extra
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
@@ -43,6 +42,7 @@ import ApiAnnotation
 import SrcLoc
 
 import GHC.Util
+import DynFlags
 
 pragmaHint :: ModuHint
 pragmaHint _ modu =
@@ -110,7 +110,7 @@ languageDupes _ = []
 strToLanguage :: String -> Maybe [String]
 strToLanguage "-cpp" = Just ["CPP"]
 strToLanguage x | "-X" `isPrefixOf` x = Just [drop 2 x]
-strToLanguage "-fglasgow-exts" = Just $ map prettyExtension glasgowExts
+strToLanguage "-fglasgow-exts" = Just $ map show glasgowExtsFlags
 strToLanguage _ = Nothing
 
 -- In 'optToLanguage p langexts', 'p' is an 'OPTIONS_GHC' pragma,

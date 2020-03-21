@@ -17,7 +17,6 @@ import Data.Maybe
 import Timing
 import Language.Preprocessor.Cpphs
 import Data.Either
-import Language.Haskell.Exts ( Extension(..))
 import DynFlags(Language(..))
 import qualified Data.Map as Map
 import System.IO.Extra
@@ -32,14 +31,13 @@ import qualified SrcLoc as GHC
 import qualified ErrUtils
 import qualified Outputable
 import qualified Lexer as GHC
-import qualified GHC.LanguageExtensions.Type as GHC
+import GHC.LanguageExtensions.Type
 import qualified ApiAnnotation as GHC
 import qualified BasicTypes as GHC
 import qualified DynFlags as GHC
 
 import GHC.Util (parsePragmasIntoDynFlags, parseFileGhcLib, parseExpGhcLib, parseDeclGhcLib, parseImportGhcLib, baseDynFlags)
 import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
-import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
 
 -- | What C pre processor should be used.
 data CppFlags
@@ -66,7 +64,7 @@ defaultParseMode :: ParseMode
 defaultParseMode =
   ParseMode {
       baseLanguage = Nothing
-    , extensions = toHseEnabledExtensions defaultExtensions
+    , extensions = defaultExtensions
     , fixities = defaultFixities
     }
 
@@ -134,20 +132,11 @@ ghcFixitiesFromParseMode = map toFixity . fixities
 
 
 -- GHC enabled/disabled extensions given an HSE parse mode.
-ghcExtensionsFromParseMode :: ParseMode
-                           -> ([GHC.Extension], [GHC.Extension])
-ghcExtensionsFromParseMode ParseMode {extensions=exts}=
-   partitionEithers $ mapMaybe toEither exts
-   where
-     toEither ke = case ke of
-       EnableExtension e  -> Left  <$> GhclibParserEx.readExtension (show e)
-       DisableExtension e -> Right <$> GhclibParserEx.readExtension (show e)
-       UnknownExtension ('N':'o':e) -> Right <$> GhclibParserEx.readExtension e
-       UnknownExtension e -> Left <$> GhclibParserEx.readExtension e
+ghcExtensionsFromParseMode :: ParseMode -> ([Extension], [Extension])
+ghcExtensionsFromParseMode ParseMode {extensions=exts}= (exts, [])
 
 -- GHC extensions to enable/disable given HSE parse flags.
-ghcExtensionsFromParseFlags :: ParseFlags
-                             -> ([GHC.Extension], [GHC.Extension])
+ghcExtensionsFromParseFlags :: ParseFlags -> ([Extension], [Extension])
 ghcExtensionsFromParseFlags ParseFlags {hseFlags=mode} = ghcExtensionsFromParseMode mode
 
 -- GHC fixities given HSE parse flags.
