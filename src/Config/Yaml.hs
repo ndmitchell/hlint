@@ -163,7 +163,7 @@ allowFields v allow = do
 parseGHC :: (ParseMode -> String -> GHC.ParseResult v) -> Val -> Parser v
 parseGHC parser v = do
     x <- parseString v
-    case parser defaultParseMode{extensions=toHseEnabledExtensions configExtensions} x of
+    case parser defaultParseMode{extensions=configExtensions} x of
         GHC.POk _ x -> pure x
         GHC.PFailed _ loc err ->
           let msg = Outputable.showSDoc baseDynFlags $

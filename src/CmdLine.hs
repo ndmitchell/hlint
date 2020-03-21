@@ -15,8 +15,9 @@ import Data.List.Extra
 import Data.Maybe
 import Data.Functor
 import HSE.All(CppFlags(..))
-import DynFlags(Language(..))
-import Language.Haskell.Exts.Extension(classifyExtension, Extension(..), KnownExtension(..))
+import GHC.LanguageExtensions.Type
+import DynFlags hiding (verbosity)
+
 import Language.Preprocessor.Cpphs
 import System.Console.ANSI(hSupportsANSI)
 import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
@@ -235,7 +236,7 @@ cmdExtensions = getExtensions . cmdLanguage
 cmdCpp :: Cmd -> CppFlags
 cmdCpp cmd
     | cmdCppSimple cmd = CppSimple
-    | EnableExtension CPP `elem` snd (cmdExtensions cmd) = Cpphs defaultCpphsOptions
+    | Cpp `elem` snd (cmdExtensions cmd) = Cpphs defaultCpphsOptions
         {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi cmd}
         ,includes = cmdCppInclude cmd
         ,preInclude = cmdCppFile cmd
@@ -313,7 +314,7 @@ getModule _ _ _ = pure Nothing
 
 
 getExtensions :: [String] -> (Maybe Language, [Extension])
-getExtensions args = (lang, foldl f (if null langs then toHseEnabledExtensions defaultExtensions else []) exts)
+getExtensions args = (lang, foldl f (if null langs then defaultExtensions else []) exts)
     where
         lang = if null langs then Nothing else Just $ fromJust $ lookup (last langs) ls
         (langs, exts) = partition (isJust . flip lookup ls) args
@@ -322,10 +323,7 @@ getExtensions args = (lang, foldl f (if null langs then toHseEnabledExtensions d
         f a "Haskell98" = []
         f a ('N':'o':x) | Just x <- readExtension x = delete x a
         f a x | Just x <- readExtension x = x : delete x a
-        f a x = UnknownExtension x : delete (UnknownExtension x) a
-
+        f a x = a -- Ignore unknown extension.
 
 readExtension :: String -> Maybe Extension
-readExtension x = case classifyExtension x of
-    UnknownExtension _ -> Nothing
-    x -> Just x
+readExtension s = flagSpecFlag <$> find (\(FlagSpec n _ _ _) -> n == s) xFlags
