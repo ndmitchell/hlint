@@ -3,7 +3,7 @@
 
 module GHC.Util.Unify(
     Subst', fromSubst',
-    validSubst', substitute',
+    validSubst', removeParens, substitute',
     unifyExp
     ) where
 
@@ -57,6 +57,12 @@ validSubst' :: (a -> a -> Bool) -> Subst' a -> Maybe (Subst' a)
 validSubst' eq = fmap Subst' . mapM f . groupSort . fromSubst'
     where f (x, y : ys) | all (eq y) ys = Just (x, y)
           f _ = Nothing
+
+-- Remove unnecessary brackets from a Subst'. The first argument is a list of unification variables
+-- for which brackets should be removed from their substitutions.
+removeParens :: [LHsExpr GhcPs] -> Subst' (LHsExpr GhcPs) -> Subst' (LHsExpr GhcPs)
+removeParens (map unsafePrettyPrint -> noParens) (Subst' xs) = Subst' $
+  map (\(x, y) -> if x `elem` noParens then (x, fromParen' y) else (x, y)) xs
 
 -- Peform a substition.
 -- Returns (suggested replacement, refactor template), both with brackets added
