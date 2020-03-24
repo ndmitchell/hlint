@@ -36,7 +36,7 @@ import GHC.Util.Scope
 import GHC.Util.Unify
 
 import qualified Language.Haskell.GhclibParserEx.Parse as GhclibParserEx
-import Language.Haskell.GhclibParserEx.DynFlags (parsePragmasIntoDynFlags)
+import Language.Haskell.GhclibParserEx.GHC.Driver.Session (parsePragmasIntoDynFlags)
 
 import HsSyn
 import Lexer

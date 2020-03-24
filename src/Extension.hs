@@ -8,7 +8,7 @@ module Extension(
 import Data.List.Extra
 import qualified Data.Map as Map
 import GHC.LanguageExtensions.Type
-import qualified Language.Haskell.GhclibParserEx.DynFlags as GhclibParserEx
+import qualified Language.Haskell.GhclibParserEx.GHC.Driver.Session as GhclibParserEx
 
 badExtensions =
   reallyBadExtensions ++
