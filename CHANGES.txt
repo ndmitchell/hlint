@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #931, disable StaticPointers extension by default
     #924, remove dependency on haskell-src-exts
     #922, reduce the span of "Redundant do" to only cover the "do"
     #919, more specific names for foldMap fusion rules
