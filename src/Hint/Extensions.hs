@@ -183,6 +183,9 @@ x = 42 --
 x = if | b1 -> v1 | b2 -> v2 | otherwise -> v3
 {-# LANGUAGE MultiWayIf #-} \
 x = if b1 then v1 else if b2 then v2 else v3 --
+static = 42
+{-# LANGUAGE StaticPointers #-} \
+static = 42 -- @NoRefactor: cannot refactor parse errors
 </TEST>
 -}
 

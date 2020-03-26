@@ -21,6 +21,7 @@ badExtensions =
 
 reallyBadExtensions =
   [ TransformListComp -- steals the group keyword
+  , StaticPointers -- steals the static keyword
   {- , XmlSyntax , RegularPatterns -} -- steals a-b and < operators
   , AlternativeLayoutRule -- Does not play well with 'MultiWayIf'
   , NegativeLiterals -- Was not enabled by HSE and enabling breaks tests.
