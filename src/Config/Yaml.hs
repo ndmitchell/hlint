@@ -298,7 +298,7 @@ guessName lhs rhs
     where
         (ls, rs) = both f (lhs, rhs)
         f :: HsSyn.LHsExpr HsSyn.GhcPs -> [String]
-        f x = [y | L _ (HsSyn.HsVar _ (L _ x)) <- universe x, let y = GHC.occNameString $ GHC.rdrNameOcc x,  not $ isUnifyVar y]
+        f x = [y | L _ (HsSyn.HsVar _ (L _ x)) <- universe x, let y = GHC.occNameString $ GHC.rdrNameOcc x, not $ isUnifyVar y, y /= "."]
 
 
 asNote :: String -> Note
