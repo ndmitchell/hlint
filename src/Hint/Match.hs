@@ -8,7 +8,6 @@ we substitute, transform and check the side conditions. We also "see through"
 both ($) and (.) functions on the right.
 
 TRANSFORM PATTERNS
-_eval_ - perform deep evaluation, must be used at the top of a RHS
 _noParen_ - don't bracket this particular item
 
 SIDE CONDITIONS
@@ -141,7 +140,12 @@ matchIdea' sb declName HintRule{..} parent x = do
   let rhs' | Just fun <- extra = rebracket1' $ noLoc (HsApp noExtField fun rhs)
            | otherwise = rhs
       (e, tpl) = substitute' u rhs'
-      res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs')
+      noParens = [x | L _ (HsApp _ (varToStr -> "_noParen_") (varToStr -> x)) <- universe tpl]
+
+  tpl <- pure (performSpecial' tpl)
+  u <- pure (removeParens noParens u)
+
+  let res = addBracketTy' (addBracket' parent $ fst $ substitute' u $ unqualify' sa sb rhs')
   guard $ (freeVars' e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars' rhs')) `Set.isSubsetOf` freeVars' x
       -- Check no unexpected new free variables.
 
@@ -232,13 +236,11 @@ checkDefine' _ _ _ = True
 ---------------------------------------------------------------------
 -- TRANSFORMATION
 
--- If it has '_eval_' do evaluation on it.
+-- If it has '_noParen_', remove the brackets (if exist).
 performSpecial' :: LHsExpr GhcPs -> LHsExpr GhcPs
-performSpecial' = transform fNoParen . fEval
+performSpecial' = transform fNoParen
   where
-    fEval, fNoParen :: LHsExpr GhcPs -> LHsExpr GhcPs
-    fEval (L _ (HsApp _ e x)) | varToStr e == "_eval_" = reduce' x
-    fEval x = x
+    fNoParen :: LHsExpr GhcPs -> LHsExpr GhcPs
     fNoParen (L _ (HsApp _ e x)) | varToStr e == "_noParen_" = fromParen' x
     fNoParen x = x
 

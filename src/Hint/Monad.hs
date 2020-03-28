@@ -13,7 +13,7 @@ yes = do mapM print a; return b -- mapM_ print a
 yes = do _ <- mapM print a; return b -- mapM_ print a
 no = mapM print a
 no = do foo ; mapM print a
-yes = do (bar+foo) -- (bar+foo)
+yes = do (bar+foo) --
 no = do bar ; foo
 yes = do bar; a <- foo; return a -- do bar; foo
 no = do bar; a <- foo; return b
@@ -40,9 +40,9 @@ folder f a xs = foldM f a xs >>= \_ -> return () -- foldM_ f a xs
 yes = mapM async ds >>= mapM wait >> return () -- mapM async ds >>= mapM_ wait
 main = "wait" ~> do f a $ sleep 10
 main = print do 17 + 25  @NoRefactor: needs -XBlockArguments which isn't available before GHC 8.6
-main = print do 17 -- 17 @NoRefactor
-main = f $ do g a $ sleep 10 -- g a $ sleep 10
-main = do f a $ sleep 10 -- f a $ sleep 10
+main = print do 17 -- @NoRefactor
+main = f $ do g a $ sleep 10 --
+main = do f a $ sleep 10 --
 main = do foo x; return 3; bar z -- do foo x; bar z
 main = void $ forM_ f xs -- forM_ f xs
 main = void $ forM f xs -- void $ forM_ f xs
@@ -56,7 +56,7 @@ bar = 1 * do {\x -> x+x} + y
 
 module Hint.Monad(monadHint) where
 
-import Hint.Type(DeclHint',Idea(..),ideaNote,warn',toSS',suggest',Note(Note))
+import Hint.Type(DeclHint',Idea(..),ideaNote,warn',warnRemove,toSS',suggest',Note(Note))
 
 import GHC.Hs
 import SrcLoc
@@ -91,8 +91,9 @@ monadExp (declName -> decl) (parent, x) =
     (L l (HsApp _ op x)) | isTag "void" op -> seenVoid (cL l . HsApp noExtField op) x
     (L l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (cL l . OpApp noExtField op dol) x
     (L loc (HsDo _ ctx (L loc2 [L loc3 (BodyStmt _ y _ _ )]))) ->
-      let idea = warn' "Redundant do" x y [Replace Expr (toSS' x) [("y", toSS' y)] "y"]
-       in [idea{ideaSpan = doSrcSpan ctx loc} | not $ doAsBrackets parent y]
+      let doOrMDo = case ctx of MDoExpr -> "mdo"; _ -> "do"
+       in [ warnRemove ("Redundant " ++ doOrMDo) (doSpan doOrMDo loc) doOrMDo [Replace Expr (toSS' x) [("y", toSS' y)] "y"]
+          | not $ doAsBrackets parent y ]
     (L loc (HsDo _ DoExpr (L _ xs))) ->
       monadSteps (cL loc . HsDo noExtField DoExpr . noLoc) xs ++
       [suggest' "Use let" x (cL loc (HsDo noExtField DoExpr (noLoc y)) :: LHsExpr GhcPs) rs | Just (y, rs) <- [monadLet xs]] ++
@@ -102,12 +103,11 @@ monadExp (declName -> decl) (parent, x) =
   where
     f = monadNoResult (fromMaybe "" decl) id
     seenVoid wrap x = monadNoResult (fromMaybe "" decl) wrap x ++ [warn' "Redundant void" (wrap x) x [] | returnsUnit x]
-    doSrcSpan ctx = \case
+    doSpan doOrMDo = \case
       UnhelpfulSpan s -> UnhelpfulSpan s
-      RealSrcSpan rss ->
-        let start = realSrcSpanStart rss
-            len = case ctx of MDoExpr -> 3; _ -> 2
-            end = mkRealSrcLoc (srcSpanFile rss) (srcLocLine start) (srcLocCol start + len)
+      RealSrcSpan s ->
+        let start = realSrcSpanStart s
+            end = mkRealSrcLoc (srcSpanFile s) (srcLocLine start) (srcLocCol start + length doOrMDo)
          in RealSrcSpan (mkRealSrcSpan start end)
 
 -- Sometimes people write 'a * do a + b', to avoid brackets,

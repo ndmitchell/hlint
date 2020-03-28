@@ -9,7 +9,7 @@ module GHC.Util.HsExpr (
   , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'
   , paren'
   , replaceBranches'
-  , needBracketOld', transformBracketOld', reduce', fromParen1'
+  , needBracketOld', transformBracketOld', fromParen1'
   , allowLeftSection, allowRightSection
 ) where
 
@@ -297,25 +297,6 @@ descendBracketOld' op x = (descendIndex' g1 x, descendIndex' g2 x)
     f2 = ((snd .) .) . f
 
     ifNoLocElse y z = if getLoc y == noSrcSpan then y else z
-
-reduce' :: LHsExpr GhcPs -> LHsExpr GhcPs
-reduce' = fromParen' . transform reduce1'
-
-reduce1' :: LHsExpr GhcPs -> LHsExpr GhcPs
-reduce1' (L loc (HsApp _ len (L _ (HsLit _ (HsString _ xs)))))
-  | varToStr len == "length" = cL loc $ HsLit noExtField (HsInt noExtField (IL NoSourceText False n))
-  where n = fromIntegral $ length (unpackFS xs)
-reduce1' (L loc (HsApp _ len (L _ (ExplicitList _ _ xs))))
-  | varToStr len == "length" = cL loc $ HsLit noExtField (HsInt noExtField (IL NoSourceText False n))
-  where n = fromIntegral $ length xs
-reduce1' (view' -> App2' op (L _ (HsLit _ x)) (L _ (HsLit _ y))) | varToStr op == "==" = strToVar (show (astEq x y))
-reduce1' (view' -> App2' op (L _ (HsLit _ (HsInt _ x))) (L _ (HsLit _ (HsInt _ y)))) | varToStr op == ">=" = strToVar $ show (x >= y)
-reduce1' (view' -> App2' op x y)
-    | varToStr op == "&&" && varToStr x == "True"  = y
-    | varToStr op == "&&" && varToStr x == "False" = x
-reduce1' (L _ (HsPar _ x)) | isAtom' x = x
-reduce1' x = x
-
 
 fromParen1' :: LHsExpr GhcPs -> LHsExpr GhcPs
 fromParen1' (L _ (HsPar _ x)) = x
