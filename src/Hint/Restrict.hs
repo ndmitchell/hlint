@@ -29,7 +29,7 @@ import Control.Applicative
 import Control.Monad
 import Prelude
 
-import HsSyn
+import GHC.Hs
 import RdrName
 import ApiAnnotation
 import Module

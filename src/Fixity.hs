@@ -7,8 +7,8 @@ module Fixity(
     ) where
 
 import GHC.Generics(Associativity(..))
-import HsBinds
-import HsExtension
+import GHC.Hs.Binds
+import GHC.Hs.Extension
 import OccName
 import RdrName
 import SrcLoc
@@ -50,7 +50,7 @@ fromFixity (name, Fixity _ i dir) = (name, assoc dir, i)
       InfixN -> NotAssociative
 
 toFixitySig :: FixityInfo -> FixitySig GhcPs
-toFixitySig (toFixity -> (name, x)) = FixitySig noExt [noLoc $ mkRdrUnqual (mkVarOcc name)] x
+toFixitySig (toFixity -> (name, x)) = FixitySig noExtField [noLoc $ mkRdrUnqual (mkVarOcc name)] x
 
 defaultFixities :: [FixityInfo]
 defaultFixities = map fromFixity $ customFixities ++ baseFixities ++ lensFixities ++ otherFixities

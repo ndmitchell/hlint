@@ -1,18 +1,21 @@
-resolver: nightly-2020-03-14
+resolver: nightly-2020-03-14 # ghc-8.8.3
 packages:
   - .
 extra-deps:
-  - ghc-lib-parser-8.8.3.20200224
-  - ghc-lib-parser-ex-8.8.6.0
+  - ghc-lib-parser-8.10.1.20200324
+  - ghc-lib-parser-ex-8.10.0.1
 # To test hlint against experimental builds of ghc-lib-parser-ex,
 # modify extra-deps like this:
-#  - archive: /users/shaynefletcher/project/ghc-lib-parser-ex.git/ghc-lib-parser-ex-8.8.5.3.tar.gz
+#  - archive: /users/shaynefletcher/project/ghc-lib-parser-ex.git/ghc-lib-parser-ex-8.10.0.1.tar.gz
   - extra-1.7.1
 ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-top-binds -Werror=orphans}
-# Enabling this stanza forces both hlint and ghc-lib-parser-ex to
-# depend on ghc-lib-parser.
-# flags:
-#   hlint:
-#     ghc-lib: true
-#   ghc-lib-parser-ex:
-#     ghc-lib: true
+# Since we are compiling with 8.8.3, hlint will automatically link
+# ghc-lib-parser rather than ghc native libs (since we target the 8.10
+# parse tree). ghc-lib-parser-ex on the other hand will assume ghc
+# native libs by default *for all ghc versions* unless told explicitly
+# to link ghc-lib-parser. For clarity and consistency, force both.
+flags:
+  hlint:
+    ghc-lib: true
+  ghc-lib-parser-ex:
+    ghc-lib: true

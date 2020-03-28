@@ -3,7 +3,7 @@
 module GHC.Util.HsDecl (declName,bindName)
 where
 
-import HsSyn
+import GHC.Hs
 import OccName
 import SrcLoc
 

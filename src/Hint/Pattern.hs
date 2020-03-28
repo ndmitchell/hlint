@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, TypeFamilies #-}
 
 {-
     Improve the structure of code
@@ -67,7 +67,7 @@ import Data.Either
 import Refact.Types hiding (RType(Pattern, Match), SrcSpan)
 import qualified Refact.Types as R (RType(Pattern, Match), SrcSpan)
 
-import HsSyn
+import GHC.Hs
 import SrcLoc
 import RdrName
 import OccName
@@ -83,16 +83,15 @@ patternHint _scope modu x =
     concatMap (uncurry hints . swap) (asPattern x) ++
     -- PatBind (used in 'let' and 'where') contains lazy-by-default
     -- patterns, everything else is strict.
-    concatMap (patHint strict False) (located [p | PatBind _ p _ _ <- universeBi x :: [HsBind GhcPs]]) ++
-    concatMap (patHint strict True) (located (universeBi $ transformBi noPatBind x)) ++
+    concatMap (patHint strict False) [p | PatBind _ p _ _ <- universeBi x :: [HsBind GhcPs]] ++
+    concatMap (patHint strict True) (universeBi $ transformBi noPatBind x) ++
     concatMap expHint (universeBi x)
   where
-    located ps = [p | p@XPat{} <- ps]  -- restrict attention to patterns with locs
     exts = nubOrd $ concatMap snd (langExts (pragmas (ghcAnnotations modu))) -- language extensions enabled at source
     strict = "Strict" `elem` exts
 
     noPatBind :: LHsBind GhcPs -> LHsBind GhcPs
-    noPatBind (L loc a@PatBind{}) = cL loc a{pat_lhs=noLoc (WildPat noExt)}
+    noPatBind (L loc a@PatBind{}) = L loc a{pat_lhs=noLoc (WildPat noExtField)}
     noPatBind x = x
 
 {-
@@ -109,13 +108,13 @@ hints gen (Pattern pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op 
 
 hints :: (String -> Pattern -> [Refactoring R.SrcSpan] -> Idea) -> Pattern -> [Idea]
 hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
-  | length guards > 2 = [gen "Use guards" (Pattern l rtype pat (GRHSs noExt guards bind)) [refactoring]]
+  | length guards > 2 = [gen "Use guards" (Pattern l rtype pat (GRHSs noExtField guards bind)) [refactoring]]
   where
     rawGuards :: [(LHsExpr GhcPs, LHsExpr GhcPs)]
     rawGuards = asGuards bod
 
     mkGuard :: LHsExpr GhcPs -> (LHsExpr GhcPs -> GRHS GhcPs (LHsExpr GhcPs))
-    mkGuard a = GRHS noExt [noLoc $ BodyStmt noExt a noSyntaxExpr noSyntaxExpr]
+    mkGuard a = GRHS noExtField [noLoc $ BodyStmt noExtField a noSyntaxExpr noSyntaxExpr]
 
     guards :: [LGRHS GhcPs (LHsExpr GhcPs)]
     guards = map (noLoc . uncurry mkGuard) rawGuards
@@ -126,8 +125,7 @@ hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
       -- Check if the expression has been injected or is natural.
       zipWith checkLoc ps ['1' .. '9']
       where
-        checkLoc p@(LL l _) v = if l == noSrcSpan then Left p else Right (c ++ [v], toSS' p)
-        checkLoc _ v = undefined -- {-# COMPLETE L #-}
+        checkLoc p@(L l _) v = if l == noSrcSpan then Left p else Right (c ++ [v], toSS' p)
 
     patSubts =
       case pat of
@@ -141,18 +139,18 @@ hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
     toString (Left e) = e
     toString (Right (v, _)) = strToVar v
     toString' (Left e) = e
-    toString' (Right (v, _)) = strToPat v
+    toString' (Right (v, _)) = noLoc $ strToPat v
 
-    template = fromMaybe "" $ ideaTo (gen "" (Pattern l rtype (map toString' patSubts) (GRHSs noExt templateGuards bind)) [])
+    template = fromMaybe "" $ ideaTo (gen "" (Pattern l rtype (map toString' patSubts) (GRHSs noExtField templateGuards bind)) [])
 
     f :: [Either a (String, R.SrcSpan)] -> [(String, R.SrcSpan)]
     f = rights
     refactoring = Replace rtype (toRefactSrcSpan' l) (f patSubts ++ f guardSubts ++ f exprSubts) template
 hints gen (Pattern l t pats o@(GRHSs _ [L _ (GRHS _ [test] bod)] bind))
   | unsafePrettyPrint test `elem` ["otherwise", "True"]
-  = [gen "Redundant guard" (Pattern l t pats o{grhssGRHSs=[noLoc (GRHS noExt [] bod)]}) [Delete Stmt (toSS' test)]]
+  = [gen "Redundant guard" (Pattern l t pats o{grhssGRHSs=[noLoc (GRHS noExtField [] bod)]}) [Delete Stmt (toSS' test)]]
 hints gen (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
-  = [gen "Redundant where" (Pattern l t pats bod{grhssLocalBinds=noLoc (EmptyLocalBinds noExt)}) []]
+  = [gen "Redundant where" (Pattern l t pats bod{grhssLocalBinds=noLoc (EmptyLocalBinds noExtField)}) []]
   where
     f :: LHsLocalBinds GhcPs -> Bool
     f (L _ (HsValBinds _ (ValBinds _ bag _))) = isEmptyBag bag
@@ -161,77 +159,77 @@ hints gen (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
 hints gen (Pattern l t pats o@(GRHSs _ (unsnoc -> Just (gs, L _ (GRHS _ [test] bod))) binds))
   | unsafePrettyPrint test == "True"
   = let tag = noLoc (mkRdrUnqual $ mkVarOcc "otherwise")
-        otherwise_ = noLoc $ BodyStmt noExt (noLoc (HsVar noExt tag)) noSyntaxExpr noSyntaxExpr in
-      [gen "Use otherwise" (Pattern l t pats o{grhssGRHSs = gs ++ [noLoc (GRHS noExt [otherwise_] bod)]}) [Replace Expr (toSS' test) [] "otherwise"]]
+        otherwise_ = noLoc $ BodyStmt noExtField (noLoc (HsVar noExtField tag)) noSyntaxExpr noSyntaxExpr in
+      [gen "Use otherwise" (Pattern l t pats o{grhssGRHSs = gs ++ [noLoc (GRHS noExtField [otherwise_] bod)]}) [Replace Expr (toSS' test) [] "otherwise"]]
 hints _ _ = []
 
 asGuards :: LHsExpr GhcPs -> [(LHsExpr GhcPs, LHsExpr GhcPs)]
 asGuards (L _ (HsPar _ x)) = asGuards x
 asGuards (L _ (HsIf _ _ a b c)) = (a, b) : asGuards c
-asGuards x = [(noLoc (HsVar noExt (noLoc (mkRdrUnqual $ mkVarOcc "otherwise"))), x)]
+asGuards x = [(noLoc (HsVar noExtField (noLoc (mkRdrUnqual $ mkVarOcc "otherwise"))), x)]
 
-data Pattern = Pattern SrcSpan R.RType [Pat GhcPs] (GRHSs GhcPs (LHsExpr GhcPs))
+data Pattern = Pattern SrcSpan R.RType [LPat GhcPs] (GRHSs GhcPs (LHsExpr GhcPs))
 
 -- Invariant: Number of patterns may not change
 asPattern :: LHsDecl GhcPs  -> [(Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)]
 asPattern (L loc x) = concatMap decl (universeBi x)
   where
     decl :: HsBind GhcPs -> [(Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)]
-    decl o@(PatBind _ pat rhs _) = [(Pattern loc Bind [pat] rhs, \msg (Pattern _ _ [pat] rhs) rs -> suggest' msg (cL loc o :: LHsBind GhcPs) (noLoc (PatBind noExt pat rhs ([], [])) :: LHsBind GhcPs) rs)]
+    decl o@(PatBind _ pat rhs _) = [(Pattern loc Bind [pat] rhs, \msg (Pattern _ _ [pat] rhs) rs -> suggest' msg (L loc o :: LHsBind GhcPs) (noLoc (PatBind noExtField pat rhs ([], [])) :: LHsBind GhcPs) rs)]
     decl (FunBind _ _ (MG _ (L _ xs) _) _ _) = map match xs
     decl _ = []
 
     match :: LMatch GhcPs (LHsExpr GhcPs) -> (Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)
-    match o@(L loc (Match _ ctx pats grhss)) = (Pattern loc R.Match pats grhss, \msg (Pattern _ _ pats grhss) rs -> suggest' msg o (noLoc (Match noExt ctx  pats grhss) :: LMatch GhcPs (LHsExpr GhcPs)) rs)
+    match o@(L loc (Match _ ctx pats grhss)) = (Pattern loc R.Match pats grhss, \msg (Pattern _ _ pats grhss) rs -> suggest' msg o (noLoc (Match noExtField ctx  pats grhss) :: LMatch GhcPs (LHsExpr GhcPs)) rs)
     match _ = undefined -- {-# COMPLETE L #-}
 
 -- First Bool is if 'Strict' is a language extension. Second Bool is
 -- if this pattern in this context is going to be evaluated strictly.
-patHint :: Bool -> Bool -> Pat GhcPs -> [Idea]
-patHint _ _ o@(LL _ (ConPatIn name (PrefixCon args)))
+patHint :: Bool -> Bool -> LPat GhcPs -> [Idea]
+patHint _ _ o@(L _ (ConPatIn name (PrefixCon args)))
   | length args >= 3 && all isPWildcard args =
-  let rec_fields = HsRecFields [] Nothing :: HsRecFields GhcPs (Pat GhcPs)
-      new        = ConPatIn name (RecCon rec_fields) :: Pat GhcPs
+  let rec_fields = HsRecFields [] Nothing :: HsRecFields GhcPs (LPat GhcPs)
+      new        = noLoc $ ConPatIn name (RecCon rec_fields) :: LPat GhcPs
   in
   [suggest' "Use record patterns" o new [Replace R.Pattern (toSS' o) [] (unsafePrettyPrint new)]]
-patHint _ _ o@(LL _ (VarPat _ (L _ name)))
+patHint _ _ o@(L _ (VarPat _ (L _ name)))
   | occNameString (rdrNameOcc name) == "otherwise" =
-    [warn' "Used otherwise as a pattern" o (noLoc (WildPat noExt) :: Pat GhcPs) []]
-patHint lang strict o@(LL _ (BangPat _ pat@(LL _ x)))
-  | strict, f x = [warn' "Redundant bang pattern" o x [r]]
+    [warn' "Used otherwise as a pattern" o (noLoc (WildPat noExtField) :: LPat GhcPs) []]
+patHint lang strict o@(L _ (BangPat _ pat@(L _ x)))
+  | strict, f x = [warn' "Redundant bang pattern" o (noLoc x :: LPat GhcPs) [r]]
   where
     f :: Pat GhcPs -> Bool
-    f (ParPat _ (LL _ x)) = f x
-    f (AsPat _ _ (LL _ x)) = f x
+    f (ParPat _ (L _ x)) = f x
+    f (AsPat _ _ (L _ x)) = f x
     f LitPat {} = True
     f NPat {} = True
     f ConPatIn {} = True
     f TuplePat {} = True
     f ListPat {} = True
-    f (SigPat _ (LL _ p) _) = f p
+    f (SigPat _ (L _ p) _) = f p
     f _ = False
     r = Replace R.Pattern (toSS' o) [("x", toSS' pat)] "x"
-patHint False _ o@(LL _ (LazyPat _ pat@(LL _ x)))
-  | f x = [warn' "Redundant irrefutable pattern" o x [r]]
+patHint False _ o@(L _ (LazyPat _ pat@(L _ x)))
+  | f x = [warn' "Redundant irrefutable pattern" o (noLoc x :: LPat GhcPs) [r]]
   where
     f :: Pat GhcPs -> Bool
-    f (ParPat _ (LL _ x)) = f x
-    f (AsPat _ _ (LL _ x)) = f x
+    f (ParPat _ (L _ x)) = f x
+    f (AsPat _ _ (L _ x)) = f x
     f WildPat{} = True
     f VarPat{} = True
     f _ = False
     r = Replace R.Pattern (toSS' o) [("x", toSS' pat)] "x"
-patHint _ _ o@(LL _ (AsPat _ v (LL _ (WildPat _)))) =
+patHint _ _ o@(L _ (AsPat _ v (L _ (WildPat _)))) =
   [warn' "Redundant as-pattern" o v []]
 patHint _ _ _ = []
 
 expHint :: LHsExpr GhcPs -> [Idea]
  -- Note the 'FromSource' in these equations (don't warn on generated match groups).
-expHint o@(L _ (HsCase _ _ (MG _ (L _ [L _ (Match _ CaseAlt [LL _ (WildPat _)] (GRHSs _ [L _ (GRHS _ [] e)] (L  _ (EmptyLocalBinds _)))) ]) FromSource ))) =
+expHint o@(L _ (HsCase _ _ (MG _ (L _ [L _ (Match _ CaseAlt [L _ (WildPat _)] (GRHSs _ [L _ (GRHS _ [] e)] (L  _ (EmptyLocalBinds _)))) ]) FromSource ))) =
   [suggest' "Redundant case" o e [r]]
   where
     r = Replace Expr (toSS' o) [("x", toSS' e)] "x"
-expHint o@(L _ (HsCase _ (L _ (HsVar _ (L _ x))) (MG _ (L _ [L _ (Match _ CaseAlt [LL _ (VarPat _ (L _ y))] (GRHSs _ [L _ (GRHS _ [] e)] (L  _ (EmptyLocalBinds _)))) ]) FromSource )))
+expHint o@(L _ (HsCase _ (L _ (HsVar _ (L _ x))) (MG _ (L _ [L _ (Match _ CaseAlt [L _ (VarPat _ (L _ y))] (GRHSs _ [L _ (GRHS _ [] e)] (L  _ (EmptyLocalBinds _)))) ]) FromSource )))
   | occNameString (rdrNameOcc x) == occNameString (rdrNameOcc y) =
       [suggest' "Redundant case" o e [r]]
   where

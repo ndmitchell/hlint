@@ -3,7 +3,7 @@
 
 module GHC.Util.Brackets (Brackets'(..), isApp,isOpApp,isAnyApp) where
 
-import HsSyn
+import GHC.Hs
 import SrcLoc
 import BasicTypes
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -29,7 +29,7 @@ instance Brackets' (LHsExpr GhcPs) where
   remParen' (L _ (HsPar _ x)) = Just x
   remParen' _ = Nothing
 
-  addParen' e = noLoc $ HsPar noExt e
+  addParen' e = noLoc $ HsPar noExtField e
 
   isAtom' (L _ x) = case x of
       HsVar{} -> True
@@ -86,12 +86,12 @@ instance Brackets' (LHsExpr GhcPs) where
      | L _ HsPar{} <- parent = False
      | otherwise = True
 
-instance Brackets' (Pat GhcPs) where
-  remParen' (LL _ (ParPat _ x)) = Just x
+instance Brackets' (Located (Pat GhcPs)) where
+  remParen' (L _ (ParPat _ x)) = Just x
   remParen' _ = Nothing
-  addParen' e = noLoc $ ParPat noExt e
+  addParen' e = noLoc $ ParPat noExtField e
 
-  isAtom' (LL _ x) = case x of
+  isAtom' (L _ x) = case x of
     ParPat{} -> True
     TuplePat{} -> True
     ListPat{} -> True
@@ -117,14 +117,14 @@ instance Brackets' (Pat GhcPs) where
 
   needBracket' _ parent child
     | isAtom' child = False
-    | LL _ TuplePat{} <- parent = False
-    | LL _ ListPat{} <- parent = False
+    | L _ TuplePat{} <- parent = False
+    | L _ ListPat{} <- parent = False
     | otherwise = True
 
 instance Brackets' (LHsType GhcPs) where
   remParen' (L _ (HsParTy _ x)) = Just x
   remParen' _ = Nothing
-  addParen' e = noLoc $ HsParTy noExt e
+  addParen' e = noLoc $ HsParTy noExtField e
 
   isAtom' (L _ x) = case x of
       HsParTy{} -> True

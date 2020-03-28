@@ -53,7 +53,7 @@ import FastString
 import BasicTypes
 import RdrName
 import Module
-import HsSyn
+import GHC.Hs
 import SrcLoc
 import GHC.Util
 
@@ -115,7 +115,7 @@ combine x@(L _ x') y@(L _ y')
        in Just (newImp, [Delete Import (toSS' toDelete)])
   -- Both unqualified, same names, one (and only one) has an 'as'
   -- clause : Delete the one without an 'as'.
-  | not (ideclQualified x'), qual, specs, length ass == 1 =
+  | ideclQualified x' == NotQualified, qual, specs, length ass == 1 =
        let (newImp, toDelete) = if isJust (ideclAs x') then (x, y) else (y, x)
        in Just (newImp, [Delete Import (toSS' toDelete)])
   -- No hints.
@@ -161,11 +161,11 @@ preferHierarchicalImports x@(L loc i@ImportDecl{ideclName=L _ n,ideclPkgQual=Not
     f a b = (desugarQual i){ideclName=noLoc (mkModuleName a), ideclHiding=b}
     -- Wrap a literal name into an 'IE' (import/export) value.
     mkLIE :: String -> LIE GhcPs
-    mkLIE n = noLoc $ IEVar noExt (noLoc (IEName (noLoc (mkVarUnqual (fsLit n)))))
+    mkLIE n = noLoc $ IEVar noExtField (noLoc (IEName (noLoc (mkVarUnqual (fsLit n)))))
     -- Rewrite 'import qualified X' as 'import qualified X as X'.
     desugarQual :: ImportDecl GhcPs -> ImportDecl GhcPs
     desugarQual i
-      | ideclQualified i && isNothing (ideclAs i) = i{ideclAs = Just (ideclName i)}
+      | ideclQualified i /= NotQualified && isNothing (ideclAs i) = i{ideclAs = Just (ideclName i)}
       | otherwise = i
 
 preferHierarchicalImports _ = []

@@ -207,7 +207,7 @@ import qualified Data.Map as Map
 
 import DynFlags
 import SrcLoc
-import HsSyn
+import GHC.Hs
 import BasicTypes
 import Class
 import RdrName
@@ -419,7 +419,6 @@ used Arrows = hasS f
   where
     f :: HsExpr GhcPs -> Bool
     f HsProc{} = True
-    f HsArrApp{} = True
     f _ = False
 used TransformListComp = hasS f
     where

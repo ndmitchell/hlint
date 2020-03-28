@@ -52,9 +52,9 @@ import qualified Data.Set as Set
 
 import BasicTypes
 import FastString
-import HsDecls
-import HsExtension
-import HsSyn
+import GHC.Hs.Decls
+import GHC.Hs.Extension
+import GHC.Hs
 import OccName
 import SrcLoc
 
@@ -99,7 +99,7 @@ shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
     L locGRHS (GRHS ttg0 guards (cL locExpr dots))
     where
         dots :: HsExpr GhcPs
-        dots = HsLit NoExt (HsString (SourceText "...") (mkFastString "..."))
+        dots = HsLit noExtField (HsString (SourceText "...") (mkFastString "..."))
 shortenLGRHS x = x
 
 getNames :: LHsDecl GhcPs -> [String]

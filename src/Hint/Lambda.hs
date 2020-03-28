@@ -108,7 +108,7 @@ import GHC.Util.HsExpr (allowLeftSection, allowRightSection, niceLambdaR', lambd
 import GHC.Util.Outputable
 import GHC.Util.RdrName (rdrNameStr')
 import GHC.Util.View
-import HsSyn
+import GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol, strToVar)
 import OccName
 import RdrName
@@ -125,7 +125,7 @@ lambdaDecl
         origBind@FunBind {fun_id = L loc1 _, fun_matches =
             MG {mg_alts =
                 L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _) pats (GRHSs _ [L _ (GRHS _ [] origBody@(L loc2 _))] bind))]}}))
-    | L _ (EmptyLocalBinds noExt) <- bind
+    | L _ (EmptyLocalBinds noExtField) <- bind
     , isLambda $ fromParen' origBody
     , null (universeBi pats :: [HsExpr GhcPs])
     = [warn' "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS' o) s1 t1]]
@@ -135,13 +135,13 @@ lambdaDecl
             -- Replace Decl (toSS' $ reform' pats origBody) s2 t2]]
           ]]
     where reform :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
-          reform ps b = L loc $ ValD noExt $
+          reform ps b = L loc $ ValD noExtField $
             origBind
-              {fun_matches = MG noExt (noLoc [noLoc $ Match noExt ctxt ps $ GRHSs noExt [noLoc $ GRHS noExt [] b] $ noLoc $ EmptyLocalBinds noExt]) Generated}
+              {fun_matches = MG noExtField (noLoc [noLoc $ Match noExtField ctxt ps $ GRHSs noExtField [noLoc $ GRHS noExtField [] b] $ noLoc $ EmptyLocalBinds noExtField]) Generated}
 
           loc = combineSrcSpans loc1 loc2
 
-          gen :: [Pat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
+          gen :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
           gen ps = uncurry reform . fromLambda . lambda ps
 
           (finalpats, body) = fromLambda . lambda pats $ origBody
@@ -155,13 +155,13 @@ lambdaDecl
 lambdaDecl _ = []
 
 
-etaReduce :: [Pat GhcPs] -> LHsExpr GhcPs -> ([Pat GhcPs], LHsExpr GhcPs)
+etaReduce :: [LPat GhcPs] -> LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
 etaReduce (unsnoc -> Just (ps, view' -> PVar_' p)) (L _ (HsApp _ x (view' -> Var_' y)))
     | p == y
     , y `notElem` vars' x
     , not $ any isQuasiQuote $ universe x
     = etaReduce ps x
-etaReduce ps (L loc (OpApp _ x (isDol -> True) y)) = etaReduce ps (L loc (HsApp noExt x y))
+etaReduce ps (L loc (OpApp _ x (isDol -> True) y)) = etaReduce ps (L loc (HsApp noExtField x y))
 etaReduce ps x = (ps, x)
 
 --Section refactoring is not currently implemented.
@@ -171,11 +171,11 @@ lambdaExp _ o@(L _ (HsPar _ (L _ (HsApp _ oper@(L _ (HsVar _ (L _ (rdrNameOcc ->
     , isAtom' y
     , allowLeftSection $ occNameString f
     , not $ isTypeApp y =
-      [suggestN' "Use section" o $ noLoc $ HsPar noExt $ noLoc $ SectionL NoExt y oper]
+      [suggestN' "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField y oper]
 
 lambdaExp _ o@(L _ (HsPar _ (view' -> App2' (view' -> Var_' "flip") origf@(view' -> Var_' f) y)))
     | allowRightSection f
-    = [suggestN' "Use section" o $ noLoc $ HsPar NoExt $ noLoc $ SectionR NoExt origf y]
+    = [suggestN' "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionR noExtField origf y]
 lambdaExp p o@(L _ HsLam{})
     | not $ any isOpApp p
     , (res, refact) <- niceLambdaR' [] o
@@ -200,7 +200,7 @@ lambdaExp p o@(SimpleLambda origPats origBody)
       subts = ("body", toSS' body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' pats)
 
 -- match a lambda with a variable pattern, with no guards and no where clauses
-lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (L _ expr)) =
+lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
     case expr of
         -- suggest TupleSections instead of lambdas
         ExplicitTuple _ args boxity
@@ -208,7 +208,7 @@ lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (L _ expr)) =
             | ([_x], ys) <- partition ((==Just x) . tupArgVar) args
             -- the other arguments must not have a nested x somewhere in them
             , Set.notMember x $ Set.map occNameString $ freeVars' ys
-            -> [(suggestN' "Use tuple-section" o $ noLoc $ ExplicitTuple NoExt (map removeX args) boxity)
+            -> [(suggestN' "Use tuple-section" o $ noLoc $ ExplicitTuple noExtField (map removeX args) boxity)
                   {ideaNote = [RequiresExtension "TupleSections"]}]
 
         -- suggest @LambdaCase@/directly matching in a lambda instead of doing @\x -> case x of ...@
@@ -224,7 +224,7 @@ lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (L _ expr)) =
                  --     * add brackets to the match, because matches in lambdas require them
                  --     * mark match as being in a lambda context so that it's printed properly
                  oldMG@(MG _ (L _ [L _ oldmatch]) _) ->
-                     [suggestN' "Use lambda" o $ noLoc $ HsLam NoExt oldMG
+                     [suggestN' "Use lambda" o $ noLoc $ HsLam noExtField oldMG
                          { mg_alts = noLoc
                              [noLoc oldmatch
                                  { m_pats = map mkParPat $ m_pats oldmatch
@@ -235,7 +235,7 @@ lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (L _ expr)) =
 
                  -- otherwise we should use @LambdaCase@
                  MG _ (L _ xs) _ ->
-                     [(suggestN' "Use lambda-case" o $ noLoc $ HsLamCase NoExt matchGroup)
+                     [(suggestN' "Use lambda-case" o $ noLoc $ HsLamCase noExtField matchGroup)
                          {ideaNote=[RequiresExtension "LambdaCase"]}]
                  _ -> []
         _ -> []
@@ -244,7 +244,7 @@ lambdaExp _ o@(SimpleLambda [LL _ (view' -> PVar_' x)] (L _ expr)) =
         -- to a missing argument, so that we get the proper section.
         removeX :: LHsTupArg GhcPs -> LHsTupArg GhcPs
         removeX arg@(L _ (Present _ (view' -> Var_' x')))
-            | x == x' = noLoc $ Missing NoExt
+            | x == x' = noLoc $ Missing noExtField
         removeX y = y
         -- | Extract the name of an argument of a tuple if it's present and a variable.
         tupArgVar :: LHsTupArg GhcPs -> Maybe String
@@ -261,12 +261,11 @@ fromLambda :: LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
 fromLambda (SimpleLambda ps1 (fromLambda . fromParen' -> (ps2,x))) = (transformBi (f $ pvars' ps2) ps1 ++ ps2, x)
     where f :: [String] -> Pat GhcPs -> Pat GhcPs
           f bad (VarPat _ (rdrNameStr' -> x))
-              | x `elem` bad = WildPat noExt
+              | x `elem` bad = WildPat noExtField
           f bad x = x
 fromLambda x = ([], x)
 
 -- | Replaces all non-wildcard patterns with a variable pattern with the given identifier.
 munge :: Char -> LPat GhcPs -> LPat GhcPs
-munge ident p@(LL _ (WildPat _)) = p
-munge ident (LL ploc p) = LL ploc (VarPat noExt (L ploc $ mkRdrUnqual $ mkVarOcc [ident]))
-munge _ x = x -- "{-# COMPLETE L #-}"
+munge ident p@(L _ (WildPat _)) = p
+munge ident (L ploc p) = L ploc (VarPat noExtField (L ploc $ mkRdrUnqual $ mkVarOcc [ident]))

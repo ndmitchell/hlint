@@ -6,7 +6,7 @@ module GHC.Util.Scope (
   ,scopeCreate,scopeMatch,scopeMove
 ) where
 
-import HsSyn
+import GHC.Hs
 import SrcLoc
 import BasicTypes
 import Module
@@ -65,7 +65,7 @@ scopeMatch (a, x) (b, y)
 scopeMove :: (Scope, Located RdrName) -> Scope -> Located RdrName
 scopeMove (a, x@(fromQual' -> Just name)) (Scope b) = case imps of
   [] -> headDef x real
-  imp:_ | all ideclQualified imps -> noLoc $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
+  imp:_ | all (\x -> ideclQualified x /= NotQualified) imps -> noLoc $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
         | otherwise -> unqual' x
   where
     real :: [Located RdrName]
@@ -94,9 +94,9 @@ possModules (Scope is) x = f x
 possImport :: LImportDecl GhcPs -> Located RdrName -> Bool
 possImport i n | isSpecial' n = False
 possImport (L _ i) (L _ (Qual mod x)) =
-  moduleNameString mod `elem` map fromModuleName' ms && possImport (noLoc i{ideclQualified=False}) (noLoc $ mkRdrUnqual x)
+  moduleNameString mod `elem` map fromModuleName' ms && possImport (noLoc i{ideclQualified=NotQualified}) (noLoc $ mkRdrUnqual x)
   where ms = ideclName i : maybeToList (ideclAs i)
-possImport (L _ i) (L _ (Unqual x)) = not (ideclQualified i) && maybe True f (ideclHiding i)
+possImport (L _ i) (L _ (Unqual x)) = ideclQualified i == NotQualified && maybe True f (ideclHiding i)
   where
     f :: (Bool, Located [LIE GhcPs]) -> Bool
     f (hide, L _ xs) =

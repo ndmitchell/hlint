@@ -34,8 +34,8 @@ module Hint.NewType (newtypeHint) where
 import Hint.Type (Idea, DeclHint', Note(DecreasesLaziness), ideaNote, ignoreNoSuggestion', suggestN')
 
 import Data.List (isSuffixOf)
-import HsDecls
-import HsSyn
+import GHC.Hs.Decls
+import GHC.Hs
 import Outputable
 import SrcLoc
 

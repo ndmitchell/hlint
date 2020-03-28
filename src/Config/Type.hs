@@ -10,7 +10,7 @@ import Data.List.Extra
 import Prelude
 
 
-import qualified HsSyn
+import qualified GHC.Hs
 import Fixity
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
@@ -98,9 +98,9 @@ data HintRule = HintRule
     ,hintRuleNotes :: [Note] -- ^ Notes about application of the hint.
     ,hintRuleScope :: Scope -- ^ Module scope in which the hint operates (GHC parse tree).
     -- We wrap these GHC elements in 'HsExtendInstances' in order that we may derive 'Show'.
-    ,hintRuleLHS :: HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ LHS (GHC parse tree).
-    ,hintRuleRHS :: HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs) -- ^ RHS (GHC parse tree).
-    ,hintRuleSide :: Maybe (HsExtendInstances (HsSyn.LHsExpr HsSyn.GhcPs))  -- ^ Side condition (GHC parse tree).
+    ,hintRuleLHS :: HsExtendInstances (GHC.Hs.LHsExpr GHC.Hs.GhcPs) -- ^ LHS (GHC parse tree).
+    ,hintRuleRHS :: HsExtendInstances (GHC.Hs.LHsExpr GHC.Hs.GhcPs) -- ^ RHS (GHC parse tree).
+    ,hintRuleSide :: Maybe (HsExtendInstances (GHC.Hs.LHsExpr GHC.Hs.GhcPs))  -- ^ Side condition (GHC parse tree).
     }
     deriving Show
 

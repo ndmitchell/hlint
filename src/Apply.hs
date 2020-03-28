@@ -15,7 +15,7 @@ import Data.Maybe
 import Data.Ord
 import Config.Type
 import Config.Haskell
-import HsSyn
+import GHC.Hs
 import qualified SrcLoc as GHC
 import qualified Data.HashSet as Set
 import Prelude
