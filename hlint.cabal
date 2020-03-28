@@ -62,9 +62,6 @@ library
         yaml >= 0.5.0,
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
-        -- Temporary: remove the bound below after
-        -- https://github.com/mpickering/apply-refact/issues/53
-        ghc-exactprint < 0.6.3,
         extra >= 1.7.1,
         refact >= 0.3,
         aeson >= 1.1.2.0,
