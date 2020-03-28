@@ -173,13 +173,10 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
                 GHC.PFailed s -> do
-                  -- TODO (SF, 2020-03-28): Quick patch here. After the
-                  -- migration to 8.10, this needs looking at more
-                  -- closely.
                     let (_, errs) = GHC.getMessages s ghcFlags
                         errMsg = head (bagToList errs)
                         loc = errMsgSpan errMsg
-                        doc = pprLocErrMsg errMsg
+                        doc = formatErrDoc ghcFlags (errMsgDoc errMsg)
                     ghcFailOpParseModuleEx ppstr file str (loc, doc)
           Left msg -> do
             -- Parsing GHC flags from dynamic pragmas in the source
