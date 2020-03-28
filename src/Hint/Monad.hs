@@ -115,6 +115,7 @@ monadExp (declName -> decl) (parent, x) =
 -- or using indentation a * do {\b -> c} * d
 -- Return True if they are using do as brackets
 doAsBrackets :: Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
+doAsBrackets (Just (2, L _ (OpApp _ _ op _ ))) _ | isDol op = False -- not quite atomic, but close enough
 doAsBrackets (Just (i, o)) x = needBracket' i o x
 doAsBrackets Nothing x = False
 
