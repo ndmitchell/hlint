@@ -12,6 +12,7 @@
 -- print $ 'applyHints' classify hint [m]
 -- @
 module Language.Haskell.HLint(
+    -- * Generate hints
     hlint, applyHints,
     -- * Idea data type
     Idea(..), Severity(..), Note(..),

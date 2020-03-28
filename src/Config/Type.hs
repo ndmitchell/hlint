@@ -41,7 +41,7 @@ data Severity
     = Ignore -- ^ The issue has been explicitly ignored and will usually be hidden (pass @--show@ on the command line to see ignored ideas).
     | Suggestion -- ^ Suggestions are things that some people may consider improvements, but some may not.
     | Warning -- ^ Warnings are suggestions that are nearly always a good idea to apply.
-    | Error -- ^ Available as a setting for the user.
+    | Error -- ^ Available as a setting for the user. Only parse errors have this setting by default.
       deriving (Eq,Ord,Show,Read,Bounded,Enum)
 
 
