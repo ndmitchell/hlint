@@ -2,7 +2,7 @@
 
 module Idea(
     Idea(..),
-    rawIdea', idea', ideaRemove, suggest', warn', warnRemove, ignore',
+    rawIdea', idea', suggest', warn', warnRemove, ignore',
     rawIdeaN, rawIdeaN', suggestN', ignoreNoSuggestion',
     showIdeasJson, showANSI,
     Note(..), showNotes,
