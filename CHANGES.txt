@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+*   Rename Language.Haskell.HLint3,HLint4 to Language.Haskell.HLint
 *   Delete the old Language.Haskell.HLint
     #881, add a monomorphic group of hints
     #837, don't suggest redundant do if its being used for brackets

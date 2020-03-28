@@ -83,7 +83,7 @@ library
 
     hs-source-dirs:     src
     exposed-modules:
-        Language.Haskell.HLint4
+        Language.Haskell.HLint
     other-modules:
         Paths_hlint
         Apply

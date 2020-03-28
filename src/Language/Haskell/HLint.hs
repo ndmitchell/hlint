@@ -1,9 +1,6 @@
 {-# LANGUAGE PatternGuards, RecordWildCards #-}
 
--- | /WARNING: This module represents the evolving version of the HLint API./
---   /It will be renamed to drop the "4" in the next major version./
---
---   This module provides a way to apply HLint hints. If you want to just run @hlint@ in-process
+-- |  This module provides a way to apply HLint hints. If you want to just run @hlint@ in-process
 --   and collect the results see 'hlint'. If you want to approximate the @hlint@ experience with
 --   a more structured API try:
 --
@@ -12,7 +9,7 @@
 -- Right m <- 'parseModuleEx' flags \"MyFile.hs\" Nothing
 -- print $ 'applyHints' classify hint [m]
 -- @
-module Language.Haskell.HLint4(
+module Language.Haskell.HLint(
     hlint, applyHints,
     -- * Idea data type
     Idea(..), Severity(..), Note(..), FixityInfo,
