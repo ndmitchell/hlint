@@ -1,7 +1,9 @@
 {-# LANGUAGE PatternGuards, RecordWildCards #-}
 
 -- |  This module provides a way to apply HLint hints. If you want to just run @hlint@ in-process
---   and collect the results see 'hlint'. If you want to approximate the @hlint@ experience with
+--   and collect the results see 'hlint'.
+--
+--   If you want to approximate the @hlint@ experience with
 --   a more structured API try:
 --
 -- @
@@ -12,15 +14,19 @@
 module Language.Haskell.HLint(
     hlint, applyHints,
     -- * Idea data type
-    Idea(..), Severity(..), Note(..), FixityInfo,
+    Idea(..), Severity(..), Note(..),
     -- * Settings
     Classify(..),
     getHLintDataDir, autoSettings, argsSettings,
     findSettings, readSettingsFile,
     -- * Hints
     Hint,
-    -- * Parse files
-    ModuleEx, parseModuleEx, createModuleEx, defaultParseFlags, parseFlagsAddFixities, ParseError(..), ParseFlags(..), CppFlags(..)
+    -- * Modules
+    ModuleEx, parseModuleEx, createModuleEx, ParseError(..),
+    -- * Parse flags
+    defaultParseFlags,
+    ParseFlags(..), CppFlags(..), ParseMode(..), FixityInfo,
+    parseFlagsAddFixities,
     ) where
 
 import Config.Type
@@ -136,8 +142,7 @@ _docs = do
     print $ applyHints classify hint [m]
 
 
--- | Create a 'ModuleEx' from GHC annotations and module tree.  Note
--- that any hints that work on the @haskell-src-exts@ won't work. It
+-- | Create a 'ModuleEx' from GHC annotations and module tree. It
 -- is assumed the incoming parse module has not been adjusted to
 -- account for operator fixities.
 createModuleEx:: GHC.ApiAnns -> Located (GHC.HsModule GHC.GhcPs) -> ModuleEx
