@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #926, fix refactoring when the hint contains _noParen_
     #933, improve the output for Redundant do hints
 *   Merge ParseMode into ParseFlags
 *   Rename Language.Haskell.HLint3,HLint4 to Language.Haskell.HLint
