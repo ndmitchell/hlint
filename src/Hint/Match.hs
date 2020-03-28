@@ -47,6 +47,7 @@ import qualified Data.Set as Set
 import qualified Refact.Types as R
 
 import Control.Monad
+import Control.Monad.Trans.Writer.Strict
 import Data.Tuple.Extra
 import Data.Maybe
 import Config.Type
@@ -141,7 +142,12 @@ matchIdea' sb declName HintRule{..} parent x = do
   let rhs' | Just fun <- extra = rebracket1' $ noLoc (HsApp noExt fun rhs)
            | otherwise = rhs
       (e, tpl) = substitute' u rhs'
-      res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs')
+      noParens = [x | L _ (HsApp _ (varToStr -> "_noParen_") (varToStr -> x)) <- universe tpl]
+
+  tpl <- pure (performSpecial' tpl)
+  u <- pure (removeParens noParens u)
+
+  let res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs')
   guard $ (freeVars' e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars' rhs')) `Set.isSubsetOf` freeVars' x
       -- Check no unexpected new free variables.
 
@@ -232,7 +238,7 @@ checkDefine' _ _ _ = True
 ---------------------------------------------------------------------
 -- TRANSFORMATION
 
--- If it has '_eval_' do evaluation on it.
+-- If it has '_eval_' do evaluation on it. If it has '_noParen_', remove the brackets (if exist).
 performSpecial' :: LHsExpr GhcPs -> LHsExpr GhcPs
 performSpecial' = transform fNoParen . fEval
   where

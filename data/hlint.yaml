@@ -1109,7 +1109,8 @@
 # no = sequence (return x)
 # no = sequenceA (pure a)
 # {-# LANGUAGE QuasiQuotes #-}; no = f (\url -> [hamlet|foo @{url}|])
-# yes = f ((,) x) -- (x,) @NoRefactor: hlint bug
+# yes = f ((,) x) -- (x,)
+# yes = f ((,) (2 + 3)) -- (2 + 3,)
 # instance Class X where method = map f (map g x) -- map (f . g) x
 # instance Eq X where x == y = compare x y == EQ
 
