@@ -4,7 +4,6 @@
 module HSE.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
-    ParseMode(..), defaultParseMode,
     ParseError(..), ModuleEx(..),
     parseModuleEx, ghcComments,
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
@@ -48,37 +47,21 @@ data CppFlags
 -- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
 data ParseFlags = ParseFlags
     {cppFlags :: CppFlags -- ^ How the file is preprocessed (defaults to 'NoCpp').
-    ,hseFlags :: ParseMode -- ^ How the file is parsed (defaults to all fixities in the @base@ package and most non-conflicting extensions).
-    }
-
-data ParseMode = ParseMode {
-        -- | base language (e.g. Haskell98, Haskell2010)
-        baseLanguage :: Maybe Language,
-        -- | list of extensions enabled for parsing
-        extensions :: [Extension],
-        -- | list of fixities to be aware of
-        fixities :: [FixityInfo]
-        }
-
-defaultParseMode :: ParseMode
-defaultParseMode =
-  ParseMode {
-      baseLanguage = Nothing
-    , extensions = defaultExtensions
-    , fixities = defaultFixities
+    ,baseLanguage :: Maybe Language -- ^ Base language (e.g. Haskell98, Haskell2010), defaults to 'Nothing'.
+    ,extensions :: [Extension] -- ^ List of extensions enabled for parsing, defaults to many non-conflicting extensions.
+    ,fixities :: [FixityInfo] -- ^ List of fixities to be aware of, defaults to those defined in @base@.
     }
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags NoCpp defaultParseMode
+defaultParseFlags = ParseFlags NoCpp Nothing defaultExtensions defaultFixities
 
 -- | Given some fixities, add them to the existing fixities in 'ParseFlags'.
 parseFlagsAddFixities :: [FixityInfo] -> ParseFlags -> ParseFlags
-parseFlagsAddFixities fx x = x{hseFlags=hse{fixities = fx ++ fixities hse}}
-    where hse = hseFlags x
+parseFlagsAddFixities fx x = x{fixities = fx ++ fixities x}
 
 parseFlagsSetLanguage :: (Maybe Language, [Extension]) -> ParseFlags -> ParseFlags
-parseFlagsSetLanguage (l, es) x = x{hseFlags=(hseFlags x){baseLanguage = l, extensions = es}}
+parseFlagsSetLanguage (l, es) x = x{baseLanguage = l, extensions = es}
 
 
 runCpp :: CppFlags -> FilePath -> String -> IO String
@@ -121,51 +104,40 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
    let pe = case loc of
             GHC.RealSrcSpan r -> context (GHC.srcSpanStartLine r) ppstr
             _ -> ""
-       msg = Outputable.showSDoc baseDynFlags $
-               ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
+       msg = Outputable.showSDoc baseDynFlags err
    pure $ Left $ ParseError loc msg pe
-
--- A hacky function to get fixities from HSE parse flags suitable for
--- use by our own 'GHC.Util.Refact.Fixity' module.
-ghcFixitiesFromParseMode :: ParseMode -> [(String, GHC.Fixity)]
-ghcFixitiesFromParseMode = map toFixity . fixities
-
-
--- GHC enabled/disabled extensions given an HSE parse mode.
-ghcExtensionsFromParseMode :: ParseMode -> ([Extension], [Extension])
-ghcExtensionsFromParseMode ParseMode {extensions=exts}= (exts, [])
 
 -- GHC extensions to enable/disable given HSE parse flags.
 ghcExtensionsFromParseFlags :: ParseFlags -> ([Extension], [Extension])
-ghcExtensionsFromParseFlags ParseFlags {hseFlags=mode} = ghcExtensionsFromParseMode mode
+ghcExtensionsFromParseFlags ParseFlags{extensions=exts}= (exts, [])
 
 -- GHC fixities given HSE parse flags.
 ghcFixitiesFromParseFlags :: ParseFlags -> [(String, GHC.Fixity)]
-ghcFixitiesFromParseFlags ParseFlags {hseFlags=mode} = ghcFixitiesFromParseMode mode
+ghcFixitiesFromParseFlags = map toFixity . fixities
 
 -- These next two functions get called frorm 'Config/Yaml.hs' for user
 -- defined hint rules.
 
-parseModeToFlags :: ParseMode -> GHC.DynFlags
+parseModeToFlags :: ParseFlags -> GHC.DynFlags
 parseModeToFlags parseMode =
     flip GHC.lang_set (baseLanguage parseMode) $ foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
   where
-    (enable, disable) = ghcExtensionsFromParseMode parseMode
+    (enable, disable) = ghcExtensionsFromParseFlags parseMode
 
-parseExpGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LHsExpr HsSyn.GhcPs)
+parseExpGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (HsSyn.LHsExpr HsSyn.GhcPs)
 parseExpGhcWithMode parseMode s =
-  let fixities = ghcFixitiesFromParseMode parseMode
+  let fixities = ghcFixitiesFromParseFlags parseMode
   in case parseExpGhcLib s $ parseModeToFlags parseMode of
     GHC.POk pst a -> GHC.POk pst (GhclibParserEx.applyFixities fixities a)
     f@GHC.PFailed{} -> f
 
-parseImportDeclGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LImportDecl HsSyn.GhcPs)
+parseImportDeclGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (HsSyn.LImportDecl HsSyn.GhcPs)
 parseImportDeclGhcWithMode parseMode s =
   parseImportGhcLib s $ parseModeToFlags parseMode
 
-parseDeclGhcWithMode :: ParseMode -> String -> GHC.ParseResult (HsSyn.LHsDecl HsSyn.GhcPs)
+parseDeclGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (HsSyn.LHsDecl HsSyn.GhcPs)
 parseDeclGhcWithMode parseMode s =
-  let fixities = ghcFixitiesFromParseMode parseMode
+  let fixities = ghcFixitiesFromParseFlags parseMode
   in case parseDeclGhcLib s $ parseModeToFlags parseMode of
     GHC.POk pst a -> GHC.POk pst (GhclibParserEx.applyFixities fixities a)
     f@GHC.PFailed{} -> f
@@ -174,7 +146,7 @@ parseDeclGhcWithMode parseMode s =
 -- best-guess fixity resolution if there are ambiguities.  The
 -- filename @-@ is treated as @stdin@. Requires some flags (often
 -- 'defaultParseFlags'), the filename, and optionally the contents of
--- that file. This version uses both hs-src-exts AND ghc-lib.
+-- that file.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ModuleEx)
 parseModuleEx flags file str = timedIO "Parse" file $ do
         str <- case str of
@@ -188,7 +160,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
           Right ghcFlags -> do
-            ghcFlags <- pure $ GHC.lang_set ghcFlags $ baseLanguage $ hseFlags flags
+            ghcFlags <- pure $ GHC.lang_set ghcFlags $ baseLanguage flags
             case parseFileGhcLib file ppstr ghcFlags of
                 GHC.POk pst a ->
                     let anns =

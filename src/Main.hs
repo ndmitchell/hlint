@@ -1,7 +1,7 @@
 
 module Main(main) where
 
-import Language.Haskell.HLint3
+import Language.Haskell.HLint
 import Control.Monad
 import System.Environment
 import System.Exit

@@ -18,11 +18,11 @@ import Language.Haskell.GhclibParserEx.Fixity
 -- Lots of things define a fixity. None define it quite right, so let's have our own type.
 
 -- | A Fixity definition, comprising the name the fixity applies to,
---   the direction and the precedence. As an example:
+--   the direction and the precedence. As an example, a source file containing:
 --
 -- > infixr 3 `foo`
 --
---   Would create @(\"foo\", RightAssociative, 3)
+--   would create @(\"foo\", RightAssociative, 3)@.
 type FixityInfo = (String, Associativity, Int)
 
 fromFixitySig :: FixitySig GhcPs -> [FixityInfo]

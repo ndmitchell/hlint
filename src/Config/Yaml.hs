@@ -160,10 +160,10 @@ allowFields v allow = do
     when (bad /= []) $
         parseFail v $ "Not allowed keys: " ++ unwords bad
 
-parseGHC :: (ParseMode -> String -> GHC.ParseResult v) -> Val -> Parser v
+parseGHC :: (ParseFlags -> String -> GHC.ParseResult v) -> Val -> Parser v
 parseGHC parser v = do
     x <- parseString v
-    case parser defaultParseMode{extensions=configExtensions} x of
+    case parser defaultParseFlags{extensions=configExtensions} x of
         GHC.POk _ x -> pure x
         GHC.PFailed _ loc err ->
           let msg = Outputable.showSDoc baseDynFlags $
@@ -298,7 +298,7 @@ guessName lhs rhs
     where
         (ls, rs) = both f (lhs, rhs)
         f :: HsSyn.LHsExpr HsSyn.GhcPs -> [String]
-        f x = [y | L _ (HsSyn.HsVar _ (L _ x)) <- universe x, let y = GHC.occNameString $ GHC.rdrNameOcc x,  not $ isUnifyVar y]
+        f x = [y | L _ (HsSyn.HsVar _ (L _ x)) <- universe x, let y = GHC.occNameString $ GHC.rdrNameOcc x, not $ isUnifyVar y, y /= "."]
 
 
 asNote :: String -> Note
