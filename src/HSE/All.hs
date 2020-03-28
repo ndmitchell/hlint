@@ -121,8 +121,7 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
    let pe = case loc of
             GHC.RealSrcSpan r -> context (GHC.srcSpanStartLine r) ppstr
             _ -> ""
-       msg = Outputable.showSDoc baseDynFlags $
-               ErrUtils.pprLocErrMsg (ErrUtils.mkPlainErrMsg baseDynFlags loc err)
+       msg = Outputable.showSDoc baseDynFlags err
    pure $ Left $ ParseError loc msg pe
 
 -- A hacky function to get fixities from HSE parse flags suitable for

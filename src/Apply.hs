@@ -87,7 +87,15 @@ parseModuleApply flags s file src = do
     case res of
       Right r -> pure $ Right r
       Left (ParseError sl msg ctxt) ->
-            pure $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error msg sl ctxt Nothing []
+            pure $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error (adjustMessage msg) sl ctxt Nothing []
+    where
+        -- important the message has "Parse error:" as the prefix so "--ignore=Parse error" works
+        -- try and tidy up things like "parse error (mismatched brackets)" to not look silly
+        adjustMessage :: String -> String
+        adjustMessage x = "Parse error: " ++ dropBrackets (dropPrefix "parse error " x)
+
+        dropBrackets ('(':xs) | Just (xs,')') <- unsnoc xs = xs
+        dropBrackets xs = xs
 
 
 -- | Find which hints a list of settings implies.
@@ -99,10 +107,11 @@ allHints xs = mconcat $ hintRules [x | SettingMatchExp x <- xs] : map f builtin
 
 -- | Given some settings, make sure the severity field of the Idea is correct.
 classify :: [Classify] -> Idea -> Idea
-classify xs i =  let s = foldl' (f i) (ideaSeverity i) xs in s `seq` i{ideaSeverity=s}
+classify xs i = let s = foldl' (f i) (ideaSeverity i) xs in s `seq` i{ideaSeverity=s}
     where
         -- figure out if we need to change the severity
         f :: Idea -> Severity -> Classify -> Severity
-        f i r c | classifyHint c ~= [ideaHint i] && classifyModule c ~= ideaModule i && classifyDecl c ~= ideaDecl i = classifySeverity c
+        f i r c | classifyHint c ~~= ideaHint i && classifyModule c ~= ideaModule i && classifyDecl c ~= ideaDecl i = classifySeverity c
                 | otherwise = r
-        x ~= y = null x || x `elem` y
+        x ~= y = x == "" || x `elem` y
+        x  ~~= y = x == "" || x == y || ((x ++ ":") `isPrefixOf` y)
