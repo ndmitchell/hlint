@@ -73,6 +73,7 @@ yes = foo (\x -> Just x) -- @Warning Just
 foo = bar (\x -> (x `f`)) -- f
 foo = bar (\x -> shakeRoot </> "src" </> x)
 baz = bar (\x -> (x +)) -- (+) @NoRefactor
+xs `withArgsFrom` args = f args
 foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z @NoRefactor
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b @NoRefactor
 yes = blah (\ x -> case x of A -> a; B -> b) -- @Note may require `{-# LANGUAGE LambdaCase #-}` adding to the top of the file @NoRefactor
@@ -123,7 +124,7 @@ lambdaDecl
     o@(L loc1 (ValD _
         origBind@FunBind {fun_matches =
             MG {mg_alts =
-                L _ [L _ (Match _ ctxt pats (GRHSs _ [L loc2 (GRHS _ [] origBody)] bind))]}}))
+                L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _) pats (GRHSs _ [L loc2 (GRHS _ [] origBody)] bind))]}}))
     | L _ (EmptyLocalBinds noExt) <- bind
     , isLambda $ fromParen' origBody
     , null (universeBi pats :: [HsExpr GhcPs])
