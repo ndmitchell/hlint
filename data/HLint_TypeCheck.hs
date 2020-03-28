@@ -6,7 +6,6 @@ module HLint_TypeCheck where
 (==>) = undefined
 
 _noParen_ = id
-_eval_ = id
 
 
 ---------------------------------------------------------------------

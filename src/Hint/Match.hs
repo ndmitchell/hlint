@@ -8,7 +8,6 @@ we substitute, transform and check the side conditions. We also "see through"
 both ($) and (.) functions on the right.
 
 TRANSFORM PATTERNS
-_eval_ - perform deep evaluation, must be used at the top of a RHS
 _noParen_ - don't bracket this particular item
 
 SIDE CONDITIONS
@@ -238,13 +237,11 @@ checkDefine' _ _ _ = True
 ---------------------------------------------------------------------
 -- TRANSFORMATION
 
--- If it has '_eval_' do evaluation on it. If it has '_noParen_', remove the brackets (if exist).
+-- If it has '_noParen_', remove the brackets (if exist).
 performSpecial' :: LHsExpr GhcPs -> LHsExpr GhcPs
-performSpecial' = transform fNoParen . fEval
+performSpecial' = transform fNoParen
   where
-    fEval, fNoParen :: LHsExpr GhcPs -> LHsExpr GhcPs
-    fEval (L _ (HsApp _ e x)) | varToStr e == "_eval_" = reduce' x
-    fEval x = x
+    fNoParen :: LHsExpr GhcPs -> LHsExpr GhcPs
     fNoParen (L _ (HsApp _ e x)) | varToStr e == "_noParen_" = fromParen' x
     fNoParen x = x
 

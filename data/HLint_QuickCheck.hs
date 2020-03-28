@@ -102,7 +102,6 @@ catcher x = unsafePerformIO $ do
         Right v -> Just v
 
 _noParen_ = id
-_eval_ = id
 
 withMain :: IO () -> IO ()
 withMain act = do
