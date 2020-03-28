@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #837, don't suggest redundant do if its being used for brackets
     #923, don't suggest eta reducing infix definitions
     #931, disable StaticPointers extension by default
     #924, remove dependency on haskell-src-exts

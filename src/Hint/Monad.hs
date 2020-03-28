@@ -49,6 +49,7 @@ main = void $ forM f xs -- void $ forM_ f xs
 main = do _ <- forM_ f xs; bar -- forM_ f xs
 main = do bar; forM_ f xs; return () -- do bar; forM_ f xs
 main = do a; when b c; return () -- do a; when b c
+bar = 1 * do {\x -> x+x} + y
 </TEST>
 -}
 
@@ -91,7 +92,7 @@ monadExp (declName -> decl) (parent, x) =
     (L l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (cL l . OpApp noExt op dol) x
     (L loc (HsDo _ ctx (L loc2 [L loc3 (BodyStmt _ y _ _ )]))) ->
       let idea = warn' "Redundant do" x y [Replace Expr (toSS' x) [("y", toSS' y)] "y"]
-       in [idea{ideaSpan = doSrcSpan ctx loc} | not $ doOperator parent y]
+       in [idea{ideaSpan = doSrcSpan ctx loc} | not $ doAsBrackets parent y]
     (L loc (HsDo _ DoExpr (L _ xs))) ->
       monadSteps (cL loc . HsDo noExt DoExpr . noLoc) xs ++
       [suggest' "Use let" x (cL loc (HsDo noExt DoExpr (noLoc y)) :: LHsExpr GhcPs) rs | Just (y, rs) <- [monadLet xs]] ++
@@ -109,12 +110,14 @@ monadExp (declName -> decl) (parent, x) =
             end = mkRealSrcLoc (srcSpanFile rss) (srcLocLine start) (srcLocCol start + len)
          in RealSrcSpan (mkRealSrcSpan start end)
 
--- Sometimes people write 'a * do a + b', to avoid brackets.
--- or using BlockArguments they can write 'a do a b'
-doOperator :: (Eq a, Num a) => Maybe (a, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
-doOperator (Just (2, L _ (OpApp _ _ op _ )))  (L _ OpApp {}) | not $ isDol op = True
-doOperator (Just (1, L _ HsApp{})) b | not $ isAtom' b = True
-doOperator _ _ = False
+-- Sometimes people write 'a * do a + b', to avoid brackets,
+-- or using BlockArguments they can write 'a do a b',
+-- or using indentation a * do {\b -> c} * d
+-- Return True if they are using do as brackets
+doAsBrackets :: Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
+doAsBrackets (Just (i, o)) x = needBracket' i o x
+doAsBrackets Nothing x = False
+
 
 returnsUnit :: LHsExpr GhcPs -> Bool
 returnsUnit (L _ (HsPar _ x)) = returnsUnit x
