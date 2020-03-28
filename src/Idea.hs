@@ -2,7 +2,7 @@
 
 module Idea(
     Idea(..),
-    rawIdea', idea', suggest', warn', ignore',
+    rawIdea', idea', ideaRemove, suggest', warn', warnRemove, ignore',
     rawIdeaN, rawIdeaN', suggestN', ignoreNoSuggestion',
     showIdeasJson, showANSI,
     Note(..), showNotes,
@@ -97,6 +97,10 @@ idea' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputabl
 idea' severity hint from to =
   rawIdea severity hint (GHC.getLoc from) (GHC.unsafePrettyPrint from) (Just $ GHC.unsafePrettyPrint to) []
 
+-- Construct an Idea that suggests "Perhaps you should remove it."
+ideaRemove :: Severity -> String -> GHC.SrcSpan -> String -> [Refactoring R.SrcSpan] -> Idea
+ideaRemove severity hint span from = rawIdea severity hint span from (Just "") []
+
 suggest' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
             String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
 suggest' = idea' Suggestion
@@ -104,6 +108,9 @@ suggest' = idea' Suggestion
 warn' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
          String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
 warn' = idea' Warning
+
+warnRemove :: String -> GHC.SrcSpan -> String -> [Refactoring R.SrcSpan] -> Idea
+warnRemove = ideaRemove Warning
 
 ignoreNoSuggestion' :: (GHC.HasSrcSpan a, Outputable.Outputable a)
                     => String -> a -> Idea
