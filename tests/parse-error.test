@@ -19,6 +19,7 @@ Found:
   > where
 
 1 hint
+
 ---------------------------------------------------------------------
 RUN tests/ignore-parse-error3.hs
 FILE tests/ignore-parse-error3.hs

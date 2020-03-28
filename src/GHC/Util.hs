@@ -38,17 +38,22 @@ import GHC.Util.Unify
 import qualified Language.Haskell.GhclibParserEx.Parse as GhclibParserEx
 import Language.Haskell.GhclibParserEx.GHC.Driver.Session (parsePragmasIntoDynFlags)
 
-import HsSyn
+import GHC.Hs
 import Lexer
 import SrcLoc
 import DynFlags
 import FastString
+import RdrHsSyn
 
 import System.FilePath
 import Language.Preprocessor.Unlit
 
 parseExpGhcLib :: String -> DynFlags -> ParseResult (LHsExpr GhcPs)
-parseExpGhcLib = GhclibParserEx.parseExpression
+parseExpGhcLib s flags =
+  case GhclibParserEx.parseExpression s flags of
+    POk s e ->
+       unP (runECP_P e >>= \e -> return e) s :: ParseResult (LHsExpr GhcPs)
+    PFailed ps -> PFailed ps
 
 parseImportGhcLib :: String -> DynFlags -> ParseResult (LImportDecl GhcPs)
 parseImportGhcLib = GhclibParserEx.parseImport

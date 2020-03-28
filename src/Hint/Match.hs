@@ -52,7 +52,7 @@ import Config.Type
 import Data.Generics.Uniplate.Operations
 
 import Bag
-import HsSyn
+import GHC.Hs
 import SrcLoc
 import BasicTypes
 import RdrName
@@ -97,8 +97,8 @@ dotVersion' (L l (OpApp _ x op y)) =
 
   --   If a == b then
   --   x is 'a', op is '==' and y is 'b' and,
-  let lSec = addParen' (cL l (SectionL noExt x op)) -- (a == )
-      rSec = addParen' (cL l (SectionR noExt op y)) -- ( == b)
+  let lSec = addParen' (cL l (SectionL noExtField x op)) -- (a == )
+      rSec = addParen' (cL l (SectionR noExtField op y)) -- ( == b)
   in (first (lSec :) <$> dotVersion' y) ++ (first (rSec :) <$> dotVersion' x) -- [([(a ==)], b), ([(b == )], a])].
 dotVersion' _ = []
 
@@ -137,7 +137,7 @@ matchIdea' sb declName HintRule{..} parent x = do
 
   -- Need to check free vars before unqualification, but after subst
   -- (with 'e') need to unqualify before substitution (with 'res').
-  let rhs' | Just fun <- extra = rebracket1' $ noLoc (HsApp noExt fun rhs)
+  let rhs' | Just fun <- extra = rebracket1' $ noLoc (HsApp noExtField fun rhs)
            | otherwise = rhs
       (e, tpl) = substitute' u rhs'
       noParens = [x | L _ (HsApp _ (varToStr -> "_noParen_") (varToStr -> x)) <- universe tpl]
@@ -253,7 +253,7 @@ unqualify' from to = transformBi f
     f x = scopeMove (from, x) to
 
 addBracket' :: Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> LHsExpr GhcPs
-addBracket' (Just (i, p)) c | needBracketOld' i p c = noLoc $ HsPar noExt c
+addBracket' (Just (i, p)) c | needBracketOld' i p c = noLoc $ HsPar noExtField c
 addBracket' _ x = x
 
 -- Type substitution e.g. 'Foo Int' for 'a' in 'Proxy a' can lead to a
@@ -264,5 +264,5 @@ addBracketTy'= transformBi f
   where
     f :: LHsType GhcPs -> LHsType GhcPs
     f (L _ (HsAppTy _ t x@(L _ HsAppTy{}))) =
-      noLoc (HsAppTy noExt t (noLoc (HsParTy noExt x)))
+      noLoc (HsAppTy noExtField t (noLoc (HsParTy noExtField x)))
     f x = x

@@ -16,11 +16,11 @@ import Prelude
 import GHC.Util
 
 import SrcLoc as GHC
-import HsExtension
-import HsDecls hiding (SpliceDecl)
-import HsExpr hiding (Match)
+import GHC.Hs.Extension
+import GHC.Hs.Decls hiding (SpliceDecl)
+import GHC.Hs.Expr hiding (Match)
+import GHC.Hs.Lit
 import FastString
-import HsLit
 import ApiAnnotation
 import OccName
 import Outputable
