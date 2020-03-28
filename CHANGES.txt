@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+*   Merge ParseMode into ParseFlags
 *   Rename Language.Haskell.HLint3,HLint4 to Language.Haskell.HLint
 *   Delete the old Language.Haskell.HLint
     #881, add a monomorphic group of hints

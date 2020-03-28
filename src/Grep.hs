@@ -22,7 +22,7 @@ import GHC.Util.DynFlags
 
 runGrep :: String -> ParseFlags -> [FilePath] -> IO ()
 runGrep patt flags files = do
-    exp <- case parseExpGhcWithMode (hseFlags flags) patt of
+    exp <- case parseExpGhcWithMode flags patt of
         POk _ a -> pure a
         PFailed _ loc err -> exitMessage $
           let msg = Outputable.showSDoc baseDynFlags $
