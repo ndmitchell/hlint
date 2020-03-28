@@ -3,6 +3,7 @@ RUN "--ignore=Parse error" tests/ignore-parse-error.hs
 FILE tests/ignore-parse-error.hs
 where
 OUTPUT
+No hints
 
 ---------------------------------------------------------------------
 RUN tests/ignore-parse-error2.hs
@@ -23,7 +24,7 @@ RUN tests/ignore-parse-error3.hs
 FILE tests/ignore-parse-error3.hs
 {-# LANGUAGE InvalidExtension #-}
 OUTPUT
-tests/ignore-parse-error3.hs:1:1: Error: Unsupported extension: InvalidExtension
+tests/ignore-parse-error3.hs:1:1: Error: Parse error: Unsupported extension: InvalidExtension
 
 Found:
   {-# LANGUAGE InvalidExtension #-}
