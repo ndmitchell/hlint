@@ -121,10 +121,10 @@ lambdaHint _ _ x
 
 lambdaDecl :: LHsDecl GhcPs -> [Idea]
 lambdaDecl
-    o@(L loc1 (ValD _
-        origBind@FunBind {fun_matches =
+    o@(L _ (ValD _
+        origBind@FunBind {fun_id = L loc1 _, fun_matches =
             MG {mg_alts =
-                L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _) pats (GRHSs _ [L loc2 (GRHS _ [] origBody)] bind))]}}))
+                L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _) pats (GRHSs _ [L _ (GRHS _ [] origBody@(L loc2 _))] bind))]}}))
     | L _ (EmptyLocalBinds noExt) <- bind
     , isLambda $ fromParen' origBody
     , null (universeBi pats :: [HsExpr GhcPs])
