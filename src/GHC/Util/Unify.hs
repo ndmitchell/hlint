@@ -61,7 +61,7 @@ validSubst' eq = fmap Subst' . mapM f . groupSort . fromSubst'
 -- Remove unnecessary brackets from a Subst'. The first argument is a list of unification variables
 -- for which brackets should be removed from their substitutions.
 removeParens :: [String] -> Subst' (LHsExpr GhcPs) -> Subst' (LHsExpr GhcPs)
-removeParens (map unsafePrettyPrint -> noParens) (Subst' xs) = Subst' $
+removeParens noParens (Subst' xs) = Subst' $
   map (\(x, y) -> if x `elem` noParens then (x, fromParen' y) else (x, y)) xs
 
 -- Peform a substition.

@@ -142,11 +142,12 @@ matchIdea' sb declName HintRule{..} parent x = do
   let rhs' | Just fun <- extra = rebracket1' $ noLoc (HsApp noExt fun rhs)
            | otherwise = rhs
       (e, tpl) = substitute' u rhs'
+      noParens = [x | L _ (HsApp _ (varToStr -> "_noParen_") (varToStr -> x)) <- universe tpl]
 
-  (tpl, noParens) <- pure (performSpecial' tpl)
+  tpl <- pure (performSpecial' tpl)
   u <- pure (removeParens noParens u)
 
-  let res = addBracketTy' (addBracket' parent $ fst $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs')
+  let res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs')
   guard $ (freeVars' e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars' rhs')) `Set.isSubsetOf` freeVars' x
       -- Check no unexpected new free variables.
 
@@ -238,17 +239,14 @@ checkDefine' _ _ _ = True
 -- TRANSFORMATION
 
 -- If it has '_eval_' do evaluation on it. If it has '_noParen_', remove the brackets (if exist).
--- The second component of the result is the list of 'LHsExpr's annotated with '_noParen_'.
-performSpecial' :: LHsExpr GhcPs -> (LHsExpr GhcPs, [LHsExpr GhcPs])
-performSpecial' = runWriter . transformM fNoParen . fEval
+performSpecial' :: LHsExpr GhcPs -> LHsExpr GhcPs
+performSpecial' = transform fNoParen . fEval
   where
-    fEval :: LHsExpr GhcPs -> LHsExpr GhcPs
+    fEval, fNoParen :: LHsExpr GhcPs -> LHsExpr GhcPs
     fEval (L _ (HsApp _ e x)) | varToStr e == "_eval_" = reduce' x
     fEval x = x
-
-    fNoParen :: LHsExpr GhcPs -> Writer [LHsExpr GhcPs] (LHsExpr GhcPs)
-    fNoParen (L _ (HsApp _ e x)) | varToStr e == "_noParen_" = tell [x] >> pure (fromParen' x)
-    fNoParen x = pure x
+    fNoParen (L _ (HsApp _ e x)) | varToStr e == "_noParen_" = fromParen' x
+    fNoParen x = x
 
 -- Contract : 'Data.List.foo' => 'foo' if 'Data.List' is loaded.
 unqualify' :: Scope -> Scope -> LHsExpr GhcPs -> LHsExpr GhcPs
