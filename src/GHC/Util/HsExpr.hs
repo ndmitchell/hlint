@@ -13,7 +13,7 @@ module GHC.Util.HsExpr (
   , allowLeftSection, allowRightSection
 ) where
 
-import HsSyn
+import GHC.Hs
 import BasicTypes
 import SrcLoc
 import FastString
@@ -44,7 +44,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 
 -- | 'dotApp a b' makes 'a . b'.
 dotApp' :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
-dotApp' x y = noLoc $ OpApp noExt x (noLoc $ HsVar noExt (noLoc $ mkVarUnqual (fsLit "."))) y
+dotApp' x y = noLoc $ OpApp noExtField x (noLoc $ HsVar noExtField (noLoc $ mkVarUnqual (fsLit "."))) y
 
 dotApps' :: [LHsExpr GhcPs] -> LHsExpr GhcPs
 dotApps' [] = error "GHC.Util.HsExpr.dotApps', does not work on an empty list"
@@ -52,8 +52,8 @@ dotApps' [x] = x
 dotApps' (x : xs) = dotApp' x (dotApps' xs)
 
 -- | @lambda [p0, p1..pn] body@ makes @\p1 p1 .. pn -> body@
-lambda :: [Pat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
-lambda vs body = noLoc $ HsLam noExt (MG noExt (noLoc [noLoc $ Match noExt LambdaExpr vs (GRHSs noExt [noLoc $ GRHS noExt [] body] (noLoc $ EmptyLocalBinds noExt))]) Generated)
+lambda :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
+lambda vs body = noLoc $ HsLam noExtField (MG noExtField (noLoc [noLoc $ Match noExtField LambdaExpr vs (GRHSs noExtField [noLoc $ GRHS noExtField [] body] (noLoc $ EmptyLocalBinds noExtField))]) Generated)
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren' :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -67,7 +67,7 @@ universeParentExp' xs = concat [(Nothing, x) : f x | x <- childrenBi xs]
 
 
 apps' :: [LHsExpr GhcPs] -> LHsExpr GhcPs
-apps' = foldl1' mkApp where mkApp x y = noLoc (HsApp noExt x y)
+apps' = foldl1' mkApp where mkApp x y = noLoc (HsApp noExtField x y)
 
 fromApps' :: LHsExpr GhcPs  -> [LHsExpr GhcPs]
 fromApps' (L _ (HsApp _ x y)) = fromApps' x ++ [y]
@@ -81,7 +81,7 @@ universeApps' :: LHsExpr GhcPs -> [LHsExpr GhcPs]
 universeApps' x = x : concatMap universeApps' (childrenApps' x)
 
 descendAppsM' :: Monad m => (LHsExpr GhcPs  -> m (LHsExpr GhcPs)) -> LHsExpr GhcPs -> m (LHsExpr GhcPs)
-descendAppsM' f (L l (HsApp _ x y)) = liftA2 (\x y -> L l $ HsApp noExt x y) (descendAppsM' f x) (f y)
+descendAppsM' f (L l (HsApp _ x y)) = liftA2 (\x y -> L l $ HsApp noExtField x y) (descendAppsM' f x) (f y)
 descendAppsM' f x = descendM f x
 
 transformAppsM' :: Monad m => (LHsExpr GhcPs -> m (LHsExpr GhcPs)) -> LHsExpr GhcPs -> m (LHsExpr GhcPs)
@@ -110,12 +110,12 @@ rebracket1' = descendBracket' (True, )
 -- A list of application, with any necessary brackets.
 appsBracket' :: [LHsExpr GhcPs] -> LHsExpr GhcPs
 appsBracket' = foldl1 mkApp
-  where mkApp x y = rebracket1' (noLoc $ HsApp noExt x y)
+  where mkApp x y = rebracket1' (noLoc $ HsApp noExtField x y)
 
 
 simplifyExp' :: LHsExpr GhcPs -> LHsExpr GhcPs
 -- Replace appliciations 'f $ x' with 'f (x)'.
-simplifyExp' (L l (OpApp _ x op y)) | isDol op = L l (HsApp noExt x (noLoc (HsPar noExt y)))
+simplifyExp' (L l (OpApp _ x op y)) | isDol op = L l (HsApp noExtField x (noLoc (HsPar noExtField y)))
 simplifyExp' e@(L _ (HsLet _ (L _ (HsValBinds _ (ValBinds _ binds []))) z)) =
   -- An expression of the form, 'let x = y in z'.
   case bagToList binds of
@@ -173,7 +173,7 @@ niceLambdaR' [v] (L _ (OpApp _ e f (view' -> Var_' v')))
   , vars' e `disjoint` [v]
   , L _ (HsVar _ (L _ fname)) <- f
   , isSymOcc $ rdrNameOcc fname
-  = (noLoc $ HsPar noExt $ noLoc $ SectionL noExt e f, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
+  = (noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField e f, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 
 -- @\vs v -> f x v@ ==> @\vs -> f x@
 niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (HsApp _ (L _ (HsApp _ f e)) (view' -> Var_' v')))
@@ -193,7 +193,7 @@ niceLambdaR' xs (SimpleLambda ((view' -> PVar_' v):vs) x)
 -- lexeme, or it all gets too complex).
 niceLambdaR' [x] (view' -> App2' op@(L _ (HsVar _ (L _ tag))) l r)
   | isLexeme r, view' l == Var_' x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
-      let e = rebracket1' $ addParen' (noLoc $ SectionR noExt op r)
+      let e = rebracket1' $ addParen' (noLoc $ SectionR noExtField op r)
       in (e, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 -- Rewrite (1) @\x -> f (b x)@ as @f . b@, (2) @\x -> f $ b x@ as @f . b@.
 niceLambdaR' [x] y
@@ -225,27 +225,27 @@ niceLambdaR' [x, y] (view' -> App2' op (view' -> Var_' y1) (view' -> Var_' x1))
       , \s -> [Replace Expr s [("x", toSS' op)] (unsafePrettyPrint $ gen (strToVar "x"))]
       )
   where
-    gen = noLoc . HsApp noExt (strToVar "flip")
+    gen = noLoc . HsApp noExtField (strToVar "flip")
 
 -- We're done factoring, but have no variables left, so we shouldn't make a lambda.
 -- @\ -> e@ ==> @e@
 niceLambdaR' [] e = (e, const [])
 -- Base case. Just a good old fashioned lambda.
 niceLambdaR' ss e =
-  let grhs = noLoc $ GRHS noExt [] e :: LGRHS GhcPs (LHsExpr GhcPs)
-      grhss = GRHSs {grhssExt = noExt, grhssGRHSs=[grhs], grhssLocalBinds=noLoc $ EmptyLocalBinds noExt}
-      match = noLoc $ Match {m_ext=noExt, m_ctxt=LambdaExpr, m_pats=map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
-      matchGroup = MG {mg_ext=noExt, mg_origin=Generated, mg_alts=noLoc [match]}
-  in (noLoc $ HsLam noExt matchGroup, const [])
+  let grhs = noLoc $ GRHS noExtField [] e :: LGRHS GhcPs (LHsExpr GhcPs)
+      grhss = GRHSs {grhssExt = noExtField, grhssGRHSs=[grhs], grhssLocalBinds=noLoc $ EmptyLocalBinds noExtField}
+      match = noLoc $ Match {m_ext=noExtField, m_ctxt=LambdaExpr, m_pats=map (noLoc . strToPat) ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
+      matchGroup = MG {mg_ext=noExtField, mg_origin=Generated, mg_alts=noLoc [match]}
+  in (noLoc $ HsLam noExtField matchGroup, const [])
 
 
 -- 'case' and 'if' expressions have branches, nothing else does (this
 -- doesn't consider 'HsMultiIf' perhaps it should?).
 replaceBranches' :: LHsExpr GhcPs -> ([LHsExpr GhcPs], [LHsExpr GhcPs] -> LHsExpr GhcPs)
-replaceBranches' (L l (HsIf _ _ a b c)) = ([b, c], \[b, c] -> cL l (HsIf noExt Nothing a b c))
+replaceBranches' (L l (HsIf _ _ a b c)) = ([b, c], \[b, c] -> cL l (HsIf noExtField Nothing a b c))
 
 replaceBranches' (L s (HsCase _ a (MG _ (L l bs) FromSource))) =
-  (concatMap f bs, \xs -> cL s (HsCase noExt a (MG noExt (cL l (g bs xs)) Generated)))
+  (concatMap f bs, \xs -> cL s (HsCase noExtField a (MG noExtField (cL l (g bs xs)) Generated)))
   where
     f :: LMatch GhcPs (LHsExpr GhcPs) -> [LHsExpr GhcPs]
     f (L _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (L _ (GRHS _ _ x)) <- xs]
@@ -253,7 +253,7 @@ replaceBranches' (L s (HsCase _ a (MG _ (L l bs) FromSource))) =
 
     g :: [LMatch GhcPs (LHsExpr GhcPs)] -> [LHsExpr GhcPs] -> [LMatch GhcPs (LHsExpr GhcPs)]
     g (L s1 (Match _ CaseAlt a (GRHSs _ ns b)) : rest) xs =
-      cL s1 (Match noExt CaseAlt a (GRHSs noExt [cL a (GRHS noExt gs x) | (L a (GRHS _ gs _), x) <- zip ns as] b)) : g rest bs
+      cL s1 (Match noExtField CaseAlt a (GRHSs noExtField [cL a (GRHS noExtField gs x) | (L a (GRHS _ gs _), x) <- zip ns as] b)) : g rest bs
       where  (as, bs) = splitAt (length ns) xs
     g [] [] = []
     g _ _ = error "GHC.Util.HsExpr.replaceBranches': internal invariant failed, lists are of differing lengths"
@@ -303,10 +303,10 @@ reduce' = fromParen' . transform reduce1'
 
 reduce1' :: LHsExpr GhcPs -> LHsExpr GhcPs
 reduce1' (L loc (HsApp _ len (L _ (HsLit _ (HsString _ xs)))))
-  | varToStr len == "length" = cL loc $ HsLit noExt (HsInt noExt (IL NoSourceText False n))
+  | varToStr len == "length" = cL loc $ HsLit noExtField (HsInt noExtField (IL NoSourceText False n))
   where n = fromIntegral $ length (unpackFS xs)
 reduce1' (L loc (HsApp _ len (L _ (ExplicitList _ _ xs))))
-  | varToStr len == "length" = cL loc $ HsLit noExt (HsInt noExt (IL NoSourceText False n))
+  | varToStr len == "length" = cL loc $ HsLit noExtField (HsInt noExtField (IL NoSourceText False n))
   where n = fromIntegral $ length xs
 reduce1' (view' -> App2' op (L _ (HsLit _ x)) (L _ (HsLit _ y))) | varToStr op == "==" = strToVar (show (astEq x y))
 reduce1' (view' -> App2' op (L _ (HsLit _ (HsInt _ x))) (L _ (HsLit _ (HsInt _ y)))) | varToStr op == ">=" = strToVar $ show (x >= y)

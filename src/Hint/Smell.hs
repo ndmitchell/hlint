@@ -86,7 +86,7 @@ import Data.List.Extra
 import qualified Data.Map as Map
 
 import BasicTypes
-import HsSyn
+import GHC.Hs
 import RdrName
 import Outputable
 import Bag
@@ -154,7 +154,7 @@ rhsSpans _ _ = []
 -- The spans of a 'where' clause are the spans of its bindings.
 whereSpans :: LHsLocalBinds GhcPs -> [(SrcSpan, Idea)]
 whereSpans (L l (HsValBinds _ (ValBinds _ bs _))) =
-  concatMap (declSpans . (\(L loc bind) -> L loc (ValD noExt bind))) (bagToList bs)
+  concatMap (declSpans . (\(L loc bind) -> L loc (ValD noExtField bind))) (bagToList bs)
 whereSpans _ = []
 
 spanLength :: SrcSpan -> Int

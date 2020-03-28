@@ -1,7 +1,7 @@
 
 module GHC.Util.Module (modName, fromModuleName') where
 
-import HsSyn
+import GHC.Hs
 import Module
 import SrcLoc
 

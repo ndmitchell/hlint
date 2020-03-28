@@ -15,7 +15,7 @@ module Hint.Export(exportHint) where
 
 import Hint.Type(ModuHint, ModuleEx(..),ideaNote,ignore',Note(..))
 
-import HsSyn
+import GHC.Hs
 import Module
 import SrcLoc
 import OccName
@@ -24,7 +24,7 @@ import RdrName
 exportHint :: ModuHint
 exportHint _ (ModuleEx (L s m@HsModule {hsmodName = Just name, hsmodExports = exports}) _)
   | Nothing <- exports =
-      let r = o{ hsmodExports = Just (noLoc [noLoc (IEModuleContents noExt name)] )} in
+      let r = o{ hsmodExports = Just (noLoc [noLoc (IEModuleContents noExtField name)] )} in
       [(ignore' "Use module export list" (L s o) (noLoc r) []){ideaNote = [Note "an explicit list is usually better"]}]
   | Just (L _ xs) <- exports
   , mods <- [x | x <- xs, isMod x]
@@ -33,7 +33,7 @@ exportHint _ (ModuleEx (L s m@HsModule {hsmodName = Just name, hsmodExports = ex
   , exports' <- [x | x <- xs, not (matchesModName modName x)]
   , modName `elem` names =
       let dots = mkRdrUnqual (mkVarOcc " ... ")
-          r = o{ hsmodExports = Just (noLoc (noLoc (IEVar noExt (noLoc (IEName (noLoc dots)))) : exports') )}
+          r = o{ hsmodExports = Just (noLoc (noLoc (IEVar noExtField (noLoc (IEName (noLoc dots)))) : exports') )}
       in
         [ignore' "Use explicit module export list" (L s o) (noLoc r) []]
       where

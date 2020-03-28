@@ -12,7 +12,8 @@ module Foo where
 
 where
 OUTPUT
-tests/ignore-parse-error2.hs:3:1-5: Error: Parse error: on input `where'
+tests/ignore-parse-error2.hs:3:1-5: Error: Parse error: tests/ignore-parse-error2.hs:3:1: error:
+    parse error on input `where'
 Found:
     module Foo where
 

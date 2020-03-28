@@ -25,15 +25,16 @@ import Extension
 import FastString
 import Prelude
 
-import qualified HsSyn
+import GHC.Hs
 import qualified SrcLoc as GHC
-import qualified ErrUtils
+import ErrUtils
 import qualified Outputable
 import qualified Lexer as GHC
 import GHC.LanguageExtensions.Type
 import qualified ApiAnnotation as GHC
 import qualified BasicTypes as GHC
 import qualified DynFlags as GHC
+import Bag
 
 import GHC.Util (parsePragmasIntoDynFlags, parseFileGhcLib, parseExpGhcLib, parseDeclGhcLib, parseImportGhcLib, baseDynFlags)
 import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
@@ -85,7 +86,7 @@ data ParseError = ParseError
 
 -- | Result of 'parseModuleEx', representing a parsed module.
 data ModuleEx = ModuleEx {
-    ghcModule :: GHC.Located (HsSyn.HsModule HsSyn.GhcPs)
+    ghcModule :: GHC.Located (HsModule GhcPs)
   , ghcAnnotations :: GHC.ApiAnns
 }
 
@@ -124,18 +125,18 @@ parseModeToFlags parseMode =
   where
     (enable, disable) = ghcExtensionsFromParseFlags parseMode
 
-parseExpGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (HsSyn.LHsExpr HsSyn.GhcPs)
+parseExpGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (LHsExpr GhcPs)
 parseExpGhcWithMode parseMode s =
   let fixities = ghcFixitiesFromParseFlags parseMode
   in case parseExpGhcLib s $ parseModeToFlags parseMode of
     GHC.POk pst a -> GHC.POk pst (GhclibParserEx.applyFixities fixities a)
     f@GHC.PFailed{} -> f
 
-parseImportDeclGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (HsSyn.LImportDecl HsSyn.GhcPs)
+parseImportDeclGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (LImportDecl GhcPs)
 parseImportDeclGhcWithMode parseMode s =
   parseImportGhcLib s $ parseModeToFlags parseMode
 
-parseDeclGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (HsSyn.LHsDecl HsSyn.GhcPs)
+parseDeclGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (LHsDecl GhcPs)
 parseDeclGhcWithMode parseMode s =
   let fixities = ghcFixitiesFromParseFlags parseMode
   in case parseDeclGhcLib s $ parseModeToFlags parseMode of
@@ -156,7 +157,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         str <- pure $ dropPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
         let enableDisableExts = ghcExtensionsFromParseFlags flags
-            fixities = ghcFixitiesFromParseFlags flags -- Note : Fixities are coming from HSE parse flags.
+            fixities = ghcFixitiesFromParseFlags flags
         dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
           Right ghcFlags -> do
@@ -171,8 +172,15 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                     pure $ Right (ModuleEx a' anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
-                GHC.PFailed _ loc err ->
-                    ghcFailOpParseModuleEx ppstr file str (loc, err)
+                GHC.PFailed s -> do
+                  -- TODO (SF, 2020-03-28): Quick patch here. After the
+                  -- migration to 8.10, this needs looking at more
+                  -- closely.
+                    let (_, errs) = GHC.getMessages s ghcFlags
+                        errMsg = head (bagToList errs)
+                        loc = errMsgSpan errMsg
+                        doc = pprLocErrMsg errMsg
+                    ghcFailOpParseModuleEx ppstr file str (loc, doc)
           Left msg -> do
             -- Parsing GHC flags from dynamic pragmas in the source
             -- has failed. When this happens, it's reported by

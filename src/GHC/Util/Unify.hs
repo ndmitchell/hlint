@@ -16,7 +16,7 @@ import Data.List.Extra
 import Data.Tuple.Extra
 import Util
 
-import HsSyn
+import GHC.Hs
 import SrcLoc as GHC
 import Outputable hiding ((<>))
 import RdrName
@@ -70,19 +70,19 @@ substitute' (Subst' bind) = transformBracketOld' exp . transformBi pat . transfo
     exp (L _ (HsVar _ x)) = lookup (rdrNameStr' x) bind
     -- Operator applications.
     exp (L loc (OpApp _ lhs (L _ (HsVar _ x)) rhs))
-      | Just y <- lookup (rdrNameStr' x) bind = Just (cL loc (OpApp noExt lhs y rhs))
+      | Just y <- lookup (rdrNameStr' x) bind = Just (cL loc (OpApp noExtField lhs y rhs))
     -- Left sections.
     exp (L loc (SectionL _ exp (L _ (HsVar _ x))))
-      | Just y <- lookup (rdrNameStr' x) bind = Just (cL loc (SectionL noExt exp y))
+      | Just y <- lookup (rdrNameStr' x) bind = Just (cL loc (SectionL noExtField exp y))
     -- Right sections.
     exp (L loc (SectionR _ (L _ (HsVar _ x)) exp))
-      | Just y <- lookup (rdrNameStr' x) bind = Just (cL loc (SectionR noExt y exp))
+      | Just y <- lookup (rdrNameStr' x) bind = Just (cL loc (SectionR noExtField y exp))
     exp _ = Nothing
 
     pat :: LPat GhcPs -> LPat GhcPs
     -- Pattern variables.
-    pat (LL _ (VarPat _ x))
-      | Just y@(L _ HsVar{}) <- lookup (rdrNameStr' x) bind = strToPat (varToStr y)
+    pat (L _ (VarPat _ x))
+      | Just y@(L _ HsVar{}) <- lookup (rdrNameStr' x) bind = noLoc $ strToPat (varToStr y)
     pat x = x :: LPat GhcPs
 
     typ :: LHsType GhcPs -> LHsType GhcPs
@@ -118,7 +118,7 @@ unifyComposed' nm x1 y11 dot y12 =
   ((, Just y11) <$> unifyExp' nm False x1 y12)
     <|> case y12 of
           (L _ (OpApp _ y121 dot' y122)) | isDot dot' ->
-            unifyComposed' nm x1 (noLoc (OpApp noExt y11 dot y121)) dot' y122
+            unifyComposed' nm x1 (noLoc (OpApp noExtField y11 dot y121)) dot' y122
           _ -> Nothing
 
 -- unifyExp handles the cases where both x and y are HsApp, or y is OpApp. Otherwise,
@@ -151,7 +151,7 @@ unifyExp nm root x@(L _ (HsApp _ x1 x2)) (L _ (HsApp _ y1 y2)) =
           -- Attempt #1: rewrite '(fun1 . fun2) arg' as 'fun1 (fun2 arg)', and unify it with 'x'.
           -- The guard ensures that you don't get duplicate matches because the matching engine
           -- auto-generates hints in dot-form.
-          (guard (not root) >> (, Nothing) <$> unifyExp' nm root x (noLoc (HsApp noExt y11 (noLoc (HsApp noExt y12 y2)))))
+          (guard (not root) >> (, Nothing) <$> unifyExp' nm root x (noLoc (HsApp noExtField y11 (noLoc (HsApp noExtField y12 y2)))))
             -- Attempt #2: rewrite '(fun1 . fun2 ... funn) arg' as 'fun1 $ (fun2 ... funn) arg',
             -- 'fun1 . fun2 $ (fun3 ... funn) arg', 'fun1 . fun2 . fun3 $ (fun4 ... funn) arg',
             -- and so on, unify the rhs of '$' with 'x', and store the lhs of '$' into 'extra'.
@@ -165,8 +165,8 @@ unifyExp nm root x@(L _ (HsApp _ x1 x2)) (L _ (HsApp _ y1 y2)) =
 unifyExp nm root x (L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2))
     | (L _ (OpApp _ lhs1 op1@(L _ (HsVar _ op1')) rhs1)) <- x =
         guard (nm op1' op2') >> (, Nothing) <$> liftA2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
-    | isDol op2 = unifyExp nm root x $ noLoc (HsApp noExt lhs2 rhs2)
-    | otherwise  = unifyExp nm root x $ noLoc (HsApp noExt (noLoc (HsApp noExt op2 lhs2)) rhs2)
+    | isDol op2 = unifyExp nm root x $ noLoc (HsApp noExtField lhs2 rhs2)
+    | otherwise  = unifyExp nm root x $ noLoc (HsApp noExtField (noLoc (HsApp noExtField op2 lhs2)) rhs2)
 unifyExp nm root x y = (, Nothing) <$> unifyExp' nm root x y
 
 -- App/InfixApp are analysed specially for performance reasons. If
@@ -212,19 +212,19 @@ unifyExp' _ _ _ _ = Nothing
 
 
 unifyPat' :: NameMatch' -> LPat GhcPs -> LPat GhcPs -> Maybe (Subst' (LHsExpr GhcPs))
-unifyPat' nm (LL _ (VarPat _ x)) (LL _ (VarPat _ y)) =
+unifyPat' nm (L _ (VarPat _ x)) (L _ (VarPat _ y)) =
   Just $ Subst' [(rdrNameStr' x, strToVar(rdrNameStr' y))]
-unifyPat' nm (LL _ (VarPat _ x)) (LL _ (WildPat _)) =
+unifyPat' nm (L _ (VarPat _ x)) (L _ (WildPat _)) =
   let s = rdrNameStr' x in Just $ Subst' [(s, strToVar("_" ++ s))]
-unifyPat' nm (LL _ (ConPatIn x _)) (LL _ (ConPatIn y _)) | rdrNameStr' x /= rdrNameStr' y =
+unifyPat' nm (L _ (ConPatIn x _)) (L _ (ConPatIn y _)) | rdrNameStr' x /= rdrNameStr' y =
   Nothing
 unifyPat' nm x y =
   unifyDef' nm x y
 
 unifyType' :: NameMatch' -> LHsType GhcPs -> LHsType GhcPs -> Maybe (Subst' (LHsExpr GhcPs))
 unifyType' nm (L loc (HsTyVar _ _ x)) y =
-  let wc = HsWC noExt y :: LHsWcType (NoGhcTc GhcPs)
-      unused = noLoc (HsVar noExt (noLoc $ mkRdrUnqual (mkVarOcc "__unused__"))) :: LHsExpr GhcPs
-      appType = cL loc (HsAppType noExt unused wc) :: LHsExpr GhcPs
+  let wc = HsWC noExtField y :: LHsWcType (NoGhcTc GhcPs)
+      unused = noLoc (HsVar noExtField (noLoc $ mkRdrUnqual (mkVarOcc "__unused__"))) :: LHsExpr GhcPs
+      appType = cL loc (HsAppType noExtField unused wc) :: LHsExpr GhcPs
  in Just $ Subst' [(rdrNameStr' x, appType)]
 unifyType' nm x y = unifyDef' nm x y

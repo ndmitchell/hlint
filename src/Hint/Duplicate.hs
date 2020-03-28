@@ -32,7 +32,7 @@ import Data.List hiding (find)
 import qualified Data.Map as Map
 
 import SrcLoc
-import HsSyn
+import GHC.Hs
 import Outputable
 import Bag
 import GHC.Util

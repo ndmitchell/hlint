@@ -65,16 +65,26 @@ library
         extra >= 1.7.1,
         refact >= 0.3,
         aeson >= 1.1.2.0,
-        filepattern >= 0.1.1,
-        ghc-lib-parser-ex >= 8.8.6.0 && < 8.8.7
-    if !flag(ghc-lib) && impl(ghc >= 8.8.0) && impl(ghc < 8.9.0)
-        build-depends:
-          ghc == 8.8.*,
-          ghc-boot-th,
-          ghc-boot
+        filepattern >= 0.1.1
+
+    -- We currently target the 8.10 parse tree.
+    if !flag(ghc-lib) && impl(ghc >= 8.10.0) && impl(ghc < 8.11.0)
+      build-depends:
+        -- Not explicitly instructed to link ghc-lib-parser and we are
+        -- compiling with an 8.10 compiler so we link native ghc libraries.
+        ghc == 8.10.*,
+        ghc-boot-th,
+        ghc-boot
     else
-        build-depends:
-          ghc-lib-parser == 8.8.*
+      build-depends:
+        -- Either explicitly instructed to link ghc-lib-parser or we
+        -- are compiling with a non-8.10 compiler.
+          ghc-lib-parser == 8.10.*
+    build-depends:
+        -- Note : ghc-lib-parser-ex supports the ghc-lib flag too. If
+        -- you set that flag for hlint, be sure to set it consistently
+        -- for ghc-lib-parser-ex also.
+        ghc-lib-parser-ex >= 8.10.0.1 && < 8.10.1
 
     if flag(gpl)
         build-depends: hscolour >= 1.21

@@ -48,7 +48,7 @@ import Hint.Type(DeclHint',Idea,suggest',toRefactSrcSpan',toSS')
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
 
-import HsSyn
+import GHC.Hs
 import SrcLoc
 import BasicTypes
 import RdrName
@@ -102,9 +102,9 @@ listCompCheckGuards o ctx stmts =
       | otherwise = []
       where
         ys = moveGuardsForward xs
-        o' = noLoc $ ExplicitList noExt Nothing []
-        o2 = noLoc $ HsDo noExt ctx (noLoc (filter ((/= Just "True") . qualCon) xs ++ [e]))
-        o3 = noLoc $ HsDo noExt ctx (noLoc $ ys ++ [e])
+        o' = noLoc $ ExplicitList noExtField Nothing []
+        o2 = noLoc $ HsDo noExtField ctx (noLoc (filter ((/= Just "True") . qualCon) xs ++ [e]))
+        o3 = noLoc $ HsDo noExtField ctx (noLoc $ ys ++ [e])
         cons = mapMaybe qualCon xs
         qualCon :: ExprLStmt GhcPs -> Maybe String
         qualCon (L _ (BodyStmt _ (L _ (HsVar _ (L _ x))) _ _)) = Just (occNameString . rdrNameOcc $ x)
@@ -117,8 +117,8 @@ listCompCheckMap o mp f ctx stmts  | varToStr mp == "map" =
     where
       revs = reverse stmts
       L _ (LastStmt _ body b s) = head revs -- In a ListComp, this is always last.
-      last = noLoc $ LastStmt noExt (noLoc $ HsApp noExt (paren' f) (paren' body)) b s
-      o2 =noLoc $ HsDo noExt ctx (noLoc $ reverse (tail revs) ++ [last])
+      last = noLoc $ LastStmt noExtField (noLoc $ HsApp noExtField (paren' f) (paren' body)) b s
+      o2 =noLoc $ HsDo noExtField ctx (noLoc $ reverse (tail revs) ++ [last])
 listCompCheckMap _ _ _ _ _ = []
 
 suggestExpr :: LHsExpr GhcPs -> LHsExpr GhcPs -> [Refactoring R.SrcSpan]
@@ -132,7 +132,10 @@ moveGuardsForward = reverse . f [] . reverse
               span (if any hasPFieldsDotDot (universeBi x)
                        || any isPFieldWildcard (universeBi x)
                       then const False
-                      else \x -> pvars' p `disjoint` vars_ x) guards
+                      else \x ->
+                       let pvars = pvars' p in
+                       pvars `disjoint` vars_ x && "pun-right-hand-side" `notElem` pvars
+                   ) guards
     f guards (x@(L _ BodyStmt{}):xs) = f (x:guards) xs
     f guards (x@(L _ LetStmt{}):xs) = f (x:guards) xs
     f guards xs = reverse guards ++ xs
@@ -149,7 +152,7 @@ listExp b (fromParen' -> x) =
           , Just (x2, subts, temp) <- [f b x]
           , let r = Replace Expr (toSS' x) subts temp ]
 
-listPat :: Pat GhcPs -> [Idea]
+listPat :: LPat GhcPs -> [Idea]
 listPat x = if null res then concatMap listPat $ children x else [head res]
     where res = [suggest' name x x2 [r]
                   | (name, f) <- pchecks
@@ -166,24 +169,24 @@ checks = let (*) = (,) in drop1 -- see #174
   , "Use :" * useCons
   ]
 
-pchecks :: [(String, Pat GhcPs -> Maybe (Pat GhcPs, [(String, R.SrcSpan)], String))]
+pchecks :: [(String, LPat GhcPs -> Maybe (LPat GhcPs, [(String, R.SrcSpan)], String))]
 pchecks = let (*) = (,) in drop1 -- see #174
     [ "Use string literal pattern" * usePString
     , "Use list literal pattern" * usePList
     ]
 
-usePString :: Pat GhcPs -> Maybe (Pat GhcPs, [a], String)
-usePString (LL _ (ListPat _ xs)) | not $ null xs, Just s <- mapM fromPChar xs =
-  let literal = noLoc $ LitPat noExt (HsString NoSourceText (fsLit (show s)))
+usePString :: LPat GhcPs -> Maybe (LPat GhcPs, [a], String)
+usePString (L _ (ListPat _ xs)) | not $ null xs, Just s <- mapM fromPChar xs =
+  let literal = noLoc $ LitPat noExtField (HsString NoSourceText (fsLit (show s)))
   in Just (literal, [], unsafePrettyPrint literal)
 usePString _ = Nothing
 
-usePList :: Pat GhcPs -> Maybe (Pat GhcPs, [(String, R.SrcSpan)], String)
+usePList :: LPat GhcPs -> Maybe (LPat GhcPs, [(String, R.SrcSpan)], String)
 usePList =
   fmap  ( (\(e, s) ->
-             (noLoc (ListPat noExt e)
+             (noLoc (ListPat noExtField e)
              , map (fmap toRefactSrcSpan' . fst) s
-             , unsafePrettyPrint (noLoc $ ListPat noExt (map snd s) :: Pat GhcPs))
+             , unsafePrettyPrint (noLoc $ ListPat noExtField (map snd s) :: LPat GhcPs))
           )
           . unzip
         )
@@ -193,21 +196,21 @@ usePList =
     f first (ident:cs) (view' -> PApp_' ":" [a, b]) = ((a, g ident a) :) <$> f False cs b
     f first _ _ = Nothing
 
-    g :: Char -> Pat GhcPs -> ((String, SrcSpan), Pat GhcPs)
-    g c (getLoc -> loc) = (([c], loc), VarPat noExt (noLoc $ mkVarUnqual (fsLit [c])))
+    g :: Char -> LPat GhcPs -> ((String, SrcSpan), LPat GhcPs)
+    g c (getLoc -> loc) = (([c], loc), noLoc $ VarPat noExtField (noLoc $ mkVarUnqual (fsLit [c])))
 
 useString :: p -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [a], String)
 useString b (L _ (ExplicitList _ _ xs)) | not $ null xs, Just s <- mapM fromChar xs =
-  let literal = noLoc (HsLit noExt (HsString NoSourceText (fsLit (show s))))
+  let literal = noLoc (HsLit noExtField (HsString NoSourceText (fsLit (show s))))
   in Just (literal, [], unsafePrettyPrint literal)
 useString _ _ = Nothing
 
 useList :: p -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String)
 useList b =
   fmap  ( (\(e, s) ->
-             (noLoc (ExplicitList noExt Nothing e)
+             (noLoc (ExplicitList noExtField Nothing e)
              , map (fmap toSS') s
-             , unsafePrettyPrint (noLoc $ ExplicitList noExt Nothing (map snd s) :: LHsExpr GhcPs))
+             , unsafePrettyPrint (noLoc $ ExplicitList noExtField Nothing (map snd s) :: LHsExpr GhcPs))
           )
           . unzip
         )
@@ -237,17 +240,17 @@ useCons False (view' -> App2' op x y) | varToStr op == "++"
     f _ = Nothing
 
     gen :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
-    gen x = noLoc . OpApp noExt x (noLoc (HsVar noExt  (noLoc consDataCon_RDR)))
+    gen x = noLoc . OpApp noExtField x (noLoc (HsVar noExtField  (noLoc consDataCon_RDR)))
 useCons _ _ = Nothing
 
 typeListChar :: LHsType GhcPs
 typeListChar =
-  noLoc $ HsListTy noExt
-    (noLoc (HsTyVar noExt NotPromoted (noLoc (mkVarUnqual (fsLit "Char")))))
+  noLoc $ HsListTy noExtField
+    (noLoc (HsTyVar noExtField NotPromoted (noLoc (mkVarUnqual (fsLit "Char")))))
 
 typeString :: LHsType GhcPs
 typeString =
-  noLoc $ HsTyVar noExt NotPromoted (noLoc (mkVarUnqual (fsLit "String")))
+  noLoc $ HsTyVar noExtField NotPromoted (noLoc (mkVarUnqual (fsLit "String")))
 
 stringType :: LHsDecl GhcPs  -> [Idea]
 stringType (L _ x) = case x of

@@ -23,7 +23,7 @@ import Data.List.Extra
 import Refact.Types hiding(Match)
 import Data.Generics.Uniplate.Operations
 
-import HsSyn
+import GHC.Hs
 import OccName
 import RdrName
 import FastString
@@ -61,7 +61,7 @@ unsafeHint _ (ModuleEx (L _ m) _) = \(L loc d) ->
   where
     gen :: OccName -> LHsDecl GhcPs
     gen x = noLoc $
-      SigD noExt (InlineSig noExt (noLoc (mkRdrUnqual x))
+      SigD noExtField (InlineSig noExtField (noLoc (mkRdrUnqual x))
                       (InlinePragma (SourceText "{-# NOINLINE") NoInline Nothing NeverActive FunLike))
     noinline :: [OccName]
     noinline = [q | L _(SigD _ (InlineSig _ (L _ (Unqual q))

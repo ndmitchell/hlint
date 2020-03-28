@@ -41,7 +41,7 @@ import HSE.All
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
 import qualified ApiAnnotation as GHC
-import qualified HsSyn as GHC
+import qualified GHC.Hs as GHC
 import SrcLoc
 import CmdLine
 import Paths_hlint

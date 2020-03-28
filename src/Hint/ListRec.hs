@@ -41,14 +41,14 @@ import Control.Monad
 import Refact.Types hiding (RType(Match))
 
 import SrcLoc
-import HsExtension
-import HsPat
-import HsTypes
+import GHC.Hs.Extension
+import GHC.Hs.Pat
+import GHC.Hs.Types
 import TysWiredIn
 import RdrName
-import HsBinds
-import HsExpr
-import HsDecls
+import GHC.Hs.Binds
+import GHC.Hs.Expr
+import GHC.Hs.Decls
 import OccName
 import BasicTypes
 
@@ -135,15 +135,15 @@ asDo (view' ->
               mg_origin=FromSource
             , mg_alts=L _ [
                  L _ Match {  m_ctxt=LambdaExpr
-                            , m_pats=[LL _ v@VarPat{}]
+                            , m_pats=[v@(L _ VarPat{})]
                             , m_grhss=GRHSs _
                                         [L _ (GRHS _ [] rhs)]
                                         (L _ (EmptyLocalBinds _))}]}))
       ) =
-  [ noLoc $ BindStmt noExt v lhs noSyntaxExpr noSyntaxExpr
-  , noLoc $ BodyStmt noExt rhs noSyntaxExpr noSyntaxExpr ]
+  [ noLoc $ BindStmt noExtField v lhs noSyntaxExpr noSyntaxExpr
+  , noLoc $ BodyStmt noExtField rhs noSyntaxExpr noSyntaxExpr ]
 asDo (L _ (HsDo _ DoExpr (L _ stmts))) = stmts
-asDo x = [noLoc $ BodyStmt noExt x noSyntaxExpr noSyntaxExpr]
+asDo x = [noLoc $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr]
 
 
 ---------------------------------------------------------------------
@@ -168,15 +168,15 @@ findCase x = do
   b2 <- transformAppsM' (delCons name1 p1 xs) b2
   (ps, b2) <- pure $ eliminateArgs ps1 b2
 
-  let ps12 = let (a, b) = splitAt p1 ps1 in map strToPat (a ++ xs : b) -- Function arguments.
-      emptyLocalBinds = noLoc $ EmptyLocalBinds noExt -- Empty where clause.
-      gRHS e = noLoc $ GRHS noExt [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
-      gRHSSs e = GRHSs noExt [gRHS e] emptyLocalBinds -- Guarded rhs set.
-      match e = Match{m_ext=noExt,m_pats=ps12, m_grhss=gRHSSs e, ..} -- Match.
+  let ps12 = let (a, b) = splitAt p1 ps1 in map (noLoc . strToPat) (a ++ xs : b) -- Function arguments.
+      emptyLocalBinds = noLoc $ EmptyLocalBinds noExtField -- Empty where clause.
+      gRHS e = noLoc $ GRHS noExtField [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
+      gRHSSs e = GRHSs noExtField [gRHS e] emptyLocalBinds -- Guarded rhs set.
+      match e = Match{m_ext=noExtField,m_pats=ps12, m_grhss=gRHSSs e, ..} -- Match.
       matchGroup e = MG{mg_alts=noLoc [noLoc $ match e], mg_origin=Generated, ..} -- Match group.
       funBind e = FunBind {fun_matches=matchGroup e, ..} :: HsBindLR GhcPs GhcPs -- Fun bind.
 
-  pure (ListCase ps b1 (x, xs, b2), noLoc . ValD noExt . funBind)
+  pure (ListCase ps b1 (x, xs, b2), noLoc . ValD noExtField . funBind)
 
 delCons :: String -> Int -> String -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
 delCons func pos var (fromApps' -> (view' -> Var_' x) : xs) | func == x = do
@@ -220,10 +220,10 @@ findPat ps = do
 
   pure (left, i, right)
 
-readPat :: Pat GhcPs -> Maybe (Either String BList)
+readPat :: LPat GhcPs -> Maybe (Either String BList)
 readPat (view' -> PVar_' x) = Just $ Left x
-readPat (LL _ (ParPat _ (LL _ (ConPatIn (L _ n) (InfixCon (view' -> PVar_' x) (view' -> PVar_' xs))))))
+readPat (L _ (ParPat _ (L _ (ConPatIn (L _ n) (InfixCon (view' -> PVar_' x) (view' -> PVar_' xs))))))
  | n == consDataCon_RDR = Just $ Right $ BCons x xs
-readPat (LL _ (ConPatIn (L _ n) (PrefixCon [])))
+readPat (L _ (ConPatIn (L _ n) (PrefixCon [])))
   | n == nameRdrName nilDataConName = Just $ Right BNil
 readPat _ = Nothing

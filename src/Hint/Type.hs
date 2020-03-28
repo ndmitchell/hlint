@@ -10,8 +10,8 @@ import HSE.All  as Export
 import Idea     as Export
 import Prelude
 import Refact   as Export
-import HsExtension
-import HsDecls
+import GHC.Hs.Extension
+import GHC.Hs.Decls
 import GHC.Util.Scope
 
 type DeclHint' = Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
