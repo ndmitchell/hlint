@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module GHC.Util.FreeVars (
     vars', varss', pvars',
@@ -167,10 +166,10 @@ instance AllVars' (Located (Pat GhcPs)) where
   allVars' (L _ (NPlusKPat _ n _ _ _ _)) = allVars' (noLoc $ VarPat noExtField n :: LPat GhcPs) -- n+k pattern.
   allVars' (L _ (ViewPat _ e p)) = freeVars_' e <> allVars' p -- View pattern.
 
-  allVars' (L _ (WildPat{})) = mempty -- Wildcard pattern.
-  allVars' (L _ (ConPatOut{})) = mempty -- Renamer/typechecker.
-  allVars' (L _ (LitPat{})) = mempty -- Literal pattern.
-  allVars' (L _ (NPat{})) = mempty -- Natural pattern.
+  allVars' (L _ WildPat{}) = mempty -- Wildcard pattern.
+  allVars' (L _ ConPatOut{}) = mempty -- Renamer/typechecker.
+  allVars' (L _ LitPat{}) = mempty -- Literal pattern.
+  allVars' (L _ NPat{}) = mempty -- Natural pattern.
 
   -- allVars' p@SplicePat{} = allVars' $ children p -- Splice pattern (includes quasi-quotes).
   -- allVars' p@SigPat{} = allVars' $ children p -- Pattern with a type signature.
