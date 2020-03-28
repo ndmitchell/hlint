@@ -46,7 +46,6 @@ import qualified Data.Set as Set
 import qualified Refact.Types as R
 
 import Control.Monad
-import Control.Monad.Trans.Writer.Strict
 import Data.Tuple.Extra
 import Data.Maybe
 import Config.Type
