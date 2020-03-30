@@ -1,5 +1,5 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables, TupleSections #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveFunctor #-}
 
 module GHC.Util.Unify(
     Subst', fromSubst',
@@ -13,7 +13,6 @@ import Data.Generics.Uniplate.Operations
 import Data.Char
 import Data.Data
 import Data.List.Extra
-import Data.Tuple.Extra
 import Util
 
 import GHC.Hs
@@ -40,14 +39,11 @@ isUnifyVar xs = all (== '?') xs
 -- A list of substitutions. A key may be duplicated, you need to call
 --  'check' to ensure the substitution is valid.
 newtype Subst' a = Subst' [(String, a)]
-    deriving (Semigroup, Monoid)
+    deriving (Semigroup, Monoid, Functor)
 
 -- Unpack the substitution.
 fromSubst' :: Subst' a -> [(String, a)]
 fromSubst' (Subst' xs) = xs
-
-instance Functor Subst' where
-    fmap f (Subst' xs) = Subst' $ map (second f) xs -- Interesting.
 
 instance Outputable a => Show (Subst' a) where
     show (Subst' xs) = unlines [a ++ " = " ++ unsafePrettyPrint b | (a,b) <- xs]
