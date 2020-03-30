@@ -346,8 +346,6 @@
     - warn: {lhs: if x then False else y, rhs: not x && y, side: notEq y True, name: Redundant if}
     - warn: {lhs: if x then y else True, rhs: not x || y, side: notEq y False, name: Redundant if}
     - warn: {lhs: not (not x), rhs: x, name: Redundant not}
-    # warn "Too strict if": {lhs: if c then f x else f y, rhs: f (if c then x else y), note: IncreasesLaziness}
-    # also breaks types, see #87
 
     # ARROW
 
@@ -933,6 +931,7 @@
     imports:
     - package base
     rules:
+    - warn: {lhs: if c then f x else f y, rhs: f (if c then x else y), note: IncreasesLaziness, name: Too strict if}
     - hint: {lhs: maybe (f x) (f . g), rhs: f . maybe x g, note: IncreasesLaziness, name: Too strict maybe}
     - hint: {lhs: maybe (f x) f y, rhs: f (Data.Maybe.fromMaybe x y), note: IncreasesLaziness, name: Too strict maybe}
 
