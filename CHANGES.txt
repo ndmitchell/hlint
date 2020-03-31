@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #939, reduce the span of "Redundant where" to only cover the "where"
     Remove support for GHC 8.4
     Remove support for _eval,
     #926, fix refactoring when the hint contains _noParen_
