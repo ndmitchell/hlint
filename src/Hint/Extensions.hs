@@ -184,6 +184,13 @@ x = if | b1 -> v1 | b2 -> v2 | otherwise -> v3
 {-# LANGUAGE MultiWayIf #-} \
 x = if b1 then v1 else if b2 then v2 else v3 --
 static = 42
+{-# LANGUAGE NamedFieldPuns #-} \
+foo Foo{x} = x
+{-# LANGUAGE NamedFieldPuns #-} \
+foo = Foo{x}
+{-# LANGUAGE NamedFieldPuns #-} \
+foo = bar{x}
+{-# LANGUAGE NamedFieldPuns #-} --
 {-# LANGUAGE StaticPointers #-} \
 static = 42 -- @NoRefactor: cannot refactor parse errors
 </TEST>
@@ -381,7 +388,7 @@ used TypeOperators = hasS tyOpInSig ||^ hasS tyOpInDecl
       (c:_) -> not $ isAlpha c || c == '_'
       _ -> False
 used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
-used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
+used RecordPuns = hasS isPatFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
 used UnboxedTuples = hasS isUnboxedTuple ||^ hasS (== Unboxed) ||^ hasS isDeriving
     where
         -- detect if there are deriving declarations or data ... deriving stuff
@@ -513,3 +520,7 @@ isWholeFrac _ = False
 -- Field puns in updates have a different type to field puns in constructions
 isFieldPunUpdate :: HsRecField' (AmbiguousFieldOcc GhcPs) (LHsExpr GhcPs) -> Bool
 isFieldPunUpdate = \case HsRecField {hsRecPun=True} -> True; _ -> False
+
+
+isPatFieldPun :: HsRecField' (FieldOcc GhcPs) (LPat GhcPs) -> Bool
+isPatFieldPun = \case HsRecField {hsRecPun=True} -> True; _ -> False

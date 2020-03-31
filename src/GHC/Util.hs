@@ -52,7 +52,7 @@ parseExpGhcLib :: String -> DynFlags -> ParseResult (LHsExpr GhcPs)
 parseExpGhcLib s flags =
   case GhclibParserEx.parseExpression s flags of
     POk s e ->
-       unP (runECP_P e >>= \e -> return e) s :: ParseResult (LHsExpr GhcPs)
+       unP (runECP_P e) s :: ParseResult (LHsExpr GhcPs)
     PFailed ps -> PFailed ps
 
 parseImportGhcLib :: String -> DynFlags -> ParseResult (LImportDecl GhcPs)

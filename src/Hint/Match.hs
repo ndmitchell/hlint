@@ -140,12 +140,12 @@ matchIdea' sb declName HintRule{..} parent x = do
   let rhs' | Just fun <- extra = rebracket1' $ noLoc (HsApp noExtField fun rhs)
            | otherwise = rhs
       (e, tpl) = substitute' u rhs'
-      noParens = [x | L _ (HsApp _ (varToStr -> "_noParen_") (varToStr -> x)) <- universe tpl]
+      noParens = [varToStr $ fromParen' x | L _ (HsApp _ (varToStr -> "_noParen_") x) <- universe tpl]
 
   tpl <- pure (performSpecial' tpl)
   u <- pure (removeParens noParens u)
 
-  let res = addBracketTy' (addBracket' parent $ fst $ substitute' u $ unqualify' sa sb rhs')
+  let res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs')
   guard $ (freeVars' e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars' rhs')) `Set.isSubsetOf` freeVars' x
       -- Check no unexpected new free variables.
 
