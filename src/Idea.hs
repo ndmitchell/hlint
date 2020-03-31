@@ -2,7 +2,7 @@
 
 module Idea(
     Idea(..),
-    rawIdea', idea', suggest', warn', warnRemove, ignore',
+    rawIdea', idea', suggest', suggestRemove, warn', warnRemove, ignore',
     rawIdeaN, rawIdeaN', suggestN', ignoreNoSuggestion',
     showIdeasJson, showANSI,
     Note(..), showNotes,
@@ -104,6 +104,9 @@ ideaRemove severity hint span from = rawIdea severity hint span from (Just "") [
 suggest' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
             String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
 suggest' = idea' Suggestion
+
+suggestRemove :: String -> GHC.SrcSpan -> String -> [Refactoring R.SrcSpan] -> Idea
+suggestRemove = ideaRemove Suggestion
 
 warn' :: (GHC.HasSrcSpan a, Outputable.Outputable a, GHC.HasSrcSpan b, Outputable.Outputable b) =>
          String -> a -> b -> [Refactoring R.SrcSpan] -> Idea

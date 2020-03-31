@@ -16,7 +16,7 @@ foo b | c <- f b = c \
       | c <- f b = c
 foo x = yes x x where yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
 foo x | otherwise = y -- foo x = y
-foo x = x + x where -- foo x = x + x
+foo x = x + x where --
 foo x | a = b | True = d -- foo x | a = b ; | otherwise = d
 foo (Bar _ _ _ _) = x -- Bar{}
 foo (Bar _ x _ _) = x
@@ -57,7 +57,7 @@ foo x@Foo = x
 
 module Hint.Pattern(patternHint) where
 
-import Hint.Type(DeclHint',Idea,ghcAnnotations,ideaTo,toSS',toRefactSrcSpan',suggest',warn')
+import Hint.Type(DeclHint',Idea,ghcAnnotations,ideaTo,toSS',toRefactSrcSpan',suggest',suggestRemove,warn')
 import Data.Generics.Uniplate.Operations
 import Data.Function
 import Data.List.Extra
@@ -149,13 +149,19 @@ hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
 hints gen (Pattern l t pats o@(GRHSs _ [L _ (GRHS _ [test] bod)] bind))
   | unsafePrettyPrint test `elem` ["otherwise", "True"]
   = [gen "Redundant guard" (Pattern l t pats o{grhssGRHSs=[noLoc (GRHS noExtField [] bod)]}) [Delete Stmt (toSS' test)]]
-hints gen (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
-  = [gen "Redundant where" (Pattern l t pats bod{grhssLocalBinds=noLoc (EmptyLocalBinds noExtField)}) []]
+hints _ (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
+  = [suggestRemove "Redundant where" whereSpan "where" [ {- TODO refactoring for redundant where -} ]]
   where
     f :: LHsLocalBinds GhcPs -> Bool
     f (L _ (HsValBinds _ (ValBinds _ bag _))) = isEmptyBag bag
     f (L _ (HsIPBinds _ (IPBinds _ l))) = null l
     f _ = False
+    whereSpan = case l of
+      UnhelpfulSpan s -> UnhelpfulSpan s
+      RealSrcSpan s ->
+        let end = realSrcSpanEnd s
+            start = mkRealSrcLoc (srcSpanFile s) (srcLocLine end) (srcLocCol end - 5)
+         in RealSrcSpan (mkRealSrcSpan start end)
 hints gen (Pattern l t pats o@(GRHSs _ (unsnoc -> Just (gs, L _ (GRHS _ [test] bod))) binds))
   | unsafePrettyPrint test == "True"
   = let tag = noLoc (mkRdrUnqual $ mkVarOcc "otherwise")
