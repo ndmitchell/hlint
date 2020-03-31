@@ -10,9 +10,9 @@ matrix:
 script:
 - export HLINT_ARGUMENTS=src
 # - export UNIPLATE_VERBOSE=-1
-# apply-refact doesn't compile with GHC head
+# apply-refact doesn't compile with GHC head or 8.10
 # if you are using ghc-exactprint-0.6.3 you get a compile error
-- "[ \"$GHCVER\" = \"head\" ] || export HASKELL_DEPENDENCIES=\"ghc-exactprint-0.6.2 apply-refact\""
+- "[ \"$GHCVER\" = \"head\" ] || [ \"$GHCVER\" = \"8.10\" ] || export HASKELL_DEPENDENCIES=\"ghc-exactprint-0.6.2 apply-refact\""
 - curl -sSL https://raw.github.com/ndmitchell/neil/master/travis.sh | sh
 
 deploy:
