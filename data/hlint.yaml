@@ -102,7 +102,8 @@
     - warn: {lhs: sortBy (flip (comparing f)), rhs: sortOn (Down . f)}
     - warn: {lhs: sortBy (comparing f), rhs: sortOn f, side: notEq f fst && notEq f snd}
     - warn: {lhs: reverse (sortOn f x), rhs: sortOn (Data.Ord.Down . f) x, name: Avoid reverse, note: Stabilizes sort order}
-    - warn: {lhs: reverse (sort x), rhs: sortOn Data.Ord.Down x, name: Avoid reverse, note: Stabilizes sort order}
+    # This suggestion likely costs performance, see https://github.com/ndmitchell/hlint/issues/669#issuecomment-607154496
+    # - warn: {lhs: reverse (sort x), rhs: sortOn Data.Ord.Down x, name: Avoid reverse, note: Stabilizes sort order}
     - hint: {lhs: flip (g `on` h), rhs: flip g `on` h, name: Move flip}
     - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h), name: Fuse on/on}
 
