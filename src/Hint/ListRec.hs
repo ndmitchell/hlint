@@ -168,7 +168,7 @@ findCase x = do
   b2 <- transformAppsM' (delCons name1 p1 xs) b2
   (ps, b2) <- pure $ eliminateArgs ps1 b2
 
-  let ps12 = let (a, b) = splitAt p1 ps1 in map (noLoc . strToPat) (a ++ xs : b) -- Function arguments.
+  let ps12 = let (a, b) = splitAt p1 ps1 in map strToPat (a ++ xs : b) -- Function arguments.
       emptyLocalBinds = noLoc $ EmptyLocalBinds noExtField -- Empty where clause.
       gRHS e = noLoc $ GRHS noExtField [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
       gRHSSs e = GRHSs noExtField [gRHS e] emptyLocalBinds -- Guarded rhs set.

@@ -43,17 +43,12 @@ import Lexer
 import SrcLoc
 import DynFlags
 import FastString
-import RdrHsSyn
 
 import System.FilePath
 import Language.Preprocessor.Unlit
 
 parseExpGhcLib :: String -> DynFlags -> ParseResult (LHsExpr GhcPs)
-parseExpGhcLib s flags =
-  case GhclibParserEx.parseExpression s flags of
-    POk s e ->
-       unP (runECP_P e) s :: ParseResult (LHsExpr GhcPs)
-    PFailed ps -> PFailed ps
+parseExpGhcLib = GhclibParserEx.parseExpression
 
 parseImportGhcLib :: String -> DynFlags -> ParseResult (LImportDecl GhcPs)
 parseImportGhcLib = GhclibParserEx.parseImport

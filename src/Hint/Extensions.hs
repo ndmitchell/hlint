@@ -212,7 +212,6 @@ import Refact.Types
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 
-import DynFlags
 import SrcLoc
 import GHC.Hs
 import BasicTypes
@@ -228,6 +227,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.Types
 import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
+import Language.Haskell.GhclibParserEx.GHC.Driver.Session
 
 extensionsHint :: ModuHint
 extensionsHint _ x =
@@ -254,9 +254,8 @@ extensionsHint _ x =
     filterEnabled  = filter (not . isPrefixOf "No")
 
     lookupExt :: String -> Extension
-    lookupExt s =
-      case find (\(FlagSpec n _ _ _) -> n == s) xFlags of
-        Just f -> flagSpecFlag f
+    lookupExt s = case readExtension s of
+        Just ext -> ext
         Nothing ->
           -- Validity checking of extensions happens when the parse
           -- tree is constructed (via 'getOptions' called from
