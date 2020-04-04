@@ -16,6 +16,7 @@ import Data.Maybe
 import Data.Functor
 import HSE.All(CppFlags(..))
 import GHC.LanguageExtensions.Type
+import Language.Haskell.GhclibParserEx.GHC.Driver.Session as GhclibParserEx
 import DynFlags hiding (verbosity)
 
 import Language.Preprocessor.Cpphs
@@ -321,9 +322,6 @@ getExtensions args = (lang, foldl f (if null langs then defaultExtensions else [
         ls = [(show x, x) | x <- [Haskell98, Haskell2010]]
 
         f a "Haskell98" = []
-        f a ('N':'o':x) | Just x <- readExtension x = delete x a
-        f a x | Just x <- readExtension x = x : delete x a
+        f a ('N':'o':x) | Just x <- GhclibParserEx.readExtension x = delete x a
+        f a x | Just x <- GhclibParserEx.readExtension x = x : delete x a
         f a x = a -- Ignore unknown extension.
-
-readExtension :: String -> Maybe Extension
-readExtension s = flagSpecFlag <$> find (\(FlagSpec n _ _ _) -> n == s) xFlags

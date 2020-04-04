@@ -84,7 +84,7 @@ substitute' (Subst' bind) = transformBracketOld' exp . transformBi pat . transfo
     pat :: LPat GhcPs -> LPat GhcPs
     -- Pattern variables.
     pat (L _ (VarPat _ x))
-      | Just y@(L _ HsVar{}) <- lookup (rdrNameStr' x) bind = noLoc $ strToPat (varToStr y)
+      | Just y@(L _ HsVar{}) <- lookup (rdrNameStr' x) bind = strToPat $ varToStr y
     pat x = x :: LPat GhcPs
 
     typ :: LHsType GhcPs -> LHsType GhcPs

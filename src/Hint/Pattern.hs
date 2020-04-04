@@ -139,7 +139,7 @@ hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
     toString (Left e) = e
     toString (Right (v, _)) = strToVar v
     toString' (Left e) = e
-    toString' (Right (v, _)) = noLoc $ strToPat v
+    toString' (Right (v, _)) = strToPat v
 
     template = fromMaybe "" $ ideaTo (gen "" (Pattern l rtype (map toString' patSubts) (GRHSs noExtField templateGuards bind)) [])
 

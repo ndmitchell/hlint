@@ -234,7 +234,7 @@ niceLambdaR' [] e = (e, const [])
 niceLambdaR' ss e =
   let grhs = noLoc $ GRHS noExtField [] e :: LGRHS GhcPs (LHsExpr GhcPs)
       grhss = GRHSs {grhssExt = noExtField, grhssGRHSs=[grhs], grhssLocalBinds=noLoc $ EmptyLocalBinds noExtField}
-      match = noLoc $ Match {m_ext=noExtField, m_ctxt=LambdaExpr, m_pats=map (noLoc . strToPat) ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
+      match = noLoc $ Match {m_ext=noExtField, m_ctxt=LambdaExpr, m_pats=map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
       matchGroup = MG {mg_ext=noExtField, mg_origin=Generated, mg_alts=noLoc [match]}
   in (noLoc $ HsLam noExtField matchGroup, const [])
 
