@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #944, reduce the span of "Use let" to only cover the "let" line
     #669, don't suggest replacing reverse . sort (it's quite fast)
     #939, reduce the span of "Redundant where" to only cover the "where"
     Remove support for GHC 8.4
