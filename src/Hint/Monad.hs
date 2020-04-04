@@ -27,8 +27,8 @@ yes = do x <- bar; return (f $ g x) -- do f . g <$> bar
 yes = do x <- bar $ baz; return (f $ g x)
 no = do x <- bar; return (f x x)
 {-# LANGUAGE RecursiveDo #-}; no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
-yes = do x <- return y; foo x -- @Suggestion do let x = y; foo x
-yes = do x <- return $ y + z; foo x -- do let x = y + z; foo x
+yes = do x <- return y; foo x -- @Suggestion let x = y
+yes = do x <- return $ y + z; foo x -- let x = y + z
 no = do x <- return x; foo x
 no = do x <- return y; x <- return y; foo x
 yes = do forM files $ \x -> return (); return () -- forM_ files $ \x -> return ()
@@ -96,7 +96,7 @@ monadExp (declName -> decl) (parent, x) =
           | not $ doAsBrackets parent y ]
     (L loc (HsDo _ DoExpr (L _ xs))) ->
       monadSteps (cL loc . HsDo noExtField DoExpr . noLoc) xs ++
-      [suggest' "Use let" x (cL loc (HsDo noExtField DoExpr (noLoc y)) :: LHsExpr GhcPs) rs | Just (y, rs) <- [monadLet xs]] ++
+      [suggest' "Use let" from to [r] | (from, to, r) <- monadLet xs] ++
       concat [f x | (L _ (BodyStmt _ x _ _)) <- init xs] ++
       concat [f x | (L _ (BindStmt _ (LL _ WildPat{}) x _ _)) <- init xs]
     _ -> []
@@ -204,20 +204,19 @@ monadSteps wrap (x : xs) = monadStep wrap (x : xs) ++ monadSteps (wrap . (x :)) 
 monadSteps _ _ = []
 
 -- | Rewrite 'do ...; x <- return y; ...' as 'do ...; let x = y; ...'.
-monadLet :: [ExprLStmt GhcPs] -> Maybe ([ExprLStmt GhcPs], [Refactoring R.SrcSpan])
-monadLet xs = if null rs then Nothing else Just (ys, rs)
+monadLet :: [ExprLStmt GhcPs] -> [(ExprLStmt GhcPs, ExprLStmt GhcPs, Refactoring R.SrcSpan)]
+monadLet xs = mapMaybe mkLet xs
   where
-    (ys, catMaybes -> rs) = unzip $ map mkLet xs
     vs = concatMap pvars' [p | (L _ (BindStmt _ p _ _ _)) <- xs]
 
-    mkLet :: ExprLStmt GhcPs -> (ExprLStmt GhcPs, Maybe (Refactoring R.SrcSpan))
-    mkLet g@(L _ (BindStmt _ v@(view' -> PVar_' p) (fromRet -> Just (_, y)) _ _ ))
+    mkLet :: ExprLStmt GhcPs -> Maybe (ExprLStmt GhcPs, ExprLStmt GhcPs, Refactoring R.SrcSpan)
+    mkLet x@(L _ (BindStmt _ v@(view' -> PVar_' p) (fromRet -> Just (_, y)) _ _ ))
       | p `notElem` vars' y, p `notElem` delete p vs
-      = (template p y, Just refact)
+      = Just (x, template p y, refact)
       where
-        refact = Replace Stmt (toSS' g) [("lhs", toSS' v), ("rhs", toSS' y)]
+        refact = Replace Stmt (toSS' x) [("lhs", toSS' v), ("rhs", toSS' y)]
                       (unsafePrettyPrint $ template "lhs" (strToVar "rhs"))
-    mkLet x = (x, Nothing)
+    mkLet _ = Nothing
 
     template :: String -> LHsExpr GhcPs -> ExprLStmt GhcPs
     template lhs rhs =
