@@ -206,7 +206,6 @@ import Data.Generics.Uniplate.Operations
 import Control.Monad.Extra
 import Data.Char
 import Data.List.Extra
-import Data.Ratio
 import Data.Data
 import Refact.Types
 import qualified Data.Set as Set
@@ -324,6 +323,8 @@ deriveStock = deriveHaskell ++ deriveGenerics ++ deriveCategory
 
 usedExt :: Extension -> Located (HsModule GhcPs) -> Bool
 usedExt NumDecimals = hasS isWholeFrac
+  -- Only whole number fractions are permitted by NumDecimals
+  -- extension.  Anything not-whole raises an error.
 usedExt DeriveLift = hasDerive ["Lift"]
 usedExt DeriveAnyClass = not . null . derivesAnyclass . derives
 usedExt x = used x
@@ -347,10 +348,6 @@ used EmptyCase = hasS f
     f _ = False
 used KindSignatures = hasT (un :: HsKind GhcPs)
 used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
-  where
-    isStrictMatch :: HsMatchContext RdrName -> Bool
-    isStrictMatch FunRhs{mc_strictness=SrcStrict} = True
-    isStrictMatch _ = False
 used TemplateHaskell = hasT2' (un :: (HsBracket GhcPs, HsSplice GhcPs)) ||^ hasS f ||^ hasS isSpliceDecl
     where
       f :: HsBracket GhcPs -> Bool
@@ -387,7 +384,7 @@ used TypeOperators = hasS tyOpInSig ||^ hasS tyOpInDecl
       (c:_) -> not $ isAlpha c || c == '_'
       _ -> False
 used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
-used RecordPuns = hasS isPatFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
+used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
 used UnboxedTuples = hasS isUnboxedTuple ||^ hasS (== Unboxed) ||^ hasS isDeriving
     where
         -- detect if there are deriving declarations or data ... deriving stuff
@@ -414,23 +411,12 @@ used DeriveFoldable = hasDerive ["Foldable"]
 used DeriveTraversable = hasDerive ["Traversable","Foldable","Functor"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
 used GeneralizedNewtypeDeriving = not . null . derivesNewtype' . derives
-used MultiWayIf = hasS f
-  where
-    f :: HsExpr GhcPs -> Bool
-    f = \case HsMultiIf{} -> True; _ -> False
+used MultiWayIf = hasS isMultiIf
 used LambdaCase = hasS isLCase
 used TupleSections = hasS isTupleSection
 used OverloadedStrings = hasS isString
-used Arrows = hasS f
-  where
-    f :: HsExpr GhcPs -> Bool
-    f HsProc{} = True
-    f _ = False
-used TransformListComp = hasS f
-    where
-      f :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Bool
-      f TransStmt{} = True
-      f _ = False
+used Arrows = hasS isProc
+used TransformListComp = hasS isTransStmt
 used MagicHash = hasS f ||^ hasS isPrimLiteral
     where
       f :: RdrName -> Bool
@@ -508,18 +494,3 @@ hasT2' ~(t1,t2) = hasT t1 ||^ hasT t2
 
 hasS :: (Data x, Data a) => (a -> Bool) -> x -> Bool
 hasS test = any test . universeBi
-
--- Only whole number fractions are permitted by NumDecimals extension.
--- Anything not-whole raises an error.
-isWholeFrac :: HsExpr GhcPs -> Bool
-isWholeFrac (HsLit _ (HsRat _ (FL _ _ v) _)) = denominator v == 1
-isWholeFrac (HsOverLit _ (OverLit _ (HsFractional (FL _ _ v)) _)) = denominator v == 1
-isWholeFrac _ = False
-
--- Field puns in updates have a different type to field puns in constructions
-isFieldPunUpdate :: HsRecField' (AmbiguousFieldOcc GhcPs) (LHsExpr GhcPs) -> Bool
-isFieldPunUpdate = \case HsRecField {hsRecPun=True} -> True; _ -> False
-
-
-isPatFieldPun :: HsRecField' (FieldOcc GhcPs) (LPat GhcPs) -> Bool
-isPatFieldPun = \case HsRecField {hsRecPun=True} -> True; _ -> False
