@@ -56,12 +56,12 @@ f x = case x of (Nothing) -> 1; _ -> 2 -- Nothing
 
 -- dollar reduction tests
 no = groupFsts . sortFst $ mr
-yes = split "to" $ names -- split "to" names
-yes = white $ keysymbol -- white keysymbol
-yes = operator foo $ operator -- operator foo operator
+yes = split "to" $ names --
+yes = white $ keysymbol --
+yes = operator foo $ operator --
 no = operator foo $ operator bar
 yes = return $ Record{a=b}
-no = f $ [1,2..5] -- f [1,2..5] @NoRefactor: apply-refact bug; see apply-refact #51
+no = f $ [1,2..5] -- @NoRefactor: apply-refact bug; see apply-refact #51
 
 -- $/bracket rotation tests
 yes = (b $ c d) ++ e -- b (c d) ++ e
@@ -95,7 +95,7 @@ special = foo (f{x=1})
 
 module Hint.Bracket(bracketHint) where
 
-import Hint.Type(DeclHint',Idea(..),rawIdea',warn',suggest',Severity(..),toSS')
+import Hint.Type(DeclHint',Idea(..),rawIdea',warn',suggest',suggestRemove,Severity(..),toSS')
 import Data.Data
 import Data.List.Extra
 import Data.Generics.Uniplate.Operations
@@ -226,7 +226,7 @@ fieldDecl _ = []
 dollar :: LHsExpr GhcPs -> [Idea]
 dollar = concatMap f . universe
   where
-    f x = [ suggest' "Redundant $" x y [r]| o@(L loc (OpApp _ a d b)) <- [x], isDol d
+    f x = [ suggestRemove "Redundant $" (getLoc d) "$" [r]| (L _ (OpApp _ a d b)) <- [x], isDol d
             , let y = noLoc (HsApp noExtField a b) :: LHsExpr GhcPs
             , not $ needBracket' 0 y a
             , not $ needBracket' 1 y b
