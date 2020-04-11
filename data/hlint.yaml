@@ -415,6 +415,12 @@
     - warn: {lhs: liftA, rhs: fmap}
     - hint: {lhs: m >>= return . f, rhs: f <$> m}
     - hint: {lhs: return . f =<< m, rhs: f <$> m}
+    - warn: {lhs: fmap f x >>= g, rhs: x >>= g . f}
+    - warn: {lhs: f <$> x >>= g, rhs: x >>= g . f}
+    - warn: {lhs: x Data.Functor.<&> f >>= g, rhs: x >>= g . f}
+    - warn: {lhs: g =<< fmap f x, rhs: g . f =<< x}
+    - warn: {lhs: g =<< f <$> x, rhs: g . f =<< x}
+    - warn: {lhs: g =<< (x Data.Functor.<&> f), rhs: g . f =<< x}
     - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x $ _noParen_ y, side: not (isAtom y)}
     - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x y, side: isAtom y}
     - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: isAtom y}
