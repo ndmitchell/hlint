@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #949, warn about redundant fmaps with binds
     #950, reduce the span of "Redundant $" to only cover the "$"
     #944, reduce the span of "Use let" to only cover the "let" line
     #669, don't suggest replacing reverse . sort (it's quite fast)
