@@ -765,6 +765,12 @@
     - warn: {lhs: null x  , rhs: "False", side: isTuple x, name: Using null on tuple}
     - warn: {lhs: length x, rhs: "1"    , side: isTuple x, name: Using length on tuple}
 
+    # MAP
+
+    - warn: {lhs: "Data.Map.fromList []", rhs: Data.Map.empty}
+    - warn: {lhs: "Data.Map.Lazy.fromList []", rhs: Data.Map.Lazy.empty}
+    - warn: {lhs: "Data.Map.Strict.fromList []", rhs: Data.Map.Strict.empty}
+
 - group:
     name: lens
     enabled: true
@@ -1157,4 +1163,10 @@
 # foo = typeOf (undefined :: Foo Int) -- typeRep (Proxy :: Proxy (Foo Int))
 # foo = typeOf (undefined :: a) -- typeRep (Proxy :: Proxy a) @NoRefactor hlint bug: incorrect serialisation
 # {-# RULES "Id-fmap-id" forall (x :: Id a). fmap id x = x #-}
+# import Data.Map (fromList) \
+# fromList [] -- Data.Map.empty
+# import Data.Map.Lazy (fromList) \
+# fromList [] -- Data.Map.Lazy.empty
+# import Data.Map.Strict (fromList) \
+# fromList [] -- Data.Map.Strict.empty
 # </TEST>
