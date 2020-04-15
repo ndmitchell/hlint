@@ -1006,7 +1006,7 @@
 # yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True \
 #     -- if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
 # yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
-#     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff @NoRefactor: hlint bug
+#     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff
 # yes = if foo then stuff else return () -- Control.Monad.when foo stuff
 # yes = foo $ \(a, b) -> (a, y + b) -- Data.Bifunctor.second ((+) y)
 # no  = foo $ \(a, b) -> (a, a + b)
