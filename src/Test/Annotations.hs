@@ -5,17 +5,18 @@ module Test.Annotations(testAnnotations) where
 
 import Control.Exception.Extra
 import Control.Monad
-import Data.Tuple.Extra
+import Control.Monad.IO.Class
 import Data.Char
 import Data.Either.Extra
+import Data.Function
+import Data.Functor
 import Data.List.Extra
 import Data.Maybe
+import Data.Tuple.Extra
+import Data.Yaml
 import System.Exit
 import System.FilePath
 import System.IO.Extra
-import Control.Monad.IO.Class
-import Data.Function
-import Data.Yaml
 import HSE.All
 import qualified Data.ByteString.Char8 as BS
 
@@ -24,7 +25,6 @@ import Idea
 import Apply
 import Refact
 import Test.Util
-import Data.Functor
 import Prelude
 import Config.Yaml
 import GHC.Util.Outputable
@@ -77,11 +77,14 @@ testAnnotations setting file rpath = do
                         | i@Idea{..} <- fromRight [] ideas, let GHC.SrcLoc{..} = GHC.srcSpanStart ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
                         -- TODO: shouldn't these checks be == -1 instead?
 
+            -- Skip refactoring test if the hlint test failed, or if the
+            -- test is annotated with @NoRefactor.
             let skipRefactor = notNull bad || refact == SkipRefactor
             badRefactor <- if skipRefactor then pure [] else liftIO $ do
                 refactorErr <- case ideas of
                     Right [] -> testRefactor rpath Nothing inp
                     Right [idea] -> testRefactor rpath (Just idea) inp
+                    -- Skip refactoring test if there are multiple hints
                     _ -> pure []
                 pure $ [failed $
                            ["TEST FAILURE (BAD REFACTORING)"
@@ -144,12 +147,16 @@ parseTest refact file i x = uncurry (TestCase (GHC.mkSrcLoc (mkFastString file) 
 -- Returns an empty list if the refactoring test passes, otherwise
 -- returns error messages.
 testRefactor :: Maybe FilePath -> Maybe Idea -> String -> IO [String]
+-- Skip refactoring test if the refactor binary is not found.
 testRefactor Nothing _ _ = pure []
+-- Skip refactoring test if the hint has no suggestion (i.e., a parse error).
+testRefactor _ (Just idea) _ | isNothing (ideaTo idea) = pure []
 testRefactor (Just rpath) midea inp = withTempFile $ \tempInp -> withTempFile $ \tempHints -> do
     let refacts = map (show &&& ideaRefactoring) (maybeToList midea)
         -- Ignores spaces and semicolons since apply-refact may change them.
         process = filter (\c -> not (isSpace c) && c /= ';')
         matched expected g actual = process expected `g` process actual
+        x `isProperSubsequenceOf` y = x /= y && x `isSubsequenceOf` y
     writeFile tempInp inp
     writeFile tempHints (show refacts)
     exitCode <- runRefactoring rpath tempInp tempHints "--inplace"
@@ -160,6 +167,11 @@ testRefactor (Just rpath) midea inp = withTempFile $ \tempInp -> withTempFile $ 
             -- No hints. Refactoring should be a no-op.
             Nothing | not (matched inp (==) refactored) ->
                 ["Expected refactor output: " ++ inp, "Actual: " ++ refactored]
+            -- The hint's suggested replacement is @Just ""@, which means the hint
+            -- suggests removing something from the input. The refactoring output
+            -- should be a proper subsequence of the input.
+            Just (Just "") | not (matched refactored isProperSubsequenceOf inp) ->
+                ["Refactor output is expected to be a proper subsequence of: " ++ inp, "Actual: " ++ refactored]
             -- The hint has a suggested replacement. The suggested replacement
             -- should be a substring of the refactoring output.
             Just (Just to) | not (matched to isInfixOf refactored) ->

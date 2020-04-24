@@ -158,7 +158,7 @@ matchIdea' sb declName HintRule{..} parent x = do
   guard $ checkDefine' declName parent res
 
   (u, tpl) <- pure $ if any ((== noSrcSpan) . getLoc . snd) (fromSubst' u) then (mempty, res) else (u, tpl)
-  tpl <- pure (performSpecial' tpl)
+  tpl <- pure $ unqualify' sa sb (performSpecial' tpl)
 
   pure (res, tpl, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
 

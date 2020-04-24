@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #952, improve refactorings with qualified imports
     #945, suggest Map.fromList [] ==> Map.empty
     #949, warn about redundant fmaps with binds
     #950, reduce the span of "Redundant $" to only cover the "$"
