@@ -5,7 +5,7 @@
     quantified data types because it is not valid.
 
 <TEST>
-data Foo = Foo Int -- newtype Foo = Foo Int @NoRefactor hlint bug: ideaRefactoring = []
+data Foo = Foo Int -- newtype Foo = Foo Int @NoRefactor: refactoring for "Use newtype" is not implemented
 data Foo = Foo Int deriving (Show, Eq) -- newtype Foo = Foo Int deriving (Show, Eq) @NoRefactor
 data Foo = Foo { field :: Int } deriving Show -- newtype Foo = Foo { field :: Int } deriving Show @NoRefactor
 data Foo a b = Foo a -- newtype Foo a b = Foo a @NoRefactor

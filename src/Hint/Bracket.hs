@@ -74,7 +74,7 @@ foo = (case x of y -> z; q -> w) :: Int
 main = do a += b . c; return $ a . b
 
 -- <$> bracket tests
-yes = (foo . bar x) <$> baz q -- foo . bar x <$> baz q @NoRefactor hlint bug: ideaRefactoring = []
+yes = (foo . bar x) <$> baz q -- foo . bar x <$> baz q @NoRefactor: refactoring for "(v1 . v2) <$> v3" is not implemented
 no = foo . bar x <$> baz q
 
 -- annotations

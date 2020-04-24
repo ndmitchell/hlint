@@ -192,7 +192,7 @@ foo = Foo{x}
 foo = bar{x}
 {-# LANGUAGE NamedFieldPuns #-} --
 {-# LANGUAGE StaticPointers #-} \
-static = 42 -- @NoRefactor: cannot refactor parse errors
+static = 42 --
 </TEST>
 -}
 
