@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #955, make --find generate fixity: not infix:
     #952, improve refactorings with qualified imports
     #945, suggest Map.fromList [] ==> Map.empty
     #949, warn about redundant fmaps with binds

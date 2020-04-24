@@ -38,7 +38,7 @@ renderSetting :: Setting -> [String]
 renderSetting (SettingMatchExp HintRule{..}) =
     ["- warn: {lhs: " ++ show (unsafePrettyPrint hintRuleLHS) ++ ", rhs: " ++ show (unsafePrettyPrint hintRuleRHS) ++ "}"]
 renderSetting (Infix x) =
-    ["- infix: " ++ show (unsafePrettyPrint $ toFixitySig x)]
+    ["- fixity: " ++ show (unsafePrettyPrint $ toFixitySig x)]
 renderSetting _ = []
 
 findSetting :: LHsDecl GhcPs -> [Setting]
