@@ -16,7 +16,7 @@ foo b | c <- f b = c \
       | c <- f b = c
 foo x = yes x x where yes x y = if a then b else if c then d else e -- yes x y ; | a = b ; | c = d ; | otherwise = e
 foo x | otherwise = y -- foo x = y
-foo x = x + x where --
+foo x = x + x where -- @NoRefactor: refactoring for "Redundant where" is not implemented
 foo x | a = b | True = d -- foo x | a = b ; | otherwise = d
 foo (Bar _ _ _ _) = x -- Bar{}
 foo (Bar _ x _ _) = x

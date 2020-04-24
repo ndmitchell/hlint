@@ -26,7 +26,7 @@ f (Just a) = \a -> a + a -- f (Just _) a = a + a @NoRefactor
 f a = \x -> x + x where _ = test
 f (test -> a) = \x -> x + x
 f = \x -> x + x -- f x = x + x
-fun x y z = f x y z -- fun = f @NoRefactor: hlint bug, ideaRefactoring = []
+fun x y z = f x y z -- fun = f @NoRefactor: refactoring for eta reduce is not implemented
 fun x y z = f x x y z -- fun x = f x x @NoRefactor
 fun x y z = f g z -- fun x y = f g @NoRefactor
 fun x = f . g $ x -- fun = f . g @NoRefactor
