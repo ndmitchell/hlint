@@ -1168,4 +1168,5 @@
 # fromList [] -- Data.Map.Lazy.empty
 # import Data.Map.Strict (fromList) \
 # fromList [] -- Data.Map.Strict.empty
+# test953 = for [] $ \n -> bar n >>= \case {Just n  -> pure (); Nothing -> baz n}
 # </TEST>

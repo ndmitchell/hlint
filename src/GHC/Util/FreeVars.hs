@@ -101,7 +101,7 @@ instance FreeVars' (LHsExpr GhcPs) where
   freeVars' (L _ (HsVar _ x)) = Set.fromList $ unqualNames' x -- Variable.
   freeVars' (L _ (HsUnboundVar _ x)) = Set.fromList [unboundVarOcc x] -- Unbound variable; also used for "holes".
   freeVars' (L _ (HsLam _ mg)) = free' (allVars' mg) -- Lambda abstraction. Currently always a single match.
-  freeVars' (L _ (HsLamCase _ mg)) = free' (allVars' mg) -- Lambda-case.
+  freeVars' (L _ (HsLamCase _ MG{mg_alts=(L _ ms)})) = free' (allVars' ms) -- Lambda case
   freeVars' (L _ (HsCase _ of_ MG{mg_alts=(L _ ms)})) = freeVars' of_ ^+ free' (allVars' ms) -- Case expr.
   freeVars' (L _ (HsLet _ binds e)) = inFree' binds e -- Let (rec).
   freeVars' (L _ (HsDo _ ctxt (L _ stmts))) = free' (allVars' stmts) -- Do block.
