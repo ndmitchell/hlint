@@ -1006,7 +1006,7 @@
 # yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True \
 #     -- if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
 # yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
-#     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff @NoRefactor: hlint bug
+#     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff
 # yes = if foo then stuff else return () -- Control.Monad.when foo stuff
 # yes = foo $ \(a, b) -> (a, y + b) -- Data.Bifunctor.second ((+) y)
 # no  = foo $ \(a, b) -> (a, a + b)
@@ -1137,8 +1137,7 @@
 # import qualified Control.Monad \
 # yes = flip mapM -- Control.Monad.forM
 # import qualified Control.Monad as CM \
-# yes = flip mapM -- CM.forM @NoRefactor hlint bug: expected CM.forM, actual Control.Monad.forM
-# @NoRefactor hlint bug: expected CM.forM, actual Control.Monad.forM \
+# yes = flip mapM -- CM.forM
 # import qualified Control.Monad as CM(forM,filterM) \
 # yes = flip mapM -- CM.forM
 # import Control.Monad as CM(forM,filterM) \
@@ -1153,7 +1152,7 @@
 # main = A.id (stringValue id')
 # import Prelude((==)) \
 # import qualified Prelude as P \
-# main = P.length xs == 0 -- P.null xs @NoRefactor hlint bug: null xs (missing "P.")
+# main = P.length xs == 0 -- P.null xs
 # main = hello .~ Just 12 -- hello ?~ 12
 # foo = liftIO $ window `on` deleteEvent $ do a; b
 # no = sort <$> f input `shouldBe` sort <$> x
