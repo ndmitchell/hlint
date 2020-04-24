@@ -142,7 +142,6 @@ matchIdea' sb declName HintRule{..} parent x = do
       (e, tpl) = substitute' u rhs'
       noParens = [varToStr $ fromParen' x | L _ (HsApp _ (varToStr -> "_noParen_") x) <- universe tpl]
 
-  tpl <- pure $ unqualify' sa sb (performSpecial' tpl)
   u <- pure (removeParens noParens u)
 
   let res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs')
@@ -157,6 +156,9 @@ matchIdea' sb declName HintRule{..} parent x = do
 
   guard $ checkSide' (unextendInstances <$> hintRuleSide) $ ("original", x) : ("result", res) : fromSubst' u
   guard $ checkDefine' declName parent res
+
+  (u, tpl) <- pure $ if any ((== noSrcSpan) . getLoc . snd) (fromSubst' u) then (mempty, res) else (u, tpl)
+  tpl <- pure $ unqualify' sa sb (performSpecial' tpl)
 
   pure (res, tpl, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
 

@@ -1158,9 +1158,8 @@
 # no = sort <$> f input `shouldBe` sort <$> x
 # sortBy (comparing length) -- sortOn length
 # myJoin = on $ child ^. ChildParentId ==. parent ^. ParentId
-# @NoRefactor hlint bug: foo = typeRep (Proxy :: Proxy Foo Int) (missing brackets) \
 # foo = typeOf (undefined :: Foo Int) -- typeRep (Proxy :: Proxy (Foo Int))
-# foo = typeOf (undefined :: a) -- typeRep (Proxy :: Proxy a) @NoRefactor hlint bug: incorrect serialisation
+# foo = typeOf (undefined :: a) -- typeRep (Proxy :: Proxy a)
 # {-# RULES "Id-fmap-id" forall (x :: Id a). fmap id x = x #-}
 # import Data.Map (fromList) \
 # fromList [] -- Data.Map.empty
