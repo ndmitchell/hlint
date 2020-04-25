@@ -152,6 +152,9 @@ testRefactor Nothing _ _ = pure []
 -- Skip refactoring test if the hint has no suggestion (i.e., a parse error).
 testRefactor _ (Just idea) _ | isNothing (ideaTo idea) = pure []
 testRefactor (Just rpath) midea inp = withTempFile $ \tempInp -> withTempFile $ \tempHints -> do
+    -- Note that we test the refactoring even if there are no suggestions,
+    -- as an extra test of apply-refact, on which we rely.
+    -- See https://github.com/ndmitchell/hlint/issues/958 for a discussion.
     let refacts = map (show &&& ideaRefactoring) (maybeToList midea)
         -- Ignores spaces and semicolons since apply-refact may change them.
         process = filter (\c -> not (isSpace c) && c /= ';')
