@@ -193,6 +193,9 @@ foo = bar{x}
 {-# LANGUAGE NamedFieldPuns #-} --
 {-# LANGUAGE StaticPointers #-} \
 static = 42 --
+{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Trustworthy, NamedFieldPuns #-} -- {-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Haskell2010 #-}
 </TEST>
 -}
 
@@ -205,6 +208,7 @@ import Extension
 import Data.Generics.Uniplate.Operations
 import Control.Monad.Extra
 import Data.Char
+import Data.Maybe
 import Data.List.Extra
 import Data.Data
 import Refact.Types
@@ -234,36 +238,23 @@ extensionsHint _ x =
         sl
         (comment (mkLangExts sl exts))
         (Just newPragma)
-        ( [RequiresExtension (show gone) | x <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
+        ( [RequiresExtension (show gone) | (_, Just x) <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
             [ Note $ "Extension " ++ show x ++ " is " ++ reason x
-            | x <- explainedRemovals])
+            | (_, Just x) <- explainedRemovals])
         [ModifyComment (toSS' (mkLangExts sl exts)) newPragma]
     | (L sl _,  exts) <- langExts $ pragmas (ghcAnnotations x)
-    , let before = map lookupExt (filterEnabled exts)
-    , let after = filter (`Set.member` keep) before
+    , let before = [(x, readExtension x) | x <- filterEnabled exts]
+    , let after = filter (maybe True (`Set.member` keep) . snd) before
     , before /= after
     , let explainedRemovals
-            | null after && not (any (`Map.member` implied) before) = []
+            | null after && not (any (`Map.member` implied) $ mapMaybe snd before) = []
             | otherwise = before \\ after
     , let newPragma =
-            if null after then "" else comment (mkLangExts sl $ map show after)
+            if null after then "" else comment (mkLangExts sl $ map fst after)
     ]
   where
     filterEnabled :: [String] -> [String]
     filterEnabled  = filter (not . isPrefixOf "No")
-
-    lookupExt :: String -> Extension
-    lookupExt s = case readExtension s of
-        Just ext -> ext
-        Nothing ->
-          -- Validity checking of extensions happens when the parse
-          -- tree is constructed (via 'getOptions' called from
-          -- 'parsePragmasIntoDynFlags'). If an invalid extension is
-          -- encountered, it results in a parse error (see
-          -- tests/ignore-parse-error3.hs in
-          -- 'tests/parse-error.test'). Thus we are assured that the
-          -- argument 's' must be in 'xFlags' and this case impossible.
-          error ("IMPOSSIBLE: Unrecognized language extension '" ++ s ++ "'")
 
     usedTH :: Bool
     usedTH = used TemplateHaskell (ghcModule x) || used QuasiQuotes (ghcModule x)
@@ -272,9 +263,8 @@ extensionsHint _ x =
 
     -- All the extensions defined to be used.
     extensions :: Set.Set Extension
-    extensions = Set.fromList $ [ lookupExt e
-                              | let exts = concatMap (filterEnabled . snd) $ langExts (pragmas (ghcAnnotations x))
-                              , e <- exts ]
+    extensions = Set.fromList $ mapMaybe readExtension $
+        concatMap (filterEnabled . snd) $ langExts (pragmas (ghcAnnotations x))
 
     -- Those extensions we detect to be useful.
     useful :: Set.Set Extension
