@@ -1168,4 +1168,6 @@
 # import Data.Map.Strict (fromList) \
 # fromList [] -- Data.Map.Strict.empty
 # test953 = for [] $ \n -> bar n >>= \case {Just n  -> pure (); Nothing -> baz n} @NoRefactor
+# f = map (flip (,) "a") "123" -- (,"a")
+# f = map ((,) "a") "123" -- ("a",)
 # </TEST>

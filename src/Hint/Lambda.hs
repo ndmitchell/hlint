@@ -88,6 +88,8 @@ yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>) @NoRefactor
 {-# LANGUAGE TypeApplications #-}; noBug545 = coerce ((<>) @[a])
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 name = authOAuth2Widget [whamlet|Login via #{name}|] name
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 = foo (\name -> authOAuth2Widget [whamlet|Login via #{name}|] name)
+f = {- generates a hint using hlint.yaml only -} map (flip (,) "a") "123"
+f = {- generates a hint using hlint.yaml only -} map ((,) "a") "123"
 </TEST>
 -}
 
@@ -174,7 +176,7 @@ lambdaExp _ o@(L _ (HsPar _ (L _ (HsApp _ oper@(L _ (HsVar _ (L _ (rdrNameOcc ->
       [suggestN' "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField y oper]
 
 lambdaExp _ o@(L _ (HsPar _ (view' -> App2' (view' -> Var_' "flip") origf@(view' -> Var_' f) y)))
-    | allowRightSection f
+    | allowRightSection f, not $ "(" `isPrefixOf` f
     = [suggestN' "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionR noExtField origf y]
 lambdaExp p o@(L _ HsLam{})
     | not $ any isOpApp p
