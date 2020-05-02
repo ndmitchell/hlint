@@ -43,7 +43,7 @@ restrictHint settings scope m =
     let anns = ghcAnnotations m
         ps   = pragmas anns
         opts = flags ps
-        exts = langExts ps in
+        exts = languagePragmas ps in
     checkPragmas modu opts exts restrict ++
     maybe [] (checkImports modu $ hsmodImports (unLoc (ghcModule m))) (Map.lookup RestrictModule restrict) ++
     maybe [] (checkFunctions modu $ hsmodDecls (unLoc (ghcModule m))) (Map.lookup RestrictFunction restrict)
