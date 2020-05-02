@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.0.1, released 2020-05-02
     #961, don't crash on non-extension LANGUAGE pragmas, e.g. Safe
 3.0, released 2020-05-02
     Be more permissive with names'with'quotes'in
