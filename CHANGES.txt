@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.0, released 2020-05-02
     Be more permissive with names'with'quotes'in
     #953, fix incorrect suggestions with free variables and \case
     #955, make --find generate fixity: not infix:
