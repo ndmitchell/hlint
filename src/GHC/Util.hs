@@ -35,7 +35,7 @@ import GHC.Util.RdrName
 import GHC.Util.Scope
 import GHC.Util.Unify
 
-import qualified Language.Haskell.GhclibParserEx.Parse as GhclibParserEx
+import qualified Language.Haskell.GhclibParserEx.GHC.Parser as GhclibParserEx
 import Language.Haskell.GhclibParserEx.GHC.Driver.Session (parsePragmasIntoDynFlags)
 
 import GHC.Hs
