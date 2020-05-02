@@ -15,7 +15,7 @@
     Don't suggest for FFI, since they match their C names
 
 <TEST>
-data Yes = Foo | Bar'Test -- data Yes = Foo | BarTest @NoRefactor: refactoring not supported for naming hints.
+data Yes = Foo | Bar'Test
 data Yes = Bar | Test_Bar -- data Yes = Bar | TestBar @NoRefactor
 data No = a :::: b
 data Yes = Foo {bar_cap :: Int}
@@ -25,7 +25,7 @@ yes_fooPattern Nothing = 0 -- yesFooPattern Nothing = ... @NoRefactor
 no = 1 where yes_foo = 2
 a -== b = 1
 myTest = 1; my_test = 1
-semiring'laws = 1 -- semiringLaws = ... @NoRefactor
+semiring'laws = 1
 data Yes = FOO_A | Foo_B -- data Yes = FOO_A | FooB @NoRefactor
 case_foo = 1
 test_foo = 1
@@ -119,7 +119,7 @@ suggestName original
         any (`isPrefixOf` original) ["prop_","case_","unit_","test_","spec_","scprop_","hprop_"] = Nothing
     | otherwise = Just $ f original
     where
-        good = all isAlphaNum $ drp '_' $ drp '#' $ drp '\'' $ reverse $ drp '_' original
+        good = all isAlphaNum $ drp '_' $ drp '#' $ filter (/= '\'') $ reverse $ drp '_' original
         drp x = dropWhile (== x)
 
         f xs = us ++ g ys
