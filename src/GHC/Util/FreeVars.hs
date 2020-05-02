@@ -154,7 +154,8 @@ instance FreeVars' (LHsTupArg GhcPs) where
   freeVars' _ = mempty
 
 instance FreeVars' (LHsRecField GhcPs (LHsExpr GhcPs)) where
-   freeVars' (L _ (HsRecField _ x _)) = freeVars' x
+   freeVars' o@(L _ (HsRecField x _ True)) = Set.singleton $ occName $ unLoc $ rdrNameFieldOcc $ unLoc x -- a pun
+   freeVars' o@(L _ (HsRecField _ x _)) = freeVars' x
 
 instance FreeVars' (LHsRecUpdField GhcPs) where
   freeVars' (L _ (HsRecField _ x _)) = freeVars' x

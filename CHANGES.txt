@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #745, fix up free variables for A{x}, fixes list comp hints
 3.0.1, released 2020-05-02
     #961, don't crash on non-extension LANGUAGE pragmas, e.g. Safe
 3.0, released 2020-05-02

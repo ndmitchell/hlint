@@ -32,6 +32,7 @@ foo = [fooValue | Foo{..} <- y, fooField]
 issue619 = [pkgJobs | Pkg{pkgGpd, pkgJobs} <- pkgs, not $ null $ C.condTestSuites pkgGpd]
 {-# LANGUAGE MonadComprehensions #-}\
 foo = [x | False, x <- [1 .. 10]] -- []
+foo = [_ | x <- _, let _ = A{x}]
 </TEST>
 -}
 
@@ -133,20 +134,19 @@ moveGuardsForward = reverse . f [] . reverse
                        || any isPFieldWildcard (universeBi x)
                       then const False
                       else \x ->
-                       let pvars = pvars' p in
+                       let pvars = pvars' p
+                           vars = varss' x
+                        in
                        -- See this code from 'RdrHsSyn.hs' (8.10.1):
                        --   plus_RDR, pun_RDR :: RdrName
                        --   plus_RDR = mkUnqual varName (fsLit "+") -- Hack
                        --   pun_RDR  = mkUnqual varName (fsLit "pun-right-hand-side")
                        -- Todo (SF, 2020-03-28): Try to make this better somehow.
-                       pvars `disjoint` vars_ x && "pun-right-hand-side" `notElem` pvars
+                       pvars `disjoint` vars && "pun-right-hand-side" `notElem` pvars
                    ) guards
     f guards (x@(L _ BodyStmt{}):xs) = f (x:guards) xs
     f guards (x@(L _ LetStmt{}):xs) = f (x:guards) xs
     f guards xs = reverse guards ++ xs
-
-    -- Fake something that works
-    vars_ x = [unsafePrettyPrint a | HsVar _ (L _ a) <- universeBi x :: [HsExpr GhcPs]]
 
 listExp :: Bool -> LHsExpr GhcPs -> [Idea]
 listExp b (fromParen' -> x) =
