@@ -8,15 +8,13 @@ module GHC.Util (
   , module GHC.Util.HsDecl
   , module GHC.Util.HsExpr
   , module GHC.Util.Module
-  , module GHC.Util.Outputable
   , module GHC.Util.SrcLoc
   , module GHC.Util.DynFlags
   , module GHC.Util.Scope
   , module GHC.Util.RdrName
   , module GHC.Util.Unify
-
   , parsePragmasIntoDynFlags
-  , parseFileGhcLib, parseExpGhcLib, parseImportGhcLib, parseDeclGhcLib
+  , fileToModule
   , pattern SrcSpan, srcSpanFilename, srcSpanStartLine', srcSpanStartColumn, srcSpanEndLine', srcSpanEndColumn
   , pattern SrcLoc, srcFilename, srcLine, srcColumn
   , showSrcSpan',
@@ -28,15 +26,15 @@ import GHC.Util.ApiAnnotation
 import GHC.Util.HsExpr
 import GHC.Util.HsDecl
 import GHC.Util.Module
-import GHC.Util.Outputable
 import GHC.Util.SrcLoc
 import GHC.Util.DynFlags
 import GHC.Util.RdrName
 import GHC.Util.Scope
 import GHC.Util.Unify
 
-import qualified Language.Haskell.GhclibParserEx.GHC.Parser as GhclibParserEx
+import Language.Haskell.GhclibParserEx.GHC.Parser (parseFile)
 import Language.Haskell.GhclibParserEx.GHC.Driver.Session (parsePragmasIntoDynFlags)
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 import GHC.Hs
 import Lexer
@@ -47,18 +45,9 @@ import FastString
 import System.FilePath
 import Language.Preprocessor.Unlit
 
-parseExpGhcLib :: String -> DynFlags -> ParseResult (LHsExpr GhcPs)
-parseExpGhcLib = GhclibParserEx.parseExpression
-
-parseImportGhcLib :: String -> DynFlags -> ParseResult (LImportDecl GhcPs)
-parseImportGhcLib = GhclibParserEx.parseImport
-
-parseDeclGhcLib :: String -> DynFlags -> ParseResult (LHsDecl GhcPs)
-parseDeclGhcLib = GhclibParserEx.parseDeclaration
-
-parseFileGhcLib :: FilePath -> String -> DynFlags -> ParseResult (Located (HsModule GhcPs))
-parseFileGhcLib filename str flags =
-  GhclibParserEx.parseFile filename flags
+fileToModule :: FilePath -> String -> DynFlags -> ParseResult (Located (HsModule GhcPs))
+fileToModule filename str flags =
+  parseFile filename flags
     (if takeExtension filename /= ".lhs" then str else unlit filename str)
 
 {-# COMPLETE SrcSpan #-}

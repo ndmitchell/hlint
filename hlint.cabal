@@ -117,7 +117,6 @@ library
         GHC.Util.HsDecl
         GHC.Util.HsExpr
         GHC.Util.Module
-        GHC.Util.Outputable
         GHC.Util.SrcLoc
         GHC.Util.DynFlags
         GHC.Util.RdrName

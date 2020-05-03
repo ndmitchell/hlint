@@ -37,6 +37,7 @@ import Outputable
 import Bag
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 duplicateHint :: CrossHint
 duplicateHint ms =

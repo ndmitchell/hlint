@@ -108,11 +108,11 @@ import BasicTypes
 import GHC.Util.Brackets (isAtom')
 import GHC.Util.FreeVars (free', allVars', freeVars', pvars', vars', varss')
 import GHC.Util.HsExpr (allowLeftSection, allowRightSection, niceLambdaR', lambda)
-import GHC.Util.Outputable
 import GHC.Util.RdrName (rdrNameStr')
 import GHC.Util.View
 import GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol, strToVar)
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import OccName
 import RdrName
 import SrcLoc

@@ -12,32 +12,27 @@ module HSE.All(
 import Util
 import Data.Char
 import Data.List.Extra
-import Data.Maybe
 import Timing
 import Language.Preprocessor.Cpphs
-import Data.Either
-import DynFlags(Language(..))
 import qualified Data.Map as Map
 import System.IO.Extra
-import Data.Functor
 import Fixity
 import Extension
 import FastString
-import Prelude
 
 import GHC.Hs
-import qualified SrcLoc as GHC
+import SrcLoc
 import ErrUtils
-import qualified Outputable
-import qualified Lexer as GHC
+import Outputable
+import Lexer hiding (context)
 import GHC.LanguageExtensions.Type
-import qualified ApiAnnotation as GHC
-import qualified BasicTypes as GHC
-import qualified DynFlags as GHC
+import ApiAnnotation
+import DynFlags hiding (extensions)
 import Bag
 
-import GHC.Util (parsePragmasIntoDynFlags, parseFileGhcLib, parseExpGhcLib, parseDeclGhcLib, parseImportGhcLib, baseDynFlags)
-import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
+import Language.Haskell.GhclibParserEx.GHC.Parser
+import Language.Haskell.GhclibParserEx.Fixity
+import GHC.Util
 
 -- | What C pre processor should be used.
 data CppFlags
@@ -79,19 +74,19 @@ runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
 
 -- | A parse error.
 data ParseError = ParseError
-    { parseErrorLocation :: GHC.SrcSpan -- ^ Location of the error.
+    { parseErrorLocation :: SrcSpan -- ^ Location of the error.
     , parseErrorMessage :: String  -- ^ Message about the cause of the error.
     , parseErrorContents :: String -- ^ Snippet of several lines (typically 5) including a @>@ character pointing at the faulty line.
     }
 
 -- | Result of 'parseModuleEx', representing a parsed module.
 data ModuleEx = ModuleEx {
-    ghcModule :: GHC.Located (HsModule GhcPs)
-  , ghcAnnotations :: GHC.ApiAnns
+    ghcModule :: Located (HsModule GhcPs)
+  , ghcAnnotations :: ApiAnns
 }
 
 -- | Extract a list of all of a parsed module's comments.
-ghcComments :: ModuleEx -> [GHC.Located GHC.AnnotationComment]
+ghcComments :: ModuleEx -> [Located AnnotationComment]
 ghcComments m = concat (Map.elems $ snd (ghcAnnotations m))
 
 
@@ -99,11 +94,11 @@ ghcComments m = concat (Map.elems $ snd (ghcAnnotations m))
 ghcFailOpParseModuleEx :: String
                        -> FilePath
                        -> String
-                       -> (GHC.SrcSpan, ErrUtils.MsgDoc)
+                       -> (SrcSpan, ErrUtils.MsgDoc)
                        -> IO (Either ParseError ModuleEx)
 ghcFailOpParseModuleEx ppstr file str (loc, err) = do
    let pe = case loc of
-            GHC.RealSrcSpan r -> context (GHC.srcSpanStartLine r) ppstr
+            RealSrcSpan r -> context (srcSpanStartLine r) ppstr
             _ -> ""
        msg = Outputable.showSDoc baseDynFlags err
    pure $ Left $ ParseError loc msg pe
@@ -113,35 +108,35 @@ ghcExtensionsFromParseFlags :: ParseFlags -> ([Extension], [Extension])
 ghcExtensionsFromParseFlags ParseFlags{extensions=exts}= (exts, [])
 
 -- GHC fixities given HSE parse flags.
-ghcFixitiesFromParseFlags :: ParseFlags -> [(String, GHC.Fixity)]
+ghcFixitiesFromParseFlags :: ParseFlags -> [(String, Fixity)]
 ghcFixitiesFromParseFlags = map toFixity . fixities
 
 -- These next two functions get called frorm 'Config/Yaml.hs' for user
 -- defined hint rules.
 
-parseModeToFlags :: ParseFlags -> GHC.DynFlags
+parseModeToFlags :: ParseFlags -> DynFlags
 parseModeToFlags parseMode =
-    flip GHC.lang_set (baseLanguage parseMode) $ foldl' GHC.xopt_unset (foldl' GHC.xopt_set baseDynFlags enable) disable
+    flip lang_set (baseLanguage parseMode) $ foldl' xopt_unset (foldl' xopt_set baseDynFlags enable) disable
   where
     (enable, disable) = ghcExtensionsFromParseFlags parseMode
 
-parseExpGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (LHsExpr GhcPs)
+parseExpGhcWithMode :: ParseFlags -> String -> ParseResult (LHsExpr GhcPs)
 parseExpGhcWithMode parseMode s =
   let fixities = ghcFixitiesFromParseFlags parseMode
-  in case parseExpGhcLib s $ parseModeToFlags parseMode of
-    GHC.POk pst a -> GHC.POk pst (GhclibParserEx.applyFixities fixities a)
-    f@GHC.PFailed{} -> f
+  in case parseExpression s $ parseModeToFlags parseMode of
+    POk pst a -> POk pst $ applyFixities fixities a
+    f@PFailed{} -> f
 
-parseImportDeclGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (LImportDecl GhcPs)
+parseImportDeclGhcWithMode :: ParseFlags -> String -> ParseResult (LImportDecl GhcPs)
 parseImportDeclGhcWithMode parseMode s =
-  parseImportGhcLib s $ parseModeToFlags parseMode
+  parseImport s $ parseModeToFlags parseMode
 
-parseDeclGhcWithMode :: ParseFlags -> String -> GHC.ParseResult (LHsDecl GhcPs)
+parseDeclGhcWithMode :: ParseFlags -> String -> ParseResult (LHsDecl GhcPs)
 parseDeclGhcWithMode parseMode s =
   let fixities = ghcFixitiesFromParseFlags parseMode
-  in case parseDeclGhcLib s $ parseModeToFlags parseMode of
-    GHC.POk pst a -> GHC.POk pst (GhclibParserEx.applyFixities fixities a)
-    f@GHC.PFailed{} -> f
+  in case parseDeclaration s $ parseModeToFlags parseMode of
+    POk pst a -> POk pst $ applyFixities fixities a
+    f@PFailed{} -> f
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
@@ -161,19 +156,18 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
           Right ghcFlags -> do
-            ghcFlags <- pure $ GHC.lang_set ghcFlags $ baseLanguage flags
-            case parseFileGhcLib file ppstr ghcFlags of
-                GHC.POk pst a ->
+            ghcFlags <- pure $ lang_set ghcFlags $ baseLanguage flags
+            case fileToModule file ppstr ghcFlags of
+                POk pst a ->
                     let anns =
-                          ( Map.fromListWith (++) $ GHC.annotations pst
-                          , Map.fromList ((GHC.noSrcSpan, GHC.comment_q pst) : GHC.annotations_comments pst)
+                          ( Map.fromListWith (++) $ annotations pst
+                          , Map.fromList ((noSrcSpan, comment_q pst) : annotations_comments pst)
                           ) in
-                    let a' = GhclibParserEx.applyFixities fixities a in
-                    pure $ Right (ModuleEx a' anns)
+                    pure $ Right (ModuleEx (applyFixities fixities a) anns)
                 -- Parse error if GHC parsing fails (see
                 -- https://github.com/ndmitchell/hlint/issues/645).
-                GHC.PFailed s -> do
-                    let (_, errs) = GHC.getMessages s ghcFlags
+                PFailed s -> do
+                    let (_, errs) = getMessages s ghcFlags
                         errMsg = head (bagToList errs)
                         loc = errMsgSpan errMsg
                         doc = formatErrDoc ghcFlags (errMsgDoc errMsg)
@@ -184,8 +178,8 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             -- exception. It's impossible or at least fiddly getting a
             -- location so we skip that for now. Synthesize a parse
             -- error.
-            let loc = GHC.mkSrcLoc (mkFastString file) (1 :: Int) (1 :: Int)
-            pure $ Left (ParseError (GHC.mkSrcSpan loc loc) msg ppstr)
+            let loc = mkSrcLoc (mkFastString file) (1 :: Int) (1 :: Int)
+            pure $ Left (ParseError (mkSrcSpan loc loc) msg ppstr)
 
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.

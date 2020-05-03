@@ -15,6 +15,7 @@ import Name
 import Bag
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import SrcLoc
 import Prelude
 

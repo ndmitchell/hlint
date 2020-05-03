@@ -30,13 +30,13 @@ import Timing
 import Prelude
 
 import Bag
-import qualified Lexer as GHC
-import qualified ErrUtils
-import qualified Outputable
+import Lexer
+import ErrUtils hiding (Severity)
+import Outputable
 import GHC.Hs
 import SrcLoc
-import qualified RdrName as GHC
-import qualified OccName as GHC
+import RdrName
+import OccName
 import GHC.Util (baseDynFlags, Scope,scopeCreate)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Data.Char
@@ -161,13 +161,13 @@ allowFields v allow = do
     when (bad /= []) $
         parseFail v $ "Not allowed keys: " ++ unwords bad
 
-parseGHC :: (ParseFlags -> String -> GHC.ParseResult v) -> Val -> Parser v
+parseGHC :: (ParseFlags -> String -> ParseResult v) -> Val -> Parser v
 parseGHC parser v = do
     x <- parseString v
     case parser defaultParseFlags{extensions=configExtensions} x of
-        GHC.POk _ x -> pure x
-        GHC.PFailed ps ->
-          let (_, errs) = GHC.getMessages ps baseDynFlags
+        POk _ x -> pure x
+        PFailed ps ->
+          let (_, errs) = getMessages ps baseDynFlags
               errMsg = head (bagToList errs)
               msg = Outputable.showSDoc baseDynFlags $ ErrUtils.pprLocErrMsg errMsg
           in parseFail v $ "Failed to parse " ++ msg ++ ", when parsing:\n " ++ x
@@ -277,8 +277,8 @@ parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
 parseWithin v = do
     x <- parseGHC parseExpGhcWithMode v
     case x of
-        L _ (HsVar _ (L _ (GHC.Unqual x))) -> pure $ f "" (GHC.occNameString x)
-        L _ (HsVar _ (L _ (GHC.Qual mod x))) -> pure $ f (moduleNameString mod) (GHC.occNameString x)
+        L _ (HsVar _ (L _ (Unqual x))) -> pure $ f "" (occNameString x)
+        L _ (HsVar _ (L _ (Qual mod x))) -> pure $ f (moduleNameString mod) (occNameString x)
         _ -> parseFail v "Bad classification rule"
     where
         f mod name@(c:_) | isUpper c = [(mod,name),(mod ++ ['.' | mod /= ""] ++ name, "")]
@@ -300,7 +300,7 @@ guessName lhs rhs
     where
         (ls, rs) = both f (lhs, rhs)
         f :: LHsExpr GhcPs -> [String]
-        f x = [y | L _ (HsVar _ (L _ x)) <- universe x, let y = GHC.occNameString $ GHC.rdrNameOcc x, not $ isUnifyVar y, y /= "."]
+        f x = [y | L _ (HsVar _ (L _ x)) <- universe x, let y = occNameString $ rdrNameOcc x, not $ isUnifyVar y, y /= "."]
 
 
 asNote :: String -> Note
