@@ -158,20 +158,18 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
           Right ghcFlags -> do
             ghcFlags <- pure $ lang_set ghcFlags $ baseLanguage flags
             case fileToModule file ppstr ghcFlags of
-                POk pst a ->
-                    let anns =
-                          ( Map.fromListWith (++) $ annotations pst
-                          , Map.fromList ((noSrcSpan, comment_q pst) : annotations_comments pst)
-                          ) in
-                    pure $ Right (ModuleEx (applyFixities fixities a) anns)
-                -- Parse error if GHC parsing fails (see
-                -- https://github.com/ndmitchell/hlint/issues/645).
-                PFailed s -> do
-                    let (_, errs) = getMessages s ghcFlags
-                        errMsg = head (bagToList errs)
-                        loc = errMsgSpan errMsg
-                        doc = formatErrDoc ghcFlags (errMsgDoc errMsg)
-                    ghcFailOpParseModuleEx ppstr file str (loc, doc)
+                POk s a -> do
+                    let errs = bagToList . snd $ getMessages s ghcFlags
+                    if not $ null errs then
+                      handleParseFailure ghcFlags ppstr file str errs
+                    else do
+                      let anns =
+                            ( Map.fromListWith (++) $ annotations s
+                            , Map.fromList ((noSrcSpan, comment_q s) : annotations_comments s)
+                            )
+                      pure $ Right (ModuleEx (applyFixities fixities a) anns)
+                PFailed s ->
+                    handleParseFailure ghcFlags ppstr file str $  bagToList . snd $ getMessages s ghcFlags
           Left msg -> do
             -- Parsing GHC flags from dynamic pragmas in the source
             -- has failed. When this happens, it's reported by
@@ -180,6 +178,12 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             -- error.
             let loc = mkSrcLoc (mkFastString file) (1 :: Int) (1 :: Int)
             pure $ Left (ParseError (mkSrcSpan loc loc) msg ppstr)
+        where
+          handleParseFailure ghcFlags ppstr file str errs =
+              let errMsg = head errs
+                  loc = errMsgSpan errMsg
+                  doc = formatErrDoc ghcFlags (errMsgDoc errMsg)
+              in ghcFailOpParseModuleEx ppstr file str (loc, doc)
 
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
