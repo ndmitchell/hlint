@@ -30,7 +30,7 @@ import FastString
 import BasicTypes
 import SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
-import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 -- The conditions on which to fire this hint are subtle. We are
 -- interested exclusively in application constants involving

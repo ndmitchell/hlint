@@ -61,6 +61,7 @@ import Data.Data
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 readMatch' :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 readMatch' settings = findIdeas' (concatMap readRule' settings)

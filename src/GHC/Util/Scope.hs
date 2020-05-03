@@ -1,3 +1,4 @@
+
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
@@ -16,7 +17,7 @@ import OccName
 
 import GHC.Util.Module
 import GHC.Util.RdrName
-import GHC.Util.Outputable
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 import Data.List.Extra
 import Data.Maybe

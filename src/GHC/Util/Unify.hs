@@ -16,14 +16,14 @@ import Data.List.Extra
 import Util
 
 import GHC.Hs
-import SrcLoc as GHC
+import SrcLoc
 import Outputable hiding ((<>))
 import RdrName
 import OccName
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
-import GHC.Util.Outputable
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import GHC.Util.HsExpr
 import GHC.Util.RdrName
 import GHC.Util.View
@@ -106,7 +106,7 @@ unify' nm root x y
     | Just (x, y) <- cast (x, y) = unifyExp' nm root x y
     | Just (x, y) <- cast (x, y) = unifyPat' nm x y
     | Just (x, y) <- cast (x, y) = unifyType' nm x y
-    | Just (x :: GHC.SrcSpan) <- cast x = Just mempty
+    | Just (x :: SrcSpan) <- cast x = Just mempty
     | otherwise = unifyDef' nm x y
 
 unifyDef' :: Data a => NameMatch' -> a -> a -> Maybe (Subst' (LHsExpr GhcPs))

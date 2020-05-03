@@ -25,7 +25,7 @@ import Test.InputOutput
 import Test.Annotations
 import Test.Translate
 import System.IO.Extra
-import GHC.Util.Outputable
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 
 test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int

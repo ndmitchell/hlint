@@ -27,17 +27,16 @@ import Refact
 import Test.Util
 import Prelude
 import Config.Yaml
-import GHC.Util.Outputable
 import FastString
 
-import qualified GHC.Util as GHC
-import qualified SrcLoc as GHC
-
+import GHC.Util
+import SrcLoc
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 -- Input, Output
 -- Output = Nothing, should not match
 -- Output = Just xs, should match xs
-data TestCase = TestCase GHC.SrcLoc Refactor String (Maybe String) [Setting] deriving (Show)
+data TestCase = TestCase SrcLoc Refactor String (Maybe String) [Setting] deriving (Show)
 
 data Refactor = TestRefactor | SkipRefactor deriving (Eq, Show)
 
@@ -74,7 +73,7 @@ testAnnotations setting file rpath = do
                         ,"SRC: " ++ unsafePrettyPrint loc
                         ,"INPUT: " ++ inp
                         ,"OUTPUT: " ++ show i]
-                        | i@Idea{..} <- fromRight [] ideas, let GHC.SrcLoc{..} = GHC.srcSpanStart ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
+                        | i@Idea{..} <- fromRight [] ideas, let SrcLoc{..} = srcSpanStart ideaSpan, srcFilename == "" || srcLine == 0 || srcColumn == 0]
                         -- TODO: shouldn't these checks be == -1 instead?
 
             -- Skip refactoring test if the hlint test failed, or if the
@@ -136,7 +135,7 @@ parseTestFile file =
 
 
 parseTest :: Refactor -> String -> Int -> String -> [Setting] -> TestCase
-parseTest refact file i x = uncurry (TestCase (GHC.mkSrcLoc (mkFastString file) i 0) refact) $ f x
+parseTest refact file i x = uncurry (TestCase (mkSrcLoc (mkFastString file) i 0) refact) $ f x
     where
         f x | Just x <- stripPrefix "<COMMENT>" x = first ("--"++) $ f x
         f (' ':'-':'-':xs) | null xs || " " `isPrefixOf` xs = ("", Just $ trimStart xs)

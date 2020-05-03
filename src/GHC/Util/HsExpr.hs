@@ -24,7 +24,6 @@ import Bag(bagToList)
 import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
-import GHC.Util.Outputable (unsafePrettyPrint)
 
 import Control.Applicative
 import Control.Monad.Trans.State
@@ -41,6 +40,7 @@ import qualified Refact.Types as R (SrcSpan)
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 -- | 'dotApp a b' makes 'a . b'.
 dotApp' :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs

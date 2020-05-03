@@ -56,6 +56,7 @@ import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 listRecHint :: DeclHint'
 listRecHint _ _ = concatMap f . universe
