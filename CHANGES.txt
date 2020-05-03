@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.0.3, released 2020-05-03
     #965, fix incorrect avoid lambda suggestion
 3.0.2, released 2020-05-03
     #963, don't generate use-section hints for tuples
