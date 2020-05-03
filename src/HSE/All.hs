@@ -20,7 +20,6 @@ import Fixity
 import Extension
 import FastString
 
-import DynFlags(Language(..))
 import GHC.Hs
 import SrcLoc
 import ErrUtils
@@ -28,7 +27,7 @@ import Outputable
 import Lexer hiding (context)
 import GHC.LanguageExtensions.Type
 import ApiAnnotation
-import DynFlags
+import DynFlags hiding (extensions)
 import Bag
 
 import Language.Haskell.GhclibParserEx.GHC.Parser
@@ -45,7 +44,7 @@ data CppFlags
 data ParseFlags = ParseFlags
     {cppFlags :: CppFlags -- ^ How the file is preprocessed (defaults to 'NoCpp').
     ,baseLanguage :: Maybe Language -- ^ Base language (e.g. Haskell98, Haskell2010), defaults to 'Nothing'.
-    ,enabledExtensions :: [Extension] -- ^ List of extensions enabled for parsing, defaults to many non-conflicting extensions.
+    ,extensions :: [Extension] -- ^ List of extensions enabled for parsing, defaults to many non-conflicting extensions.
     ,fixities :: [FixityInfo] -- ^ List of fixities to be aware of, defaults to those defined in @base@.
     }
 
@@ -58,7 +57,7 @@ parseFlagsAddFixities :: [FixityInfo] -> ParseFlags -> ParseFlags
 parseFlagsAddFixities fx x = x{fixities = fx ++ fixities x}
 
 parseFlagsSetLanguage :: (Maybe Language, [Extension]) -> ParseFlags -> ParseFlags
-parseFlagsSetLanguage (l, es) x = x{baseLanguage = l, enabledExtensions = es}
+parseFlagsSetLanguage (l, es) x = x{baseLanguage = l, extensions = es}
 
 
 runCpp :: CppFlags -> FilePath -> String -> IO String
@@ -106,7 +105,7 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
 
 -- GHC extensions to enable/disable given HSE parse flags.
 ghcExtensionsFromParseFlags :: ParseFlags -> ([Extension], [Extension])
-ghcExtensionsFromParseFlags ParseFlags{enabledExtensions=exts}= (exts, [])
+ghcExtensionsFromParseFlags ParseFlags{extensions=exts}= (exts, [])
 
 -- GHC fixities given HSE parse flags.
 ghcFixitiesFromParseFlags :: ParseFlags -> [(String, Fixity)]

@@ -164,7 +164,7 @@ allowFields v allow = do
 parseGHC :: (ParseFlags -> String -> ParseResult v) -> Val -> Parser v
 parseGHC parser v = do
     x <- parseString v
-    case parser defaultParseFlags{enabledExtensions=configExtensions} x of
+    case parser defaultParseFlags{extensions=configExtensions} x of
         POk _ x -> pure x
         PFailed ps ->
           let (_, errs) = getMessages ps baseDynFlags
