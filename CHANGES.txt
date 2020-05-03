@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.0.4, released 2020-05-03
     #968, fail on all parse errors
     #967, enable TypeApplications by default
 3.0.3, released 2020-05-03
