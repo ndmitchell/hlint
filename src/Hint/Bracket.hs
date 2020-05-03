@@ -89,6 +89,7 @@ bad x = x . (x +? x . x)
 special = foo $ f{x=1}
 special = foo $ Rec{x=1}
 special = foo (f{x=1})
+loadCradleOnlyonce = skipManyTill anyMessage (message @PublishDiagnosticsNotification)
 </TEST>
 -}
 
