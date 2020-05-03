@@ -55,7 +55,9 @@ import RdrName
 import Module
 import GHC.Hs
 import SrcLoc
-import GHC.Util
+
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
+
 
 importHint :: ModuHint
 importHint _ ModuleEx {ghcModule=L _ HsModule{hsmodImports=ms}} =

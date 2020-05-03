@@ -77,6 +77,7 @@ import BasicTypes
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 patternHint :: DeclHint'
 patternHint _scope modu x =

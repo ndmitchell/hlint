@@ -15,7 +15,7 @@ import Prelude
 
 import GHC.Util
 
-import SrcLoc as GHC
+import SrcLoc
 import GHC.Hs.Extension
 import GHC.Hs.Decls hiding (SpliceDecl)
 import GHC.Hs.Expr hiding (Match)
@@ -25,6 +25,7 @@ import ApiAnnotation
 import OccName
 import Outputable
 
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 -- | Read an {-# ANN #-} pragma and determine if it is intended for HLint.
 --   Return Nothing if it is not an HLint pragma, otherwise what it means.
@@ -46,7 +47,7 @@ readPragma (HsAnnotation _ _ provenance expr) = f expr
         f _ = Nothing
 readPragma _ = Nothing
 
-readComment :: GHC.Located AnnotationComment -> [Classify]
+readComment :: Located AnnotationComment -> [Classify]
 readComment c@(L pos AnnBlockComment{})
     | (hash, x) <- maybe (False, x) (True,) $ stripPrefix "#" x
     , x <- trim x
@@ -79,7 +80,7 @@ errorOn (L pos val) msg = exitMessageImpure $
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     unsafePrettyPrint val
 
-errorOnComment :: GHC.Located AnnotationComment -> String -> b
+errorOnComment :: Located AnnotationComment -> String -> b
 errorOnComment c@(L s _) msg = exitMessageImpure $
     let isMultiline = isCommentMultiline c in
     showSrcSpan' s ++

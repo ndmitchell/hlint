@@ -59,6 +59,7 @@ import OccName
 import SrcLoc
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import GHC.Util
 
 namingHint :: DeclHint'

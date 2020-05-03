@@ -91,7 +91,7 @@ import RdrName
 import Outputable
 import Bag
 import SrcLoc
-import GHC.Util
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 smellModuleHint :: [Setting] -> ModuHint
 smellModuleHint settings scope m =
