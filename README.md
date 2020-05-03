@@ -222,7 +222,7 @@ See discussion in [issue #372](https://github.com/ndmitchell/hlint/issues/372).
 
 ### Why do I get a parse error?
 
-HLint enables/disables a set of extensions designed to allow as many files to parse as possible, but sometimes you'll need to enable an additional extension (e.g. Arrows), or disable some (e.g. MagicHash) to enable your code to parse. In addition, sometimes the underlying parser library ([haskell-src-exts](https://github.com/haskell-suite/haskell-src-exts)) has a bug which causes a parse error.
+HLint enables/disables a set of extensions designed to allow as many files to parse as possible, but sometimes you'll need to enable an additional extension (e.g. Arrows), or disable some (e.g. MagicHash) to enable your code to parse.
 
 ## Customizing the hints
 
@@ -357,4 +357,4 @@ The general syntax is `lhs -- rhs` with `lhs` being the expression you expect to
 
 ### Acknowledgements
 
-This program has only been made possible by the presence of the [haskell-src-exts](https://github.com/haskell-suite/haskell-src-exts) package, and many improvements have been made by [Niklas Broberg](http://www.nbroberg.se) in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott, Andy Stewart, Roman Leshchinskiy, Johannes Lippmann, Iustin Pop, Steve Purcell, Mitchell Rosen and others.
+Many improvements to this program have been made by [Niklas Broberg](http://www.nbroberg.se) in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott, Andy Stewart, Roman Leshchinskiy, Johannes Lippmann, Iustin Pop, Steve Purcell, Mitchell Rosen and others.
