@@ -48,13 +48,13 @@ pragmaHint :: ModuHint
 pragmaHint _ modu =
   let ps = pragmas (ghcAnnotations modu)
       opts = flags ps
-      lang = langExts ps in
+      lang = languagePragmas ps in
     languageDupes lang ++ optToPragma opts lang
 
 optToPragma :: [(Located AnnotationComment, [String])]
              -> [(Located AnnotationComment, [String])]
              -> [Idea]
-optToPragma flags langExts =
+optToPragma flags languagePragmas =
   [pragmaIdea (OptionsToComment (fst <$> old2) ys rs) | Just old2 <- [NE.nonEmpty old]]
   where
       (old, new, ns, rs) =
@@ -62,16 +62,16 @@ optToPragma flags langExts =
                | old <- flags, Just (new, ns) <- [optToLanguage old ls]
                , let r = mkRefact old new ns]
 
-      ls = concatMap snd langExts
+      ls = concatMap snd languagePragmas
       ns2 = nubOrd (concat ns) \\ ls
 
-      ys = [mkLangExts noSrcSpan ns2 | ns2 /= []] ++ catMaybes new
+      ys = [mkLanguagePragmas noSrcSpan ns2 | ns2 /= []] ++ catMaybes new
       mkRefact :: (Located AnnotationComment, [String])
                -> Maybe (Located AnnotationComment)
                -> [String]
                -> Refactoring R.SrcSpan
       mkRefact old (maybe "" comment -> new) ns =
-        let ns' = map (\n -> comment (mkLangExts noSrcSpan [n])) ns
+        let ns' = map (\n -> comment (mkLanguagePragmas noSrcSpan [n])) ns
         in ModifyComment (toSS' (fst old)) (intercalate "\n" (filter (not . null) (new : ns')))
 
 data PragmaIdea = SingleComment (Located AnnotationComment) (Located AnnotationComment)
@@ -101,8 +101,8 @@ pragmaIdea pidea =
 languageDupes :: [(Located AnnotationComment, [String])] -> [Idea]
 languageDupes ( (a@(L l _), les) : cs ) =
   (if nubOrd les /= les
-       then [pragmaIdea (SingleComment a (mkLangExts l $ nubOrd les))]
-       else [pragmaIdea (MultiComment a b (mkLangExts l (nubOrd $ les ++ les'))) | ( b@(L _ _), les' ) <- cs, not $ disjoint les les']
+       then [pragmaIdea (SingleComment a (mkLanguagePragmas l $ nubOrd les))]
+       else [pragmaIdea (MultiComment a b (mkLanguagePragmas l (nubOrd $ les ++ les'))) | ( b@(L _ _), les' ) <- cs, not $ disjoint les les']
   ) ++ languageDupes cs
 languageDupes _ = []
 
@@ -128,12 +128,12 @@ strToLanguage _ = Nothing
 optToLanguage :: (Located AnnotationComment, [String])
                -> [String]
                -> Maybe (Maybe (Located AnnotationComment), [String])
-optToLanguage (L loc _, flags) langExts
+optToLanguage (L loc _, flags) languagePragmas
   | any isJust vs =
       -- 'ls' is a list of language features enabled by this
       -- OPTIONS_GHC pragma that are not enabled by LANGUAGE pragmas
       -- in this module.
-      let ls = filter (not . (`elem` langExts)) (concat $ catMaybes vs) in
+      let ls = filter (not . (`elem` languagePragmas)) (concat $ catMaybes vs) in
       Just (res, ls)
   where
     -- Try reinterpreting each flag as a list of language features

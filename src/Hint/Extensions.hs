@@ -236,13 +236,13 @@ extensionsHint :: ModuHint
 extensionsHint _ x =
     [ rawIdea' Hint.Type.Warning "Unused LANGUAGE pragma"
         sl
-        (comment (mkLangExts sl exts))
+        (comment (mkLanguagePragmas sl exts))
         (Just newPragma)
         ( [RequiresExtension (show gone) | (_, Just x) <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
             [ Note $ "Extension " ++ show x ++ " is " ++ reason x
             | (_, Just x) <- explainedRemovals])
-        [ModifyComment (toSS' (mkLangExts sl exts)) newPragma]
-    | (L sl _,  exts) <- langExts $ pragmas (ghcAnnotations x)
+        [ModifyComment (toSS' (mkLanguagePragmas sl exts)) newPragma]
+    | (L sl _,  exts) <- languagePragmas $ pragmas (ghcAnnotations x)
     , let before = [(x, readExtension x) | x <- filterEnabled exts]
     , let after = filter (maybe True (`Set.member` keep) . snd) before
     , before /= after
@@ -250,7 +250,7 @@ extensionsHint _ x =
             | null after && not (any (`Map.member` implied) $ mapMaybe snd before) = []
             | otherwise = before \\ after
     , let newPragma =
-            if null after then "" else comment (mkLangExts sl $ map fst after)
+            if null after then "" else comment (mkLanguagePragmas sl $ map fst after)
     ]
   where
     filterEnabled :: [String] -> [String]
@@ -264,7 +264,7 @@ extensionsHint _ x =
     -- All the extensions defined to be used.
     extensions :: Set.Set Extension
     extensions = Set.fromList $ mapMaybe readExtension $
-        concatMap (filterEnabled . snd) $ langExts (pragmas (ghcAnnotations x))
+        concatMap (filterEnabled . snd) $ languagePragmas (pragmas (ghcAnnotations x))
 
     -- Those extensions we detect to be useful.
     useful :: Set.Set Extension

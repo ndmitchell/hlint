@@ -71,7 +71,7 @@ applyHintsReal settings hints_ ms = concat $
 removeRequiresExtensionNotes :: ModuleEx -> Idea -> Idea
 removeRequiresExtensionNotes m = \x -> x{ideaNote = filter keep $ ideaNote x}
     where
-        exts = Set.fromList $ concatMap snd $ langExts $ pragmas $ ghcAnnotations m
+        exts = Set.fromList $ concatMap snd $ languagePragmas $ pragmas $ ghcAnnotations m
         keep (RequiresExtension x) = not $ x `Set.member` exts
         keep _ = True
 

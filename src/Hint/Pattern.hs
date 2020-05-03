@@ -87,7 +87,7 @@ patternHint _scope modu x =
     concatMap (patHint strict True) (universeBi $ transformBi noPatBind x) ++
     concatMap expHint (universeBi x)
   where
-    exts = nubOrd $ concatMap snd (langExts (pragmas (ghcAnnotations modu))) -- language extensions enabled at source
+    exts = nubOrd $ concatMap snd (languagePragmas (pragmas (ghcAnnotations modu))) -- language extensions enabled at source
     strict = "Strict" `elem` exts
 
     noPatBind :: LHsBind GhcPs -> LHsBind GhcPs

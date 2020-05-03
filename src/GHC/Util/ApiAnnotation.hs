@@ -1,8 +1,8 @@
 
 module GHC.Util.ApiAnnotation (
     comment, commentText, isCommentMultiline
-  , pragmas, flags, langExts
-  , mkFlags, mkLangExts
+  , pragmas, flags, languagePragmas
+  , mkFlags, mkLanguagePragmas
 ) where
 
 import ApiAnnotation
@@ -83,12 +83,12 @@ flags ps =
                              <|> stripPrefixCI "OPTIONS " s]
              , let opts = words rest]
 
--- Language extensions. The first element of the pair is the (located)
--- annotation comment that enables the extensions enumerated by he
--- second element of the pair.
-langExts :: [(Located AnnotationComment, String)]
+-- Language pragmas. The first element of the
+-- pair is the (located) annotation comment that enables the
+-- pragmas enumerated by he second element of the pair.
+languagePragmas :: [(Located AnnotationComment, String)]
          -> [(Located AnnotationComment, [String])]
-langExts ps =
+languagePragmas ps =
   [(c, exts) | (c, s) <- ps
              , Just rest <- [stripPrefixCI "LANGUAGE " s]
              , let exts = map trim (splitOn "," rest)]
@@ -98,6 +98,6 @@ mkFlags :: SrcSpan -> [String] -> Located AnnotationComment
 mkFlags loc flags =
   L loc $ AnnBlockComment ("{-# " ++ "OPTIONS_GHC " ++ unwords flags ++ " #-}")
 
-mkLangExts :: SrcSpan -> [String] -> Located AnnotationComment
-mkLangExts loc exts =
+mkLanguagePragmas :: SrcSpan -> [String] -> Located AnnotationComment
+mkLanguagePragmas loc exts =
   L loc $ AnnBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")
