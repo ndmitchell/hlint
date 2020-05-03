@@ -1,6 +1,7 @@
 Changelog for HLint (* = breaking change)
 
-    #967, parse type applications correctly
+    #968, fail on all parse errors
+    #967, enable TypeApplications by default
 3.0.3, released 2020-05-03
     #965, fix incorrect avoid lambda suggestion
 3.0.2, released 2020-05-03
