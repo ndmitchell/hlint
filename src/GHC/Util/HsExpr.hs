@@ -176,10 +176,10 @@ niceLambdaR' [v] (L _ (OpApp _ e f (view' -> Var_' v')))
   = (noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField e f, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 
 -- @\vs v -> f x v@ ==> @\vs -> f x@
-niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (HsApp _ (L _ (HsApp _ f e)) (view' -> Var_' v')))
+niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (HsApp _ f (view' -> Var_' v')))
   | v == v'
-  , vars' e `disjoint` [v]
-  = niceLambdaR' vs $ apps' [f, e]
+  , vars' f `disjoint` [v]
+  = niceLambdaR' vs f
 
 -- @\vs v -> (v `f`)@ ==> @\vs -> f@
 niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (SectionL _ (view' -> Var_' v') f))

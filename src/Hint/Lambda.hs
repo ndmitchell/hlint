@@ -8,7 +8,7 @@
     Rules:
     fun a = \x -> y  -- promote lambdas, provided no where's outside the lambda
     fun x = y x  -- eta reduce, x /= mr and foo /= symbol
-    \x -> y x  -- eta reduce
+    \x -> y x ==> y -- eta reduce
     ((#) x) ==> (x #)  -- rotate operators
     (flip op x) ==> (`op` x)  -- rotate operators
     \x y -> x + y ==> (+)  -- insert operator
@@ -90,6 +90,7 @@ yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>) @NoRefactor
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 = foo (\name -> authOAuth2Widget [whamlet|Login via #{name}|] name)
 f = {- generates a hint using hlint.yaml only -} map (flip (,) "a") "123"
 f = {- generates a hint using hlint.yaml only -} map ((,) "a") "123"
+f = map (\s -> MkFoo s 0 s) ["a","b","c"]
 </TEST>
 -}
 
