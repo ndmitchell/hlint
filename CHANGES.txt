@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #971, add support for NoFoo language pragmas
 3.0.4, released 2020-05-03
     #968, fail on all parse errors
     #967, enable TypeApplications by default

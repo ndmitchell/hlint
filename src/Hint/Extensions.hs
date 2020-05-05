@@ -196,6 +196,8 @@ static = 42 --
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE Trustworthy, NamedFieldPuns #-} -- {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE Haskell2010 #-}
+{-# LANGUAGE NoStarIsType #-} \
+import GHC.TypeLits(KnownNat, type (+), type (*))
 </TEST>
 -}
 
