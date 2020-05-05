@@ -230,14 +230,14 @@ cmdHintFiles cmd = do
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
 
-cmdExtensions :: Cmd -> (Maybe Language, [Extension])
+cmdExtensions :: Cmd -> (Maybe Language, ([Extension], [Extension]))
 cmdExtensions = getExtensions . cmdLanguage
 
 
 cmdCpp :: Cmd -> CppFlags
 cmdCpp cmd
     | cmdCppSimple cmd = CppSimple
-    | Cpp `elem` snd (cmdExtensions cmd) = Cpphs defaultCpphsOptions
+    | Cpp `elem` (fst . snd) (cmdExtensions cmd) = Cpphs defaultCpphsOptions
         {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi cmd}
         ,includes = cmdCppInclude cmd
         ,preInclude = cmdCppFile cmd
@@ -314,14 +314,15 @@ getModule path exts x | not (any isSpace x) && all isMod xs = f exts
 getModule _ _ _ = pure Nothing
 
 
-getExtensions :: [String] -> (Maybe Language, [Extension])
-getExtensions args = (lang, foldl f (if null langs then defaultExtensions else []) exts)
+getExtensions :: [String] -> (Maybe Language, ([Extension], [Extension]))
+getExtensions args =
+  (lang, foldl f (if null langs then (defaultExtensions, []) else ([], [])) exts)
     where
         lang = if null langs then Nothing else Just $ fromJust $ lookup (last langs) ls
         (langs, exts) = partition (isJust . flip lookup ls) args
         ls = [(show x, x) | x <- [Haskell98, Haskell2010]]
 
-        f a "Haskell98" = []
-        f a ('N':'o':x) | Just x <- GhclibParserEx.readExtension x = delete x a
-        f a x | Just x <- GhclibParserEx.readExtension x = x : delete x a
-        f a x = a -- Ignore unknown extension.
+        f (a, e) "Haskell98" = ([], [])
+        f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x = (a, x : delete x e)
+        f (a, e) x | Just x <- GhclibParserEx.readExtension x = (x : delete x a, e)
+        f (a, e) x = (a, e) -- Ignore unknown extension.
