@@ -16,6 +16,7 @@ badExtensions =
   , UnboxedTuples, UnboxedSums -- breaks (#) lens operator
   , QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
   , {- DoRec , -} RecursiveDo -- breaks rec
+  , StarIsType  -- See https://github.com/ndmitchell/hlint/issues/971.
   ]
 
 reallyBadExtensions =
