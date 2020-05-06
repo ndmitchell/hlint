@@ -40,6 +40,7 @@ issue909 = foo (\((x :: z) -> y) -> 9 + x * 7)
 issue909 = foo (\((x : z) -> y) -> 9 + x * 7) -- \(x : z -> y) -> 9 + x * 7
 issue909 = let ((x:: y) -> z) = q in q
 issue909 = do {((x :: y) -> z) <- e; return 1}
+issue970 = (f x +) (g x) -- f x + (g x)
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
@@ -108,6 +109,7 @@ import SrcLoc
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
+import Data.Generics.Text (gshow)
 
 bracketHint :: DeclHint'
 bracketHint _ _ x =
@@ -246,6 +248,11 @@ dollar = concatMap f . universe
           [ suggest' "Redundant bracket" x y []
           | L _ (OpApp _ (L _ (HsPar _ o1@(L _ (OpApp _ v1 (isDot -> True) v2)))) o2 v3) <- [x], varToStr o2 == "<$>"
           , let y = noLoc (OpApp noExtField o1 o2 v3) :: LHsExpr GhcPs]
+          ++
+          [ suggest' "Redundant section" x y []
+          | L _ (HsApp _ (L _ (HsPar _ (L _ (SectionL _ a b)))) c) <- [x]
+          -- , error $ show (unsafePrettyPrint a, gshow b, unsafePrettyPrint c)
+          , let y = noLoc $ OpApp noExtField a b c :: LHsExpr GhcPs]
 
 splitInfix :: LHsExpr GhcPs -> [(LHsExpr GhcPs -> LHsExpr GhcPs, LHsExpr GhcPs)]
 splitInfix (L l (OpApp _ lhs op rhs)) =

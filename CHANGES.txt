@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #970, detect redundant sections, (a +) b ==> a + b
 *   #974, split ParseFlags.extensions into enabled/disabled
     #971, add support for -XNoFoo command line flags
     #976, run refactor even if no hints
