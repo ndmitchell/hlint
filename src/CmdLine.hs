@@ -323,6 +323,6 @@ getExtensions args =
         ls = [(show x, x) | x <- [Haskell98, Haskell2010]]
 
         f (a, e) "Haskell98" = ([], [])
-        f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x = (a, x : delete x e)
-        f (a, e) x | Just x <- GhclibParserEx.readExtension x = (x : delete x a, e)
+        f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x = (delete x a, x : delete x e)
+        f (a, e) x | Just x <- GhclibParserEx.readExtension x = (x : delete x a, delete x e)
         f (a, e) x = (a, e) -- Ignore unknown extension.
