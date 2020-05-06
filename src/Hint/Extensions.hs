@@ -198,6 +198,8 @@ static = 42 --
 {-# LANGUAGE Haskell2010 #-}
 {-# LANGUAGE NoStarIsType #-} \
 import GHC.TypeLits(KnownNat, type (+), type (*))
+{-# LANGUAGE LambdaCase, MultiWayIf, NoRebindableSyntax #-} \
+foo = \case True -> 3 -- {-# LANGUAGE LambdaCase, NoRebindableSyntax #-}
 </TEST>
 -}
 
@@ -246,7 +248,7 @@ extensionsHint _ x =
             | (_, Just x) <- explainedRemovals])
         [ModifyComment (toSS' (mkLanguagePragmas sl exts)) newPragma]
     | (L sl _,  exts) <- languagePragmas $ pragmas (ghcAnnotations x)
-    , let before = [(x, readExtension x) | x <- filterEnabled exts]
+    , let before = [(x, readExtension x) | x <- exts]
     , let after = filter (maybe True (`Set.member` keep) . snd) before
     , before /= after
     , let explainedRemovals
@@ -256,9 +258,6 @@ extensionsHint _ x =
             if null after then "" else comment (mkLanguagePragmas sl $ map fst after)
     ]
   where
-    filterEnabled :: [String] -> [String]
-    filterEnabled  = filter (not . isPrefixOf "No")
-
     usedTH :: Bool
     usedTH = used TemplateHaskell (ghcModule x) || used QuasiQuotes (ghcModule x)
       -- If TH or QuasiQuotes is on, can use all other extensions
@@ -267,7 +266,7 @@ extensionsHint _ x =
     -- All the extensions defined to be used.
     extensions :: Set.Set Extension
     extensions = Set.fromList $ mapMaybe readExtension $
-        concatMap (filterEnabled . snd) $ languagePragmas (pragmas (ghcAnnotations x))
+        concatMap snd $ languagePragmas (pragmas (ghcAnnotations x))
 
     -- Those extensions we detect to be useful.
     useful :: Set.Set Extension
