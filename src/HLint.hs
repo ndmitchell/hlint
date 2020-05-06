@@ -182,8 +182,9 @@ getIdeas cmd@CmdMain{..} settings = do
         then [i | i <- ideas, ideaHint i `elem` cmdOnly]
         else ideas
 
+-- #746: run refactor even if no hint, which ensures consistent output
+-- whether there are hints or not.
 handleRefactoring :: [Idea] -> [String] -> Cmd -> IO ()
-handleRefactoring [] _ _ = pure () -- No refactorings to apply
 handleRefactoring ideas files cmd@CmdMain{..} =
     case cmdFiles of
         [file] -> do
