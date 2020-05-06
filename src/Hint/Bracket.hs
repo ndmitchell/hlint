@@ -109,7 +109,6 @@ import SrcLoc
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
-import Data.Generics.Text (gshow)
 
 bracketHint :: DeclHint'
 bracketHint _ _ x =
