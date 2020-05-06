@@ -67,7 +67,7 @@ instance Brackets' (LHsExpr GhcPs) where
   needBracket' i parent child -- Note: i is the index in children, not in the AST.
      | isAtom' child = False
      | isSection parent, L _ HsApp{} <- child = False
-     | L _ OpApp{} <- parent, L _ HsApp{} <- child = False
+     | L _ OpApp{} <- parent, L _ HsApp{} <- child, i /= 0 || isAtomOrApp child = False
      | L _ ExplicitList{} <- parent = False
      | L _ ExplicitTuple{} <- parent = False
      | L _ HsIf{} <- parent, isAnyApp child = False
@@ -85,6 +85,16 @@ instance Brackets' (LHsExpr GhcPs) where
 
      | L _ HsPar{} <- parent = False
      | otherwise = True
+
+-- | Am I an HsApp such that having me in an infix doesn't require brackets.
+--   Before BlockArguments that was _all_ HsApps. Now, imagine:
+--
+--   (f \x -> x) *> ...
+--   (f do x) *> ...
+isAtomOrApp :: LHsExpr GhcPs -> Bool
+isAtomOrApp x | isAtom' x = True
+isAtomOrApp (L _ (HsApp _ _ x)) = isAtomOrApp x
+isAtomOrApp _ = False
 
 instance Brackets' (Located (Pat GhcPs)) where
   remParen' (L _ (ParPat _ x)) = Just x
