@@ -196,7 +196,7 @@ static = 42 --
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE Trustworthy, NamedFieldPuns #-} -- {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE Haskell2010 #-}
-{-# LANGUAGE NoStarIsType #-} \
+{-# LANGUAGE NoStarIsType, ExplicitNamespaces #-} \
 import GHC.TypeLits(KnownNat, type (+), type (*))
 {-# LANGUAGE LambdaCase, MultiWayIf, NoRebindableSyntax #-} \
 foo = \case True -> 3 -- {-# LANGUAGE LambdaCase, NoRebindableSyntax #-}

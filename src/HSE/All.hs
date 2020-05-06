@@ -44,20 +44,21 @@ data CppFlags
 data ParseFlags = ParseFlags
     {cppFlags :: CppFlags -- ^ How the file is preprocessed (defaults to 'NoCpp').
     ,baseLanguage :: Maybe Language -- ^ Base language (e.g. Haskell98, Haskell2010), defaults to 'Nothing'.
-    ,extensions :: [Extension] -- ^ List of extensions enabled for parsing, defaults to many non-conflicting extensions.
+    ,enabledExtensions :: [Extension] -- ^ List of extensions enabled for parsing, defaults to many non-conflicting extensions.
+    ,disabledExtensions :: [Extension] -- ^ List of extensions disabled for parsing, usually empty.
     ,fixities :: [FixityInfo] -- ^ List of fixities to be aware of, defaults to those defined in @base@.
     }
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags NoCpp Nothing defaultExtensions defaultFixities
+defaultParseFlags = ParseFlags NoCpp Nothing defaultExtensions [] defaultFixities
 
 -- | Given some fixities, add them to the existing fixities in 'ParseFlags'.
 parseFlagsAddFixities :: [FixityInfo] -> ParseFlags -> ParseFlags
 parseFlagsAddFixities fx x = x{fixities = fx ++ fixities x}
 
-parseFlagsSetLanguage :: (Maybe Language, [Extension]) -> ParseFlags -> ParseFlags
-parseFlagsSetLanguage (l, es) x = x{baseLanguage = l, extensions = es}
+parseFlagsSetLanguage :: (Maybe Language, ([Extension], [Extension])) -> ParseFlags -> ParseFlags
+parseFlagsSetLanguage (l, (es, ds)) x = x{baseLanguage = l, enabledExtensions = es, disabledExtensions = ds}
 
 
 runCpp :: CppFlags -> FilePath -> String -> IO String
@@ -105,7 +106,7 @@ ghcFailOpParseModuleEx ppstr file str (loc, err) = do
 
 -- GHC extensions to enable/disable given HSE parse flags.
 ghcExtensionsFromParseFlags :: ParseFlags -> ([Extension], [Extension])
-ghcExtensionsFromParseFlags ParseFlags{extensions=exts}= (exts, [])
+ghcExtensionsFromParseFlags ParseFlags{enabledExtensions=es, disabledExtensions=ds}= (es, ds)
 
 -- GHC fixities given HSE parse flags.
 ghcFixitiesFromParseFlags :: ParseFlags -> [(String, Fixity)]
