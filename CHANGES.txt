@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #974, split ParseFlags.extensions into enabled/disabled
+    #971, add support for -XNoFoo command line flags
     #976, run refactor even if no hints
     #971, add support for NoFoo language pragmas
 3.0.4, released 2020-05-03
