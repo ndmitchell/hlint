@@ -50,6 +50,10 @@ main = do _ <- forM_ f xs; bar -- forM_ f xs
 main = do bar; forM_ f xs; return () -- do bar; forM_ f xs
 main = do a; when b c; return () -- do a; when b c
 bar = 1 * do {\x -> x+x} + y
+issue978 = do \
+   print "x" \
+   if False then main else do \
+   return ()
 </TEST>
 -}
 
@@ -70,11 +74,13 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import GHC.Util
 
+import Data.Generics.Uniplate.Data
 import Data.Tuple.Extra
 import Data.Maybe
 import Data.List.Extra
 import Refact.Types hiding (Match)
 import qualified Refact.Types as R
+
 
 badFuncs :: [String]
 badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM","traverse","for","sequenceA"]
@@ -82,10 +88,23 @@ unitFuncs :: [String]
 unitFuncs = ["when","unless","void"]
 
 monadHint :: DeclHint'
-monadHint _ _ d = concatMap (monadExp d) $ universeParentExp' d
+monadHint _ _ d = concatMap (f Nothing Nothing) $ childrenBi d
+    where
+        decl = declName d
+        f parentDo parentExpr x =
+            monadExp decl parentDo parentExpr x ++
+            concat [f (if isHsDo x then Just x else parentDo) (Just (i, x)) c | (i, c) <- zipFrom 0 $ children x]
 
-monadExp :: LHsDecl GhcPs -> (Maybe (Int, LHsExpr GhcPs), LHsExpr GhcPs) -> [Idea]
-monadExp (declName -> decl) (parent, x) =
+        isHsDo (L _ HsDo{}) = True
+        isHsDo _ = False
+
+
+-- | Call with the name of the declaration,
+--   the nearest enclosing `do` expression
+--   the nearest enclosing expression
+--   the expression of interest
+monadExp :: Maybe String -> Maybe (LHsExpr GhcPs) -> Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
+monadExp decl parentDo parentExpr x =
   case x of
     (view' -> App2' op x1 x2) | isTag ">>" op -> f x1
     (view' -> App2' op x1 (view' -> LamConst1' _)) | isTag ">>=" op -> f x1
@@ -94,7 +113,9 @@ monadExp (declName -> decl) (parent, x) =
     (L loc (HsDo _ ctx (L loc2 [L loc3 (BodyStmt _ y _ _ )]))) ->
       let doOrMDo = case ctx of MDoExpr -> "mdo"; _ -> "do"
        in [ warnRemove ("Redundant " ++ doOrMDo) (doSpan doOrMDo loc) doOrMDo [Replace Expr (toSS' x) [("y", toSS' y)] "y"]
-          | not $ doAsBrackets parent y ]
+          | not $ doAsBrackets parentExpr y
+          , not $ doAsAvoidingIndentation parentDo x
+          ]
     (L loc (HsDo _ DoExpr (L _ xs))) ->
       monadSteps (cL loc . HsDo noExtField DoExpr . noLoc) xs ++
       [suggest' "Use let" from to [r] | (from, to, r) <- monadLet xs] ++
@@ -119,6 +140,15 @@ doAsBrackets :: Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
 doAsBrackets (Just (2, L _ (OpApp _ _ op _ ))) _ | isDol op = False -- not quite atomic, but close enough
 doAsBrackets (Just (i, o)) x = needBracket' i o x
 doAsBrackets Nothing x = False
+
+
+-- Sometimes people write do, to avoid identation, see
+-- https://github.com/ndmitchell/hlint/issues/978
+-- Return True if they are using do as avoiding identation
+doAsAvoidingIndentation :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
+doAsAvoidingIndentation (Just (L _ (HsDo _ _ (L (RealSrcSpan a) _)))) (L _ (HsDo _ _ (L (RealSrcSpan b) _)))
+    = srcSpanStartCol a == srcSpanStartCol b
+doAsAvoidingIndentation parent self = False
 
 
 returnsUnit :: LHsExpr GhcPs -> Bool
