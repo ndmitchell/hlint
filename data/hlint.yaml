@@ -300,7 +300,7 @@
     - warn: {lhs: (Data.Function.& f), rhs: f, name: Redundant Data.Function.&}
     - hint: {lhs: \x -> y, rhs: const y, side: isAtom y && not (isWildcard y)}
         # If any isWildcard recursively then x may be used but not mentioned explicitly
-    - warn: {lhs: flip f x y, rhs: f y x, side: isApp original}
+    - warn: {lhs: flip f x y, rhs: f y x, side: isApp original && isAtom y}
     - warn: {lhs: id x, rhs: x}
     - warn: {lhs: id . x, rhs: x, name: Redundant id}
     - warn: {lhs: x . id, rhs: x, name: Redundant id}
@@ -1170,4 +1170,5 @@
 # test953 = for [] $ \n -> bar n >>= \case {Just n  -> pure (); Nothing -> baz n} @NoRefactor
 # f = map (flip (,) "a") "123" -- (,"a")
 # f = map ((,) "a") "123" -- ("a",)
+# test979 = flip Map.traverseWithKey blocks \k v -> lots_of_code_goes_here @NoRefactor
 # </TEST>
