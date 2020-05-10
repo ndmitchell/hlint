@@ -95,8 +95,8 @@ possModules (Scope is) x = f x
 possImport :: LImportDecl GhcPs -> Located RdrName -> Bool
 possImport i n | isSpecial' n = False
 possImport (L _ i) (L _ (Qual mod x)) =
-  moduleNameString mod `elem` map fromModuleName' ms && possImport (noLoc i{ideclQualified=NotQualified}) (noLoc $ mkRdrUnqual x)
-  where ms = ideclName i : maybeToList (ideclAs i)
+  mod `elem` ms && possImport (noLoc i{ideclQualified=NotQualified}) (noLoc $ mkRdrUnqual x)
+  where ms = map unLoc $ ideclName i : maybeToList (ideclAs i)
 possImport (L _ i) (L _ (Unqual x)) = ideclQualified i == NotQualified && maybe True f (ideclHiding i)
   where
     f :: (Bool, Located [LIE GhcPs]) -> Bool
