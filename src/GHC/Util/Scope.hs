@@ -70,7 +70,7 @@ scopeMove (a, x@(fromQual' -> Just name)) (Scope b) = case imps of
         | otherwise -> unqual' x
   where
     real :: [Located RdrName]
-    real = [noLoc $ mkRdrQual (mkModuleName m) name | m <- possModules a x]
+    real = [noLoc $ mkRdrQual m name | m <- possModules a x]
 
     imps :: [ImportDecl GhcPs]
     imps = [unLoc i | r <- real, i <- b, possImport i r]
@@ -79,15 +79,15 @@ scopeMove (_, x) _ = x
 -- Calculate which modules a name could possibly lie in. If 'x' is
 -- qualified but no imported element matches it, assume the user just
 -- lacks an import.
-possModules :: Scope -> Located RdrName -> [String]
+possModules :: Scope -> Located RdrName -> [ModuleName]
 possModules (Scope is) x = f x
   where
-    res :: [String]
-    res = [fromModuleName' $ ideclName (unLoc i) | i <- is, possImport i x]
+    res :: [ModuleName]
+    res = [unLoc $ ideclName $ unLoc i | i <- is, possImport i x]
 
-    f :: Located RdrName -> [String]
-    f n | isSpecial' n = [""]
-    f (L _ (Qual mod _)) = [moduleNameString mod | null res] ++ res
+    f :: Located RdrName -> [ModuleName]
+    f n | isSpecial' n = [mkModuleName ""]
+    f (L _ (Qual mod _)) = [mod | null res] ++ res
     f _ = res
 
 -- Determine if 'x' could possibly lie in the module named by the
