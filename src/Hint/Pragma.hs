@@ -31,7 +31,7 @@
 
 module Hint.Pragma(pragmaHint) where
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),toSS',rawIdea')
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),toSS',rawIdea)
 import Data.List.Extra
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
@@ -95,8 +95,8 @@ pragmaIdea pidea =
         r
     where
           f = unlines . map comment
-          mkFewer = rawIdea' Hint.Type.Warning "Use fewer LANGUAGE pragmas"
-          mkLanguage = rawIdea' Hint.Type.Warning "Use LANGUAGE pragmas"
+          mkFewer = rawIdea Hint.Type.Warning "Use fewer LANGUAGE pragmas"
+          mkLanguage = rawIdea Hint.Type.Warning "Use LANGUAGE pragmas"
 
 languageDupes :: [(Located AnnotationComment, [String])] -> [Idea]
 languageDupes ( (a@(L l _), les) : cs ) =

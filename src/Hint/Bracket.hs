@@ -98,7 +98,7 @@ loadCradleOnlyonce = skipManyTill anyMessage (message @PublishDiagnosticsNotific
 
 module Hint.Bracket(bracketHint) where
 
-import Hint.Type(DeclHint',Idea(..),rawIdea',warn',suggest',suggestRemove,Severity(..),toSS')
+import Hint.Type(DeclHint',Idea(..),rawIdea,warn,suggest,suggestRemove,Severity(..),toSS')
 import Data.Data
 import Data.List.Extra
 import Data.Generics.Uniplate.Operations
@@ -183,7 +183,7 @@ bracket pretty isPartialAtom root = f Nothing
     -- 'x' actually need bracketing in this context?
     f (Just (i, o, gen)) v@(remParens' -> Just x)
       | not $ needBracket' i o x, not $ isPartialAtom x =
-          rawIdea' Suggestion msg (getLoc o) (pretty o) (Just (pretty (gen x))) [] [r] : g x
+          rawIdea Suggestion msg (getLoc o) (pretty o) (Just (pretty (gen x))) [] [r] : g x
       where
         typ = findType (unLoc v)
         r = Replace typ (toSS' v) [("x", toSS' x)] "x"
@@ -198,16 +198,16 @@ bracket pretty isPartialAtom root = f Nothing
 
 bracketWarning :: (HasSrcSpan a, HasSrcSpan b, Data (SrcSpanLess b), Outputable a, Outputable b) => String -> a -> b -> Idea
 bracketWarning msg o x =
-  suggest' msg o x [Replace (findType (unLoc x)) (toSS' o) [("x", toSS' x)] "x"]
+  suggest msg o x [Replace (findType (unLoc x)) (toSS' o) [("x", toSS' x)] "x"]
 
 bracketError :: (HasSrcSpan a, HasSrcSpan b, Data (SrcSpanLess b), Outputable a, Outputable b ) => String -> a -> b -> Idea
 bracketError msg o x =
-  warn' msg o x [Replace (findType (unLoc x)) (toSS' o) [("x", toSS' x)] "x"]
+  warn msg o x [Replace (findType (unLoc x)) (toSS' o) [("x", toSS' x)] "x"]
 
 fieldDecl ::  LConDeclField GhcPs -> [Idea]
 fieldDecl o@(L loc f@ConDeclField{cd_fld_type=v@(L l (HsParTy _ c))}) =
    let r = L loc (f{cd_fld_type=c}) :: LConDeclField GhcPs in
-   [rawIdea' Suggestion "Redundant bracket" loc
+   [rawIdea Suggestion "Redundant bracket" loc
     (showSDocUnsafe $ ppr_fld o) -- Note this custom printer!
     (Just (showSDocUnsafe $ ppr_fld r))
     []
@@ -237,7 +237,7 @@ dollar = concatMap f . universe
             , not $ isPartialAtom b
             , let r = Replace Expr (toSS' x) [("a", toSS' a), ("b", toSS' b)] "a b"]
           ++
-          [ suggest' "Move brackets to avoid $" x (t y) [r]
+          [ suggest "Move brackets to avoid $" x (t y) [r]
             |(t, e@(L _ (HsPar _ (L _ (OpApp _ a1 op1 a2))))) <- splitInfix x
             , isDol op1
             , isVar a1 || isApp a1 || isPar a1, not $ isAtom' a2
@@ -245,11 +245,11 @@ dollar = concatMap f . universe
             , let y = noLoc $ HsApp noExtField a1 (noLoc (HsPar noExtField a2))
             , let r = Replace Expr (toSS' e) [("a", toSS' a1), ("b", toSS' a2)] "a (b)" ]
           ++  -- Special case of (v1 . v2) <$> v3
-          [ suggest' "Redundant bracket" x y []
+          [ suggest "Redundant bracket" x y []
           | L _ (OpApp _ (L _ (HsPar _ o1@(L _ (OpApp _ v1 (isDot -> True) v2)))) o2 v3) <- [x], varToStr o2 == "<$>"
           , let y = noLoc (OpApp noExtField o1 o2 v3) :: LHsExpr GhcPs]
           ++
-          [ suggest' "Redundant section" x y []
+          [ suggest "Redundant section" x y []
           | L _ (HsApp _ (L _ (HsPar _ (L _ (SectionL _ a b)))) c) <- [x]
           -- , error $ show (unsafePrettyPrint a, gshow b, unsafePrettyPrint c)
           , let y = noLoc $ OpApp noExtField a b c :: LHsExpr GhcPs]

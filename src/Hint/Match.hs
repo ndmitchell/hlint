@@ -39,7 +39,7 @@ not . not . x ==> x
 
 module Hint.Match(readMatch') where
 
-import Hint.Type (ModuleEx,Idea,idea',ideaNote,toSS')
+import Hint.Type (ModuleEx,Idea,idea,ideaNote,toSS')
 import Util
 import Timing
 import qualified Data.Set as Set
@@ -108,10 +108,10 @@ dotVersion' _ = []
 
 findIdeas' :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 findIdeas' matches s _ decl = timed "Hint" "Match apply" $ forceList
-    [ (idea' (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
+    [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
     | (name, expr) <- findDecls' decl
     , (parent,x) <- universeParentExp' expr
-    , m <- matches, Just (y, tpl, notes, subst) <- [matchIdea' s name m parent x]
+    , m <- matches, Just (y, tpl, notes, subst) <- [matchIdea s name m parent x]
     , let r = R.Replace R.Expr (toSS' x) subst (unsafePrettyPrint tpl)
     ]
 
@@ -122,13 +122,13 @@ findDecls' x@(L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
 findDecls' (L _ RuleD{}) = [] -- Often rules contain things that HLint would rewrite.
 findDecls' x = map (fromMaybe "" $ declName x,) $ childrenBi x
 
-matchIdea' :: Scope
+matchIdea :: Scope
            -> String
            -> HintRule
            -> Maybe (Int, LHsExpr GhcPs)
            -> LHsExpr GhcPs
            -> Maybe (LHsExpr GhcPs, LHsExpr GhcPs, [Note], [(String, R.SrcSpan)])
-matchIdea' sb declName HintRule{..} parent x = do
+matchIdea sb declName HintRule{..} parent x = do
   let lhs = unextendInstances hintRuleLHS
       rhs = unextendInstances hintRuleRHS
       sa  = hintRuleScope

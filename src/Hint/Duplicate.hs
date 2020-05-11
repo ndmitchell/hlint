@@ -22,7 +22,7 @@ foo = a where {a = 1; b = 2; c = 3}; bar = a where {a = 1; b = 2; c = 3} -- ??? 
 
 module Hint.Duplicate(duplicateHint) where
 
-import Hint.Type (CrossHint, ModuleEx(..), Idea(..),rawIdeaN',Severity(Suggestion,Warning))
+import Hint.Type (CrossHint, ModuleEx(..), Idea(..),rawIdeaN,Severity(Suggestion,Warning))
 import Data.Data
 import Data.Generics.Uniplate.Operations
 import Data.Default
@@ -59,7 +59,7 @@ duplicateHint ms =
 
 dupes :: (Outputable e, Data e) => [(String, String, [Located e])] -> [Idea]
 dupes ys =
-    [(rawIdeaN'
+    [(rawIdeaN
         (if length xs >= 5 then Hint.Type.Warning else Suggestion)
         "Reduce duplication" p1
         (unlines $ map unsafePrettyPrint xs)

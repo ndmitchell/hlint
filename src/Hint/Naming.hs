@@ -41,7 +41,7 @@ foreign import ccall hexml_node_child :: IO ()
 
 module Hint.Naming(namingHint) where
 
-import Hint.Type (Idea,DeclHint',suggest',toSrcSpan',ghcModule)
+import Hint.Type (Idea,DeclHint',suggest,toSrcSpan',ghcModule)
 import Data.Generics.Uniplate.Operations
 import Data.List.Extra (nubOrd, isPrefixOf)
 import Data.Data
@@ -67,7 +67,7 @@ namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ hsmodDecls $ un
 
 naming :: Set.Set String -> LHsDecl GhcPs -> [Idea]
 naming seen originalDecl =
-    [ suggest' "Use camelCase"
+    [ suggest "Use camelCase"
                (shorten originalDecl)
                (shorten replacedDecl)
                [Replace Bind (toSrcSpan' originalDecl) [] (unsafePrettyPrint replacedDecl)]

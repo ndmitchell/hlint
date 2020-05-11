@@ -31,7 +31,7 @@ newtype Foo = Foo Int deriving stock Show
 -}
 module Hint.NewType (newtypeHint) where
 
-import Hint.Type (Idea, DeclHint', Note(DecreasesLaziness), ideaNote, ignoreNoSuggestion', suggestN')
+import Hint.Type (Idea, DeclHint', Note(DecreasesLaziness), ideaNote, ignoreNoSuggestion, suggestN)
 
 import Data.List (isSuffixOf)
 import GHC.Hs.Decls
@@ -45,13 +45,13 @@ newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
 newtypeHintDecl :: LHsDecl GhcPs -> [Idea]
 newtypeHintDecl old
     | Just WarnNewtype{newDecl, insideType} <- singleSimpleField old
-    = [(suggestN' "Use newtype instead of data" old newDecl)
+    = [(suggestN "Use newtype instead of data" old newDecl)
             {ideaNote = [DecreasesLaziness | warnBang insideType]}]
 newtypeHintDecl _ = []
 
 newTypeDerivingStrategiesHintDecl :: LHsDecl GhcPs -> [Idea]
 newTypeDerivingStrategiesHintDecl decl@(L _ (TyClD _ (DataDecl _ _ _ _ dataDef))) =
-    [ignoreNoSuggestion' "Use DerivingStrategies" decl | not $ isData dataDef, not $ hasAllStrategies dataDef]
+    [ignoreNoSuggestion "Use DerivingStrategies" decl | not $ isData dataDef, not $ hasAllStrategies dataDef]
 newTypeDerivingStrategiesHintDecl _ = []
 
 hasAllStrategies :: HsDataDefn GhcPs -> Bool

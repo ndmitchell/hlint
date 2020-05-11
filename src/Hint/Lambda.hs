@@ -97,7 +97,7 @@ f = map (\s -> MkFoo s 0 s) ["a","b","c"]
 
 module Hint.Lambda(lambdaHint) where
 
-import Hint.Type (DeclHint', Idea, Note(RequiresExtension), suggest', warn', toSS', suggestN', ideaNote)
+import Hint.Type (DeclHint', Idea, Note(RequiresExtension), suggest, warn, toSS', suggestN, ideaNote)
 import Util
 import Data.List.Extra
 import qualified Data.Set as Set
@@ -131,9 +131,9 @@ lambdaDecl
     | L _ (EmptyLocalBinds noExtField) <- bind
     , isLambda $ fromParen' origBody
     , null (universeBi pats :: [HsExpr GhcPs])
-    = [warn' "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS' o) s1 t1]]
+    = [warn "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS' o) s1 t1]]
     | length pats2 < length pats, pvars' (drop (length pats2) pats) `disjoint` varss' bind
-    = [warn' "Eta reduce" (reform pats origBody) (reform pats2 bod2)
+    = [warn "Eta reduce" (reform pats origBody) (reform pats2 bod2)
           [ -- Disabled, see apply-refact #3
             -- Replace Decl (toSS' $ reform' pats origBody) s2 t2]]
           ]]
@@ -174,11 +174,11 @@ lambdaExp _ o@(L _ (HsPar _ (L _ (HsApp _ oper@(L _ (HsVar _ (L _ (rdrNameOcc ->
     , isAtom' y
     , allowLeftSection $ occNameString f
     , not $ isTypeApp y =
-      [suggestN' "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField y oper]
+      [suggestN "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField y oper]
 
 lambdaExp _ o@(L _ (HsPar _ (view' -> App2' (view' -> Var_' "flip") origf@(view' -> Var_' f) y)))
     | allowRightSection f, not $ "(" `isPrefixOf` f
-    = [suggestN' "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionR noExtField origf y]
+    = [suggestN "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionR noExtField origf y]
 lambdaExp p o@(L _ HsLam{})
     | not $ any isOpApp p
     , (res, refact) <- niceLambdaR' [] o
@@ -186,7 +186,7 @@ lambdaExp p o@(L _ HsLam{})
     , not $ any isQuasiQuote $ universe res
     , not $ "runST" `Set.member` Set.map occNameString (freeVars' o)
     , let name = "Avoid lambda" ++ (if countRightSections res > countRightSections o then " using `infix`" else "")
-    = [(if isVar res then warn' else suggest') name o res (refact $ toSS' o)]
+    = [(if isVar res then warn else suggest) name o res (refact $ toSS' o)]
     where
         countRightSections :: LHsExpr GhcPs -> Int
         countRightSections x = length [() | L _ (SectionR _ (view' -> Var_' _) _) <- universe x]
@@ -194,7 +194,7 @@ lambdaExp p o@(SimpleLambda origPats origBody)
     | isLambda (fromParen' origBody)
     , null (universeBi origPats :: [HsExpr GhcPs]) -- TODO: I think this checks for view patterns only, so maybe be more explicit about that?
     , maybe True (not . isLambda) p =
-    [suggest' "Collapse lambdas" o (lambda pats body) [Replace Expr (toSS' o) subts template]]
+    [suggest "Collapse lambdas" o (lambda pats body) [Replace Expr (toSS' o) subts template]]
     where
       (pats, body) = fromLambda o
 
@@ -211,7 +211,7 @@ lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
             | ([_x], ys) <- partition ((==Just x) . tupArgVar) args
             -- the other arguments must not have a nested x somewhere in them
             , Set.notMember x $ Set.map occNameString $ freeVars' ys
-            -> [(suggestN' "Use tuple-section" o $ noLoc $ ExplicitTuple noExtField (map removeX args) boxity)
+            -> [(suggestN "Use tuple-section" o $ noLoc $ ExplicitTuple noExtField (map removeX args) boxity)
                   {ideaNote = [RequiresExtension "TupleSections"]}]
 
         -- suggest @LambdaCase@/directly matching in a lambda instead of doing @\x -> case x of ...@
@@ -227,7 +227,7 @@ lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
                  --     * add brackets to the match, because matches in lambdas require them
                  --     * mark match as being in a lambda context so that it's printed properly
                  oldMG@(MG _ (L _ [L _ oldmatch]) _) ->
-                     [suggestN' "Use lambda" o $ noLoc $ HsLam noExtField oldMG
+                     [suggestN "Use lambda" o $ noLoc $ HsLam noExtField oldMG
                          { mg_alts = noLoc
                              [noLoc oldmatch
                                  { m_pats = map mkParPat $ m_pats oldmatch
@@ -238,7 +238,7 @@ lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
 
                  -- otherwise we should use @LambdaCase@
                  MG _ (L _ xs) _ ->
-                     [(suggestN' "Use lambda-case" o $ noLoc $ HsLamCase noExtField matchGroup)
+                     [(suggestN "Use lambda-case" o $ noLoc $ HsLamCase noExtField matchGroup)
                          {ideaNote=[RequiresExtension "LambdaCase"]}]
                  _ -> []
         _ -> []
