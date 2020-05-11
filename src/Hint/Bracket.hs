@@ -98,7 +98,7 @@ loadCradleOnlyonce = skipManyTill anyMessage (message @PublishDiagnosticsNotific
 
 module Hint.Bracket(bracketHint) where
 
-import Hint.Type(DeclHint',Idea(..),rawIdea,warn,suggest,suggestRemove,Severity(..),toSS')
+import Hint.Type(DeclHint',Idea(..),rawIdea,warn,suggest,suggestRemove,Severity(..),toSS)
 import Data.Data
 import Data.List.Extra
 import Data.Generics.Uniplate.Operations
@@ -186,7 +186,7 @@ bracket pretty isPartialAtom root = f Nothing
           rawIdea Suggestion msg (getLoc o) (pretty o) (Just (pretty (gen x))) [] [r] : g x
       where
         typ = findType (unLoc v)
-        r = Replace typ (toSS' v) [("x", toSS' x)] "x"
+        r = Replace typ (toSS v) [("x", toSS x)] "x"
     -- Regardless of the context, there are no parentheses to remove
     -- from 'x'.
     f _ x = g x
@@ -198,11 +198,11 @@ bracket pretty isPartialAtom root = f Nothing
 
 bracketWarning :: (HasSrcSpan a, HasSrcSpan b, Data (SrcSpanLess b), Outputable a, Outputable b) => String -> a -> b -> Idea
 bracketWarning msg o x =
-  suggest msg o x [Replace (findType (unLoc x)) (toSS' o) [("x", toSS' x)] "x"]
+  suggest msg o x [Replace (findType (unLoc x)) (toSS o) [("x", toSS x)] "x"]
 
 bracketError :: (HasSrcSpan a, HasSrcSpan b, Data (SrcSpanLess b), Outputable a, Outputable b ) => String -> a -> b -> Idea
 bracketError msg o x =
-  warn msg o x [Replace (findType (unLoc x)) (toSS' o) [("x", toSS' x)] "x"]
+  warn msg o x [Replace (findType (unLoc x)) (toSS o) [("x", toSS x)] "x"]
 
 fieldDecl ::  LConDeclField GhcPs -> [Idea]
 fieldDecl o@(L loc f@ConDeclField{cd_fld_type=v@(L l (HsParTy _ c))}) =
@@ -211,7 +211,7 @@ fieldDecl o@(L loc f@ConDeclField{cd_fld_type=v@(L l (HsParTy _ c))}) =
     (showSDocUnsafe $ ppr_fld o) -- Note this custom printer!
     (Just (showSDocUnsafe $ ppr_fld r))
     []
-    [Replace Type (toSS' v) [("x", toSS' c)] "x"]]
+    [Replace Type (toSS v) [("x", toSS c)] "x"]]
    where
      -- If we call 'unsafePrettyPrint' on a field decl, we won't like
      -- the output (e.g. "[foo, bar] :: T"). Here we use a custom
@@ -235,7 +235,7 @@ dollar = concatMap f . universe
             , not $ needBracket' 0 y a
             , not $ needBracket' 1 y b
             , not $ isPartialAtom b
-            , let r = Replace Expr (toSS' x) [("a", toSS' a), ("b", toSS' b)] "a b"]
+            , let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"]
           ++
           [ suggest "Move brackets to avoid $" x (t y) [r]
             |(t, e@(L _ (HsPar _ (L _ (OpApp _ a1 op1 a2))))) <- splitInfix x
@@ -243,7 +243,7 @@ dollar = concatMap f . universe
             , isVar a1 || isApp a1 || isPar a1, not $ isAtom' a2
             , varToStr a1 /= "select" -- special case for esqueleto, see #224
             , let y = noLoc $ HsApp noExtField a1 (noLoc (HsPar noExtField a2))
-            , let r = Replace Expr (toSS' e) [("a", toSS' a1), ("b", toSS' a2)] "a (b)" ]
+            , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]
           ++  -- Special case of (v1 . v2) <$> v3
           [ suggest "Redundant bracket" x y []
           | L _ (OpApp _ (L _ (HsPar _ o1@(L _ (OpApp _ v1 (isDot -> True) v2)))) o2 v3) <- [x], varToStr o2 == "<$>"

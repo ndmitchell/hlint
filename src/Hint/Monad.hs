@@ -60,7 +60,7 @@ issue978 = do \
 
 module Hint.Monad(monadHint) where
 
-import Hint.Type(DeclHint',Idea(..),ideaNote,warn,warnRemove,toSS',suggest,Note(Note))
+import Hint.Type(DeclHint',Idea(..),ideaNote,warn,warnRemove,toSS,suggest,Note(Note))
 
 import GHC.Hs
 import SrcLoc
@@ -112,7 +112,7 @@ monadExp decl parentDo parentExpr x =
     (L l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (cL l . OpApp noExtField op dol) x
     (L loc (HsDo _ ctx (L loc2 [L loc3 (BodyStmt _ y _ _ )]))) ->
       let doOrMDo = case ctx of MDoExpr -> "mdo"; _ -> "do"
-       in [ warnRemove ("Redundant " ++ doOrMDo) (doSpan doOrMDo loc) doOrMDo [Replace Expr (toSS' x) [("y", toSS' y)] "y"]
+       in [ warnRemove ("Redundant " ++ doOrMDo) (doSpan doOrMDo loc) doOrMDo [Replace Expr (toSS x) [("y", toSS y)] "y"]
           | not $ doAsBrackets parentExpr y
           , not $ doAsAvoidingIndentation parentDo x
           ]
@@ -169,7 +169,8 @@ monadNoResult inside wrap (L l (OpApp _ x tag@(L _ (HsVar _ (L _ op))) y))
 monadNoResult inside wrap x
     | x2 : _ <- filter (`isTag` x) badFuncs
     , let x3 = x2 ++ "_"
-    = [warn ("Use " ++ x3) (wrap x) (wrap $ strToVar x3) [Replace Expr (toSS' x) [] x3] | inside /= x3]
+
+    = [warn ("Use " ++ x3) (wrap x) (wrap $ strToVar x3) [Replace Expr (toSS x) [] x3] | inside /= x3]
 monadNoResult inside wrap (replaceBranches' -> (bs, rewrap)) =
     map (\x -> x{ideaNote=nubOrd $ Note "May require adding void to other branches" : ideaNote x}) $ concat
         [monadNoResult inside id b | b <- bs]
@@ -179,14 +180,14 @@ monadStep :: ([ExprLStmt GhcPs] -> LHsExpr GhcPs)
 
 -- Rewrite 'do return x; $2' as 'do $2'.
 monadStep wrap os@(o@(L _ (BodyStmt _ (fromRet -> Just (ret, _)) _ _ )) : xs@(_:_))
-  = [warn ("Redundant " ++ ret) (wrap os) (wrap xs) [Delete Stmt (toSS' o)]]
+  = [warn ("Redundant " ++ ret) (wrap os) (wrap xs) [Delete Stmt (toSS o)]]
 
 -- Rewrite 'do a <- $1; return a' as 'do $1'.
 monadStep wrap o@[ g@(L _ (BindStmt _ (LL _ (VarPat _ (L _ p))) x _ _ ))
                   , q@(L _ (BodyStmt _ (fromRet -> Just (ret, L _ (HsVar _ (L _ v)))) _ _))]
   | occNameString (rdrNameOcc p) == occNameString (rdrNameOcc v)
   = [warn ("Redundant " ++ ret) (wrap o) (wrap [noLoc $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr])
-      [Replace Stmt (toSS' g) [("x", toSS' x)] "x", Delete Stmt (toSS' q)]]
+      [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)]]
 
 -- Suggest to use join. Rewrite 'do x <- $1; x; $2' as 'do join $1; $2'.
 monadStep wrap o@(g@(L _ (BindStmt _ (view' -> PVar_' p) x _ _)):q@(L _ (BodyStmt _ (view' -> Var_' v) _ _)):xs)
@@ -195,7 +196,7 @@ monadStep wrap o@(g@(L _ (BindStmt _ (view' -> PVar_' p) x _ _)):q@(L _ (BodyStm
         body = noLoc $ BodyStmt noExtField (rebracket1' app) noSyntaxExpr noSyntaxExpr
         stmts = body : xs
     in [warn "Use join" (wrap o) (wrap stmts) r]
-  where r = [Replace Stmt (toSS' g) [("x", toSS' x)] "join x", Delete Stmt (toSS' q)]
+  where r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete Stmt (toSS q)]
 
 -- Redundant variable capture. Rewrite 'do _ <- <return ()>; $1' as
 -- 'do <return ()>; $1'.
@@ -218,7 +219,7 @@ monadStep wrap
   | isReturn ret, notDol x, u == v, length fs < 3, all isSimple (f : fs), v `notElem` vars' (f : fs)
   =
       [warn "Use <$>" (wrap o) (wrap [noLoc $ BodyStmt noExtField (noLoc $ OpApp noExtField (foldl' (\acc e -> noLoc $ OpApp noExtField acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr])
-      [Replace Stmt (toSS' g) (("x", toSS' x):zip vs (toSS' <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSS' q)]]
+      [Replace Stmt (toSS g) (("x", toSS x):zip vs (toSS <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSS q)]]
   where
     isSimple (fromApps' -> xs) = all isAtom' (x : xs)
     vs = ('f':) . show <$> [0..]
@@ -245,7 +246,7 @@ monadLet xs = mapMaybe mkLet xs
       | p `notElem` vars' y, p `notElem` delete p vs
       = Just (x, template p y, refact)
       where
-        refact = Replace Stmt (toSS' x) [("lhs", toSS' v), ("rhs", toSS' y)]
+        refact = Replace Stmt (toSS x) [("lhs", toSS v), ("rhs", toSS y)]
                       (unsafePrettyPrint $ template "lhs" (strToVar "rhs"))
     mkLet _ = Nothing
 

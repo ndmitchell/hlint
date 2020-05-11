@@ -39,7 +39,7 @@ import IO as X -- import System.IO as X; import System.IO.Error as X; import Con
 
 module Hint.Import(importHint) where
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),suggest,toSS',rawIdea,rawIdeaN)
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),suggest,toSS,rawIdea,rawIdeaN)
 import Refact.Types hiding (ModuleName)
 import qualified Refact.Types as R
 import Data.Tuple.Extra
@@ -101,25 +101,25 @@ combine :: LImportDecl GhcPs
         -> Maybe (LImportDecl GhcPs, [Refactoring R.SrcSpan])
 combine x@(L _ x') y@(L _ y')
   -- Both (un/)qualified, common 'as', same names : Delete the second.
-  | qual, as, specs = Just (x, [Delete Import (toSS' y)])
+  | qual, as, specs = Just (x, [Delete Import (toSS y)])
     -- Both (un/)qualified, common 'as', different names : Merge the
     -- second into the first and delete it.
   | qual, as
   , Just (False, xs) <- ideclHiding x'
   , Just (False, ys) <- ideclHiding y' =
       let newImp = noLoc x'{ideclHiding = Just (False, noLoc (unLoc xs ++ unLoc ys))}
-      in Just (newImp, [Replace Import (toSS' x) [] (unsafePrettyPrint (unLoc newImp))
-                       , Delete Import (toSS' y)])
+      in Just (newImp, [Replace Import (toSS x) [] (unsafePrettyPrint (unLoc newImp))
+                       , Delete Import (toSS y)])
   -- Both (un/qualified), common 'as', one has names the other doesn't
   -- : Delete the one with names.
   | qual, as, isNothing (ideclHiding x') || isNothing (ideclHiding y') =
        let (newImp, toDelete) = if isNothing (ideclHiding x') then (x, y) else (y, x)
-       in Just (newImp, [Delete Import (toSS' toDelete)])
+       in Just (newImp, [Delete Import (toSS toDelete)])
   -- Both unqualified, same names, one (and only one) has an 'as'
   -- clause : Delete the one without an 'as'.
   | ideclQualified x' == NotQualified, qual, specs, length ass == 1 =
        let (newImp, toDelete) = if isJust (ideclAs x') then (x, y) else (y, x)
-       in Just (newImp, [Delete Import (toSS' toDelete)])
+       in Just (newImp, [Delete Import (toSS toDelete)])
   -- No hints.
   | otherwise = Nothing
     where
@@ -138,7 +138,7 @@ stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
 stripRedundantAlias x@(L loc i@ImportDecl {..})
   -- Suggest 'import M as M' be just 'import M'.
   | Just (unLoc ideclName) == fmap unLoc ideclAs =
-      [suggest "Redundant as" x (cL loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS' x)]]
+      [suggest "Redundant as" x (cL loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS x)]]
 stripRedundantAlias _ = []
 
 preferHierarchicalImports :: LImportDecl GhcPs -> [Idea]
@@ -155,7 +155,7 @@ preferHierarchicalImports x@(L loc i@ImportDecl{ideclName=L _ n,ideclPkgQual=Not
   -- its hiearchical equivalent e.g. 'Control.Monad'.
   | Just y <- lookup (moduleNameString n) newNames =
     let newModuleName = y ++ "." ++ moduleNameString n
-        r = [Replace R.ModuleName (toSS' x) [] newModuleName] in
+        r = [Replace R.ModuleName (toSS x) [] newModuleName] in
     [suggest "Use hierarchical imports"
      x (noLoc (desugarQual i){ideclName=noLoc (mkModuleName newModuleName)} :: LImportDecl GhcPs) r]
   where

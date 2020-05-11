@@ -97,7 +97,7 @@ f = map (\s -> MkFoo s 0 s) ["a","b","c"]
 
 module Hint.Lambda(lambdaHint) where
 
-import Hint.Type (DeclHint', Idea, Note(RequiresExtension), suggest, warn, toSS', suggestN, ideaNote)
+import Hint.Type (DeclHint', Idea, Note(RequiresExtension), suggest, warn, toSS, suggestN, ideaNote)
 import Util
 import Data.List.Extra
 import qualified Data.Set as Set
@@ -131,11 +131,11 @@ lambdaDecl
     | L _ (EmptyLocalBinds noExtField) <- bind
     , isLambda $ fromParen' origBody
     , null (universeBi pats :: [HsExpr GhcPs])
-    = [warn "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS' o) s1 t1]]
+    = [warn "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS o) s1 t1]]
     | length pats2 < length pats, pvars' (drop (length pats2) pats) `disjoint` varss' bind
     = [warn "Eta reduce" (reform pats origBody) (reform pats2 bod2)
           [ -- Disabled, see apply-refact #3
-            -- Replace Decl (toSS' $ reform' pats origBody) s2 t2]]
+            -- Replace Decl (toSS $ reform' pats origBody) s2 t2]]
           ]]
     where reform :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
           reform ps b = L loc $ ValD noExtField $
@@ -150,7 +150,7 @@ lambdaDecl
           (finalpats, body) = fromLambda . lambda pats $ origBody
           (pats2, bod2) = etaReduce pats origBody
           template fps = unsafePrettyPrint $ reform (zipWith munge ['a'..'z'] fps) varBody
-          subts fps b = ("body", toSS' b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' fps)
+          subts fps b = ("body", toSS b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS fps)
           s1 = subts finalpats body
           --s2 = subts pats2 bod2
           t1 = template finalpats
@@ -186,7 +186,7 @@ lambdaExp p o@(L _ HsLam{})
     , not $ any isQuasiQuote $ universe res
     , not $ "runST" `Set.member` Set.map occNameString (freeVars' o)
     , let name = "Avoid lambda" ++ (if countRightSections res > countRightSections o then " using `infix`" else "")
-    = [(if isVar res then warn else suggest) name o res (refact $ toSS' o)]
+    = [(if isVar res then warn else suggest) name o res (refact $ toSS o)]
     where
         countRightSections :: LHsExpr GhcPs -> Int
         countRightSections x = length [() | L _ (SectionR _ (view' -> Var_' _) _) <- universe x]
@@ -194,13 +194,13 @@ lambdaExp p o@(SimpleLambda origPats origBody)
     | isLambda (fromParen' origBody)
     , null (universeBi origPats :: [HsExpr GhcPs]) -- TODO: I think this checks for view patterns only, so maybe be more explicit about that?
     , maybe True (not . isLambda) p =
-    [suggest "Collapse lambdas" o (lambda pats body) [Replace Expr (toSS' o) subts template]]
+    [suggest "Collapse lambdas" o (lambda pats body) [Replace Expr (toSS o) subts template]]
     where
       (pats, body) = fromLambda o
 
       template = unsafePrettyPrint $ lambda (zipWith munge ['a'..'z'] pats) varBody
 
-      subts = ("body", toSS' body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS' pats)
+      subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS pats)
 
 -- match a lambda with a variable pattern, with no guards and no where clauses
 lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
