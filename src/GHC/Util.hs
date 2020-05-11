@@ -17,7 +17,7 @@ module GHC.Util (
   , fileToModule
   , pattern SrcSpan, srcSpanFilename, srcSpanStartLine', srcSpanStartColumn, srcSpanEndLine', srcSpanEndColumn
   , pattern SrcLoc, srcFilename, srcLine, srcColumn
-  , showSrcSpan',
+  , showSrcSpan,
   ) where
 
 import GHC.Util.View
@@ -113,5 +113,5 @@ toOldeLoc (UnhelpfulLoc str) =
   , -1
   )
 
-showSrcSpan' :: SrcSpan -> String
-showSrcSpan' = unsafePrettyPrint
+showSrcSpan :: SrcSpan -> String
+showSrcSpan = unsafePrettyPrint

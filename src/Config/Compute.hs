@@ -27,7 +27,7 @@ computeSettings flags file = do
     x <- parseModuleEx flags file Nothing
     case x of
         Left (ParseError sl msg _) ->
-            pure ("# Parse error " ++ showSrcSpan' sl ++ ": " ++ msg, [])
+            pure ("# Parse error " ++ showSrcSpan sl ++ ": " ++ msg, [])
         Right ModuleEx{ghcModule=m} -> do
             let xs = concatMap findSetting (hsmodDecls $ unLoc m)
                 s = unlines $ ["# hints found in " ++ file] ++ concatMap renderSetting xs ++ ["# no hints found" | null xs]

@@ -63,7 +63,7 @@ dupes ys =
         (if length xs >= 5 then Hint.Type.Warning else Suggestion)
         "Reduce duplication" p1
         (unlines $ map unsafePrettyPrint xs)
-        (Just $ "Combine with " ++ showSrcSpan' p2)
+        (Just $ "Combine with " ++ showSrcSpan p2)
         []
      ){ideaModule = [m1, m2], ideaDecl = [d1, d2]}
     | ((m1, d1, SrcSpanD p1), (m2, d2, SrcSpanD p2), xs) <- duplicateOrdered 3 $ map f ys]

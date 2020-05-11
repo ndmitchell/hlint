@@ -54,7 +54,7 @@ writeReport dataDir file ideas = timedIO "Report" file $ writeTemplate dataDir i
 writeIdea :: String -> Idea -> [String]
 writeIdea cls Idea{..} =
     ["<div class=" ++ show cls ++ ">"
-    ,escapeHTML (GHC.showSrcSpan' ideaSpan ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint) ++ "<br/>"
+    ,escapeHTML (GHC.showSrcSpan ideaSpan ++ ": " ++ show ideaSeverity ++ ": " ++ ideaHint) ++ "<br/>"
     ,"Found<br/>"
     ,hsColourHTML ideaFrom] ++
     (case ideaTo of
