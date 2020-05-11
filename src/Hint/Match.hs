@@ -98,8 +98,8 @@ dotVersion' (L l (OpApp _ x op y)) =
 
   --   If a == b then
   --   x is 'a', op is '==' and y is 'b' and,
-  let lSec = addParen' (cL l (SectionL noExtField x op)) -- (a == )
-      rSec = addParen' (cL l (SectionR noExtField op y)) -- ( == b)
+  let lSec = addParen (cL l (SectionL noExtField x op)) -- (a == )
+      rSec = addParen (cL l (SectionR noExtField op y)) -- ( == b)
   in (first (lSec :) <$> dotVersion' y) ++ (first (rSec :) <$> dotVersion' x) -- [([(a ==)], b), ([(b == )], a])].
 dotVersion' _ = []
 
@@ -191,7 +191,7 @@ checkSide' x bind = maybe True bool x
       expr x = x
 
       isType "Compare" x = True -- Just a hint for proof stuff
-      isType "Atom" x = isAtom' x
+      isType "Atom" x = isAtom x
       isType "WHNF" x = isWHNF x
       isType "Wildcard" x = any isFieldPun (universeBi x) || any hasFieldsDotDot (universeBi x)
       isType "Nat" (asInt -> Just x) | x >= 0 = True

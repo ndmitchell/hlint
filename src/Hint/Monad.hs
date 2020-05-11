@@ -138,7 +138,7 @@ monadExp decl parentDo parentExpr x =
 -- Return True if they are using do as brackets
 doAsBrackets :: Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
 doAsBrackets (Just (2, L _ (OpApp _ _ op _ ))) _ | isDol op = False -- not quite atomic, but close enough
-doAsBrackets (Just (i, o)) x = needBracket' i o x
+doAsBrackets (Just (i, o)) x = needBracket i o x
 doAsBrackets Nothing x = False
 
 
@@ -221,7 +221,7 @@ monadStep wrap
       [warn "Use <$>" (wrap o) (wrap [noLoc $ BodyStmt noExtField (noLoc $ OpApp noExtField (foldl' (\acc e -> noLoc $ OpApp noExtField acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr])
       [Replace Stmt (toSS g) (("x", toSS x):zip vs (toSS <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSS q)]]
   where
-    isSimple (fromApps' -> xs) = all isAtom' (x : xs)
+    isSimple (fromApps' -> xs) = all isAtom (x : xs)
     vs = ('f':) . show <$> [0..]
 
     notDol :: LHsExpr GhcPs -> Bool

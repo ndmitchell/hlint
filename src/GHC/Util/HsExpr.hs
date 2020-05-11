@@ -5,7 +5,7 @@
 module GHC.Util.HsExpr (
     dotApps', lambda
   , simplifyExp', niceLambda', niceLambdaR'
-  , Brackets'(..)
+  , Brackets(..)
   , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'
   , paren'
   , replaceBranches'
@@ -58,8 +58,8 @@ lambda vs body = noLoc $ HsLam noExtField (MG noExtField (noLoc [noLoc $ Match n
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren' :: LHsExpr GhcPs -> LHsExpr GhcPs
 paren' x
-  | isAtom' x  = x
-  | otherwise = addParen' x
+  | isAtom x  = x
+  | otherwise = addParen x
 
 universeParentExp' :: Data a => a -> [(Maybe (Int, LHsExpr GhcPs), LHsExpr GhcPs)]
 universeParentExp' xs = concat [(Nothing, x) : f x | x <- childrenBi xs]
@@ -100,10 +100,10 @@ descendBracket' op x = descendIndex' g x
     where
         g i y = if a then f i b else b
             where (a, b) = op y
-        f i y@(L _ e) | needBracket' i x y = addParen' y
+        f i y@(L _ e) | needBracket i x y = addParen y
         f _ y = y
 
--- Add brackets as suggested 'needBracket' at 1-level of depth.
+-- Add brackets as suggested 'needBracket at 1-level of depth.
 rebracket1' :: LHsExpr GhcPs -> LHsExpr GhcPs
 rebracket1' = descendBracket' (True, )
 
@@ -193,7 +193,7 @@ niceLambdaR' xs (SimpleLambda ((view' -> PVar_' v):vs) x)
 -- lexeme, or it all gets too complex).
 niceLambdaR' [x] (view' -> App2' op@(L _ (HsVar _ (L _ tag))) l r)
   | isLexeme r, view' l == Var_' x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
-      let e = rebracket1' $ addParen' (noLoc $ SectionR noExtField op r)
+      let e = rebracket1' $ addParen (noLoc $ SectionR noExtField op r)
       in (e, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 -- Rewrite (1) @\x -> f (b x)@ as @f . b@, (2) @\x -> f $ b x@ as @f . b@.
 niceLambdaR' [x] y
@@ -261,12 +261,12 @@ replaceBranches' (L s (HsCase _ a (MG _ (L l bs) FromSource))) =
 replaceBranches' x = ([], \[] -> x)
 
 
--- Like needBracket', but with a special case for 'a . b . b', which was
+-- Like needBracket, but with a special case for 'a . b . b', which was
 -- removed from haskell-src-exts-util-0.2.2.
 needBracketOld' :: Int -> LHsExpr GhcPs -> LHsExpr GhcPs -> Bool
 needBracketOld' i parent child
   | isDotApp parent, isDotApp child, i == 2 = False
-  | otherwise = needBracket' i parent child
+  | otherwise = needBracket i parent child
 
 transformBracketOld' :: (LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
 transformBracketOld' op = first snd . g
@@ -290,7 +290,7 @@ descendBracketOld' op x = (descendIndex' g1 x, descendIndex' g2 x)
     g2 = (snd .) . g
 
     f i (L _ (HsPar _ y)) z | not $ needBracketOld' i x y = (y, z)
-    f i y z                 | needBracketOld' i x y = (addParen' y, addParen' z)
+    f i y z                 | needBracketOld' i x y = (addParen y, addParen z)
     f _ y z                 = (y, z)
 
     f1 = ((fst .) .) . f
