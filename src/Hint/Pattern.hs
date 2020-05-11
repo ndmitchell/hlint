@@ -57,7 +57,7 @@ foo x@Foo = x
 
 module Hint.Pattern(patternHint) where
 
-import Hint.Type(DeclHint',Idea,ghcAnnotations,ideaTo,toSS',toRefactSrcSpan',suggest',suggestRemove,warn')
+import Hint.Type(DeclHint',Idea,ghcAnnotations,ideaTo,toSS',toRefactSrcSpan',suggest,suggestRemove,warn)
 import Data.Generics.Uniplate.Operations
 import Data.Function
 import Data.List.Extra
@@ -182,12 +182,12 @@ asPattern :: LHsDecl GhcPs  -> [(Pattern, String -> Pattern -> [Refactoring R.Sr
 asPattern (L loc x) = concatMap decl (universeBi x)
   where
     decl :: HsBind GhcPs -> [(Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)]
-    decl o@(PatBind _ pat rhs _) = [(Pattern loc Bind [pat] rhs, \msg (Pattern _ _ [pat] rhs) rs -> suggest' msg (L loc o :: LHsBind GhcPs) (noLoc (PatBind noExtField pat rhs ([], [])) :: LHsBind GhcPs) rs)]
+    decl o@(PatBind _ pat rhs _) = [(Pattern loc Bind [pat] rhs, \msg (Pattern _ _ [pat] rhs) rs -> suggest msg (L loc o :: LHsBind GhcPs) (noLoc (PatBind noExtField pat rhs ([], [])) :: LHsBind GhcPs) rs)]
     decl (FunBind _ _ (MG _ (L _ xs) _) _ _) = map match xs
     decl _ = []
 
     match :: LMatch GhcPs (LHsExpr GhcPs) -> (Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)
-    match o@(L loc (Match _ ctx pats grhss)) = (Pattern loc R.Match pats grhss, \msg (Pattern _ _ pats grhss) rs -> suggest' msg o (noLoc (Match noExtField ctx  pats grhss) :: LMatch GhcPs (LHsExpr GhcPs)) rs)
+    match o@(L loc (Match _ ctx pats grhss)) = (Pattern loc R.Match pats grhss, \msg (Pattern _ _ pats grhss) rs -> suggest msg o (noLoc (Match noExtField ctx  pats grhss) :: LMatch GhcPs (LHsExpr GhcPs)) rs)
     match _ = undefined -- {-# COMPLETE L #-}
 
 -- First Bool is if 'Strict' is a language extension. Second Bool is
@@ -198,12 +198,12 @@ patHint _ _ o@(L _ (ConPatIn name (PrefixCon args)))
   let rec_fields = HsRecFields [] Nothing :: HsRecFields GhcPs (LPat GhcPs)
       new        = noLoc $ ConPatIn name (RecCon rec_fields) :: LPat GhcPs
   in
-  [suggest' "Use record patterns" o new [Replace R.Pattern (toSS' o) [] (unsafePrettyPrint new)]]
+  [suggest "Use record patterns" o new [Replace R.Pattern (toSS' o) [] (unsafePrettyPrint new)]]
 patHint _ _ o@(L _ (VarPat _ (L _ name)))
   | occNameString (rdrNameOcc name) == "otherwise" =
-    [warn' "Used otherwise as a pattern" o (noLoc (WildPat noExtField) :: LPat GhcPs) []]
+    [warn "Used otherwise as a pattern" o (noLoc (WildPat noExtField) :: LPat GhcPs) []]
 patHint lang strict o@(L _ (BangPat _ pat@(L _ x)))
-  | strict, f x = [warn' "Redundant bang pattern" o (noLoc x :: LPat GhcPs) [r]]
+  | strict, f x = [warn "Redundant bang pattern" o (noLoc x :: LPat GhcPs) [r]]
   where
     f :: Pat GhcPs -> Bool
     f (ParPat _ (L _ x)) = f x
@@ -217,7 +217,7 @@ patHint lang strict o@(L _ (BangPat _ pat@(L _ x)))
     f _ = False
     r = Replace R.Pattern (toSS' o) [("x", toSS' pat)] "x"
 patHint False _ o@(L _ (LazyPat _ pat@(L _ x)))
-  | f x = [warn' "Redundant irrefutable pattern" o (noLoc x :: LPat GhcPs) [r]]
+  | f x = [warn "Redundant irrefutable pattern" o (noLoc x :: LPat GhcPs) [r]]
   where
     f :: Pat GhcPs -> Bool
     f (ParPat _ (L _ x)) = f x
@@ -227,18 +227,18 @@ patHint False _ o@(L _ (LazyPat _ pat@(L _ x)))
     f _ = False
     r = Replace R.Pattern (toSS' o) [("x", toSS' pat)] "x"
 patHint _ _ o@(L _ (AsPat _ v (L _ (WildPat _)))) =
-  [warn' "Redundant as-pattern" o v []]
+  [warn "Redundant as-pattern" o v []]
 patHint _ _ _ = []
 
 expHint :: LHsExpr GhcPs -> [Idea]
  -- Note the 'FromSource' in these equations (don't warn on generated match groups).
 expHint o@(L _ (HsCase _ _ (MG _ (L _ [L _ (Match _ CaseAlt [L _ (WildPat _)] (GRHSs _ [L _ (GRHS _ [] e)] (L  _ (EmptyLocalBinds _)))) ]) FromSource ))) =
-  [suggest' "Redundant case" o e [r]]
+  [suggest "Redundant case" o e [r]]
   where
     r = Replace Expr (toSS' o) [("x", toSS' e)] "x"
 expHint o@(L _ (HsCase _ (L _ (HsVar _ (L _ x))) (MG _ (L _ [L _ (Match _ CaseAlt [L _ (VarPat _ (L _ y))] (GRHSs _ [L _ (GRHS _ [] e)] (L  _ (EmptyLocalBinds _)))) ]) FromSource )))
   | occNameString (rdrNameOcc x) == occNameString (rdrNameOcc y) =
-      [suggest' "Redundant case" o e [r]]
+      [suggest "Redundant case" o e [r]]
   where
     r = Replace Expr (toSS' o) [("x", toSS' e)] "x"
 expHint _ = []

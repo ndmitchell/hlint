@@ -13,7 +13,7 @@ module Foo(module Foo, foo) where foo = 1 -- module Foo(..., foo) where @NoRefac
 
 module Hint.Export(exportHint) where
 
-import Hint.Type(ModuHint, ModuleEx(..),ideaNote,ignore',Note(..))
+import Hint.Type(ModuHint, ModuleEx(..),ideaNote,ignore,Note(..))
 
 import GHC.Hs
 import Module
@@ -25,7 +25,7 @@ exportHint :: ModuHint
 exportHint _ (ModuleEx (L s m@HsModule {hsmodName = Just name, hsmodExports = exports}) _)
   | Nothing <- exports =
       let r = o{ hsmodExports = Just (noLoc [noLoc (IEModuleContents noExtField name)] )} in
-      [(ignore' "Use module export list" (L s o) (noLoc r) []){ideaNote = [Note "an explicit list is usually better"]}]
+      [(ignore "Use module export list" (L s o) (noLoc r) []){ideaNote = [Note "an explicit list is usually better"]}]
   | Just (L _ xs) <- exports
   , mods <- [x | x <- xs, isMod x]
   , modName <- moduleNameString (unLoc name)
@@ -35,7 +35,7 @@ exportHint _ (ModuleEx (L s m@HsModule {hsmodName = Just name, hsmodExports = ex
       let dots = mkRdrUnqual (mkVarOcc " ... ")
           r = o{ hsmodExports = Just (noLoc (noLoc (IEVar noExtField (noLoc (IEName (noLoc dots)))) : exports') )}
       in
-        [ignore' "Use explicit module export list" (L s o) (noLoc r) []]
+        [ignore "Use explicit module export list" (L s o) (noLoc r) []]
       where
           o = m{hsmodImports=[], hsmodDecls=[], hsmodDeprecMessage=Nothing, hsmodHaddockModHeader=Nothing }
           isMod (L _ (IEModuleContents _ _)) = True

@@ -39,7 +39,7 @@ import IO as X -- import System.IO as X; import System.IO.Error as X; import Con
 
 module Hint.Import(importHint) where
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),suggest',toSS',rawIdea',rawIdeaN')
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),suggest,toSS',rawIdea,rawIdeaN)
 import Refact.Types hiding (ModuleName)
 import qualified Refact.Types as R
 import Data.Tuple.Extra
@@ -77,7 +77,7 @@ importHint _ ModuleEx {ghcModule=L _ HsModule{hsmodImports=ms}} =
 reduceImports :: [LImportDecl GhcPs] -> [Idea]
 reduceImports [] = []
 reduceImports ms@(m:_) =
-  [rawIdea' Hint.Type.Warning "Use fewer imports" (getLoc m) (f ms) (Just $ f x) [] rs
+  [rawIdea Hint.Type.Warning "Use fewer imports" (getLoc m) (f ms) (Just $ f x) [] rs
   | Just (x, rs) <- [simplify ms]]
   where f = unlines . map unsafePrettyPrint
 
@@ -138,7 +138,7 @@ stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
 stripRedundantAlias x@(L loc i@ImportDecl {..})
   -- Suggest 'import M as M' be just 'import M'.
   | Just (unLoc ideclName) == fmap unLoc ideclAs =
-      [suggest' "Redundant as" x (cL loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS' x)]]
+      [suggest "Redundant as" x (cL loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS' x)]]
 stripRedundantAlias _ = []
 
 preferHierarchicalImports :: LImportDecl GhcPs -> [Idea]
@@ -146,7 +146,7 @@ preferHierarchicalImports x@(L loc i@ImportDecl{ideclName=L _ n,ideclPkgQual=Not
   -- Suggest 'import IO' be rewritten 'import System.IO, import
   -- System.IO.Error, import Control.Exception(bracket, bracket_)'.
   | n == mkModuleName "IO" && isNothing (ideclHiding i) =
-      [rawIdeaN' Suggestion "Use hierarchical imports" loc
+      [rawIdeaN Suggestion "Use hierarchical imports" loc
       (trimStart $ unsafePrettyPrint i) (
           Just $ unlines $ map (trimStart . unsafePrettyPrint)
           [ f "System.IO" Nothing, f "System.IO.Error" Nothing
@@ -156,7 +156,7 @@ preferHierarchicalImports x@(L loc i@ImportDecl{ideclName=L _ n,ideclPkgQual=Not
   | Just y <- lookup (moduleNameString n) newNames =
     let newModuleName = y ++ "." ++ moduleNameString n
         r = [Replace R.ModuleName (toSS' x) [] newModuleName] in
-    [suggest' "Use hierarchical imports"
+    [suggest "Use hierarchical imports"
      x (noLoc (desugarQual i){ideclName=noLoc (mkModuleName newModuleName)} :: LImportDecl GhcPs) r]
   where
     -- Substitute a new module name.

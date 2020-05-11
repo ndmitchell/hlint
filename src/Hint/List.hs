@@ -44,7 +44,7 @@ import Data.List.Extra
 import Data.Maybe
 import Prelude
 
-import Hint.Type(DeclHint',Idea,suggest',toRefactSrcSpan',toSS')
+import Hint.Type(DeclHint',Idea,suggest,toRefactSrcSpan',toSS')
 
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
@@ -98,9 +98,9 @@ listCompCheckGuards o ctx stmts =
   list_comp_aux e xs
   where
     list_comp_aux e xs
-      | "False" `elem` cons =  [suggest' "Short-circuited list comprehension" o o' (suggestExpr o o')]
-      | "True" `elem` cons = [suggest' "Redundant True guards" o o2 (suggestExpr o o2)]
-      | not (astListEq xs ys) = [suggest' "Move guards forward" o o3 (suggestExpr o o3)]
+      | "False" `elem` cons =  [suggest "Short-circuited list comprehension" o o' (suggestExpr o o')]
+      | "True" `elem` cons = [suggest "Redundant True guards" o o2 (suggestExpr o o2)]
+      | not (astListEq xs ys) = [suggest "Move guards forward" o o3 (suggestExpr o o3)]
       | otherwise = []
       where
         ys = moveGuardsForward xs
@@ -115,7 +115,7 @@ listCompCheckGuards o ctx stmts =
 listCompCheckMap ::
   LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs -> HsStmtContext Name -> [ExprLStmt GhcPs] -> [Idea]
 listCompCheckMap o mp f ctx stmts  | varToStr mp == "map" =
-    [suggest' "Move map inside list comprehension" o o2 (suggestExpr o o2)]
+    [suggest "Move map inside list comprehension" o o2 (suggestExpr o o2)]
     where
       revs = reverse stmts
       L _ (LastStmt _ body b s) = head revs -- In a ListComp, this is always last.
@@ -153,14 +153,14 @@ listExp :: Bool -> LHsExpr GhcPs -> [Idea]
 listExp b (fromParen' -> x) =
   if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
   where
-    res = [suggest' name x x2 [r]
+    res = [suggest name x x2 [r]
           | (name, f) <- checks
           , Just (x2, subts, temp) <- [f b x]
           , let r = Replace Expr (toSS' x) subts temp ]
 
 listPat :: LPat GhcPs -> [Idea]
 listPat x = if null res then concatMap listPat $ children x else [head res]
-    where res = [suggest' name x x2 [r]
+    where res = [suggest name x x2 [r]
                   | (name, f) <- pchecks
                   , Just (x2, subts, temp) <- [f x]
                   , let r = Replace Pattern (toSS' x) subts temp ]
@@ -269,7 +269,7 @@ stringType (L _ x) = case x of
     f x = concatMap g $ childrenBi x
 
     g :: LHsType GhcPs -> [Idea]
-    g e@(fromTyParen -> x) = [suggest' "Use String" x (transform f x)
+    g e@(fromTyParen -> x) = [suggest "Use String" x (transform f x)
                               rs | not . null $ rs]
       where f x = if astEq x typeListChar then typeString else x
             rs = [Replace Type (toSS' t) [] (unsafePrettyPrint typeString) | t <- universe x, astEq t typeListChar]

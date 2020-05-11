@@ -60,7 +60,7 @@ issue978 = do \
 
 module Hint.Monad(monadHint) where
 
-import Hint.Type(DeclHint',Idea(..),ideaNote,warn',warnRemove,toSS',suggest',Note(Note))
+import Hint.Type(DeclHint',Idea(..),ideaNote,warn,warnRemove,toSS',suggest,Note(Note))
 
 import GHC.Hs
 import SrcLoc
@@ -118,13 +118,13 @@ monadExp decl parentDo parentExpr x =
           ]
     (L loc (HsDo _ DoExpr (L _ xs))) ->
       monadSteps (cL loc . HsDo noExtField DoExpr . noLoc) xs ++
-      [suggest' "Use let" from to [r] | (from, to, r) <- monadLet xs] ++
+      [suggest "Use let" from to [r] | (from, to, r) <- monadLet xs] ++
       concat [f x | (L _ (BodyStmt _ x _ _)) <- init xs] ++
       concat [f x | (L _ (BindStmt _ (LL _ WildPat{}) x _ _)) <- init xs]
     _ -> []
   where
     f = monadNoResult (fromMaybe "" decl) id
-    seenVoid wrap x = monadNoResult (fromMaybe "" decl) wrap x ++ [warn' "Redundant void" (wrap x) x [] | returnsUnit x]
+    seenVoid wrap x = monadNoResult (fromMaybe "" decl) wrap x ++ [warn "Redundant void" (wrap x) x [] | returnsUnit x]
     doSpan doOrMDo = \case
       UnhelpfulSpan s -> UnhelpfulSpan s
       RealSrcSpan s ->
@@ -169,7 +169,7 @@ monadNoResult inside wrap (L l (OpApp _ x tag@(L _ (HsVar _ (L _ op))) y))
 monadNoResult inside wrap x
     | x2 : _ <- filter (`isTag` x) badFuncs
     , let x3 = x2 ++ "_"
-    = [warn' ("Use " ++ x3) (wrap x) (wrap $ strToVar x3) [Replace Expr (toSS' x) [] x3] | inside /= x3]
+    = [warn ("Use " ++ x3) (wrap x) (wrap $ strToVar x3) [Replace Expr (toSS' x) [] x3] | inside /= x3]
 monadNoResult inside wrap (replaceBranches' -> (bs, rewrap)) =
     map (\x -> x{ideaNote=nubOrd $ Note "May require adding void to other branches" : ideaNote x}) $ concat
         [monadNoResult inside id b | b <- bs]
@@ -179,13 +179,13 @@ monadStep :: ([ExprLStmt GhcPs] -> LHsExpr GhcPs)
 
 -- Rewrite 'do return x; $2' as 'do $2'.
 monadStep wrap os@(o@(L _ (BodyStmt _ (fromRet -> Just (ret, _)) _ _ )) : xs@(_:_))
-  = [warn' ("Redundant " ++ ret) (wrap os) (wrap xs) [Delete Stmt (toSS' o)]]
+  = [warn ("Redundant " ++ ret) (wrap os) (wrap xs) [Delete Stmt (toSS' o)]]
 
 -- Rewrite 'do a <- $1; return a' as 'do $1'.
 monadStep wrap o@[ g@(L _ (BindStmt _ (LL _ (VarPat _ (L _ p))) x _ _ ))
                   , q@(L _ (BodyStmt _ (fromRet -> Just (ret, L _ (HsVar _ (L _ v)))) _ _))]
   | occNameString (rdrNameOcc p) == occNameString (rdrNameOcc v)
-  = [warn' ("Redundant " ++ ret) (wrap o) (wrap [noLoc $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr])
+  = [warn ("Redundant " ++ ret) (wrap o) (wrap [noLoc $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr])
       [Replace Stmt (toSS' g) [("x", toSS' x)] "x", Delete Stmt (toSS' q)]]
 
 -- Suggest to use join. Rewrite 'do x <- $1; x; $2' as 'do join $1; $2'.
@@ -194,7 +194,7 @@ monadStep wrap o@(g@(L _ (BindStmt _ (view' -> PVar_' p) x _ _)):q@(L _ (BodyStm
   = let app = noLoc $ HsApp noExtField (strToVar "join") x
         body = noLoc $ BodyStmt noExtField (rebracket1' app) noSyntaxExpr noSyntaxExpr
         stmts = body : xs
-    in [warn' "Use join" (wrap o) (wrap stmts) r]
+    in [warn "Use join" (wrap o) (wrap stmts) r]
   where r = [Replace Stmt (toSS' g) [("x", toSS' x)] "join x", Delete Stmt (toSS' q)]
 
 -- Redundant variable capture. Rewrite 'do _ <- <return ()>; $1' as
@@ -202,14 +202,14 @@ monadStep wrap o@(g@(L _ (BindStmt _ (view' -> PVar_' p) x _ _)):q@(L _ (BodyStm
 monadStep wrap (o@(L loc (BindStmt _ p x _ _)) : rest)
     | isPWildcard p, returnsUnit x
     = let body = cL loc $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr :: ExprLStmt GhcPs
-      in [warn' "Redundant variable capture" o body []]
+      in [warn "Redundant variable capture" o body []]
 
 -- Redundant unit return : 'do <return ()>; return ()'.
 monadStep
   wrap o@[ L _ (BodyStmt _ x _ _)
          , L _ (BodyStmt _ (fromRet -> Just (ret, L _ (HsVar _ (L _ unit)))) _ _)]
      | returnsUnit x, occNameString (rdrNameOcc unit) == "()"
-  = [warn' ("Redundant " ++ ret) (wrap o) (wrap $ take 1 o) []]
+  = [warn ("Redundant " ++ ret) (wrap o) (wrap $ take 1 o) []]
 
 -- Rewrite 'do x <- $1; return $ f $ g x' as 'f . g <$> x'
 monadStep wrap
@@ -217,7 +217,7 @@ monadStep wrap
     , q@(L _ (BodyStmt _ (fromApplies -> (ret:f:fs, view' -> Var_' v)) _ _))]
   | isReturn ret, notDol x, u == v, length fs < 3, all isSimple (f : fs), v `notElem` vars' (f : fs)
   =
-      [warn' "Use <$>" (wrap o) (wrap [noLoc $ BodyStmt noExtField (noLoc $ OpApp noExtField (foldl' (\acc e -> noLoc $ OpApp noExtField acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr])
+      [warn "Use <$>" (wrap o) (wrap [noLoc $ BodyStmt noExtField (noLoc $ OpApp noExtField (foldl' (\acc e -> noLoc $ OpApp noExtField acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr])
       [Replace Stmt (toSS' g) (("x", toSS' x):zip vs (toSS' <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSS' q)]]
   where
     isSimple (fromApps' -> xs) = all isAtom' (x : xs)

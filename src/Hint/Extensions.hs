@@ -206,7 +206,7 @@ foo = \case True -> 3 -- {-# LANGUAGE LambdaCase, NoRebindableSyntax #-}
 
 module Hint.Extensions(extensionsHint) where
 
-import Hint.Type(ModuHint, rawIdea',Severity(Warning),Note(..),toSS',ghcAnnotations,ghcModule)
+import Hint.Type(ModuHint, rawIdea,Severity(Warning),Note(..),toSS',ghcAnnotations,ghcModule)
 import Extension
 
 import Data.Generics.Uniplate.Operations
@@ -239,7 +239,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 extensionsHint :: ModuHint
 extensionsHint _ x =
-    [ rawIdea' Hint.Type.Warning "Unused LANGUAGE pragma"
+    [ rawIdea Hint.Type.Warning "Unused LANGUAGE pragma"
         sl
         (comment (mkLanguagePragmas sl exts))
         (Just newPragma)

@@ -16,7 +16,7 @@ foo = unsafePerformOI
 </TEST>
 -}
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn',rawIdea')
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea)
 import Config.Type
 
 import Data.Generics.Uniplate.Operations
@@ -98,7 +98,7 @@ checkPragmas modu flags exts mps =
   f RestrictFlag "flags" flags ++ f RestrictExtension "extensions" exts
   where
    f tag name xs =
-     [(if null good then ideaNoTo else id) $ notes $ rawIdea' Hint.Type.Warning ("Avoid restricted " ++ name) l c Nothing [] []
+     [(if null good then ideaNoTo else id) $ notes $ rawIdea Hint.Type.Warning ("Avoid restricted " ++ name) l c Nothing [] []
      | Just (def, mp) <- [Map.lookup tag mps]
      , (L l (AnnBlockComment c), les) <- xs
      , let (good, bad) = partition (isGood def mp) les
@@ -110,9 +110,9 @@ checkPragmas modu flags exts mps =
 checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkImports modu imp (def, mp) =
     [ ideaMessage riMessage
-      $ if | not allowImport -> ideaNoTo $ warn' "Avoid restricted module" i i []
-           | not allowIdent  -> ideaNoTo $ warn' "Avoid restricted identifiers" i i []
-           | not allowQual   -> warn' "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
+      $ if | not allowImport -> ideaNoTo $ warn "Avoid restricted module" i i []
+           | not allowIdent  -> ideaNoTo $ warn "Avoid restricted identifiers" i i []
+           | not allowQual   -> warn "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
            | otherwise       -> error "checkImports: unexpected case"
     | i@(L _ ImportDecl {..}) <- imp
     , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] [] Nothing) (moduleNameString (unLoc ideclName)) mp
@@ -147,7 +147,7 @@ importListToIdents =
 
 checkFunctions :: String -> [LHsDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkFunctions modu decls (def, mp) =
-    [ (ideaMessage riMessage $ ideaNoTo $ warn' "Avoid restricted function" x x []){ideaDecl = [dname]}
+    [ (ideaMessage riMessage $ ideaNoTo $ warn "Avoid restricted function" x x []){ideaDecl = [dname]}
     | d <- decls
     , let dname = fromMaybe "" (declName d)
     , x <- universeBi d :: [Located RdrName]
