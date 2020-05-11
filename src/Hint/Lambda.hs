@@ -105,7 +105,7 @@ import Refact.Types hiding (RType(Match))
 import Data.Generics.Uniplate.Operations (universe, universeBi, transformBi)
 
 import BasicTypes
-import GHC.Util.Brackets (isAtom')
+import GHC.Util.Brackets (isAtom)
 import GHC.Util.FreeVars (free', allVars', freeVars', pvars', vars', varss')
 import GHC.Util.HsExpr (allowLeftSection, allowRightSection, niceLambdaR', lambda)
 import GHC.Util.RdrName (rdrNameStr')
@@ -171,7 +171,7 @@ etaReduce ps x = (ps, x)
 lambdaExp :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
 lambdaExp _ o@(L _ (HsPar _ (L _ (HsApp _ oper@(L _ (HsVar _ (L _ (rdrNameOcc -> f)))) y))))
     | isSymOcc f -- is this an operator?
-    , isAtom' y
+    , isAtom y
     , allowLeftSection $ occNameString f
     , not $ isTypeApp y =
       [suggestN "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField y oper]

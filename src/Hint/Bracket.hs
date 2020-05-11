@@ -148,10 +148,10 @@ findType = tyConToRtype . dataTypeName . dataTypeOf
 
 -- 'Just _' if at least one set of parens were removed. 'Nothing' if
 -- zero parens were removed.
-remParens' :: Brackets' a => a -> Maybe a
-remParens' = fmap go . remParen'
+remParens' :: Brackets a => a -> Maybe a
+remParens' = fmap go . remParen
   where
-    go e = maybe e go (remParen' e)
+    go e = maybe e go (remParen e)
 
 isPartialAtom :: LHsExpr GhcPs -> Bool
 -- Might be '$x', which was really '$ x', but TH enabled misparsed it.
@@ -159,30 +159,30 @@ isPartialAtom (L _ (HsSpliceE _ (HsTypedSplice _ HasDollar _ _) )) = True
 isPartialAtom (L _ (HsSpliceE _ (HsUntypedSplice _ HasDollar _ _) )) = True
 isPartialAtom x = isRecConstr x || isRecUpdate x
 
-bracket :: forall a . (Data a, Data (SrcSpanLess a), HasSrcSpan a, Outputable a, Brackets' a) => (a -> String) -> (a -> Bool) -> Bool -> a -> [Idea]
+bracket :: forall a . (Data a, Data (SrcSpanLess a), HasSrcSpan a, Outputable a, Brackets a) => (a -> String) -> (a -> Bool) -> Bool -> a -> [Idea]
 bracket pretty isPartialAtom root = f Nothing
   where
     msg = "Redundant bracket"
-    -- 'f' is a (generic) function over types in 'Brackets'
+    -- 'f' is a (generic) function over types in 'Brackets
     -- (expressions, patterns and types). Arguments are, 'f (Maybe
     -- (index, parent, gen)) child'.
-    f :: (HasSrcSpan a, Data a, Outputable a, Brackets' a) => Maybe (Int, a , a -> a) -> a -> [Idea]
+    f :: (HasSrcSpan a, Data a, Outputable a, Brackets a) => Maybe (Int, a , a -> a) -> a -> [Idea]
     -- No context. Removing parentheses from 'x' succeeds?
     f Nothing o@(remParens' -> Just x)
       -- If at the root, or 'x' is an atom, 'x' parens are redundant.
-      | root || isAtom' x
+      | root || isAtom x
       , not $ isPartialAtom x =
-          (if isAtom' x then bracketError else bracketWarning) msg o x : g x
+          (if isAtom x then bracketError else bracketWarning) msg o x : g x
     -- In some context, removing parentheses from 'x' succeeds and 'x'
     -- is atomic?
     f Just{} o@(remParens' -> Just x)
-      | isAtom' x
+      | isAtom x
       , not $ isPartialAtom x =
           bracketError msg o x : g x
     -- In some context, removing parentheses from 'x' succeeds. Does
     -- 'x' actually need bracketing in this context?
     f (Just (i, o, gen)) v@(remParens' -> Just x)
-      | not $ needBracket' i o x, not $ isPartialAtom x =
+      | not $ needBracket i o x, not $ isPartialAtom x =
           rawIdea Suggestion msg (getLoc o) (pretty o) (Just (pretty (gen x))) [] [r] : g x
       where
         typ = findType (unLoc v)
@@ -191,7 +191,7 @@ bracket pretty isPartialAtom root = f Nothing
     -- from 'x'.
     f _ x = g x
 
-    g :: (HasSrcSpan a, Data a, Outputable a, Brackets' a) => a -> [Idea]
+    g :: (HasSrcSpan a, Data a, Outputable a, Brackets a) => a -> [Idea]
     -- Enumerate over all the immediate children of 'o' looking for
     -- redundant parentheses in each.
     g o = concat [f (Just (i, o, gen)) x | (i, (x, gen)) <- zipFrom 0 $ holes o]
@@ -232,15 +232,15 @@ dollar = concatMap f . universe
   where
     f x = [ suggestRemove "Redundant $" (getLoc d) "$" [r]| (L _ (OpApp _ a d b)) <- [x], isDol d
             , let y = noLoc (HsApp noExtField a b) :: LHsExpr GhcPs
-            , not $ needBracket' 0 y a
-            , not $ needBracket' 1 y b
+            , not $ needBracket 0 y a
+            , not $ needBracket 1 y b
             , not $ isPartialAtom b
             , let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"]
           ++
           [ suggest "Move brackets to avoid $" x (t y) [r]
             |(t, e@(L _ (HsPar _ (L _ (OpApp _ a1 op1 a2))))) <- splitInfix x
             , isDol op1
-            , isVar a1 || isApp a1 || isPar a1, not $ isAtom' a2
+            , isVar a1 || isApp a1 || isPar a1, not $ isAtom a2
             , varToStr a1 /= "select" -- special case for esqueleto, see #224
             , let y = noLoc $ HsApp noExtField a1 (noLoc (HsPar noExtField a2))
             , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]

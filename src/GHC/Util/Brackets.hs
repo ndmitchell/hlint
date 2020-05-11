@@ -1,37 +1,37 @@
 {-# LANGUAGE MultiParamTypeClasses , FlexibleInstances, FlexibleContexts #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
 
-module GHC.Util.Brackets (Brackets'(..), isApp,isOpApp,isAnyApp) where
+module GHC.Util.Brackets (Brackets(..), isApp,isOpApp,isAnyApp) where
 
 import GHC.Hs
 import SrcLoc
 import BasicTypes
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 
-class Brackets' a where
-  remParen' :: a -> Maybe a -- Remove one paren or nothing if there is no paren.
-  addParen' :: a -> a -- Write out a paren.
+class Brackets a where
+  remParen :: a -> Maybe a -- Remove one paren or nothing if there is no paren.
+  addParen :: a -> a -- Write out a paren.
   -- | Is this item lexically requiring no bracketing ever i.e. is
   -- totally atomic.
-  isAtom' :: a -> Bool
+  isAtom :: a -> Bool
   -- | Is the child safe free from brackets in the parent
   -- position. Err on the side of caution, True = don't know.
-  needBracket' :: Int -> a -> a -> Bool
+  needBracket :: Int -> a -> a -> Bool
 
-instance Brackets' (LHsExpr GhcPs) where
+instance Brackets (LHsExpr GhcPs) where
   -- When GHC parses a section in concrete syntax, it will produce an
   -- 'HsPar (Section[L|R])'. There is no concrete syntax that will
   -- result in a "naked" section. Consequently, given an expression,
-  -- when stripping brackets (c.f. 'Hint.Brackets'), don't remove the
+  -- when stripping brackets (c.f. 'Hint.Brackets), don't remove the
   -- paren's surrounding a section - they are required.
-  remParen' (L _ (HsPar _ (L _ SectionL{}))) = Nothing
-  remParen' (L _ (HsPar _ (L _ SectionR{}))) = Nothing
-  remParen' (L _ (HsPar _ x)) = Just x
-  remParen' _ = Nothing
+  remParen (L _ (HsPar _ (L _ SectionL{}))) = Nothing
+  remParen (L _ (HsPar _ (L _ SectionR{}))) = Nothing
+  remParen (L _ (HsPar _ x)) = Just x
+  remParen _ = Nothing
 
-  addParen' e = noLoc $ HsPar noExtField e
+  addParen e = noLoc $ HsPar noExtField e
 
-  isAtom' (L _ x) = case x of
+  isAtom (L _ x) = case x of
       HsVar{} -> True
       HsUnboundVar{} -> True
       HsRecFld{} -> True
@@ -62,10 +62,10 @@ instance Brackets' (LHsExpr GhcPs) where
         isNegativeOverLit OverLit {ol_val=HsIntegral i} = il_neg i
         isNegativeOverLit OverLit {ol_val=HsFractional f} = fl_neg f
         isNegativeOverLit _ = False
-  isAtom' _ = False -- '{-# COMPLETE L #-}'
+  isAtom _ = False -- '{-# COMPLETE L #-}'
 
-  needBracket' i parent child -- Note: i is the index in children, not in the AST.
-     | isAtom' child = False
+  needBracket i parent child -- Note: i is the index in children, not in the AST.
+     | isAtom child = False
      | isSection parent, L _ HsApp{} <- child = False
      | L _ OpApp{} <- parent, L _ HsApp{} <- child, i /= 0 || isAtomOrApp child = False
      | L _ ExplicitList{} <- parent = False
@@ -92,16 +92,16 @@ instance Brackets' (LHsExpr GhcPs) where
 --   (f \x -> x) *> ...
 --   (f do x) *> ...
 isAtomOrApp :: LHsExpr GhcPs -> Bool
-isAtomOrApp x | isAtom' x = True
+isAtomOrApp x | isAtom x = True
 isAtomOrApp (L _ (HsApp _ _ x)) = isAtomOrApp x
 isAtomOrApp _ = False
 
-instance Brackets' (Located (Pat GhcPs)) where
-  remParen' (L _ (ParPat _ x)) = Just x
-  remParen' _ = Nothing
-  addParen' e = noLoc $ ParPat noExtField e
+instance Brackets (Located (Pat GhcPs)) where
+  remParen (L _ (ParPat _ x)) = Just x
+  remParen _ = Nothing
+  addParen e = noLoc $ ParPat noExtField e
 
-  isAtom' (L _ x) = case x of
+  isAtom (L _ x) = case x of
     ParPat{} -> True
     TuplePat{} -> True
     ListPat{} -> True
@@ -123,20 +123,20 @@ instance Brackets' (Located (Pat GhcPs)) where
       isSignedLit HsFloatPrim{} = True
       isSignedLit HsDoublePrim{} = True
       isSignedLit _ = False
-  isAtom' _ = False -- '{-# COMPLETE L #-}'
+  isAtom _ = False -- '{-# COMPLETE L #-}'
 
-  needBracket' _ parent child
-    | isAtom' child = False
+  needBracket _ parent child
+    | isAtom child = False
     | L _ TuplePat{} <- parent = False
     | L _ ListPat{} <- parent = False
     | otherwise = True
 
-instance Brackets' (LHsType GhcPs) where
-  remParen' (L _ (HsParTy _ x)) = Just x
-  remParen' _ = Nothing
-  addParen' e = noLoc $ HsParTy noExtField e
+instance Brackets (LHsType GhcPs) where
+  remParen (L _ (HsParTy _ x)) = Just x
+  remParen _ = Nothing
+  addParen e = noLoc $ HsParTy noExtField e
 
-  isAtom' (L _ x) = case x of
+  isAtom (L _ x) = case x of
       HsParTy{} -> True
       HsTupleTy{} -> True
       HsListTy{} -> True
@@ -147,10 +147,10 @@ instance Brackets' (LHsType GhcPs) where
       HsSpliceTy{} -> True
       HsWildCardTy{} -> True
       _ -> False
-  isAtom' _ = False -- '{-# COMPLETE L #-}'
+  isAtom _ = False -- '{-# COMPLETE L #-}'
 
-  needBracket' _ parent child
-    | isAtom' child = False
+  needBracket _ parent child
+    | isAtom child = False
 -- a -> (b -> c) is not a required bracket, but useful for documentation about arity etc.
 --        | TyFun{} <- parent, i == 1, TyFun{} <- child = False
     | L _ HsFunTy{} <- parent, L _ HsAppTy{} <- child = False
