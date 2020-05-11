@@ -44,7 +44,7 @@ import Data.List.Extra
 import Data.Maybe
 import Prelude
 
-import Hint.Type(DeclHint',Idea,suggest,toRefactSrcSpan',toSS')
+import Hint.Type(DeclHint',Idea,suggest,toRefactSrcSpan,toSS)
 
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
@@ -124,7 +124,7 @@ listCompCheckMap o mp f ctx stmts  | varToStr mp == "map" =
 listCompCheckMap _ _ _ _ _ = []
 
 suggestExpr :: LHsExpr GhcPs -> LHsExpr GhcPs -> [Refactoring R.SrcSpan]
-suggestExpr o o2 = [Replace Expr (toSS' o) [] (unsafePrettyPrint o2)]
+suggestExpr o o2 = [Replace Expr (toSS o) [] (unsafePrettyPrint o2)]
 
 moveGuardsForward :: [ExprLStmt GhcPs] -> [ExprLStmt GhcPs]
 moveGuardsForward = reverse . f [] . reverse
@@ -156,14 +156,14 @@ listExp b (fromParen' -> x) =
     res = [suggest name x x2 [r]
           | (name, f) <- checks
           , Just (x2, subts, temp) <- [f b x]
-          , let r = Replace Expr (toSS' x) subts temp ]
+          , let r = Replace Expr (toSS x) subts temp ]
 
 listPat :: LPat GhcPs -> [Idea]
 listPat x = if null res then concatMap listPat $ children x else [head res]
     where res = [suggest name x x2 [r]
                   | (name, f) <- pchecks
                   , Just (x2, subts, temp) <- [f x]
-                  , let r = Replace Pattern (toSS' x) subts temp ]
+                  , let r = Replace Pattern (toSS x) subts temp ]
 isAppend :: View' a App2' => a -> Bool
 isAppend (view' -> App2' op _ _) = varToStr op == "++"
 isAppend _ = False
@@ -191,7 +191,7 @@ usePList :: LPat GhcPs -> Maybe (LPat GhcPs, [(String, R.SrcSpan)], String)
 usePList =
   fmap  ( (\(e, s) ->
              (noLoc (ListPat noExtField e)
-             , map (fmap toRefactSrcSpan' . fst) s
+             , map (fmap toRefactSrcSpan . fst) s
              , unsafePrettyPrint (noLoc $ ListPat noExtField (map snd s) :: LPat GhcPs))
           )
           . unzip
@@ -215,7 +215,7 @@ useList :: p -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], St
 useList b =
   fmap  ( (\(e, s) ->
              (noLoc (ExplicitList noExtField Nothing e)
-             , map (fmap toSS') s
+             , map (fmap toSS) s
              , unsafePrettyPrint (noLoc $ ExplicitList noExtField Nothing (map snd s) :: LHsExpr GhcPs))
           )
           . unzip
@@ -235,7 +235,7 @@ useCons False (view' -> App2' op x y) | varToStr op == "++"
                                        , Just (x2, build) <- f x
                                        , not $ isAppend y =
     Just (gen (build x2) y
-         , [("x", toSS' x2), ("xs", toSS' y)]
+         , [("x", toSS x2), ("xs", toSS y)]
          , unsafePrettyPrint $ gen (build $ strToVar "x") (strToVar "xs")
          )
   where
@@ -272,4 +272,4 @@ stringType (L _ x) = case x of
     g e@(fromTyParen -> x) = [suggest "Use String" x (transform f x)
                               rs | not . null $ rs]
       where f x = if astEq x typeListChar then typeString else x
-            rs = [Replace Type (toSS' t) [] (unsafePrettyPrint typeString) | t <- universe x, astEq t typeListChar]
+            rs = [Replace Type (toSS t) [] (unsafePrettyPrint typeString) | t <- universe x, astEq t typeListChar]

@@ -1,9 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Refact
-    ( toRefactSrcSpan'
-    , toSS'
-    , toSrcSpan'
+    ( toRefactSrcSpan
+    , toSS
     , checkRefactor, refactorPath, runRefactoring
     ) where
 
@@ -19,8 +18,8 @@ import qualified Refact.Types as R
 
 import qualified SrcLoc as GHC
 
-toRefactSrcSpan' :: GHC.SrcSpan -> R.SrcSpan
-toRefactSrcSpan' = \case
+toRefactSrcSpan :: GHC.SrcSpan -> R.SrcSpan
+toRefactSrcSpan = \case
     GHC.RealSrcSpan span ->
         R.SrcSpan (GHC.srcSpanStartLine span)
                   (GHC.srcSpanStartCol span)
@@ -31,11 +30,8 @@ toRefactSrcSpan' = \case
 
 -- | Don't crash in case ghc gives us a \"fake\" span,
 -- opting instead to show @-1 -1 -1 -1@ coordinates.
-toSrcSpan' :: GHC.HasSrcSpan a => a -> R.SrcSpan
-toSrcSpan' = toRefactSrcSpan' . GHC.getLoc
-
-toSS' :: GHC.HasSrcSpan e => e -> R.SrcSpan
-toSS' = toSrcSpan'
+toSS :: GHC.HasSrcSpan a => a -> R.SrcSpan
+toSS = toRefactSrcSpan . GHC.getLoc
 
 checkRefactor :: Maybe FilePath -> IO FilePath
 checkRefactor = refactorPath >=> either errorIO pure

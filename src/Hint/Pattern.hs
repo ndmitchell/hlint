@@ -57,7 +57,7 @@ foo x@Foo = x
 
 module Hint.Pattern(patternHint) where
 
-import Hint.Type(DeclHint',Idea,ghcAnnotations,ideaTo,toSS',toRefactSrcSpan',suggest,suggestRemove,warn)
+import Hint.Type(DeclHint',Idea,ghcAnnotations,ideaTo,toSS,toRefactSrcSpan,suggest,suggestRemove,warn)
 import Data.Generics.Uniplate.Operations
 import Data.Function
 import Data.List.Extra
@@ -126,7 +126,7 @@ hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
       -- Check if the expression has been injected or is natural.
       zipWith checkLoc ps ['1' .. '9']
       where
-        checkLoc p@(L l _) v = if l == noSrcSpan then Left p else Right (c ++ [v], toSS' p)
+        checkLoc p@(L l _) v = if l == noSrcSpan then Left p else Right (c ++ [v], toSS p)
 
     patSubts =
       case pat of
@@ -146,10 +146,10 @@ hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
 
     f :: [Either a (String, R.SrcSpan)] -> [(String, R.SrcSpan)]
     f = rights
-    refactoring = Replace rtype (toRefactSrcSpan' l) (f patSubts ++ f guardSubts ++ f exprSubts) template
+    refactoring = Replace rtype (toRefactSrcSpan l) (f patSubts ++ f guardSubts ++ f exprSubts) template
 hints gen (Pattern l t pats o@(GRHSs _ [L _ (GRHS _ [test] bod)] bind))
   | unsafePrettyPrint test `elem` ["otherwise", "True"]
-  = [gen "Redundant guard" (Pattern l t pats o{grhssGRHSs=[noLoc (GRHS noExtField [] bod)]}) [Delete Stmt (toSS' test)]]
+  = [gen "Redundant guard" (Pattern l t pats o{grhssGRHSs=[noLoc (GRHS noExtField [] bod)]}) [Delete Stmt (toSS test)]]
 hints _ (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
   = [suggestRemove "Redundant where" whereSpan "where" [ {- TODO refactoring for redundant where -} ]]
   where
@@ -167,7 +167,7 @@ hints gen (Pattern l t pats o@(GRHSs _ (unsnoc -> Just (gs, L _ (GRHS _ [test] b
   | unsafePrettyPrint test == "True"
   = let tag = noLoc (mkRdrUnqual $ mkVarOcc "otherwise")
         otherwise_ = noLoc $ BodyStmt noExtField (noLoc (HsVar noExtField tag)) noSyntaxExpr noSyntaxExpr in
-      [gen "Use otherwise" (Pattern l t pats o{grhssGRHSs = gs ++ [noLoc (GRHS noExtField [otherwise_] bod)]}) [Replace Expr (toSS' test) [] "otherwise"]]
+      [gen "Use otherwise" (Pattern l t pats o{grhssGRHSs = gs ++ [noLoc (GRHS noExtField [otherwise_] bod)]}) [Replace Expr (toSS test) [] "otherwise"]]
 hints _ _ = []
 
 asGuards :: LHsExpr GhcPs -> [(LHsExpr GhcPs, LHsExpr GhcPs)]
@@ -198,7 +198,7 @@ patHint _ _ o@(L _ (ConPatIn name (PrefixCon args)))
   let rec_fields = HsRecFields [] Nothing :: HsRecFields GhcPs (LPat GhcPs)
       new        = noLoc $ ConPatIn name (RecCon rec_fields) :: LPat GhcPs
   in
-  [suggest "Use record patterns" o new [Replace R.Pattern (toSS' o) [] (unsafePrettyPrint new)]]
+  [suggest "Use record patterns" o new [Replace R.Pattern (toSS o) [] (unsafePrettyPrint new)]]
 patHint _ _ o@(L _ (VarPat _ (L _ name)))
   | occNameString (rdrNameOcc name) == "otherwise" =
     [warn "Used otherwise as a pattern" o (noLoc (WildPat noExtField) :: LPat GhcPs) []]
@@ -215,7 +215,7 @@ patHint lang strict o@(L _ (BangPat _ pat@(L _ x)))
     f ListPat {} = True
     f (SigPat _ (L _ p) _) = f p
     f _ = False
-    r = Replace R.Pattern (toSS' o) [("x", toSS' pat)] "x"
+    r = Replace R.Pattern (toSS o) [("x", toSS pat)] "x"
 patHint False _ o@(L _ (LazyPat _ pat@(L _ x)))
   | f x = [warn "Redundant irrefutable pattern" o (noLoc x :: LPat GhcPs) [r]]
   where
@@ -225,7 +225,7 @@ patHint False _ o@(L _ (LazyPat _ pat@(L _ x)))
     f WildPat{} = True
     f VarPat{} = True
     f _ = False
-    r = Replace R.Pattern (toSS' o) [("x", toSS' pat)] "x"
+    r = Replace R.Pattern (toSS o) [("x", toSS pat)] "x"
 patHint _ _ o@(L _ (AsPat _ v (L _ (WildPat _)))) =
   [warn "Redundant as-pattern" o v []]
 patHint _ _ _ = []
@@ -235,10 +235,10 @@ expHint :: LHsExpr GhcPs -> [Idea]
 expHint o@(L _ (HsCase _ _ (MG _ (L _ [L _ (Match _ CaseAlt [L _ (WildPat _)] (GRHSs _ [L _ (GRHS _ [] e)] (L  _ (EmptyLocalBinds _)))) ]) FromSource ))) =
   [suggest "Redundant case" o e [r]]
   where
-    r = Replace Expr (toSS' o) [("x", toSS' e)] "x"
+    r = Replace Expr (toSS o) [("x", toSS e)] "x"
 expHint o@(L _ (HsCase _ (L _ (HsVar _ (L _ x))) (MG _ (L _ [L _ (Match _ CaseAlt [L _ (VarPat _ (L _ y))] (GRHSs _ [L _ (GRHS _ [] e)] (L  _ (EmptyLocalBinds _)))) ]) FromSource )))
   | occNameString (rdrNameOcc x) == occNameString (rdrNameOcc y) =
       [suggest "Redundant case" o e [r]]
   where
-    r = Replace Expr (toSS' o) [("x", toSS' e)] "x"
+    r = Replace Expr (toSS o) [("x", toSS e)] "x"
 expHint _ = []

@@ -31,7 +31,7 @@ fun [] = []; fun (x:xs) = f x xs ++ fun xs
 
 module Hint.ListRec(listRecHint) where
 
-import Hint.Type (DeclHint', Severity(Suggestion, Warning), idea, toSS')
+import Hint.Type (DeclHint', Severity(Suggestion, Warning), idea, toSS)
 
 import Data.Generics.Uniplate.Operations
 import Data.List.Extra
@@ -69,7 +69,7 @@ listRecHint _ _ = concatMap f . universe
             guard $ recursiveStr `notElem` varss' y
             -- Maybe we can do better here maintaining source
             -- formatting?
-            pure $ idea severity ("Use " ++ use) o y [Replace Decl (toSS' o) [] (unsafePrettyPrint y)]
+            pure $ idea severity ("Use " ++ use) o y [Replace Decl (toSS o) [] (unsafePrettyPrint y)]
 
 recursiveStr :: String
 recursiveStr = "_recursive_"

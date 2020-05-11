@@ -31,7 +31,7 @@
 
 module Hint.Pragma(pragmaHint) where
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),toSS',rawIdea)
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),toSS,rawIdea)
 import Data.List.Extra
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
@@ -72,7 +72,7 @@ optToPragma flags languagePragmas =
                -> Refactoring R.SrcSpan
       mkRefact old (maybe "" comment -> new) ns =
         let ns' = map (\n -> comment (mkLanguagePragmas noSrcSpan [n])) ns
-        in ModifyComment (toSS' (fst old)) (intercalate "\n" (filter (not . null) (new : ns')))
+        in ModifyComment (toSS (fst old)) (intercalate "\n" (filter (not . null) (new : ns')))
 
 data PragmaIdea = SingleComment (Located AnnotationComment) (Located AnnotationComment)
                  | MultiComment (Located AnnotationComment) (Located AnnotationComment) (Located AnnotationComment)
@@ -83,12 +83,12 @@ pragmaIdea pidea =
   case pidea of
     SingleComment old new ->
       mkFewer (getLoc old) (comment old) (Just $ comment new) []
-      [ModifyComment (toSS' old) (comment new)]
+      [ModifyComment (toSS old) (comment new)]
     MultiComment repl delete new ->
       mkFewer (getLoc repl)
         (f [repl, delete]) (Just $ comment new) []
-        [ ModifyComment (toSS' repl) (comment new)
-        , ModifyComment (toSS' delete) ""]
+        [ ModifyComment (toSS repl) (comment new)
+        , ModifyComment (toSS delete) ""]
     OptionsToComment old new r ->
       mkLanguage (getLoc . NE.head $ old)
         (f $ NE.toList old) (Just $ f new) []

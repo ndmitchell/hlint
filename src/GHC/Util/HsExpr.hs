@@ -33,7 +33,7 @@ import Data.Generics.Uniplate.Data
 import Data.List.Extra
 import Data.Tuple.Extra
 
-import Refact (toSS')
+import Refact (toSS)
 import Refact.Types hiding (SrcSpan, Match)
 import qualified Refact.Types as R (SrcSpan)
 
@@ -212,7 +212,7 @@ niceLambdaR' [x] y
     factor _ = Nothing
     mkRefact :: [LHsExpr GhcPs] -> R.SrcSpan -> Refactoring R.SrcSpan
     mkRefact subts s =
-      let tempSubts = zipWith (\a b -> ([a], toSS' b)) ['a' .. 'z'] subts
+      let tempSubts = zipWith (\a b -> ([a], toSS b)) ['a' .. 'z'] subts
           template = dotApps' (map (strToVar . fst) tempSubts)
       in Replace Expr s tempSubts (unsafePrettyPrint template)
 -- Rewrite @\x y -> x + y@ as @(+)@.
@@ -222,7 +222,7 @@ niceLambdaR' [x,y] (L _ (OpApp _ (view' -> Var_' x1) op@(L _ HsVar {}) (view' ->
 niceLambdaR' [x, y] (view' -> App2' op (view' -> Var_' y1) (view' -> Var_' x1))
   | x == x1, y == y1, vars' op `disjoint` [x, y] =
       ( gen op
-      , \s -> [Replace Expr s [("x", toSS' op)] (unsafePrettyPrint $ gen (strToVar "x"))]
+      , \s -> [Replace Expr s [("x", toSS op)] (unsafePrettyPrint $ gen (strToVar "x"))]
       )
   where
     gen = noLoc . HsApp noExtField (strToVar "flip")

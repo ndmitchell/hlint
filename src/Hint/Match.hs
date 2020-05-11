@@ -39,7 +39,7 @@ not . not . x ==> x
 
 module Hint.Match(readMatch') where
 
-import Hint.Type (ModuleEx,Idea,idea,ideaNote,toSS')
+import Hint.Type (ModuleEx,Idea,idea,ideaNote,toSS)
 import Util
 import Timing
 import qualified Data.Set as Set
@@ -112,7 +112,7 @@ findIdeas' matches s _ decl = timed "Hint" "Match apply" $ forceList
     | (name, expr) <- findDecls' decl
     , (parent,x) <- universeParentExp' expr
     , m <- matches, Just (y, tpl, notes, subst) <- [matchIdea s name m parent x]
-    , let r = R.Replace R.Expr (toSS' x) subst (unsafePrettyPrint tpl)
+    , let r = R.Replace R.Expr (toSS x) subst (unsafePrettyPrint tpl)
     ]
 
 -- | A list of root expressions, with their associated names
@@ -161,7 +161,7 @@ matchIdea sb declName HintRule{..} parent x = do
   (u, tpl) <- pure $ if any ((== noSrcSpan) . getLoc . snd) (fromSubst' u) then (mempty, res) else (u, tpl)
   tpl <- pure $ unqualify' sa sb (performSpecial' tpl)
 
-  pure (res, tpl, hintRuleNotes, [(s, toSS' pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
+  pure (res, tpl, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
 
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS

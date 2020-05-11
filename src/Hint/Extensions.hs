@@ -206,7 +206,7 @@ foo = \case True -> 3 -- {-# LANGUAGE LambdaCase, NoRebindableSyntax #-}
 
 module Hint.Extensions(extensionsHint) where
 
-import Hint.Type(ModuHint, rawIdea,Severity(Warning),Note(..),toSS',ghcAnnotations,ghcModule)
+import Hint.Type(ModuHint, rawIdea,Severity(Warning),Note(..),toSS,ghcAnnotations,ghcModule)
 import Extension
 
 import Data.Generics.Uniplate.Operations
@@ -246,7 +246,7 @@ extensionsHint _ x =
         ( [RequiresExtension (show gone) | (_, Just x) <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
             [ Note $ "Extension " ++ show x ++ " is " ++ reason x
             | (_, Just x) <- explainedRemovals])
-        [ModifyComment (toSS' (mkLanguagePragmas sl exts)) newPragma]
+        [ModifyComment (toSS (mkLanguagePragmas sl exts)) newPragma]
     | (L sl _,  exts) <- languagePragmas $ pragmas (ghcAnnotations x)
     , let before = [(x, readExtension x) | x <- exts]
     , let after = filter (maybe True (`Set.member` keep) . snd) before
