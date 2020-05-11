@@ -8,24 +8,24 @@ list bracket.
 
 <TEST>
 -- expression bracket reduction
-yes = (f x) x -- @Suggestion f x x
+yes = (f x) x -- @Suggestion f x
 no = f (x x)
 yes = (foo) -- foo
 yes = (foo bar) -- @Suggestion foo bar
 yes = foo (bar) -- @Warning bar
-yes = foo ((x x)) -- @Suggestion (x x)
-yes = (f x) ||| y -- @Suggestion f x ||| y
-yes = if (f x) then y else z -- @Suggestion if f x then y else z
-yes = if x then (f y) else z -- @Suggestion if x then f y else z
-yes = (a foo) :: Int -- @Suggestion a foo :: Int
-yes = [(foo bar)] -- @Suggestion [foo bar]
-yes = foo ((x y), z) -- @Suggestion (x y, z)
-yes = C { f = (e h) } -- @Suggestion C {f = e h}
-yes = \ x -> (x && x) -- @Suggestion \x -> x && x
+yes = foo ((x x)) -- @Suggestion x x
+yes = (f x) ||| y -- @Suggestion f x
+yes = if (f x) then y else z -- @Suggestion f x
+yes = if x then (f y) else z -- @Suggestion f y
+yes = (a foo) :: Int -- @Suggestion a foo
+yes = [(foo bar)] -- @Suggestion foo bar
+yes = foo ((x y), z) -- @Suggestion x y
+yes = C { f = (e h) } -- @Suggestion e h
+yes = \ x -> (x && x) -- @Suggestion x && x
 no = \(x -> y) -> z
-yes = (`foo` (bar baz)) -- @Suggestion (`foo` bar baz)
+yes = (`foo` (bar baz)) -- @Suggestion bar baz
 yes = f ((x)) -- @Warning x
-main = do f; (print x) -- @Suggestion do f print x
+main = do f; (print x) -- @Suggestion print x
 yes = f (x) y -- @Warning x
 no = f (+x) y
 no = f ($x) y
@@ -37,7 +37,7 @@ no = (+5)
 yes = ((+5)) -- @Warning (+5)
 issue909 = case 0 of { _ | n <- (0 :: Int) -> n }
 issue909 = foo (\((x :: z) -> y) -> 9 + x * 7)
-issue909 = foo (\((x : z) -> y) -> 9 + x * 7) -- \(x : z -> y) -> 9 + x * 7
+issue909 = foo (\((x : z) -> y) -> 9 + x * 7) -- x : z
 issue909 = let ((x:: y) -> z) = q in q
 issue909 = do {((x :: y) -> z) <- e; return 1}
 issue970 = (f x +) (g x) -- f x + (g x) @NoRefactor
@@ -45,7 +45,7 @@ issue969 = (Just \x -> x || x) *> Just True @NoRefactor
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
-foo :: (Maybe Int) -> a -- @Suggestion Maybe Int -> a
+foo :: (Maybe Int) -> a -- @Suggestion Maybe Int
 instance Named (DeclHead S)
 data Foo = Foo {foo :: (Maybe Foo)} -- @Suggestion foo :: Maybe Foo
 
@@ -183,7 +183,7 @@ bracket pretty isPartialAtom root = f Nothing
     -- 'x' actually need bracketing in this context?
     f (Just (i, o, gen)) v@(remParens' -> Just x)
       | not $ needBracket' i o x, not $ isPartialAtom x =
-          rawIdea' Suggestion msg (getLoc o) (pretty o) (Just (pretty (gen x))) [] [r] : g x
+          rawIdea' Suggestion msg (getLoc v) (pretty v) (Just (pretty x)) [] [r] : g x
       where
         typ = findType (unLoc v)
         r = Replace typ (toSS' v) [("x", toSS' x)] "x"
