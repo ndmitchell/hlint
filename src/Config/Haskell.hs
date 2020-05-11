@@ -76,13 +76,13 @@ readComment _ = []
 
 errorOn :: Outputable a => Located a -> String -> b
 errorOn (L pos val) msg = exitMessageImpure $
-    showSrcSpan' pos ++
+    showSrcSpan pos ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     unsafePrettyPrint val
 
 errorOnComment :: Located AnnotationComment -> String -> b
 errorOnComment c@(L s _) msg = exitMessageImpure $
     let isMultiline = isCommentMultiline c in
-    showSrcSpan' s ++
+    showSrcSpan s ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     (if isMultiline then "{-" else "--") ++ commentText c ++ (if isMultiline then "-}" else "")
