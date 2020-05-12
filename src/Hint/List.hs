@@ -135,15 +135,13 @@ moveGuardsForward = reverse . f [] . reverse
                        || any isPFieldWildcard (universeBi x)
                       then const False
                       else \x ->
-                       let pvars = pvars' p
-                           vars = varss' x
-                        in
+                       let pvs = pvars p in
                        -- See this code from 'RdrHsSyn.hs' (8.10.1):
                        --   plus_RDR, pun_RDR :: RdrName
                        --   plus_RDR = mkUnqual varName (fsLit "+") -- Hack
                        --   pun_RDR  = mkUnqual varName (fsLit "pun-right-hand-side")
                        -- Todo (SF, 2020-03-28): Try to make this better somehow.
-                       pvars `disjoint` vars && "pun-right-hand-side" `notElem` pvars
+                       pvs `disjoint` varss x && "pun-right-hand-side" `notElem` pvs
                    ) guards
     f guards (x@(L _ BodyStmt{}):xs) = f (x:guards) xs
     f guards (x@(L _ LetStmt{}):xs) = f (x:guards) xs

@@ -77,7 +77,7 @@ readRule' m@HintRule{ hintRuleLHS=(stripLocs' . unextendInstances -> hintRuleLHS
     (l, v1) <- dotVersion' hintRuleLHS
     (r, v2) <- dotVersion' hintRuleRHS
 
-    guard $ v1 == v2 && not (null l) && (length l > 1 || length r > 1) && Set.notMember v1 (Set.map occNameString (freeVars' $ maybeToList hintRuleSide ++ l ++ r))
+    guard $ v1 == v2 && not (null l) && (length l > 1 || length r > 1) && Set.notMember v1 (Set.map occNameString (freeVars $ maybeToList hintRuleSide ++ l ++ r))
     if not (null r) then
       [ m{ hintRuleLHS=extendInstances (dotApps' l), hintRuleRHS=extendInstances (dotApps' r), hintRuleSide=extendInstances <$> hintRuleSide }
       , m{ hintRuleLHS=extendInstances (dotApps' (l ++ [strToVar v1])), hintRuleRHS=extendInstances (dotApps' (r ++ [strToVar v1])), hintRuleSide=extendInstances <$> hintRuleSide } ]
@@ -146,7 +146,7 @@ matchIdea sb declName HintRule{..} parent x = do
   u <- pure (removeParens noParens u)
 
   let res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs')
-  guard $ (freeVars' e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars' rhs')) `Set.isSubsetOf` freeVars' x
+  guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars rhs')) `Set.isSubsetOf` freeVars x
       -- Check no unexpected new free variables.
 
   -- Check it isn't going to get broken by QuasiQuotes as per #483. If
