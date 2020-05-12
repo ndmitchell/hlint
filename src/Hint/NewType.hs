@@ -31,7 +31,7 @@ newtype Foo = Foo Int deriving stock Show
 -}
 module Hint.NewType (newtypeHint) where
 
-import Hint.Type (Idea, DeclHint', Note(DecreasesLaziness), ideaNote, ignoreNoSuggestion, suggestN)
+import Hint.Type (Idea, DeclHint, Note(DecreasesLaziness), ideaNote, ignoreNoSuggestion, suggestN)
 
 import Data.List (isSuffixOf)
 import GHC.Hs.Decls
@@ -39,7 +39,7 @@ import GHC.Hs
 import Outputable
 import SrcLoc
 
-newtypeHint :: DeclHint'
+newtypeHint :: DeclHint
 newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
 
 newtypeHintDecl :: LHsDecl GhcPs -> [Idea]

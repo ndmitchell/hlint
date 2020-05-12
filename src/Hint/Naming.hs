@@ -41,7 +41,7 @@ foreign import ccall hexml_node_child :: IO ()
 
 module Hint.Naming(namingHint) where
 
-import Hint.Type (Idea,DeclHint',suggest,toSS,ghcModule)
+import Hint.Type (Idea,DeclHint,suggest,toSS,ghcModule)
 import Data.Generics.Uniplate.Operations
 import Data.List.Extra (nubOrd, isPrefixOf)
 import Data.Data
@@ -62,7 +62,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import GHC.Util
 
-namingHint :: DeclHint'
+namingHint :: DeclHint
 namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ hsmodDecls $ unLoc (ghcModule modu)
 
 naming :: Set.Set String -> LHsDecl GhcPs -> [Idea]

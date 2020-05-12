@@ -44,7 +44,7 @@ import Data.List.Extra
 import Data.Maybe
 import Prelude
 
-import Hint.Type(DeclHint',Idea,suggest,toRefactSrcSpan,toSS)
+import Hint.Type(DeclHint,Idea,suggest,toRefactSrcSpan,toSS)
 
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
@@ -65,7 +65,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Types
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
-listHint :: DeclHint'
+listHint :: DeclHint
 listHint _ _ = listDecl
 
 listDecl :: LHsDecl GhcPs -> [Idea]

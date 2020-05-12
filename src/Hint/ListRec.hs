@@ -31,7 +31,7 @@ fun [] = []; fun (x:xs) = f x xs ++ fun xs
 
 module Hint.ListRec(listRecHint) where
 
-import Hint.Type (DeclHint', Severity(Suggestion, Warning), idea, toSS)
+import Hint.Type (DeclHint, Severity(Suggestion, Warning), idea, toSS)
 
 import Data.Generics.Uniplate.Operations
 import Data.List.Extra
@@ -58,7 +58,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
-listRecHint :: DeclHint'
+listRecHint :: DeclHint
 listRecHint _ _ = concatMap f . universe
     where
         f o = maybeToList $ do
