@@ -57,7 +57,7 @@ foo x@Foo = x
 
 module Hint.Pattern(patternHint) where
 
-import Hint.Type(DeclHint',Idea,ghcAnnotations,ideaTo,toSS,toRefactSrcSpan,suggest,suggestRemove,warn)
+import Hint.Type(DeclHint,Idea,ghcAnnotations,ideaTo,toSS,toRefactSrcSpan,suggest,suggestRemove,warn)
 import Data.Generics.Uniplate.Operations
 import Data.Function
 import Data.List.Extra
@@ -79,7 +79,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
-patternHint :: DeclHint'
+patternHint :: DeclHint
 patternHint _scope modu x =
     concatMap (uncurry hints . swap) (asPattern x) ++
     -- PatBind (used in 'let' and 'where') contains lazy-by-default

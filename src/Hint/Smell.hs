@@ -78,7 +78,7 @@ import A
 </TEST>
 -}
 
-import Hint.Type(ModuHint,ModuleEx(..),DeclHint',Idea(..),rawIdea,warn)
+import Hint.Type(ModuHint,ModuleEx(..),DeclHint,Idea(..),rawIdea,warn)
 import Config.Type
 
 import Data.Generics.Uniplate.Operations
@@ -107,7 +107,7 @@ smellModuleHint settings scope m =
         f = trimStart . unsafePrettyPrint
     _ -> []
 
-smellHint :: [Setting] -> DeclHint'
+smellHint :: [Setting] -> DeclHint
 smellHint settings scope m d =
   sniff smellLongFunctions SmellLongFunctions ++
   sniff smellLongTypeLists SmellLongTypeLists ++

@@ -60,7 +60,7 @@ issue978 = do \
 
 module Hint.Monad(monadHint) where
 
-import Hint.Type(DeclHint',Idea(..),ideaNote,warn,warnRemove,toSS,suggest,Note(Note))
+import Hint.Type(DeclHint,Idea(..),ideaNote,warn,warnRemove,toSS,suggest,Note(Note))
 
 import GHC.Hs
 import SrcLoc
@@ -87,7 +87,7 @@ badFuncs = ["mapM","foldM","forM","replicateM","sequence","zipWithM","traverse",
 unitFuncs :: [String]
 unitFuncs = ["when","unless","void"]
 
-monadHint :: DeclHint'
+monadHint :: DeclHint
 monadHint _ _ d = concatMap (f Nothing Nothing) $ childrenBi d
     where
         decl = declName d

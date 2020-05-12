@@ -98,7 +98,7 @@ loadCradleOnlyonce = skipManyTill anyMessage (message @PublishDiagnosticsNotific
 
 module Hint.Bracket(bracketHint) where
 
-import Hint.Type(DeclHint',Idea(..),rawIdea,warn,suggest,suggestRemove,Severity(..),toSS)
+import Hint.Type(DeclHint,Idea(..),rawIdea,warn,suggest,suggestRemove,Severity(..),toSS)
 import Data.Data
 import Data.List.Extra
 import Data.Generics.Uniplate.Operations
@@ -111,7 +111,7 @@ import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
-bracketHint :: DeclHint'
+bracketHint :: DeclHint
 bracketHint _ _ x =
   concatMap (\x -> bracket prettyExpr isPartialAtom True x ++ dollar x) (childrenBi (descendBi annotations x) :: [LHsExpr GhcPs]) ++
   concatMap (bracket unsafePrettyPrint (const False) False) (childrenBi x :: [LHsType GhcPs]) ++

@@ -18,7 +18,7 @@ slaves = unsafePerformIO . baz $ x -- {-# NOINLINE slaves #-} ; slaves = unsafeP
 
 module Hint.Unsafe(unsafeHint) where
 
-import Hint.Type(DeclHint',ModuleEx(..),Severity(..),rawIdea,toSS)
+import Hint.Type(DeclHint,ModuleEx(..),Severity(..),rawIdea,toSS)
 import Data.List.Extra
 import Refact.Types hiding(Match)
 import Data.Generics.Uniplate.Operations
@@ -44,7 +44,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 --   f = g where g = unsafePerformIO Multimap.newIO
 -- @
 -- is. We advise that such constants should have a @NOINLINE@ pragma.
-unsafeHint :: DeclHint'
+unsafeHint :: DeclHint
 unsafeHint _ (ModuleEx (L _ m) _) = \(L loc d) ->
   [rawIdea Hint.Type.Warning "Missing NOINLINE pragma" loc
          (unsafePrettyPrint d)

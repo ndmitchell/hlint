@@ -97,7 +97,7 @@ f = map (\s -> MkFoo s 0 s) ["a","b","c"]
 
 module Hint.Lambda(lambdaHint) where
 
-import Hint.Type (DeclHint', Idea, Note(RequiresExtension), suggest, warn, toSS, suggestN, ideaNote)
+import Hint.Type (DeclHint, Idea, Note(RequiresExtension), suggest, warn, toSS, suggestN, ideaNote)
 import Util
 import Data.List.Extra
 import qualified Data.Set as Set
@@ -117,7 +117,7 @@ import OccName
 import RdrName
 import SrcLoc
 
-lambdaHint :: DeclHint'
+lambdaHint :: DeclHint
 lambdaHint _ _ x
     =  concatMap (uncurry lambdaExp) (universeParentBi x)
     ++ concatMap lambdaDecl (universe x)
