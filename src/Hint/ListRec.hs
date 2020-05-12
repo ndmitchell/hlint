@@ -102,24 +102,24 @@ matchListRec :: ListCase -> Maybe (String, Severity, LHsExpr GhcPs)
 matchListRec o@(ListCase vs nil (x, xs, cons))
     -- Suggest 'map'?
     | [] <- vs, varToStr nil == "[]", (L _ (OpApp _ lhs c rhs)) <- cons, varToStr c == ":"
-    , astEq (fromParen' rhs) recursive, xs `notElem` vars' lhs
+    , astEq (fromParen rhs) recursive, xs `notElem` vars' lhs
     = Just $ (,,) "map" Hint.Type.Warning $
       appsBracket' [ strToVar "map", niceLambda' [x] lhs, strToVar xs]
     -- Suggest 'foldr'?
-    | [] <- vs, App2' op lhs rhs <- view' cons
+    | [] <- vs, App2 op lhs rhs <- view cons
     , xs `notElem` (vars' op ++ vars' lhs) -- the meaning of xs changes, see #793
-    , astEq (fromParen' rhs) recursive
+    , astEq (fromParen rhs) recursive
     = Just $ (,,) "foldr" Suggestion $
       appsBracket' [ strToVar "foldr", niceLambda' [x] $ appsBracket' [op,lhs], nil, strToVar xs]
     -- Suggest 'foldl'?
-    | [v] <- vs, view' nil == Var_' v, (L _ (HsApp _ r lhs)) <- cons
-    , astEq (fromParen' r) recursive
+    | [v] <- vs, view nil == Var_ v, (L _ (HsApp _ r lhs)) <- cons
+    , astEq (fromParen r) recursive
     , xs `notElem` vars' lhs
     = Just $ (,,) "foldl" Suggestion $
       appsBracket' [ strToVar "foldl", niceLambda' [v,x] lhs, strToVar v, strToVar xs]
     -- Suggest 'foldM'?
-    | [v] <- vs, (L _ (HsApp _ ret res)) <- nil, isReturn ret, varToStr res == "()" || view' res == Var_' v
-    , [L _ (BindStmt _ (view' -> PVar_' b1) e _ _), L _ (BodyStmt _ (fromParen' -> (L _ (HsApp _ r (view' -> Var_' b2)))) _ _)] <- asDo cons
+    | [v] <- vs, (L _ (HsApp _ ret res)) <- nil, isReturn ret, varToStr res == "()" || view res == Var_ v
+    , [L _ (BindStmt _ (view -> PVar_ b1) e _ _), L _ (BodyStmt _ (fromParen -> (L _ (HsApp _ r (view -> Var_ b2)))) _ _)] <- asDo cons
     , b1 == b2, astEq r recursive, xs `notElem` vars' e
     , name <- "foldM" ++ ['_' | varToStr res == "()"]
     = Just $ (,,) name Suggestion $
@@ -130,8 +130,8 @@ matchListRec o@(ListCase vs nil (x, xs, cons))
 -- Very limited attempt to convert >>= to do, only useful for
 -- 'foldM' / 'foldM_'.
 asDo :: LHsExpr GhcPs -> [LStmt GhcPs (LHsExpr GhcPs)]
-asDo (view' ->
-       App2' bind lhs
+asDo (view ->
+       App2 bind lhs
          (L _ (HsLam _ MG {
               mg_origin=FromSource
             , mg_alts=L _ [
@@ -180,8 +180,8 @@ findCase x = do
   pure (ListCase ps b1 (x, xs, b2), noLoc . ValD noExtField . funBind)
 
 delCons :: String -> Int -> String -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
-delCons func pos var (fromApps' -> (view' -> Var_' x) : xs) | func == x = do
-    (pre, (view' -> Var_' v) : post) <- pure $ splitAt pos xs
+delCons func pos var (fromApps' -> (view -> Var_ x) : xs) | func == x = do
+    (pre, (view -> Var_ v) : post) <- pure $ splitAt pos xs
     guard $ v == var
     pure $ apps' $ recursive : pre ++ post
 delCons _ _ _ x = pure x
@@ -190,7 +190,7 @@ eliminateArgs :: [String] -> LHsExpr GhcPs -> ([String], LHsExpr GhcPs)
 eliminateArgs ps cons = (remove ps, transform f cons)
   where
     args = [zs | z : zs <- map fromApps' $ universeApps' cons, astEq z recursive]
-    elim = [all (\xs -> length xs > i && view' (xs !! i) == Var_' p) args | (i, p) <- zipFrom 0 ps] ++ repeat False
+    elim = [all (\xs -> length xs > i && view (xs !! i) == Var_ p) args | (i, p) <- zipFrom 0 ps] ++ repeat False
     remove = concat . zipWith (\b x -> [x | not b]) elim
 
     f (fromApps' -> x : xs) | astEq x recursive = apps' $ x : remove xs
@@ -222,8 +222,8 @@ findPat ps = do
   pure (left, i, right)
 
 readPat :: LPat GhcPs -> Maybe (Either String BList)
-readPat (view' -> PVar_' x) = Just $ Left x
-readPat (L _ (ParPat _ (L _ (ConPatIn (L _ n) (InfixCon (view' -> PVar_' x) (view' -> PVar_' xs))))))
+readPat (view -> PVar_ x) = Just $ Left x
+readPat (L _ (ParPat _ (L _ (ConPatIn (L _ n) (InfixCon (view -> PVar_ x) (view -> PVar_ xs))))))
  | n == consDataCon_RDR = Just $ Right $ BCons x xs
 readPat (L _ (ConPatIn (L _ n) (PrefixCon [])))
   | n == nameRdrName nilDataConName = Just $ Right BNil

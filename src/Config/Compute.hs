@@ -66,9 +66,9 @@ findExp name vs (OpApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $
 
 findExp name vs bod = [SettingMatchExp $
         HintRule Warning defaultHintName []
-        mempty (extendInstances lhs) (extendInstances $ fromParen' rhs) Nothing]
+        mempty (extendInstances lhs) (extendInstances $ fromParen rhs) Nothing]
     where
-        lhs = fromParen' $ noLoc $ transform f bod
+        lhs = fromParen $ noLoc $ transform f bod
         rhs = apps' $ map noLoc $ HsVar noExtField (noLoc name) : map snd rep
 
         rep = zip vs $ map (mkVar . pure) ['a'..]

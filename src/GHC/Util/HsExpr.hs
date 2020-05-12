@@ -124,7 +124,7 @@ simplifyExp' e@(L _ (HsLet _ (L _ (HsValBinds _ (ValBinds _ binds []))) z)) =
          -- 'z[(y)/x]'.
       | occNameString (rdrNameOcc x) `notElem` vars' y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
           transform f z
-          where f (view' -> Var_' x') | occNameString (rdrNameOcc x) == x' = paren' y
+          where f (view -> Var_ x') | occNameString (rdrNameOcc x) == x' = paren' y
                 f x = x
     _ -> e
 simplifyExp' e = e
@@ -159,7 +159,7 @@ niceLambdaR' xs (L _ (HsPar _ x)) = niceLambdaR' xs x
 
 -- @\vs v -> ($) e v@ ==> @\vs -> e@
 -- @\vs v -> e $ v@ ==> @\vs -> e@
-niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
+niceLambdaR' (unsnoc -> Just (vs, v)) (view -> App2 f e (view -> Var_ v'))
   | isDol f
   , v == v'
   , vars' e `disjoint` [v]
@@ -167,7 +167,7 @@ niceLambdaR' (unsnoc -> Just (vs, v)) (view' -> App2' f e (view' -> Var_' v'))
 
 -- @\v -> thing + v@ ==> @\v -> (thing +)@  (heuristic: @v@ must be a single
 -- lexeme, or it all gets too complex)
-niceLambdaR' [v] (L _ (OpApp _ e f (view' -> Var_' v')))
+niceLambdaR' [v] (L _ (OpApp _ e f (view -> Var_ v')))
   | isLexeme e
   , v == v'
   , vars' e `disjoint` [v]
@@ -176,23 +176,23 @@ niceLambdaR' [v] (L _ (OpApp _ e f (view' -> Var_' v')))
   = (noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField e f, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 
 -- @\vs v -> f x v@ ==> @\vs -> f x@
-niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (HsApp _ f (view' -> Var_' v')))
+niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (HsApp _ f (view -> Var_ v')))
   | v == v'
   , vars' f `disjoint` [v]
   = niceLambdaR' vs f
 
 -- @\vs v -> (v `f`)@ ==> @\vs -> f@
-niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (SectionL _ (view' -> Var_' v') f))
+niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (SectionL _ (view -> Var_ v') f))
   | v == v' = niceLambdaR' vs f
 
 -- Strip one variable pattern from the end of a lambdas match, and place it in our list of factoring variables.
-niceLambdaR' xs (SimpleLambda ((view' -> PVar_' v):vs) x)
+niceLambdaR' xs (SimpleLambda ((view -> PVar_ v):vs) x)
   | v `notElem` xs = niceLambdaR' (xs++[v]) $ lambda vs x
 
 -- Rewrite @\x -> x + a@ as @(+ a)@ (heuristic: @a@ must be a single
 -- lexeme, or it all gets too complex).
-niceLambdaR' [x] (view' -> App2' op@(L _ (HsVar _ (L _ tag))) l r)
-  | isLexeme r, view' l == Var_' x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
+niceLambdaR' [x] (view -> App2 op@(L _ (HsVar _ (L _ tag))) l r)
+  | isLexeme r, view l == Var_ x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
       let e = rebracket1' $ addParen (noLoc $ SectionR noExtField op r)
       in (e, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 -- Rewrite (1) @\x -> f (b x)@ as @f . b@, (2) @\x -> f $ b x@ as @f . b@.
@@ -201,7 +201,7 @@ niceLambdaR' [x] y
   where
     -- Factor the expression with respect to x.
     factor :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [LHsExpr GhcPs])
-    factor y@(L _ (HsApp _ ini lst)) | view' lst == Var_' x = Just (ini, [ini])
+    factor y@(L _ (HsApp _ ini lst)) | view lst == Var_ x = Just (ini, [ini])
     factor y@(L _ (HsApp _ ini lst)) | Just (z, ss) <- factor lst
       = let r = niceDotApp' ini z
         in if astEq r z then Just (r, ss) else Just (r, ini : ss)
@@ -216,10 +216,10 @@ niceLambdaR' [x] y
           template = dotApps' (map (strToVar . fst) tempSubts)
       in Replace Expr s tempSubts (unsafePrettyPrint template)
 -- Rewrite @\x y -> x + y@ as @(+)@.
-niceLambdaR' [x,y] (L _ (OpApp _ (view' -> Var_' x1) op@(L _ HsVar {}) (view' -> Var_' y1)))
+niceLambdaR' [x,y] (L _ (OpApp _ (view -> Var_ x1) op@(L _ HsVar {}) (view -> Var_ y1)))
     | x == x1, y == y1, vars' op `disjoint` [x, y] = (op, \s -> [Replace Expr s [] (unsafePrettyPrint op)])
 -- Rewrite @\x y -> f y x@ as @flip f@.
-niceLambdaR' [x, y] (view' -> App2' op (view' -> Var_' y1) (view' -> Var_' x1))
+niceLambdaR' [x, y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
   | x == x1, y == y1, vars' op `disjoint` [x, y] =
       ( gen op
       , \s -> [Replace Expr s [("x", toSS op)] (unsafePrettyPrint $ gen (strToVar "x"))]

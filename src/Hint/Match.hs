@@ -89,8 +89,8 @@ readRule' m@HintRule{ hintRuleLHS=(stripLocs' . unextendInstances -> hintRuleLHS
 -- Find a dot version of this rule, return the sequence of app
 -- prefixes, and the var.
 dotVersion' :: LHsExpr GhcPs -> [([LHsExpr GhcPs], String)]
-dotVersion' (view' -> Var_' v) | isUnifyVar v = [([], v)]
-dotVersion' (L _ (HsApp _ ls rs)) = first (ls :) <$> dotVersion' (fromParen' rs)
+dotVersion' (view -> Var_ v) | isUnifyVar v = [([], v)]
+dotVersion' (L _ (HsApp _ ls rs)) = first (ls :) <$> dotVersion' (fromParen rs)
 dotVersion' (L l (OpApp _ x op y)) =
   -- In a GHC parse tree, raw sections aren't valid application terms.
   -- To be suitable as application terms, they must be enclosed in
@@ -141,7 +141,7 @@ matchIdea sb declName HintRule{..} parent x = do
   let rhs' | Just fun <- extra = rebracket1' $ noLoc (HsApp noExtField fun rhs)
            | otherwise = rhs
       (e, tpl) = substitute' u rhs'
-      noParens = [varToStr $ fromParen' x | L _ (HsApp _ (varToStr -> "_noParen_") x) <- universe tpl]
+      noParens = [varToStr $ fromParen x | L _ (HsApp _ (varToStr -> "_noParen_") x) <- universe tpl]
 
   u <- pure (removeParens noParens u)
 
@@ -223,7 +223,7 @@ checkSide' x bind = maybe True bool x
 
       sub :: LHsExpr GhcPs -> LHsExpr GhcPs
       sub = transform f
-        where f (view' -> Var_' x) | Just y <- lookup x bind = y
+        where f (view -> Var_ x) | Just y <- lookup x bind = y
               f x = x
 
 -- Does the result look very much like the declaration?
@@ -244,7 +244,7 @@ performSpecial' :: LHsExpr GhcPs -> LHsExpr GhcPs
 performSpecial' = transform fNoParen
   where
     fNoParen :: LHsExpr GhcPs -> LHsExpr GhcPs
-    fNoParen (L _ (HsApp _ e x)) | varToStr e == "_noParen_" = fromParen' x
+    fNoParen (L _ (HsApp _ e x)) | varToStr e == "_noParen_" = fromParen x
     fNoParen x = x
 
 -- Contract : 'Data.List.foo' => 'foo' if 'Data.List' is loaded.

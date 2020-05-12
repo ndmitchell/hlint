@@ -58,7 +58,7 @@ validSubst' eq = fmap Subst' . mapM f . groupSort . fromSubst'
 -- for which brackets should be removed from their substitutions.
 removeParens :: [String] -> Subst' (LHsExpr GhcPs) -> Subst' (LHsExpr GhcPs)
 removeParens noParens (Subst' xs) = Subst' $
-  map (\(x, y) -> if x `elem` noParens then (x, fromParen' y) else (x, y)) xs
+  map (\(x, y) -> if x `elem` noParens then (x, fromParen y) else (x, y)) xs
 
 -- Peform a substition.
 -- Returns (suggested replacement, refactor template), both with brackets added
@@ -149,7 +149,7 @@ unifyExp nm root x@(L _ (HsApp _ x1 x2)) (L _ (HsApp _ y1 y2)) =
   where
     -- Unify a function application where the function is a composition of functions.
     unifyComposed
-      | (L _ (OpApp _ y11 dot y12)) <- fromParen' y1, isDot dot =
+      | (L _ (OpApp _ y11 dot y12)) <- fromParen y1, isDot dot =
           -- Attempt #1: rewrite '(fun1 . fun2) arg' as 'fun1 (fun2 arg)', and unify it with 'x'.
           -- The guard ensures that you don't get duplicate matches because the matching engine
           -- auto-generates hints in dot-form.
@@ -178,7 +178,7 @@ unifyExp nm root x y = (, Nothing) <$> unifyExp' nm root x y
 unifyExp' :: NameMatch' -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst' (LHsExpr GhcPs) )
 -- Brackets are not added when expanding '$' in user code, so tolerate
 -- them in the match even if they aren't in the user code.
-unifyExp' nm root x y | not root, isPar x, not $ isPar y = unifyExp' nm root (fromParen' x) y
+unifyExp' nm root x y | not root, isPar x, not $ isPar y = unifyExp' nm root (fromParen x) y
 -- Don't subsitute for type apps, since no one writes rules imaginging
 -- they exist.
 unifyExp' nm root (L _ (HsVar _ (rdrNameStr' -> v))) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst' [(v, y)]

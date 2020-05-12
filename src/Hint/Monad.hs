@@ -106,8 +106,8 @@ monadHint _ _ d = concatMap (f Nothing Nothing) $ childrenBi d
 monadExp :: Maybe String -> Maybe (LHsExpr GhcPs) -> Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
 monadExp decl parentDo parentExpr x =
   case x of
-    (view' -> App2' op x1 x2) | isTag ">>" op -> f x1
-    (view' -> App2' op x1 (view' -> LamConst1' _)) | isTag ">>=" op -> f x1
+    (view -> App2 op x1 x2) | isTag ">>" op -> f x1
+    (view -> App2 op x1 (view -> LamConst1 _)) | isTag ">>=" op -> f x1
     (L l (HsApp _ op x)) | isTag "void" op -> seenVoid (cL l . HsApp noExtField op) x
     (L l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (cL l . OpApp noExtField op dol) x
     (L loc (HsDo _ ctx (L loc2 [L loc3 (BodyStmt _ y _ _ )]))) ->
@@ -190,7 +190,7 @@ monadStep wrap o@[ g@(L _ (BindStmt _ (LL _ (VarPat _ (L _ p))) x _ _ ))
       [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)]]
 
 -- Suggest to use join. Rewrite 'do x <- $1; x; $2' as 'do join $1; $2'.
-monadStep wrap o@(g@(L _ (BindStmt _ (view' -> PVar_' p) x _ _)):q@(L _ (BodyStmt _ (view' -> Var_' v) _ _)):xs)
+monadStep wrap o@(g@(L _ (BindStmt _ (view -> PVar_ p) x _ _)):q@(L _ (BodyStmt _ (view -> Var_ v) _ _)):xs)
   | p == v && v `notElem` varss' xs
   = let app = noLoc $ HsApp noExtField (strToVar "join") x
         body = noLoc $ BodyStmt noExtField (rebracket1' app) noSyntaxExpr noSyntaxExpr
@@ -214,8 +214,8 @@ monadStep
 
 -- Rewrite 'do x <- $1; return $ f $ g x' as 'f . g <$> x'
 monadStep wrap
-  o@[g@(L _ (BindStmt _ (view' -> PVar_' u) x _ _))
-    , q@(L _ (BodyStmt _ (fromApplies -> (ret:f:fs, view' -> Var_' v)) _ _))]
+  o@[g@(L _ (BindStmt _ (view -> PVar_ u) x _ _))
+    , q@(L _ (BodyStmt _ (fromApplies -> (ret:f:fs, view -> Var_ v)) _ _))]
   | isReturn ret, notDol x, u == v, length fs < 3, all isSimple (f : fs), v `notElem` vars' (f : fs)
   =
       [warn "Use <$>" (wrap o) (wrap [noLoc $ BodyStmt noExtField (noLoc $ OpApp noExtField (foldl' (\acc e -> noLoc $ OpApp noExtField acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr])
@@ -242,7 +242,7 @@ monadLet xs = mapMaybe mkLet xs
     vs = concatMap pvars' [p | (L _ (BindStmt _ p _ _ _)) <- xs]
 
     mkLet :: ExprLStmt GhcPs -> Maybe (ExprLStmt GhcPs, ExprLStmt GhcPs, Refactoring R.SrcSpan)
-    mkLet x@(L _ (BindStmt _ v@(view' -> PVar_' p) (fromRet -> Just (_, y)) _ _ ))
+    mkLet x@(L _ (BindStmt _ v@(view -> PVar_ p) (fromRet -> Just (_, y)) _ _ ))
       | p `notElem` vars' y, p `notElem` delete p vs
       = Just (x, template p y, refact)
       where
@@ -263,7 +263,7 @@ monadLet xs = mapMaybe mkLet xs
          in noLoc $ LetStmt noExtField localBinds
 
 fromApplies :: LHsExpr GhcPs -> ([LHsExpr GhcPs], LHsExpr GhcPs)
-fromApplies (L _ (HsApp _ f x)) = first (f:) $ fromApplies (fromParen' x)
+fromApplies (L _ (HsApp _ f x)) = first (f:) $ fromApplies (fromParen x)
 fromApplies (L _ (OpApp _ f (isDol -> True) x)) = first (f:) $ fromApplies x
 fromApplies x = ([], x)
 
