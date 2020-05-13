@@ -5,7 +5,7 @@ module HSE.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
-    parseModuleEx, ghcComments,
+    parseModuleEx, createModuleEx, ghcComments,
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
     ) where
 
@@ -138,6 +138,14 @@ parseDeclGhcWithMode parseMode s =
   in case parseDeclaration s $ parseModeToFlags parseMode of
     POk pst a -> POk pst $ applyFixities fixities a
     f@PFailed{} -> f
+
+-- | Create a 'ModuleEx' from GHC annotations and module tree. It
+-- is assumed the incoming parse module has not been adjusted to
+-- account for operator fixities.
+createModuleEx :: ApiAnns -> Located (HsModule GhcPs) -> ModuleEx
+createModuleEx anns ast =
+  -- Use builtin fixities.
+  ModuleEx (applyFixities [] ast) anns
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The

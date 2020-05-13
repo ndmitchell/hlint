@@ -41,12 +41,9 @@ import FastString
 import HSE.All
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
-import qualified ApiAnnotation as GHC
-import qualified GHC.Hs as GHC
 import SrcLoc
 import CmdLine
 import Paths_hlint
-import qualified Language.Haskell.GhclibParserEx.Fixity as GhclibParserEx
 
 import Data.List.Extra
 import Data.Maybe
@@ -142,16 +139,6 @@ _docs = do
     (flags, classify, hint) <- autoSettings
     Right m <- parseModuleEx flags "MyFile.hs" Nothing
     print $ applyHints classify hint [m]
-
-
--- | Create a 'ModuleEx' from GHC annotations and module tree. It
--- is assumed the incoming parse module has not been adjusted to
--- account for operator fixities.
-createModuleEx:: GHC.ApiAnns -> Located (GHC.HsModule GHC.GhcPs) -> ModuleEx
-createModuleEx anns ast =
-  -- Use builtin fixities.
-  ModuleEx (GhclibParserEx.applyFixities [] ast) anns
-
 
 -- | Unpack a 'SrcSpan' value. Useful to allow using the 'Idea' information without
 --   adding a dependency on @ghc@ or @ghc-lib-parser@. Unpacking gives:
