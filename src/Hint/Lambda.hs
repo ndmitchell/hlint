@@ -129,7 +129,7 @@ lambdaDecl
             MG {mg_alts =
                 L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _) pats (GRHSs _ [L _ (GRHS _ [] origBody@(L loc2 _))] bind))]}}))
     | L _ (EmptyLocalBinds noExtField) <- bind
-    , isLambda $ fromParen' origBody
+    , isLambda $ fromParen origBody
     , null (universeBi pats :: [HsExpr GhcPs])
     = [warn "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS o) s1 t1]]
     | length pats2 < length pats, pvars' (drop (length pats2) pats) `disjoint` varss' bind
@@ -159,7 +159,7 @@ lambdaDecl _ = []
 
 
 etaReduce :: [LPat GhcPs] -> LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
-etaReduce (unsnoc -> Just (ps, view' -> PVar_' p)) (L _ (HsApp _ x (view' -> Var_' y)))
+etaReduce (unsnoc -> Just (ps, view -> PVar_ p)) (L _ (HsApp _ x (view -> Var_ y)))
     | p == y
     , y `notElem` vars' x
     , not $ any isQuasiQuote $ universe x
@@ -176,7 +176,7 @@ lambdaExp _ o@(L _ (HsPar _ (L _ (HsApp _ oper@(L _ (HsVar _ (L _ (rdrNameOcc ->
     , not $ isTypeApp y =
       [suggestN "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField y oper]
 
-lambdaExp _ o@(L _ (HsPar _ (view' -> App2' (view' -> Var_' "flip") origf@(view' -> Var_' f) y)))
+lambdaExp _ o@(L _ (HsPar _ (view -> App2 (view -> Var_ "flip") origf@(view -> Var_ f) y)))
     | allowRightSection f, not $ "(" `isPrefixOf` f
     = [suggestN "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionR noExtField origf y]
 lambdaExp p o@(L _ HsLam{})
@@ -189,9 +189,9 @@ lambdaExp p o@(L _ HsLam{})
     = [(if isVar res then warn else suggest) name o res (refact $ toSS o)]
     where
         countRightSections :: LHsExpr GhcPs -> Int
-        countRightSections x = length [() | L _ (SectionR _ (view' -> Var_' _) _) <- universe x]
+        countRightSections x = length [() | L _ (SectionR _ (view -> Var_ _) _) <- universe x]
 lambdaExp p o@(SimpleLambda origPats origBody)
-    | isLambda (fromParen' origBody)
+    | isLambda (fromParen origBody)
     , null (universeBi origPats :: [HsExpr GhcPs]) -- TODO: I think this checks for view patterns only, so maybe be more explicit about that?
     , maybe True (not . isLambda) p =
     [suggest "Collapse lambdas" o (lambda pats body) [Replace Expr (toSS o) subts template]]
@@ -203,7 +203,7 @@ lambdaExp p o@(SimpleLambda origPats origBody)
       subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS pats)
 
 -- match a lambda with a variable pattern, with no guards and no where clauses
-lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
+lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
     case expr of
         -- suggest TupleSections instead of lambdas
         ExplicitTuple _ args boxity
@@ -215,7 +215,7 @@ lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
                   {ideaNote = [RequiresExtension "TupleSections"]}]
 
         -- suggest @LambdaCase@/directly matching in a lambda instead of doing @\x -> case x of ...@
-        HsCase _ (view' -> Var_' x') matchGroup
+        HsCase _ (view -> Var_ x') matchGroup
             -- is the case being done on the variable from our original lambda?
             | x == x'
             -- x must not be used in some other way inside the matches
@@ -246,12 +246,12 @@ lambdaExp _ o@(SimpleLambda [view' -> PVar_' x] (L _ expr)) =
         -- | Filter out tuple arguments, converting the @x@ (matched in the lambda) variable argument
         -- to a missing argument, so that we get the proper section.
         removeX :: LHsTupArg GhcPs -> LHsTupArg GhcPs
-        removeX arg@(L _ (Present _ (view' -> Var_' x')))
+        removeX arg@(L _ (Present _ (view -> Var_ x')))
             | x == x' = noLoc $ Missing noExtField
         removeX y = y
         -- | Extract the name of an argument of a tuple if it's present and a variable.
         tupArgVar :: LHsTupArg GhcPs -> Maybe String
-        tupArgVar (L _ (Present _ (view' -> Var_' x))) = Just x
+        tupArgVar (L _ (Present _ (view -> Var_ x))) = Just x
         tupArgVar _ = Nothing
 
 lambdaExp _ _ = []
@@ -261,7 +261,7 @@ varBody = strToVar "body"
 
 -- | Squash lambdas and replace any repeated pattern variable with @_@
 fromLambda :: LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
-fromLambda (SimpleLambda ps1 (fromLambda . fromParen' -> (ps2,x))) = (transformBi (f $ pvars' ps2) ps1 ++ ps2, x)
+fromLambda (SimpleLambda ps1 (fromLambda . fromParen -> (ps2,x))) = (transformBi (f $ pvars' ps2) ps1 ++ ps2, x)
     where f :: [String] -> Pat GhcPs -> Pat GhcPs
           f bad (VarPat _ (rdrNameStr' -> x))
               | x `elem` bad = WildPat noExtField

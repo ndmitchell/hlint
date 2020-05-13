@@ -84,9 +84,9 @@ listComp o@(L _ (HsDo _ ListComp (L _ stmts))) =
 listComp o@(L _ (HsDo _ MonadComp (L _ stmts))) =
   listCompCheckGuards o MonadComp stmts
 
-listComp o@(view' -> App2' mp f (L _ (HsDo _ ListComp (L _ stmts)))) =
+listComp o@(view -> App2 mp f (L _ (HsDo _ ListComp (L _ stmts)))) =
   listCompCheckMap o mp f ListComp stmts
-listComp o@(view' -> App2' mp f (L _ (HsDo _ MonadComp (L _ stmts)))) =
+listComp o@(view -> App2 mp f (L _ (HsDo _ MonadComp (L _ stmts)))) =
   listCompCheckMap o mp f MonadComp stmts
 listComp _ = []
 
@@ -150,7 +150,7 @@ moveGuardsForward = reverse . f [] . reverse
     f guards xs = reverse guards ++ xs
 
 listExp :: Bool -> LHsExpr GhcPs -> [Idea]
-listExp b (fromParen' -> x) =
+listExp b (fromParen -> x) =
   if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
   where
     res = [suggest name x x2 [r]
@@ -164,8 +164,8 @@ listPat x = if null res then concatMap listPat $ children x else [head res]
                   | (name, f) <- pchecks
                   , Just (x2, subts, temp) <- [f x]
                   , let r = Replace Pattern (toSS x) subts temp ]
-isAppend :: View' a App2' => a -> Bool
-isAppend (view' -> App2' op _ _) = varToStr op == "++"
+isAppend :: View a App2 => a -> Bool
+isAppend (view -> App2 op _ _) = varToStr op == "++"
 isAppend _ = False
 
 checks ::[(String, Bool -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String))]
@@ -199,7 +199,7 @@ usePList =
   . f True ['a'..'z']
   where
     f first _ x | patToStr x == "[]" = if first then Nothing else Just []
-    f first (ident:cs) (view' -> PApp_' ":" [a, b]) = ((a, g ident a) :) <$> f False cs b
+    f first (ident:cs) (view -> PApp_ ":" [a, b]) = ((a, g ident a) :) <$> f False cs b
     f first _ _ = Nothing
 
     g :: Char -> LPat GhcPs -> ((String, SrcSpan), LPat GhcPs)
@@ -223,15 +223,15 @@ useList b =
   . f True ['a'..'z']
   where
     f first _ x | varToStr x == "[]" = if first then Nothing else Just []
-    f first (ident:cs) (view' -> App2' c a b) | varToStr c == ":" =
+    f first (ident:cs) (view -> App2 c a b) | varToStr c == ":" =
           ((a, g ident a) :) <$> f False cs b
     f first _ _ = Nothing
 
     g :: Char -> LHsExpr GhcPs -> (String, LHsExpr GhcPs)
     g c p = ([c], L (getLoc p) (unLoc $ strToVar [c]))
 
-useCons :: View' a App2' => Bool -> a -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String)
-useCons False (view' -> App2' op x y) | varToStr op == "++"
+useCons :: View a App2 => Bool -> a -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String)
+useCons False (view -> App2 op x y) | varToStr op == "++"
                                        , Just (x2, build) <- f x
                                        , not $ isAppend y =
     Just (gen (build x2) y
