@@ -21,7 +21,6 @@ import Extension
 import FastString
 
 import GHC.Hs
-import qualified BasicTypes as GHC
 import SrcLoc
 import ErrUtils
 import Outputable
@@ -113,14 +112,6 @@ ghcExtensionsFromParseFlags ParseFlags{enabledExtensions=es, disabledExtensions=
 ghcFixitiesFromParseFlags :: ParseFlags -> [(String, Fixity)]
 ghcFixitiesFromParseFlags = map toFixity . fixities
 
-ghcFixitiesFromModule :: Located (HsModule GhcPs) -> [(String, Fixity)]
-ghcFixitiesFromModule (L _ (HsModule _ _ _ decls _ _)) = concatMap f decls
-  where
-    f :: LHsDecl GhcPs -> [(String, Fixity)]
-    f (L _ (SigD _ (FixSig _ (FixitySig _ ops (GHC.Fixity _ p dir))))) =
-          fixity dir p (map rdrNameStr' ops)
-    f _ = []
-
 -- These next two functions get called frorm 'Config/Yaml.hs' for user
 -- defined hint rules.
 
@@ -153,7 +144,7 @@ parseDeclGhcWithMode parseMode s =
 -- account for operator fixities (it uses the HLint default fixities).
 createModuleEx :: ApiAnns -> Located (HsModule GhcPs) -> ModuleEx
 createModuleEx anns ast =
-  ModuleEx (applyFixities (ghcFixitiesFromModule ast ++ map toFixity defaultFixities) ast) anns
+  ModuleEx (applyFixities (fixitiesFromModule ast ++ map toFixity defaultFixities) ast) anns
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
@@ -183,7 +174,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                             ( Map.fromListWith (++) $ annotations s
                             , Map.fromList ((noSrcSpan, comment_q s) : annotations_comments s)
                             )
-                      let fixes = ghcFixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
+                      let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
                       pure $ Right (ModuleEx (applyFixities fixes a) anns)
                 PFailed s ->
                     handleParseFailure ghcFlags ppstr file str $  bagToList . snd $ getMessages s ghcFlags
