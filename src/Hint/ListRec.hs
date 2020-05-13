@@ -66,7 +66,7 @@ listRecHint _ _ = concatMap f . universe
             (x, addCase) <- findCase x
             (use,severity,x) <- matchListRec x
             let y = addCase x
-            guard $ recursiveStr `notElem` varss' y
+            guard $ recursiveStr `notElem` varss y
             -- Maybe we can do better here maintaining source
             -- formatting?
             pure $ idea severity ("Use " ++ use) o y [Replace Decl (toSS o) [] (unsafePrettyPrint y)]
@@ -102,25 +102,25 @@ matchListRec :: ListCase -> Maybe (String, Severity, LHsExpr GhcPs)
 matchListRec o@(ListCase vs nil (x, xs, cons))
     -- Suggest 'map'?
     | [] <- vs, varToStr nil == "[]", (L _ (OpApp _ lhs c rhs)) <- cons, varToStr c == ":"
-    , astEq (fromParen rhs) recursive, xs `notElem` vars' lhs
+    , astEq (fromParen rhs) recursive, xs `notElem` vars lhs
     = Just $ (,,) "map" Hint.Type.Warning $
       appsBracket' [ strToVar "map", niceLambda' [x] lhs, strToVar xs]
     -- Suggest 'foldr'?
     | [] <- vs, App2 op lhs rhs <- view cons
-    , xs `notElem` (vars' op ++ vars' lhs) -- the meaning of xs changes, see #793
+    , xs `notElem` (vars op ++ vars lhs) -- the meaning of xs changes, see #793
     , astEq (fromParen rhs) recursive
     = Just $ (,,) "foldr" Suggestion $
       appsBracket' [ strToVar "foldr", niceLambda' [x] $ appsBracket' [op,lhs], nil, strToVar xs]
     -- Suggest 'foldl'?
     | [v] <- vs, view nil == Var_ v, (L _ (HsApp _ r lhs)) <- cons
     , astEq (fromParen r) recursive
-    , xs `notElem` vars' lhs
+    , xs `notElem` vars lhs
     = Just $ (,,) "foldl" Suggestion $
       appsBracket' [ strToVar "foldl", niceLambda' [v,x] lhs, strToVar v, strToVar xs]
     -- Suggest 'foldM'?
     | [v] <- vs, (L _ (HsApp _ ret res)) <- nil, isReturn ret, varToStr res == "()" || view res == Var_ v
     , [L _ (BindStmt _ (view -> PVar_ b1) e _ _), L _ (BodyStmt _ (fromParen -> (L _ (HsApp _ r (view -> Var_ b2)))) _ _)] <- asDo cons
-    , b1 == b2, astEq r recursive, xs `notElem` vars' e
+    , b1 == b2, astEq r recursive, xs `notElem` vars e
     , name <- "foldM" ++ ['_' | varToStr res == "()"]
     = Just $ (,,) name Suggestion $
       appsBracket' [strToVar name, niceLambda' [v,x] e, strToVar v, strToVar xs]

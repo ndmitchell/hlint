@@ -191,7 +191,7 @@ monadStep wrap o@[ g@(L _ (BindStmt _ (LL _ (VarPat _ (L _ p))) x _ _ ))
 
 -- Suggest to use join. Rewrite 'do x <- $1; x; $2' as 'do join $1; $2'.
 monadStep wrap o@(g@(L _ (BindStmt _ (view -> PVar_ p) x _ _)):q@(L _ (BodyStmt _ (view -> Var_ v) _ _)):xs)
-  | p == v && v `notElem` varss' xs
+  | p == v && v `notElem` varss xs
   = let app = noLoc $ HsApp noExtField (strToVar "join") x
         body = noLoc $ BodyStmt noExtField (rebracket1' app) noSyntaxExpr noSyntaxExpr
         stmts = body : xs
@@ -216,7 +216,7 @@ monadStep
 monadStep wrap
   o@[g@(L _ (BindStmt _ (view -> PVar_ u) x _ _))
     , q@(L _ (BodyStmt _ (fromApplies -> (ret:f:fs, view -> Var_ v)) _ _))]
-  | isReturn ret, notDol x, u == v, length fs < 3, all isSimple (f : fs), v `notElem` vars' (f : fs)
+  | isReturn ret, notDol x, u == v, length fs < 3, all isSimple (f : fs), v `notElem` vars (f : fs)
   =
       [warn "Use <$>" (wrap o) (wrap [noLoc $ BodyStmt noExtField (noLoc $ OpApp noExtField (foldl' (\acc e -> noLoc $ OpApp noExtField acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr])
       [Replace Stmt (toSS g) (("x", toSS x):zip vs (toSS <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSS q)]]
@@ -239,11 +239,11 @@ monadSteps _ _ = []
 monadLet :: [ExprLStmt GhcPs] -> [(ExprLStmt GhcPs, ExprLStmt GhcPs, Refactoring R.SrcSpan)]
 monadLet xs = mapMaybe mkLet xs
   where
-    vs = concatMap pvars' [p | (L _ (BindStmt _ p _ _ _)) <- xs]
+    vs = concatMap pvars [p | (L _ (BindStmt _ p _ _ _)) <- xs]
 
     mkLet :: ExprLStmt GhcPs -> Maybe (ExprLStmt GhcPs, ExprLStmt GhcPs, Refactoring R.SrcSpan)
     mkLet x@(L _ (BindStmt _ v@(view -> PVar_ p) (fromRet -> Just (_, y)) _ _ ))
-      | p `notElem` vars' y, p `notElem` delete p vs
+      | p `notElem` vars y, p `notElem` delete p vs
       = Just (x, template p y, refact)
       where
         refact = Replace Stmt (toSS x) [("lhs", toSS v), ("rhs", toSS y)]

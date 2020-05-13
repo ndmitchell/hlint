@@ -106,7 +106,7 @@ import Data.Generics.Uniplate.Operations (universe, universeBi, transformBi)
 
 import BasicTypes
 import GHC.Util.Brackets (isAtom)
-import GHC.Util.FreeVars (free', allVars', freeVars', pvars', vars', varss')
+import GHC.Util.FreeVars (free, allVars, freeVars, pvars, vars, varss)
 import GHC.Util.HsExpr (allowLeftSection, allowRightSection, niceLambdaR', lambda)
 import GHC.Util.RdrName (rdrNameStr')
 import GHC.Util.View
@@ -132,7 +132,7 @@ lambdaDecl
     , isLambda $ fromParen origBody
     , null (universeBi pats :: [HsExpr GhcPs])
     = [warn "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS o) s1 t1]]
-    | length pats2 < length pats, pvars' (drop (length pats2) pats) `disjoint` varss' bind
+    | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
     = [warn "Eta reduce" (reform pats origBody) (reform pats2 bod2)
           [ -- Disabled, see apply-refact #3
             -- Replace Decl (toSS $ reform' pats origBody) s2 t2]]
@@ -161,7 +161,7 @@ lambdaDecl _ = []
 etaReduce :: [LPat GhcPs] -> LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
 etaReduce (unsnoc -> Just (ps, view -> PVar_ p)) (L _ (HsApp _ x (view -> Var_ y)))
     | p == y
-    , y `notElem` vars' x
+    , y `notElem` vars x
     , not $ any isQuasiQuote $ universe x
     = etaReduce ps x
 etaReduce ps (L loc (OpApp _ x (isDol -> True) y)) = etaReduce ps (L loc (HsApp noExtField x y))
@@ -184,7 +184,7 @@ lambdaExp p o@(L _ HsLam{})
     , (res, refact) <- niceLambdaR' [] o
     , not $ isLambda res
     , not $ any isQuasiQuote $ universe res
-    , not $ "runST" `Set.member` Set.map occNameString (freeVars' o)
+    , not $ "runST" `Set.member` Set.map occNameString (freeVars o)
     , let name = "Avoid lambda" ++ (if countRightSections res > countRightSections o then " using `infix`" else "")
     = [(if isVar res then warn else suggest) name o res (refact $ toSS o)]
     where
@@ -210,7 +210,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
             -- is there exactly one argument that is exactly x?
             | ([_x], ys) <- partition ((==Just x) . tupArgVar) args
             -- the other arguments must not have a nested x somewhere in them
-            , Set.notMember x $ Set.map occNameString $ freeVars' ys
+            , Set.notMember x $ Set.map occNameString $ freeVars ys
             -> [(suggestN "Use tuple-section" o $ noLoc $ ExplicitTuple noExtField (map removeX args) boxity)
                   {ideaNote = [RequiresExtension "TupleSections"]}]
 
@@ -219,7 +219,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
             -- is the case being done on the variable from our original lambda?
             | x == x'
             -- x must not be used in some other way inside the matches
-            , Set.notMember x $ Set.map occNameString $ free' $ allVars' matchGroup
+            , Set.notMember x $ Set.map occNameString $ free $ allVars matchGroup
             -> case matchGroup of
                  -- is there a single match? - suggest match inside the lambda
                  --
@@ -261,7 +261,7 @@ varBody = strToVar "body"
 
 -- | Squash lambdas and replace any repeated pattern variable with @_@
 fromLambda :: LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
-fromLambda (SimpleLambda ps1 (fromLambda . fromParen -> (ps2,x))) = (transformBi (f $ pvars' ps2) ps1 ++ ps2, x)
+fromLambda (SimpleLambda ps1 (fromLambda . fromParen -> (ps2,x))) = (transformBi (f $ pvars ps2) ps1 ++ ps2, x)
     where f :: [String] -> Pat GhcPs -> Pat GhcPs
           f bad (VarPat _ (rdrNameStr' -> x))
               | x `elem` bad = WildPat noExtField

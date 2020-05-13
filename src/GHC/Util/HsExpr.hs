@@ -122,7 +122,7 @@ simplifyExp' e@(L _ (HsLet _ (L _ (HsValBinds _ (ValBinds _ binds []))) z)) =
     [L _ (FunBind _ _(MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] (L _ (EmptyLocalBinds _))))]) _) _ _)]
          -- If 'x' is not in the free variables of 'y', beta-reduce to
          -- 'z[(y)/x]'.
-      | occNameString (rdrNameOcc x) `notElem` vars' y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
+      | occNameString (rdrNameOcc x) `notElem` vars y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
           transform f z
           where f (view -> Var_ x') | occNameString (rdrNameOcc x) == x' = paren' y
                 f x = x
@@ -162,7 +162,7 @@ niceLambdaR' xs (L _ (HsPar _ x)) = niceLambdaR' xs x
 niceLambdaR' (unsnoc -> Just (vs, v)) (view -> App2 f e (view -> Var_ v'))
   | isDol f
   , v == v'
-  , vars' e `disjoint` [v]
+  , vars e `disjoint` [v]
   = niceLambdaR' vs e
 
 -- @\v -> thing + v@ ==> @\v -> (thing +)@  (heuristic: @v@ must be a single
@@ -170,7 +170,7 @@ niceLambdaR' (unsnoc -> Just (vs, v)) (view -> App2 f e (view -> Var_ v'))
 niceLambdaR' [v] (L _ (OpApp _ e f (view -> Var_ v')))
   | isLexeme e
   , v == v'
-  , vars' e `disjoint` [v]
+  , vars e `disjoint` [v]
   , L _ (HsVar _ (L _ fname)) <- f
   , isSymOcc $ rdrNameOcc fname
   = (noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField e f, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
@@ -178,7 +178,7 @@ niceLambdaR' [v] (L _ (OpApp _ e f (view -> Var_ v')))
 -- @\vs v -> f x v@ ==> @\vs -> f x@
 niceLambdaR' (unsnoc -> Just (vs, v)) (L _ (HsApp _ f (view -> Var_ v')))
   | v == v'
-  , vars' f `disjoint` [v]
+  , vars f `disjoint` [v]
   = niceLambdaR' vs f
 
 -- @\vs v -> (v `f`)@ ==> @\vs -> f@
@@ -192,12 +192,12 @@ niceLambdaR' xs (SimpleLambda ((view -> PVar_ v):vs) x)
 -- Rewrite @\x -> x + a@ as @(+ a)@ (heuristic: @a@ must be a single
 -- lexeme, or it all gets too complex).
 niceLambdaR' [x] (view -> App2 op@(L _ (HsVar _ (L _ tag))) l r)
-  | isLexeme r, view l == Var_ x, x `notElem` vars' r, allowRightSection (occNameString $ rdrNameOcc tag) =
+  | isLexeme r, view l == Var_ x, x `notElem` vars r, allowRightSection (occNameString $ rdrNameOcc tag) =
       let e = rebracket1' $ addParen (noLoc $ SectionR noExtField op r)
       in (e, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 -- Rewrite (1) @\x -> f (b x)@ as @f . b@, (2) @\x -> f $ b x@ as @f . b@.
 niceLambdaR' [x] y
-  | Just (z, subts) <- factor y, x `notElem` vars' z = (z, \s -> [mkRefact subts s])
+  | Just (z, subts) <- factor y, x `notElem` vars z = (z, \s -> [mkRefact subts s])
   where
     -- Factor the expression with respect to x.
     factor :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [LHsExpr GhcPs])
@@ -217,10 +217,10 @@ niceLambdaR' [x] y
       in Replace Expr s tempSubts (unsafePrettyPrint template)
 -- Rewrite @\x y -> x + y@ as @(+)@.
 niceLambdaR' [x,y] (L _ (OpApp _ (view -> Var_ x1) op@(L _ HsVar {}) (view -> Var_ y1)))
-    | x == x1, y == y1, vars' op `disjoint` [x, y] = (op, \s -> [Replace Expr s [] (unsafePrettyPrint op)])
+    | x == x1, y == y1, vars op `disjoint` [x, y] = (op, \s -> [Replace Expr s [] (unsafePrettyPrint op)])
 -- Rewrite @\x y -> f y x@ as @flip f@.
 niceLambdaR' [x, y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
-  | x == x1, y == y1, vars' op `disjoint` [x, y] =
+  | x == x1, y == y1, vars op `disjoint` [x, y] =
       ( gen op
       , \s -> [Replace Expr s [("x", toSS op)] (unsafePrettyPrint $ gen (strToVar "x"))]
       )
