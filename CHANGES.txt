@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #993, deal with infix declarations in the module they occur
+    #993, make createModuleEx use the default HLint fixities
     #995, add unpackSrcSpan to the API
 3.1, released 2020-05-07
     #979, suggest removing flip only for simple final variables

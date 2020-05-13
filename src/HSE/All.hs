@@ -21,6 +21,7 @@ import Extension
 import FastString
 
 import GHC.Hs
+import qualified BasicTypes as GHC
 import SrcLoc
 import ErrUtils
 import Outputable
@@ -112,6 +113,14 @@ ghcExtensionsFromParseFlags ParseFlags{enabledExtensions=es, disabledExtensions=
 ghcFixitiesFromParseFlags :: ParseFlags -> [(String, Fixity)]
 ghcFixitiesFromParseFlags = map toFixity . fixities
 
+ghcFixitiesFromModule :: Located (HsModule GhcPs) -> [(String, Fixity)]
+ghcFixitiesFromModule (L _ (HsModule _ _ _ decls _ _)) = concatMap f decls
+  where
+    f :: LHsDecl GhcPs -> [(String, Fixity)]
+    f (L _ (SigD _ (FixSig _ (FixitySig _ ops (GHC.Fixity _ p dir))))) =
+          fixity dir p (map rdrNameStr' ops)
+    f _ = []
+
 -- These next two functions get called frorm 'Config/Yaml.hs' for user
 -- defined hint rules.
 
@@ -141,11 +150,10 @@ parseDeclGhcWithMode parseMode s =
 
 -- | Create a 'ModuleEx' from GHC annotations and module tree. It
 -- is assumed the incoming parse module has not been adjusted to
--- account for operator fixities.
+-- account for operator fixities (it uses the HLint default fixities).
 createModuleEx :: ApiAnns -> Located (HsModule GhcPs) -> ModuleEx
 createModuleEx anns ast =
-  -- Use builtin fixities.
-  ModuleEx (applyFixities [] ast) anns
+  ModuleEx (applyFixities (ghcFixitiesFromModule ast ++ map toFixity defaultFixities) ast) anns
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
@@ -161,7 +169,6 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
         str <- pure $ dropPrefix "\65279" str -- remove the BOM if it exists, see #130
         ppstr <- runCpp (cppFlags flags) file str
         let enableDisableExts = ghcExtensionsFromParseFlags flags
-            fixities = ghcFixitiesFromParseFlags flags
         dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
         case dynFlags of
           Right ghcFlags -> do
@@ -176,7 +183,8 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                             ( Map.fromListWith (++) $ annotations s
                             , Map.fromList ((noSrcSpan, comment_q s) : annotations_comments s)
                             )
-                      pure $ Right (ModuleEx (applyFixities fixities a) anns)
+                      let fixes = ghcFixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
+                      pure $ Right (ModuleEx (applyFixities fixes a) anns)
                 PFailed s ->
                     handleParseFailure ghcFlags ppstr file str $  bagToList . snd $ getMessages s ghcFlags
           Left msg -> do
