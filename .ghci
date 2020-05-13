@@ -13,10 +13,10 @@
 let _ghci_make dir flags = ":!" ++
         "(if not exist .hpc mkdir .hpc) && " ++
         "(if not exist .hpc/" ++ dir ++ " mkdir .hpc/" ++ dir ++ ") && " ++
-        "ghc -threaded -rtsopts --make -isrc -i. src/Paths.hs src/Main.hs -w -odir .hpc/"++dir++" -hidir .hpc/"++dir++" -o .hpc/"++dir++"/hlint "++flags
+        "ghc -threaded -rtsopts --make -isrc -i. src/Paths.hs src/Main.hs -hide-package=ghc-boot-th -package=ghc-lib-parser -w -odir .hpc/"++dir++" -hidir .hpc/"++dir++" -o .hpc/"++dir++"/hlint "++flags
 :}
 let _ghci_number def val = show $ case val of "" -> def; x -> read x
-let _ghci_make_profile x = let level = _ghci_number 1 x in _ghci_make ("prof" ++ level) ("-O" ++ level ++ " -prof -auto-all -caf-all")
+let _ghci_make_profile x = let level = _ghci_number 1 x in _ghci_make ("prof" ++ level) ("-O" ++ level ++ " -DPROFILE -prof -auto-all -caf-all")
 let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " ++ args
 
 
@@ -56,7 +56,7 @@ let _ghci_run_profile x args = ":!.hpc\\prof" ++ _ghci_number 1 x ++ "\\hlint " 
 :{
 :def bench \x -> return $ unlines
         [_ghci_make "bench" "-O"
-        ,":!ptime .hpc\\bench\\hlint src " ++ x
+        ,":!ptime .hpc\\bench\\hlint " ++ x
         ,":!echo."]
 :}
 
