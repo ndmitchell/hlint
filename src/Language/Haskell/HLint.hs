@@ -15,7 +15,7 @@ module Language.Haskell.HLint(
     -- * Generate hints
     hlint, applyHints,
     -- * Idea data type
-    Idea(..), Severity(..), Note(..),
+    Idea(..), Severity(..), Note(..), unpackSrcSpan,
     -- * Settings
     Classify(..),
     getHLintDataDir, autoSettings, argsSettings,
@@ -37,6 +37,7 @@ import Idea
 import qualified Apply as H
 import HLint
 import Fixity
+import FastString
 import HSE.All
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
@@ -150,3 +151,18 @@ createModuleEx:: GHC.ApiAnns -> Located (GHC.HsModule GHC.GhcPs) -> ModuleEx
 createModuleEx anns ast =
   -- Use builtin fixities.
   ModuleEx (GhclibParserEx.applyFixities [] ast) anns
+
+
+-- | Unpack a 'SrcSpan' value. Useful to allow using the 'Idea' information without
+--   adding a dependency on @ghc@ or @ghc-lib-parser@. Unpacking gives:
+--
+-- > (filename, (startLine, startCol), (endLine, endCol))
+--
+--   Following the GHC API, he end column is the column /after/ the end of the error.
+--   Lines and columns are 1-based. Returns 'Nothing' if there is no helpful location information.
+unpackSrcSpan :: SrcSpan -> Maybe (FilePath, (Int, Int), (Int, Int))
+unpackSrcSpan (RealSrcSpan x) = Just
+    (unpackFS $ srcSpanFile x
+    ,(srcSpanStartLine x, srcSpanStartCol x)
+    ,(srcSpanEndLine x, srcSpanEndCol x))
+unpackSrcSpan _ = Nothing
