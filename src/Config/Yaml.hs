@@ -37,8 +37,9 @@ import GHC.Hs
 import SrcLoc
 import RdrName
 import OccName
-import GHC.Util (baseDynFlags, Scope, scopeCreate, occNameStr)
+import GHC.Util (baseDynFlags, Scope, scopeCreate)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Data.Char
 
 

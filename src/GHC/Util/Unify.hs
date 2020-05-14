@@ -24,8 +24,8 @@ import OccName
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util.HsExpr
-import GHC.Util.RdrName
 import GHC.Util.View
 
 isUnifyVar :: String -> Bool

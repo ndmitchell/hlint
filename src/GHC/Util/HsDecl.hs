@@ -3,10 +3,9 @@
 module GHC.Util.HsDecl (declName,bindName)
 where
 
-import GHC.Util.RdrName(occNameStr, rdrNameStr)
-
 import GHC.Hs
 import SrcLoc
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 -- | @declName x@ returns the \"new name\" that is created (for
 -- example a function declaration) by @x@.  If @x@ isn't a declaration

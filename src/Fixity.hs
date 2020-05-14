@@ -9,11 +9,11 @@ module Fixity(
 import GHC.Generics(Associativity(..))
 import GHC.Hs.Binds
 import GHC.Hs.Extension
-import GHC.Util(rdrNameStr)
 import OccName
 import RdrName
 import SrcLoc
 import BasicTypes
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.Fixity
 
 -- Lots of things define a fixity. None define it quite right, so let's have our own type.

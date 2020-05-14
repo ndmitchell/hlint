@@ -76,7 +76,7 @@ library
       build-depends:
           ghc-lib-parser == 8.10.*
     build-depends:
-        ghc-lib-parser-ex >= 8.10.0.7 && < 8.10.1
+        ghc-lib-parser-ex >= 8.10.0.8 && < 8.10.1
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
@@ -119,7 +119,6 @@ library
         GHC.Util.Module
         GHC.Util.SrcLoc
         GHC.Util.DynFlags
-        GHC.Util.RdrName
         GHC.Util.Scope
         GHC.Util.Unify
 

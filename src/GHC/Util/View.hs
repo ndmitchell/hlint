@@ -10,7 +10,7 @@ module GHC.Util.View (
 import GHC.Hs
 import SrcLoc
 import BasicTypes
-import GHC.Util.RdrName (rdrNameStr, occNameStr)
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 fromParen :: LHsExpr GhcPs -> LHsExpr GhcPs
 fromParen (L _ (HsPar _ x)) = fromParen x

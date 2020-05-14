@@ -11,7 +11,6 @@ module GHC.Util (
   , module GHC.Util.SrcLoc
   , module GHC.Util.DynFlags
   , module GHC.Util.Scope
-  , module GHC.Util.RdrName
   , module GHC.Util.Unify
   , parsePragmasIntoDynFlags
   , fileToModule
@@ -28,7 +27,6 @@ import GHC.Util.HsDecl
 import GHC.Util.Module
 import GHC.Util.SrcLoc
 import GHC.Util.DynFlags
-import GHC.Util.RdrName
 import GHC.Util.Scope
 import GHC.Util.Unify
 

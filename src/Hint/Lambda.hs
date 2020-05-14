@@ -105,17 +105,17 @@ import Refact.Types hiding (RType(Match))
 import Data.Generics.Uniplate.Operations (universe, universeBi, transformBi)
 
 import BasicTypes
-import GHC.Util.Brackets (isAtom)
-import GHC.Util.FreeVars (free, allVars, freeVars, pvars, vars, varss)
-import GHC.Util.HsExpr (allowLeftSection, allowRightSection, niceLambdaR', lambda)
-import GHC.Util.RdrName (rdrNameStr)
-import GHC.Util.View
 import GHC.Hs
-import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol, strToVar)
-import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import OccName
 import RdrName
 import SrcLoc
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol, strToVar)
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
+import GHC.Util.Brackets (isAtom)
+import GHC.Util.FreeVars (free, allVars, freeVars, pvars, vars, varss)
+import GHC.Util.HsExpr (allowLeftSection, allowRightSection, niceLambdaR', lambda)
+import GHC.Util.View
 
 lambdaHint :: DeclHint
 lambdaHint _ _ x
