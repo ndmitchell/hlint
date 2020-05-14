@@ -45,24 +45,17 @@
 #####################################################################
 ## HINTS
 
-- error: {lhs: QVarOp a (UnQual b x), rhs: toNamed x}
-- error: {lhs: QConOp a (UnQual b x), rhs: toNamed x}
-- error: {lhs: UnQual a (Symbol b x), rhs: toNamed x}
-- error: {lhs: UnQual a (Ident  b x), rhs: toNamed x}
-- error: {lhs: Var a (toNamed x), rhs: toNamed x}
-- error: {lhs: Con a (toNamed x), rhs: toNamed x}
-
 - error: {lhs: idea Warning, rhs: warn}
 - error: {lhs: idea Suggestion, rhs: suggest}
 - error: {lhs: ideaN Warning, rhs: warnN}
 - error: {lhs: ideaN Suggestion, rhs: suggestN}
 
+- error: {lhs: occNameString (occName (unLoc x)), rhs: rdrNameStr x}
+- error: {lhs: occNameString (occName x), rhs: occNameStr x}
 
 #####################################################################
 ## IGNORES
 
-# would require module cycles
-- ignore: {name: Use toNamed, within: HSE.Util}
 # doesn't fit with the other statements
 - ignore: {name: Use let, within: [HLint, Test.All]}
 # would be a lot of is/from exports
