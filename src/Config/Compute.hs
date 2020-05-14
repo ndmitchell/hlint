@@ -58,7 +58,7 @@ findBind _ = []
 findExp :: IdP GhcPs -> [String] -> HsExpr GhcPs -> [Setting]
 findExp name vs (HsLam _ MG{mg_alts=L _ [L _ Match{m_pats, m_grhss=GRHSs{grhssGRHSs=[L _ (GRHS _ [] x)], grhssLocalBinds=L _ (EmptyLocalBinds _)}}]})
     = if length m_pats == length ps then findExp name (vs++ps) $ unLoc x else []
-    where ps = [occNameString $ occName $ unLoc x | L _ (VarPat _ x) <- m_pats]
+    where ps = [rdrNameStr x | L _ (VarPat _ x) <- m_pats]
 findExp name vs HsLam{} = []
 findExp name vs HsVar{} = []
 findExp name vs (OpApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $

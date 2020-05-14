@@ -57,6 +57,8 @@
 - error: {lhs: ideaN Warning, rhs: warnN}
 - error: {lhs: ideaN Suggestion, rhs: suggestN}
 
+- error: {lhs: occNameString (occName (unLoc x)), rhs: rdrNameStr x}
+- error: {lhs: occNameString (occName x), rhs: occNameStr x}
 
 #####################################################################
 ## IGNORES
