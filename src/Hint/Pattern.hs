@@ -237,7 +237,7 @@ expHint o@(L _ (HsCase _ _ (MG _ (L _ [L _ (Match _ CaseAlt [L _ (WildPat _)] (G
   where
     r = Replace Expr (toSS o) [("x", toSS e)] "x"
 expHint o@(L _ (HsCase _ (L _ (HsVar _ (L _ x))) (MG _ (L _ [L _ (Match _ CaseAlt [L _ (VarPat _ (L _ y))] (GRHSs _ [L _ (GRHS _ [] e)] (L  _ (EmptyLocalBinds _)))) ]) FromSource )))
-  | occNameString (rdrNameOcc x) == occNameString (rdrNameOcc y) =
+  | occNameStr x == occNameStr y =
       [suggest "Redundant case" o e [r]]
   where
     r = Replace Expr (toSS o) [("x", toSS e)] "x"

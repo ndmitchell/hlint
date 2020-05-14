@@ -21,6 +21,7 @@ import RdrName
 import OccName
 import Bag(bagToList)
 
+import GHC.Util.RdrName(occNameStr)
 import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
@@ -122,16 +123,16 @@ simplifyExp' e@(L _ (HsLet _ (L _ (HsValBinds _ (ValBinds _ binds []))) z)) =
     [L _ (FunBind _ _(MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] (L _ (EmptyLocalBinds _))))]) _) _ _)]
          -- If 'x' is not in the free variables of 'y', beta-reduce to
          -- 'z[(y)/x]'.
-      | occNameString (rdrNameOcc x) `notElem` vars y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
+      | occNameStr x `notElem` vars y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
           transform f z
-          where f (view -> Var_ x') | occNameString (rdrNameOcc x) == x' = paren' y
+          where f (view -> Var_ x') | occNameStr x == x' = paren' y
                 f x = x
     _ -> e
 simplifyExp' e = e
 
 -- Rewrite '($) . b' as 'b'.
 niceDotApp' :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
-niceDotApp' (L _ (HsVar _ (L _ r))) b | occNameString (rdrNameOcc r) == "$" = b
+niceDotApp' (L _ (HsVar _ (L _ r))) b | occNameStr r == "$" = b
 niceDotApp' a b = dotApp' a b
 
 
@@ -192,7 +193,7 @@ niceLambdaR' xs (SimpleLambda ((view -> PVar_ v):vs) x)
 -- Rewrite @\x -> x + a@ as @(+ a)@ (heuristic: @a@ must be a single
 -- lexeme, or it all gets too complex).
 niceLambdaR' [x] (view -> App2 op@(L _ (HsVar _ (L _ tag))) l r)
-  | isLexeme r, view l == Var_ x, x `notElem` vars r, allowRightSection (occNameString $ rdrNameOcc tag) =
+  | isLexeme r, view l == Var_ x, x `notElem` vars r, allowRightSection (occNameStr tag) =
       let e = rebracket1' $ addParen (noLoc $ SectionR noExtField op r)
       in (e, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 -- Rewrite (1) @\x -> f (b x)@ as @f . b@, (2) @\x -> f $ b x@ as @f . b@.

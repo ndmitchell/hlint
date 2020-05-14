@@ -22,7 +22,6 @@ import GHC.Hs.Expr hiding (Match)
 import GHC.Hs.Lit
 import FastString
 import ApiAnnotation
-import OccName
 import Outputable
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -33,8 +32,8 @@ readPragma :: AnnDecl GhcPs -> Maybe Classify
 readPragma (HsAnnotation _ _ provenance expr) = f expr
     where
         name = case provenance of
-            ValueAnnProvenance (L _ x) -> occNameString $ occName x
-            TypeAnnProvenance (L _ x) -> occNameString $ occName x
+            ValueAnnProvenance (L _ x) -> occNameStr x
+            TypeAnnProvenance (L _ x) -> occNameStr x
             ModuleAnnProvenance -> ""
 
         f (L _ (HsLit _ (HsString _ (unpackFS -> s)))) | "hlint:" `isPrefixOf` lower s =

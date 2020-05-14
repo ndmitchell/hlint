@@ -224,7 +224,6 @@ import GHC.Hs
 import BasicTypes
 import Class
 import RdrName
-import OccName
 import ForeignCall
 
 import GHC.Util
@@ -372,7 +371,7 @@ used TypeOperators = hasS tyOpInSig ||^ hasS tyOpInDecl
       _ -> False
 
     isOp :: LIdP GhcPs -> Bool
-    isOp name = case occNameString (rdrNameOcc (unLoc name)) of
+    isOp name = case rdrNameStr name of
       (c:_) -> not $ isAlpha c || c == '_'
       _ -> False
 used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
@@ -412,7 +411,7 @@ used TransformListComp = hasS isTransStmt
 used MagicHash = hasS f ||^ hasS isPrimLiteral
     where
       f :: RdrName -> Bool
-      f s = "#" `isSuffixOf` (occNameString . rdrNameOcc) s
+      f s = "#" `isSuffixOf` occNameStr s
 used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
     where
       isPatSynBind :: HsBind GhcPs -> Bool
@@ -475,7 +474,7 @@ derives (L _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
         ih (L _ (HsQualTy _ _ a)) = ih a
         ih (L _ (HsParTy _ a)) = ih a
         ih (L _ (HsAppTy _ a _)) = ih a
-        ih (L _ (HsTyVar _ _ a)) = unsafePrettyPrint $ unqual' a
+        ih (L _ (HsTyVar _ _ a)) = unsafePrettyPrint $ unqual a
         ih (L _ a) = unsafePrettyPrint a -- I don't anticipate this case is called.
     derivedToStr _ = "" -- new ctor
 

@@ -155,7 +155,7 @@ returnsUnit :: LHsExpr GhcPs -> Bool
 returnsUnit (L _ (HsPar _ x)) = returnsUnit x
 returnsUnit (L _ (HsApp _ x _)) = returnsUnit x
 returnsUnit (L _ (OpApp _ x op _)) | isDol op = returnsUnit x
-returnsUnit (L _ (HsVar _ (L _ x))) = occNameString (rdrNameOcc x) `elem` map (++ "_") badFuncs ++ unitFuncs
+returnsUnit (L _ (HsVar _ (L _ x))) = occNameStr x `elem` map (++ "_") badFuncs ++ unitFuncs
 returnsUnit _ = False
 
 -- See through HsPar, and down HsIf/HsCase, return the name to use in
@@ -165,7 +165,7 @@ monadNoResult inside wrap (L l (HsPar _ x)) = monadNoResult inside (wrap . cL l 
 monadNoResult inside wrap (L l (HsApp _ x y)) = monadNoResult inside (\x -> wrap $ cL l (HsApp noExtField x y)) x
 monadNoResult inside wrap (L l (OpApp _ x tag@(L _ (HsVar _ (L _ op))) y))
     | isDol tag = monadNoResult inside (\x -> wrap $ cL l (OpApp noExtField x tag y)) x
-    | occNameString (rdrNameOcc op) == ">>=" = monadNoResult inside (wrap . cL l . OpApp noExtField x tag) y
+    | occNameStr op == ">>=" = monadNoResult inside (wrap . cL l . OpApp noExtField x tag) y
 monadNoResult inside wrap x
     | x2 : _ <- filter (`isTag` x) badFuncs
     , let x3 = x2 ++ "_"
@@ -185,7 +185,7 @@ monadStep wrap os@(o@(L _ (BodyStmt _ (fromRet -> Just (ret, _)) _ _ )) : xs@(_:
 -- Rewrite 'do a <- $1; return a' as 'do $1'.
 monadStep wrap o@[ g@(L _ (BindStmt _ (LL _ (VarPat _ (L _ p))) x _ _ ))
                   , q@(L _ (BodyStmt _ (fromRet -> Just (ret, L _ (HsVar _ (L _ v)))) _ _))]
-  | occNameString (rdrNameOcc p) == occNameString (rdrNameOcc v)
+  | occNameStr p == occNameStr v
   = [warn ("Redundant " ++ ret) (wrap o) (wrap [noLoc $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr])
       [Replace Stmt (toSS g) [("x", toSS x)] "x", Delete Stmt (toSS q)]]
 
@@ -209,7 +209,7 @@ monadStep wrap (o@(L loc (BindStmt _ p x _ _)) : rest)
 monadStep
   wrap o@[ L _ (BodyStmt _ x _ _)
          , L _ (BodyStmt _ (fromRet -> Just (ret, L _ (HsVar _ (L _ unit)))) _ _)]
-     | returnsUnit x, occNameString (rdrNameOcc unit) == "()"
+     | returnsUnit x, occNameStr unit == "()"
   = [warn ("Redundant " ++ ret) (wrap o) (wrap $ take 1 o) []]
 
 -- Rewrite 'do x <- $1; return $ f $ g x' as 'f . g <$> x'
@@ -269,6 +269,6 @@ fromApplies x = ([], x)
 
 fromRet :: LHsExpr GhcPs -> Maybe (String, LHsExpr GhcPs)
 fromRet (L _ (HsPar _ x)) = fromRet x
-fromRet (L _ (OpApp _ x (L _ (HsVar _ (L _ y))) z)) | occNameString (rdrNameOcc y) == "$" = fromRet $ noLoc (HsApp noExtField x z)
+fromRet (L _ (OpApp _ x (L _ (HsVar _ (L _ y))) z)) | occNameStr y == "$" = fromRet $ noLoc (HsApp noExtField x z)
 fromRet (L _ (HsApp _ x y)) | isReturn x = Just (unsafePrettyPrint x, y)
 fromRet _ = Nothing

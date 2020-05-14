@@ -55,19 +55,19 @@ scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
 -- candidate modules where the two names arise is non-empty.
 scopeMatch :: (Scope, Located RdrName) -> (Scope, Located RdrName) -> Bool
 scopeMatch (a, x) (b, y)
-  | isSpecial' x && isSpecial' y = rdrNameStr' x == rdrNameStr' y
-  | isSpecial' x || isSpecial' y = False
+  | isSpecial x && isSpecial y = rdrNameStr x == rdrNameStr y
+  | isSpecial x || isSpecial y = False
   | otherwise =
-     rdrNameStr' (unqual' x) == rdrNameStr' (unqual' y) && not (possModules a x `disjoint` possModules b y)
+     rdrNameStr (unqual x) == rdrNameStr (unqual y) && not (possModules a x `disjoint` possModules b y)
 
 -- Given a name in a scope, and a new scope, create a name for the new
 -- scope that will refer to the same thing. If the resulting name is
 -- ambiguous, pick a plausible candidate.
 scopeMove :: (Scope, Located RdrName) -> Scope -> Located RdrName
-scopeMove (a, x@(fromQual' -> Just name)) (Scope b) = case imps of
+scopeMove (a, x@(fromQual -> Just name)) (Scope b) = case imps of
   [] -> headDef x real
   imp:_ | all (\x -> ideclQualified x /= NotQualified) imps -> noLoc $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
-        | otherwise -> unqual' x
+        | otherwise -> unqual x
   where
     real :: [Located RdrName]
     real = [noLoc $ mkRdrQual m name | m <- possModules a x]
@@ -86,14 +86,14 @@ possModules (Scope is) x = f x
     res = [unLoc $ ideclName $ unLoc i | i <- is, possImport i x]
 
     f :: Located RdrName -> [ModuleName]
-    f n | isSpecial' n = [mkModuleName ""]
+    f n | isSpecial n = [mkModuleName ""]
     f (L _ (Qual mod _)) = [mod | null res] ++ res
     f _ = res
 
 -- Determine if 'x' could possibly lie in the module named by the
 -- import declaration 'i'.
 possImport :: LImportDecl GhcPs -> Located RdrName -> Bool
-possImport i n | isSpecial' n = False
+possImport i n | isSpecial n = False
 possImport (L _ i) (L _ (Qual mod x)) =
   mod `elem` ms && possImport (noLoc i{ideclQualified=NotQualified}) (noLoc $ mkRdrUnqual x)
   where ms = map unLoc $ ideclName i : maybeToList (ideclAs i)

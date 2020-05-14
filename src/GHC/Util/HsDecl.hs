@@ -3,8 +3,9 @@
 module GHC.Util.HsDecl (declName,bindName)
 where
 
+import GHC.Util.RdrName(occNameStr, rdrNameStr)
+
 import GHC.Hs
-import OccName
 import SrcLoc
 
 -- | @declName x@ returns the \"new name\" that is created (for
@@ -14,7 +15,7 @@ import SrcLoc
 -- want to tell users to rename binders that they aren't creating
 -- right now and therefore usually cannot change.
 declName :: LHsDecl GhcPs -> Maybe String
-declName (L _ x) = occNameString . occName <$> case x of
+declName (L _ x) = occNameStr <$> case x of
     TyClD _ FamDecl{tcdFam=FamilyDecl{fdLName}} -> Just $ unLoc fdLName
     TyClD _ SynDecl{tcdLName} -> Just $ unLoc tcdLName
     TyClD _ DataDecl{tcdLName} -> Just $ unLoc tcdLName
@@ -31,6 +32,6 @@ declName (L _ x) = occNameString . occName <$> case x of
 
 
 bindName :: LHsBind GhcPs -> Maybe String
-bindName (L _ FunBind{fun_id}) = Just $ occNameString $ occName $ unLoc fun_id
-bindName (L _ VarBind{var_id}) = Just $ occNameString $ occName var_id
+bindName (L _ FunBind{fun_id}) = Just $ rdrNameStr fun_id
+bindName (L _ VarBind{var_id}) = Just $ occNameStr var_id
 bindName _ = Nothing

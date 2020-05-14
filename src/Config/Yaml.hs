@@ -37,7 +37,7 @@ import GHC.Hs
 import SrcLoc
 import RdrName
 import OccName
-import GHC.Util (baseDynFlags, Scope,scopeCreate)
+import GHC.Util (baseDynFlags, Scope, scopeCreate, occNameStr)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Data.Char
 
@@ -300,7 +300,7 @@ guessName lhs rhs
     where
         (ls, rs) = both f (lhs, rhs)
         f :: LHsExpr GhcPs -> [String]
-        f x = [y | L _ (HsVar _ (L _ x)) <- universe x, let y = occNameString $ rdrNameOcc x, not $ isUnifyVar y, y /= "."]
+        f x = [y | L _ (HsVar _ (L _ x)) <- universe x, let y = occNameStr x, not $ isUnifyVar y, y /= "."]
 
 
 asNote :: String -> Note
