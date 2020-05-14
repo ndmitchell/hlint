@@ -108,7 +108,7 @@ import BasicTypes
 import GHC.Util.Brackets (isAtom)
 import GHC.Util.FreeVars (free, allVars, freeVars, pvars, vars, varss)
 import GHC.Util.HsExpr (allowLeftSection, allowRightSection, niceLambdaR', lambda)
-import GHC.Util.RdrName (rdrNameStr')
+import GHC.Util.RdrName (rdrNameStr)
 import GHC.Util.View
 import GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol, strToVar)
@@ -263,7 +263,7 @@ varBody = strToVar "body"
 fromLambda :: LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
 fromLambda (SimpleLambda ps1 (fromLambda . fromParen -> (ps2,x))) = (transformBi (f $ pvars ps2) ps1 ++ ps2, x)
     where f :: [String] -> Pat GhcPs -> Pat GhcPs
-          f bad (VarPat _ (rdrNameStr' -> x))
+          f bad (VarPat _ (rdrNameStr -> x))
               | x `elem` bad = WildPat noExtField
           f bad x = x
 fromLambda x = ([], x)

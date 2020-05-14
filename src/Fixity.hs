@@ -9,6 +9,7 @@ module Fixity(
 import GHC.Generics(Associativity(..))
 import GHC.Hs.Binds
 import GHC.Hs.Extension
+import GHC.Util(rdrNameStr)
 import OccName
 import RdrName
 import SrcLoc
@@ -27,7 +28,7 @@ type FixityInfo = (String, Associativity, Int)
 
 fromFixitySig :: FixitySig GhcPs -> [FixityInfo]
 fromFixitySig (FixitySig _ names (Fixity _ i dir)) =
-    [(occNameString $ occName $ unLoc name, f dir, i) | name <- names]
+    [(rdrNameStr name, f dir, i) | name <- names]
     where
         f InfixL = LeftAssociative
         f InfixR = RightAssociative

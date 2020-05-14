@@ -53,7 +53,6 @@ import GHC.Hs
 import SrcLoc
 import BasicTypes
 import RdrName
-import OccName
 import Name
 import FastString
 import TysWiredIn
@@ -109,7 +108,7 @@ listCompCheckGuards o ctx stmts =
         o3 = noLoc $ HsDo noExtField ctx (noLoc $ ys ++ [e])
         cons = mapMaybe qualCon xs
         qualCon :: ExprLStmt GhcPs -> Maybe String
-        qualCon (L _ (BodyStmt _ (L _ (HsVar _ (L _ x))) _ _)) = Just (occNameString . rdrNameOcc $ x)
+        qualCon (L _ (BodyStmt _ (L _ (HsVar _ (L _ x))) _ _)) = Just (occNameStr x)
         qualCon _ = Nothing
 
 listCompCheckMap ::

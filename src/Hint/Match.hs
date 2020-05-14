@@ -233,7 +233,7 @@ checkDefine' declName Nothing y =
         L _ (HsApp _ fun _) -> funOrOp fun
         L _ (OpApp _ _ op _) -> funOrOp op
         other -> other
-   in declName /= varToStr (transformBi unqual' $ funOrOp y)
+   in declName /= varToStr (transformBi unqual $ funOrOp y)
 checkDefine' _ _ _ = True
 
 ---------------------------------------------------------------------

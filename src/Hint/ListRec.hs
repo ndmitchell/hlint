@@ -49,7 +49,6 @@ import RdrName
 import GHC.Hs.Binds
 import GHC.Hs.Expr
 import GHC.Hs.Decls
-import OccName
 import BasicTypes
 
 import GHC.Util
@@ -211,7 +210,7 @@ findBranch (L _ x) = do
                         }
             } <- pure x
   (a, b, c) <- findPat ps
-  pure $ Branch (occNameString $rdrNameOcc name) a b c $ simplifyExp' body
+  pure $ Branch (occNameStr name) a b c $ simplifyExp' body
 
 findPat :: [LPat GhcPs] -> Maybe ([String], Int, BList)
 findPat ps = do

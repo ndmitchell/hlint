@@ -72,7 +72,7 @@ findExp name vs bod = [SettingMatchExp $
         rhs = apps' $ map noLoc $ HsVar noExtField (noLoc name) : map snd rep
 
         rep = zip vs $ map (mkVar . pure) ['a'..]
-        f (HsVar _ x) | Just y <- lookup (occNameString $ occName $ unLoc x) rep = y
+        f (HsVar _ x) | Just y <- lookup (rdrNameStr x) rep = y
         f (OpApp _ x dol y) | isDol dol = HsApp noExtField x $ noLoc $ HsPar noExtField y
         f x = x
 

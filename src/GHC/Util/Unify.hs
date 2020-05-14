@@ -69,28 +69,28 @@ substitute' (Subst' bind) = transformBracketOld' exp . transformBi pat . transfo
   where
     exp :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
     -- Variables.
-    exp (L _ (HsVar _ x)) = lookup (rdrNameStr' x) bind
+    exp (L _ (HsVar _ x)) = lookup (rdrNameStr x) bind
     -- Operator applications.
     exp (L loc (OpApp _ lhs (L _ (HsVar _ x)) rhs))
-      | Just y <- lookup (rdrNameStr' x) bind = Just (cL loc (OpApp noExtField lhs y rhs))
+      | Just y <- lookup (rdrNameStr x) bind = Just (cL loc (OpApp noExtField lhs y rhs))
     -- Left sections.
     exp (L loc (SectionL _ exp (L _ (HsVar _ x))))
-      | Just y <- lookup (rdrNameStr' x) bind = Just (cL loc (SectionL noExtField exp y))
+      | Just y <- lookup (rdrNameStr x) bind = Just (cL loc (SectionL noExtField exp y))
     -- Right sections.
     exp (L loc (SectionR _ (L _ (HsVar _ x)) exp))
-      | Just y <- lookup (rdrNameStr' x) bind = Just (cL loc (SectionR noExtField y exp))
+      | Just y <- lookup (rdrNameStr x) bind = Just (cL loc (SectionR noExtField y exp))
     exp _ = Nothing
 
     pat :: LPat GhcPs -> LPat GhcPs
     -- Pattern variables.
     pat (L _ (VarPat _ x))
-      | Just y@(L _ HsVar{}) <- lookup (rdrNameStr' x) bind = strToPat $ varToStr y
+      | Just y@(L _ HsVar{}) <- lookup (rdrNameStr x) bind = strToPat $ varToStr y
     pat x = x :: LPat GhcPs
 
     typ :: LHsType GhcPs -> LHsType GhcPs
     -- Type variables.
     typ (L _ (HsTyVar _ _ x))
-      | Just (L _ (HsAppType _ _ (HsWC _ y))) <- lookup (rdrNameStr' x) bind = y
+      | Just (L _ (HsAppType _ _ (HsWC _ y))) <- lookup (rdrNameStr x) bind = y
     typ x = x :: LHsType GhcPs
 
 
@@ -137,8 +137,8 @@ unifyComposed' nm x1 y11 dot y12 =
 --   result = (Subst' [(n, 2), (x, xs)], Just (foo . bar . baz))
 unifyExp :: NameMatch' -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst' (LHsExpr GhcPs), Maybe (LHsExpr GhcPs))
 -- Match wildcard operators.
-unifyExp nm root (L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr' -> v))) rhs1))
-                 (L _ (OpApp _ lhs2 (L _ (HsVar _ (rdrNameStr' -> op2))) rhs2))
+unifyExp nm root (L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr -> v))) rhs1))
+                 (L _ (OpApp _ lhs2 (L _ (HsVar _ (rdrNameStr -> op2))) rhs2))
     | isUnifyVar v =
         (, Nothing) . (Subst' [(v, strToVar op2)] <>) <$>
         liftA2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
@@ -181,17 +181,17 @@ unifyExp' :: NameMatch' -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subs
 unifyExp' nm root x y | not root, isPar x, not $ isPar y = unifyExp' nm root (fromParen x) y
 -- Don't subsitute for type apps, since no one writes rules imaginging
 -- they exist.
-unifyExp' nm root (L _ (HsVar _ (rdrNameStr' -> v))) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst' [(v, y)]
+unifyExp' nm root (L _ (HsVar _ (rdrNameStr -> v))) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst' [(v, y)]
 unifyExp' nm root (L _ (HsVar _ x)) (L _ (HsVar _ y)) | nm x y = Just mempty
 
-unifyExp' nm root x@(L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr' -> v))) rhs1))
+unifyExp' nm root x@(L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr -> v))) rhs1))
                   y@(L _ (OpApp _ lhs2 (L _ (HsVar _ op2)) rhs2)) =
   fst <$> unifyExp nm root x y
-unifyExp' nm root (L _ (SectionL _ exp1 (L _ (HsVar _ (rdrNameStr' -> v)))))
-                  (L _ (SectionL _ exp2 (L _ (HsVar _ (rdrNameStr' -> op2)))))
+unifyExp' nm root (L _ (SectionL _ exp1 (L _ (HsVar _ (rdrNameStr -> v)))))
+                  (L _ (SectionL _ exp2 (L _ (HsVar _ (rdrNameStr -> op2)))))
     | isUnifyVar v = (Subst' [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
-unifyExp' nm root (L _ (SectionR _ (L _ (HsVar _ (rdrNameStr' -> v))) exp1))
-                  (L _ (SectionR _ (L _ (HsVar _ (rdrNameStr' -> op2))) exp2))
+unifyExp' nm root (L _ (SectionR _ (L _ (HsVar _ (rdrNameStr -> v))) exp1))
+                  (L _ (SectionR _ (L _ (HsVar _ (rdrNameStr -> op2))) exp2))
     | isUnifyVar v = (Subst' [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
 
 unifyExp' nm root x@(L _ (HsApp _ x1 x2)) y@(L _ (HsApp _ y1 y2)) =
@@ -215,10 +215,10 @@ unifyExp' _ _ _ _ = Nothing
 
 unifyPat' :: NameMatch' -> LPat GhcPs -> LPat GhcPs -> Maybe (Subst' (LHsExpr GhcPs))
 unifyPat' nm (L _ (VarPat _ x)) (L _ (VarPat _ y)) =
-  Just $ Subst' [(rdrNameStr' x, strToVar(rdrNameStr' y))]
+  Just $ Subst' [(rdrNameStr x, strToVar(rdrNameStr y))]
 unifyPat' nm (L _ (VarPat _ x)) (L _ (WildPat _)) =
-  let s = rdrNameStr' x in Just $ Subst' [(s, strToVar("_" ++ s))]
-unifyPat' nm (L _ (ConPatIn x _)) (L _ (ConPatIn y _)) | rdrNameStr' x /= rdrNameStr' y =
+  let s = rdrNameStr x in Just $ Subst' [(s, strToVar("_" ++ s))]
+unifyPat' nm (L _ (ConPatIn x _)) (L _ (ConPatIn y _)) | rdrNameStr x /= rdrNameStr y =
   Nothing
 unifyPat' nm x y =
   unifyDef' nm x y
@@ -228,5 +228,5 @@ unifyType' nm (L loc (HsTyVar _ _ x)) y =
   let wc = HsWC noExtField y :: LHsWcType (NoGhcTc GhcPs)
       unused = noLoc (HsVar noExtField (noLoc $ mkRdrUnqual (mkVarOcc "__unused__"))) :: LHsExpr GhcPs
       appType = cL loc (HsAppType noExtField unused wc) :: LHsExpr GhcPs
- in Just $ Subst' [(rdrNameStr' x, appType)]
+ in Just $ Subst' [(rdrNameStr x, appType)]
 unifyType' nm x y = unifyDef' nm x y

@@ -151,6 +151,6 @@ checkFunctions modu decls (def, mp) =
     | d <- decls
     , let dname = fromMaybe "" (declName d)
     , x <- universeBi d :: [Located RdrName]
-    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] [] Nothing) (occNameString (rdrNameOcc (unLoc x))) mp
+    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] [] Nothing) (rdrNameStr x) mp
     , not $ within modu dname ri
     ]

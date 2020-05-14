@@ -9,10 +9,8 @@ module GHC.Util.View (
 
 import GHC.Hs
 import SrcLoc
-import RdrName
-import OccName
 import BasicTypes
-import GHC.Util.RdrName (rdrNameStr')
+import GHC.Util.RdrName (rdrNameStr, occNameStr)
 
 fromParen :: LHsExpr GhcPs -> LHsExpr GhcPs
 fromParen (L _ (HsPar _ x)) = fromParen x
@@ -37,7 +35,7 @@ instance View (LHsExpr GhcPs) LamConst1 where
   view _ = NoLamConst1
 
 instance View (LHsExpr GhcPs) Var_ where
-    view (fromParen -> (L _ (HsVar _ (rdrNameStr' -> x)))) = Var_ x
+    view (fromParen -> (L _ (HsVar _ (rdrNameStr -> x)))) = Var_ x
     view _ = NoVar_
 
 instance View (LHsExpr GhcPs) App2 where
@@ -46,14 +44,14 @@ instance View (LHsExpr GhcPs) App2 where
   view _ = NoApp2
 
 instance View (Located (Pat GhcPs)) PVar_ where
-  view (fromPParen -> L _ (VarPat _ (L _ x))) = PVar_ $ occNameString (rdrNameOcc x)
+  view (fromPParen -> L _ (VarPat _ (L _ x))) = PVar_ $ occNameStr x
   view _ = NoPVar_
 
 instance View (Located (Pat GhcPs)) PApp_ where
   view (fromPParen -> L _ (ConPatIn (L _ x) (PrefixCon args))) =
-    PApp_ (occNameString . rdrNameOcc $ x) args
+    PApp_ (occNameStr x) args
   view (fromPParen -> L _ (ConPatIn (L _ x) (InfixCon lhs rhs))) =
-    PApp_ (occNameString . rdrNameOcc $ x) [lhs, rhs]
+    PApp_ (occNameStr x) [lhs, rhs]
   view _ = NoPApp_
 
 -- A lambda with no guards and no where clauses
