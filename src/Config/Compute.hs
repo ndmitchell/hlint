@@ -13,10 +13,11 @@ import GHC.Hs hiding (Warning)
 import RdrName
 import Name
 import Bag
+import SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
-import SrcLoc
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Prelude
 
 

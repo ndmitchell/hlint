@@ -63,6 +63,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.Types
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 listHint :: DeclHint
 listHint _ _ = listDecl

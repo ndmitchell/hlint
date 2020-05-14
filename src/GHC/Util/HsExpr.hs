@@ -21,7 +21,6 @@ import RdrName
 import OccName
 import Bag(bagToList)
 
-import GHC.Util.RdrName(occNameStr)
 import GHC.Util.Brackets
 import GHC.Util.View
 import GHC.Util.FreeVars
@@ -42,6 +41,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 -- | 'dotApp a b' makes 'a . b'.
 dotApp' :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs

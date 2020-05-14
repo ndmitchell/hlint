@@ -25,6 +25,7 @@ import ApiAnnotation
 import Outputable
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 -- | Read an {-# ANN #-} pragma and determine if it is intended for HLint.
 --   Return Nothing if it is not an HLint pragma, otherwise what it means.

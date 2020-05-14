@@ -16,7 +16,7 @@ import RdrName
 import OccName
 
 import GHC.Util.Module
-import GHC.Util.RdrName
+import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 import Data.List.Extra
