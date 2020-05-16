@@ -37,7 +37,7 @@ not . not ==> id
 not . not . x ==> x
 -}
 
-module Hint.Match(readMatch') where
+module Hint.Match(readMatch) where
 
 import Hint.Type (ModuleEx,Idea,idea,ideaNote,toSS)
 import Util
@@ -64,19 +64,19 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
-readMatch' :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
-readMatch' settings = findIdeas' (concatMap readRule' settings)
+readMatch :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
+readMatch settings = findIdeas (concatMap readRule settings)
 
-readRule' :: HintRule -> [HintRule]
-readRule' m@HintRule{ hintRuleLHS=(stripLocs' . unextendInstances -> hintRuleLHS)
-                    , hintRuleRHS=(stripLocs' . unextendInstances -> hintRuleRHS)
-                    , hintRuleSide=((stripLocs' . unextendInstances <$>) -> hintRuleSide)
+readRule :: HintRule -> [HintRule]
+readRule m@HintRule{ hintRuleLHS=(stripLocs . unextendInstances -> hintRuleLHS)
+                    , hintRuleRHS=(stripLocs . unextendInstances -> hintRuleRHS)
+                    , hintRuleSide=((stripLocs . unextendInstances <$>) -> hintRuleSide)
                     } =
    (:) m{ hintRuleLHS=extendInstances hintRuleLHS
         , hintRuleRHS=extendInstances hintRuleRHS
         , hintRuleSide=extendInstances <$> hintRuleSide } $ do
-    (l, v1) <- dotVersion' hintRuleLHS
-    (r, v2) <- dotVersion' hintRuleRHS
+    (l, v1) <- dotVersion hintRuleLHS
+    (r, v2) <- dotVersion hintRuleRHS
 
     guard $ v1 == v2 && not (null l) && (length l > 1 || length r > 1) && Set.notMember v1 (Set.map occNameString (freeVars $ maybeToList hintRuleSide ++ l ++ r))
     if not (null r) then
@@ -89,10 +89,10 @@ readRule' m@HintRule{ hintRuleLHS=(stripLocs' . unextendInstances -> hintRuleLHS
 
 -- Find a dot version of this rule, return the sequence of app
 -- prefixes, and the var.
-dotVersion' :: LHsExpr GhcPs -> [([LHsExpr GhcPs], String)]
-dotVersion' (view -> Var_ v) | isUnifyVar v = [([], v)]
-dotVersion' (L _ (HsApp _ ls rs)) = first (ls :) <$> dotVersion' (fromParen rs)
-dotVersion' (L l (OpApp _ x op y)) =
+dotVersion :: LHsExpr GhcPs -> [([LHsExpr GhcPs], String)]
+dotVersion (view -> Var_ v) | isUnifyVar v = [([], v)]
+dotVersion (L _ (HsApp _ ls rs)) = first (ls :) <$> dotVersion (fromParen rs)
+dotVersion (L l (OpApp _ x op y)) =
   -- In a GHC parse tree, raw sections aren't valid application terms.
   -- To be suitable as application terms, they must be enclosed in
   -- parentheses.
@@ -101,27 +101,27 @@ dotVersion' (L l (OpApp _ x op y)) =
   --   x is 'a', op is '==' and y is 'b' and,
   let lSec = addParen (cL l (SectionL noExtField x op)) -- (a == )
       rSec = addParen (cL l (SectionR noExtField op y)) -- ( == b)
-  in (first (lSec :) <$> dotVersion' y) ++ (first (rSec :) <$> dotVersion' x) -- [([(a ==)], b), ([(b == )], a])].
-dotVersion' _ = []
+  in (first (lSec :) <$> dotVersion y) ++ (first (rSec :) <$> dotVersion x) -- [([(a ==)], b), ([(b == )], a])].
+dotVersion _ = []
 
 ---------------------------------------------------------------------
 -- PERFORM THE MATCHING
 
-findIdeas' :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
-findIdeas' matches s _ decl = timed "Hint" "Match apply" $ forceList
+findIdeas :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
+findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
     [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
-    | (name, expr) <- findDecls' decl
+    | (name, expr) <- findDecls decl
     , (parent,x) <- universeParentExp' expr
     , m <- matches, Just (y, tpl, notes, subst) <- [matchIdea s name m parent x]
     , let r = R.Replace R.Expr (toSS x) subst (unsafePrettyPrint tpl)
     ]
 
 -- | A list of root expressions, with their associated names
-findDecls' :: LHsDecl GhcPs -> [(String, LHsExpr GhcPs)]
-findDecls' x@(L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
+findDecls :: LHsDecl GhcPs -> [(String, LHsExpr GhcPs)]
+findDecls x@(L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
     [(fromMaybe "" $ bindName xs, x) | xs <- bagToList cid_binds, x <- childrenBi xs]
-findDecls' (L _ RuleD{}) = [] -- Often rules contain things that HLint would rewrite.
-findDecls' x = map (fromMaybe "" $ declName x,) $ childrenBi x
+findDecls (L _ RuleD{}) = [] -- Often rules contain things that HLint would rewrite.
+findDecls x = map (fromMaybe "" $ declName x,) $ childrenBi x
 
 matchIdea :: Scope
            -> String
@@ -135,18 +135,18 @@ matchIdea sb declName HintRule{..} parent x = do
       sa  = hintRuleScope
       nm a b = scopeMatch (sa, a) (sb, b)
   (u, extra) <- unifyExp nm True lhs x
-  u <- validSubst' astEq u
+  u <- validSubst astEq u
 
   -- Need to check free vars before unqualification, but after subst
   -- (with 'e') need to unqualify before substitution (with 'res').
-  let rhs' | Just fun <- extra = rebracket1' $ noLoc (HsApp noExtField fun rhs)
+  let rhs' | Just fun <- extra = rebracket1 $ noLoc (HsApp noExtField fun rhs)
            | otherwise = rhs
-      (e, tpl) = substitute' u rhs'
+      (e, tpl) = substitute u rhs'
       noParens = [varToStr $ fromParen x | L _ (HsApp _ (varToStr -> "_noParen_") x) <- universe tpl]
 
   u <- pure (removeParens noParens u)
 
-  let res = addBracketTy' (addBracket' parent $ performSpecial' $ fst $ substitute' u $ unqualify' sa sb rhs')
+  let res = addBracketTy (addBracket parent $ performSpecial $ fst $ substitute u $ unqualify sa sb rhs')
   guard $ (freeVars e Set.\\ Set.filter (not . isUnifyVar . occNameString) (freeVars rhs')) `Set.isSubsetOf` freeVars x
       -- Check no unexpected new free variables.
 
@@ -156,39 +156,39 @@ matchIdea sb declName HintRule{..} parent x = do
   -- what free vars they make use of.
   guard $ not (any isLambda $ universe lhs) || not (any isQuasiQuote $ universe x)
 
-  guard $ checkSide' (unextendInstances <$> hintRuleSide) $ ("original", x) : ("result", res) : fromSubst' u
-  guard $ checkDefine' declName parent res
+  guard $ checkSide (unextendInstances <$> hintRuleSide) $ ("original", x) : ("result", res) : fromSubst' u
+  guard $ checkDefine declName parent res
 
   (u, tpl) <- pure $ if any ((== noSrcSpan) . getLoc . snd) (fromSubst' u) then (mempty, res) else (u, tpl)
-  tpl <- pure $ unqualify' sa sb (performSpecial' tpl)
+  tpl <- pure $ unqualify sa sb (performSpecial tpl)
 
   pure (res, tpl, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
 
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS
 
-checkSide' :: Maybe (LHsExpr GhcPs) -> [(String, LHsExpr GhcPs)] -> Bool
-checkSide' x bind = maybe True bool x
+checkSide :: Maybe (LHsExpr GhcPs) -> [(String, LHsExpr GhcPs)] -> Bool
+checkSide x bind = maybe True bool x
     where
       bool :: LHsExpr GhcPs -> Bool
       bool (L _ (OpApp _ x op y))
         | varToStr op == "&&" = bool x && bool y
         | varToStr op == "||" = bool x || bool y
-        | varToStr op == "==" = expr (fromParen1' x) `astEq` expr (fromParen1' y)
+        | varToStr op == "==" = expr (fromParen1 x) `astEq` expr (fromParen1 y)
       bool (L _ (HsApp _ x y)) | varToStr x == "not" = not $ bool y
       bool (L _ (HsPar _ x)) = bool x
 
       bool (L _ (HsApp _ cond (sub -> y)))
         | 'i' : 's' : typ <- varToStr cond = isType typ y
       bool (L _ (HsApp _ (L _ (HsApp _ cond (sub -> x))) (sub -> y)))
-          | varToStr cond == "notIn" = and [extendInstances (stripLocs' x) `notElem` map (extendInstances . stripLocs') (universe y) | x <- list x, y <- list y]
+          | varToStr cond == "notIn" = and [extendInstances (stripLocs x) `notElem` map (extendInstances . stripLocs) (universe y) | x <- list x, y <- list y]
           | varToStr cond == "notEq" = not (x `astEq` y)
       bool x | varToStr x == "noTypeCheck" = True
       bool x | varToStr x == "noQuickCheck" = True
-      bool x = error $ "Hint.Match.checkSide', unknown side condition: " ++ unsafePrettyPrint x
+      bool x = error $ "Hint.Match.checkSide, unknown side condition: " ++ unsafePrettyPrint x
 
       expr :: LHsExpr GhcPs -> LHsExpr GhcPs
-      expr (L _ (HsApp _ (varToStr -> "subst") x)) = sub $ fromParen1' x
+      expr (L _ (HsApp _ (varToStr -> "subst") x)) = sub $ fromParen1 x
       expr x = x
 
       isType "Compare" x = True -- Just a hint for proof stuff
@@ -228,43 +228,43 @@ checkSide' x bind = maybe True bool x
               f x = x
 
 -- Does the result look very much like the declaration?
-checkDefine' :: String -> Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
-checkDefine' declName Nothing y =
+checkDefine :: String -> Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
+checkDefine declName Nothing y =
   let funOrOp expr = case expr of
         L _ (HsApp _ fun _) -> funOrOp fun
         L _ (OpApp _ _ op _) -> funOrOp op
         other -> other
    in declName /= varToStr (transformBi unqual $ funOrOp y)
-checkDefine' _ _ _ = True
+checkDefine _ _ _ = True
 
 ---------------------------------------------------------------------
 -- TRANSFORMATION
 
 -- If it has '_noParen_', remove the brackets (if exist).
-performSpecial' :: LHsExpr GhcPs -> LHsExpr GhcPs
-performSpecial' = transform fNoParen
+performSpecial :: LHsExpr GhcPs -> LHsExpr GhcPs
+performSpecial = transform fNoParen
   where
     fNoParen :: LHsExpr GhcPs -> LHsExpr GhcPs
     fNoParen (L _ (HsApp _ e x)) | varToStr e == "_noParen_" = fromParen x
     fNoParen x = x
 
 -- Contract : 'Data.List.foo' => 'foo' if 'Data.List' is loaded.
-unqualify' :: Scope -> Scope -> LHsExpr GhcPs -> LHsExpr GhcPs
-unqualify' from to = transformBi f
+unqualify :: Scope -> Scope -> LHsExpr GhcPs -> LHsExpr GhcPs
+unqualify from to = transformBi f
   where
     f :: Located RdrName -> Located RdrName
     f x@(L _ (Unqual s)) | isUnifyVar (occNameString s) = x
     f x = scopeMove (from, x) to
 
-addBracket' :: Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> LHsExpr GhcPs
-addBracket' (Just (i, p)) c | needBracketOld' i p c = noLoc $ HsPar noExtField c
-addBracket' _ x = x
+addBracket :: Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> LHsExpr GhcPs
+addBracket (Just (i, p)) c | needBracketOld' i p c = noLoc $ HsPar noExtField c
+addBracket _ x = x
 
 -- Type substitution e.g. 'Foo Int' for 'a' in 'Proxy a' can lead to a
 -- need to bracket type applications in  This doesn't come up in HSE
 -- because the pretty printer inserts them.
-addBracketTy' :: LHsExpr GhcPs -> LHsExpr GhcPs
-addBracketTy'= transformBi f
+addBracketTy :: LHsExpr GhcPs -> LHsExpr GhcPs
+addBracketTy= transformBi f
   where
     f :: LHsType GhcPs -> LHsType GhcPs
     f (L _ (HsAppTy _ t x@(L _ HsAppTy{}))) =
