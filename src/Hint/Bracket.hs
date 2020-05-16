@@ -76,7 +76,7 @@ foo = (case x of y -> z; q -> w) :: Int
 main = do a += b . c; return $ a . b
 
 -- <$> bracket tests
-yes = (foo . bar x) <$> baz q -- foo . bar x <$> baz q @NoRefactor: refactoring for "(v1 . v2) <$> v3" is not implemented
+yes = (foo . bar x) <$> baz q -- foo . bar x <$> baz q
 no = foo . bar x <$> baz q
 
 -- annotations
@@ -98,7 +98,7 @@ loadCradleOnlyonce = skipManyTill anyMessage (message @PublishDiagnosticsNotific
 
 module Hint.Bracket(bracketHint) where
 
-import Hint.Type(DeclHint,Idea(..),rawIdea,warn,suggest,suggestRemove,Severity(..),toSS)
+import Hint.Type(DeclHint,Idea(..),rawIdea,warn,suggest,suggestRemove,Severity(..),toRefactSrcSpan,toSS)
 import Data.Data
 import Data.List.Extra
 import Data.Generics.Uniplate.Operations
@@ -245,9 +245,10 @@ dollar = concatMap f . universe
             , let y = noLoc $ HsApp noExtField a1 (noLoc (HsPar noExtField a2))
             , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]
           ++  -- Special case of (v1 . v2) <$> v3
-          [ suggest "Redundant bracket" x y []
-          | L _ (OpApp _ (L _ (HsPar _ o1@(L _ (OpApp _ v1 (isDot -> True) v2)))) o2 v3) <- [x], varToStr o2 == "<$>"
-          , let y = noLoc (OpApp noExtField o1 o2 v3) :: LHsExpr GhcPs]
+          [ suggest "Redundant bracket" x y [r]
+          | L _ (OpApp _ (L locPar (HsPar _ o1@(L locNoPar (OpApp _ v1 (isDot -> True) v2)))) o2 v3) <- [x], varToStr o2 == "<$>"
+          , let y = noLoc (OpApp noExtField o1 o2 v3) :: LHsExpr GhcPs
+          , let r = Replace Expr (toRefactSrcSpan locPar) [("a", toRefactSrcSpan locNoPar)] "a"]
           ++
           [ suggest "Redundant section" x y []
           | L _ (HsApp _ (L _ (HsPar _ (L _ (SectionL _ a b)))) c) <- [x]
