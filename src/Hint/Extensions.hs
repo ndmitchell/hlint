@@ -410,13 +410,13 @@ used DeriveTraversable = hasDerive ["Traversable","Foldable","Functor"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
 used GeneralizedNewtypeDeriving = not . null . derivesNewtype' . derives
 used MultiWayIf = hasS isMultiIf
-used NumericUnderscores = hasS fInt ||^ hasS fFrac
+used NumericUnderscores = hasS f
   where
-    fInt :: IntegralLit -> Bool
-    fInt (IL (SourceText t) _ _) = '_' `elem` t
+    f :: OverLitVal -> Bool
+    f (HsIntegral (IL (SourceText t) _ _)) = '_' `elem` t
+    f (HsFractional (FL (SourceText t) _ _)) = '_' `elem` t
+    f _ = False
 
-    fFrac:: FractionalLit -> Bool
-    fFrac (FL (SourceText t) _ _) = '_' `elem` t
 used LambdaCase = hasS isLCase
 used TupleSections = hasS isTupleSection
 used OverloadedStrings = hasS isString
