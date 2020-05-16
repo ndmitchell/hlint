@@ -191,6 +191,12 @@ foo = Foo{x}
 {-# LANGUAGE NamedFieldPuns #-} \
 foo = bar{x}
 {-# LANGUAGE NamedFieldPuns #-} --
+{-# LANGUAGE NumericUnderscores #-} \
+lessThanPi = (< 3.141_592_653_589_793)
+{-# LANGUAGE NumericUnderscores #-} \
+oneMillion = 0xf4__240
+{-# LANGUAGE NumericUnderscores #-} \
+avogadro = 6.022140857e+23 --
 {-# LANGUAGE StaticPointers #-} \
 static = 42 --
 {-# LANGUAGE Trustworthy #-}
@@ -341,11 +347,11 @@ used EmptyCase = hasS f
 used KindSignatures = hasT (un :: HsKind GhcPs)
 used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
 used TemplateHaskell = hasT2' (un :: (HsBracket GhcPs, HsSplice GhcPs)) ||^ hasS f ||^ hasS isSpliceDecl
-    where
-      f :: HsBracket GhcPs -> Bool
-      f VarBr{} = True
-      f TypBr{} = True
-      f _ = False
+  where
+    f :: HsBracket GhcPs -> Bool
+    f VarBr{} = True
+    f TypBr{} = True
+    f _ = False
 used ForeignFunctionInterface = hasT (un :: CCallConv)
 used PatternGuards = hasS f
   where
@@ -378,17 +384,17 @@ used TypeOperators = hasS tyOpInSig ||^ hasS tyOpInDecl
 used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
 used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
 used UnboxedTuples = hasS isUnboxedTuple ||^ hasS (== Unboxed) ||^ hasS isDeriving
-    where
-        -- detect if there are deriving declarations or data ... deriving stuff
-        -- by looking for the deriving strategy both contain (even if its Nothing)
-        -- see https://github.com/ndmitchell/hlint/issues/833 for why we care
-        isDeriving :: Maybe (LDerivStrategy GhcPs) -> Bool
-        isDeriving _ = True
+  where
+      -- detect if there are deriving declarations or data ... deriving stuff
+      -- by looking for the deriving strategy both contain (even if its Nothing)
+      -- see https://github.com/ndmitchell/hlint/issues/833 for why we care
+      isDeriving :: Maybe (LDerivStrategy GhcPs) -> Bool
+      isDeriving _ = True
 used PackageImports = hasS f
-    where
-        f :: ImportDecl GhcPs -> Bool
-        f ImportDecl{ideclPkgQual=Just _} = True
-        f _ = False
+  where
+      f :: ImportDecl GhcPs -> Bool
+      f ImportDecl{ideclPkgQual=Just _} = True
+      f _ = False
 used QuasiQuotes = hasS isQuasiQuote ||^ hasS isTyQuasiQuote
 used ViewPatterns = hasS isPViewPat
 used InstanceSigs = hasS f
@@ -404,24 +410,31 @@ used DeriveTraversable = hasDerive ["Traversable","Foldable","Functor"]
 used DeriveGeneric = hasDerive ["Generic","Generic1"]
 used GeneralizedNewtypeDeriving = not . null . derivesNewtype' . derives
 used MultiWayIf = hasS isMultiIf
+used NumericUnderscores = hasS f
+  where
+    f :: OverLitVal -> Bool
+    f (HsIntegral (IL (SourceText t) _ _)) = '_' `elem` t
+    f (HsFractional (FL (SourceText t) _ _)) = '_' `elem` t
+    f _ = False
+
 used LambdaCase = hasS isLCase
 used TupleSections = hasS isTupleSection
 used OverloadedStrings = hasS isString
 used Arrows = hasS isProc
 used TransformListComp = hasS isTransStmt
 used MagicHash = hasS f ||^ hasS isPrimLiteral
-    where
-      f :: RdrName -> Bool
-      f s = "#" `isSuffixOf` occNameStr s
+  where
+    f :: RdrName -> Bool
+    f s = "#" `isSuffixOf` occNameStr s
 used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
-    where
-      isPatSynBind :: HsBind GhcPs -> Bool
-      isPatSynBind PatSynBind{} = True
-      isPatSynBind _ = False
+  where
+    isPatSynBind :: HsBind GhcPs -> Bool
+    isPatSynBind PatSynBind{} = True
+    isPatSynBind _ = False
 
-      isPatSynIE :: IEWrappedName RdrName -> Bool
-      isPatSynIE IEPattern{} = True
-      isPatSynIE _ = False
+    isPatSynIE :: IEWrappedName RdrName -> Bool
+    isPatSynIE IEPattern{} = True
+    isPatSynIE _ = False
 used _= const True
 
 hasDerive :: [String] -> Located (HsModule GhcPs) -> Bool
