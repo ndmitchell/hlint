@@ -239,6 +239,8 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.Types
 import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
+import Language.Haskell.GhclibParserEx.GHC.Hs.Binds
+import Language.Haskell.GhclibParserEx.GHC.Hs.ImpExp
 import Language.Haskell.GhclibParserEx.GHC.Driver.Session
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
@@ -427,14 +429,6 @@ used MagicHash = hasS f ||^ hasS isPrimLiteral
     f :: RdrName -> Bool
     f s = "#" `isSuffixOf` occNameStr s
 used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
-  where
-    isPatSynBind :: HsBind GhcPs -> Bool
-    isPatSynBind PatSynBind{} = True
-    isPatSynBind _ = False
-
-    isPatSynIE :: IEWrappedName RdrName -> Bool
-    isPatSynIE IEPattern{} = True
-    isPatSynIE _ = False
 used _= const True
 
 hasDerive :: [String] -> Located (HsModule GhcPs) -> Bool
