@@ -3,7 +3,7 @@
 
 module GHC.Util.Unify(
     Subst', fromSubst',
-    validSubst', removeParens, substitute',
+    validSubst, removeParens, substitute,
     unifyExp
     ) where
 
@@ -49,8 +49,8 @@ instance Outputable a => Show (Subst' a) where
     show (Subst' xs) = unlines [a ++ " = " ++ unsafePrettyPrint b | (a,b) <- xs]
 
 -- Check the unification is valid and simplify it.
-validSubst' :: (a -> a -> Bool) -> Subst' a -> Maybe (Subst' a)
-validSubst' eq = fmap Subst' . mapM f . groupSort . fromSubst'
+validSubst :: (a -> a -> Bool) -> Subst' a -> Maybe (Subst' a)
+validSubst eq = fmap Subst' . mapM f . groupSort . fromSubst'
     where f (x, y : ys) | all (eq y) ys = Just (x, y)
           f _ = Nothing
 
@@ -64,8 +64,8 @@ removeParens noParens (Subst' xs) = Subst' $
 -- Returns (suggested replacement, refactor template), both with brackets added
 -- as needed.
 -- Example: (traverse foo (bar baz), traverse f (x))
-substitute' :: Subst' (LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
-substitute' (Subst' bind) = transformBracketOld' exp . transformBi pat . transformBi typ
+substitute :: Subst' (LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
+substitute (Subst' bind) = transformBracketOld' exp . transformBi pat . transformBi typ
   where
     exp :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
     -- Variables.

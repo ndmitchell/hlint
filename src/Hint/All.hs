@@ -75,7 +75,7 @@ builtinHints = [(drop 4 $ show h, builtin h) | h <- enumerate]
 -- | Transform a list of 'HintBuiltin' or 'HintRule' into a 'Hint'.
 resolveHints :: [Either HintBuiltin HintRule] -> Hint
 resolveHints xs =
-  mconcat $ mempty{hintDecl=const $ readMatch' rights} : map builtin (nubOrd lefts)
+  mconcat $ mempty{hintDecl=const $ readMatch rights} : map builtin (nubOrd lefts)
   where (lefts,rights) = partitionEithers xs
 
 -- | Transform a list of 'HintRule' into a 'Hint'.

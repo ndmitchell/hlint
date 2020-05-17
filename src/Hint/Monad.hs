@@ -194,7 +194,7 @@ monadStep wrap o@[ g@(L _ (BindStmt _ (LL _ (VarPat _ (L _ p))) x _ _ ))
 monadStep wrap o@(g@(L _ (BindStmt _ (view -> PVar_ p) x _ _)):q@(L _ (BodyStmt _ (view -> Var_ v) _ _)):xs)
   | p == v && v `notElem` varss xs
   = let app = noLoc $ HsApp noExtField (strToVar "join") x
-        body = noLoc $ BodyStmt noExtField (rebracket1' app) noSyntaxExpr noSyntaxExpr
+        body = noLoc $ BodyStmt noExtField (rebracket1 app) noSyntaxExpr noSyntaxExpr
         stmts = body : xs
     in [warn "Use join" (wrap o) (wrap stmts) r]
   where r = [Replace Stmt (toSS g) [("x", toSS x)] "join x", Delete Stmt (toSS q)]

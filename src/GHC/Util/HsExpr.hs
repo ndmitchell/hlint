@@ -6,10 +6,10 @@ module GHC.Util.HsExpr (
     dotApps', lambda
   , simplifyExp', niceLambda', niceLambdaR'
   , Brackets(..)
-  , rebracket1', appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'
+  , rebracket1, appsBracket', transformAppsM', fromApps', apps', universeApps', universeParentExp'
   , paren'
   , replaceBranches'
-  , needBracketOld', transformBracketOld', fromParen1'
+  , needBracketOld', transformBracketOld', fromParen1
   , allowLeftSection, allowRightSection
 ) where
 
@@ -105,13 +105,13 @@ descendBracket' op x = descendIndex' g x
         f _ y = y
 
 -- Add brackets as suggested 'needBracket at 1-level of depth.
-rebracket1' :: LHsExpr GhcPs -> LHsExpr GhcPs
-rebracket1' = descendBracket' (True, )
+rebracket1 :: LHsExpr GhcPs -> LHsExpr GhcPs
+rebracket1 = descendBracket' (True, )
 
 -- A list of application, with any necessary brackets.
 appsBracket' :: [LHsExpr GhcPs] -> LHsExpr GhcPs
 appsBracket' = foldl1 mkApp
-  where mkApp x y = rebracket1' (noLoc $ HsApp noExtField x y)
+  where mkApp x y = rebracket1 (noLoc $ HsApp noExtField x y)
 
 
 simplifyExp' :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -194,7 +194,7 @@ niceLambdaR' xs (SimpleLambda ((view -> PVar_ v):vs) x)
 -- lexeme, or it all gets too complex).
 niceLambdaR' [x] (view -> App2 op@(L _ (HsVar _ (L _ tag))) l r)
   | isLexeme r, view l == Var_ x, x `notElem` vars r, allowRightSection (occNameStr tag) =
-      let e = rebracket1' $ addParen (noLoc $ SectionR noExtField op r)
+      let e = rebracket1 $ addParen (noLoc $ SectionR noExtField op r)
       in (e, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 -- Rewrite (1) @\x -> f (b x)@ as @f . b@, (2) @\x -> f $ b x@ as @f . b@.
 niceLambdaR' [x] y
@@ -297,6 +297,6 @@ descendBracketOld' op x = (descendIndex' g1 x, descendIndex' g2 x)
     f1 = ((fst .) .) . f
     f2 = ((snd .) .) . f
 
-fromParen1' :: LHsExpr GhcPs -> LHsExpr GhcPs
-fromParen1' (L _ (HsPar _ x)) = x
-fromParen1' x = x
+fromParen1 :: LHsExpr GhcPs -> LHsExpr GhcPs
+fromParen1 (L _ (HsPar _ x)) = x
+fromParen1 x = x
