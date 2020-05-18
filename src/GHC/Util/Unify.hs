@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, DeriveFunctor #-}
 
 module GHC.Util.Unify(
-    Subst', fromSubst',
+    Subst, fromSubst,
     validSubst, removeParens, substitute,
     unifyExp
     ) where
@@ -19,7 +19,6 @@ import GHC.Hs
 import SrcLoc
 import Outputable hiding ((<>))
 import RdrName
-import OccName
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -38,34 +37,34 @@ isUnifyVar xs = all (== '?') xs
 
 -- A list of substitutions. A key may be duplicated, you need to call
 --  'check' to ensure the substitution is valid.
-newtype Subst' a = Subst' [(String, a)]
+newtype Subst a = Subst [(String, a)]
     deriving (Semigroup, Monoid, Functor)
 
 -- Unpack the substitution.
-fromSubst' :: Subst' a -> [(String, a)]
-fromSubst' (Subst' xs) = xs
+fromSubst :: Subst a -> [(String, a)]
+fromSubst (Subst xs) = xs
 
-instance Outputable a => Show (Subst' a) where
-    show (Subst' xs) = unlines [a ++ " = " ++ unsafePrettyPrint b | (a,b) <- xs]
+instance Outputable a => Show (Subst a) where
+    show (Subst xs) = unlines [a ++ " = " ++ unsafePrettyPrint b | (a,b) <- xs]
 
 -- Check the unification is valid and simplify it.
-validSubst :: (a -> a -> Bool) -> Subst' a -> Maybe (Subst' a)
-validSubst eq = fmap Subst' . mapM f . groupSort . fromSubst'
+validSubst :: (a -> a -> Bool) -> Subst a -> Maybe (Subst a)
+validSubst eq = fmap Subst . mapM f . groupSort . fromSubst
     where f (x, y : ys) | all (eq y) ys = Just (x, y)
           f _ = Nothing
 
--- Remove unnecessary brackets from a Subst'. The first argument is a list of unification variables
+-- Remove unnecessary brackets from a Subst. The first argument is a list of unification variables
 -- for which brackets should be removed from their substitutions.
-removeParens :: [String] -> Subst' (LHsExpr GhcPs) -> Subst' (LHsExpr GhcPs)
-removeParens noParens (Subst' xs) = Subst' $
+removeParens :: [String] -> Subst (LHsExpr GhcPs) -> Subst (LHsExpr GhcPs)
+removeParens noParens (Subst xs) = Subst $
   map (\(x, y) -> if x `elem` noParens then (x, fromParen y) else (x, y)) xs
 
 -- Peform a substition.
 -- Returns (suggested replacement, refactor template), both with brackets added
 -- as needed.
 -- Example: (traverse foo (bar baz), traverse f (x))
-substitute :: Subst' (LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
-substitute (Subst' bind) = transformBracketOld' exp . transformBi pat . transformBi typ
+substitute :: Subst (LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
+substitute (Subst bind) = transformBracketOld exp . transformBi pat . transformBi typ
   where
     exp :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
     -- Variables.
@@ -97,11 +96,11 @@ substitute (Subst' bind) = transformBracketOld' exp . transformBi pat . transfor
 ---------------------------------------------------------------------
 -- UNIFICATION
 
-type NameMatch' = Located RdrName -> Located RdrName -> Bool
+type NameMatch = Located RdrName -> Located RdrName -> Bool
 
 -- | Unification, obeys the property that if @unify a b = s@, then
 -- @substitute s a = b@.
-unify' :: Data a => NameMatch' -> Bool -> a -> a -> Maybe (Subst' (LHsExpr GhcPs))
+unify' :: Data a => NameMatch -> Bool -> a -> a -> Maybe (Subst (LHsExpr GhcPs))
 unify' nm root x y
     | Just (x, y) <- cast (x, y) = unifyExp' nm root x y
     | Just (x, y) <- cast (x, y) = unifyPat' nm x y
@@ -109,13 +108,13 @@ unify' nm root x y
     | Just (x :: SrcSpan) <- cast x = Just mempty
     | otherwise = unifyDef' nm x y
 
-unifyDef' :: Data a => NameMatch' -> a -> a -> Maybe (Subst' (LHsExpr GhcPs))
+unifyDef' :: Data a => NameMatch -> a -> a -> Maybe (Subst (LHsExpr GhcPs))
 unifyDef' nm x y = fmap mconcat . sequence =<< gzip (unify' nm False) x y
 
-unifyComposed' :: NameMatch'
+unifyComposed' :: NameMatch
                -> LHsExpr GhcPs
                -> LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
-               -> Maybe (Subst' (LHsExpr GhcPs), Maybe (LHsExpr GhcPs))
+               -> Maybe (Subst (LHsExpr GhcPs), Maybe (LHsExpr GhcPs))
 unifyComposed' nm x1 y11 dot y12 =
   ((, Just y11) <$> unifyExp' nm False x1 y12)
     <|> case y12 of
@@ -134,13 +133,13 @@ unifyComposed' nm x1 y11 dot y12 =
 -- Example:
 --   x = head (drop n x)
 --   y = foo . bar . baz . head $ drop 2 xs
---   result = (Subst' [(n, 2), (x, xs)], Just (foo . bar . baz))
-unifyExp :: NameMatch' -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst' (LHsExpr GhcPs), Maybe (LHsExpr GhcPs))
+--   result = (Subst [(n, 2), (x, xs)], Just (foo . bar . baz))
+unifyExp :: NameMatch -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst (LHsExpr GhcPs), Maybe (LHsExpr GhcPs))
 -- Match wildcard operators.
 unifyExp nm root (L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr -> v))) rhs1))
                  (L _ (OpApp _ lhs2 (L _ (HsVar _ (rdrNameStr -> op2))) rhs2))
     | isUnifyVar v =
-        (, Nothing) . (Subst' [(v, strToVar op2)] <>) <$>
+        (, Nothing) . (Subst [(v, strToVar op2)] <>) <$>
         liftA2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
 
 -- Options: match directly, and expand through '.'
@@ -175,13 +174,13 @@ unifyExp nm root x y = (, Nothing) <$> unifyExp' nm root x y
 -- 'root = True', this is the outside of the expr. Do not expand out a
 -- dot at the root, since otherwise you get two matches because of
 -- 'readRule' (Bug #570).
-unifyExp' :: NameMatch' -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst' (LHsExpr GhcPs) )
+unifyExp' :: NameMatch -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst (LHsExpr GhcPs) )
 -- Brackets are not added when expanding '$' in user code, so tolerate
 -- them in the match even if they aren't in the user code.
 unifyExp' nm root x y | not root, isPar x, not $ isPar y = unifyExp' nm root (fromParen x) y
--- Don't subsitute for type apps, since no one writes rules imaginging
+-- Don't subsitute for type apps, since no one writes rules imagining
 -- they exist.
-unifyExp' nm root (L _ (HsVar _ (rdrNameStr -> v))) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst' [(v, y)]
+unifyExp' nm root (L _ (HsVar _ (rdrNameStr -> v))) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst [(v, y)]
 unifyExp' nm root (L _ (HsVar _ x)) (L _ (HsVar _ y)) | nm x y = Just mempty
 
 unifyExp' nm root x@(L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr -> v))) rhs1))
@@ -189,10 +188,10 @@ unifyExp' nm root x@(L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr -> v))) rhs1))
   fst <$> unifyExp nm root x y
 unifyExp' nm root (L _ (SectionL _ exp1 (L _ (HsVar _ (rdrNameStr -> v)))))
                   (L _ (SectionL _ exp2 (L _ (HsVar _ (rdrNameStr -> op2)))))
-    | isUnifyVar v = (Subst' [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
+    | isUnifyVar v = (Subst [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
 unifyExp' nm root (L _ (SectionR _ (L _ (HsVar _ (rdrNameStr -> v))) exp1))
                   (L _ (SectionR _ (L _ (HsVar _ (rdrNameStr -> op2))) exp2))
-    | isUnifyVar v = (Subst' [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
+    | isUnifyVar v = (Subst [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
 
 unifyExp' nm root x@(L _ (HsApp _ x1 x2)) y@(L _ (HsApp _ y1 y2)) =
   fst <$> unifyExp nm root x y
@@ -213,20 +212,20 @@ unifyExp' nm root x y | isOther x, isOther y = unifyDef' nm x y
 unifyExp' _ _ _ _ = Nothing
 
 
-unifyPat' :: NameMatch' -> LPat GhcPs -> LPat GhcPs -> Maybe (Subst' (LHsExpr GhcPs))
+unifyPat' :: NameMatch -> LPat GhcPs -> LPat GhcPs -> Maybe (Subst (LHsExpr GhcPs))
 unifyPat' nm (L _ (VarPat _ x)) (L _ (VarPat _ y)) =
-  Just $ Subst' [(rdrNameStr x, strToVar(rdrNameStr y))]
+  Just $ Subst [(rdrNameStr x, strToVar(rdrNameStr y))]
 unifyPat' nm (L _ (VarPat _ x)) (L _ (WildPat _)) =
-  let s = rdrNameStr x in Just $ Subst' [(s, strToVar("_" ++ s))]
+  let s = rdrNameStr x in Just $ Subst [(s, strToVar("_" ++ s))]
 unifyPat' nm (L _ (ConPatIn x _)) (L _ (ConPatIn y _)) | rdrNameStr x /= rdrNameStr y =
   Nothing
 unifyPat' nm x y =
   unifyDef' nm x y
 
-unifyType' :: NameMatch' -> LHsType GhcPs -> LHsType GhcPs -> Maybe (Subst' (LHsExpr GhcPs))
+unifyType' :: NameMatch -> LHsType GhcPs -> LHsType GhcPs -> Maybe (Subst (LHsExpr GhcPs))
 unifyType' nm (L loc (HsTyVar _ _ x)) y =
   let wc = HsWC noExtField y :: LHsWcType (NoGhcTc GhcPs)
-      unused = noLoc (HsVar noExtField (noLoc $ mkRdrUnqual (mkVarOcc "__unused__"))) :: LHsExpr GhcPs
+      unused = strToVar "__unused__" :: LHsExpr GhcPs
       appType = cL loc (HsAppType noExtField unused wc) :: LHsExpr GhcPs
- in Just $ Subst' [(rdrNameStr x, appType)]
+ in Just $ Subst [(rdrNameStr x, appType)]
 unifyType' nm x y = unifyDef' nm x y

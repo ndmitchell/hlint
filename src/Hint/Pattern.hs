@@ -166,15 +166,14 @@ hints _ (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
          in RealSrcSpan (mkRealSrcSpan start end)
 hints gen (Pattern l t pats o@(GRHSs _ (unsnoc -> Just (gs, L _ (GRHS _ [test] bod))) binds))
   | unsafePrettyPrint test == "True"
-  = let tag = noLoc (mkRdrUnqual $ mkVarOcc "otherwise")
-        otherwise_ = noLoc $ BodyStmt noExtField (noLoc (HsVar noExtField tag)) noSyntaxExpr noSyntaxExpr in
+  = let otherwise_ = noLoc $ BodyStmt noExtField (strToVar "otherwise") noSyntaxExpr noSyntaxExpr in
       [gen "Use otherwise" (Pattern l t pats o{grhssGRHSs = gs ++ [noLoc (GRHS noExtField [otherwise_] bod)]}) [Replace Expr (toSS test) [] "otherwise"]]
 hints _ _ = []
 
 asGuards :: LHsExpr GhcPs -> [(LHsExpr GhcPs, LHsExpr GhcPs)]
 asGuards (L _ (HsPar _ x)) = asGuards x
 asGuards (L _ (HsIf _ _ a b c)) = (a, b) : asGuards c
-asGuards x = [(noLoc (HsVar noExtField (noLoc (mkRdrUnqual $ mkVarOcc "otherwise"))), x)]
+asGuards x = [(strToVar "otherwise", x)]
 
 data Pattern = Pattern SrcSpan R.RType [LPat GhcPs] (GRHSs GhcPs (LHsExpr GhcPs))
 

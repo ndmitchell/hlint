@@ -80,11 +80,11 @@ readRule m@HintRule{ hintRuleLHS=(stripLocs . unextendInstances -> hintRuleLHS)
 
     guard $ v1 == v2 && not (null l) && (length l > 1 || length r > 1) && Set.notMember v1 (Set.map occNameString (freeVars $ maybeToList hintRuleSide ++ l ++ r))
     if not (null r) then
-      [ m{ hintRuleLHS=extendInstances (dotApps' l), hintRuleRHS=extendInstances (dotApps' r), hintRuleSide=extendInstances <$> hintRuleSide }
-      , m{ hintRuleLHS=extendInstances (dotApps' (l ++ [strToVar v1])), hintRuleRHS=extendInstances (dotApps' (r ++ [strToVar v1])), hintRuleSide=extendInstances <$> hintRuleSide } ]
+      [ m{ hintRuleLHS=extendInstances (dotApps l), hintRuleRHS=extendInstances (dotApps r), hintRuleSide=extendInstances <$> hintRuleSide }
+      , m{ hintRuleLHS=extendInstances (dotApps (l ++ [strToVar v1])), hintRuleRHS=extendInstances (dotApps (r ++ [strToVar v1])), hintRuleSide=extendInstances <$> hintRuleSide } ]
       else if length l > 1 then
-            [ m{ hintRuleLHS=extendInstances (dotApps' l), hintRuleRHS=extendInstances (strToVar "id"), hintRuleSide=extendInstances <$> hintRuleSide }
-            , m{ hintRuleLHS=extendInstances (dotApps' (l++[strToVar v1])), hintRuleRHS=extendInstances (strToVar v1), hintRuleSide=extendInstances <$> hintRuleSide}]
+            [ m{ hintRuleLHS=extendInstances (dotApps l), hintRuleRHS=extendInstances (strToVar "id"), hintRuleSide=extendInstances <$> hintRuleSide }
+            , m{ hintRuleLHS=extendInstances (dotApps (l++[strToVar v1])), hintRuleRHS=extendInstances (strToVar v1), hintRuleSide=extendInstances <$> hintRuleSide}]
       else []
 
 -- Find a dot version of this rule, return the sequence of app
@@ -111,7 +111,7 @@ findIdeas :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
     [ (idea (hintRuleSeverity m) (hintRuleName m) x y [r]){ideaNote=notes}
     | (name, expr) <- findDecls decl
-    , (parent,x) <- universeParentExp' expr
+    , (parent,x) <- universeParentExp expr
     , m <- matches, Just (y, tpl, notes, subst) <- [matchIdea s name m parent x]
     , let r = R.Replace R.Expr (toSS x) subst (unsafePrettyPrint tpl)
     ]
@@ -156,13 +156,13 @@ matchIdea sb declName HintRule{..} parent x = do
   -- what free vars they make use of.
   guard $ not (any isLambda $ universe lhs) || not (any isQuasiQuote $ universe x)
 
-  guard $ checkSide (unextendInstances <$> hintRuleSide) $ ("original", x) : ("result", res) : fromSubst' u
+  guard $ checkSide (unextendInstances <$> hintRuleSide) $ ("original", x) : ("result", res) : fromSubst u
   guard $ checkDefine declName parent res
 
-  (u, tpl) <- pure $ if any ((== noSrcSpan) . getLoc . snd) (fromSubst' u) then (mempty, res) else (u, tpl)
+  (u, tpl) <- pure $ if any ((== noSrcSpan) . getLoc . snd) (fromSubst u) then (mempty, res) else (u, tpl)
   tpl <- pure $ unqualify sa sb (performSpecial tpl)
 
-  pure (res, tpl, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst' u, getLoc pos /= noSrcSpan])
+  pure (res, tpl, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst u, getLoc pos /= noSrcSpan])
 
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS
@@ -257,7 +257,7 @@ unqualify from to = transformBi f
     f x = scopeMove (from, x) to
 
 addBracket :: Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> LHsExpr GhcPs
-addBracket (Just (i, p)) c | needBracketOld' i p c = noLoc $ HsPar noExtField c
+addBracket (Just (i, p)) c | needBracketOld i p c = noLoc $ HsPar noExtField c
 addBracket _ x = x
 
 -- Type substitution e.g. 'Foo Int' for 'a' in 'Proxy a' can lead to a

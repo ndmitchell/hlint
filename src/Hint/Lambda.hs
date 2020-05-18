@@ -114,7 +114,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util.Brackets (isAtom)
 import GHC.Util.FreeVars (free, allVars, freeVars, pvars, vars, varss)
-import GHC.Util.HsExpr (allowLeftSection, allowRightSection, niceLambdaR', lambda)
+import GHC.Util.HsExpr (allowLeftSection, allowRightSection, niceLambdaR, lambda)
 import GHC.Util.View
 
 lambdaHint :: DeclHint
@@ -181,7 +181,7 @@ lambdaExp _ o@(L _ (HsPar _ (view -> App2 (view -> Var_ "flip") origf@(view -> V
     = [suggestN "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionR noExtField origf y]
 lambdaExp p o@(L _ HsLam{})
     | not $ any isOpApp p
-    , (res, refact) <- niceLambdaR' [] o
+    , (res, refact) <- niceLambdaR [] o
     , not $ isLambda res
     , not $ any isQuasiQuote $ universe res
     , not $ "runST" `Set.member` Set.map occNameString (freeVars o)

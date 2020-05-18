@@ -70,7 +70,7 @@ findExp name vs bod = [SettingMatchExp $
         mempty (extendInstances lhs) (extendInstances $ fromParen rhs) Nothing]
     where
         lhs = fromParen $ noLoc $ transform f bod
-        rhs = apps' $ map noLoc $ HsVar noExtField (noLoc name) : map snd rep
+        rhs = apps $ map noLoc $ HsVar noExtField (noLoc name) : map snd rep
 
         rep = zip vs $ map (mkVar . pure) ['a'..]
         f (HsVar _ x) | Just y <- lookup (rdrNameStr x) rep = y

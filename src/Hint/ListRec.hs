@@ -104,26 +104,26 @@ matchListRec o@(ListCase vs nil (x, xs, cons))
     | [] <- vs, varToStr nil == "[]", (L _ (OpApp _ lhs c rhs)) <- cons, varToStr c == ":"
     , astEq (fromParen rhs) recursive, xs `notElem` vars lhs
     = Just $ (,,) "map" Hint.Type.Warning $
-      appsBracket' [ strToVar "map", niceLambda' [x] lhs, strToVar xs]
+      appsBracket [ strToVar "map", niceLambda [x] lhs, strToVar xs]
     -- Suggest 'foldr'?
     | [] <- vs, App2 op lhs rhs <- view cons
     , xs `notElem` (vars op ++ vars lhs) -- the meaning of xs changes, see #793
     , astEq (fromParen rhs) recursive
     = Just $ (,,) "foldr" Suggestion $
-      appsBracket' [ strToVar "foldr", niceLambda' [x] $ appsBracket' [op,lhs], nil, strToVar xs]
+      appsBracket [ strToVar "foldr", niceLambda [x] $ appsBracket [op,lhs], nil, strToVar xs]
     -- Suggest 'foldl'?
     | [v] <- vs, view nil == Var_ v, (L _ (HsApp _ r lhs)) <- cons
     , astEq (fromParen r) recursive
     , xs `notElem` vars lhs
     = Just $ (,,) "foldl" Suggestion $
-      appsBracket' [ strToVar "foldl", niceLambda' [v,x] lhs, strToVar v, strToVar xs]
+      appsBracket [ strToVar "foldl", niceLambda [v,x] lhs, strToVar v, strToVar xs]
     -- Suggest 'foldM'?
     | [v] <- vs, (L _ (HsApp _ ret res)) <- nil, isReturn ret, varToStr res == "()" || view res == Var_ v
     , [L _ (BindStmt _ (view -> PVar_ b1) e _ _), L _ (BodyStmt _ (fromParen -> (L _ (HsApp _ r (view -> Var_ b2)))) _ _)] <- asDo cons
     , b1 == b2, astEq r recursive, xs `notElem` vars e
     , name <- "foldM" ++ ['_' | varToStr res == "()"]
     = Just $ (,,) name Suggestion $
-      appsBracket' [strToVar name, niceLambda' [v,x] e, strToVar v, strToVar xs]
+      appsBracket [strToVar name, niceLambda [v,x] e, strToVar v, strToVar xs]
     -- Nope, I got nothing ¯\_(ツ)_/¯.
     | otherwise = Nothing
 
@@ -166,7 +166,7 @@ findCase x = do
   Branch name2 ps2 p2 c2 b2 <- findBranch x2
   guard (name1 == name2 && ps1 == ps2 && p1 == p2)
   [(BNil, b1), (BCons x xs, b2)] <- pure $ sortOn fst [(c1, b1), (c2, b2)]
-  b2 <- transformAppsM' (delCons name1 p1 xs) b2
+  b2 <- transformAppsM (delCons name1 p1 xs) b2
   (ps, b2) <- pure $ eliminateArgs ps1 b2
 
   let ps12 = let (a, b) = splitAt p1 ps1 in map strToPat (a ++ xs : b) -- Function arguments.
@@ -180,20 +180,20 @@ findCase x = do
   pure (ListCase ps b1 (x, xs, b2), noLoc . ValD noExtField . funBind)
 
 delCons :: String -> Int -> String -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
-delCons func pos var (fromApps' -> (view -> Var_ x) : xs) | func == x = do
+delCons func pos var (fromApps -> (view -> Var_ x) : xs) | func == x = do
     (pre, (view -> Var_ v) : post) <- pure $ splitAt pos xs
     guard $ v == var
-    pure $ apps' $ recursive : pre ++ post
+    pure $ apps $ recursive : pre ++ post
 delCons _ _ _ x = pure x
 
 eliminateArgs :: [String] -> LHsExpr GhcPs -> ([String], LHsExpr GhcPs)
 eliminateArgs ps cons = (remove ps, transform f cons)
   where
-    args = [zs | z : zs <- map fromApps' $ universeApps' cons, astEq z recursive]
+    args = [zs | z : zs <- map fromApps $ universeApps cons, astEq z recursive]
     elim = [all (\xs -> length xs > i && view (xs !! i) == Var_ p) args | (i, p) <- zipFrom 0 ps] ++ repeat False
     remove = concat . zipWith (\b x -> [x | not b]) elim
 
-    f (fromApps' -> x : xs) | astEq x recursive = apps' $ x : remove xs
+    f (fromApps -> x : xs) | astEq x recursive = apps $ x : remove xs
     f x = x
 
 
@@ -211,7 +211,7 @@ findBranch (L _ x) = do
                         }
             } <- pure x
   (a, b, c) <- findPat ps
-  pure $ Branch (occNameStr name) a b c $ simplifyExp' body
+  pure $ Branch (occNameStr name) a b c $ simplifyExp body
 
 findPat :: [LPat GhcPs] -> Maybe ([String], Int, BList)
 findPat ps = do
