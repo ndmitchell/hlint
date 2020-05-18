@@ -52,6 +52,7 @@
 
 - error: {lhs: occNameString (occName (unLoc x)), rhs: rdrNameStr x}
 - error: {lhs: occNameString (occName x), rhs: occNameStr x}
+- error: {lhs: noLoc (HsVar noExtField (noLoc (mkRdrUnqual (mkVarOcc x)))), rhs: strToVar x}
 
 #####################################################################
 ## IGNORES

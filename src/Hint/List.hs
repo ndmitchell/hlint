@@ -119,7 +119,7 @@ listCompCheckMap o mp f ctx stmts  | varToStr mp == "map" =
     where
       revs = reverse stmts
       L _ (LastStmt _ body b s) = head revs -- In a ListComp, this is always last.
-      last = noLoc $ LastStmt noExtField (noLoc $ HsApp noExtField (paren' f) (paren' body)) b s
+      last = noLoc $ LastStmt noExtField (noLoc $ HsApp noExtField (paren f) (paren body)) b s
       o2 =noLoc $ HsDo noExtField ctx (noLoc $ reverse (tail revs) ++ [last])
 listCompCheckMap _ _ _ _ _ = []
 
@@ -240,7 +240,7 @@ useCons False (view -> App2 op x y) | varToStr op == "++"
     f :: LHsExpr GhcPs ->
       Maybe (LHsExpr GhcPs, LHsExpr GhcPs -> LHsExpr GhcPs)
     f (L _ (ExplicitList _ _ [x]))=
-      Just (x, \v -> if isApp x then v else paren' v)
+      Just (x, \v -> if isApp x then v else paren v)
     f _ = Nothing
 
     gen :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
