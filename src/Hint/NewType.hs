@@ -28,6 +28,12 @@ newtype Foo = Foo Int deriving (Show, Eq) --
 newtype Foo = Foo { unFoo :: Int } deriving (Show, Eq) --
 newtype Foo = Foo Int deriving stock Show
 </TEST>
+
+   Suggest constructor field name (of a newtype) to be 'un' followed by newtype name
+
+<TEST>
+newtype Foo = Foo { i :: Int } -- newtype Foo = Foo { unFoo :: Int } @NoRefactor
+</TEST>
 -}
 module Hint.NewType (newtypeHint) where
 
