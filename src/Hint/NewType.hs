@@ -25,22 +25,28 @@ data A = A Int#  @NoRefactor
 {-# LANGUAGE UnboxedTuples #-}; data WithAnn x = WithAnn {getWithAnn :: (# Ann, x #)}
 data A = A () -- newtype A = A () @NoRefactor
 newtype Foo = Foo Int deriving (Show, Eq) --
-newtype Foo = Foo { getFoo :: Int } deriving (Show, Eq) --
+newtype Foo = Foo { unFoo :: Int } deriving (Show, Eq) --
 newtype Foo = Foo Int deriving stock Show
 </TEST>
 -}
 module Hint.NewType (newtypeHint) where
 
-import Hint.Type (Idea, DeclHint, Note(DecreasesLaziness), ideaNote, ignoreNoSuggestion, suggestN)
+import Hint.Type (Idea, DeclHint, Note(..), ignore, ideaNote, ignoreNoSuggestion, suggestN)
 
 import Data.List (isSuffixOf)
+import Data.Generics.Uniplate.Operations
 import GHC.Hs.Decls
 import GHC.Hs
-import Outputable
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
+import Outputable hiding ((<>))
+import OccName
 import SrcLoc
 
 newtypeHint :: DeclHint
-newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
+newtypeHint _ _ x =
+     newtypeHintDecl x
+  ++ newTypeDerivingStrategiesHintDecl x
+  ++ newtypeUn x
 
 newtypeHintDecl :: LHsDecl GhcPs -> [Idea]
 newtypeHintDecl old
@@ -138,3 +144,41 @@ dropConsBang x = x
 isUnboxedTuple :: HsType GhcPs -> Bool
 isUnboxedTuple (HsTupleTy _ HsUnboxedTuple _) = True
 isUnboxedTuple _ = False
+
+data WarnNewTypeUn = WarnNewTypeUn
+    { unNewDecl      :: LHsDecl GhcPs
+    , unNewFieldName :: String
+    }
+    | NoWarn
+
+newtypeUn :: LHsDecl GhcPs -> [Idea]
+newtypeUn old
+  | WarnNewTypeUn{unNewDecl, unNewFieldName} <- newTypeWithoutUn old
+  = let
+      note fieldName = [Note $ "Rename field to " <> unNewFieldName]
+      hintName = "Newtype field name prefixed"
+    in
+      [(ignore hintName old unNewDecl []) {ideaNote = note unNewFieldName}]
+newtypeUn _ = []
+
+newTypeWithoutUn :: LHsDecl GhcPs -> WarnNewTypeUn
+newTypeWithoutUn (L loc (TyClD ext datadecl@(DataDecl _ typeName _ _ dataDef@(HsDataDefn _ NewType _ _ _ [L cloc constructor] _))))
+    | Just newConstructor <- check typeName constructor
+    = WarnNewTypeUn
+        { unNewDecl = L loc $ TyClD ext datadecl { tcdDataDefn = dataDef { dd_cons = [L cloc newConstructor]}}
+        , unNewFieldName = correctFieldName typeName
+        }
+newTypeWithoutUn _ = NoWarn
+
+check :: GenLocated SrcSpan (IdP GhcPs) -> ConDecl GhcPs -> Maybe (ConDecl GhcPs)
+check typeName constructor@(ConDeclH98 _ _ _ _ _ (RecCon (L loc1 [L loc2 field@(ConDeclField _ [fieldName] _ _)])) _)
+  | correctFieldName typeName /= unsafePrettyPrint fieldName =
+      Just $ constructor {con_args = RecCon (L loc1 [L loc2 field {cd_fld_names = [transformBi replace fieldName]}])}
+  | otherwise = Nothing
+  where
+    replace :: OccName -> OccName
+    replace = const $ mkOccName srcDataName (correctFieldName typeName)
+check _ _ = Nothing
+
+correctFieldName :: GenLocated SrcSpan (IdP GhcPs) -> String
+correctFieldName typeName = "un" ++ unsafePrettyPrint typeName
