@@ -50,6 +50,11 @@
     - import Data.Attoparsec.Text
     - import Data.Attoparsec.ByteString
 
+- package:
+    name: codeworld-api
+    modules:
+    - import CodeWorld
+
 - group:
     name: default
     enabled: true
@@ -948,6 +953,17 @@
     - hint: {lhs: maybe (f x) (f . g), rhs: f . maybe x g, note: IncreasesLaziness, name: Too strict maybe}
     - hint: {lhs: maybe (f x) f y, rhs: f (Data.Maybe.fromMaybe x y), note: IncreasesLaziness, name: Too strict maybe}
 
+- group:
+    name: codeworld
+    enabled: false
+    imports:
+    - package base
+    - package codeworld-api
+    rules:
+    - warn: {lhs: "pictures [ p ]", rhs: p, name: Evaluate}
+    - warn: {lhs: "pictures [ p, q ]", rhs: p & q, name: Evaluate}
+    - hint: {lhs: foldl1 (&), rhs: pictures}
+    - hint: {lhs: foldr (&) blank, rhs: pictures}
 
 - group:
     name: teaching
