@@ -42,7 +42,7 @@ main = "wait" ~> do f a $ sleep 10
 {-# LANGUAGE BlockArguments #-}; main = print do 17 + 25
 {-# LANGUAGE BlockArguments #-}; main = print do 17 --
 main = f $ do g a $ sleep 10 --
-main = do f a $ sleep 10 --
+main = do f a $ sleep 10 -- @Ignore
 main = do foo x; return 3; bar z -- do foo x; bar z
 main = void $ forM_ f xs -- forM_ f xs
 main = void $ forM f xs -- void $ forM_ f xs
@@ -60,7 +60,7 @@ issue978 = do \
 
 module Hint.Monad(monadHint) where
 
-import Hint.Type(DeclHint,Idea(..),ideaNote,warn,warnRemove,toSS,suggest,Note(Note))
+import Hint.Type(DeclHint,Idea(..),Severity(..),ideaNote,warn,ideaRemove,toSS,suggest,Note(Note))
 
 import GHC.Hs
 import SrcLoc
@@ -113,7 +113,7 @@ monadExp decl parentDo parentExpr x =
     (L l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (cL l . OpApp noExtField op dol) x
     (L loc (HsDo _ ctx (L loc2 [L loc3 (BodyStmt _ y _ _ )]))) ->
       let doOrMDo = case ctx of MDoExpr -> "mdo"; _ -> "do"
-       in [ warnRemove ("Redundant " ++ doOrMDo) (doSpan doOrMDo loc) doOrMDo [Replace Expr (toSS x) [("y", toSS y)] "y"]
+       in [ ideaRemove Ignore ("Redundant " ++ doOrMDo) (doSpan doOrMDo loc) doOrMDo [Replace Expr (toSS x) [("y", toSS y)] "y"]
           | not $ doAsBrackets parentExpr y
           , not $ doAsAvoidingIndentation parentDo x
           ]

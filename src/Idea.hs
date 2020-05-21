@@ -2,7 +2,7 @@
 
 module Idea(
     Idea(..),
-    rawIdea, idea, suggest, suggestRemove, warn, warnRemove, ignore,
+    rawIdea, idea, suggest, suggestRemove, ideaRemove, warn, ignore,
     rawIdeaN, suggestN, ignoreNoSuggestion,
     showIdeasJson, showANSI,
     Note(..), showNotes,
@@ -107,9 +107,6 @@ suggestRemove = ideaRemove Suggestion
 warn :: (HasSrcSpan a, Outputable.Outputable a, HasSrcSpan b, Outputable.Outputable b) =>
          String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
 warn = idea Warning
-
-warnRemove :: String -> SrcSpan -> String -> [Refactoring R.SrcSpan] -> Idea
-warnRemove = ideaRemove Warning
 
 ignoreNoSuggestion :: (HasSrcSpan a, Outputable.Outputable a)
                     => String -> a -> Idea
