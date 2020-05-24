@@ -129,7 +129,7 @@ parseTestFile file =
             | Just (x',_) <- stripInfix "@NoRefactor" x =
                 f (Just s) SkipRefactor ((i, trimEnd x' ++ ['\\' | "\\" `isSuffixOf` x]) : xs)
             | null x || "-- " `isPrefixOf` x = f (Just s) refact xs
-            | "\\" `isSuffixOf` x, (_,y):ys <- xs = f (Just s) refact $ (i,init x++"\n"++y):ys
+            | Just x <- stripSuffix "\\" x, (_,y):ys <- xs = f (Just s) refact $ (i,x++"\n"++y):ys
             | otherwise = parseTest refact file i x s : f (Just s) TestRefactor xs
         f _ _ [] = []
 
