@@ -120,8 +120,8 @@ monadExp decl parentDo parentExpr x =
     (L loc (HsDo _ DoExpr (L _ xs))) ->
       monadSteps (cL loc . HsDo noExtField DoExpr . noLoc) xs ++
       [suggest "Use let" from to [r] | (from, to, r) <- monadLet xs] ++
-      concat [f x | (L _ (BodyStmt _ x _ _)) <- init xs] ++
-      concat [f x | (L _ (BindStmt _ (LL _ WildPat{}) x _ _)) <- init xs]
+      concat [f x | (L _ (BodyStmt _ x _ _)) <- dropEnd1 xs] ++
+      concat [f x | (L _ (BindStmt _ (LL _ WildPat{}) x _ _)) <- dropEnd1 xs]
     _ -> []
   where
     f = monadNoResult (fromMaybe "" decl) id

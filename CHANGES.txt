@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1014, don't error on empty do blocks
     #1008, make redundant do ignored by default
     #1012, add CodeWorld hints around pictures
     #1003, enable refactoring for (v1 . v2) <$> v3
