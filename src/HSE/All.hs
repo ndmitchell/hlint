@@ -151,6 +151,9 @@ createModuleEx anns ast =
 -- filename @-@ is treated as @stdin@. Requires some flags (often
 -- 'defaultParseFlags'), the filename, and optionally the contents of
 -- that file.
+--
+-- Note that certain programs, e.g. @main = do@ successfully parse with GHC, but then
+-- fail with an error in the renamer. These programs will return a successful parse.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ModuleEx)
 parseModuleEx flags file str = timedIO "Parse" file $ do
         str <- case str of
