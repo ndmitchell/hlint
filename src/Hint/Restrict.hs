@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Hint.Restrict(restrictHint) where
 
@@ -11,8 +12,12 @@ module Hint.Restrict(restrictHint) where
 foo = unsafePerformIO --
 foo = bar `unsafePerformIO` baz --
 module Util where otherFunc = unsafePerformIO $ print 1 --
-module Util where exitMessageImpure = unsafePerformIO $ print 1
+module Util where exitMessageImpure = System.IO.Unsafe.unsafePerformIO $ print 1
 foo = unsafePerformOI
+import Data.List.NonEmpty as NE \
+foo = NE.nub (NE.fromList [1, 2, 3]) --
+import Hypothetical.Module \
+foo = nub s
 </TEST>
 -}
 
@@ -20,11 +25,13 @@ import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea)
 import Config.Type
 
 import Data.Generics.Uniplate.Operations
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Set as Set
 import qualified Data.Map as Map
-import Data.List
+import Data.List.Extra
 import Data.Maybe
 import Data.Semigroup
+import Data.Tuple.Extra
 import Control.Applicative
 import Control.Monad
 import Prelude
@@ -45,12 +52,12 @@ restrictHint settings scope m =
         ps   = pragmas anns
         opts = flags ps
         exts = languagePragmas ps in
-    checkPragmas modu opts exts restrict ++
-    maybe [] (checkImports modu $ hsmodImports (unLoc (ghcModule m))) (Map.lookup RestrictModule restrict) ++
-    maybe [] (checkFunctions modu $ hsmodDecls (unLoc (ghcModule m))) (Map.lookup RestrictFunction restrict)
+    checkPragmas modu opts exts rOthers ++
+    maybe [] (checkImports modu $ hsmodImports (unLoc (ghcModule m))) (Map.lookup RestrictModule rOthers) ++
+    checkFunctions scope modu (hsmodDecls (unLoc (ghcModule m))) rFunction
     where
         modu = modName (ghcModule m)
-        restrict = restrictions settings
+        (rFunction, rOthers) = restrictions settings
 
 ---------------------------------------------------------------------
 -- UTILITIES
@@ -61,18 +68,35 @@ data RestrictItem = RestrictItem
     ,riBadIdents :: [String]
     ,riMessage :: Maybe String
     }
+
 instance Semigroup RestrictItem where
     RestrictItem x1 x2 x3 x4 <> RestrictItem y1 y2 y3 y4 = RestrictItem (x1<>y1) (x2<>y2) (x3<>y3) (x4<>y4)
-instance Monoid RestrictItem where
-    mempty = RestrictItem [] [] [] Nothing
-    mappend = (<>)
 
-restrictions :: [Setting] -> Map.Map RestrictType (Bool, Map.Map String RestrictItem)
-restrictions settings = Map.map f $ Map.fromListWith (++) [(restrictType x, [x]) | SettingRestrict x <- settings]
+-- Contains a map from module (Nothing if the rule is unqualified) to (within, message), so that we can
+-- distinguish functions with the same name.
+-- For example, this allows us to have separate rules for "Data.Map.fromList" and "Data.Set.fromList".
+-- Using newtype rather than type because we want to define (<>) as 'Map.unionWith (<>)'.
+newtype RestrictFunction = RestrictFun (Map.Map (Maybe String) ([(String, String)], Maybe String))
+
+instance Semigroup RestrictFunction where
+    RestrictFun m1 <> RestrictFun m2 = RestrictFun (Map.unionWith (<>) m1 m2)
+
+type RestrictFunctions = (Bool, Map.Map String RestrictFunction)
+type OtherRestrictItems = Map.Map RestrictType (Bool, Map.Map String RestrictItem)
+
+restrictions :: [Setting] -> (RestrictFunctions, OtherRestrictItems)
+restrictions settings = (rFunction, rOthers)
     where
+        (map snd -> rfs, ros) = partition ((== RestrictFunction) . fst) [(restrictType x, x) | SettingRestrict x <- settings]
+        rFunction = (all restrictDefault rfs, Map.fromListWith (<>) [mkRf s r | r <- rfs, s <- restrictName r])
+        mkRf s Restrict{..} = (name, RestrictFun $ Map.singleton modu (restrictWithin, restrictMessage))
+          where
+            -- Parse module and name from s. module = Nothing if the rule is unqualified.
+            (modu, name) = first (fmap NonEmpty.init . NonEmpty.nonEmpty) (breakEnd (== '.') s)
+
+        rOthers = Map.map f $ Map.fromListWith (++) (map (second pure) ros)
         f rs = (all restrictDefault rs
                ,Map.fromListWith (<>) [(s, RestrictItem restrictAs restrictWithin restrictBadIdents restrictMessage) | Restrict{..} <- rs, s <- restrictName])
-
 
 ideaMessage :: Maybe String -> Idea -> Idea
 ideaMessage (Just message) w = w{ideaNote=[Note message]}
@@ -84,8 +108,8 @@ ideaNoTo w = w{ideaTo=Nothing}
 noteMayBreak :: Note
 noteMayBreak = Note "may break the code"
 
-within :: String -> String -> RestrictItem -> Bool
-within modu func RestrictItem{..} = any (\(a,b) -> (a == modu || a == "") && (b == func || b == "")) riWithin
+within :: String -> String -> [(String, String)] -> Bool
+within modu func = any (\(a,b) -> (a == modu || a == "") && (b == func || b == ""))
 
 ---------------------------------------------------------------------
 -- CHECKS
@@ -106,7 +130,7 @@ checkPragmas modu flags exts mps =
      , let note = maybe noteMayBreak Note . (=<<) riMessage . flip Map.lookup mp
      , let notes w = w {ideaNote=note <$> bad}
      , not $ null bad]
-   isGood def mp x = maybe def (within modu "") $ Map.lookup x mp
+   isGood def mp x = maybe def (within modu "" . riWithin) $ Map.lookup x mp
 
 checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkImports modu imp (def, mp) =
@@ -116,8 +140,8 @@ checkImports modu imp (def, mp) =
            | not allowQual   -> warn "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
            | otherwise       -> error "checkImports: unexpected case"
     | i@(L _ ImportDecl {..}) <- imp
-    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] [] Nothing) (moduleNameString (unLoc ideclName)) mp
-    , let allowImport = within modu "" ri
+    , let RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] [] Nothing) (moduleNameString (unLoc ideclName)) mp
+    , let allowImport = within modu "" riWithin
     , let allowIdent = Set.disjoint
                        (Set.fromList riBadIdents)
                        (Set.fromList (maybe [] (\(b, lxs) -> if b then [] else concatMap (importListToIdents . unLoc) (unLoc lxs)) ideclHiding))
@@ -146,12 +170,23 @@ importListToIdents =
     fromId (Orig _ n) = Just $ occNameString n
     fromId (Exact _)  = Nothing
 
-checkFunctions :: String -> [LHsDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
-checkFunctions modu decls (def, mp) =
-    [ (ideaMessage riMessage $ ideaNoTo $ warn "Avoid restricted function" x x []){ideaDecl = [dname]}
+checkFunctions :: Scope -> String -> [LHsDecl GhcPs] -> RestrictFunctions -> [Idea]
+checkFunctions scope modu decls (def, mp) =
+    [ (ideaMessage message $ ideaNoTo $ warn "Avoid restricted function" x x []){ideaDecl = [dname]}
     | d <- decls
     , let dname = fromMaybe "" (declName d)
     , x <- universeBi d :: [Located RdrName]
-    , let ri@RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] [] Nothing) (rdrNameStr x) mp
-    , not $ within modu dname ri
+    , let xMods = possModules scope x
+    , let (withins, message) = fromMaybe ([("","") | def], Nothing) (findFunction x xMods)
+    , not $ within modu dname withins
     ]
+  where
+    -- Returns Just iff there are rules for x, which are either unqualified, or qualified with a module that is
+    -- one of x's possible modules.
+    -- If there are multiple matching rules (e.g., there's both an unqualified version and a qualified version), their
+    -- withins and messages are concatenated with (<>).
+    findFunction :: Located RdrName -> [ModuleName] -> Maybe ([(String, String)], Maybe String)
+    findFunction (rdrNameStr -> x) (map moduleNameString -> possMods)
+      | Just (RestrictFun mp) <- Map.lookup x mp =
+          fmap sconcat . NonEmpty.nonEmpty . Map.elems $ Map.filterWithKey (const . maybe True (`elem` possMods)) mp
+      | otherwise = Nothing
