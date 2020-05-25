@@ -4,7 +4,7 @@
 
 module GHC.Util.Scope (
    Scope
-  ,scopeCreate,scopeMatch,scopeMove
+  ,scopeCreate,scopeMatch,scopeMove,possModules
 ) where
 
 import GHC.Hs

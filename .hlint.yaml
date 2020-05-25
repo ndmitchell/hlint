@@ -33,7 +33,10 @@
   - {name: unsafeInterleaveIO, within: Parallel}
   - {name: unsafePerformIO, within: [Util.exitMessageImpure, Test.Util.ref, Timing]}
   - {name: unsafeCoerce, within: [Util.gzip, GHC.Util.Refact.Utils]}
-  - {name: nub, within: []}
+  - {name: Data.List.nub, within: []}
+  - {name: Data.List.nubBy, within: []}
+  - {name: Data.List.NonEmpty.nub, within: []}
+  - {name: Data.List.NonEmpty.nubBy, within: []}
 
 
 #####################################################################
