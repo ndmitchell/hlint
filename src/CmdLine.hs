@@ -24,7 +24,7 @@ import System.Console.ANSI(hSupportsANSI)
 import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
 import System.Console.CmdArgs.Implicit
 import System.Directory.Extra
-import System.Environment.Extra
+import System.Environment
 import System.Exit
 import System.FilePath
 import System.IO

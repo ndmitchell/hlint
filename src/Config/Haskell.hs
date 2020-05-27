@@ -6,7 +6,7 @@ module Config.Haskell(
 
 import Data.Char
 import Data.List.Extra
-import Text.Read.Extra(readMaybe)
+import Text.Read
 import Data.Tuple.Extra
 import Data.Maybe
 import Config.Type
