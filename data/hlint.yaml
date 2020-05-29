@@ -617,6 +617,10 @@
     - hint: {lhs: 0 == rem n 2, rhs: even n}
     - hint: {lhs: rem n 2 /= 0, rhs: odd n}
     - hint: {lhs: 0 /= rem n 2, rhs: odd n}
+    - hint: {lhs: mod n 2 == 0, rhs: even n}
+    - hint: {lhs: 0 == mod n 2, rhs: even n}
+    - hint: {lhs: mod n 2 /= 0, rhs: odd n}
+    - hint: {lhs: 0 /= mod n 2, rhs: odd n}
     - hint: {lhs: not (even x), rhs: odd x}
     - hint: {lhs: not (odd x), rhs: even x}
     - hint: {lhs: x ** 0.5, rhs: sqrt x}
