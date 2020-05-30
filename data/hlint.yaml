@@ -985,6 +985,7 @@
     - hint: {lhs: "[] /= x", rhs: not (null x), name: Use null}
     - hint: {lhs: "not (x || y)", rhs: "not x && not y", name: Apply De Morgan law}
     - hint: {lhs: "not (x && y)", rhs: "not x || not y", name: Apply De Morgan law}
+    - hint: {lhs: "[ f x | x <- l ]", rhs: map f l}
 
 # <TEST>
 # yes = concat . map f -- concatMap f
