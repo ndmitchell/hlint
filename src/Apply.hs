@@ -50,21 +50,20 @@ applyHints cs = applyHintsReal $ map SettingClassify cs
 applyHintsReal :: [Setting] -> Hint -> [ModuleEx] -> [Idea]
 applyHintsReal settings hints_ ms = concat $
     [ map (classify classifiers . removeRequiresExtensionNotes m) $
-        order [] (hintModule hints settings nm' m) `merge`
+        order [] (hintModule hints settings nm m) `merge`
         concat [order (maybeToList $ declName d) $ decHints d | d <- hsmodDecls $ GHC.unLoc $ ghcModule m]
-    | m <- ms
+    | (nm,m) <- mns
     , let classifiers = cls ++ mapMaybe readPragma (universeBi (ghcModule m)) ++ concatMap readComment (ghcComments m)
     , seq (length classifiers) True -- to force any errors from readPragma or readComment
-    , (nm',m') <- mns'
-    , let decHints = hintDecl hints settings nm' m' -- partially apply
+    , let decHints = hintDecl hints settings nm m -- partially apply
     , let order n = map (\i -> i{ideaModule = f $ modName (ghcModule m) : ideaModule i, ideaDecl = f $ n ++ ideaDecl i}) . sortOn ideaSpan
     , let merge = mergeBy (comparing ideaSpan)] ++
-    [map (classify cls) (hintModules hints settings mns')]
+    [map (classify cls) (hintModules hints settings mns)]
     where
         f = nubOrd . filter (/= "")
         cls = [x | SettingClassify x <- settings]
-        mns' = map (\x -> (scopeCreate (GHC.unLoc $ ghcModule x), x)) ms
-        hints = (if length ms <= 1 then noModules else id) hints_
+        mns = map (\x -> (scopeCreate (GHC.unLoc $ ghcModule x), x)) ms
+        hints = (if length ms <= 1 || True then noModules else id) hints_
         noModules h = h{hintModules = \_ _ -> []} `mappend` mempty{hintModule = \s a b -> hintModules h s [(a,b)]}
 
 -- If the hint has said you RequiresExtension Foo, but Foo is enabled, drop the note
