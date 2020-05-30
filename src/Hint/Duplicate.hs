@@ -29,6 +29,7 @@ import Data.Default
 import Data.Maybe
 import Data.Tuple.Extra
 import Data.List hiding (find)
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as Map
 
 import SrcLoc
@@ -94,19 +95,23 @@ duplicateOrdered :: forall pos val.
 duplicateOrdered threshold xs = concat $ concat $ snd $ mapAccumL f (Dupe def Map.empty) xs
     where
         f :: Dupe pos val -> [(pos, val)] -> (Dupe pos val, [[(pos, pos, [val])]])
-        f d xs = second overlaps $ mapAccumL (g pos) d $ takeWhile ((>= threshold) . length) $ tails xs
+        f d xs = second overlaps $ mapAccumL (g pos) d $ onlyAtLeast threshold $ tails xs
             where pos = Map.fromList $ zip (map fst xs) [0..]
 
-        g :: Map.Map pos Int -> Dupe pos val -> [(pos, val)] -> (Dupe pos val, [(pos, pos, [val])])
+        g :: Map.Map pos Int -> Dupe pos val -> NE.NonEmpty (pos, val) -> (Dupe pos val, [(pos, pos, [val])])
         g pos d xs = (d2, res)
             where
                 res = [(p,pme,take mx vs) | i >= threshold
                       ,let mx = maybe i (\x -> min i $ (pos Map.! pme) - x) $ Map.lookup p pos
                       ,mx >= threshold]
-                vs = map snd xs
+                vs = NE.toList $ snd <$> xs
                 (p,i) = find vs d
-                pme = fst $ head xs
+                pme = fst $ NE.head xs
                 d2 = add pme vs d
+
+        onlyAtLeast n = mapMaybe $ \l -> case l of
+           x:xs | length l >= n -> Just (x NE.:| xs)
+           _ -> Nothing
 
         overlaps (x@((_,_,n):_):xs) = x : overlaps (drop (length n - 1) xs)
         overlaps (x:xs) = x : overlaps xs
