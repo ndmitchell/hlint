@@ -58,7 +58,7 @@ scopeMatch (a, x) (b, y)
   | isSpecial x && isSpecial y = rdrNameStr x == rdrNameStr y
   | isSpecial x || isSpecial y = False
   | otherwise =
-     rdrNameStr (unqual x) == rdrNameStr (unqual y) && not (possModules a x `disjoint` possModules b y)
+     rdrNameStr (unqual x) == rdrNameStr (unqual y) && not (possModules a x `disjointOrd` possModules b y)
 
 -- Given a name in a scope, and a new scope, create a name for the new
 -- scope that will refer to the same thing. If the resulting name is
