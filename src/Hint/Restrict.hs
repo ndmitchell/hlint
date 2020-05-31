@@ -42,6 +42,7 @@ import ApiAnnotation
 import Module
 import SrcLoc
 import OccName
+import Language.Haskell.GhclibParserEx.GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util
 
