@@ -15,7 +15,6 @@ import FastString
 import RdrName
 import OccName
 
-import GHC.Util.Module
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
@@ -47,7 +46,7 @@ scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
 
     -- Predicate to test for a 'Prelude' import declaration.
     isPrelude :: LImportDecl GhcPs -> Bool
-    isPrelude (L _ x) = fromModuleName' (ideclName x) == "Prelude"
+    isPrelude (L _ x) = moduleNameString (unLoc (ideclName x)) == "Prelude"
 
 -- Test if two names in two scopes may be referring to the same
 -- thing. This is the case if the names are equal and (1) denote a
