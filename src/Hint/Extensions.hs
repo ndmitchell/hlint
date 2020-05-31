@@ -138,6 +138,16 @@ main = id --
 main = "test"
 {-# LANGUAGE OverloadedStrings #-} \
 main = id --
+{-# LANGUAGE OverloadedLists #-} \
+main = [1]
+{-# LANGUAGE OverloadedLists #-} \
+main [1] = True
+{-# LANGUAGE OverloadedLists #-} \
+main = id --
+{-# LANGUAGE OverloadedLabels #-} \
+main = #foo
+{-# LANGUAGE OverloadedLabels #-} \
+main = id --
 {-# LANGUAGE DeriveAnyClass #-} \
 main = id --
 {-# LANGUAGE DeriveAnyClass #-} \
@@ -422,6 +432,23 @@ used NumericUnderscores = hasS f
 used LambdaCase = hasS isLCase
 used TupleSections = hasS isTupleSection
 used OverloadedStrings = hasS isString
+used OverloadedLists = hasS isListExpr ||^ hasS isListPat
+  where
+    isListExpr :: HsExpr GhcPs -> Bool
+    isListExpr ExplicitList{} = True
+    isListExpr ArithSeq{} = True
+    isListExpr _ = False
+
+    isListPat :: Pat GhcPs -> Bool
+    isListPat ListPat{} = True
+    isListPat _ = False
+
+used OverloadedLabels = hasS isLabel
+  where
+    isLabel :: HsExpr GhcPs -> Bool
+    isLabel HsOverLabel{} = True
+    isLabel _ = False
+
 used Arrows = hasS isProc
 used TransformListComp = hasS isTransStmt
 used MagicHash = hasS f ||^ hasS isPrimLiteral
