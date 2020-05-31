@@ -7,7 +7,6 @@ module GHC.Util (
   , module GHC.Util.ApiAnnotation
   , module GHC.Util.HsDecl
   , module GHC.Util.HsExpr
-  , module GHC.Util.Module
   , module GHC.Util.SrcLoc
   , module GHC.Util.DynFlags
   , module GHC.Util.Scope
@@ -24,7 +23,6 @@ import GHC.Util.FreeVars
 import GHC.Util.ApiAnnotation
 import GHC.Util.HsExpr
 import GHC.Util.HsDecl
-import GHC.Util.Module
 import GHC.Util.SrcLoc
 import GHC.Util.DynFlags
 import GHC.Util.Scope
