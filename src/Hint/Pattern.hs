@@ -51,6 +51,7 @@ foo !Bar { bar = x } = x -- Bar { bar = x }
 {-# LANGUAGE BangPatterns #-}; l !(() :: ()) = x -- (() :: ())
 foo x@_ = x -- x
 foo x@Foo = x
+otherwise = True
 </TEST>
 -}
 
