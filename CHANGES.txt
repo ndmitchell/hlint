@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1023, speed up checking on large files (up to 12%)
 3.1.4, released 2020-05-31
     #1018, stop --cross being quadratic
     #1019, more rules suggesting even/odd
