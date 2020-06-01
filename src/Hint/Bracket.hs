@@ -230,7 +230,7 @@ fieldDecl _ = []
 dollar :: LHsExpr GhcPs -> [Idea]
 dollar = concatMap f . universe
   where
-    f x = [ (suggest "Redundant $" x y [r]){ideaSpan = (getLoc d)} | o@(L _ (OpApp _ a d b)) <- [x], isDol d
+    f x = [ (suggest "Redundant $" x y [r]){ideaSpan = getLoc d} | o@(L _ (OpApp _ a d b)) <- [x], isDol d
             , let y = noLoc (HsApp noExtField a b) :: LHsExpr GhcPs
             , not $ needBracket 0 y a
             , not $ needBracket 1 y b
