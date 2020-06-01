@@ -10,6 +10,7 @@ import Control.Exception.Extra
 import Control.Monad
 import Data.Maybe
 import Data.Version.Extra
+import GHC.LanguageExtensions.Type
 import System.Directory.Extra
 import System.Exit
 import System.IO.Extra
@@ -53,9 +54,10 @@ refactorPath rpath = do
                        , "<https://github.com/mpickering/apply-refact>"
                        ]
 
-runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
-runRefactoring rpath fin hints opts =  do
+runRefactoring :: FilePath -> FilePath -> FilePath -> [Extension] -> [Extension] -> String -> IO ExitCode
+runRefactoring rpath fin hints ys ns opts =  do
     let args = [fin, "-v0"] ++ words opts ++ ["--refact-file", hints]
+          ++ [yes | e <- ys, yes <- ["-X", show e]] ++ [no | e <- ns, no <- ["-X", "No" ++ show e]]
     (_, _, _, phand) <- createProcess $ proc rpath args
     try $ hSetBuffering stdin LineBuffering :: IO (Either IOException ())
     hSetBuffering stdout LineBuffering

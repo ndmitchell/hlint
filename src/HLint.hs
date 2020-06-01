@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
@@ -8,6 +9,7 @@ import Control.Monad.Extra
 import Control.Exception.Extra
 import Control.Concurrent.Extra
 import System.Console.CmdArgs.Verbosity
+import GHC.LanguageExtensions.Type
 import GHC.Util.DynFlags
 import Data.List.Extra
 import GHC.Conc
@@ -153,7 +155,8 @@ runHints args settings cmd@CmdMain{..} = do
     j <- if cmdThreads == 0 then getNumProcessors else pure cmdThreads
     withNumCapabilities j $ do
         let outStrLn = whenNormal . putStrLn
-        ideas <- getIdeas cmd settings
+            flags@ParseFlags{enabledExtensions, disabledExtensions} = cmdParseFlags cmd
+        ideas <- getIdeas cmd flags settings
         ideas <- pure $ if cmdShowAll then ideas else  filter (\i -> ideaSeverity i /= Ignore) ideas
         if cmdJson then
             putStrLn $ showIdeasJson ideas
@@ -163,7 +166,7 @@ runHints args settings cmd@CmdMain{..} = do
             hSetBuffering stdout NoBuffering
             print $ map (show &&& ideaRefactoring) ideas
          else if cmdRefactor then
-            handleRefactoring ideas cmdFiles cmd
+            handleRefactoring ideas cmdFiles cmd enabledExtensions disabledExtensions
          else do
             usecolour <- cmdUseColour cmd
             showItem <- if usecolour then showANSI else pure show
@@ -171,10 +174,9 @@ runHints args settings cmd@CmdMain{..} = do
             handleReporting ideas cmd
         pure ideas
 
-getIdeas :: Cmd -> [Setting] -> IO [Idea]
-getIdeas cmd@CmdMain{..} settings = do
+getIdeas :: Cmd -> ParseFlags -> [Setting] -> IO [Idea]
+getIdeas CmdMain{..} flags settings = do
     settings <- pure $ settings ++ map (Builtin . fst) builtinHints
-    let flags = cmdParseFlags cmd
     ideas <- if cmdCross
         then applyHintFiles flags settings cmdFiles
         else concat <$> parallel cmdThreads [evaluateList =<< applyHintFile flags settings x Nothing | x <- cmdFiles]
@@ -184,8 +186,8 @@ getIdeas cmd@CmdMain{..} settings = do
 
 -- #746: run refactor even if no hint, which ensures consistent output
 -- whether there are hints or not.
-handleRefactoring :: [Idea] -> [String] -> Cmd -> IO ()
-handleRefactoring ideas files cmd@CmdMain{..} =
+handleRefactoring :: [Idea] -> [String] -> Cmd -> [Extension] -> [Extension] -> IO ()
+handleRefactoring ideas files cmd@CmdMain{..} ys ns =
     case cmdFiles of
         [file] -> do
             -- Ensure that we can find the executable
@@ -194,7 +196,7 @@ handleRefactoring ideas files cmd@CmdMain{..} =
             let hints =  show $ map (show &&& ideaRefactoring) ideas
             withTempFile $ \f -> do
                 writeFile f hints
-                exitWith =<< runRefactoring path file f cmdRefactorOptions
+                exitWith =<< runRefactoring path file f ys ns cmdRefactorOptions
         _ -> errorIO "Refactor flag can only be used with an individual file"
 
 
