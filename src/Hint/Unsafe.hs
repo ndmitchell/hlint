@@ -21,7 +21,7 @@ module Hint.Unsafe(unsafeHint) where
 import Hint.Type(DeclHint,ModuleEx(..),Severity(..),rawIdea,toSS)
 import Data.List.Extra
 import Refact.Types hiding(Match)
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 
 import GHC.Hs
 import OccName

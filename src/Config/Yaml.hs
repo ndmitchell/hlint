@@ -19,7 +19,7 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.HashMap.Strict as Map
-import Data.Generics.Uniplate.Data
+import Data.Generics.Uniplate.DataOnly
 import HSE.All
 import Fixity
 import Extension

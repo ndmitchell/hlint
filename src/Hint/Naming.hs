@@ -42,7 +42,7 @@ foreign import ccall hexml_node_child :: IO ()
 module Hint.Naming(namingHint) where
 
 import Hint.Type (Idea,DeclHint,suggest,toSS,ghcModule)
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra (nubOrd, isPrefixOf)
 import Data.Data
 import Data.Char

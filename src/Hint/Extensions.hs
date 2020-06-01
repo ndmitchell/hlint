@@ -225,7 +225,7 @@ module Hint.Extensions(extensionsHint) where
 import Hint.Type(ModuHint, rawIdea,Severity(Warning),Note(..),toSS,ghcAnnotations,ghcModule)
 import Extension
 
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Control.Monad.Extra
 import Data.Char
 import Data.Maybe

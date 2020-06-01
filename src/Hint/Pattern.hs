@@ -59,7 +59,7 @@ otherwise = True
 module Hint.Pattern(patternHint) where
 
 import Hint.Type(DeclHint,Idea,ghcAnnotations,ideaTo,toSS,toRefactSrcSpan,suggest,suggestRemove,warn)
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Data.Function
 import Data.List.Extra
 import Data.Tuple

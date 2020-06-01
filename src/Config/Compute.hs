@@ -8,7 +8,7 @@ import HSE.All
 import GHC.Util
 import Config.Type
 import Fixity
-import Data.Generics.Uniplate.Data
+import Data.Generics.Uniplate.DataOnly
 import GHC.Hs hiding (Warning)
 import RdrName
 import Name

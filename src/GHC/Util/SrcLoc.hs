@@ -10,7 +10,7 @@ import Outputable
 
 import Data.Default
 import Data.Data
-import Data.Generics.Uniplate.Data
+import Data.Generics.Uniplate.DataOnly
 
 -- 'stripLocs x' is 'x' with all contained source locs replaced by
 -- 'noSrcSpan'.

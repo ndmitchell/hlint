@@ -9,7 +9,7 @@ module GHC.Util.Unify(
 
 import Control.Applicative
 import Control.Monad
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Data.Char
 import Data.Data
 import Data.List.Extra

@@ -39,7 +39,7 @@ foo = [_ | x <- _, let _ = A{x}]
 module Hint.List(listHint) where
 
 import Control.Applicative
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
 import Data.Maybe
 import Prelude

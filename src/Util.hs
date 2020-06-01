@@ -12,7 +12,7 @@ import System.IO
 import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 
 
 ---------------------------------------------------------------------
@@ -56,11 +56,11 @@ gzip f x y | toConstr x /= toConstr y = Nothing
 ---------------------------------------------------------------------
 -- DATA.GENERICS.UNIPLATE.OPERATIONS
 
-universeParent :: Uniplate a => a -> [(Maybe a, a)]
+universeParent :: Data a => a -> [(Maybe a, a)]
 universeParent x = (Nothing,x) : f x
     where
-        f :: Uniplate a => a -> [(Maybe a, a)]
+        f :: Data a => a -> [(Maybe a, a)]
         f x = concat [(Just x, y) : f y | y <- children x]
 
-universeParentBi :: Biplate a b => a -> [(Maybe b, b)]
+universeParentBi :: (Data a, Data b) => a -> [(Maybe b, b)]
 universeParentBi = concatMap universeParent . childrenBi

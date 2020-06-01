@@ -101,7 +101,7 @@ module Hint.Bracket(bracketHint) where
 import Hint.Type(DeclHint,Idea(..),rawIdea,warn,suggest,Severity(..),toRefactSrcSpan,toSS)
 import Data.Data
 import Data.List.Extra
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Refact.Types
 
 import GHC.Hs
