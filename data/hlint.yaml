@@ -1103,8 +1103,7 @@
 # main = let (first, rest) = (take n l, drop n l) in rest -- splitAt n l
 # main = fst (splitAt n l) -- take n l
 # main = snd $ splitAt n l -- drop n l
-# main = map $ \ d -> ([| $d |], [| $d |]) @NoRefactor: apply-refact requires TemplateHaskell pragma
-# {-# LANGUAGE TemplateHaskell #-}; main = map $ \ d -> ([| $d |], [| $d |])
+# main = map $ \ d -> ([| $d |], [| $d |])
 # pairs (x:xs) = map (x,) xs ++ pairs xs
 # {-# ANN foo "HLint: ignore" #-};foo = map f (map g x) -- @Ignore ???
 # {-# HLINT ignore foo #-};foo = map f (map g x) -- @Ignore ???
@@ -1197,10 +1196,10 @@
 # fromList [] -- Data.Map.Lazy.empty
 # import Data.Map.Strict (fromList) \
 # fromList [] -- Data.Map.Strict.empty
-# test953 = for [] $ \n -> bar n >>= \case {Just n  -> pure (); Nothing -> baz n} @NoRefactor
+# test953 = for [] $ \n -> bar n >>= \case {Just n  -> pure (); Nothing -> baz n}
 # f = map (flip (,) "a") "123" -- (,"a")
 # f = map ((,) "a") "123" -- ("a",)
-# test979 = flip Map.traverseWithKey blocks \k v -> lots_of_code_goes_here @NoRefactor
+# test979 = flip Map.traverseWithKey blocks \k v -> lots_of_code_goes_here
 # infixl 4 <*! \
 # test993 = f =<< g <$> x <*! y
 # </TEST>

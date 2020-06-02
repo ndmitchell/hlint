@@ -10,6 +10,7 @@ import Control.Exception.Extra
 import Control.Monad
 import Data.Maybe
 import Data.Version.Extra
+import GHC.LanguageExtensions.Type
 import System.Directory.Extra
 import System.Exit
 import System.IO.Extra
@@ -43,7 +44,7 @@ refactorPath rpath = do
     case mexc of
         Just exc -> do
             ver <- readVersion . tail <$> readProcess exc ["--version"] ""
-            pure $ if versionBranch ver >= [0,1,0,0]
+            pure $ if versionBranch ver >= [0,7,0,0]
                        then Right exc
                        else Left "Your version of refactor is too old, please upgrade to the latest version"
         Nothing -> pure $ Left $ unlines
@@ -53,9 +54,11 @@ refactorPath rpath = do
                        , "<https://github.com/mpickering/apply-refact>"
                        ]
 
-runRefactoring :: FilePath -> FilePath -> FilePath -> String -> IO ExitCode
-runRefactoring rpath fin hints opts =  do
+runRefactoring :: FilePath -> FilePath -> FilePath -> [Extension] -> [Extension] -> String -> IO ExitCode
+runRefactoring rpath fin hints enabled disabled opts =  do
     let args = [fin, "-v0"] ++ words opts ++ ["--refact-file", hints]
+          ++ [arg | e <- enabled, arg <- ["-X", show e]]
+          ++ [arg | e <- disabled, arg <- ["-X", "No" ++ show e]]
     (_, _, _, phand) <- createProcess $ proc rpath args
     try $ hSetBuffering stdin LineBuffering :: IO (Either IOException ())
     hSetBuffering stdout LineBuffering
