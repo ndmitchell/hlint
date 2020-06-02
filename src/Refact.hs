@@ -44,7 +44,7 @@ refactorPath rpath = do
     case mexc of
         Just exc -> do
             ver <- readVersion . tail <$> readProcess exc ["--version"] ""
-            pure $ if versionBranch ver >= [0,1,0,0]
+            pure $ if versionBranch ver >= [0,7,0,0]
                        then Right exc
                        else Left "Your version of refactor is too old, please upgrade to the latest version"
         Nothing -> pure $ Left $ unlines
