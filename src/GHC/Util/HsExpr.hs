@@ -29,7 +29,7 @@ import Control.Applicative
 import Control.Monad.Trans.State
 
 import Data.Data
-import Data.Generics.Uniplate.Data
+import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
 import Data.Tuple.Extra
 

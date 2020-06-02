@@ -102,7 +102,7 @@ import Util
 import Data.List.Extra
 import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
-import Data.Generics.Uniplate.Operations (universe, universeBi, transformBi)
+import Data.Generics.Uniplate.DataOnly (universe, universeBi, transformBi)
 
 import BasicTypes
 import GHC.Hs

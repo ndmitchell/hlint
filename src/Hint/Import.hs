@@ -44,7 +44,7 @@ import Refact.Types hiding (ModuleName)
 import qualified Refact.Types as R
 import Data.Tuple.Extra
 import Data.List.Extra
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Data.Maybe
 import Control.Applicative
 import Prelude

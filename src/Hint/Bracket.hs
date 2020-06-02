@@ -58,12 +58,12 @@ f x = case x of (Nothing) -> 1; _ -> 2 -- Nothing
 
 -- dollar reduction tests
 no = groupFsts . sortFst $ mr
-yes = split "to" $ names --
-yes = white $ keysymbol --
-yes = operator foo $ operator --
+yes = split "to" $ names -- split "to" names
+yes = white $ keysymbol -- white keysymbol
+yes = operator foo $ operator -- operator foo operator
 no = operator foo $ operator bar
 yes = return $ Record{a=b}
-no = f $ [1,2..5] -- @NoRefactor: apply-refact bug; see apply-refact #51
+no = f $ [1,2..5] -- f [1,2..5] @NoRefactor: apply-refact bug; see apply-refact #51
 
 -- $/bracket rotation tests
 yes = (b $ c d) ++ e -- b (c d) ++ e
@@ -98,10 +98,10 @@ loadCradleOnlyonce = skipManyTill anyMessage (message @PublishDiagnosticsNotific
 
 module Hint.Bracket(bracketHint) where
 
-import Hint.Type(DeclHint,Idea(..),rawIdea,warn,suggest,suggestRemove,Severity(..),toRefactSrcSpan,toSS)
+import Hint.Type(DeclHint,Idea(..),rawIdea,warn,suggest,Severity(..),toRefactSrcSpan,toSS)
 import Data.Data
 import Data.List.Extra
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Refact.Types
 
 import GHC.Hs
@@ -183,7 +183,7 @@ bracket pretty isPartialAtom root = f Nothing
     -- 'x' actually need bracketing in this context?
     f (Just (i, o, gen)) v@(remParens' -> Just x)
       | not $ needBracket i o x, not $ isPartialAtom x =
-          rawIdea Suggestion msg (getLoc o) (pretty o) (Just (pretty (gen x))) [] [r] : g x
+          rawIdea Suggestion msg (getLoc v) (pretty o) (Just (pretty (gen x))) [] [r] : g x
       where
         typ = findType (unLoc v)
         r = Replace typ (toSS v) [("x", toSS x)] "x"
@@ -207,7 +207,7 @@ bracketError msg o x =
 fieldDecl ::  LConDeclField GhcPs -> [Idea]
 fieldDecl o@(L loc f@ConDeclField{cd_fld_type=v@(L l (HsParTy _ c))}) =
    let r = L loc (f{cd_fld_type=c}) :: LConDeclField GhcPs in
-   [rawIdea Suggestion "Redundant bracket" loc
+   [rawIdea Suggestion "Redundant bracket" l
     (showSDocUnsafe $ ppr_fld o) -- Note this custom printer!
     (Just (showSDocUnsafe $ ppr_fld r))
     []
@@ -230,7 +230,7 @@ fieldDecl _ = []
 dollar :: LHsExpr GhcPs -> [Idea]
 dollar = concatMap f . universe
   where
-    f x = [ suggestRemove "Redundant $" (getLoc d) "$" [r]| (L _ (OpApp _ a d b)) <- [x], isDol d
+    f x = [ (suggest "Redundant $" x y [r]){ideaSpan = getLoc d} | o@(L _ (OpApp _ a d b)) <- [x], isDol d
             , let y = noLoc (HsApp noExtField a b) :: LHsExpr GhcPs
             , not $ needBracket 0 y a
             , not $ needBracket 1 y b
@@ -245,7 +245,7 @@ dollar = concatMap f . universe
             , let y = noLoc $ HsApp noExtField a1 (noLoc (HsPar noExtField a2))
             , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]
           ++  -- Special case of (v1 . v2) <$> v3
-          [ suggest "Redundant bracket" x y [r]
+          [ (suggest "Redundant bracket" x y [r]){ideaSpan = locPar}
           | L _ (OpApp _ (L locPar (HsPar _ o1@(L locNoPar (OpApp _ v1 (isDot -> True) v2)))) o2 v3) <- [x], varToStr o2 == "<$>"
           , let y = noLoc (OpApp noExtField o1 o2 v3) :: LHsExpr GhcPs
           , let r = Replace Expr (toRefactSrcSpan locPar) [("a", toRefactSrcSpan locNoPar)] "a"]

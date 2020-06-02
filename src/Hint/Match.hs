@@ -49,7 +49,7 @@ import Control.Monad
 import Data.Tuple.Extra
 import Data.Maybe
 import Config.Type
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 
 import Bag
 import GHC.Hs

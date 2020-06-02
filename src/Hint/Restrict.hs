@@ -24,7 +24,7 @@ foo = nub s
 import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea)
 import Config.Type
 
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Set as Set
 import qualified Data.Map as Map

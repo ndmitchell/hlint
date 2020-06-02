@@ -81,7 +81,7 @@ import A
 import Hint.Type(ModuHint,ModuleEx(..),DeclHint,Idea(..),rawIdea,warn)
 import Config.Type
 
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
 import qualified Data.Map as Map
 

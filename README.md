@@ -96,26 +96,15 @@ HLint is integrated into lots of places:
 
 ### Automatically Applying Hints
 
-By supplying the `--refactor` flag hlint can automatically apply most
-suggestions. Instead of a list of hints, hlint will instead output the
-refactored file on stdout. In order to do this, it is necessary to have the
-`refactor` executable on your path. `refactor` is provided by the
-[`apply-refact`](https://github.com/mpickering/apply-refact) package,
-it uses the GHC API in order to transform source files given a list of
-refactorings to apply. Hlint directly calls the executable to apply the
-suggestions.
+HLint can automatically apply some suggestions using the `--refactor` flag. If passed, instead of printing out the hints, HLint will output the refactored file on stdout. For `--refactor` to work it is necessary to have the `refactor` executable from the [`apply-refact`](https://github.com/mpickering/apply-refact) package on your `$PATH`. HLint uses that tool to perform the refactoring.
 
-Additional configuration can be passed to `refactor` with the
-`--refactor-options` flag. Some useful flags include `-i` which replaces the
-original file and `-s` which asks for confirmation before performing a hint.
+When using `--refactor` you can pass additional options to the `refactor` binary using `--refactor-options` flag. Some useful flags include `-i` (which replaces the original file) and `-s` (which asks for confirmation before performing a hint). The `--with-refactor` flag can be used to specify an alternative location for the `refactor` binary. Simple bindings for [Vim](https://github.com/mpickering/hlint-refactor-vim), [Emacs](https://github.com/mpickering/hlint-refactor-mode) and [Atom](https://github.com/mpickering/hlint-refactor-atom) are available.
 
-An alternative location for `refactor` can be specified with the
-`--with-refactor` flag.
+While the `--refactor` flag is useful, it is not complete or at the same level of quality as the rest of HLint:
 
-Simple bindings for [vim](https://github.com/mpickering/hlint-refactor-vim),
-[emacs](https://github.com/mpickering/hlint-refactor-mode) and [atom](https://github.com/mpickering/hlint-refactor-atom) are provided.
-
-There are no plans to support the duplication nor the renaming hints.
+* Some hints don't generate refactorings. Examples include excess duplication, renaming hints and eta reduction hints.
+* There are bugs in the underlying `refactor` tool which cause the resultant file to be incorrect. For example, `[1,2..3]` comes out as `[12..3]` ([#389](https://github.com/ndmitchell/hlint/issues/389)), even if there isn't a hint that touches it.
+* There are bugs in HLint that mean some replacements are wrong, although we're fixing these as we find them.
 
 ### Reports
 

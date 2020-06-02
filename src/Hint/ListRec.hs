@@ -33,7 +33,7 @@ module Hint.ListRec(listRecHint) where
 
 import Hint.Type (DeclHint, Severity(Suggestion, Warning), idea, toSS)
 
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
 import Data.Maybe
 import Data.Either.Extra

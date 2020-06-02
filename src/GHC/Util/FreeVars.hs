@@ -15,8 +15,7 @@ import GHC.Hs
 import SrcLoc
 import Bag (bagToList)
 
-import Data.Generics.Uniplate.Data ()
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Data.Monoid
 import Data.Semigroup
 import Data.List.Extra

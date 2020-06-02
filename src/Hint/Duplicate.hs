@@ -24,7 +24,7 @@ module Hint.Duplicate(duplicateHint) where
 
 import Hint.Type (CrossHint, ModuleEx(..), Idea(..),rawIdeaN,Severity(Suggestion,Warning))
 import Data.Data
-import Data.Generics.Uniplate.Operations
+import Data.Generics.Uniplate.DataOnly
 import Data.Default
 import Data.Maybe
 import Data.Tuple.Extra

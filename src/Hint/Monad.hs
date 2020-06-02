@@ -75,7 +75,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util
 
-import Data.Generics.Uniplate.Data
+import Data.Generics.Uniplate.DataOnly
 import Data.Tuple.Extra
 import Data.Maybe
 import Data.List.Extra
