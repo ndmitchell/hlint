@@ -263,7 +263,7 @@
 
     # FOLDS
 
-    - warn: {lhs: foldr  (>>) (return ()), rhs: sequenceA_}
+    - warn: {lhs: foldr  (>>) (return ()), rhs: sequence_}
     - warn: {lhs: foldr  (&&) True, rhs: and}
     - warn: {lhs: foldl  (&&) True, rhs: and, note: IncreasesLaziness}
     - warn: {lhs: foldr1 (&&) , rhs: and, note: "RemovesError on `[]`"}
@@ -494,8 +494,8 @@
     - warn: {lhs: mapM_ f (map g x), rhs: mapM_ (f . g) x, name: Fuse mapM_/map}
     - warn: {lhs: traverse f (map g x), rhs: traverse (f . g) x, name: Fuse traverse/map}
     - warn: {lhs: traverse_ f (map g x), rhs: traverse_ (f . g) x, name: Fuse traverse_/map}
-    - warn: {lhs: mapM id, rhs: sequenceA}
-    - warn: {lhs: mapM_ id, rhs: sequenceA_}
+    - warn: {lhs: mapM id, rhs: sequence}
+    - warn: {lhs: mapM_ id, rhs: sequence_}
 
     # APPLICATIVE / TRAVERSABLE
 
@@ -514,6 +514,8 @@
     - hint: {lhs: pure . f =<< m, rhs: f <$> m}
     - warn: {lhs: empty <|> x, rhs: x, name: "Alternative law, left identity"}
     - warn: {lhs: x <|> empty, rhs: x, name: "Alternative law, right identity"}
+    - warn: {lhs: traverse id, rhs: sequenceA}
+    - warn: {lhs: traverse_ id, rhs: sequenceA_}
 
 
     # LIST COMP
