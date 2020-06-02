@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1028, add hints around sequenceA/traverse
     #1027, pass enabled and disabled extensions to apply-refact
     #1024, make the redundant bracket hints cover just the bracket
     #1024, make redundant $ display more context on the command line
