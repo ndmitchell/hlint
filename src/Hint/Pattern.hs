@@ -26,17 +26,17 @@ foo = case v of v -> x -- x
 foo = case v of z -> z
 foo = case v of _ | False -> x
 foo x | x < -2 * 3 = 4 @NoRefactor: ghc-exactprint bug; -2 becomes 2.
-foo = case v of !True -> x -- True @NoRefactor: apply-refact requires BangPatterns pragma
+foo = case v of !True -> x -- True
 {-# LANGUAGE BangPatterns #-}; foo = case v of !True -> x -- True
 {-# LANGUAGE BangPatterns #-}; foo = case v of !(Just x) -> x -- (Just x)
 {-# LANGUAGE BangPatterns #-}; foo = case v of !(x : xs) -> x -- (x:xs)
 {-# LANGUAGE BangPatterns #-}; foo = case v of !1 -> x -- 1
 {-# LANGUAGE BangPatterns #-}; foo = case v of !x -> x
-{-# LANGUAGE BangPatterns #-}; foo = case v of !(I# x) -> y -- (I# x) @NoRefactor
+{-# LANGUAGE BangPatterns #-}; foo = case v of !(I# x) -> y -- (I# x)
 foo = let ~x = 1 in y -- x
 foo = let ~(x:xs) = y in z
 {-# LANGUAGE BangPatterns #-}; foo = let !x = undefined in y
-{-# LANGUAGE BangPatterns #-}; foo = let !(I# x) = 4 in x @NoRefactor
+{-# LANGUAGE BangPatterns #-}; foo = let !(I# x) = 4 in x
 {-# LANGUAGE BangPatterns #-}; foo = let !(Just x) = Nothing in 3
 {-# LANGUAGE BangPatterns #-}; foo = 1 where f !False = 2 -- False
 {-# LANGUAGE BangPatterns #-}; foo = 1 where !False = True

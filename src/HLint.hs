@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
@@ -194,9 +195,9 @@ handleRefactoring ideas files cmd@CmdMain{..} =
             let hints =  show $ map (show &&& ideaRefactoring) ideas
             withTempFile $ \f -> do
                 writeFile f hints
-                exitWith =<< runRefactoring path file f cmdRefactorOptions
+                let ParseFlags{enabledExtensions, disabledExtensions} = cmdParseFlags cmd
+                exitWith =<< runRefactoring path file f enabledExtensions disabledExtensions cmdRefactorOptions
         _ -> errorIO "Refactor flag can only be used with an individual file"
-
 
 handleReporting :: [Idea] -> Cmd -> IO ()
 handleReporting showideas cmd@CmdMain{..} = do

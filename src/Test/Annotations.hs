@@ -23,6 +23,7 @@ import qualified Data.ByteString.Char8 as BS
 import Config.Type
 import Idea
 import Apply
+import Extension
 import Refact
 import Test.Util
 import Prelude
@@ -161,7 +162,7 @@ testRefactor (Just rpath) midea inp = withTempFile $ \tempInp -> withTempFile $ 
         x `isProperSubsequenceOf` y = x /= y && x `isSubsequenceOf` y
     writeFile tempInp inp
     writeFile tempHints (show refacts)
-    exitCode <- runRefactoring rpath tempInp tempHints "--inplace"
+    exitCode <- runRefactoring rpath tempInp tempHints defaultExtensions [] "--inplace"
     refactored <- readFile tempInp
     pure $ case exitCode of
         ExitFailure ec -> ["Refactoring failed: exit code " ++ show ec]
