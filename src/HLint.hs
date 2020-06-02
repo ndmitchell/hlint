@@ -9,7 +9,6 @@ import Control.Monad.Extra
 import Control.Exception.Extra
 import Control.Concurrent.Extra
 import System.Console.CmdArgs.Verbosity
-import GHC.LanguageExtensions.Type
 import GHC.Util.DynFlags
 import Data.List.Extra
 import GHC.Conc
