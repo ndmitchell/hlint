@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards #-}
+{-# LANGUAGE LambdaCase, PatternGuards, ViewPatterns #-}
 
 {-
     Concept:
@@ -22,7 +22,8 @@
 <TEST>
 f a = \x -> x + x -- f a x = x + x
 f a = \a -> a + a -- f _ a = a + a
-f (Just a) = \a -> a + a -- f (Just _) a = a + a @NoRefactor
+f (Just a) = \a -> a + a -- f (Just _) a = a + a
+f (Foo a b c) = \c -> c + c -- f (Foo a b _) c = c + c
 f a = \x -> x + x where _ = test
 f (test -> a) = \x -> x + x
 f = \x -> x + x -- f x = x + x
@@ -100,6 +101,7 @@ module Hint.Lambda(lambdaHint) where
 import Hint.Type (DeclHint, Idea, Note(RequiresExtension), suggest, warn, toSS, suggestN, ideaNote)
 import Util
 import Data.List.Extra
+import Data.Set (Set)
 import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 import Data.Generics.Uniplate.DataOnly (universe, universeBi, transformBi)
@@ -149,11 +151,13 @@ lambdaDecl
 
           (finalpats, body) = fromLambda . lambda pats $ origBody
           (pats2, bod2) = etaReduce pats origBody
-          template fps = unsafePrettyPrint $ reform (zipWith munge ['a'..'z'] fps) varBody
-          subts fps b = ("body", toSS b) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS fps)
+          template fps =
+            let (origPats, subtsVars) = mkOrigPats fps
+             in (unsafePrettyPrint (reform origPats varBody), subtsVars)
+          subts fps b = ("body", toSS b) : zipWith (\x y -> ([x],y)) subtsVars (map toSS fps)
           s1 = subts finalpats body
           --s2 = subts pats2 bod2
-          t1 = template finalpats
+          (t1, subtsVars) = template finalpats
           --t2 = template pats2 bod2
 lambdaDecl _ = []
 
@@ -198,9 +202,11 @@ lambdaExp p o@(SimpleLambda origPats origBody)
     where
       (pats, body) = fromLambda o
 
-      template = unsafePrettyPrint $ lambda (zipWith munge ['a'..'z'] pats) varBody
+      (template, subtsVars) =
+        let (origPats, vars) = mkOrigPats pats
+         in (unsafePrettyPrint (lambda origPats varBody), vars)
 
-      subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) ['a'..'z'] (map toSS pats)
+      subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) subtsVars (map toSS pats)
 
 -- match a lambda with a variable pattern, with no guards and no where clauses
 lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
@@ -268,7 +274,31 @@ fromLambda (SimpleLambda ps1 (fromLambda . fromParen -> (ps2,x))) = (transformBi
           f bad x = x
 fromLambda x = ([], x)
 
--- | Replaces all non-wildcard patterns with a variable pattern with the given identifier.
-munge :: Char -> LPat GhcPs -> LPat GhcPs
-munge ident p@(L _ (WildPat _)) = p
-munge ident (L ploc p) = L ploc (VarPat noExtField (L ploc $ mkRdrUnqual $ mkVarOcc [ident]))
+-- | For each pattern, if it does not contain wildcards, replace it with a variable pattern.
+--
+-- The second component of the result is a list of substitution variables, which is ['a'..'z'],
+-- excluding variables that occur in patterns with wildcards. For example, if there is a pattern
+-- 'Foo a b _', then 'a' and 'b' are removed.
+mkOrigPats :: [LPat GhcPs] -> ([LPat GhcPs], String)
+mkOrigPats pats = (zipWith munge subtsVars pats', subtsVars)
+  where
+    (Set.unions -> used, pats') = unzip (fmap f pats)
+
+    -- Remove variables that occur in patterns with wildcards
+    subtsVars = filter (`Set.notMember` used) ['a'..'z']
+
+    -- Returns (chars in the pattern if the pattern contains wildcards, (whether the pattern contains wildcards, the pattern))
+    f :: LPat GhcPs -> (Set Char, (Bool, LPat GhcPs))
+    f p
+      | any isWildPat (universeBi p) =
+          let used = Set.fromList [c | (L _ (VarPat _ (rdrNameStr -> [c]))) <- universe p]
+           in (used, (True, p))
+      | otherwise = (mempty, (False, p))
+
+    isWildPat :: LPat GhcPs -> Bool
+    isWildPat = \case (L _ (WildPat _)) -> True; _ -> False
+
+    -- Replace the pattern with a variable pattern if the pattern doesn't contain wildcards.
+    munge :: Char -> (Bool, LPat GhcPs) -> LPat GhcPs
+    munge _ (True, p) = p
+    munge ident (False, L ploc _) = L ploc (VarPat noExtField (L ploc $ mkRdrUnqual $ mkVarOcc [ident]))
