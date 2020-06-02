@@ -55,9 +55,10 @@ refactorPath rpath = do
                        ]
 
 runRefactoring :: FilePath -> FilePath -> FilePath -> [Extension] -> [Extension] -> String -> IO ExitCode
-runRefactoring rpath fin hints ys ns opts =  do
+runRefactoring rpath fin hints enabled disabled opts =  do
     let args = [fin, "-v0"] ++ words opts ++ ["--refact-file", hints]
-          ++ [yes | e <- ys, yes <- ["-X", show e]] ++ [no | e <- ns, no <- ["-X", "No" ++ show e]]
+          ++ [arg | e <- enabled, arg <- ["-X", show e]]
+          ++ [arg | e <- disabled, arg <- ["-X", "No" ++ show e]]
     (_, _, _, phand) <- createProcess $ proc rpath args
     try $ hSetBuffering stdin LineBuffering :: IO (Either IOException ())
     hSetBuffering stdout LineBuffering
