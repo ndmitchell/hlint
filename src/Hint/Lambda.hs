@@ -290,7 +290,7 @@ mkOrigPats pats = (zipWith munge subtsVars pats', subtsVars)
     -- Returns (chars in the pattern if the pattern contains wildcards, (whether the pattern contains wildcards, the pattern))
     f :: LPat GhcPs -> (Set Char, (Bool, LPat GhcPs))
     f p
-      | any isWildPat (universeBi p) =
+      | any isWildPat (universe p) =
           let used = Set.fromList [c | (L _ (VarPat _ (rdrNameStr -> [c]))) <- universe p]
            in (used, (True, p))
       | otherwise = (mempty, (False, p))
