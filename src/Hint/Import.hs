@@ -28,18 +28,13 @@ import A; import B; import A -- import A
 import qualified A; import A
 import B; import A; import A -- import A
 import A hiding(Foo); import A hiding(Bar)
-import List -- import Data.List @NoRefactor: apply-refact bug
-import qualified List -- import qualified Data.List as List @NoRefactor
-import Char(foo) -- import Data.Char(foo) @NoRefactor
-import IO(foo)
-import IO as X -- import System.IO as X; import System.IO.Error as X; import Control.Exception  as X (bracket,bracket_) @NoRefactor
 </TEST>
 -}
 
 
 module Hint.Import(importHint) where
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),suggest,toSS,rawIdea,rawIdeaN)
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),suggest,toSS,rawIdea)
 import Refact.Types hiding (ModuleName)
 import qualified Refact.Types as R
 import Data.Tuple.Extra
@@ -51,8 +46,6 @@ import Prelude
 
 import FastString
 import BasicTypes
-import RdrName
-import Module
 import GHC.Hs
 import SrcLoc
 
@@ -69,10 +62,7 @@ importHint _ ModuleEx {ghcModule=L _ HsModule{hsmodImports=ms}} =
               , let n = unLoc $ ideclName i'
               , let pkg  = unpackFS . sl_fs <$> ideclPkgQual i']) ++
   -- Ideas for removing redundant 'as' clauses.
-  concatMap stripRedundantAlias ms ++
-  -- Ideas for replacing deprecated imports by their preferred
-  -- equivalents.
-  concatMap preferHierarchicalImports ms
+  concatMap stripRedundantAlias ms
 
 reduceImports :: [LImportDecl GhcPs] -> [Idea]
 reduceImports [] = []
@@ -140,51 +130,3 @@ stripRedundantAlias x@(L loc i@ImportDecl {..})
   | Just (unLoc ideclName) == fmap unLoc ideclAs =
       [suggest "Redundant as" x (cL loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS x)]]
 stripRedundantAlias _ = []
-
-preferHierarchicalImports :: LImportDecl GhcPs -> [Idea]
-preferHierarchicalImports x@(L loc i@ImportDecl{ideclName=L _ n,ideclPkgQual=Nothing})
-  -- Suggest 'import IO' be rewritten 'import System.IO, import
-  -- System.IO.Error, import Control.Exception(bracket, bracket_)'.
-  | n == mkModuleName "IO" && isNothing (ideclHiding i) =
-      [rawIdeaN Suggestion "Use hierarchical imports" loc
-      (trimStart $ unsafePrettyPrint i) (
-          Just $ unlines $ map (trimStart . unsafePrettyPrint)
-          [ f "System.IO" Nothing, f "System.IO.Error" Nothing
-          , f "Control.Exception" $ Just (False, noLoc [mkLIE x | x <- ["bracket","bracket_"]])]) []]
-  -- Suggest that a module import like 'Monad' should be rewritten with
-  -- its hiearchical equivalent e.g. 'Control.Monad'.
-  | Just y <- lookup (moduleNameString n) newNames =
-    let newModuleName = y ++ "." ++ moduleNameString n
-        r = [Replace R.ModuleName (toSS x) [] newModuleName] in
-    [suggest "Use hierarchical imports"
-     x (noLoc (desugarQual i){ideclName=noLoc (mkModuleName newModuleName)} :: LImportDecl GhcPs) r]
-  where
-    -- Substitute a new module name.
-    f a b = (desugarQual i){ideclName=noLoc (mkModuleName a), ideclHiding=b}
-    -- Wrap a literal name into an 'IE' (import/export) value.
-    mkLIE :: String -> LIE GhcPs
-    mkLIE n = noLoc $ IEVar noExtField (noLoc (IEName (noLoc (mkVarUnqual (fsLit n)))))
-    -- Rewrite 'import qualified X' as 'import qualified X as X'.
-    desugarQual :: ImportDecl GhcPs -> ImportDecl GhcPs
-    desugarQual i
-      | ideclQualified i /= NotQualified && isNothing (ideclAs i) = i{ideclAs = Just (ideclName i)}
-      | otherwise = i
-
-preferHierarchicalImports _ = []
-
-newNames :: [(String, String)]
-newNames = let (*) = flip (,) in
-    ["Control" * "Monad"
-    ,"Data" * "Char"
-    ,"Data" * "List"
-    ,"Data" * "Maybe"
-    ,"Data" * "Ratio"
-    ,"System" * "Directory"
-
-    -- Special, see bug https://code.google.com/archive/p/ndmitchell/issues/393
-    -- ,"System" * "IO"
-
-    -- Do not encourage use of old-locale/old-time over haskell98
-    -- ,"System" * "Locale"
-    -- ,"System" * "Time"
-    ]
