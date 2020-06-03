@@ -133,12 +133,12 @@ lambdaDecl
     | L _ (EmptyLocalBinds noExtField) <- bind
     , isLambda $ fromParen origBody
     , null (universeBi pats :: [HsExpr GhcPs])
-    = [warn "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS o) s1 t1]]
+    = [warn "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS o) subts template]]
     | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
     = [warn "Eta reduce" (reform pats origBody) (reform pats2 bod2)
           [ -- Disabled, see apply-refact #3
-            -- Replace Decl (toSS $ reform' pats origBody) s2 t2]]
-          ]]
+          ]
+      ]
     where reform :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
           reform ps b = L loc $ ValD noExtField $
             origBind
@@ -151,14 +151,9 @@ lambdaDecl
 
           (finalpats, body) = fromLambda . lambda pats $ origBody
           (pats2, bod2) = etaReduce pats origBody
-          template fps =
-            let (origPats, subtsVars) = mkOrigPats fps
-             in (unsafePrettyPrint (reform origPats varBody), subtsVars)
-          subts fps b = ("body", toSS b) : zipWith (\x y -> ([x],y)) subtsVars (map toSS fps)
-          s1 = subts finalpats body
-          --s2 = subts pats2 bod2
-          (t1, subtsVars) = template finalpats
-          --t2 = template pats2 bod2
+          (origPats, subtsVars) = mkOrigPats finalpats
+          subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) subtsVars (map toSS finalpats)
+          template = unsafePrettyPrint (reform origPats varBody)
 lambdaDecl _ = []
 
 
@@ -201,12 +196,9 @@ lambdaExp p o@(SimpleLambda origPats origBody)
     [suggest "Collapse lambdas" o (lambda pats body) [Replace Expr (toSS o) subts template]]
     where
       (pats, body) = fromLambda o
-
-      (template, subtsVars) =
-        let (origPats, vars) = mkOrigPats pats
-         in (unsafePrettyPrint (lambda origPats varBody), vars)
-
+      (oPats, subtsVars) = mkOrigPats pats
       subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) subtsVars (map toSS pats)
+      template = unsafePrettyPrint (lambda oPats varBody)
 
 -- match a lambda with a variable pattern, with no guards and no where clauses
 lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
@@ -279,10 +271,10 @@ fromLambda x = ([], x)
 -- The second component of the result is a list of substitution variables, which is ['a'..'z'],
 -- excluding variables that occur in patterns with wildcards. For example, if there is a pattern
 -- 'Foo a b _', then 'a' and 'b' are removed.
-mkOrigPats :: [LPat GhcPs] -> ([LPat GhcPs], String)
+mkOrigPats :: [LPat GhcPs] -> ([LPat GhcPs], [Char])
 mkOrigPats pats = (zipWith munge subtsVars pats', subtsVars)
   where
-    (Set.unions -> used, pats') = unzip (fmap f pats)
+    (Set.unions -> used, pats') = unzip (map f pats)
 
     -- Remove variables that occur in patterns with wildcards
     subtsVars = filter (`Set.notMember` used) ['a'..'z']
