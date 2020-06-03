@@ -66,7 +66,5 @@
 - ignore: {name: Use explicit module export list, within: HSE.Util}
 # this const has meaingful argument names
 - ignore: {name: Use const, within: Config.Yaml}
-# temporary disable while we have unused top binds here
-- ignore: {name : Avoid restricted flags, within: [GHC.Util.HsExpr, Hint.Match]}
 # Better to use [Char] when that is the moral underlying type, rather than String
 - ignore: {name : Use String, within: [Hint.Lambda]}
