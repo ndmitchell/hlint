@@ -20,7 +20,7 @@
 {-# OPTIONS_GHC -cpp -foo #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -foo #-} @NoRefactor -foo is not a valid flag
 {-# OPTIONS_GHC -cpp -w #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -w #-} @NoRefactor: the two pragmas are switched in the refactoring output
 {-# OPTIONS_GHC -cpp #-} \
-{-# LANGUAGE CPP, Text #-} -- @NoRefactor
+{-# LANGUAGE CPP, Text #-} --
 {-# LANGUAGE RebindableSyntax #-} \
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE RebindableSyntax #-} \

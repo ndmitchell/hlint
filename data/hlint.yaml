@@ -241,7 +241,6 @@
 
     - warn: {lhs: sequenceA (map f x), rhs: traverse f x}
     - warn: {lhs: sequenceA (fmap f x), rhs: traverse f x}
-    - warn: {lhs: sequence (fmap f x), rhs: traverse f x}
     - warn: {lhs: sequenceA_ (map f x), rhs: traverse_ f x}
     - warn: {lhs: sequenceA_ (fmap f x), rhs: traverse_ f x}
     - warn: {lhs: foldMap id, rhs: fold}
@@ -485,6 +484,10 @@
     - warn: {lhs: sequence_ (zipWith f x y), rhs: Control.Monad.zipWithM_ f x y}
     - warn: {lhs: sequence (replicate n x), rhs: Control.Monad.replicateM n x}
     - warn: {lhs: sequence_ (replicate n x), rhs: Control.Monad.replicateM_ n x}
+    - warn: {lhs: sequenceA (zipWith f x y), rhs: Control.Monad.zipWithM f x y}
+    - warn: {lhs: sequenceA_ (zipWith f x y), rhs: Control.Monad.zipWithM_ f x y}
+    - warn: {lhs: sequenceA (replicate n x), rhs: Control.Monad.replicateM n x}
+    - warn: {lhs: sequenceA_ (replicate n x), rhs: Control.Monad.replicateM_ n x}
     - warn: {lhs: mapM f (replicate n x), rhs: Control.Monad.replicateM n (f x)}
     - warn: {lhs: mapM_ f (replicate n x), rhs: Control.Monad.replicateM_ n (f x)}
     - warn: {lhs: mapM f (map g x), rhs: mapM (f . g) x, name: Fuse mapM/map}
@@ -511,6 +514,8 @@
     - hint: {lhs: pure . f =<< m, rhs: f <$> m}
     - warn: {lhs: empty <|> x, rhs: x, name: "Alternative law, left identity"}
     - warn: {lhs: x <|> empty, rhs: x, name: "Alternative law, right identity"}
+    - warn: {lhs: traverse id, rhs: sequenceA}
+    - warn: {lhs: traverse_ id, rhs: sequenceA_}
 
 
     # LIST COMP
@@ -1100,8 +1105,7 @@
 # main = let (first, rest) = (take n l, drop n l) in rest -- splitAt n l
 # main = fst (splitAt n l) -- take n l
 # main = snd $ splitAt n l -- drop n l
-# main = map $ \ d -> ([| $d |], [| $d |]) @NoRefactor: apply-refact requires TemplateHaskell pragma
-# {-# LANGUAGE TemplateHaskell #-}; main = map $ \ d -> ([| $d |], [| $d |])
+# main = map $ \ d -> ([| $d |], [| $d |])
 # pairs (x:xs) = map (x,) xs ++ pairs xs
 # {-# ANN foo "HLint: ignore" #-};foo = map f (map g x) -- @Ignore ???
 # {-# HLINT ignore foo #-};foo = map f (map g x) -- @Ignore ???
@@ -1194,10 +1198,10 @@
 # fromList [] -- Data.Map.Lazy.empty
 # import Data.Map.Strict (fromList) \
 # fromList [] -- Data.Map.Strict.empty
-# test953 = for [] $ \n -> bar n >>= \case {Just n  -> pure (); Nothing -> baz n} @NoRefactor
+# test953 = for [] $ \n -> bar n >>= \case {Just n  -> pure (); Nothing -> baz n}
 # f = map (flip (,) "a") "123" -- (,"a")
 # f = map ((,) "a") "123" -- ("a",)
-# test979 = flip Map.traverseWithKey blocks \k v -> lots_of_code_goes_here @NoRefactor
+# test979 = flip Map.traverseWithKey blocks \k v -> lots_of_code_goes_here
 # infixl 4 <*! \
 # test993 = f =<< g <$> x <*! y
 # </TEST>
