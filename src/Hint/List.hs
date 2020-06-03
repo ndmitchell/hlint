@@ -13,7 +13,7 @@ yes = [x] ++ xs -- x : xs
 no = "x" ++ xs
 no = [x] ++ xs ++ ys
 no = xs ++ [x] ++ ys
-yes = [if a then b else c] ++ xs -- (if a then b else c) : xs @NoRefactor: hlint bug, missing brackets in refactoring template
+yes = [if a then b else c] ++ xs -- (if a then b else c) : xs
 yes = [1] : [2] : [3] : [4] : [5] : [] -- [[1], [2], [3], [4], [5]]
 yes = if x == e then l2 ++ xs else [x] ++ check_elem xs -- x : check_elem xs
 data Yes = Yes (Maybe [Char]) -- Maybe String
@@ -230,17 +230,17 @@ useList b =
 
 useCons :: View a App2 => Bool -> a -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String)
 useCons False (view -> App2 op x y) | varToStr op == "++"
-                                       , Just (x2, build) <- f x
-                                       , not $ isAppend y =
-    Just (gen (build x2) y
-         , [("x", toSS x2), ("xs", toSS y)]
-         , unsafePrettyPrint $ gen (build $ strToVar "x") (strToVar "xs")
+                                    , Just (newX, tplX, spanX) <- f x
+                                    , not $ isAppend y =
+    Just (gen newX y
+         , [("x", spanX), ("xs", toSS y)]
+         , unsafePrettyPrint $ gen tplX (strToVar "xs")
          )
   where
-    f :: LHsExpr GhcPs ->
-      Maybe (LHsExpr GhcPs, LHsExpr GhcPs -> LHsExpr GhcPs)
-    f (L _ (ExplicitList _ _ [x]))=
-      Just (x, \v -> if isApp x then v else paren v)
+    f :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, LHsExpr GhcPs, R.SrcSpan)
+    f (L _ (ExplicitList _ _ [x]))
+      | isAtom x || isApp x = Just (x, strToVar "x", toSS x)
+      | otherwise = Just (addParen x, addParen (strToVar "x"), toSS x)
     f _ = Nothing
 
     gen :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
