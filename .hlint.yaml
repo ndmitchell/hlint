@@ -66,5 +66,3 @@
 - ignore: {name: Use explicit module export list, within: HSE.Util}
 # this const has meaingful argument names
 - ignore: {name: Use const, within: Config.Yaml}
-# Better to use [Char] when that is the moral underlying type, rather than String
-- ignore: {name : Use String, within: [Hint.Lambda]}

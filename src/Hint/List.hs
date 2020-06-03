@@ -44,7 +44,7 @@ import Data.List.Extra
 import Data.Maybe
 import Prelude
 
-import Hint.Type(DeclHint,Idea,suggest,toRefactSrcSpan,toSS)
+import Hint.Type(DeclHint,Idea,suggest,ignore,toRefactSrcSpan,toSS)
 
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
@@ -267,7 +267,7 @@ stringType (L _ x) = case x of
     f x = concatMap g $ childrenBi x
 
     g :: LHsType GhcPs -> [Idea]
-    g e@(fromTyParen -> x) = [suggest "Use String" x (transform f x)
+    g e@(fromTyParen -> x) = [ignore "Use String" x (transform f x)
                               rs | not . null $ rs]
       where f x = if astEq x typeListChar then typeString else x
             rs = [Replace Type (toSS t) [] (unsafePrettyPrint typeString) | t <- universe x, astEq t typeListChar]

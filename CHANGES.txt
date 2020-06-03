@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    Ignore [Char] to String hints by default
     #1034, remove suggestions to use heirarchical module names
     #1032, fix refactoring for "Use :"
     #1028, add hints around sequenceA/traverse
