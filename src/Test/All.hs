@@ -39,7 +39,7 @@ test CmdTest{..} main dataDir files = do
             xs <- liftIO $ getDirectoryContents dataDir
             pure [dataDir </> x | x <- xs, takeExtension x `elem` [".yml",".yaml"]]
         testFiles <- liftIO $ forM testFiles $ \file -> do
-            hints <- readFilesConfig [(file, Nothing)]
+            hints <- readFilesConfig [(file, Nothing),("CommandLine.yaml", Just "- group: {name: testing, enabled: true}")]
             pure (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
         let wrap msg act = do liftIO $ putStr (msg ++ " "); act; liftIO $ putStrLn ""
 
