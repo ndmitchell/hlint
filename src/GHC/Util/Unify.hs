@@ -26,6 +26,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util.HsExpr
 import GHC.Util.View
+import FastString
 
 isUnifyVar :: String -> Bool
 isUnifyVar [x] = x == '?' || isAlpha x
@@ -105,6 +106,7 @@ unify' nm root x y
     | Just (x, y) <- cast (x, y) = unifyExp' nm root x y
     | Just (x, y) <- cast (x, y) = unifyPat' nm x y
     | Just (x, y) <- cast (x, y) = unifyType' nm x y
+    | Just (x, y) <- cast (x, y) = if (x :: FastString) == y then Just mempty else Nothing
     | Just (x :: SrcSpan) <- cast x = Just mempty
     | otherwise = unifyDef' nm x y
 

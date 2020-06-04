@@ -992,6 +992,13 @@
     - hint: {lhs: "not (x && y)", rhs: "not x || not y", name: Apply De Morgan law}
     - hint: {lhs: "[ f x | x <- l ]", rhs: map f l}
 
+- group:
+    # used for tests, enabled when testing this file
+    name: testing
+    enabled: false
+    rules:
+    - warn: {lhs: "[issue766| |]", rhs: "mempty", name: "Use mempty"}
+
 # <TEST>
 # yes = concat . map f -- concatMap f
 # yes = foo . bar . concat . map f . baz . bar -- concatMap f . baz . bar
@@ -1204,4 +1211,8 @@
 # test979 = flip Map.traverseWithKey blocks \k v -> lots_of_code_goes_here
 # infixl 4 <*! \
 # test993 = f =<< g <$> x <*! y
+# {-# LANGUAGE QuasiQuotes #-} \
+# test = [issue766| |] -- mempty
+# {-# LANGUAGE QuasiQuotes #-} \
+# test = [issue766| x |]
 # </TEST>
