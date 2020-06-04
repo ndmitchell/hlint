@@ -66,3 +66,5 @@
 - ignore: {name: Use explicit module export list, within: HSE.Util}
 # this const has meaingful argument names
 - ignore: {name: Use const, within: Config.Yaml}
+# TEMPORARY: this lint is deleted on HEAD
+- ignore: {name: Use String}
