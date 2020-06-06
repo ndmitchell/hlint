@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, RecordWildCards #-}
+{-# LANGUAGE LambdaCase, PatternGuards, RecordWildCards #-}
 {-
     Reduce the number of import declarations.
     Two import declarations can be combined if:
@@ -28,6 +28,9 @@ import A; import B; import A -- import A
 import qualified A; import A
 import B; import A; import A -- import A
 import A hiding(Foo); import A hiding(Bar)
+import A (foo) \
+import A (bar) \
+import A (baz) -- import A ( foo, bar, baz )
 </TEST>
 -}
 
@@ -76,7 +79,9 @@ simplify :: [LImportDecl GhcPs]
 simplify [] = Nothing
 simplify (x : xs) = case simplifyHead x xs of
     Nothing -> first (x:) <$> simplify xs
-    Just (xs, rs) -> Just $ maybe (xs, rs) (second (++ rs)) $ simplify xs
+    Just (xs, rs) ->
+      let deletions = filter (\case Delete{} -> True; _ -> False) rs
+       in Just $ maybe (xs, rs) (second (++ deletions)) $ simplify xs
 
 simplifyHead :: LImportDecl GhcPs
              -> [LImportDecl GhcPs]
@@ -89,7 +94,7 @@ simplifyHead x [] = Nothing
 combine :: LImportDecl GhcPs
         -> LImportDecl GhcPs
         -> Maybe (LImportDecl GhcPs, [Refactoring R.SrcSpan])
-combine x@(L _ x') y@(L _ y')
+combine x@(L loc x') y@(L _ y')
   -- Both (un/)qualified, common 'as', same names : Delete the second.
   | qual, as, specs = Just (x, [Delete Import (toSS y)])
     -- Both (un/)qualified, common 'as', different names : Merge the
@@ -97,7 +102,7 @@ combine x@(L _ x') y@(L _ y')
   | qual, as
   , Just (False, xs) <- ideclHiding x'
   , Just (False, ys) <- ideclHiding y' =
-      let newImp = noLoc x'{ideclHiding = Just (False, noLoc (unLoc xs ++ unLoc ys))}
+      let newImp = L loc x'{ideclHiding = Just (False, noLoc (unLoc xs ++ unLoc ys))}
       in Just (newImp, [Replace Import (toSS x) [] (unsafePrettyPrint (unLoc newImp))
                        , Delete Import (toSS y)])
   -- Both (un/qualified), common 'as', one has names the other doesn't

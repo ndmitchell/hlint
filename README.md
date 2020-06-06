@@ -104,7 +104,6 @@ While the `--refactor` flag is useful, it is not complete or at the same level o
 
 * Some hints don't generate refactorings. Examples include excess duplication, renaming hints and eta reduction hints.
 * There are bugs in the underlying `refactor` tool which cause the resultant file to be incorrect. For example, `[1,2..3]` comes out as `[12..3]` ([#389](https://github.com/ndmitchell/hlint/issues/389)), even if there isn't a hint that touches it.
-* There are bugs in HLint that mean some replacements are wrong, although we're fixing these as we find them.
 
 ### Reports
 
