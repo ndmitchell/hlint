@@ -70,7 +70,8 @@ naming seen originalDecl =
     [ suggest "Use camelCase"
                (shorten originalDecl)
                (shorten replacedDecl)
-               [Replace Bind (toSS originalDecl) [] (unsafePrettyPrint replacedDecl)]
+               [ -- https://github.com/mpickering/apply-refact/issues/39
+               ]
     | not $ null suggestedNames
     ]
     where
