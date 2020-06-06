@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1036, disable refactoring for Use camelCase
     #766, match quasi quotes properly in rules
     Ignore [Char] to String hints by default
     #1034, remove suggestions to use heirarchical module names
