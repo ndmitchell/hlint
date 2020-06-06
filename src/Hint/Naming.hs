@@ -41,13 +41,12 @@ foreign import ccall hexml_node_child :: IO ()
 
 module Hint.Naming(namingHint) where
 
-import Hint.Type (Idea,DeclHint,suggest,toSS,ghcModule)
+import Hint.Type (Idea,DeclHint,suggest,ghcModule)
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra (nubOrd, isPrefixOf)
 import Data.Data
 import Data.Char
 import Data.Maybe
-import Refact.Types hiding (RType(Match))
 import qualified Data.Set as Set
 
 import BasicTypes
@@ -70,7 +69,8 @@ naming seen originalDecl =
     [ suggest "Use camelCase"
                (shorten originalDecl)
                (shorten replacedDecl)
-               [Replace Bind (toSS originalDecl) [] (unsafePrettyPrint replacedDecl)]
+               [ -- https://github.com/mpickering/apply-refact/issues/39
+               ]
     | not $ null suggestedNames
     ]
     where
@@ -111,6 +111,7 @@ getConstructorNames (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ _ cons _))) =
     concatMap (map unsafePrettyPrint . getConNames . unLoc) cons
 getConstructorNames _ = []
 
+isSym :: String -> Bool
 isSym (x:_) = not $ isAlpha x || x `elem` "_'"
 isSym _ = False
 
