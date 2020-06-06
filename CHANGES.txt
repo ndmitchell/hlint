@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1035, fix refactoring for "Use fewer imports" in some cases
     #1036, disable refactoring for Use camelCase
     #766, match quasi quotes properly in rules
     Ignore [Char] to String hints by default
