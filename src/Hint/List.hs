@@ -33,6 +33,7 @@ issue619 = [pkgJobs | Pkg{pkgGpd, pkgJobs} <- pkgs, not $ null $ C.condTestSuite
 {-# LANGUAGE MonadComprehensions #-}\
 foo = [x | False, x <- [1 .. 10]] -- []
 foo = [_ | x <- _, let _ = A{x}]
+issue1039 = foo (map f [1 | _ <- []]) -- [f 1 | _ <- []]
 </TEST>
 -}
 
@@ -84,6 +85,7 @@ listComp o@(L _ (HsDo _ ListComp (L _ stmts))) =
 listComp o@(L _ (HsDo _ MonadComp (L _ stmts))) =
   listCompCheckGuards o MonadComp stmts
 
+listComp (L _ HsPar{}) = [] -- App2 "sees through" paren, which causes duplicate hints with universeBi
 listComp o@(view -> App2 mp f (L _ (HsDo _ ListComp (L _ stmts)))) =
   listCompCheckMap o mp f ListComp stmts
 listComp o@(view -> App2 mp f (L _ (HsDo _ MonadComp (L _ stmts)))) =
