@@ -14,11 +14,11 @@
 {-# OPTIONS     -cpp #-} -- {-# LANGUAGE CPP #-}
 {-# OPTIONS_YHC -cpp #-}
 {-# OPTIONS_GHC -XFoo #-} -- {-# LANGUAGE Foo #-}
-{-# OPTIONS_GHC -fglasgow-exts #-} -- ??? @NoRefactor
+{-# OPTIONS_GHC -fglasgow-exts #-} -- ??? @NoRefactor: refactor output has one LANGUAGE pragma per extension, while hlint suggestion has a single LANGUAGE pragma
 {-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields, RebindableSyntax #-} -- {-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields #-}
 {-# LANGUAGE RebindableSyntax #-}
-{-# OPTIONS_GHC -cpp -foo #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -foo #-} @NoRefactor -foo is not a valid flag
-{-# OPTIONS_GHC -cpp -w #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -w #-} @NoRefactor: the two pragmas are switched in the refactoring output
+{-# OPTIONS_GHC -cpp -foo #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -foo #-} @NoRefactor -foo is not a valid flag; apply-refact can't parse it
+{-# OPTIONS_GHC -cpp -w #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -w #-} @NoRefactor: hlint bug: the two pragmas are switched in the refactoring output
 {-# OPTIONS_GHC -cpp #-} \
 {-# LANGUAGE CPP, Text #-} --
 {-# LANGUAGE RebindableSyntax #-} \

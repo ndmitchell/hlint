@@ -12,6 +12,8 @@ import Data.Function
 import Data.Functor
 import Data.List.Extra
 import Data.Maybe
+import Data.Set (Set)
+import qualified Data.Set as Set
 import Data.Tuple.Extra
 import Data.Yaml
 import System.Exit
@@ -149,14 +151,21 @@ parseTest refact file i x = uncurry (TestCase (mkSrcLoc (mkFastString file) i 0)
 testRefactor :: Maybe FilePath -> Maybe Idea -> String -> IO [String]
 -- Skip refactoring test if the refactor binary is not found.
 testRefactor Nothing _ _ = pure []
--- Skip refactoring test if the hint has no suggestion (i.e., a parse error).
-testRefactor _ (Just idea) _ | isNothing (ideaTo idea) = pure []
+testRefactor fp (Just idea) inp
+  -- Skip refactoring test if the hint has no suggestion (e.g., a parse error).
+  | isNothing (ideaTo idea) = pure []
+  | null (ideaRefactoring idea) =
+      if ideaHint idea `Set.member` noRefactoringHints
+        -- If a hint does not support refactoring, test refactoring as if there's no hint
+        then testRefactor fp Nothing inp
+        else pure ["Hint \"" ++ ideaHint idea ++ "\" does not support refactoring. Add it to Test.Annotations.noRefactoringHints."]
 testRefactor (Just rpath) midea inp = withTempFile $ \tempInp -> withTempFile $ \tempHints -> do
     -- Note that we test the refactoring even if there are no suggestions,
     -- as an extra test of apply-refact, on which we rely.
     -- See https://github.com/ndmitchell/hlint/issues/958 for a discussion.
     let refacts = map (show &&& ideaRefactoring) (maybeToList midea)
-        -- Ignores spaces and semicolons since apply-refact may change them.
+        -- Ignores spaces and semicolons because apply-refact may disagree
+        -- with unsafePrettyPrint on spaces and semicolons.
         process = filter (\c -> not (isSpace c) && c /= ';')
         matched expected g actual = process expected `g` process actual
         x `isProperSubsequenceOf` y = x /= y && x `isSubsequenceOf` y
@@ -180,3 +189,27 @@ testRefactor (Just rpath) midea inp = withTempFile $ \tempInp -> withTempFile $ 
             Just (Just to) | not (matched to isInfixOf refactored) ->
                 ["Refactor output is expected to contain: " ++ to, "Actual: " ++ refactored]
             _ -> []
+
+-- | Hints in this list don't support refactoring either at all, or sometimes.
+-- For example, the "Redundant return" hint sometimes supports refactoring, sometimes doesn't.
+noRefactoringHints :: Set String
+noRefactoringHints = Set.fromList
+  [ "Avoid lambda"
+  , "Eta reduce"
+  , "Reduce duplication"
+  , "Redundant as-pattern"
+  , "Redundant return"
+  , "Redundant section"
+  , "Redundant variable capture"
+  , "Redundant void"
+  , "Redundant where"
+  , "Use camelCase"
+  , "Use explicit module export list"
+  , "Use lambda"
+  , "Use lambda-case"
+  , "Use module export list"
+  , "Use newtype instead of data"
+  , "Use section"
+  , "Use tuple-section"
+  , "Used otherwise as a pattern"
+  ]

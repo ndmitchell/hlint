@@ -40,7 +40,7 @@ issue909 = foo (\((x :: z) -> y) -> 9 + x * 7)
 issue909 = foo (\((x : z) -> y) -> 9 + x * 7) -- \(x : z -> y) -> 9 + x * 7
 issue909 = let ((x:: y) -> z) = q in q
 issue909 = do {((x :: y) -> z) <- e; return 1}
-issue970 = (f x +) (g x) -- f x + (g x) @NoRefactor
+issue970 = (f x +) (g x) -- f x + (g x)
 issue969 = (Just \x -> x || x) *> Just True
 
 -- type bracket reduction
@@ -63,7 +63,7 @@ yes = white $ keysymbol -- white keysymbol
 yes = operator foo $ operator -- operator foo operator
 no = operator foo $ operator bar
 yes = return $ Record{a=b}
-no = f $ [1,2..5] -- f [1,2..5] @NoRefactor: apply-refact bug; see apply-refact #51
+no = f $ [1,2..5] -- f [1,2..5] @NoRefactor: apply-refact bug; fixed in apply-refact #51
 
 -- $/bracket rotation tests
 yes = (b $ c d) ++ e -- b (c d) ++ e
