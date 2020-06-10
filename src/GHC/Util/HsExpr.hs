@@ -148,9 +148,8 @@ allowLeftSection x = x /= "#"
 -- Implementation. Try to produce special forms (e.g. sections,
 -- compositions) where we can.
 niceLambdaR :: [String]
-             -> LHsExpr GhcPs
-             -> (LHsExpr GhcPs, R.SrcSpan
-             -> [Refactoring R.SrcSpan])
+            -> LHsExpr GhcPs
+            -> (LHsExpr GhcPs, R.SrcSpan -> [Refactoring R.SrcSpan])
 -- Rewrite @\ -> e@ as @e@
 -- These are encountered as recursive calls.
 niceLambdaR xs (SimpleLambda [] x) = niceLambdaR xs x
@@ -174,7 +173,8 @@ niceLambdaR [v] (L _ (OpApp _ e f (view -> Var_ v')))
   , vars e `disjoint` [v]
   , L _ (HsVar _ (L _ fname)) <- f
   , isSymOcc $ rdrNameOcc fname
-  = (noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField e f, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
+  = let res = noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField e f
+     in (res, \s -> [Replace Expr s [] (unsafePrettyPrint res)])
 
 -- @\vs v -> f x v@ ==> @\vs -> f x@
 niceLambdaR (unsnoc -> Just (vs, v)) (L _ (HsApp _ f (view -> Var_ v')))

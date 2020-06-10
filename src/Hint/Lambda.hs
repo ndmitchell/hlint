@@ -85,7 +85,7 @@ yes = blah (\ x -> (y, x, y, u, v)) -- (y, , y, u, v) @NoRefactor
 yes = blah (\ x -> (y, x, z+q)) -- @Note may require `{-# LANGUAGE TupleSections #-}` adding to the top of the file @NoRefactor
 yes = blah (\ x -> (y, x, z+x))
 tmp = map (\ x -> runST $ action x)
-yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>) @NoRefactor
+yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>)
 {-# LANGUAGE TypeApplications #-}; noBug545 = coerce ((<>) @[a])
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 name = authOAuth2Widget [whamlet|Login via #{name}|] name
 {-# LANGUAGE QuasiQuotes #-}; authOAuth2 = foo (\name -> authOAuth2Widget [whamlet|Login via #{name}|] name)
@@ -185,10 +185,15 @@ lambdaExp p o@(L _ HsLam{})
     , not $ any isQuasiQuote $ universe res
     , not $ "runST" `Set.member` Set.map occNameString (freeVars o)
     , let name = "Avoid lambda" ++ (if countRightSections res > countRightSections o then " using `infix`" else "")
-    = [(if isVar res then warn else suggest) name o res (refact $ toSS o)]
+    -- If the lambda's parent is an HsPar, and the result is also an HsPar, the span should include the parentheses.
+    , let from = case (p, res) of
+              (Just p@(L _ (HsPar _ (L _ HsLam{}))), L _ HsPar{}) -> p
+              _ -> o
+    = [(if isVar res then warn else suggest) name from res (refact $ toSS from)]
     where
         countRightSections :: LHsExpr GhcPs -> Int
         countRightSections x = length [() | L _ (SectionR _ (view -> Var_ _) _) <- universe x]
+
 lambdaExp p o@(SimpleLambda origPats origBody)
     | isLambda (fromParen origBody)
     , null (universeBi origPats :: [HsExpr GhcPs]) -- TODO: I think this checks for view patterns only, so maybe be more explicit about that?
