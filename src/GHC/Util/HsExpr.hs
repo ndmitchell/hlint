@@ -23,8 +23,9 @@ import OccName
 import Bag(bagToList)
 
 import GHC.Util.Brackets
-import GHC.Util.View
 import GHC.Util.FreeVars
+import GHC.Util.Name
+import GHC.Util.View
 
 import Control.Applicative
 import Control.Monad.Trans.State
@@ -304,7 +305,7 @@ descendBracketOld op x = (descendIndex g1 x, descendIndex g2 x)
     f2 = ((snd .) .) . f
 
     isOp = \case
-      L _ (HsVar _ var) -> (not . all isAlphaNum) (rdrNameStr var)
+      L _ (HsVar _ (L _ name)) -> isSymbolRdrName name
       _ -> False
 
 fromParen1 :: LHsExpr GhcPs -> LHsExpr GhcPs
