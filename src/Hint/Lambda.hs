@@ -22,6 +22,7 @@
 <TEST>
 f a = \x -> x + x -- f a x = x + x
 f a = \a -> a + a -- f _ a = a + a
+a = \x -> x + x -- a x = x + x
 f (Just a) = \a -> a + a -- f (Just _) a = a + a
 f (Foo a b c) = \c -> c + c -- f (Foo a b _) c = c + c
 f a = \x -> x + x where _ = test
@@ -127,7 +128,7 @@ lambdaHint _ _ x
 lambdaDecl :: LHsDecl GhcPs -> [Idea]
 lambdaDecl
     o@(L _ (ValD _
-        origBind@FunBind {fun_id = L loc1 _, fun_matches =
+        origBind@FunBind {fun_id = funName@(L loc1 _), fun_matches =
             MG {mg_alts =
                 L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _) pats (GRHSs _ [L _ (GRHS _ [] origBody@(L loc2 _))] bind))]}}))
     | L _ (EmptyLocalBinds noExtField) <- bind
@@ -151,7 +152,7 @@ lambdaDecl
 
           (finalpats, body) = fromLambda . lambda pats $ origBody
           (pats2, bod2) = etaReduce pats origBody
-          (origPats, subtsVars) = mkOrigPats finalpats
+          (origPats, subtsVars) = mkOrigPats (Just (rdrNameStr funName)) finalpats
           subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) subtsVars (map toSS finalpats)
           template = unsafePrettyPrint (reform origPats varBody)
 lambdaDecl _ = []
@@ -196,7 +197,7 @@ lambdaExp p o@(SimpleLambda origPats origBody)
     [suggest "Collapse lambdas" o (lambda pats body) [Replace Expr (toSS o) subts template]]
     where
       (pats, body) = fromLambda o
-      (oPats, subtsVars) = mkOrigPats pats
+      (oPats, subtsVars) = mkOrigPats Nothing pats
       subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) subtsVars (map toSS pats)
       template = unsafePrettyPrint (lambda oPats varBody)
 
@@ -269,15 +270,15 @@ fromLambda x = ([], x)
 -- | For each pattern, if it does not contain wildcards, replace it with a variable pattern.
 --
 -- The second component of the result is a list of substitution variables, which is ['a'..'z'],
--- excluding variables that occur in patterns with wildcards. For example, if there is a pattern
--- 'Foo a b _', then 'a' and 'b' are removed.
-mkOrigPats :: [LPat GhcPs] -> ([LPat GhcPs], [Char])
-mkOrigPats pats = (zipWith munge subtsVars pats', subtsVars)
+-- excluding variables that occur in the function name or patterns with wildcards. For example, given
+-- 'f (Foo a b _) = ...', 'f', 'a' and 'b' are removed.
+mkOrigPats :: Maybe String -> [LPat GhcPs] -> ([LPat GhcPs], [Char])
+mkOrigPats funName pats = (zipWith munge subtsVars pats', subtsVars)
   where
     (Set.unions -> used, pats') = unzip (map f pats)
 
-    -- Remove variables that occur in patterns with wildcards
-    subtsVars = filter (`Set.notMember` used) ['a'..'z']
+    -- Remove variables that occur in the function name or patterns with wildcards
+    subtsVars = filter (\c -> c `Set.notMember` used && Just [c] /= funName) ['a'..'z']
 
     -- Returns (chars in the pattern if the pattern contains wildcards, (whether the pattern contains wildcards, the pattern))
     f :: LPat GhcPs -> (Set Char, (Bool, LPat GhcPs))
