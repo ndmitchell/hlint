@@ -30,7 +30,6 @@ import GHC.Util.View
 import Control.Applicative
 import Control.Monad.Trans.State
 
-import Data.Char
 import Data.Data
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
