@@ -3,7 +3,7 @@ module GHC.Util.DynFlags (initGlobalDynFlags, baseDynFlags) where
 import DynFlags
 import GHC.LanguageExtensions.Type
 import Data.List.Extra
-import Language.Haskell.GhclibParserEx.Config
+import Language.Haskell.GhclibParserEx.GHC.Settings.Config
 
 baseDynFlags :: DynFlags
 baseDynFlags =
