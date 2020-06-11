@@ -14,7 +14,7 @@ import Data.Char
 import Data.List.Extra
 import Data.Maybe
 import Data.Functor
-import HSE.All(CppFlags(..))
+import GHC.All(CppFlags(..))
 import GHC.LanguageExtensions.Type
 import Language.Haskell.GhclibParserEx.GHC.Driver.Session as GhclibParserEx
 import DynFlags hiding (verbosity)

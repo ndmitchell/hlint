@@ -17,7 +17,7 @@ import Data.Yaml
 import System.Exit
 import System.FilePath
 import System.IO.Extra
-import HSE.All
+import GHC.All
 import qualified Data.ByteString.Char8 as BS
 
 import Config.Type

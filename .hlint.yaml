@@ -62,8 +62,6 @@
 
 # doesn't fit with the other statements
 - ignore: {name: Use let, within: [HLint, Test.All]}
-# would be a lot of is/from exports
-- ignore: {name: Use explicit module export list, within: HSE.Util}
 # this const has meaingful argument names
 - ignore: {name: Use const, within: Config.Yaml}
 # TEMPORARY: this lint is deleted on HEAD

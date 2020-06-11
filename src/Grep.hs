@@ -4,7 +4,7 @@ module Grep(runGrep) where
 import Hint.All
 import Apply
 import Config.Type
-import HSE.All
+import GHC.All
 import Control.Monad
 import Data.List
 import Util
