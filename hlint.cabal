@@ -109,6 +109,7 @@ library
         Config.Type
         Config.Yaml
 
+        GHC.All
         GHC.Util
         GHC.Util.ApiAnnotation
         GHC.Util.View
@@ -121,7 +122,6 @@ library
         GHC.Util.Scope
         GHC.Util.Unify
 
-        HSE.All
         Hint.All
         Hint.Bracket
         Hint.Comment

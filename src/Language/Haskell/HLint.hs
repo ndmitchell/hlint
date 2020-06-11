@@ -38,7 +38,7 @@ import qualified Apply as H
 import HLint
 import Fixity
 import FastString
-import HSE.All
+import GHC.All
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
 import SrcLoc

@@ -3,7 +3,7 @@ module Apply(applyHints, applyHintFile, applyHintFiles) where
 
 import Control.Applicative
 import Data.Monoid
-import HSE.All
+import GHC.All
 import Hint.All
 import GHC.Util
 import Data.Generics.Uniplate.DataOnly

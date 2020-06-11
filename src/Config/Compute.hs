@@ -4,7 +4,7 @@
 -- | Given a file, guess settings from it by looking at the hints.
 module Config.Compute(computeSettings) where
 
-import HSE.All
+import GHC.All
 import GHC.Util
 import Config.Type
 import Fixity

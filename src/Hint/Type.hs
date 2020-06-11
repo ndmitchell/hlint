@@ -6,7 +6,7 @@ module Hint.Type(
 
 import Data.Semigroup
 import Config.Type
-import HSE.All  as Export
+import GHC.All  as Export
 import Idea     as Export
 import Prelude
 import Refact   as Export
