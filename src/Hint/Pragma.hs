@@ -18,7 +18,7 @@
 {-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields, RebindableSyntax #-} -- {-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -cpp -foo #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -foo #-} @NoRefactor -foo is not a valid flag
-{-# OPTIONS_GHC -cpp -w #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -w #-} @NoRefactor: the two pragmas are switched in the refactoring output
+{-# OPTIONS_GHC -cpp -w #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -w #-}
 {-# OPTIONS_GHC -cpp #-} \
 {-# LANGUAGE CPP, Text #-} --
 {-# LANGUAGE RebindableSyntax #-} \
@@ -72,7 +72,7 @@ optToPragma flags languagePragmas =
                -> Refactoring R.SrcSpan
       mkRefact old (maybe "" comment -> new) ns =
         let ns' = map (\n -> comment (mkLanguagePragmas noSrcSpan [n])) ns
-        in ModifyComment (toSS (fst old)) (intercalate "\n" (filter (not . null) (new : ns')))
+        in ModifyComment (toSS (fst old)) (intercalate "\n" (filter (not . null) (ns' `snoc` new)))
 
 data PragmaIdea = SingleComment (Located AnnotationComment) (Located AnnotationComment)
                  | MultiComment (Located AnnotationComment) (Located AnnotationComment) (Located AnnotationComment)
