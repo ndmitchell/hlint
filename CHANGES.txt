@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1041, fix language/pragma ordering in refactor
     #1040, fix refactoring for "Avoid lambda"
     #1042, fix redundant lambda refactoring
     #1039, don't suggest move map inside list comp repeatedly
