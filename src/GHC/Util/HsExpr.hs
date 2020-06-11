@@ -24,7 +24,6 @@ import Bag(bagToList)
 
 import GHC.Util.Brackets
 import GHC.Util.FreeVars
-import GHC.Util.Name
 import GHC.Util.View
 
 import Control.Applicative

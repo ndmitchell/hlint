@@ -227,7 +227,6 @@ import Extension
 
 import Data.Generics.Uniplate.DataOnly
 import Control.Monad.Extra
-import Data.Char
 import Data.Maybe
 import Data.List.Extra
 import Data.Data

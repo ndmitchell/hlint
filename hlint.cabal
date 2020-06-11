@@ -118,7 +118,6 @@ library
         GHC.Util.FreeVars
         GHC.Util.HsDecl
         GHC.Util.HsExpr
-        GHC.Util.Name
         GHC.Util.SrcLoc
         GHC.Util.Scope
         GHC.Util.Unify
