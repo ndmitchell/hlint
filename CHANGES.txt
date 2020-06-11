@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1042, fix redundant lambda refactoring
     #1039, don't suggest move map inside list comp repeatedly
     #1035, fix refactoring for "Use fewer imports" in some cases
     #1036, disable refactoring for Use camelCase
