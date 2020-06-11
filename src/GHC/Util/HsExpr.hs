@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns, MultiParamTypeClasses , FlexibleInstances, FlexibleContexts #-}
+{-# LANGUAGE ViewPatterns, MultiParamTypeClasses, FlexibleInstances, FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 
 module GHC.Util.HsExpr (
@@ -22,8 +23,9 @@ import OccName
 import Bag(bagToList)
 
 import GHC.Util.Brackets
-import GHC.Util.View
 import GHC.Util.FreeVars
+import GHC.Util.Name
+import GHC.Util.View
 
 import Control.Applicative
 import Control.Monad.Trans.State
@@ -290,12 +292,20 @@ descendBracketOld op x = (descendIndex g1 x, descendIndex g2 x)
     g1 = (fst .) . g
     g2 = (snd .) . g
 
-    f i (L _ (HsPar _ y)) z | not $ needBracketOld i x y = (y, z)
-    f i y z                 | needBracketOld i x y = (addParen y, addParen z)
+    f i (L _ (HsPar _ y)) z
+      | not $ needBracketOld i x y = (y, z)
+    f i y z
+      | needBracketOld i x y = (addParen y, addParen z)
+      -- https://github.com/mpickering/apply-refact/issues/7
+      | isOp y = (y, addParen z)
     f _ y z                 = (y, z)
 
     f1 = ((fst .) .) . f
     f2 = ((snd .) .) . f
+
+    isOp = \case
+      L _ (HsVar _ (L _ name)) -> isSymbolRdrName name
+      _ -> False
 
 fromParen1 :: LHsExpr GhcPs -> LHsExpr GhcPs
 fromParen1 (L _ (HsPar _ x)) = x

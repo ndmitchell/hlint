@@ -1051,6 +1051,8 @@
 # no  = foo $ \(a, b) -> (a, a + b)
 # yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (curry (uncurry (+))) [1 .. 5] [6 .. 10]
 # yes = curry (uncurry (+)) -- (+)
+# yes = fst foo .= snd foo -- uncurry (.=) foo
+# yes = fst foo `_ba__'r''` snd foo -- uncurry _ba__'r'' foo
 # no = do iter <- textBufferGetTextIter tb ; textBufferSelectRange tb iter iter
 # no = flip f x $ \y -> y*y+y
 # no = \x -> f x (g x)

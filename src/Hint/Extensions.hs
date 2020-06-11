@@ -389,10 +389,8 @@ used TypeOperators = hasS tyOpInSig ||^ hasS tyOpInDecl
       (TyClD _ ClassDecl{tcdLName, tcdATs}) -> any isOp (tcdLName : [fdLName famDecl | L _ famDecl <- tcdATs])
       _ -> False
 
-    isOp :: LIdP GhcPs -> Bool
-    isOp name = case rdrNameStr name of
-      (c:_) -> not $ isAlpha c || c == '_'
-      _ -> False
+    isOp (L _ name) = isSymbolRdrName name
+
 used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
 used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
 used UnboxedTuples = hasS isUnboxedTuple ||^ hasS (== Unboxed) ||^ hasS isDeriving
