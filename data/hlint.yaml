@@ -227,6 +227,8 @@
     - warn: {lhs: zipWith f (repeat x), rhs: map (f x)}
     - warn: {lhs: zipWith f y (repeat z), rhs: map (\x -> f x z) y}
     - warn: {lhs: listToMaybe (filter p x), rhs: find p x}
+    - warn: {lhs: zip (take n x) (take n y), rhs: take n (zip x y)}
+    - warn: {lhs: zip (take n x) (take m y), rhs: take (min n m) (zip x y), side: notEq n m, name: Redundant take}
 
     # MONOIDS
 
