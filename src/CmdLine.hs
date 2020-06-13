@@ -323,6 +323,15 @@ getExtensions args =
         ls = [(show x, x) | x <- [Haskell98, Haskell2010]]
 
         f (a, e) "Haskell98" = ([], [])
-        f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x = (delete x a, x : delete x e)
+        f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x, let xs = expandDisable x =
+            (deletes xs a, xs ++ deletes xs e)
         f (a, e) x | Just x <- GhclibParserEx.readExtension x = (x : delete x a, delete x e)
         f (a, e) x = (a, e) -- Ignore unknown extension.
+
+        deletes [] ys = ys
+        deletes (x:xs) ys = deletes xs $ delete x ys
+
+        -- if you disable a feature that implies another feature, sometimes we should disable both
+        -- e.g. no one knows what TemplateHaskellQuotes is https://github.com/ndmitchell/hlint/issues/1038
+        expandDisable TemplateHaskell = [TemplateHaskell, TemplateHaskellQuotes]
+        expandDisable x = [x]

@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1038, make -XNoTemplateHaskell imply -XNoTemplateHaskellQuotes
     #970, require an arg to suggest fromMaybe True ==> (Just True ==)
     #1047, suggest pushing take outside zip
     #1041, fix language/pragma ordering in refactor
