@@ -4,4 +4,4 @@
 
 - message:
   - name: Redundant build-depends entry
-  - depends: [ghc-lib-parser, ghc, ghc-boot-th, ghc-boot] # Only some subset is required
+  - depends: [ghc-lib-parser, ghc, ghc-boot-th, ghc-boot, HsYAML, HsYAML-aeson, yaml] # Only some subset is required
