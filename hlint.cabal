@@ -87,7 +87,7 @@ library
     else
         cpp-options: -DGPL_SCARES_ME
 
-    if flag(hsyaml) && flag(gpl)
+    if flag(hsyaml)
         build-depends:
           HsYAML >= 0.2,
           HsYAML-aeson >= 0.2
