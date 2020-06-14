@@ -35,12 +35,12 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 #ifdef HS_YAML
 
-import qualified Data.YAML.Aeson
+import Data.YAML.Aeson (decode1Strict)
 import Data.YAML (Pos)
-import qualified Data.ByteString as BSS
+import Data.ByteString (ByteString)
 
-decodeEither' :: BSS.ByteString -> Either (Pos, String) ConfigYaml
-decodeEither' = Data.YAML.Aeson.decode1Strict
+decodeEither' :: ByteString -> Either (Pos, String) ConfigYaml
+decodeEither' = decode1Strict
 
 #else
 
