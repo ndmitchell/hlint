@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE CPP, PatternGuards, RecordWildCards, ViewPatterns #-}
 
 -- | Check the <TEST> annotations within source and hint files.
 module Test.Annotations(testAnnotations) where
@@ -13,7 +13,6 @@ import Data.Functor
 import Data.List.Extra
 import Data.Maybe
 import Data.Tuple.Extra
-import Data.Yaml
 import System.Exit
 import System.FilePath
 import System.IO.Extra
@@ -33,6 +32,21 @@ import FastString
 import GHC.Util
 import SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
+
+#ifdef HS_YAML
+
+import qualified Data.YAML.Aeson
+import Data.YAML (Pos)
+import qualified Data.ByteString as BSS
+
+decodeEither' :: BSS.ByteString -> Either (Pos, String) ConfigYaml
+decodeEither' = Data.YAML.Aeson.decode1Strict
+
+#else
+
+import Data.Yaml
+
+#endif
 
 -- Input, Output
 -- Output = Nothing, should not match

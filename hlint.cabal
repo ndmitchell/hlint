@@ -48,6 +48,11 @@ flag ghc-lib
   manual: True
   description: Force dependency on ghc-lib-parser even if GHC API in the ghc package is supported
 
+flag hsyaml
+  default: False
+  manual: True
+  description: Use HsYAML instead of yaml
+
 library
     default-language:   Haskell2010
     build-depends:
@@ -59,7 +64,6 @@ library
         data-default >= 0.3,
         cpphs >= 1.20.1,
         cmdargs >= 0.10,
-        yaml >= 0.5.0,
         uniplate >= 1.5,
         ansi-terminal >= 0.6.2,
         extra >= 1.7.3,
@@ -82,6 +86,14 @@ library
         build-depends: hscolour >= 1.21
     else
         cpp-options: -DGPL_SCARES_ME
+
+    if flag(hsyaml) && flag(gpl)
+        build-depends:
+          HsYAML >= 0.2,
+          HsYAML-aeson >= 0.2
+        cpp-options: -DHS_YAML
+    else
+        build-depends: yaml >= 0.5.0
 
     hs-source-dirs:     src
     exposed-modules:

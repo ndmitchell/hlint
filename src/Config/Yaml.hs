@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards, GeneralizedNewtypeDeriving, TupleSections #-}
+{-# LANGUAGE CPP #-}
 
 module Config.Yaml(
     ConfigYaml,
@@ -8,13 +9,11 @@ module Config.Yaml(
     ) where
 
 import Config.Type
-import Data.Yaml
 import Data.Either
 import Data.Maybe
 import Data.List.Extra
 import Data.Tuple.Extra
 import Control.Monad.Extra
-import Control.Exception.Extra
 import qualified Data.Text as T
 import qualified Data.Vector as V
 import qualified Data.ByteString.Char8 as BS
@@ -41,6 +40,33 @@ import GHC.Util (baseDynFlags, Scope, scopeCreate)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Data.Char
+
+#ifdef HS_YAML
+
+import Data.YAML (Pos)
+import Data.YAML.Aeson (encode1Strict, decode1Strict)
+import Data.Aeson hiding (encode)
+import Data.Aeson.Types (Parser)
+import qualified Data.ByteString as BSS
+
+decodeFileEither :: FilePath -> IO (Either (Pos, String) ConfigYaml)
+decodeFileEither path = decode1Strict <$> BSS.readFile path
+
+decodeEither' :: BSS.ByteString -> Either (Pos, String) ConfigYaml
+decodeEither' = decode1Strict
+
+displayException :: (Pos, String) -> String
+displayException = show
+
+encode :: Value -> BSS.ByteString
+encode = encode1Strict
+
+#else
+
+import Data.Yaml
+import Control.Exception.Extra
+
+#endif
 
 
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
