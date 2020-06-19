@@ -1,7 +1,7 @@
 cabal-version:      >= 1.18
 build-type:         Simple
 name:               hlint
-version:            3.1.4
+version:            3.1.5
 license:            BSD3
 license-file:       LICENSE
 category:           Development

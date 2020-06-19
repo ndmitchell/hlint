@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.1.5, released 2020-06-19
     #1049, suggest or/and from True `elem` xs and False `notElem` xs
     #1055, avoid incorrect hints with nested (.)'s
     #1054, make isLitString work again
