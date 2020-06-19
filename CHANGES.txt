@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1055, avoid incorrect hints with nested (.)'s
     #1054, make isLitString work again
     #1038, make -XNoTemplateHaskell imply -XNoTemplateHaskellQuotes
     #970, require an arg to suggest fromMaybe True ==> (Just True ==)

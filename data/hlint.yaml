@@ -1167,6 +1167,7 @@
 # yes = f ((,) (2 + 3)) -- (2 + 3,)
 # instance Class X where method = map f (map g x) -- map (f . g) x
 # instance Eq X where x == y = compare x y == EQ
+# issue1055 = map f ((sort . map g) xs)
 
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM

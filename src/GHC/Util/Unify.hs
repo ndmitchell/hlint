@@ -151,17 +151,19 @@ unifyExp nm root x@(L _ (HsApp _ x1 x2)) (L _ (HsApp _ y1 y2)) =
     -- Unify a function application where the function is a composition of functions.
     unifyComposed
       | (L _ (OpApp _ y11 dot y12)) <- fromParen y1, isDot dot =
-          -- Attempt #1: rewrite '(fun1 . fun2) arg' as 'fun1 (fun2 arg)', and unify it with 'x'.
-          -- The guard ensures that you don't get duplicate matches because the matching engine
-          -- auto-generates hints in dot-form.
-          (guard (not root) >> (, Nothing) <$> unifyExp' nm root x (noLoc (HsApp noExtField y11 (noLoc (HsApp noExtField y12 y2)))))
-            -- Attempt #2: rewrite '(fun1 . fun2 ... funn) arg' as 'fun1 $ (fun2 ... funn) arg',
-            -- 'fun1 . fun2 $ (fun3 ... funn) arg', 'fun1 . fun2 . fun3 $ (fun4 ... funn) arg',
-            -- and so on, unify the rhs of '$' with 'x', and store the lhs of '$' into 'extra'.
-            <|> do
-                  rhs <- unifyExp' nm False x2 y2
-                  (lhs, extra) <- unifyComposed' nm x1 y11 dot y12
-                  pure (lhs <> rhs, extra)
+          if not root then
+              -- Attempt #1: rewrite '(fun1 . fun2) arg' as 'fun1 (fun2 arg)', and unify it with 'x'.
+              -- The guard ensures that you don't get duplicate matches because the matching engine
+              -- auto-generates hints in dot-form.
+              (, Nothing) <$> unifyExp' nm root x (noLoc (HsApp noExtField y11 (noLoc (HsApp noExtField y12 y2))))
+          else do
+              -- Attempt #2: rewrite '(fun1 . fun2 ... funn) arg' as 'fun1 $ (fun2 ... funn) arg',
+              -- 'fun1 . fun2 $ (fun3 ... funn) arg', 'fun1 . fun2 . fun3 $ (fun4 ... funn) arg',
+              -- and so on, unify the rhs of '$' with 'x', and store the lhs of '$' into 'extra'.
+              -- You can only add to extra if you are at the root (otherwise 'extra' has nowhere to go).
+              rhs <- unifyExp' nm False x2 y2
+              (lhs, extra) <- unifyComposed' nm x1 y11 dot y12
+              pure (lhs <> rhs, extra)
       | otherwise = Nothing
 
 -- Options: match directly, then expand through '$', then desugar infix.
