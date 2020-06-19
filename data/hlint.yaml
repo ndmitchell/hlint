@@ -204,6 +204,8 @@
     - warn: {lhs: all (a /=), rhs: notElem a, note: ValidInstance Eq a}
     - warn: {lhs: elem True, rhs: or}
     - warn: {lhs: notElem False, rhs: and}
+    - warn: {lhs: True `elem` l, rhs: or l}
+    - warn: {lhs: False `notElem` l, rhs: and l}
     - warn: {lhs: findIndex ((==) a), rhs: elemIndex a}
     - warn: {lhs: findIndex (a ==), rhs: elemIndex a}
     - warn: {lhs: findIndex (== a), rhs: elemIndex a}
@@ -1168,6 +1170,8 @@
 # instance Class X where method = map f (map g x) -- map (f . g) x
 # instance Eq X where x == y = compare x y == EQ
 # issue1055 = map f ((sort . map g) xs)
+# issue1049 = True `elem` xs -- or xs
+# issue1049 = elem True -- or
 
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM
