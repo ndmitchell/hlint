@@ -201,6 +201,7 @@ checkSide x bind = maybe True bool x
       isType "NegZero" (asInt -> Just x) | x <= 0 = True
       isType "LitInt" (L _ (HsLit _ HsInt{})) = True
       isType "LitInt" (L _ (HsOverLit _ (OverLit _ HsIntegral{} _))) = True
+      isType "LitString" (L _ (HsLit _ HsString{})) = True
       isType "Var" (L _ HsVar{}) = True
       isType "App" (L _ HsApp{}) = True
       isType "InfixApp" (L _ x@OpApp{}) = True
