@@ -174,11 +174,16 @@ unifyExp nm root x (L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2))
     | otherwise  = unifyExp nm root x $ noLoc (HsApp noExtField (noLoc (HsApp noExtField op2 lhs2)) rhs2)
 unifyExp nm root x y = (, Nothing) <$> unifyExp' nm root x y
 
+-- | If we "throw away" the extra than we have no where to put it, and the substitution is wrong
+noExtra :: Maybe (Subst (LHsExpr GhcPs), Maybe (LHsExpr GhcPs)) -> Maybe (Subst (LHsExpr GhcPs))
+noExtra (Just (x, Nothing)) = Just x
+noExtra _ = Nothing
+
 -- App/InfixApp are analysed specially for performance reasons. If
 -- 'root = True', this is the outside of the expr. Do not expand out a
 -- dot at the root, since otherwise you get two matches because of
 -- 'readRule' (Bug #570).
-unifyExp' :: NameMatch -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst (LHsExpr GhcPs) )
+unifyExp' :: NameMatch -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst (LHsExpr GhcPs))
 -- Brackets are not added when expanding '$' in user code, so tolerate
 -- them in the match even if they aren't in the user code.
 unifyExp' nm root x y | not root, isPar x, not $ isPar y = unifyExp' nm root (fromParen x) y
@@ -189,7 +194,7 @@ unifyExp' nm root (L _ (HsVar _ x)) (L _ (HsVar _ y)) | nm x y = Just mempty
 
 unifyExp' nm root x@(L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr -> v))) rhs1))
                   y@(L _ (OpApp _ lhs2 (L _ (HsVar _ op2)) rhs2)) =
-  fst <$> unifyExp nm root x y
+  noExtra $ unifyExp nm root x y
 unifyExp' nm root (L _ (SectionL _ exp1 (L _ (HsVar _ (rdrNameStr -> v)))))
                   (L _ (SectionL _ exp2 (L _ (HsVar _ (rdrNameStr -> op2)))))
     | isUnifyVar v = (Subst [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
@@ -198,10 +203,10 @@ unifyExp' nm root (L _ (SectionR _ (L _ (HsVar _ (rdrNameStr -> v))) exp1))
     | isUnifyVar v = (Subst [(v, strToVar op2)] <>) <$> unifyExp' nm False exp1 exp2
 
 unifyExp' nm root x@(L _ (HsApp _ x1 x2)) y@(L _ (HsApp _ y1 y2)) =
-  fst <$> unifyExp nm root x y
+  noExtra $ unifyExp nm root x y
 
 unifyExp' nm root x y@(L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2)) =
-  fst <$> unifyExp nm root x y
+  noExtra $ unifyExp nm root x y
 
 unifyExp' nm root x y | isOther x, isOther y = unifyDef' nm x y
     where
