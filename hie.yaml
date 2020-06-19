@@ -1,12 +1,1 @@
-cradle:
-  direct:
-    arguments:
-      - -hide-package=ghc-boot-th
-      - -hide-package=template-haskell
-      - -package=ghc-lib-parser
-      - -fwarn-incomplete-patterns
-      - -fwarn-unused-binds
-      - -fwarn-unused-imports
-      - -fwarn-orphans
-      - -isrc
-      - -idist/build/autogen
+cradle: {cabal: {component: "lib:hlint"}}
