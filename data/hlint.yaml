@@ -737,6 +737,8 @@
     - warn: {lhs: const x y, rhs: x, name: Evaluate}
     - warn: {lhs: any (const False), rhs: const False, note: IncreasesLaziness, name: Evaluate}
     - warn: {lhs: all (const True), rhs: const True, note: IncreasesLaziness, name: Evaluate}
+    - warn: {lhs: "[] ++ x", rhs: x, name: Evaluate}
+    - warn: {lhs: "x ++ []", rhs: x, name: Evaluate}
 
     # FOLDABLE + TUPLES
 
