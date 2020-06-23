@@ -24,7 +24,7 @@ import Idea
 import Apply
 import Extension
 import Refact
-import Test.Util
+import Test.Util hiding (Refactor)
 import Prelude
 import Config.Yaml
 import FastString
@@ -65,6 +65,8 @@ testAnnotations setting file rpath = do
                 res <- applyHintFile defaultParseFlags (setting ++ additionalSettings) file $ Just inp
                 evaluate $ length $ show res
                 pure res
+
+            when ("src/Hint" `isPrefixOf` file) $ mapM_ (mapM_ (addBuiltin inp)) ideas
 
             -- the hints from data/Test.hs are really fake hints we don't actually deploy
             -- so don't record them

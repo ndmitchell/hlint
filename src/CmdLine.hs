@@ -149,6 +149,7 @@ data Cmd
         ,cmdQuickCheck :: Bool
         ,cmdTypeCheck :: Bool
         ,cmdWithRefactor :: FilePath
+        ,cmdGenerateSummary :: Bool      -- ^ Generate a summary of built-in hints
         }
     deriving (Data,Typeable,Show)
 
@@ -196,6 +197,7 @@ mode = cmdArgsMode $ modes
         ,cmdTypeCheck = nam_ "typecheck" &= help "Use GHC to type check the hints"
         ,cmdQuickCheck = nam_ "quickcheck" &= help "Use QuickCheck to check the hints"
         ,cmdTempDir = nam_ "tempdir" &= help "Where to put temporary files (not cleaned up)"
+        ,cmdGenerateSummary = nam_ "generate-summary" &= help "Generate a summary of built-in hints"
         } &= explicit &= name "test"
         &= details ["HLint gives hints on how to improve Haskell code."
                    ,""
