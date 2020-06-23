@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, GeneralizedNewtypeDeriving, StrictData #-}
+{-# LANGUAGE RecordWildCards, GeneralizedNewtypeDeriving #-}
 
 module Test.Util(
     Test, withTests,
@@ -25,14 +25,14 @@ toRefactor :: Idea -> Refactor
 toRefactor Idea{..} = if null ideaRefactoring then No else Yes
 
 data BuiltinEx = BuiltinEx
-    { builtinInp :: String
-    , builtinFrom :: String
-    , builtinTo :: Maybe String
+    { builtinInp :: !String
+    , builtinFrom :: !String
+    , builtinTo :: !(Maybe String)
     }
 
 data S = S
-    {failures :: Int
-    ,total :: Int
+    {failures :: !Int
+    ,total :: !Int
     ,ideas :: [[Idea]]
     ,builtinHints :: BuiltinSummary
     -- ^ A summary of builtin hints

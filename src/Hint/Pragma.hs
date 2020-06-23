@@ -16,6 +16,7 @@
 {-# OPTIONS_GHC -XFoo #-} -- {-# LANGUAGE Foo #-}
 {-# OPTIONS_GHC -fglasgow-exts #-} -- ??? @NoRefactor
 {-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-} -- {-# LANGUAGE RebindableSyntax, EmptyCase #-}
+{-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields, RebindableSyntax #-} -- {-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -cpp -foo #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -foo #-} @NoRefactor -foo is not a valid flag
 {-# OPTIONS_GHC -cpp -w #-} -- {-# LANGUAGE CPP #-} {-# OPTIONS_GHC -w #-}

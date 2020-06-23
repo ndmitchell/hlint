@@ -14,7 +14,6 @@
   - name: [Rank2Types, ScopedTypeVariables]
   - name: [ExistentialQuantification, MultiParamTypeClasses, NamedFieldPuns]
   - name: [FlexibleContexts, FlexibleInstances]
-  - name: [StrictData]
   - name: [PackageImports]
   - name: [ConstraintKinds, RankNTypes, TypeFamilies]
   - name: [TemplateHaskell]
