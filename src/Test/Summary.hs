@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 -- | Generate a markdown that summarizes the builtin hints.
-module Test.Summary where
+module Test.Summary (genBuiltinSummaryMd) where
 
 import qualified Data.Map as Map
 import Config.Type
@@ -33,13 +33,13 @@ haskell s
   | '\n' `elem` s = ["<pre>", s, "</pre>"]
   | otherwise = ["<code>", s, "</code>", "<br>"]
 
-showHint :: (String, Severity, Refactor) -> BuiltinEx -> [String]
+showHint :: (String, Severity, Bool) -> BuiltinEx -> [String]
 showHint (hint, sev, refact) BuiltinEx{..} = row1 ++ row2
   where
     row1 = row
       [ "<td rowspan=2>" ++ hint ++ "</td>"
       , "<td>" ++ show sev ++ "</td>"
-      , "<td>" ++ show refact ++ "</td>"
+      , "<td>" ++ if refact then "Yes" else "No" ++ "</td>"
       ]
     row2 = row example
     example =

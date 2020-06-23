@@ -24,7 +24,7 @@ import Idea
 import Apply
 import Extension
 import Refact
-import Test.Util hiding (Refactor)
+import Test.Util
 import Prelude
 import Config.Yaml
 import FastString
