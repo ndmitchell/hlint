@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.1.6, released 2020-06-24
     #1062, make sure matching inserts brackets if required
     #1058, weaken the self-definition check to match more things
     #1060, suggest [] ++ x and [] ++ x to x
