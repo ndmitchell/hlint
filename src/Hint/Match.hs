@@ -157,7 +157,7 @@ matchIdea sb declName HintRule{..} parent x = do
   guard $ not (any isLambda $ universe lhs) || not (any isQuasiQuote $ universe x)
 
   guard $ checkSide (unextendInstances <$> hintRuleSide) $ ("original", x) : ("result", res) : fromSubst u
-  guard $ checkDefine declName parent res
+  guard $ checkDefine declName parent rhs
 
   (u, tpl) <- pure $ if any ((== noSrcSpan) . getLoc . snd) (fromSubst u) then (mempty, res) else (u, tpl)
   tpl <- pure $ unqualify sa sb (performSpecial tpl)
