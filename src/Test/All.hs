@@ -9,7 +9,9 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Data.Char
 import Data.Either.Extra
+import Data.Foldable
 import Data.List
+import Data.Maybe
 import System.Directory
 import System.FilePath
 import Data.Functor
@@ -20,10 +22,11 @@ import Config.Read
 import CmdLine
 import Refact
 import Hint.All
-import Test.Util
-import Test.InputOutput
 import Test.Annotations
+import Test.InputOutput
+import Test.Summary
 import Test.Translate
+import Test.Util
 import System.IO.Extra
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
@@ -32,7 +35,7 @@ test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
 test CmdTest{..} main dataDir files = do
     rpath <- refactorPath (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
 
-    (failures, ideas) <- withBuffering stdout NoBuffering $ withTests $ do
+    (failures, (ideas, builtins)) <- withBuffering stdout NoBuffering $ withTests $ do
         hasSrc <- liftIO $ doesFileExist "hlint.cabal"
         let useSrc = hasSrc && null files
         testFiles <- if files /= [] then pure files else do
@@ -63,8 +66,9 @@ test CmdTest{..} main dataDir files = do
             progress >> testQuickCheck cmdDataDir cmdTempDir hs
 
         when (null files && not hasSrc) $ liftIO $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
-        getIdeas
+        (,) <$> getIdeas <*> getBuiltins
     whenLoud $ mapM_ print ideas
+    when cmdGenerateSummary $ writeFile "builtin.md" (genBuiltinSummaryMd builtins)
     case rpath of
         Left refactorNotFound -> putStrLn $ unlines [refactorNotFound, "Refactoring tests skipped"]
         _ -> pure ()

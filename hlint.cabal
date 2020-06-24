@@ -158,6 +158,7 @@ library
         Test.Annotations
         Test.InputOutput
         Test.Proof
+        Test.Summary
         Test.Translate
         Test.Util
 

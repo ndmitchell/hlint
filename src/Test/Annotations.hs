@@ -66,6 +66,8 @@ testAnnotations setting file rpath = do
                 evaluate $ length $ show res
                 pure res
 
+            when ("src/Hint" `isPrefixOf` file) $ mapM_ (mapM_ (addBuiltin inp)) ideas
+
             -- the hints from data/Test.hs are really fake hints we don't actually deploy
             -- so don't record them
             when (takeFileName file /= "Test.hs") $
