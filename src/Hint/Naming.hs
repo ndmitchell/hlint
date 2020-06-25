@@ -16,24 +16,24 @@
 
 <TEST>
 data Yes = Foo | Bar'Test
-data Yes = Bar | Test_Bar -- data Yes = Bar | TestBar @NoRefactor
+data Yes = Bar | Test_Bar -- data Yes = Bar | TestBar
 data No = a :::: b
 data Yes = Foo {bar_cap :: Int}
 data No = FOO | BarBAR | BarBBar
-yes_foo = yes_foo + yes_foo -- yesFoo = ... @NoRefactor
-yes_fooPattern Nothing = 0 -- yesFooPattern Nothing = ... @NoRefactor
+yes_foo = yes_foo + yes_foo -- yesFoo = ...
+yes_fooPattern Nothing = 0 -- yesFooPattern Nothing = ...
 no = 1 where yes_foo = 2
 a -== b = 1
 myTest = 1; my_test = 1
 semiring'laws = 1
-data Yes = FOO_A | Foo_B -- data Yes = FOO_A | FooB @NoRefactor
+data Yes = FOO_A | Foo_B -- data Yes = FOO_A | FooB
 case_foo = 1
 test_foo = 1
-cast_foo = 1 -- castFoo = ... @NoRefactor
+cast_foo = 1 -- castFoo = ...
 replicateM_ = 1
 _foo__ = 1
 section_1_1 = 1
-runMutator# = 1  @NoRefactor
+runMutator# = 1
 foreign import ccall hexml_node_child :: IO ()
 </TEST>
 -}

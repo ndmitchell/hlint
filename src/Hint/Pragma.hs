@@ -14,7 +14,7 @@
 {-# OPTIONS     -cpp #-} -- {-# LANGUAGE CPP #-}
 {-# OPTIONS_YHC -cpp #-}
 {-# OPTIONS_GHC -XFoo #-} -- {-# LANGUAGE Foo #-}
-{-# OPTIONS_GHC -fglasgow-exts #-} -- ??? @NoRefactor
+{-# OPTIONS_GHC -fglasgow-exts #-} -- ??? @NoRefactor: refactor output has one LANGUAGE pragma per extension, while hlint suggestion has a single LANGUAGE pragma
 {-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-} -- {-# LANGUAGE RebindableSyntax, EmptyCase #-}
 {-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields, RebindableSyntax #-} -- {-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields #-}
 {-# LANGUAGE RebindableSyntax #-}
