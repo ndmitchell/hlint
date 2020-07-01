@@ -10,6 +10,8 @@ extra-deps:
 #    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
   - extra-1.7.3
   - apply-refact-0.8.1.0
+  - ghc-exactprint-0.6.3.1
+  - optparse-applicative-0.15.1.0
 ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-top-binds -Werror=orphans}
 # Enabling this stanza forces both hlint and ghc-lib-parser-ex to
 # depend on ghc-lib-parser.
