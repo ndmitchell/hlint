@@ -63,7 +63,7 @@ yes = white $ keysymbol -- white keysymbol
 yes = operator foo $ operator -- operator foo operator
 no = operator foo $ operator bar
 yes = return $ Record{a=b}
-no = f $ [1,2..5] -- f [1,2..5] @NoRefactor: apply-refact bug; see apply-refact #51
+no = f $ [1,2..5] -- f [1,2..5]
 
 -- $/bracket rotation tests
 yes = (b $ c d) ++ e -- b (c d) ++ e
