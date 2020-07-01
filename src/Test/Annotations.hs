@@ -167,6 +167,8 @@ testRefactor :: Maybe FilePath -> Maybe Idea -> String -> IO [String]
 testRefactor Nothing _ _ = pure []
 -- Skip refactoring test if the hint has no suggestion (i.e., a parse error).
 testRefactor _ (Just idea) _ | isNothing (ideaTo idea) = pure []
+-- Skip refactoring test if the hint does not support refactoring.
+testRefactor _ (Just idea) _ | null (ideaRefactoring idea) = pure []
 testRefactor (Just rpath) midea inp = withTempFile $ \tempInp -> withTempFile $ \tempHints -> do
     -- Note that we test the refactoring even if there are no suggestions,
     -- as an extra test of apply-refact, on which we rely.

@@ -28,20 +28,20 @@ f (Foo a b c) = \c -> c + c -- f (Foo a b _) c = c + c
 f a = \x -> x + x where _ = test
 f (test -> a) = \x -> x + x
 f = \x -> x + x -- f x = x + x
-fun x y z = f x y z -- fun = f @NoRefactor: refactoring for eta reduce is not implemented
-fun x y z = f x x y z -- fun x = f x x @NoRefactor
-fun x y z = f g z -- fun x y = f g @NoRefactor
-fun x = f . g $ x -- fun = f . g @NoRefactor
+fun x y z = f x y z -- fun = f
+fun x y z = f x x y z -- fun x = f x x
+fun x y z = f g z -- fun x y = f g
+fun x = f . g $ x -- fun = f . g
 f = foo (\y -> g x . h $ y) -- g x . h
 f = foo (\y -> g x . h $ y) -- @Message Avoid lambda
-f = foo ((*) x) -- (x *) @NoRefactor
+f = foo ((*) x) -- (x *)
 f = (*) x
-f = foo (flip op x) -- (`op` x) @NoRefactor
-f = foo (flip op x) -- @Message Use section @NoRefactor
+f = foo (flip op x) -- (`op` x)
+f = foo (flip op x) -- @Message Use section
 foo x = bar (\ d -> search d table) -- (`search` table)
 foo x = bar (\ d -> search d table) -- @Message Avoid lambda using `infix`
 f = flip op x
-f = foo (flip (*) x) -- (* x) @NoRefactor
+f = foo (flip (*) x) -- (* x)
 f = foo (flip (-) x)
 f = foo (\x y -> fun x y) -- @Warning fun
 f = foo (\x y z -> fun x y z) -- @Warning fun
@@ -52,11 +52,11 @@ f = foo (\x -> x # y)
 f = foo (\x -> \y -> x x y y) -- \x y -> x x y y
 f = foo (\x -> \x -> foo x x) -- \_ x -> foo x x
 f = foo (\(foo -> x) -> \y -> x x y y)
-f = foo (\(x:xs) -> \x -> foo x x) -- \(_:xs) x -> foo x x @NoRefactor
+f = foo (\(x:xs) -> \x -> foo x x) -- \(_:xs) x -> foo x x
 f = foo (\x -> \y -> \z -> x x y y z z) -- \x y z -> x x y y z z
 x ! y = fromJust $ lookup x y
 f = foo (\i -> writeIdea (getClass i) i)
-f = bar (flip Foo.bar x) -- (`Foo.bar` x) @NoRefactor
+f = bar (flip Foo.bar x) -- (`Foo.bar` x)
 f = a b (\x -> c x d)  -- (`c` d)
 yes = \x -> a x where -- a
 yes = \x y -> op y x where -- flip op
@@ -69,21 +69,21 @@ f = bar &+& \x -> f (g x)
 foo = [\column -> set column [treeViewColumnTitle := printf "%s (match %d)" name (length candidnates)]]
 foo = [\x -> x]
 foo = [\m x -> insert x x m]
-foo a b c = bar (flux ++ quux) c where flux = a -- foo a b = bar (flux ++ quux) @NoRefactor
+foo a b c = bar (flux ++ quux) c where flux = a -- foo a b = bar (flux ++ quux)
 foo a b c = bar (flux ++ quux) c where flux = c
 yes = foo (\x -> Just x) -- @Warning Just
 foo = bar (\x -> (x `f`)) -- f
 foo = bar (\x -> shakeRoot </> "src" </> x)
-baz = bar (\x -> (x +)) -- (+) @NoRefactor
+baz = bar (\x -> (x +)) -- (+)
 xs `withArgsFrom` args = f args
-foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z @NoRefactor
-yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b @NoRefactor
-yes = blah (\ x -> case x of A -> a; B -> b) -- @Note may require `{-# LANGUAGE LambdaCase #-}` adding to the top of the file @NoRefactor
+foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z
+yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b
+yes = blah (\ x -> case x of A -> a; B -> b) -- @Note may require `{-# LANGUAGE LambdaCase #-}` adding to the top of the file
 no = blah (\ x -> case x of A -> a x; B -> b x)
-yes = blah (\ x -> (y, x)) -- (y,) @NoRefactor
-yes = blah (\ x -> (y, x, z+q)) -- (y, , z+q) @NoRefactor
-yes = blah (\ x -> (y, x, y, u, v)) -- (y, , y, u, v) @NoRefactor
-yes = blah (\ x -> (y, x, z+q)) -- @Note may require `{-# LANGUAGE TupleSections #-}` adding to the top of the file @NoRefactor
+yes = blah (\ x -> (y, x)) -- (y,)
+yes = blah (\ x -> (y, x, z+q)) -- (y, , z+q)
+yes = blah (\ x -> (y, x, y, u, v)) -- (y, , y, u, v)
+yes = blah (\ x -> (y, x, z+q)) -- @Note may require `{-# LANGUAGE TupleSections #-}` adding to the top of the file
 yes = blah (\ x -> (y, x, z+x))
 tmp = map (\ x -> runST $ action x)
 yes = map (\f -> dataDir </> f) dataFiles -- (dataDir </>)
