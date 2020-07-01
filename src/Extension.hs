@@ -25,8 +25,7 @@ reallyBadExtensions =
   , AlternativeLayoutRule -- Does not play well with 'MultiWayIf'
   , NegativeLiterals -- Was not enabled by HSE and enabling breaks tests.
   , StarIsType -- conflicts with TypeOperators. StarIsType is currently enabled by default,
-               -- so adding it here has no effect except avoiding passing it to apply-refact.
-               -- See https://github.com/mpickering/apply-refact/issues/58
+               -- so adding it here has no effect, but it may not be the case in future GHC releases.
   ]
 
 -- | Extensions we turn on by default when parsing. Aim to parse as

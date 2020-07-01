@@ -10,7 +10,7 @@ data Foo = Foo Int deriving (Show, Eq) -- newtype Foo = Foo Int deriving (Show, 
 data Foo = Foo { field :: Int } deriving Show -- newtype Foo = Foo { field :: Int } deriving Show @NoRefactor
 data Foo a b = Foo a -- newtype Foo a b = Foo a @NoRefactor
 data Foo = Foo { field1, field2 :: Int}
-data S a = forall b . Show b => S b @NoRefactor: apply-refact 0.6 requires RankNTypes pragma
+data S a = forall b . Show b => S b
 {-# LANGUAGE RankNTypes #-}; data S a = forall b . Show b => S b
 {-# LANGUAGE RankNTypes #-}; data Foo = Foo (forall a. a) -- newtype Foo = Foo (forall a. a) @NoRefactor
 data Color a = Red a | Green a | Blue a
@@ -20,7 +20,7 @@ data Foo a = Eq a => MkFoo a
 data Foo a = () => Foo a -- newtype Foo a = Foo a @NoRefactor
 data X = Y {-# UNPACK #-} !Int -- newtype X = Y Int @NoRefactor
 data A = A {b :: !C} -- newtype A = A {b :: C} @NoRefactor
-data A = A Int#  @NoRefactor
+data A = A Int#
 {-# LANGUAGE UnboxedTuples #-}; data WithAnn x = WithAnn (# Ann, x #)
 {-# LANGUAGE UnboxedTuples #-}; data WithAnn x = WithAnn {getWithAnn :: (# Ann, x #)}
 data A = A () -- newtype A = A () @NoRefactor
