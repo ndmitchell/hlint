@@ -100,10 +100,7 @@ HLint can automatically apply some suggestions using the `--refactor` flag. If p
 
 When using `--refactor` you can pass additional options to the `refactor` binary using `--refactor-options` flag. Some useful flags include `-i` (which replaces the original file) and `-s` (which asks for confirmation before performing a hint). The `--with-refactor` flag can be used to specify an alternative location for the `refactor` binary. Simple bindings for [Vim](https://github.com/mpickering/hlint-refactor-vim), [Emacs](https://github.com/mpickering/hlint-refactor-mode) and [Atom](https://github.com/mpickering/hlint-refactor-atom) are available.
 
-While the `--refactor` flag is useful, it is not complete or at the same level of quality as the rest of HLint:
-
-* Some hints don't generate refactorings. Examples include excess duplication, renaming hints and eta reduction hints.
-* There are bugs in the underlying `refactor` tool which cause the resultant file to be incorrect. For example, `[1,2..3]` comes out as `[12..3]` ([#389](https://github.com/ndmitchell/hlint/issues/389)), even if there isn't a hint that touches it.
+While the `--refactor` flag is useful, not all hints support refactoring. [builtin.md](builtin.md) documents which hints do and do not support refactoring.
 
 ### Reports
 

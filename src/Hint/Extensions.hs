@@ -139,6 +139,8 @@ main = "test"
 {-# LANGUAGE OverloadedStrings #-} \
 main = id --
 {-# LANGUAGE OverloadedLists #-} \
+main = []
+{-# LANGUAGE OverloadedLists #-} \
 main = [1]
 {-# LANGUAGE OverloadedLists #-} \
 main [1] = True
@@ -432,6 +434,7 @@ used OverloadedStrings = hasS isString
 used OverloadedLists = hasS isListExpr ||^ hasS isListPat
   where
     isListExpr :: HsExpr GhcPs -> Bool
+    isListExpr (HsVar _ n) = rdrNameStr n == "[]"
     isListExpr ExplicitList{} = True
     isListExpr ArithSeq{} = True
     isListExpr _ = False
