@@ -218,13 +218,18 @@ static = 42 --
 import GHC.TypeLits(KnownNat, type (+), type (*))
 {-# LANGUAGE LambdaCase, MultiWayIf, NoRebindableSyntax #-} \
 foo = \case True -> 3 -- {-# LANGUAGE LambdaCase, NoRebindableSyntax #-}
+{-# LANGUAGE ImportQualifiedPost #-} \
+import Control.Monad qualified as CM
+{-# LANGUAGE ImportQualifiedPost #-} \
+import qualified Control.Monad as CM hiding (mapM) \
+import Data.Foldable -- @NoRefactor: refactor only works when using GHC 8.10
 </TEST>
 -}
 
 
 module Hint.Extensions(extensionsHint) where
 
-import Hint.Type(ModuHint, rawIdea,Severity(Warning),Note(..),toSS,ghcAnnotations,ghcModule)
+import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSS,ghcAnnotations,ghcModule)
 import Extension
 
 import Data.Generics.Uniplate.DataOnly
@@ -456,6 +461,8 @@ used MagicHash = hasS f ||^ hasS isPrimLiteral
     f :: RdrName -> Bool
     f s = "#" `isSuffixOf` occNameStr s
 used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
+used ImportQualifiedPost = hasS (== QualifiedPost)
+
 used _= const True
 
 hasDerive :: [String] -> Located (HsModule GhcPs) -> Bool
