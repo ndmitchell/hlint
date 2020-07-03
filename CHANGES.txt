@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1070, warn on unused ImportQualifiedPost
     #1067, require apply-refact 0.8.1.0 (fixes lots of bugs)
     #1064, don't remove OverloadedLists if there is a []
 3.1.6, released 2020-06-24
