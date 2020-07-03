@@ -461,7 +461,7 @@ used MagicHash = hasS f ||^ hasS isPrimLiteral
     f :: RdrName -> Bool
     f s = "#" `isSuffixOf` occNameStr s
 used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
-used ImportQualifiedPost = hasS isImportQualifiedPost
+used ImportQualifiedPost = hasS (== QualifiedPost)
   where
     isImportQualifiedPost :: ImportDeclQualifiedStyle -> Bool
     isImportQualifiedPost = \case QualifiedPost -> True; _ -> False
