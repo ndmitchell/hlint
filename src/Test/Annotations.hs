@@ -165,36 +165,32 @@ parseTest refact file i x = uncurry (TestCase (mkSrcLoc (mkFastString file) i 0)
 testRefactor :: Maybe FilePath -> Maybe Idea -> String -> IO [String]
 -- Skip refactoring test if the refactor binary is not found.
 testRefactor Nothing _ _ = pure []
--- Skip refactoring test if the hint has no suggestion (i.e., a parse error).
+-- Skip refactoring test if there is no hint.
+testRefactor _ Nothing _ = pure []
+-- Skip refactoring test if the hint has no suggestion (such as "Parse error" or "Avoid restricted fuction").
 testRefactor _ (Just idea) _ | isNothing (ideaTo idea) = pure []
 -- Skip refactoring test if the hint does not support refactoring.
 testRefactor _ (Just idea) _ | null (ideaRefactoring idea) = pure []
-testRefactor (Just rpath) midea inp = withTempFile $ \tempInp -> withTempFile $ \tempHints -> do
-    -- Note that we test the refactoring even if there are no suggestions,
-    -- as an extra test of apply-refact, on which we rely.
-    -- See https://github.com/ndmitchell/hlint/issues/958 for a discussion.
-    let refacts = map (show &&& ideaRefactoring) (maybeToList midea)
-        -- Ignores spaces and semicolons since apply-refact may change them.
+testRefactor (Just rpath) (Just idea) inp = withTempFile $ \tempInp -> withTempFile $ \tempHints -> do
+    let refact = (show idea, ideaRefactoring idea)
+        -- Ignores spaces and semicolons since unsafePrettyPrint may differ from apply-refact.
         process = filter (\c -> not (isSpace c) && c /= ';')
         matched expected g actual = process expected `g` process actual
         x `isProperSubsequenceOf` y = x /= y && x `isSubsequenceOf` y
     writeFile tempInp inp
-    writeFile tempHints (show refacts)
+    writeFile tempHints (show [refact])
     exitCode <- runRefactoring rpath tempInp tempHints defaultExtensions [] "--inplace"
     refactored <- readFile tempInp
     pure $ case exitCode of
         ExitFailure ec -> ["Refactoring failed: exit code " ++ show ec]
-        ExitSuccess -> case fmap ideaTo midea of
-            -- No hints. Refactoring should be a no-op.
-            Nothing | not (matched inp (==) refactored) ->
-                ["Expected refactor output: " ++ inp, "Actual: " ++ refactored]
+        ExitSuccess -> case ideaTo idea of
             -- The hint's suggested replacement is @Just ""@, which means the hint
             -- suggests removing something from the input. The refactoring output
             -- should be a proper subsequence of the input.
-            Just (Just "") | not (matched refactored isProperSubsequenceOf inp) ->
+            Just "" | not (matched refactored isProperSubsequenceOf inp) ->
                 ["Refactor output is expected to be a proper subsequence of: " ++ inp, "Actual: " ++ refactored]
             -- The hint has a suggested replacement. The suggested replacement
             -- should be a substring of the refactoring output.
-            Just (Just to) | not (matched to isInfixOf refactored) ->
+            Just to | not (matched to isInfixOf refactored) ->
                 ["Refactor output is expected to contain: " ++ to, "Actual: " ++ refactored]
             _ -> []
