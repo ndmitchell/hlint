@@ -9,7 +9,7 @@ import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import Data.Version
 import Timing
-import Paths_hlint
+import Paths
 import HsColour
 import EmbedData
 import qualified GHC.Util as GHC

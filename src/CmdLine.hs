@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, DeriveDataTypeable, TupleSections #-}
+{-# LANGUAGE PatternGuards, DeriveDataTypeable, NamedFieldPuns, TupleSections #-}
 {-# OPTIONS_GHC -Wno-missing-fields -fno-cse -O0 #-}
 
 module CmdLine(
@@ -36,7 +36,7 @@ import System.FilePattern
 import EmbedData
 import Util
 import Extension
-import Paths_hlint
+import Paths
 import Data.Version
 import Prelude
 
@@ -50,6 +50,7 @@ automatic :: Cmd -> IO Cmd
 automatic cmd = case cmd of
     CmdMain{} -> dataDir =<< path =<< git =<< extension cmd
     CmdGrep{} -> path =<< extension cmd
+    CmdSummary{} -> pure cmd
     CmdTest{} -> dataDir cmd
     where
         path cmd = pure $ if null $ cmdPath cmd then cmd{cmdPath=["."]} else cmd
@@ -140,6 +141,14 @@ data Cmd
         ,cmdCppSimple :: Bool
         ,cmdCppAnsi :: Bool
         }
+    | CmdSummary
+        {cmdGivenHints :: [FilePath]
+        ,cmdWithGroups :: [String]
+        ,cmdIgnore :: [String]
+        ,cmdFindHints :: [FilePath]
+        ,cmdNoImplicit :: Bool           -- ^ Do not use .hlint.yaml implicitly
+        ,cmdOutput :: FilePath
+        }
     | CmdTest
         {cmdProof :: [FilePath]          -- ^ a proof script to check against
         ,cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
@@ -149,7 +158,6 @@ data Cmd
         ,cmdQuickCheck :: Bool
         ,cmdTypeCheck :: Bool
         ,cmdWithRefactor :: FilePath
-        ,cmdGenerateSummary :: Bool      -- ^ Generate a summary of built-in hints
         }
     deriving (Data,Typeable,Show)
 
@@ -192,12 +200,15 @@ mode = cmdArgsMode $ modes
         {cmdFiles = def &= args &= typ "FILE/DIR"
         ,cmdPattern = def &= argPos 0 &= typ "PATTERN"
         } &= explicit &= name "grep"
+    ,CmdSummary
+        { cmdNoImplicit = nam_ "no-implicit" &= help "Do not use .hlint.yaml implicitly"
+        , cmdOutput = def &= argPos 0 &= typFile
+        } &= explicit &= name "summary"
     ,CmdTest
         {cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
         ,cmdTypeCheck = nam_ "typecheck" &= help "Use GHC to type check the hints"
         ,cmdQuickCheck = nam_ "quickcheck" &= help "Use QuickCheck to check the hints"
         ,cmdTempDir = nam_ "tempdir" &= help "Where to put temporary files (not cleaned up)"
-        ,cmdGenerateSummary = nam_ "generate-summary" &= help "Generate a summary of built-in hints"
         } &= explicit &= name "test"
         &= details ["HLint gives hints on how to improve Haskell code."
                    ,""
@@ -220,7 +231,7 @@ cmdHintFiles cmd = do
         fail $ unlines $ "Failed to find requested hint files:" : map ("  "++) bad
 
     -- if the user has given any explicit hints, ignore the local ones
-    implicit <- if explicit /= [] then pure Nothing else do
+    implicit <- if explicit /= [] || noImplicit then pure Nothing else do
         -- we follow the stylish-haskell config file search policy
         -- 1) current directory or its ancestors; 2) home directory
         curdir <- getCurrentDirectory
@@ -231,6 +242,9 @@ cmdHintFiles cmd = do
     pure $ hlintYaml : map (,Nothing) (maybeToList implicit ++ explicit)
     where
         ancestors = init . map joinPath . reverse . inits . splitPath
+        noImplicit = case cmd of
+            CmdSummary{cmdNoImplicit} -> cmdNoImplicit
+            _ -> False
 
 cmdExtensions :: Cmd -> (Maybe Language, ([Extension], [Extension]))
 cmdExtensions = getExtensions . cmdLanguage

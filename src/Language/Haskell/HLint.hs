@@ -43,7 +43,7 @@ import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
 import SrcLoc
 import CmdLine
-import Paths_hlint
+import Paths
 
 import Data.List.Extra
 import Data.Maybe

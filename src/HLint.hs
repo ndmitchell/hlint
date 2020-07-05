@@ -29,6 +29,7 @@ import Test.All
 import Hint.All
 import Grep
 import Refact
+import Summary
 import Timing
 import Test.Proof
 import Parallel
@@ -62,7 +63,14 @@ hlint args = do
                 putStrLn $ "Took " ++ showDuration time
             pure $ if cmdNoExitCode cmd then [] else xs
         CmdGrep{} -> hlintGrep cmd >> pure []
+        CmdSummary{} -> hlintSummary args cmd >> pure []
         CmdTest{} -> hlintTest cmd >> pure []
+
+hlintSummary :: [String] -> Cmd -> IO ()
+hlintSummary args cmd = do
+    (_, settings) <- readAllSettings args cmd
+    settings <- pure $ settings ++ map (Builtin . fst) builtinHints
+    summary cmd settings
 
 hlintTest :: Cmd -> IO ()
 hlintTest cmd@CmdTest{..} =
@@ -130,16 +138,16 @@ resolveFiles cmd@CmdMain{..} tmpFile = do
 resolveFiles cmd _ = pure cmd
 
 readAllSettings :: [String] -> Cmd -> IO (Cmd, [Setting])
-readAllSettings args1 cmd@CmdMain{..} = do
+readAllSettings args1 cmd = do
     files <- cmdHintFiles cmd
     settings1 <-
         readFilesConfig $
         files
-        ++ [("CommandLine.yaml",Just (enableGroup x)) | x <- cmdWithGroups]
+        ++ [("CommandLine.yaml",Just (enableGroup x)) | x <- cmdWithGroups cmd]
     let args2 = [x | SettingArgument x <- settings1]
-    cmd@CmdMain{..} <- if null args2 then pure cmd else getCmd $ args2 ++ args1 -- command line arguments are passed last
-    settings2 <- concatMapM (fmap snd . computeSettings (cmdParseFlags cmd)) cmdFindHints
-    let settings3 = [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
+    cmd <- if null args2 then pure cmd else getCmd $ args2 ++ args1 -- command line arguments are passed last
+    settings2 <- concatMapM (fmap snd . computeSettings (cmdParseFlags cmd)) (cmdFindHints cmd)
+    let settings3 = [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore cmd]
     pure (cmd, settings1 ++ settings2 ++ settings3)
     where
         enableGroup groupName =

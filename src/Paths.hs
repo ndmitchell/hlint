@@ -1,10 +1,8 @@
 
-module Paths_hlint(version, getDataDir) where
+module Paths (P.version, getDataDir, P.getDataFileName) where
 
-import Data.Version.Extra
-
-version :: Version
-version = makeVersion [0,0]
+import qualified Paths_hlint as P
+import System.FilePath
 
 getDataDir :: IO FilePath
-getDataDir = pure "data"
+getDataDir = (</> "data") <$> P.getDataDir
