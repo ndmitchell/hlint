@@ -161,17 +161,25 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             Nothing | file == "-" -> getContentsUTF8
                     | otherwise -> readFileUTF8' file
         str <- pure $ dropPrefix "\65279" str -- remove the BOM if it exists, see #130
-        ppstr <- runCpp (cppFlags flags) file str
         let enableDisableExts = ghcExtensionsFromParseFlags flags
-        dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file ppstr
+        dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file str
         case dynFlags of
           Right ghcFlags -> do
             ghcFlags <- pure $ lang_set ghcFlags $ baseLanguage flags
-            case fileToModule file ppstr ghcFlags of
+            -- Avoid running cpp unless Cpp is enabled (see
+            -- https://github.com/ndmitchell/hlint/issues/1075 as to
+            -- why this is a good idea).
+            srcText <-
+              if Cpp `xopt` ghcFlags
+                then
+                  runCpp (cppFlags flags) file str
+                else
+                  pure str
+            case fileToModule file srcText ghcFlags of
                 POk s a -> do
                     let errs = bagToList . snd $ getMessages s ghcFlags
                     if not $ null errs then
-                      handleParseFailure ghcFlags ppstr file str errs
+                      handleParseFailure ghcFlags srcText file str errs
                     else do
                       let anns =
                             ( Map.fromListWith (++) $ annotations s
@@ -180,7 +188,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
                       let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
                       pure $ Right (ModuleEx (applyFixities fixes a) anns)
                 PFailed s ->
-                    handleParseFailure ghcFlags ppstr file str $  bagToList . snd $ getMessages s ghcFlags
+                    handleParseFailure ghcFlags srcText file str $  bagToList . snd $ getMessages s ghcFlags
           Left msg -> do
             -- Parsing GHC flags from dynamic pragmas in the source
             -- has failed. When this happens, it's reported by
@@ -188,7 +196,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ do
             -- location so we skip that for now. Synthesize a parse
             -- error.
             let loc = mkSrcLoc (mkFastString file) (1 :: Int) (1 :: Int)
-            pure $ Left (ParseError (mkSrcSpan loc loc) msg ppstr)
+            pure $ Left (ParseError (mkSrcSpan loc loc) msg str)
         where
           handleParseFailure ghcFlags ppstr file str errs =
               let errMsg = head errs
