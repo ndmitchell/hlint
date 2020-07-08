@@ -223,6 +223,9 @@ import Control.Monad qualified as CM
 {-# LANGUAGE ImportQualifiedPost #-} \
 import qualified Control.Monad as CM hiding (mapM) \
 import Data.Foldable -- @NoRefactor: refactor only works when using GHC 8.10
+{-# LANGUAGE StandaloneKindSignatures #-} \
+type T :: (k -> Type) -> k -> Type \
+data T m a = MkT (m a) (T Maybe (m a))
 </TEST>
 -}
 
@@ -462,6 +465,7 @@ used MagicHash = hasS f ||^ hasS isPrimLiteral
     f s = "#" `isSuffixOf` occNameStr s
 used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
 used ImportQualifiedPost = hasS (== QualifiedPost)
+used StandaloneKindSignatures = hasT (un :: StandaloneKindSig GhcPs)
 
 used _= const True
 
