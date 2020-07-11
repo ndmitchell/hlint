@@ -9,6 +9,7 @@ module GHC.All(
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
     ) where
 
+import Control.Monad.Except
 import Util
 import Data.Char
 import Data.List.Extra
@@ -152,58 +153,53 @@ createModuleEx anns ast =
 -- 'defaultParseFlags'), the filename, and optionally the contents of
 -- that file.
 --
--- Note that certain programs, e.g. @main = do@ successfully parse with GHC, but then
--- fail with an error in the renamer. These programs will return a successful parse.
+-- Note that certain programs, e.g. @main = do@ successfully parse
+-- with GHC, but then fail with an error in the renamer. These
+-- programs will return a successful parse.
 parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError ModuleEx)
-parseModuleEx flags file str = timedIO "Parse" file $ do
-        str <- case str of
-            Just x -> pure x
-            Nothing | file == "-" -> getContentsUTF8
-                    | otherwise -> readFileUTF8' file
-        str <- pure $ dropPrefix "\65279" str -- remove the BOM if it exists, see #130
-        let enableDisableExts = ghcExtensionsFromParseFlags flags
-        dynFlags <- parsePragmasIntoDynFlags baseDynFlags enableDisableExts file str
-        case dynFlags of
-          Right ghcFlags -> do
-            ghcFlags <- pure $ lang_set ghcFlags $ baseLanguage flags
-            -- Avoid running cpp unless Cpp is enabled (see
-            -- https://github.com/ndmitchell/hlint/issues/1075 as to
-            -- why this is a good idea).
-            srcText <-
-              if Cpp `xopt` ghcFlags
-                then
-                  runCpp (cppFlags flags) file str
-                else
-                  pure str
-            case fileToModule file srcText ghcFlags of
-                POk s a -> do
-                    let errs = bagToList . snd $ getMessages s ghcFlags
-                    if not $ null errs then
-                      handleParseFailure ghcFlags srcText file str errs
-                    else do
-                      let anns =
-                            ( Map.fromListWith (++) $ annotations s
-                            , Map.fromList ((noSrcSpan, comment_q s) : annotations_comments s)
-                            )
-                      let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
-                      pure $ Right (ModuleEx (applyFixities fixes a) anns)
-                PFailed s ->
-                    handleParseFailure ghcFlags srcText file str $  bagToList . snd $ getMessages s ghcFlags
-          Left msg -> do
-            -- Parsing GHC flags from dynamic pragmas in the source
-            -- has failed. When this happens, it's reported by
-            -- exception. It's impossible or at least fiddly getting a
-            -- location so we skip that for now. Synthesize a parse
-            -- error.
-            let loc = mkSrcLoc (mkFastString file) (1 :: Int) (1 :: Int)
-            pure $ Left (ParseError (mkSrcSpan loc loc) msg str)
-        where
-          handleParseFailure ghcFlags ppstr file str errs =
-              let errMsg = head errs
-                  loc = errMsgSpan errMsg
-                  doc = formatErrDoc ghcFlags (errMsgDoc errMsg)
-              in ghcFailOpParseModuleEx ppstr file str (loc, doc)
+parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
+  str <- case str of
+    Just x -> pure x
+    Nothing | file == "-" -> liftIO getContentsUTF8
+            | otherwise -> liftIO $ readFileUTF8' file
+  str <- pure $ dropPrefix "\65279" str -- Remove the BOM if it exists, see #130.
+  let enableDisableExts = ghcExtensionsFromParseFlags flags
+  -- Read pragmas for the first time.
+  dynFlags <- withExceptT (parsePragmasErr str) $ ExceptT (parsePragmasIntoDynFlags baseDynFlags enableDisableExts file str)
+  dynFlags <- pure $ lang_set dynFlags $ baseLanguage flags
+  -- Avoid running cpp unless CPP is enabled, see #1075.
+  str <- if not (xopt Cpp dynFlags) then pure str else liftIO $ runCpp (cppFlags flags) file str
+  -- If we preprocessed the file, re-read the pragmas.
+  dynFlags <- if not (xopt Cpp dynFlags) then pure dynFlags
+              else withExceptT (parsePragmasErr str) $ ExceptT (parsePragmasIntoDynFlags baseDynFlags enableDisableExts file str)
+  dynFlags <- pure $ lang_set dynFlags $ baseLanguage flags
+  -- Done with pragmas. Proceed to parsing.
+  case fileToModule file str dynFlags of
+    POk s a -> do
+      let errs = bagToList . snd $ getMessages s dynFlags
+      if not $ null errs then
+        ExceptT $ parseFailureErr dynFlags str file str errs
+      else do
+        let anns =
+              ( Map.fromListWith (++) $ annotations s
+              , Map.fromList ((noSrcSpan, comment_q s) : annotations_comments s)
+              )
+        let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
+        pure $ ModuleEx (applyFixities fixes a) anns
+    PFailed s ->
+      ExceptT $ parseFailureErr dynFlags str file str $  bagToList . snd $ getMessages s dynFlags
+  where
+    -- If parsing pragmas fails, synthesize a parse error from the
+    -- error message.
+    parsePragmasErr src msg =
+      let loc = mkSrcLoc (mkFastString file) (1 :: Int) (1 :: Int)
+      in ParseError (mkSrcSpan loc loc) msg src
 
+    parseFailureErr dynFlags ppstr file str errs =
+      let errMsg = head errs
+          loc = errMsgSpan errMsg
+          doc = formatErrDoc dynFlags (errMsgDoc errMsg)
+      in ghcFailOpParseModuleEx ppstr file str (loc, doc)
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.
 context :: Int -> String -> String
