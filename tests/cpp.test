@@ -24,6 +24,17 @@ OUTPUT
 No hints
 
 ---------------------------------------------------------------------
+RUN -XNoCPP tests/cpp-must-not-run.hs
+FILE tests/cpp-must-not-run.hs
+{-
+#error Cpp has run
+-}
+main = undefined
+EXIT 0
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
 RUN --cpp-simple tests/cpp-simple.hs
 FILE tests/cpp-simple.hs
 #include "Any/File.h"
