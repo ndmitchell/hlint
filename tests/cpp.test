@@ -35,6 +35,44 @@ OUTPUT
 No hints
 
 ---------------------------------------------------------------------
+RUN --cpp-define FOO tests/cpp-ext-enable.hs
+FILE tests/cpp-ext-enable.hs
+{-# LANGUAGE CPP #-}
+#if defined(FOO)
+{-# LANGUAGE Foo #-}
+#endif
+main = undefined
+EXIT 1
+OUTPUT
+tests/cpp-ext-enable.hs:1:1: Error: Parse error: Unsupported extension: Foo
+
+Found:
+  {-# LANGUAGE CPP #-}
+
+  {-# LANGUAGE Foo #-}
+
+  main = undefined
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/cpp-ext-disable.hs
+FILE tests/cpp-ext-disable.hs
+{-# LANGUAGE CPP #-}
+#if defined(FOO)
+{-# LANGUAGE Foo #-}
+#endif
+main = undefined
+EXIT 1
+OUTPUT
+tests/cpp-ext-disable.hs:1:1-20: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE CPP #-}
+Note: may break the code
+
+1 hint
+
+---------------------------------------------------------------------
 RUN --cpp-simple tests/cpp-simple.hs
 FILE tests/cpp-simple.hs
 #include "Any/File.h"
