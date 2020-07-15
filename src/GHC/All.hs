@@ -9,7 +9,7 @@ module GHC.All(
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
     ) where
 
-import Control.Monad.Except
+import Control.Monad.Trans.Except
 import Util
 import Data.Char
 import Data.List.Extra
@@ -160,15 +160,15 @@ parseModuleEx :: ParseFlags -> FilePath -> Maybe String -> IO (Either ParseError
 parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
   str <- case str of
     Just x -> pure x
-    Nothing | file == "-" -> liftIO getContentsUTF8
-            | otherwise -> liftIO $ readFileUTF8' file
+    Nothing | file == "-" -> ExceptT $ Right <$> getContentsUTF8
+            | otherwise -> ExceptT $ Right <$> readFileUTF8' file
   str <- pure $ dropPrefix "\65279" str -- Remove the BOM if it exists, see #130.
   let enableDisableExts = ghcExtensionsFromParseFlags flags
   -- Read pragmas for the first time.
   dynFlags <- withExceptT (parsePragmasErr str) $ ExceptT (parsePragmasIntoDynFlags baseDynFlags enableDisableExts file str)
   dynFlags <- pure $ lang_set dynFlags $ baseLanguage flags
   -- Avoid running cpp unless CPP is enabled, see #1075.
-  str <- if not (xopt Cpp dynFlags) then pure str else liftIO $ runCpp (cppFlags flags) file str
+  str <- if not (xopt Cpp dynFlags) then pure str else ExceptT $ Right <$> runCpp (cppFlags flags) file str
   -- If we preprocessed the file, re-read the pragmas.
   dynFlags <- if not (xopt Cpp dynFlags) then pure dynFlags
               else withExceptT (parsePragmasErr str) $ ExceptT (parsePragmasIntoDynFlags baseDynFlags enableDisableExts file str)
