@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1076, fix -XNoCpp and CPP around LANGUAGE extensions
     #1077, warn on unused StandaloneKindSignatures
     #1070, warn on unused ImportQualifiedPost
     #1067, require apply-refact 0.8.1.0 (fixes lots of bugs)
