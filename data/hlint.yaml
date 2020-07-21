@@ -240,9 +240,9 @@
     - warn: {lhs: x `mappend` mempty, rhs: x, name: "Monoid law, right identity"}
     - warn: {lhs: foldr (<>) mempty, rhs: mconcat}
     - warn: {lhs: foldr mappend mempty, rhs: mconcat}
-    - warn: {lhs: mempty x, rhs: mempty}
+    - warn: {lhs: mempty x, rhs: mempty, name: Evaluate}
     - hint: {lhs: const mempty, rhs: mempty}
-    - hint: {lhs: \x -> mempty, rhs: mempty}
+    - hint: {lhs: \x -> mempty, rhs: mempty, name: Redundant lambda}
 
     # TRAVERSABLES
 
