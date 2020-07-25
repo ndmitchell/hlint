@@ -134,27 +134,29 @@ lambdaDecl
     | L _ (EmptyLocalBinds noExtField) <- bind
     , isLambda $ fromParen origBody
     , null (universeBi pats :: [HsExpr GhcPs])
-    = [warn "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS o) subts template]]
-    | length pats2 < length pats, pvars (drop (length pats2) pats) `disjoint` varss bind
-    = [warn "Eta reduce" (reform pats origBody) (reform pats2 bod2)
-          [ -- Disabled, see apply-refact #3
+    = let (newPats, newBody) = fromLambda . lambda pats $ origBody
+          (sub, tpl) = mkSubtsAndTpl newPats newBody
+          gen :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
+          gen ps = uncurry reform . fromLambda . lambda ps
+       in [warn "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS o) sub tpl]]
+
+    | let (newPats, newBody) = etaReduce pats origBody
+    , length newPats < length pats, pvars (drop (length newPats) pats) `disjoint` varss bind
+    = let (sub, tpl) = mkSubtsAndTpl newPats newBody
+       in [warn "Eta reduce" (reform pats origBody) (reform newPats newBody)
+            [Replace Decl (toSS $ reform pats origBody) sub tpl]
           ]
-      ]
     where reform :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
-          reform ps b = L loc $ ValD noExtField $
+          reform ps b = L (combineSrcSpans loc1 loc2) $ ValD noExtField $
             origBind
               {fun_matches = MG noExtField (noLoc [noLoc $ Match noExtField ctxt ps $ GRHSs noExtField [noLoc $ GRHS noExtField [] b] $ noLoc $ EmptyLocalBinds noExtField]) Generated}
 
-          loc = combineSrcSpans loc1 loc2
+          mkSubtsAndTpl newPats newBody = (sub, tpl)
+            where
+              (origPats, subtsVars) = mkOrigPats (Just (rdrNameStr funName)) newPats
+              sub = ("body", toSS newBody) : zipWith (\x y -> ([x],y)) subtsVars (map toSS newPats)
+              tpl = unsafePrettyPrint (reform origPats varBody)
 
-          gen :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
-          gen ps = uncurry reform . fromLambda . lambda ps
-
-          (finalpats, body) = fromLambda . lambda pats $ origBody
-          (pats2, bod2) = etaReduce pats origBody
-          (origPats, subtsVars) = mkOrigPats (Just (rdrNameStr funName)) finalpats
-          subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) subtsVars (map toSS finalpats)
-          template = unsafePrettyPrint (reform origPats varBody)
 lambdaDecl _ = []
 
 
