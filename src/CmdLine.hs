@@ -286,7 +286,8 @@ getFile _ [] exts _ file = exitMessage $ "Couldn't find file: " ++ file
 getFile ignore (p:ath) exts t file = do
     isDir <- doesDirectoryExist $ p <\> file
     if isDir then do
-        let avoidDir x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y))
+        let ignoredDirectories = ["dist", "dist-newstyle"]
+            avoidDir x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y)) || y `elem` ignoredDirectories
             avoidFile x = let y = takeFileName x in "." `isPrefixOf` y || ignore x
         xs <- listFilesInside (pure . not . avoidDir) $ p <\> file
         pure [x | x <- xs, drop1 (takeExtension x) `elem` exts, not $ avoidFile x]
