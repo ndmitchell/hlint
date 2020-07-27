@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #780, ignore dist and dist-newstyle directories
     #1076, fix -XNoCpp and CPP around LANGUAGE extensions
     #1077, warn on unused StandaloneKindSignatures
     #1070, warn on unused ImportQualifiedPost
