@@ -44,9 +44,9 @@ refactorPath rpath = do
     case mexc of
         Just exc -> do
             ver <- readVersion . tail <$> readProcess exc ["--version"] ""
-            pure $ if versionBranch ver >= [0,8,1,0]
+            pure $ if ver >= minRefactorVersion
                        then Right exc
-                       else Left "Your version of refactor is too old, please upgrade to 0.8.1.0 or later"
+                       else Left $ "Your version of refactor is too old, please upgrade to " ++ showVersion minRefactorVersion ++ " or later"
         Nothing -> pure $ Left $ unlines
                        [ "Could not find 'refactor' executable"
                        , "Tried to find '" ++ excPath ++ "' on the PATH"
@@ -64,3 +64,6 @@ runRefactoring rpath fin hints enabled disabled opts =  do
     hSetBuffering stdout LineBuffering
     -- Propagate the exit code from the spawn process
     waitForProcess phand
+
+minRefactorVersion :: Version
+minRefactorVersion = makeVersion [0,8,2,0]
