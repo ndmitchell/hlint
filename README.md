@@ -163,7 +163,7 @@ HLint doesn't suggest optimisations, it suggests code improvements - the intenti
 
 ### Why doesn't HLint know the fixity for my custom !@%$ operator?
 
-HLint knows the fixities for all the operators in the base library, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file named `.hlint.yaml` with the syntax `- fixity: "infixr 5 !@%$"`. You can also use `--find` to automatically produce a list of fixity declarations in a file.
+HLint knows the fixities for all the operators in the base library, as well as operators whose fixities are declared in the module being linted, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file named `.hlint.yaml` with the syntax `- fixity: "infixr 5 !@%$"`. You can also use `--find` to automatically produce a list of fixity declarations in a file.
 
 ### Which hints are used?
 
