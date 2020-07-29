@@ -1,6 +1,6 @@
 Changelog for HLint (* = breaking change)
 
-    #1085, support eta-reduce refactoring 
+    #1085, support eta-reduce refactoring
     #780, ignore dist and dist-newstyle directories
     #1076, fix -XNoCpp and CPP around LANGUAGE extensions
     #1077, warn on unused StandaloneKindSignatures
