@@ -55,6 +55,8 @@ Each hint says which file/line the hint relates to, how serious an issue it is, 
 
 The first hint is marked as an warning, because using `concatMap` in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always. Reasons that a hint might be a suggestion include requiring an additional import, something not everyone agrees on, and functions only available in more recent versions of the base library.
 
+Any configuration can be done via [.hlint.yaml](#customizing-the-hints) file.
+
 **Bug reports:** The suggested replacement should be equivalent - please report all incorrect suggestions not mentioned as known limitations.
 
 ### Suggested usage
@@ -208,7 +210,9 @@ See discussion in [issue #372](https://github.com/ndmitchell/hlint/issues/372).
 
 ### Why do I get a parse error?
 
-HLint enables/disables a set of extensions designed to allow as many files to parse as possible, but sometimes you'll need to enable an additional extension (e.g. Arrows), or disable some (e.g. MagicHash) to enable your code to parse.
+HLint enables/disables a set of extensions designed to allow as many files to parse as possible, but sometimes you'll need to enable an additional extension (e.g. Arrows, QuasiQuotes, ...), or disable some (e.g. MagicHash) to enable your code to parse.
+
+You can enable extensions by specifying additional command line arguments in [.hlint.yaml](#customizing-the-hints), e.g.: `- arguments: [-XQuasiQuotes]`.
 
 ## Customizing the hints
 
