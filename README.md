@@ -11,7 +11,7 @@ HLint is a tool for suggesting possible improvements to Haskell code. These sugg
 
 Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/issues). There are some issues that I do not intend to fix:
 
-* HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope.
+* HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope. This decision is deliberate, allowing HLint to parallelise and be used incrementally on code that may not type-check. If fixities are required to parse the code properly, they [can be supplied](#why-doesnt-hlint-know-the-fixity-for-my-custom--operator).
 * The presence of `seq` may cause some hints (i.e. eta-reduction) to change the semantics of a program.
 * Some transformed programs may require additional type signatures, particularly if the transformations trigger the monomorphism restriction or involve rank-2 types.
 * Sometimes HLint will change the code in a way that causes values to default to different types, which may change the behaviour.
