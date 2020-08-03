@@ -329,7 +329,7 @@ getExtensions args =
         f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x, let xs = expandDisable x =
             (deletes xs a, xs ++ deletes xs e)
         f (a, e) x | Just x <- GhclibParserEx.readExtension x = (x : delete x a, delete x e)
-        f (a, e) x = (a, e) -- Ignore unknown extension.
+        f (a, e) x = error $ "Unknown extension: '" ++ x ++ "'"
 
         deletes [] ys = ys
         deletes (x:xs) ys = deletes xs $ delete x ys
