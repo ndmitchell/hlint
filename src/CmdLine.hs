@@ -35,6 +35,7 @@ import System.FilePattern
 
 import EmbedData
 import Util
+import Timing
 import Extension
 import Paths_hlint
 import Data.Version
@@ -70,7 +71,8 @@ automatic cmd = case cmd of
                     Just git -> do
                         let args = ["ls-files", "--cached", "--others", "--exclude-standard"] ++
                                    map ("*." ++) (cmdExtension cmd)
-                        files <- readProcess git args ""
+                        files <- timedIO "Execute" (unwords $ git:args) $
+                            readProcess git args ""
                         pure cmd{cmdFiles = cmdFiles cmd ++ lines files}
             | otherwise = pure cmd
 
