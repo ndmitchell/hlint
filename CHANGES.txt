@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1097, enable refactoring for more avoid lambda hints
     #1094, error on `-XFoo` if `Foo` is not a known extension
     #1090, improve --verbose to print more information
     #1085, support eta-reduce refactoring
