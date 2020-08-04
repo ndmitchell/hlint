@@ -241,8 +241,6 @@
     - warn: {lhs: foldr (<>) mempty, rhs: mconcat}
     - warn: {lhs: foldr mappend mempty, rhs: mconcat}
     - warn: {lhs: mempty x, rhs: mempty, name: Evaluate}
-    - hint: {lhs: const mempty, rhs: mempty}
-    - hint: {lhs: \x -> mempty, rhs: mempty, name: Redundant lambda}
 
     # TRAVERSABLES
 
@@ -881,6 +879,8 @@
     - hint: {lhs: fromRight (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
     - hint: {lhs: "[fst x, snd x]", rhs: Data.Bifoldable.biList x}
     - hint: {lhs: "\\(x, y) -> [x, y]", rhs: Data.Bifoldable.biList, note: IncreasesLaziness}
+    - hint: {lhs: const mempty, rhs: mempty}
+    - hint: {lhs: \x -> mempty, rhs: mempty, name: Redundant lambda}
 
 # hints that use the 'extra' library
 - group:
