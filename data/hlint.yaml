@@ -241,7 +241,7 @@
     - warn: {lhs: foldr (<>) mempty, rhs: mconcat}
     - warn: {lhs: foldr mappend mempty, rhs: mconcat}
     - warn: {lhs: mempty x, rhs: mempty, name: Evaluate}
-    - warn: {lhs: mempty x y, rhs: mempty, name: Evaluate}
+    - warn: {lhs: x `mempty` y, rhs: mempty, name: Evaluate, note: "Make sure you didn't mean to use mappend instead of mempty"}
 
     # TRAVERSABLES
 
