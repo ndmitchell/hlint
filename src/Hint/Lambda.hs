@@ -189,8 +189,11 @@ lambdaExp p o@(L _ HsLam{})
     , not $ "runST" `Set.member` Set.map occNameString (freeVars o)
     , let name = "Avoid lambda" ++ (if countRightSections res > countRightSections o then " using `infix`" else "")
     -- If the lambda's parent is an HsPar, and the result is also an HsPar, the span should include the parentheses.
-    , let from = case (p, res) of
-              (Just p@(L _ (HsPar _ (L _ HsLam{}))), L _ HsPar{}) -> p
+    , let from = case p of
+              -- Avoid creating redundant bracket.
+              Just p@(L _ (HsPar _ (L _ HsLam{})))
+                | L _ HsPar{} <- res -> p
+                | L _ (HsVar _ (L _ name)) <- res, not (isSymbolRdrName name) -> p
               _ -> o
     = [(if isVar res then warn else suggest) name from res (refact $ toSS from)]
     where
