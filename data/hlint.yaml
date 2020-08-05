@@ -240,6 +240,8 @@
     - warn: {lhs: x `mappend` mempty, rhs: x, name: "Monoid law, right identity"}
     - warn: {lhs: foldr (<>) mempty, rhs: mconcat}
     - warn: {lhs: foldr mappend mempty, rhs: mconcat}
+    - warn: {lhs: mempty x, rhs: mempty, name: Evaluate}
+    - warn: {lhs: x `mempty` y, rhs: mempty, name: Evaluate, note: "Make sure you didn't mean to use mappend instead of mempty"}
 
     # TRAVERSABLES
 
@@ -857,6 +859,7 @@
     - warn: {lhs: maybe False, rhs: any}
     - warn: {lhs: maybe True, rhs: all}
     - warn: {lhs: either (const mempty), rhs: foldMap}
+    - warn: {lhs: either mempty, rhs: foldMap}
     - warn: {lhs: either (const False), rhs: any}
     - warn: {lhs: either (const True), rhs: all}
     - warn: {lhs: Data.Maybe.fromMaybe mempty, rhs: Data.Foldable.fold}
@@ -877,6 +880,8 @@
     - hint: {lhs: fromRight (pure ()), rhs: sequenceA_, note: IncreasesLaziness}
     - hint: {lhs: "[fst x, snd x]", rhs: Data.Bifoldable.biList x}
     - hint: {lhs: "\\(x, y) -> [x, y]", rhs: Data.Bifoldable.biList, note: IncreasesLaziness}
+    - hint: {lhs: const mempty, rhs: mempty}
+    - hint: {lhs: \x -> mempty, rhs: mempty, name: Redundant lambda}
 
 # hints that use the 'extra' library
 - group:
