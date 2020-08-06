@@ -983,7 +983,11 @@
     - warn: {lhs: "pictures [ p ]", rhs: p, name: Evaluate}
     - warn: {lhs: "pictures [ p, q ]", rhs: p & q, name: Evaluate}
     - hint: {lhs: foldl1 (&), rhs: pictures}
+    - hint: {lhs: foldl (&) blank, rhs: pictures}
+    - hint: {lhs: foldl' (&) blank, rhs: pictures}
+    - hint: {lhs: foldr' (&) blank, rhs: pictures}
     - hint: {lhs: foldr (&) blank, rhs: pictures}
+    - hint: {lhs: foldr1 (&), rhs: pictures}
     - hint: {lhs: scaled x x, rhs: dilated x}
     - hint: {lhs: scaledPoint x x, rhs: dilatedPoint x}
     - warn: {lhs: "brighter (- a)", rhs: "duller a"}
