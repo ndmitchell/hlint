@@ -2,11 +2,11 @@ resolver: lts-14.20 # ghc-8.6.5
 packages:
   - .
 extra-deps:
-  - ghc-lib-parser-8.10.1.20200523
-  - ghc-lib-parser-ex-8.10.0.15
+  - ghc-lib-parser-8.10.2.20200808
+  - ghc-lib-parser-ex-8.10.0.16
 # To test hlint against experimental builds of ghc-lib-parser-ex,
 # modify extra-deps like this:
-#  - archive: /users/shayne/project/ghc-lib-parser-ex.git/ghc-lib-parser-ex-8.10.0.16.tar.gz
+#  - archive: /users/shayne/project/ghc-lib-parser-ex.git/ghc-lib-parser-ex-8.10.0.17.tar.gz
 #    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
   - extra-1.7.3
   - apply-refact-0.8.2.0
