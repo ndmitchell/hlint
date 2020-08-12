@@ -1011,7 +1011,7 @@
     - warn: {lhs: foldl f c (reverse x), rhs: foldr (flip f) c x, note: IncreasesLaziness, name: Use right fold instead of left fold}
     - warn: {lhs: foldl1 f (reverse x), rhs: foldr1 (flip f) x, note: IncreasesLaziness, name: Use right fold instead of left fold}
     - warn: {lhs: foldr' f c (reverse x), rhs: foldl' (flip f) c x, name: Use left fold instead of right fold}
-    - warn: {lhs: foldl' f c (reverse x), rhs: foldr' (flip f) c x, name: Use right fold instead of left fold}
+    - warn: {lhs: foldl' f c (reverse x), rhs: foldr (flip f) c x, note: IncreasesLaziness, name: Use right fold instead of left fold}
 
 - group:
     # used for tests, enabled when testing this file
