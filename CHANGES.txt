@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1103, enable refactoring for Redundant void
     #1083, add hints for mempty as a function
     #1097, enable refactoring for more avoid lambda hints
     #1094, error on `-XFoo` if `Foo` is not a known extension
