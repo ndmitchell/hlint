@@ -125,7 +125,8 @@ monadExp decl parentDo parentExpr x =
     _ -> []
   where
     f = monadNoResult (fromMaybe "" decl) id
-    seenVoid wrap x = monadNoResult (fromMaybe "" decl) wrap x ++ [warn "Redundant void" (wrap x) x [] | returnsUnit x]
+    seenVoid wrap x = monadNoResult (fromMaybe "" decl) wrap x
+      ++ [warn "Redundant void" (wrap x) x [Replace Expr (toSS (wrap x)) [("a", toSS x)] "a"] | returnsUnit x]
     doSpan doOrMDo = \case
       UnhelpfulSpan s -> UnhelpfulSpan s
       RealSrcSpan s ->
