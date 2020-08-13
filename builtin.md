@@ -18,30 +18,6 @@ or `stack run hlint test -- --generate-summary`.
 <td colspan=2>
 Example:
 <code>
-yes = \x y -> op y x where
-</code>
-<br>
-Found:
-<code>
-\ x y -> op y x
-</code>
-<br>
-Suggestion:
-<code>
-flip op
-</code>
-<br>
-</td>
-</tr>
-<tr>
-<td rowspan=2>Avoid lambda</td>
-<td>Suggestion</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
-Example:
-<code>
 f = foo (\y -> g x . h $ y)
 </code>
 <br>
@@ -66,36 +42,12 @@ g x . h
 <td colspan=2>
 Example:
 <code>
-f = foo (\x y -> x + y)
-</code>
-<br>
-Found:
-<code>
-\ x y -> x + y
-</code>
-<br>
-Suggestion:
-<code>
-(+)
-</code>
-<br>
-</td>
-</tr>
-<tr>
-<td rowspan=2>Avoid lambda</td>
-<td>Warning</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
-Example:
-<code>
 f = foo (\x y -> fun x y)
 </code>
 <br>
 Found:
 <code>
-\ x y -> fun x y
+(\ x y -> fun x y)
 </code>
 <br>
 Suggestion:
@@ -180,7 +132,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Eta reduce</td>
 <td>Warning</td>
-<td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -762,31 +714,6 @@ f a x = x + x
 <tr>
 <td rowspan=2>Redundant return</td>
 <td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
-Example:
-<code>
-yes = do bar; a <- foo; return a
-</code>
-<br>
-Found:
-<pre>
-do bar
-   a <- foo
-   return a
-</pre>
-Suggestion:
-<pre>
-do bar
-   foo
-</pre>
-</td>
-</tr>
-<tr>
-<td rowspan=2>Redundant return</td>
-<td>Warning</td>
 <td>No</td>
 </tr>
 <tr>
@@ -806,6 +733,31 @@ Suggestion:
 <pre>
 do bar
    forM_ f xs
+</pre>
+</td>
+</tr>
+<tr>
+<td rowspan=2>Redundant return</td>
+<td>Warning</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td colspan=2>
+Example:
+<code>
+yes = do bar; a <- foo; return a
+</code>
+<br>
+Found:
+<pre>
+do bar
+   a <- foo
+   return a
+</pre>
+Suggestion:
+<pre>
+do bar
+   foo
 </pre>
 </td>
 </tr>
@@ -860,7 +812,7 @@ forM_ f xs
 <tr>
 <td rowspan=2>Redundant void</td>
 <td>Warning</td>
-<td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
