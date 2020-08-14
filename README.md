@@ -11,7 +11,7 @@ HLint is a tool for suggesting possible improvements to Haskell code. These sugg
 
 Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/issues). There are some issues that I do not intend to fix:
 
-* HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope.
+* HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope. This decision is deliberate, allowing HLint to parallelise and be used incrementally on code that may not type-check. If fixities are required to parse the code properly, they [can be supplied](#why-doesnt-hlint-know-the-fixity-for-my-custom--operator).
 * The presence of `seq` may cause some hints (i.e. eta-reduction) to change the semantics of a program.
 * Some transformed programs may require additional type signatures, particularly if the transformations trigger the monomorphism restriction or involve rank-2 types.
 * Sometimes HLint will change the code in a way that causes values to default to different types, which may change the behaviour.
@@ -54,6 +54,8 @@ Perhaps:
 Each hint says which file/line the hint relates to, how serious an issue it is, a description of the hint, what it found, and what you might want to replace it with. In the case of the first hint, it has suggested that instead of applying `concat` and `map` separately, it would be better to use the combination function `concatMap`.
 
 The first hint is marked as an warning, because using `concatMap` in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always. Reasons that a hint might be a suggestion include requiring an additional import, something not everyone agrees on, and functions only available in more recent versions of the base library.
+
+Any configuration can be done via [.hlint.yaml](#customizing-the-hints) file.
 
 **Bug reports:** The suggested replacement should be equivalent - please report all incorrect suggestions not mentioned as known limitations.
 
@@ -163,7 +165,7 @@ HLint doesn't suggest optimisations, it suggests code improvements - the intenti
 
 ### Why doesn't HLint know the fixity for my custom !@%$ operator?
 
-HLint knows the fixities for all the operators in the base library, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file named `.hlint.yaml` with the syntax `- fixity: "infixr 5 !@%$"`. You can also use `--find` to automatically produce a list of fixity declarations in a file.
+HLint knows the fixities for all the operators in the base library, as well as operators whose fixities are declared in the module being linted, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file named `.hlint.yaml` with the syntax `- fixity: "infixr 5 !@%$"`. You can also use `--find` to automatically produce a list of fixity declarations in a file.
 
 ### Which hints are used?
 
@@ -208,7 +210,9 @@ See discussion in [issue #372](https://github.com/ndmitchell/hlint/issues/372).
 
 ### Why do I get a parse error?
 
-HLint enables/disables a set of extensions designed to allow as many files to parse as possible, but sometimes you'll need to enable an additional extension (e.g. Arrows), or disable some (e.g. MagicHash) to enable your code to parse.
+HLint enables/disables a set of extensions designed to allow as many files to parse as possible, but sometimes you'll need to enable an additional extension (e.g. Arrows, QuasiQuotes, ...), or disable some (e.g. MagicHash) to enable your code to parse.
+
+You can enable extensions by specifying additional command line arguments in [.hlint.yaml](#customizing-the-hints), e.g.: `- arguments: [-XQuasiQuotes]`.
 
 ## Customizing the hints
 
@@ -323,7 +327,7 @@ You can customize the `Note:` for restricted modules, functions and extensions, 
 
 ## Hacking HLint
 
-Contributions to HLint are most welcome, following [my standard contribution guidelines](https://github.com/ndmitchell/neil/blob/master/README.md#contributions). You can run the tests either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `cabal run hlint test` or `stack init && stack run hlint test`.
+Contributions to HLint are most welcome, following [my standard contribution guidelines](https://github.com/ndmitchell/neil/blob/master/README.md#contributions). You can run the tests either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `cabal run hlint test` or `stack run hlint test`.
 
 New tests for individual hints can be added directly to source and hint files by adding annotations bracketed in `<TEST></TEST>` code comment blocks. As some examples:
 

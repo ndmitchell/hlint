@@ -13,7 +13,7 @@ This page is auto-generated from `hlint summary hints.md --no-implicit`.
 <tr>
 <td rowspan=2>Avoid lambda</td>
 <td>Suggestion</td>
-<td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -36,32 +36,8 @@ g x . h
 </tr>
 <tr>
 <td rowspan=2>Avoid lambda</td>
-<td>Suggestion</td>
-<td>Yes
-</tr>
-<tr>
-<td colspan=2>
-Example:
-<code>
-yes = \x y -> op y x where
-</code>
-<br>
-Found:
-<code>
-\ x y -> op y x
-</code>
-<br>
-Suggestion:
-<code>
-flip op
-</code>
-<br>
-</td>
-</tr>
-<tr>
-<td rowspan=2>Avoid lambda</td>
 <td>Warning</td>
-<td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -72,7 +48,7 @@ f = foo (\x y -> fun x y)
 <br>
 Found:
 <code>
-\ x y -> fun x y
+(\ x y -> fun x y)
 </code>
 <br>
 Suggestion:
@@ -83,33 +59,9 @@ fun
 </td>
 </tr>
 <tr>
-<td rowspan=2>Avoid lambda</td>
-<td>Warning</td>
-<td>Yes
-</tr>
-<tr>
-<td colspan=2>
-Example:
-<code>
-f = foo (\x y -> x + y)
-</code>
-<br>
-Found:
-<code>
-\ x y -> x + y
-</code>
-<br>
-Suggestion:
-<code>
-(+)
-</code>
-<br>
-</td>
-</tr>
-<tr>
 <td rowspan=2>Avoid lambda using `infix`</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -133,7 +85,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Collapse lambdas</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -157,7 +109,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Eta reduce</td>
 <td>Warning</td>
-<td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -181,7 +133,7 @@ fun = f
 <tr>
 <td rowspan=2>Fix pragma markup</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -205,7 +157,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Missing NOINLINE pragma</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -229,7 +181,7 @@ slaves = unsafePerformIO Multimap.newIO
 <tr>
 <td rowspan=2>Move brackets to avoid $</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -253,7 +205,7 @@ b (c d) ++ e
 <tr>
 <td rowspan=2>Move guards forward</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -277,7 +229,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Move map inside list comprehension</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -353,7 +305,7 @@ Combine with /home/zliu41/hlint/src/Hint/Duplicate.hs:2:16-20
 <tr>
 <td rowspan=2>Redundant $</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -377,7 +329,7 @@ bar baz
 <tr>
 <td rowspan=2>Redundant True guards</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -401,7 +353,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Redundant as</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -449,7 +401,7 @@ x
 <tr>
 <td rowspan=2>Redundant bang pattern</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -473,7 +425,7 @@ True
 <tr>
 <td rowspan=2>Redundant bracket</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -497,7 +449,7 @@ do bar + foo
 <tr>
 <td rowspan=2>Redundant bracket</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -521,7 +473,7 @@ foo
 <tr>
 <td rowspan=2>Redundant case</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -545,7 +497,7 @@ x
 <tr>
 <td rowspan=2>Redundant do</td>
 <td>Ignore</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -569,7 +521,7 @@ Perhaps you should remove it.
 <tr>
 <td rowspan=2>Redundant guard</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -593,7 +545,7 @@ foo x = y
 <tr>
 <td rowspan=2>Redundant irrefutable pattern</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -617,7 +569,7 @@ x
 <tr>
 <td rowspan=2>Redundant lambda</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -666,7 +618,7 @@ do bar
 <tr>
 <td rowspan=2>Redundant return</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -739,7 +691,7 @@ forM_ f xs
 <tr>
 <td rowspan=2>Redundant void</td>
 <td>Warning</td>
-<td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -787,7 +739,7 @@ Perhaps you should remove it.
 <tr>
 <td rowspan=2>Short-circuited list comprehension</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -811,7 +763,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Unused LANGUAGE pragma</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -835,7 +787,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Use :</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -859,7 +811,7 @@ x : xs
 <tr>
 <td rowspan=2>Use <$></td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -883,7 +835,7 @@ return <$> dataD (return []) (mkName "Void") [] [] []
 <tr>
 <td rowspan=2>Use <$></td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -907,7 +859,7 @@ do f <$> bar
 <tr>
 <td rowspan=2>Use >></td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -956,7 +908,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Use LANGUAGE pragmas</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -980,7 +932,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Use String</td>
 <td>Ignore</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1054,7 +1006,7 @@ module Foo (
 <tr>
 <td rowspan=2>Use fewer LANGUAGE pragmas</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1078,7 +1030,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Use fewer imports</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1103,7 +1055,7 @@ import A
 <tr>
 <td rowspan=2>Use foldM</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1127,7 +1079,7 @@ f xs a = foldM (+) a xs
 <tr>
 <td rowspan=2>Use foldM_</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1151,7 +1103,7 @@ foldM_ f a xs
 <tr>
 <td rowspan=2>Use foldl</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1175,7 +1127,7 @@ f z xs = foldl (*) z xs
 <tr>
 <td rowspan=2>Use foldr</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1199,7 +1151,7 @@ f xs = foldr ((+) . negate) 0 xs
 <tr>
 <td rowspan=2>Use forM_</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1223,7 +1175,7 @@ forM_ files $ \ x -> return ()
 <tr>
 <td rowspan=2>Use guards</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1249,7 +1201,7 @@ yes x y
 <tr>
 <td rowspan=2>Use id</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1273,7 +1225,7 @@ id
 <tr>
 <td rowspan=2>Use join</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1348,7 +1300,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Use let</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1372,7 +1324,7 @@ let x = y
 <tr>
 <td rowspan=2>Use list literal</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1396,7 +1348,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Use list literal pattern</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1420,7 +1372,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Use map</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1444,7 +1396,7 @@ f xs = map (+ 1) xs
 <tr>
 <td rowspan=2>Use mapM_</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1517,7 +1469,7 @@ newtype Yes = Yes (Maybe [Char])
 <tr>
 <td rowspan=2>Use otherwise</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1543,7 +1495,7 @@ foo x
 <tr>
 <td rowspan=2>Use pragma syntax</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1567,7 +1519,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Use record patterns</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1639,7 +1591,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Use tuple-section</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1663,7 +1615,7 @@ Suggestion:
 <tr>
 <td rowspan=2>Use void</td>
 <td>Suggestion</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -1687,7 +1639,7 @@ Control.Monad.void (foldM f a xs)
 <tr>
 <td rowspan=2>Use when</td>
 <td>Warning</td>
-<td>Yes
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
@@ -4265,6 +4217,38 @@ foldr mappend mempty
 RHS:
 <code>
 mconcat
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+mempty x
+</code>
+<br>
+RHS:
+<code>
+mempty
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+x `mempty` y
+</code>
+<br>
+RHS:
+<code>
+mempty
 </code>
 <br>
 </td>

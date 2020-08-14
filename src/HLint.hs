@@ -52,11 +52,11 @@ import EmbedData
 --   on your server with untrusted input.
 hlint :: [String] -> IO [Idea]
 hlint args = do
-    initGlobalDynFlags
+    startTimings
     cmd <- getCmd args
+    timedIO "Initialise" "global flags" initGlobalDynFlags
     case cmd of
         CmdMain{} -> do
-            startTimings
             (time, xs) <- duration $ hlintMain args cmd
             when (cmdTiming cmd) $ do
                 printTimings

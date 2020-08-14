@@ -35,6 +35,7 @@ import System.FilePattern
 
 import EmbedData
 import Util
+import Timing
 import Extension
 import Paths
 import Data.Version
@@ -71,7 +72,8 @@ automatic cmd = case cmd of
                     Just git -> do
                         let args = ["ls-files", "--cached", "--others", "--exclude-standard"] ++
                                    map ("*." ++) (cmdExtension cmd)
-                        files <- readProcess git args ""
+                        files <- timedIO "Execute" (unwords $ git:args) $
+                            readProcess git args ""
                         pure cmd{cmdFiles = cmdFiles cmd ++ lines files}
             | otherwise = pure cmd
 
@@ -300,7 +302,8 @@ getFile _ [] exts _ file = exitMessage $ "Couldn't find file: " ++ file
 getFile ignore (p:ath) exts t file = do
     isDir <- doesDirectoryExist $ p <\> file
     if isDir then do
-        let avoidDir x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y))
+        let ignoredDirectories = ["dist", "dist-newstyle"]
+            avoidDir x = let y = takeFileName x in "_" `isPrefixOf` y || ("." `isPrefixOf` y && not (all (== '.') y)) || y `elem` ignoredDirectories
             avoidFile x = let y = takeFileName x in "." `isPrefixOf` y || ignore x
         xs <- listFilesInside (pure . not . avoidDir) $ p <\> file
         pure [x | x <- xs, drop1 (takeExtension x) `elem` exts, not $ avoidFile x]
@@ -342,7 +345,7 @@ getExtensions args =
         f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x, let xs = expandDisable x =
             (deletes xs a, xs ++ deletes xs e)
         f (a, e) x | Just x <- GhclibParserEx.readExtension x = (x : delete x a, delete x e)
-        f (a, e) x = (a, e) -- Ignore unknown extension.
+        f (a, e) x = error $ "Unknown extension: '" ++ x ++ "'"
 
         deletes [] ys = ys
         deletes (x:xs) ys = deletes xs $ delete x ys

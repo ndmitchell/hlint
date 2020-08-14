@@ -231,7 +231,7 @@ niceLambdaR [x, y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
 
 -- We're done factoring, but have no variables left, so we shouldn't make a lambda.
 -- @\ -> e@ ==> @e@
-niceLambdaR [] e = (e, const [])
+niceLambdaR [] e = (e, \s -> [Replace Expr s [("a", toSS e)] "a"])
 -- Base case. Just a good old fashioned lambda.
 niceLambdaR ss e =
   let grhs = noLoc $ GRHS noExtField [] e :: LGRHS GhcPs (LHsExpr GhcPs)

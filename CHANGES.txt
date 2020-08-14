@@ -1,5 +1,14 @@
 Changelog for HLint (* = breaking change)
 
+    #1103, enable refactoring for Redundant void
+    #1083, add hints for mempty as a function
+    #1097, enable refactoring for more avoid lambda hints
+    #1094, error on `-XFoo` if `Foo` is not a known extension
+    #1090, improve --verbose to print more information
+    #1085, support eta-reduce refactoring
+    #780, ignore dist and dist-newstyle directories
+    #1076, fix -XNoCpp and CPP around LANGUAGE extensions
+    #1077, warn on unused StandaloneKindSignatures
     #1070, warn on unused ImportQualifiedPost
     #1067, require apply-refact 0.8.1.0 (fixes lots of bugs)
     #1064, don't remove OverloadedLists if there is a []

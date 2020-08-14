@@ -14,6 +14,7 @@ import Control.Monad
 import System.Console.CmdArgs.Verbosity
 import System.Time.Extra
 import System.IO.Unsafe
+import System.IO
 
 
 type Category = String
@@ -39,7 +40,9 @@ timed c i x = if not useTimings then x else unsafePerformIO $ timedIO c i $ eval
 timedIO :: Category -> Item -> IO a -> IO a
 timedIO c i x = if not useTimings then x else do
     let quiet = c == "Hint"
-    unless quiet $ whenLoud $ putStr $ "Performing " ++ c ++ " of " ++ i ++ "... "
+    unless quiet $ whenLoud $ do
+        putStr $ "# " ++ c ++ " of " ++ i ++ "... "
+        hFlush stdout
     (time, x) <- duration x
     atomicModifyIORef'_ timings $ Map.insertWith (+) (c, i) time
     unless quiet $ whenLoud $ putStrLn $ "took " ++ showDuration time

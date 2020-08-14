@@ -104,7 +104,7 @@ showBuiltin (hint, sev, refact) BuiltinEx{..} = row1 ++ row2
     row1 = row
       [ "<td rowspan=2>" ++ hint ++ "</td>"
       , "<td>" ++ show sev ++ "</td>"
-      , "<td>" ++ if refact then "Yes" else "No" ++ "</td>"
+      , "<td>" ++ (if refact then "Yes" else "No") ++ "</td>"
       ]
     row2 = row example
     example =
