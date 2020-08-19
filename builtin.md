@@ -714,31 +714,6 @@ f a x = x + x
 <tr>
 <td rowspan=2>Redundant return</td>
 <td>Warning</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
-Example:
-<code>
-main = do bar; forM_ f xs; return ()
-</code>
-<br>
-Found:
-<pre>
-do bar
-   forM_ f xs
-   return ()
-</pre>
-Suggestion:
-<pre>
-do bar
-   forM_ f xs
-</pre>
-</td>
-</tr>
-<tr>
-<td rowspan=2>Redundant return</td>
-<td>Warning</td>
 <td>Yes</td>
 </tr>
 <tr>
