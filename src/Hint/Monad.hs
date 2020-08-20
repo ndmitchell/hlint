@@ -210,9 +210,9 @@ monadStep wrap (o@(L loc (BindStmt _ p x _ _)) : rest)
 -- Redundant unit return : 'do <return ()>; return ()'.
 monadStep
   wrap o@[ L _ (BodyStmt _ x _ _)
-         , L _ (BodyStmt _ (fromRet -> Just (ret, L _ (HsVar _ (L _ unit)))) _ _)]
+         , q@(L _ (BodyStmt _ (fromRet -> Just (ret, L _ (HsVar _ (L _ unit)))) _ _))]
      | returnsUnit x, occNameStr unit == "()"
-  = [warn ("Redundant " ++ ret) (wrap o) (wrap $ take 1 o) []]
+  = [warn ("Redundant " ++ ret) (wrap o) (wrap $ take 1 o) [Delete Stmt (toSS q)]]
 
 -- Rewrite 'do x <- $1; return $ f $ g x' as 'f . g <$> x'
 monadStep wrap
