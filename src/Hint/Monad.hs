@@ -205,7 +205,7 @@ monadStep wrap o@(g@(L _ (BindStmt _ (view -> PVar_ p) x _ _)):q@(L _ (BodyStmt 
 monadStep wrap (o@(L loc (BindStmt _ p x _ _)) : rest)
     | isPWildcard p, returnsUnit x
     = let body = cL loc $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr :: ExprLStmt GhcPs
-      in [warn "Redundant variable capture" o body []]
+      in [warn "Redundant variable capture" o body [Replace Stmt (toSS o) [("x", toSS x)] "x"]]
 
 -- Redundant unit return : 'do <return ()>; return ()'.
 monadStep
