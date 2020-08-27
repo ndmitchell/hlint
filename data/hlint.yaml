@@ -167,7 +167,9 @@
     - warn: {lhs: any f (map g x), rhs: any (f . g) x}
     - warn: {lhs: all f (map g x), rhs: all (f . g) x}
     - warn: {lhs: "zipWith (,)", rhs: zip}
+    - warn: {lhs: "zipWith (\\x y -> (x, y))", rhs: zip}
     - warn: {lhs: "zipWith3 (,,)", rhs: zip3}
+    - warn: {lhs: "zipWith3 (\\x y z -> (x, y, z))", rhs: zip3}
     - hint: {lhs: length x == 0, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: 0 == length x, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: length x < 1, rhs: null x, note: IncreasesLaziness}
