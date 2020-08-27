@@ -45,9 +45,8 @@ import Data.List.Extra
 import Data.Maybe
 import Prelude
 
-import Hint.Type(DeclHint,Idea,suggest,ignore,toRefactSrcSpan,toSS)
+import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSS)
 
-import Refact
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
 

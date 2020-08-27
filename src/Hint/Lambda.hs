@@ -99,12 +99,11 @@ f = map (\s -> MkFoo s 0 s) ["a","b","c"]
 
 module Hint.Lambda(lambdaHint) where
 
-import Hint.Type (DeclHint, Idea, Note(RequiresExtension), suggest, warn, toSS, suggestN, ideaNote)
+import Hint.Type (DeclHint, Idea, Note(RequiresExtension), suggest, warn, toSS, suggestN, ideaNote, substVars)
 import Util
 import Data.List.Extra
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Refact
 import Refact.Types hiding (RType(Match))
 import Data.Generics.Uniplate.DataOnly (universe, universeBi, transformBi)
 
