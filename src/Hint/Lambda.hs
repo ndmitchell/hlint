@@ -99,7 +99,7 @@ f = map (\s -> MkFoo s 0 s) ["a","b","c"]
 
 module Hint.Lambda(lambdaHint) where
 
-import Hint.Type (DeclHint, Idea, Note(RequiresExtension), suggest, warn, toSS, suggestN, ideaNote)
+import Hint.Type (DeclHint, Idea, Note(RequiresExtension), suggest, warn, toSS, suggestN, ideaNote, substVars)
 import Util
 import Data.List.Extra
 import Data.Set (Set)
@@ -153,8 +153,8 @@ lambdaDecl
 
           mkSubtsAndTpl newPats newBody = (sub, tpl)
             where
-              (origPats, subtsVars) = mkOrigPats (Just (rdrNameStr funName)) newPats
-              sub = ("body", toSS newBody) : zipWith (\x y -> ([x],y)) subtsVars (map toSS newPats)
+              (origPats, vars) = mkOrigPats (Just (rdrNameStr funName)) newPats
+              sub = ("body", toSS newBody) : zip vars (map toSS newPats)
               tpl = unsafePrettyPrint (reform origPats varBody)
 
 lambdaDecl _ = []
@@ -207,8 +207,8 @@ lambdaExp p o@(SimpleLambda origPats origBody)
     [suggest "Collapse lambdas" o (lambda pats body) [Replace Expr (toSS o) subts template]]
     where
       (pats, body) = fromLambda o
-      (oPats, subtsVars) = mkOrigPats Nothing pats
-      subts = ("body", toSS body) : zipWith (\x y -> ([x],y)) subtsVars (map toSS pats)
+      (oPats, vars) = mkOrigPats Nothing pats
+      subts = ("body", toSS body) : zip vars (map toSS pats)
       template = unsafePrettyPrint (lambda oPats varBody)
 
 -- match a lambda with a variable pattern, with no guards and no where clauses
@@ -279,22 +279,22 @@ fromLambda x = ([], x)
 
 -- | For each pattern, if it does not contain wildcards, replace it with a variable pattern.
 --
--- The second component of the result is a list of substitution variables, which is ['a'..'z'],
--- excluding variables that occur in the function name or patterns with wildcards. For example, given
--- 'f (Foo a b _) = ...', 'f', 'a' and 'b' are removed.
-mkOrigPats :: Maybe String -> [LPat GhcPs] -> ([LPat GhcPs], [Char])
-mkOrigPats funName pats = (zipWith munge subtsVars pats', subtsVars)
+-- The second component of the result is a list of substitution variables, which are guaranteed
+-- to not occur in the function name or patterns with wildcards. For example, given
+-- 'f (Foo a b _) = ...', 'f', 'a' and 'b' are not usable as substitution variables.
+mkOrigPats :: Maybe String -> [LPat GhcPs] -> ([LPat GhcPs], [String])
+mkOrigPats funName pats = (zipWith munge vars pats', vars)
   where
     (Set.unions -> used, pats') = unzip (map f pats)
 
     -- Remove variables that occur in the function name or patterns with wildcards
-    subtsVars = filter (\c -> c `Set.notMember` used && Just [c] /= funName) ['a'..'z']
+    vars = filter (\s -> s `Set.notMember` used && Just s /= funName) substVars
 
     -- Returns (chars in the pattern if the pattern contains wildcards, (whether the pattern contains wildcards, the pattern))
-    f :: LPat GhcPs -> (Set Char, (Bool, LPat GhcPs))
+    f :: LPat GhcPs -> (Set String, (Bool, LPat GhcPs))
     f p
       | any isWildPat (universe p) =
-          let used = Set.fromList [c | (L _ (VarPat _ (rdrNameStr -> [c]))) <- universe p]
+          let used = Set.fromList [rdrNameStr name | (L _ (VarPat _ name)) <- universe p]
            in (used, (True, p))
       | otherwise = (mempty, (False, p))
 
@@ -302,6 +302,6 @@ mkOrigPats funName pats = (zipWith munge subtsVars pats', subtsVars)
     isWildPat = \case (L _ (WildPat _)) -> True; _ -> False
 
     -- Replace the pattern with a variable pattern if the pattern doesn't contain wildcards.
-    munge :: Char -> (Bool, LPat GhcPs) -> LPat GhcPs
+    munge :: String -> (Bool, LPat GhcPs) -> LPat GhcPs
     munge _ (True, p) = p
-    munge ident (False, L ploc _) = L ploc (VarPat noExtField (L ploc $ mkRdrUnqual $ mkVarOcc [ident]))
+    munge ident (False, L ploc _) = L ploc (VarPat noExtField (L ploc $ mkRdrUnqual $ mkVarOcc ident))
