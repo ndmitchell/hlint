@@ -1,7 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Refact
-    ( toRefactSrcSpan
+    ( substVars
+    , toRefactSrcSpan
     , toSS
     , checkRefactor, refactorPath, runRefactoring
     ) where
@@ -18,6 +19,9 @@ import System.Process.Extra
 import qualified Refact.Types as R
 
 import qualified SrcLoc as GHC
+
+substVars :: [String]
+substVars = [letter : number | number <- "" : map show [0..], letter <- ['a'..'z']]
 
 toRefactSrcSpan :: GHC.SrcSpan -> R.SrcSpan
 toRefactSrcSpan = \case

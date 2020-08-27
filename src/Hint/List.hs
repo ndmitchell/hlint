@@ -47,6 +47,7 @@ import Prelude
 
 import Hint.Type(DeclHint,Idea,suggest,ignore,toRefactSrcSpan,toSS)
 
+import Refact
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
 
@@ -196,14 +197,14 @@ usePList =
           )
           . unzip
         )
-  . f True ['a'..'z']
+  . f True substVars
   where
     f first _ x | patToStr x == "[]" = if first then Nothing else Just []
     f first (ident:cs) (view -> PApp_ ":" [a, b]) = ((a, g ident a) :) <$> f False cs b
     f first _ _ = Nothing
 
-    g :: Char -> LPat GhcPs -> ((String, SrcSpan), LPat GhcPs)
-    g c (getLoc -> loc) = (([c], loc), noLoc $ VarPat noExtField (noLoc $ mkVarUnqual (fsLit [c])))
+    g :: String -> LPat GhcPs -> ((String, SrcSpan), LPat GhcPs)
+    g s (getLoc -> loc) = ((s, loc), noLoc $ VarPat noExtField (noLoc $ mkVarUnqual (fsLit s)))
 
 useString :: p -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [a], String)
 useString b (L _ (ExplicitList _ _ xs)) | not $ null xs, Just s <- mapM fromChar xs =
@@ -220,15 +221,15 @@ useList b =
           )
           . unzip
         )
-  . f True ['a'..'z']
+  . f True substVars
   where
     f first _ x | varToStr x == "[]" = if first then Nothing else Just []
     f first (ident:cs) (view -> App2 c a b) | varToStr c == ":" =
           ((a, g ident a) :) <$> f False cs b
     f first _ _ = Nothing
 
-    g :: Char -> LHsExpr GhcPs -> (String, LHsExpr GhcPs)
-    g c p = ([c], L (getLoc p) (unLoc $ strToVar [c]))
+    g :: String -> LHsExpr GhcPs -> (String, LHsExpr GhcPs)
+    g s p = (s, L (getLoc p) (unLoc $ strToVar s))
 
 useCons :: View a App2 => Bool -> a -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String)
 useCons False (view -> App2 op x y) | varToStr op == "++"

@@ -34,7 +34,7 @@ import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
 import Data.Tuple.Extra
 
-import Refact (toSS)
+import Refact (substVars, toSS)
 import Refact.Types hiding (SrcSpan, Match)
 import qualified Refact.Types as R (SrcSpan)
 
@@ -214,7 +214,7 @@ niceLambdaR [x] y
     factor _ = Nothing
     mkRefact :: [LHsExpr GhcPs] -> R.SrcSpan -> Refactoring R.SrcSpan
     mkRefact subts s =
-      let tempSubts = zipWith (\a b -> ([a], toSS b)) ['a' .. 'z'] subts
+      let tempSubts = zipWith (\a b -> (a, toSS b)) substVars subts
           template = dotApps (map (strToVar . fst) tempSubts)
       in Replace Expr s tempSubts (unsafePrettyPrint template)
 -- Rewrite @\x y -> x + y@ as @(+)@.
