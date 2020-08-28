@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1111, add hint for \x y -> (x,y) to (,), and for (,,)
     #1108, enable refactoring for redundant variable capture
     #1105, enable refactoring for more redundant return hints
     #1103, enable refactoring for Redundant void
