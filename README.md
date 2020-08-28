@@ -95,6 +95,7 @@ HLint is integrated into lots of places:
 * [lpaste](http://lpaste.net/) integrates with HLint - suggestions are shown at the bottom.
 * [hlint-test](https://hackage.haskell.org/package/hlint-test) helps you write a small test runner with HLint.
 * [hint-man](https://github.com/apps/hint-man) automatically submits reviews to opened pull requests in your repositories with inline hints.
+* [CircleCI](https://circleci.com/orbs/registry/orb/haskell-works/hlint) has a plugin to run HLint more easily.
 
 ### Automatically Applying Hints
 
