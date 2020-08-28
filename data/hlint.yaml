@@ -544,6 +544,8 @@
 
     - warn: {lhs: fst (unzip x), rhs: map fst x}
     - warn: {lhs: snd (unzip x), rhs: map snd x}
+    - hint: {lhs: "\\x y -> (x, y)", rhs: "(,)"}
+    - hint: {lhs: "\\x y z -> (x, y, z)", rhs: "(,,)"}
 
     # MAYBE
 
