@@ -423,7 +423,7 @@
     - warn: {lhs: return =<< m, rhs: m, name: "Monad law, right identity"}
     - warn: {lhs: liftM, rhs: fmap}
     - warn: {lhs: liftA, rhs: fmap}
-    - hint: {lhs: m >>= return . f, rhs: f <$> m}
+    - hint: {lhs: m >>= return . f, rhs: m Data.Functor.<&> f}
     - hint: {lhs: return . f =<< m, rhs: f <$> m}
     - warn: {lhs: fmap f x >>= g, rhs: x >>= g . f}
     - warn: {lhs: f <$> x >>= g, rhs: x >>= g . f}
@@ -516,7 +516,7 @@
     - warn: {lhs: fmap f (pure x), rhs: pure (f x)}
     - warn: {lhs: f <$> pure x, rhs: pure (f x)}
     - warn: {lhs: Just <$> a <|> pure Nothing, rhs: optional a}
-    - hint: {lhs: m >>= pure . f, rhs: f <$> m}
+    - hint: {lhs: m >>= pure . f, rhs: m Data.Functor.<&> f}
     - hint: {lhs: pure . f =<< m, rhs: f <$> m}
     - warn: {lhs: empty <|> x, rhs: x, name: "Alternative law, left identity"}
     - warn: {lhs: x <|> empty, rhs: x, name: "Alternative law, right identity"}
@@ -1040,9 +1040,9 @@
 # yes = not . (/= a) -- (== a)
 # yes = if a then 1 else if b then 1 else 2 -- if a || b then 1 else 2
 # no  = if a then 1 else if b then 3 else 2
-# yes = a >>= return . bob -- bob <$> a
+# yes = a >>= return . bob -- a Data.Functor.<&> bob
 # yes = return . bob =<< a -- bob <$> a
-# yes = m alice >>= pure . b -- b <$> m alice
+# yes = m alice >>= pure . b -- m alice Data.Functor.<&> b
 # yes = pure .b =<< m alice -- b <$> m alice
 # yes = asciiCI "hi" *> pure Hi -- asciiCI "hi" Data.Functor.$> Hi
 # yes = asciiCI "bye" *> return Bye -- asciiCI "bye" Data.Functor.$> Bye
