@@ -20,7 +20,7 @@ foo = (+1)
 bar x = foo x
 baz = getLine >>= return . map toUpper
 OUTPUT
-[("tests/serialise-two.hs:2:1-13: Warning: Eta reduce\nFound:\n  bar x = foo x\nPerhaps:\n  bar = foo\n",[Replace {rtype = Decl, pos = SrcSpan {startLine = 2, startCol = 1, endLine = 2, endCol = 14}, subts = [("body",SrcSpan {startLine = 2, startCol = 9, endLine = 2, endCol = 12})], orig = "bar = body"}]),("tests/serialise-two.hs:3:7-38: Suggestion: Use <$>\nFound:\n  getLine >>= return . map toUpper\nPerhaps:\n  map toUpper <$> getLine\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [("f",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),("m",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = "f <$> m"}])]
+[("tests/serialise-two.hs:2:1-13: Warning: Eta reduce\nFound:\n  bar x = foo x\nPerhaps:\n  bar = foo\n",[Replace {rtype = Decl, pos = SrcSpan {startLine = 2, startCol = 1, endLine = 2, endCol = 14}, subts = [("body",SrcSpan {startLine = 2, startCol = 9, endLine = 2, endCol = 12})], orig = "bar = body"}]),("tests/serialise-two.hs:3:7-38: Suggestion: Use <&>\nFound:\n  getLine >>= return . map toUpper\nPerhaps:\n  getLine Data.Functor.<&> map toUpper\n",[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [("f",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),("m",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = "m Data.Functor.<&> f"}])]
 
 
 ---------------------------------------------------------------------
