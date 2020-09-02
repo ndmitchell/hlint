@@ -250,10 +250,11 @@ dollar = concatMap f . universe
           , let y = noLoc (OpApp noExtField o1 o2 v3) :: LHsExpr GhcPs
           , let r = Replace Expr (toRefactSrcSpan locPar) [("a", toRefactSrcSpan locNoPar)] "a"]
           ++
-          [ suggest "Redundant section" x y []
+          [ suggest "Redundant section" x y [r]
           | L _ (HsApp _ (L _ (HsPar _ (L _ (SectionL _ a b)))) c) <- [x]
           -- , error $ show (unsafePrettyPrint a, gshow b, unsafePrettyPrint c)
-          , let y = noLoc $ OpApp noExtField a b c :: LHsExpr GhcPs]
+          , let y = noLoc $ OpApp noExtField a b c :: LHsExpr GhcPs
+          , let r = Replace Expr (toSS x) [("x", toSS a), ("op", toSS b), ("y", toSS c)] "x op y"]
 
 splitInfix :: LHsExpr GhcPs -> [(LHsExpr GhcPs -> LHsExpr GhcPs, LHsExpr GhcPs)]
 splitInfix (L l (OpApp _ lhs op rhs)) =
