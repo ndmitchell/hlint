@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #1114, enable refactoring for redundant as-pattern
+    #1116, enable refactoring for redundant section
     #1115, more TVar/TMVar hints
     #1113, suggest x >>= pure . f becomes x <&> f
     #1111, add hint for \x y -> (x,y) to (,), and for (,,)
