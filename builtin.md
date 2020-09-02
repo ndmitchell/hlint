@@ -739,7 +739,7 @@ do bar
 <tr>
 <td rowspan=2>Redundant section</td>
 <td>Suggestion</td>
-<td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>
