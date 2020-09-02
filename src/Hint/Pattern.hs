@@ -228,7 +228,7 @@ patHint False _ o@(L _ (LazyPat _ pat@(L _ x)))
     f _ = False
     r = Replace R.Pattern (toSS o) [("x", toSS pat)] "x"
 patHint _ _ o@(L _ (AsPat _ v (L _ (WildPat _)))) =
-  [warn "Redundant as-pattern" o v []]
+  [warn "Redundant as-pattern" o v [Replace R.Pattern (toSS o) [] (rdrNameStr v)]]
 patHint _ _ _ = []
 
 expHint :: LHsExpr GhcPs -> [Idea]
