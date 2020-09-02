@@ -644,6 +644,9 @@
 
     - hint: {lhs: mapM_ (writeChan a), rhs: writeList2Chan a}
     - error: {lhs: atomically (readTVar x), rhs: readTVarIO x}
+    - error: {lhs: atomically (newTVar x), rhs: newTVarIO x}
+    - error: {lhs: atomically (newTMVar x), rhs: newTMVarIO x}
+    - error: {lhs: atomically newEmptyTMVar, rhs: newEmptyTMVarIO}
 
     # TYPEABLE
 
