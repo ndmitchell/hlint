@@ -3,11 +3,12 @@
 module GHC.Util.View (
    fromParen
   , View(..)
-  , Var_(Var_), PVar_(PVar_), PApp_(PApp_), App2(App2),LamConst1(LamConst1)
+  , RdrName_(RdrName_), Var_(Var_), PVar_(PVar_), PApp_(PApp_), App2(App2),LamConst1(LamConst1)
   , pattern SimpleLambda
 ) where
 
 import GHC.Hs
+import RdrName
 import SrcLoc
 import BasicTypes
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
@@ -23,6 +24,7 @@ fromPParen x = x
 class View a b where
   view :: a -> b
 
+data RdrName_ = NoRdrName_ | RdrName_ (Located RdrName)
 data Var_  = NoVar_ | Var_ String deriving Eq
 data PVar_ = NoPVar_ | PVar_ String
 data PApp_ = NoPApp_ | PApp_ String [LPat GhcPs]
@@ -34,8 +36,12 @@ instance View (LHsExpr GhcPs) LamConst1 where
     (GRHSs _ [L _ (GRHS _ [] x)] (L _ (EmptyLocalBinds _))))]) FromSource)))) = LamConst1 x
   view _ = NoLamConst1
 
+instance View (LHsExpr GhcPs) RdrName_ where
+    view (fromParen -> (L _ (HsVar _ name))) = RdrName_ name
+    view _ = NoRdrName_
+
 instance View (LHsExpr GhcPs) Var_ where
-    view (fromParen -> (L _ (HsVar _ (rdrNameStr -> x)))) = Var_ x
+    view (view -> RdrName_ name) = Var_ (rdrNameStr name)
     view _ = NoVar_
 
 instance View (LHsExpr GhcPs) App2 where

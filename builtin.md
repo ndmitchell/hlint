@@ -1567,7 +1567,7 @@ Bar {}
 <tr>
 <td rowspan=2>Use section</td>
 <td>Suggestion</td>
-<td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td colspan=2>

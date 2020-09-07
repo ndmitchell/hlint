@@ -35,6 +35,7 @@ fun x = f . g $ x -- fun = f . g
 f = foo (\y -> g x . h $ y) -- g x . h
 f = foo (\y -> g x . h $ y) -- @Message Avoid lambda
 f = foo ((*) x) -- (x *)
+f = foo ((Prelude.*) x) -- (x Prelude.*)
 f = (*) x
 f = foo (flip op x) -- (`op` x)
 f = foo (flip op x) -- @Message Use section
@@ -42,6 +43,7 @@ foo x = bar (\ d -> search d table) -- (`search` table)
 foo x = bar (\ d -> search d table) -- @Message Avoid lambda using `infix`
 f = flip op x
 f = foo (flip (*) x) -- (* x)
+f = foo (flip (Prelude.*) x) -- (Prelude.* x)
 f = foo (flip (-) x)
 f = foo (\x y -> fun x y) -- @Warning fun
 f = foo (\x y z -> fun x y z) -- @Warning fun
@@ -169,18 +171,28 @@ etaReduce (unsnoc -> Just (ps, view -> PVar_ p)) (L _ (HsApp _ x (view -> Var_ y
 etaReduce ps (L loc (OpApp _ x (isDol -> True) y)) = etaReduce ps (L loc (HsApp noExtField x y))
 etaReduce ps x = (ps, x)
 
---Section refactoring is not currently implemented.
 lambdaExp :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
-lambdaExp _ o@(L _ (HsPar _ (L _ (HsApp _ oper@(L _ (HsVar _ (L _ (rdrNameOcc -> f)))) y))))
+lambdaExp _ o@(L _ (HsPar _ (L _ (HsApp _ oper@(L _ (HsVar _ origf@(L _ (rdrNameOcc -> f)))) y))))
     | isSymOcc f -- is this an operator?
     , isAtom y
     , allowLeftSection $ occNameString f
-    , not $ isTypeApp y =
-      [suggestN "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField y oper]
+    , not $ isTypeApp y
+    = [suggest "Use section" o to [r]]
+    where
+        to :: LHsExpr GhcPs
+        to = noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField y oper
+        r = Replace Expr (toSS o) [("x", toSS y)] ("(x " ++ unsafePrettyPrint origf ++ ")")
 
-lambdaExp _ o@(L _ (HsPar _ (view -> App2 (view -> Var_ "flip") origf@(view -> Var_ f) y)))
-    | allowRightSection f, not $ "(" `isPrefixOf` f
-    = [suggestN "Use section" o $ noLoc $ HsPar noExtField $ noLoc $ SectionR noExtField origf y]
+lambdaExp _ o@(L _ (HsPar _ (view -> App2 (view -> Var_ "flip") origf@(view -> RdrName_ f) y)))
+    | allowRightSection (rdrNameStr f), not $ "(" `isPrefixOf` rdrNameStr f
+    = [suggest "Use section" o to [r]]
+    where
+        to :: LHsExpr GhcPs
+        to = noLoc $ HsPar noExtField $ noLoc $ SectionR noExtField origf y
+        op = if isSymbolRdrName (unLoc f)
+               then unsafePrettyPrint f
+               else "`" ++ unsafePrettyPrint f ++ "`"
+        r = Replace Expr (toSS o) [("x", toSS y)] ("(" ++ op ++ " x)")
 lambdaExp p o@(L _ HsLam{})
     | not $ any isOpApp p
     , (res, refact) <- niceLambdaR [] o
