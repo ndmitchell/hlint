@@ -39,6 +39,7 @@ f = foo ((Prelude.*) x) -- (x Prelude.*)
 f = (*) x
 f = foo (flip op x) -- (`op` x)
 f = foo (flip op x) -- @Message Use section
+f = foo (flip x y) -- (`x` y)
 foo x = bar (\ d -> search d table) -- (`search` table)
 foo x = bar (\ d -> search d table) -- @Message Avoid lambda using `infix`
 f = flip op x
@@ -192,7 +193,8 @@ lambdaExp _ o@(L _ (HsPar _ (view -> App2 (view -> Var_ "flip") origf@(view -> R
         op = if isSymbolRdrName (unLoc f)
                then unsafePrettyPrint f
                else "`" ++ unsafePrettyPrint f ++ "`"
-        r = Replace Expr (toSS o) [("x", toSS y)] ("(" ++ op ++ " x)")
+        var = if rdrNameStr f == "x" then "y" else "x"
+        r = Replace Expr (toSS o) [(var, toSS y)] ("(" ++ op ++ " " ++ var ++ ")")
 lambdaExp p o@(L _ HsLam{})
     | not $ any isOpApp p
     , (res, refact) <- niceLambdaR [] o
