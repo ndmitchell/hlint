@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, DeriveDataTypeable, TupleSections #-}
+{-# LANGUAGE PatternGuards, DeriveDataTypeable, TupleSections, NamedFieldPuns #-}
 {-# OPTIONS_GHC -Wno-missing-fields -fno-cse -O0 #-}
 
 module CmdLine(
@@ -196,8 +196,12 @@ cmdHintFiles cmd = do
     when (bad /= []) $
         fail $ unlines $ "Failed to find requested hint files:" : map ("  "++) bad
 
+    let generateSummary = case cmd of
+            CmdMain{cmdGenerateSummary} -> notNull cmdGenerateSummary
+            _ -> False
+
     -- if the user has given any explicit hints, ignore the local ones
-    implicit <- if explicit /= [] then pure Nothing else do
+    implicit <- if explicit /= [] || generateSummary then pure Nothing else do
         -- we follow the stylish-haskell config file search policy
         -- 1) current directory or its ancestors; 2) home directory
         curdir <- getCurrentDirectory
