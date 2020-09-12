@@ -89,21 +89,16 @@ haskell s
 builtinTable :: BuiltinSummary -> [String]
 builtinTable builtins =
   ["<table>"]
-  ++ row ["<th>Hint Name</th>", "<th>Severity</th>", "<th>Support Refactoring?</th>"]
+  ++ row ["<th>Hint Name</th>", "<th>Hint</th>", "<th>Severity</th>"]
   ++ Map.foldMapWithKey showBuiltin builtins
   ++ ["</table>"]
 
 showBuiltin :: (String, Severity, Bool) -> BuiltinEx -> [String]
-showBuiltin (hint, sev, refact) BuiltinEx{..} = row1 ++ row2
+showBuiltin (hint, sev, refact) BuiltinEx{..} = row1
   where
-    row1 = row
-      [ "<td rowspan=2>" ++ hint ++ "</td>"
-      , "<td>" ++ show sev ++ "</td>"
-      , "<td>" ++ (if refact then "Yes" else "No") ++ "</td>"
-      ]
-    row2 = row example
-    example =
-      [ "<td colspan=2>"
+    row1 = row $
+      [ "<td>" ++ hint ++ "</td>"
+      , "<td>"
       , "Example:"
       ]
       ++ haskell builtinInp
@@ -111,7 +106,10 @@ showBuiltin (hint, sev, refact) BuiltinEx{..} = row1 ++ row2
       ++ haskell builtinFrom
       ++ ["Suggestion:"]
       ++ haskell to
-      ++ ["</td>"]
+      ++ ["Does not support refactoring." | not refact]
+      ++ ["</td>"] ++
+      [ "<td>" ++ show sev ++ "</td>"
+      ]
     to = case builtinTo of
       Nothing -> ""
       Just "" -> "Perhaps you should remove it."

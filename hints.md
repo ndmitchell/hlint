@@ -7,16 +7,12 @@ This page is auto-generated from `hlint --generate-summary`.
 <table>
 <tr>
 <th>Hint Name</th>
+<th>Hint</th>
 <th>Severity</th>
-<th>Support Refactoring?</th>
 </tr>
 <tr>
-<td rowspan=2>Avoid lambda</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Avoid lambda</td>
+<td>
 Example:
 <code>
 f = foo (\y -> g x . h $ y)
@@ -33,14 +29,11 @@ g x . h
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Avoid lambda</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Avoid lambda</td>
+<td>
 Example:
 <code>
 f = foo (\x y -> fun x y)
@@ -57,14 +50,11 @@ fun
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Avoid lambda using `infix`</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Avoid lambda using `infix`</td>
+<td>
 Example:
 <code>
 foo x = bar (\ d -> search d table)
@@ -81,14 +71,11 @@ Suggestion:
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Collapse lambdas</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Collapse lambdas</td>
+<td>
 Example:
 <code>
 f = foo (\x -> \y -> x x y y)
@@ -105,14 +92,11 @@ Suggestion:
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Eta reduce</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Eta reduce</td>
+<td>
 Example:
 <code>
 fun x y z = f x y z
@@ -129,14 +113,11 @@ fun = f
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Fix pragma markup</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Fix pragma markup</td>
+<td>
 Example:
 <code>
 {- MISSING HASH #-}
@@ -153,14 +134,11 @@ Suggestion:
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Missing NOINLINE pragma</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Missing NOINLINE pragma</td>
+<td>
 Example:
 <code>
 slaves = unsafePerformIO Multimap.newIO
@@ -177,14 +155,11 @@ Suggestion:
 slaves = unsafePerformIO Multimap.newIO
 </pre>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Move brackets to avoid $</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Move brackets to avoid $</td>
+<td>
 Example:
 <code>
 yes = (b $ c d) ++ e
@@ -201,14 +176,11 @@ b (c d) ++ e
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Move guards forward</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Move guards forward</td>
+<td>
 Example:
 <code>
 foo = [x + 1 | x <- [1..10], feature]
@@ -225,14 +197,11 @@ Suggestion:
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Move map inside list comprehension</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Move map inside list comprehension</td>
+<td>
 Example:
 <code>
 foo = map f [x + 1 | x <- [1..10]]
@@ -249,14 +218,11 @@ Suggestion:
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Reduce duplication</td>
-<td>Ignore</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Reduce duplication</td>
+<td>
 Example:
 <code>
 {-# ANN main "HLint: ignore Reduce duplication" #-}; main = do a; a; a; a; a; a
@@ -274,15 +240,13 @@ Suggestion:
 Combine with src\Hint\Duplicate.hs:1:73
 </code>
 <br>
+Does not support refactoring.
 </td>
+<td>Ignore</td>
 </tr>
 <tr>
-<td rowspan=2>Reduce duplication</td>
-<td>Suggestion</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Reduce duplication</td>
+<td>
 Example:
 <pre>
 foo = a where {a = 1; b = 2; c = 3} 
@@ -300,15 +264,13 @@ Suggestion:
 Combine with src\Hint\Duplicate.hs:2:16-20
 </code>
 <br>
+Does not support refactoring.
 </td>
-</tr>
-<tr>
-<td rowspan=2>Redundant $</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Redundant $</td>
+<td>
 Example:
 <code>
 yes = split "to" $ names
@@ -325,14 +287,11 @@ split "to" names
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Redundant True guards</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Redundant True guards</td>
+<td>
 Example:
 <code>
 foo = [myexpr | True, a]
@@ -349,14 +308,11 @@ Suggestion:
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Redundant as</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Redundant as</td>
+<td>
 Example:
 <code>
 import A as A
@@ -373,14 +329,11 @@ import A
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Redundant as-pattern</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Redundant as-pattern</td>
+<td>
 Example:
 <code>
 foo x@_ = x
@@ -397,14 +350,11 @@ x
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Redundant bang pattern</td>
 <td>Warning</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Redundant bang pattern</td>
+<td>
 Example:
 <code>
 foo = case v of !True -> x
@@ -421,14 +371,11 @@ True
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Redundant bracket</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Redundant bracket</td>
+<td>
 Example:
 <code>
 yes = (f x) x
@@ -445,14 +392,11 @@ f x x
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Redundant bracket</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Redundant bracket</td>
+<td>
 Example:
 <code>
 yes = (foo)
@@ -469,14 +413,11 @@ foo
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Redundant case</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Redundant case</td>
+<td>
 Example:
 <code>
 foo = case f v of _ -> x
@@ -493,14 +434,11 @@ x
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Redundant do</td>
-<td>Ignore</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Redundant do</td>
+<td>
 Example:
 <code>
 yes = do (bar+foo)
@@ -517,14 +455,11 @@ Perhaps you should remove it.
 </code>
 <br>
 </td>
+<td>Ignore</td>
 </tr>
 <tr>
-<td rowspan=2>Redundant guard</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Redundant guard</td>
+<td>
 Example:
 <code>
 foo x | otherwise = y
@@ -541,14 +476,11 @@ foo x = y
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Redundant irrefutable pattern</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Redundant irrefutable pattern</td>
+<td>
 Example:
 <code>
 foo = let ~x = 1 in y
@@ -565,14 +497,11 @@ x
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Redundant lambda</td>
 <td>Warning</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Redundant lambda</td>
+<td>
 Example:
 <code>
 f a = \x -> x + x
@@ -589,14 +518,11 @@ f a x = x + x
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Redundant return</td>
 <td>Warning</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Redundant return</td>
+<td>
 Example:
 <code>
 yes = do bar; a <- foo; return a
@@ -614,14 +540,11 @@ do bar
    foo
 </pre>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Redundant section</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Redundant section</td>
+<td>
 Example:
 <code>
 issue970 = (f x +) (g x)
@@ -638,14 +561,11 @@ f x + (g x)
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Redundant variable capture</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Redundant variable capture</td>
+<td>
 Example:
 <code>
 main = do _ <- forM_ f xs; bar
@@ -662,14 +582,11 @@ forM_ f xs
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Redundant void</td>
 <td>Warning</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Redundant void</td>
+<td>
 Example:
 <code>
 main = void $ forM_ f xs
@@ -686,14 +603,11 @@ forM_ f xs
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Redundant where</td>
-<td>Suggestion</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Redundant where</td>
+<td>
 Example:
 <code>
 foo x = x + x where
@@ -709,15 +623,13 @@ Suggestion:
 Perhaps you should remove it.
 </code>
 <br>
+Does not support refactoring.
 </td>
-</tr>
-<tr>
-<td rowspan=2>Short-circuited list comprehension</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Short-circuited list comprehension</td>
+<td>
 Example:
 <code>
 foo = [myexpr | False]
@@ -734,14 +646,11 @@ Suggestion:
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Unused LANGUAGE pragma</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Unused LANGUAGE pragma</td>
+<td>
 Example:
 <pre>
 {-# LANGUAGE Arrows #-} 
@@ -758,14 +667,11 @@ Perhaps you should remove it.
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Use :</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use :</td>
+<td>
 Example:
 <code>
 yes = [x] ++ xs
@@ -782,14 +688,11 @@ x : xs
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Use <$></td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use <$></td>
+<td>
 Example:
 <code>
 yes = do x <- bar; return (f x)
@@ -806,14 +709,11 @@ do f <$> bar
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Use DerivingStrategies</td>
-<td>Ignore</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use DerivingStrategies</td>
+<td>
 Example:
 <code>
 newtype Foo = Foo Int deriving (Show, Eq)
@@ -830,15 +730,13 @@ Suggestion:
 
 </code>
 <br>
+Does not support refactoring.
 </td>
+<td>Ignore</td>
 </tr>
 <tr>
-<td rowspan=2>Use LANGUAGE pragmas</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use LANGUAGE pragmas</td>
+<td>
 Example:
 <code>
 {-# OPTIONS_GHC -cpp #-}
@@ -855,14 +753,11 @@ Suggestion:
 
 </pre>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Use String</td>
-<td>Ignore</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use String</td>
+<td>
 Example:
 <code>
 data Yes = Yes (Maybe [Char])
@@ -879,14 +774,11 @@ Maybe String
 </code>
 <br>
 </td>
+<td>Ignore</td>
 </tr>
 <tr>
-<td rowspan=2>Use camelCase</td>
-<td>Suggestion</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use camelCase</td>
+<td>
 Example:
 <code>
 data Yes = Bar | Test_Bar
@@ -902,15 +794,13 @@ Suggestion:
 data Yes = Bar | TestBar
 </code>
 <br>
+Does not support refactoring.
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Use explicit module export list</td>
-<td>Ignore</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use explicit module export list</td>
+<td>
 Example:
 <code>
 module Foo(module Foo) where foo = 1
@@ -928,15 +818,13 @@ module Foo (
          ... 
     ) where
 </pre>
+Does not support refactoring.
 </td>
+<td>Ignore</td>
 </tr>
 <tr>
-<td rowspan=2>Use fewer LANGUAGE pragmas</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use fewer LANGUAGE pragmas</td>
+<td>
 Example:
 <code>
 {-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-}
@@ -953,14 +841,11 @@ Suggestion:
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use fewer imports</td>
 <td>Warning</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use fewer imports</td>
+<td>
 Example:
 <code>
 import A; import A
@@ -978,14 +863,11 @@ import A
 
 </pre>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Use foldM</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use foldM</td>
+<td>
 Example:
 <code>
 f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax
@@ -1002,14 +884,11 @@ f xs a = foldM (+) a xs
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Use foldM_</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use foldM_</td>
+<td>
 Example:
 <code>
 folder f a xs = foldM f a xs >> return ()
@@ -1026,14 +905,11 @@ foldM_ f a xs
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Use foldl</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use foldl</td>
+<td>
 Example:
 <code>
 f z (x:xs) = f (z*x) xs ; f z [] = z
@@ -1050,14 +926,11 @@ f z xs = foldl (*) z xs
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use foldr</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use foldr</td>
+<td>
 Example:
 <code>
 f (x:xs) = negate x + f xs ; f [] = 0
@@ -1074,14 +947,11 @@ f xs = foldr ((+) . negate) 0 xs
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Use forM_</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use forM_</td>
+<td>
 Example:
 <code>
 yes = do forM files $ \x -> return (); return ()
@@ -1098,14 +968,11 @@ forM_ files $ \ x -> return ()
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Use guards</td>
-<td>Suggestion</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use guards</td>
+<td>
 Example:
 <code>
 yes x y = if a then b else if c then d else e
@@ -1124,14 +991,11 @@ yes x y
   | otherwise = e
 </pre>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Use join</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use join</td>
+<td>
 Example:
 <code>
 yes = do x <- bar; x
@@ -1148,14 +1012,11 @@ do join bar
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Use lambda</td>
-<td>Suggestion</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use lambda</td>
+<td>
 Example:
 <code>
 foo = bar (\x -> case x of Y z -> z)
@@ -1171,15 +1032,13 @@ Suggestion:
 \ (Y z) -> z
 </code>
 <br>
+Does not support refactoring.
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use lambda-case</td>
 <td>Suggestion</td>
-<td>No</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use lambda-case</td>
+<td>
 Example:
 <code>
 yes = blah (\ x -> case x of A -> a; B -> b)
@@ -1198,15 +1057,13 @@ Suggestion:
   A -> a
   B -> b
 </pre>
+Does not support refactoring.
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use let</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use let</td>
+<td>
 Example:
 <code>
 yes = do x <- return y; foo x
@@ -1223,14 +1080,11 @@ let x = y
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use list literal</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use list literal</td>
+<td>
 Example:
 <code>
 yes = 1:2:[]
@@ -1247,14 +1101,11 @@ Suggestion:
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use list literal pattern</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use list literal pattern</td>
+<td>
 Example:
 <code>
 yes (1:2:[]) = 1
@@ -1271,14 +1122,11 @@ Suggestion:
 </code>
 <br>
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Use map</td>
-<td>Warning</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use map</td>
+<td>
 Example:
 <code>
 f (x:xs) = x + 1 : f xs ; f [] = []
@@ -1295,14 +1143,11 @@ f xs = map (+ 1) xs
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use mapM_</td>
 <td>Warning</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use mapM_</td>
+<td>
 Example:
 <code>
 yes = do mapM print a; return b
@@ -1319,14 +1164,11 @@ mapM_ print a
 </code>
 <br>
 </td>
+<td>Warning</td>
 </tr>
 <tr>
-<td rowspan=2>Use module export list</td>
-<td>Ignore</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use module export list</td>
+<td>
 Example:
 <code>
 module Foo where foo = 1
@@ -1343,15 +1185,13 @@ module Foo (
         module Foo
     ) where
 </pre>
+Does not support refactoring.
 </td>
+<td>Ignore</td>
 </tr>
 <tr>
-<td rowspan=2>Use newtype instead of data</td>
-<td>Suggestion</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Use newtype instead of data</td>
+<td>
 Example:
 <code>
 data Foo = Foo Int
@@ -1367,15 +1207,13 @@ Suggestion:
 newtype Foo = Foo Int
 </code>
 <br>
+Does not support refactoring.
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use otherwise</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use otherwise</td>
+<td>
 Example:
 <code>
 foo x | a = b | True = d
@@ -1394,14 +1232,11 @@ foo x
   | otherwise = d
 </pre>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use pragma syntax</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use pragma syntax</td>
+<td>
 Example:
 <code>
 {- INLINE Y -}
@@ -1418,14 +1253,11 @@ Suggestion:
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use record patterns</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use record patterns</td>
+<td>
 Example:
 <code>
 foo (Bar _ _ _ _) = x
@@ -1442,14 +1274,11 @@ Bar {}
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use section</td>
 <td>Suggestion</td>
-<td>Yes</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use section</td>
+<td>
 Example:
 <code>
 f = foo ((*) x)
@@ -1466,14 +1295,11 @@ Suggestion:
 </code>
 <br>
 </td>
-</tr>
-<tr>
-<td rowspan=2>Use tuple-section</td>
 <td>Suggestion</td>
-<td>No</td>
 </tr>
 <tr>
-<td colspan=2>
+<td>Use tuple-section</td>
+<td>
 Example:
 <code>
 yes = blah (\ x -> (y, x))
@@ -1489,15 +1315,13 @@ Suggestion:
 (y,)
 </code>
 <br>
+Does not support refactoring.
 </td>
+<td>Suggestion</td>
 </tr>
 <tr>
-<td rowspan=2>Used otherwise as a pattern</td>
-<td>Warning</td>
-<td>No</td>
-</tr>
-<tr>
-<td colspan=2>
+<td>Used otherwise as a pattern</td>
+<td>
 Example:
 <code>
 foo otherwise = 1
@@ -1513,7 +1337,9 @@ Suggestion:
 _
 </code>
 <br>
+Does not support refactoring.
 </td>
+<td>Warning</td>
 </tr>
 </table>
 
@@ -11616,117 +11442,5 @@ optional p
 <br>
 </td>
 <td>Warning</td>
-</tr>
-<tr>
-<td>Use warn</td>
-<td>
-LHS:
-<code>
-idea Warning
-</code>
-<br>
-RHS:
-<code>
-warn
-</code>
-<br>
-</td>
-<td>Error</td>
-</tr>
-<tr>
-<td>Use suggest</td>
-<td>
-LHS:
-<code>
-idea Suggestion
-</code>
-<br>
-RHS:
-<code>
-suggest
-</code>
-<br>
-</td>
-<td>Error</td>
-</tr>
-<tr>
-<td>Use warnN</td>
-<td>
-LHS:
-<code>
-ideaN Warning
-</code>
-<br>
-RHS:
-<code>
-warnN
-</code>
-<br>
-</td>
-<td>Error</td>
-</tr>
-<tr>
-<td>Use suggestN</td>
-<td>
-LHS:
-<code>
-ideaN Suggestion
-</code>
-<br>
-RHS:
-<code>
-suggestN
-</code>
-<br>
-</td>
-<td>Error</td>
-</tr>
-<tr>
-<td>Use rdrNameStr</td>
-<td>
-LHS:
-<code>
-occNameString (occName (unLoc x))
-</code>
-<br>
-RHS:
-<code>
-rdrNameStr x
-</code>
-<br>
-</td>
-<td>Error</td>
-</tr>
-<tr>
-<td>Use occNameStr</td>
-<td>
-LHS:
-<code>
-occNameString (occName x)
-</code>
-<br>
-RHS:
-<code>
-occNameStr x
-</code>
-<br>
-</td>
-<td>Error</td>
-</tr>
-<tr>
-<td>Use strToVar</td>
-<td>
-LHS:
-<code>
-noLoc (HsVar noExtField (noLoc (mkRdrUnqual (mkVarOcc x))))
-</code>
-<br>
-RHS:
-<code>
-strToVar x
-</code>
-<br>
-</td>
-<td>Error</td>
 </tr>
 </table>
