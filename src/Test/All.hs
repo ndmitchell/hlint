@@ -4,7 +4,6 @@
 module Test.All(test) where
 
 import Control.Exception
-import System.Console.CmdArgs
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Char
@@ -59,8 +58,6 @@ test CmdTest{..} main dataDir files = do
         wrap "Hint annotations" $ forM_ testFiles $ \(file,h) -> do progress; testAnnotations h file (eitherToMaybe rpath)
 
         when (null files && not hasSrc) $ liftIO $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
-        getIdeas
-    whenLoud $ mapM_ print ideas
 
     case rpath of
         Left refactorNotFound -> putStrLn $ unlines [refactorNotFound, "Refactoring tests skipped"]

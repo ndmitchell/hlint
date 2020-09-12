@@ -3,7 +3,6 @@
 module Test.Util(
     Test, withTests,
     passed, failed, progress,
-    addIdeas, getIdeas,
     ) where
 
 import Idea
@@ -32,16 +31,6 @@ withTests (Test act) = do
         then "Tests passed (" ++ show total ++ ")"
         else "Tests failed (" ++ show failures ++ " of " ++ show total ++ ")"
     pure (failures, res)
-
-addIdeas :: [Idea] -> Test ()
-addIdeas xs = do
-    ref <- Test ask
-    liftIO $ modifyIORef' ref $ \s -> s{ideas = xs : ideas s}
-
-getIdeas :: Test [Idea]
-getIdeas = do
-    ref <- Test ask
-    liftIO $ concat . reverse . ideas <$> readIORef ref
 
 progress :: Test ()
 progress = liftIO $ putChar '.'
