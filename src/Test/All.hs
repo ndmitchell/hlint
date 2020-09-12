@@ -62,7 +62,7 @@ test CmdTest{..} main dataDir files = do
         when (null files && not hasSrc) $ liftIO $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
         (,) <$> getIdeas <*> getBuiltins
     whenLoud $ mapM_ print ideas
-    when cmdGenerateSummary $ writeFile "builtin.md" (genBuiltinSummaryMd builtins)
+    when cmdGenerateSummary $ writeFile "hints.md" (genBuiltinSummaryMd builtins)
     case rpath of
         Left refactorNotFound -> putStrLn $ unlines [refactorNotFound, "Refactoring tests skipped"]
         _ -> pure ()
