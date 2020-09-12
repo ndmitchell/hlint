@@ -52,14 +52,13 @@ mkBuiltinSummary = foldM f Map.empty builtinHints
         pure $ foldl' (addIdea inp) summ ideas
 
     addIdea :: String -> BuiltinSummary -> Idea -> BuiltinSummary
-    addIdea inp summ Idea{..}
-      | "Parse error" `isPrefixOf` ideaHint = summ
-      | otherwise =
-            let k = (ideaHint, ideaSeverity, notNull ideaRefactoring)
-                v = BuiltinEx inp ideaFrom ideaTo
+    addIdea inp summ Idea{..} =
             -- Do not insert if the key already exists in the map. This has the effect
             -- of picking the first test case of a hint as the example in the summary.
-            in Map.insertWith (curry snd) k v summ
+            Map.insertWith (curry snd) k v summ
+      where
+        k = (ideaHint, ideaSeverity, notNull ideaRefactoring)
+        v = BuiltinEx inp ideaFrom ideaTo
 
 genBuiltinSummaryMd :: BuiltinSummary -> [HintRule] -> String
 genBuiltinSummaryMd builtins lhsRhs = unlines $
