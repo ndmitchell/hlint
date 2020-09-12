@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP, PatternGuards, RecordWildCards, ViewPatterns #-}
 
 -- | Check the <TEST> annotations within source and hint files.
-module Test.Annotations(testAnnotations, TestCase(..)) where
+module Test.Annotations(testAnnotations, parseTestFile, TestCase(..)) where
 
 import Control.Exception.Extra
 import Control.Monad
@@ -65,13 +65,6 @@ testAnnotations setting file rpath = do
                 res <- applyHintFile defaultParseFlags (setting ++ additionalSettings) file $ Just inp
                 evaluate $ length $ show res
                 pure res
-
-            when ("src/Hint" `isPrefixOf` file) $ mapM_ (mapM_ (addBuiltin inp)) ideas
-
-            -- the hints from data/Test.hs are really fake hints we don't actually deploy
-            -- so don't record them
-            when (takeFileName file /= "Test.hs") $
-                either (const $ pure ()) addIdeas ideas
 
             let good = case (out, ideas) of
                     (Nothing, Right []) -> True

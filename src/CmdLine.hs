@@ -128,13 +128,13 @@ data Cmd
         ,cmdRefactorOptions :: String   -- ^ Options to pass to the `refactor` executable.
         ,cmdWithRefactor :: FilePath    -- ^ Path to refactor tool
         ,cmdIgnoreGlob :: [FilePattern]
+        ,cmdGenerateSummary :: [FilePath]  -- ^ Generate a summary of available hints
         }
     | CmdTest
         {cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
         ,cmdDataDir :: FilePath          -- ^ the data directory
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdWithRefactor :: FilePath
-        ,cmdGenerateSummary :: Bool      -- ^ Generate a summary of built-in hints
         }
     deriving (Data,Typeable,Show)
 
@@ -172,9 +172,9 @@ mode = cmdArgsMode $ modes
         ,cmdRefactorOptions = nam_ "refactor-options" &= typ "OPTIONS" &= help "Options to pass to the `refactor` executable"
         ,cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
         ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern"
+        ,cmdGenerateSummary = nam_ "generate-summary" &= opt "hints.md" &= help "Generate a summary of built-in hints"
         } &= auto &= explicit &= name "lint"
-    ,CmdTest
-        {cmdGenerateSummary = nam_ "generate-summary" &= help "Generate a summary of built-in hints"
+    ,CmdTest{
         } &= explicit &= name "test"
         &= details ["HLint gives hints on how to improve Haskell code."
                    ,""

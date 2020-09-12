@@ -23,6 +23,7 @@ import Config.Read
 import Config.Type
 import Config.Compute
 import Report
+import Summary
 import Idea
 import Apply
 import Test.All
@@ -86,6 +87,10 @@ hlintMain args cmd@CmdMain{..}
                          ["- ignore: {name: " ++ show x ++ "}" | x <- bad]
             putStr $ unlines $ intercalate ["",""] $ group1:group2:groups
         pure []
+    | cmdGenerateSummary /= [] = do
+        summary <- generateSummary . snd =<< readAllSettings args cmd
+        mapM_ (`writeFileBinary` summary) cmdGenerateSummary
+        return []
     | null cmdFiles && not (null cmdFindHints) = do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
         mapM_ (putStrLn . fst <=< computeSettings (cmdParseFlags cmd)) hints >> pure []
