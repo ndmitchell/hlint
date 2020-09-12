@@ -90,7 +90,7 @@ hlintMain args cmd@CmdMain{..}
     | cmdGenerateSummary /= [] = do
         summary <- generateSummary . snd =<< readAllSettings args cmd
         mapM_ (`writeFileBinary` summary) cmdGenerateSummary
-        return []
+        pure []
     | null cmdFiles && not (null cmdFindHints) = do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
         mapM_ (putStrLn . fst <=< computeSettings (cmdParseFlags cmd)) hints >> pure []
