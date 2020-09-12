@@ -133,7 +133,6 @@ data Cmd
         {cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
         ,cmdDataDir :: FilePath          -- ^ the data directory
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
-        ,cmdTempDir :: FilePath          -- ^ temporary directory to put the files in
         ,cmdWithRefactor :: FilePath
         ,cmdGenerateSummary :: Bool      -- ^ Generate a summary of built-in hints
         }
@@ -175,8 +174,7 @@ mode = cmdArgsMode $ modes
         ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern"
         } &= auto &= explicit &= name "lint"
     ,CmdTest
-        {cmdTempDir = nam_ "tempdir" &= help "Where to put temporary files (not cleaned up)"
-        ,cmdGenerateSummary = nam_ "generate-summary" &= help "Generate a summary of built-in hints"
+        {cmdGenerateSummary = nam_ "generate-summary" &= help "Generate a summary of built-in hints"
         } &= explicit &= name "test"
         &= details ["HLint gives hints on how to improve Haskell code."
                    ,""
