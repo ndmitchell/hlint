@@ -170,7 +170,7 @@ HLint knows the fixities for all the operators in the base library, as well as o
 
 ### Which hints are used?
 
-HLint uses the `hlint.yaml` file it ships with by default (containing things like the `concatMap` hint above), along with the first `.hlint.yaml` file it finds in the current directory or any parent thereof. To include other hints, pass `--hint=filename.yaml`. If you pass any `--with` hint you will need to explicitly add any `--hint` flags required.
+HLint uses the `hlint.yaml` file it ships with by default (containing things like the `concatMap` hint above), along with the first `.hlint.yaml` file it finds in the current directory or any parent thereof. To include other hints, pass `--hint=filename.yaml`.
 
 ### Why do I sometimes get a "Note" with my hint?
 
