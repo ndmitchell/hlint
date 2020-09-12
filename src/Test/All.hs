@@ -25,7 +25,6 @@ import Hint.All
 import Test.Annotations
 import Test.InputOutput
 import Test.Summary
-import Test.Translate
 import Test.Util
 import System.IO.Extra
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -59,11 +58,6 @@ test CmdTest{..} main dataDir files = do
 
         wrap "Hint names" $ mapM_ (\x -> do progress; testNames $ snd x) testFiles
         wrap "Hint annotations" $ forM_ testFiles $ \(file,h) -> do progress; testAnnotations h file (eitherToMaybe rpath)
-        let hs = [h | (file, h) <- testFiles, takeFileName file /= "Test.hs"]
-        when cmdTypeCheck $ wrap "Hint typechecking" $
-            progress >> testTypeCheck cmdDataDir cmdTempDir hs
-        when cmdQuickCheck $ wrap "Hint QuickChecking" $
-            progress >> testQuickCheck cmdDataDir cmdTempDir hs
 
         when (null files && not hasSrc) $ liftIO $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
         (,) <$> getIdeas <*> getBuiltins

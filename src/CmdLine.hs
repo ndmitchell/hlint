@@ -130,13 +130,10 @@ data Cmd
         ,cmdIgnoreGlob :: [FilePattern]
         }
     | CmdTest
-        {cmdProof :: [FilePath]          -- ^ a proof script to check against
-        ,cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
+        {cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
         ,cmdDataDir :: FilePath          -- ^ the data directory
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
         ,cmdTempDir :: FilePath          -- ^ temporary directory to put the files in
-        ,cmdQuickCheck :: Bool
-        ,cmdTypeCheck :: Bool
         ,cmdWithRefactor :: FilePath
         ,cmdGenerateSummary :: Bool      -- ^ Generate a summary of built-in hints
         }
@@ -178,10 +175,7 @@ mode = cmdArgsMode $ modes
         ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern"
         } &= auto &= explicit &= name "lint"
     ,CmdTest
-        {cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
-        ,cmdTypeCheck = nam_ "typecheck" &= help "Use GHC to type check the hints"
-        ,cmdQuickCheck = nam_ "quickcheck" &= help "Use QuickCheck to check the hints"
-        ,cmdTempDir = nam_ "tempdir" &= help "Where to put temporary files (not cleaned up)"
+        {cmdTempDir = nam_ "tempdir" &= help "Where to put temporary files (not cleaned up)"
         ,cmdGenerateSummary = nam_ "generate-summary" &= help "Generate a summary of built-in hints"
         } &= explicit &= name "test"
         &= details ["HLint gives hints on how to improve Haskell code."

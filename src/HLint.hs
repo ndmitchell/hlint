@@ -29,7 +29,6 @@ import Test.All
 import Hint.All
 import Refact
 import Timing
-import Test.Proof
 import Parallel
 import GHC.All
 import CC
@@ -63,15 +62,9 @@ hlint args = do
         CmdTest{} -> hlintTest cmd >> pure []
 
 hlintTest :: Cmd -> IO ()
-hlintTest cmd@CmdTest{..} =
-    if not $ null cmdProof then do
-        files <- cmdHintFiles cmd
-        s <- readFilesConfig files
-        let reps = if cmdReports == ["report.html"] then ["report.txt"] else cmdReports
-        mapM_ (proof reps s) cmdProof
-     else do
-        failed <- test cmd (\args -> do errs <- hlint args; unless (null errs) $ exitWith $ ExitFailure 1) cmdDataDir cmdGivenHints
-        when (failed > 0) exitFailure
+hlintTest cmd@CmdTest{..} = do
+    failed <- test cmd (\args -> do errs <- hlint args; unless (null errs) $ exitWith $ ExitFailure 1) cmdDataDir cmdGivenHints
+    when (failed > 0) exitFailure
 
 cmdParseFlags :: Cmd -> ParseFlags
 cmdParseFlags cmd = parseFlagsSetLanguage (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd}
