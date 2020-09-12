@@ -50,7 +50,6 @@ getCmd args = withArgs (map f args) $ automatic =<< cmdArgsRun mode
 automatic :: Cmd -> IO Cmd
 automatic cmd = case cmd of
     CmdMain{} -> dataDir =<< path =<< git =<< extension cmd
-    CmdGrep{} -> path =<< extension cmd
     CmdTest{} -> dataDir cmd
     where
         path cmd = pure $ if null $ cmdPath cmd then cmd{cmdPath=["."]} else cmd
@@ -130,18 +129,6 @@ data Cmd
         ,cmdWithRefactor :: FilePath    -- ^ Path to refactor tool
         ,cmdIgnoreGlob :: [FilePattern]
         }
-    | CmdGrep
-        {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
-        ,cmdPattern :: String
-        ,cmdExtension :: [String]        -- ^ extensions
-        ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
-        ,cmdPath :: [String]
-        ,cmdCppDefine :: [String]
-        ,cmdCppInclude :: [FilePath]
-        ,cmdCppFile :: [FilePath]
-        ,cmdCppSimple :: Bool
-        ,cmdCppAnsi :: Bool
-        }
     | CmdTest
         {cmdProof :: [FilePath]          -- ^ a proof script to check against
         ,cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
@@ -190,10 +177,6 @@ mode = cmdArgsMode $ modes
         ,cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
         ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern"
         } &= auto &= explicit &= name "lint"
-    ,CmdGrep
-        {cmdFiles = def &= args &= typ "FILE/DIR"
-        ,cmdPattern = def &= argPos 0 &= typ "PATTERN"
-        } &= explicit &= name "grep"
     ,CmdTest
         {cmdProof = nam_ "proof" &= typFile &= help "Isabelle/HOLCF theory file"
         ,cmdTypeCheck = nam_ "typecheck" &= help "Use GHC to type check the hints"

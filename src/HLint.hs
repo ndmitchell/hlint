@@ -27,7 +27,6 @@ import Idea
 import Apply
 import Test.All
 import Hint.All
-import Grep
 import Refact
 import Timing
 import Test.Proof
@@ -61,7 +60,6 @@ hlint args = do
                 printTimings
                 putStrLn $ "Took " ++ showDuration time
             pure $ if cmdNoExitCode cmd then [] else xs
-        CmdGrep{} -> hlintGrep cmd >> pure []
         CmdTest{} -> hlintTest cmd >> pure []
 
 hlintTest :: Cmd -> IO ()
@@ -77,17 +75,6 @@ hlintTest cmd@CmdTest{..} =
 
 cmdParseFlags :: Cmd -> ParseFlags
 cmdParseFlags cmd = parseFlagsSetLanguage (cmdExtensions cmd) $ defaultParseFlags{cppFlags=cmdCpp cmd}
-
-hlintGrep :: Cmd -> IO ()
-hlintGrep cmd@CmdGrep{..} =
-    if null cmdFiles then
-        exitWithHelp
-     else do
-        files <- concatMapM (resolveFile cmd Nothing) cmdFiles
-        if null files then
-            errorIO "No files found"
-         else
-            runGrep cmdPattern (cmdParseFlags cmd) files
 
 withVerbosity :: Verbosity -> IO a -> IO a
 withVerbosity new act = do
