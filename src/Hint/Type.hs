@@ -19,7 +19,7 @@ type ModuHint = Scope -> ModuleEx -> [Idea]
 type CrossHint = [(Scope, ModuleEx)] -> [Idea]
 
 -- | Functions to generate hints, combined using the 'Monoid' instance.
-data Hint {- PUBLIC -} = Hint
+data Hint = Hint
     { hintModules :: [Setting] -> [(Scope, ModuleEx)] -> [Idea] -- ^ Given a list of modules (and their scope information) generate some 'Idea's.
     , hintModule :: [Setting] -> Scope -> ModuleEx -> [Idea] -- ^ Given a single module and its scope information generate some 'Idea's.
     , hintDecl :: [Setting] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
