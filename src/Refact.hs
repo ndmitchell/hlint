@@ -12,6 +12,7 @@ import Control.Monad
 import Data.Maybe
 import Data.Version.Extra
 import GHC.LanguageExtensions.Type
+import System.Console.CmdArgs.Verbosity
 import System.Directory.Extra
 import System.Exit
 import System.IO.Extra
@@ -63,6 +64,7 @@ runRefactoring rpath fin hints enabled disabled opts =  do
     let args = [fin, "-v0"] ++ words opts ++ ["--refact-file", hints]
           ++ [arg | e <- enabled, arg <- ["-X", show e]]
           ++ [arg | e <- disabled, arg <- ["-X", "No" ++ show e]]
+    whenLoud $ putStrLn $ "Running refactor: " ++ showCommandForUser rpath args
     (_, _, _, phand) <- createProcess $ proc rpath args
     try $ hSetBuffering stdin LineBuffering :: IO (Either IOException ())
     hSetBuffering stdout LineBuffering
