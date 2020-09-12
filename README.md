@@ -168,6 +168,10 @@ HLint doesn't suggest optimisations, it suggests code improvements - the intenti
 
 HLint knows the fixities for all the operators in the base library, as well as operators whose fixities are declared in the module being linted, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file named `.hlint.yaml` with the syntax `- fixity: "infixr 5 !@%$"`. You can also use `--find` to automatically produce a list of fixity declarations in a file.
 
+### Which hints are ignored?
+
+Some hints are off-by-default. Some are ignored by the configuration settings. To see all hints pass `--show`. This feature is often useful in conjunction with `--report` which shows the hints in an interactive web page, allowing them to be browsed broken down by hint.
+
 ### Which hints are used?
 
 HLint uses the `hlint.yaml` file it ships with by default (containing things like the `concatMap` hint above), along with the first `.hlint.yaml` file it finds in the current directory or any parent thereof. To include other hints, pass `--hint=filename.yaml`.
