@@ -114,6 +114,7 @@ library
         Timing
         CC
         EmbedData
+        Summary
         Config.Compute
         Config.Haskell
         Config.Read
@@ -156,7 +157,6 @@ library
         Test.All
         Test.Annotations
         Test.InputOutput
-        Test.Summary
         Test.Util
 
 

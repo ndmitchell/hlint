@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP, PatternGuards, RecordWildCards, ViewPatterns #-}
 
 -- | Check the <TEST> annotations within source and hint files.
-module Test.Annotations(testAnnotations) where
+module Test.Annotations(testAnnotations, TestCase(..)) where
 
 import Control.Exception.Extra
 import Control.Monad

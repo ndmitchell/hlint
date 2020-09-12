@@ -24,7 +24,7 @@ import Refact
 import Hint.All
 import Test.Annotations
 import Test.InputOutput
-import Test.Summary
+import Summary
 import Test.Util
 import System.IO.Extra
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -62,7 +62,7 @@ test CmdTest{..} main dataDir files = do
         when (null files && not hasSrc) $ liftIO $ putStrLn "Warning, couldn't find source code, so non-hint tests skipped"
         (,) <$> getIdeas <*> getBuiltins
     whenLoud $ mapM_ print ideas
-    when cmdGenerateSummary $ writeFile "hints.md" (genBuiltinSummaryMd builtins)
+    when cmdGenerateSummary $ writeFileBinary "hints.md" (genBuiltinSummaryMd builtins [])
     case rpath of
         Left refactorNotFound -> putStrLn $ unlines [refactorNotFound, "Refactoring tests skipped"]
         _ -> pure ()

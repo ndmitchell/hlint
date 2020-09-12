@@ -1,11 +1,12 @@
-# Built-in Hints
+# Summary of Hints
 
-This page is auto-generated from `cabal run hlint test -- --generate-summary`
-or `stack run hlint test -- --generate-summary`.
+This page is auto-generated from `hlint summary hints.md --no-implicit`.
+
+## Built-in Hints
 
 <table>
 <tr>
-<th>Hint</th>
+<th>Hint Name</th>
 <th>Severity</th>
 <th>Support Refactoring?</th>
 </tr>
@@ -392,7 +393,7 @@ a
 </pre>
 Suggestion:
 <code>
-Combine with src/Hint/Duplicate.hs:1:73
+Combine with src\Hint\Duplicate.hs:1:73
 </code>
 <br>
 </td>
@@ -418,7 +419,7 @@ c = 3
 </pre>
 Suggestion:
 <code>
-Combine with src/Hint/Duplicate.hs:2:16-20
+Combine with src\Hint\Duplicate.hs:2:16-20
 </code>
 <br>
 </td>
@@ -1635,5 +1636,15 @@ _
 </code>
 <br>
 </td>
+</tr>
+</table>
+
+## LHS/RHS hints
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
 </tr>
 </table>
