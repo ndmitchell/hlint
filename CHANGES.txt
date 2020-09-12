@@ -1,6 +1,6 @@
 Changelog for HLint (* = breaking change)
 
-*   Remove test --proof, --quickcheck and --typecheck
+*   Remove test --proof, --quickcheck and --typecheck, --tempdir
 *   #1123, delete grep mode
     #1122, show the --refactor command line with --loud
     #1120, enable refactoring for use section
