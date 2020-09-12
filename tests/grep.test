@@ -1,5 +1,0 @@
----------------------------------------------------------------------
-RUN grep A.filter tests/grep1.hs
-FILE tests/grep1.hs
-main = filter
-OUTPUT
