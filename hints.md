@@ -2,7 +2,7 @@
 
 This page is auto-generated from `hlint --generate-summary`.
 
-## Built-in Hints
+## Builtin List
 
 <table>
 <tr>
@@ -178,6 +178,16 @@ Suggestion:
 </td>
 <td>Suggestion</td>
 </tr>
+</table>
+
+## Builtin ListRec
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
 <tr>
 <td>Use foldM</td>
 <td>
@@ -261,6 +271,16 @@ f xs = map (+ 1) xs
 <br>
 </td>
 <td>Warning</td>
+</tr>
+</table>
+
+## Builtin Monad
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
 </tr>
 <tr>
 <td>Redundant do</td>
@@ -472,6 +492,16 @@ mapM_ print a
 <br>
 </td>
 <td>Warning</td>
+</tr>
+</table>
+
+## Builtin Lambda
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
 </tr>
 <tr>
 <td>Avoid lambda</td>
@@ -689,6 +719,16 @@ Does not support refactoring.
 </td>
 <td>Suggestion</td>
 </tr>
+</table>
+
+## Builtin Bracket
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
 <tr>
 <td>Move brackets to avoid $</td>
 <td>
@@ -794,6 +834,16 @@ f x + (g x)
 </td>
 <td>Suggestion</td>
 </tr>
+</table>
+
+## Builtin Naming
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
 <tr>
 <td>Use camelCase</td>
 <td>
@@ -815,6 +865,16 @@ data Yes = Bar | TestBar
 Does not support refactoring.
 </td>
 <td>Suggestion</td>
+</tr>
+</table>
+
+## Builtin Pattern
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
 </tr>
 <tr>
 <td>Redundant as-pattern</td>
@@ -1032,6 +1092,16 @@ Does not support refactoring.
 </td>
 <td>Warning</td>
 </tr>
+</table>
+
+## Builtin Import
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
 <tr>
 <td>Redundant as</td>
 <td>
@@ -1074,6 +1144,16 @@ import A
 </pre>
 </td>
 <td>Warning</td>
+</tr>
+</table>
+
+## Builtin Export
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
 </tr>
 <tr>
 <td>Use explicit module export list</td>
@@ -1122,6 +1202,16 @@ Does not support refactoring.
 </td>
 <td>Ignore</td>
 </tr>
+</table>
+
+## Builtin Pragma
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
 <tr>
 <td>Use LANGUAGE pragmas</td>
 <td>
@@ -1164,6 +1254,16 @@ Suggestion:
 </td>
 <td>Warning</td>
 </tr>
+</table>
+
+## Builtin Extensions
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
 <tr>
 <td>Unused LANGUAGE pragma</td>
 <td>
@@ -1185,6 +1285,16 @@ Perhaps you should remove it.
 </td>
 <td>Warning</td>
 </tr>
+</table>
+
+## Builtin Unsafe
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
 <tr>
 <td>Missing NOINLINE pragma</td>
 <td>
@@ -1205,6 +1315,16 @@ entries = unsafePerformIO Multimap.newIO
 </pre>
 </td>
 <td>Warning</td>
+</tr>
+</table>
+
+## Builtin Duplicate
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
 </tr>
 <tr>
 <td>Reduce duplication</td>
@@ -1254,6 +1374,26 @@ Does not support refactoring.
 </td>
 <td>Suggestion</td>
 </tr>
+</table>
+
+## Builtin Restrict
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+</table>
+
+## Builtin Comment
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
 <tr>
 <td>Fix pragma markup</td>
 <td>
@@ -1295,6 +1435,16 @@ Suggestion:
 <br>
 </td>
 <td>Suggestion</td>
+</tr>
+</table>
+
+## Builtin NewType
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
 </tr>
 <tr>
 <td>Use DerivingStrategies</td>
@@ -1343,7 +1493,17 @@ Does not support refactoring.
 </tr>
 </table>
 
-## LHS/RHS hints
+## Builtin Smell
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+</table>
+
+## Configured hints
 
 <table>
 <tr>
