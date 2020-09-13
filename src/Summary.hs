@@ -63,8 +63,10 @@ mkBuiltinSummary = foldM f Map.empty builtinHints
             -- of picking the first test case of a hint as the example in the summary.
             Map.insertWith (curry snd) k v summ
       where
+        -- make sure Windows/Linux don't differ on path separators
+        to = fmap (\x -> if "Combine with " `isPrefixOf` x then replace "\\" "/" x else x) ideaTo
         k = (ideaHint, ideaSeverity, notNull ideaRefactoring)
-        v = BuiltinEx inp ideaFrom ideaTo
+        v = BuiltinEx inp ideaFrom to
 
 genBuiltinSummaryMd :: BuiltinSummary -> [HintRule] -> String
 genBuiltinSummaryMd builtins lhsRhs = unlines $

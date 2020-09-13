@@ -237,7 +237,7 @@ a
 </pre>
 Suggestion:
 <code>
-Combine with src\Hint\Duplicate.hs:1:73
+Combine with src/Hint/Duplicate.hs:1:73
 </code>
 <br>
 Does not support refactoring.
@@ -261,7 +261,7 @@ c = 3
 </pre>
 Suggestion:
 <code>
-Combine with src\Hint\Duplicate.hs:2:16-20
+Combine with src/Hint/Duplicate.hs:2:16-20
 </code>
 <br>
 Does not support refactoring.
