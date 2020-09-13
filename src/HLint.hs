@@ -88,8 +88,10 @@ hlintMain args cmd@CmdMain{..}
             putStr $ unlines $ intercalate ["",""] $ group1:group2:groups
         pure []
     | cmdGenerateSummary /= [] = do
-        summary <- generateSummary . snd =<< readAllSettings args cmd
-        mapM_ (`writeFileBinary` summary) cmdGenerateSummary
+        forM_ cmdGenerateSummary $ \file -> timedIO "Summary" file $ do
+            whenNormal $ putStrLn $ "Writing summary to " ++ file ++ " ..."
+            summary <- generateSummary . snd =<< readAllSettings args cmd
+            writeFileBinary file summary
         pure []
     | null cmdFiles && not (null cmdFindHints) = do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
