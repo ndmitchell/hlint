@@ -51,7 +51,7 @@ mkBuiltinSummary = forM builtinHints $ \(name, hint) -> (name,) <$> do
     b <- doesFileExist file
     if not b then do
         putStrLn $ "Couldn't find source hint file " ++ file ++ ", some hints will be missing"
-        return []
+        pure []
      else do
         tests <- parseTestFile file
         fmap dedupeBuiltin <$> concatForM tests $ \(TestCase _ _ inp _ _) -> do
