@@ -16,10 +16,15 @@ import Config.Type
 import Test.Annotations
 
 
--- | A map from (hint name, hint severity, does hint support refactoring) to an example.
-type BuiltinSummary = Map.Map (String, Severity, Bool) BuiltinEx
+type BuiltinSummary = Map.Map BuiltinKey BuiltinValue
 
-data BuiltinEx = BuiltinEx
+data BuiltinKey = BuiltinKey
+  { builtinName :: !String
+  , builtinSeverity :: !Severity
+  , builtinRefactoring :: !Bool
+  } deriving (Eq, Ord)
+
+data BuiltinValue = BuiltinValue
     { builtinInp :: !String
     , builtinFrom :: !String
     , builtinTo :: !(Maybe String)
@@ -65,8 +70,8 @@ mkBuiltinSummary = foldM f Map.empty builtinHints
       where
         -- make sure Windows/Linux don't differ on path separators
         to = fmap (\x -> if "Combine with " `isPrefixOf` x then replace "\\" "/" x else x) ideaTo
-        k = (ideaHint, ideaSeverity, notNull ideaRefactoring)
-        v = BuiltinEx inp ideaFrom to
+        k = BuiltinKey ideaHint ideaSeverity (notNull ideaRefactoring)
+        v = BuiltinValue inp ideaFrom to
 
 genBuiltinSummaryMd :: BuiltinSummary -> [HintRule] -> String
 genBuiltinSummaryMd builtins lhsRhs = unlines $
@@ -101,11 +106,11 @@ builtinTable builtins =
   ++ Map.foldMapWithKey showBuiltin builtins
   ++ ["</table>"]
 
-showBuiltin :: (String, Severity, Bool) -> BuiltinEx -> [String]
-showBuiltin (hint, sev, refact) BuiltinEx{..} = row1
+showBuiltin :: BuiltinKey -> BuiltinValue -> [String]
+showBuiltin BuiltinKey{..} BuiltinValue{..} = row1
   where
     row1 = row $
-      [ "<td>" ++ hint ++ "</td>"
+      [ "<td>" ++ builtinName ++ "</td>"
       , "<td>"
       , "Example:"
       ]
@@ -114,9 +119,9 @@ showBuiltin (hint, sev, refact) BuiltinEx{..} = row1
       ++ haskell builtinFrom
       ++ ["Suggestion:"]
       ++ haskell to
-      ++ ["Does not support refactoring." | not refact]
+      ++ ["Does not support refactoring." | not builtinRefactoring]
       ++ ["</td>"] ++
-      [ "<td>" ++ show sev ++ "</td>"
+      [ "<td>" ++ show builtinSeverity ++ "</td>"
       ]
     to = case builtinTo of
       Nothing -> ""
