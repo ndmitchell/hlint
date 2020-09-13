@@ -7,7 +7,6 @@
 
 :def test const $ return ":main test"
 :def testfull const $ return ":main test --typecheck --quickcheck"
-:def gen const $ return ":!runhaskell data/HLint_Gen.hs"
 
 :{
 let _ghci_make dir flags = ":!" ++
