@@ -43,6 +43,15 @@ generateSummary settings = do
 mkBuiltinSummary :: IO BuiltinSummary
 mkBuiltinSummary = foldM f Map.empty builtinHints
   where
+    ideaToValue :: String -> Idea -> (BuiltinKey, BuiltinValue)
+    ideaToValue inp Idea{..} = (k, v)
+      where
+        -- make sure Windows/Linux don't differ on path separators
+        to = fmap (\x -> if "Combine with " `isPrefixOf` x then replace "\\" "/" x else x) ideaTo
+        k = BuiltinKey ideaHint ideaSeverity (notNull ideaRefactoring)
+        v = BuiltinValue inp ideaFrom to
+
+
     f :: BuiltinSummary -> (String, Hint) -> IO BuiltinSummary
     f summ (name, hint) = do
         let file = "src/Hint" </> name <.> "hs"
@@ -63,15 +72,12 @@ mkBuiltinSummary = foldM f Map.empty builtinHints
         pure $ foldl' (addIdea inp) summ ideas
 
     addIdea :: String -> BuiltinSummary -> Idea -> BuiltinSummary
-    addIdea inp summ Idea{..} =
+    addIdea inp summ idea =
             -- Do not insert if the key already exists in the map. This has the effect
             -- of picking the first test case of a hint as the example in the summary.
             Map.insertWith (curry snd) k v summ
       where
-        -- make sure Windows/Linux don't differ on path separators
-        to = fmap (\x -> if "Combine with " `isPrefixOf` x then replace "\\" "/" x else x) ideaTo
-        k = BuiltinKey ideaHint ideaSeverity (notNull ideaRefactoring)
-        v = BuiltinValue inp ideaFrom to
+        (k, v) = ideaToValue inp idea
 
 genBuiltinSummaryMd :: [(BuiltinKey, BuiltinValue)] -> [HintRule] -> String
 genBuiltinSummaryMd builtins lhsRhs = unlines $
