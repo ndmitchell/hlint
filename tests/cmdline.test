@@ -1,12 +1,29 @@
 ---------------------------------------------------------------------
-RUN lint tests/cmdline.hs
-FILE tests/cmdline.hs
+RUN lint tests/cmdline-lint.hs
+FILE tests/cmdline-lint.hs
 
 foo = map f (map g xs)
 
 OUTPUT
-tests/cmdline.hs:2:7-22: Suggestion: Use map once
+tests/cmdline-lint.hs:2:7-22: Suggestion: Use map once
 Found:
   map f (map g xs)
 Perhaps:
   map (f . g) xs
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/cmdline-bare.hs
+FILE tests/cmdline-bare.hs
+
+foo = map f (map g xs)
+
+OUTPUT
+tests/cmdline-bare.hs:2:7-22: Suggestion: Use map once
+Found:
+  map f (map g xs)
+Perhaps:
+  map (f . g) xs
+
+1 hint
