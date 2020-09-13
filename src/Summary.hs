@@ -28,13 +28,18 @@ data BuiltinValue = BuiltinValue
     , builtinTo :: !(Maybe String)
     }
 
+
+dedupeBuiltin :: [(BuiltinKey, BuiltinValue)] -> [(BuiltinKey, BuiltinValue)]
+dedupeBuiltin = Map.toAscList . Map.fromListWith (curry snd)
+
+
 -- | Generate a summary of hints, including built-in hints and YAML-configured hints
 -- from @data/hlint.yaml@.
 generateSummary :: [Setting] -> IO String
 generateSummary settings = do
     -- Do not insert if the key already exists in the map. This has the effect
     -- of picking the first test case of a hint as the example in the summary.
-    builtinHints <- Map.toAscList . Map.fromListWith (curry snd) <$> mkBuiltinSummary
+    builtinHints <- mkBuiltinSummary
     let lhsRhsHints = [hint | SettingMatchExp hint <- settings]
     pure $ genBuiltinSummaryMd builtinHints lhsRhsHints
 
@@ -49,7 +54,7 @@ mkBuiltinSummary = concatForM builtinHints $ \(name, hint) -> do
         return []
      else do
         tests <- parseTestFile file
-        concatForM tests $ \(TestCase _ _ inp _ _) -> do
+        fmap dedupeBuiltin <$> concatForM tests $ \(TestCase _ _ inp _ _) -> do
             m <- parseModuleEx defaultParseFlags file (Just inp)
             pure $ case m of
                 Right m -> map (ideaToValue inp) $ applyHints [] hint [m]

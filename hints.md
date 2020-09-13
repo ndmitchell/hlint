@@ -11,6 +11,469 @@ This page is auto-generated from `hlint --generate-summary`.
 <th>Severity</th>
 </tr>
 <tr>
+<td>Move guards forward</td>
+<td>
+Example:
+<code>
+foo = [x + 1 | x <- [1..10], feature]
+</code>
+<br>
+Found:
+<code>
+[x + 1 | x <- [1 .. 10], feature]
+</code>
+<br>
+Suggestion:
+<code>
+[x + 1 | feature, x <- [1 .. 10]]
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Move map inside list comprehension</td>
+<td>
+Example:
+<code>
+foo = map f [x + 1 | x <- [1..10]]
+</code>
+<br>
+Found:
+<code>
+map f [x + 1 | x <- [1 .. 10]]
+</code>
+<br>
+Suggestion:
+<code>
+[f (x + 1) | x <- [1 .. 10]]
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant True guards</td>
+<td>
+Example:
+<code>
+foo = [myexpr | True, a]
+</code>
+<br>
+Found:
+<code>
+[myexpr | True, a]
+</code>
+<br>
+Suggestion:
+<code>
+[myexpr | a]
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Short-circuited list comprehension</td>
+<td>
+Example:
+<code>
+foo = [myexpr | False]
+</code>
+<br>
+Found:
+<code>
+[myexpr | False]
+</code>
+<br>
+Suggestion:
+<code>
+[]
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use :</td>
+<td>
+Example:
+<code>
+yes = [x] ++ xs
+</code>
+<br>
+Found:
+<code>
+[x] ++ xs
+</code>
+<br>
+Suggestion:
+<code>
+x : xs
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use String</td>
+<td>
+Example:
+<code>
+data Yes = Yes (Maybe [Char])
+</code>
+<br>
+Found:
+<code>
+Maybe [Char]
+</code>
+<br>
+Suggestion:
+<code>
+Maybe String
+</code>
+<br>
+</td>
+<td>Ignore</td>
+</tr>
+<tr>
+<td>Use list literal</td>
+<td>
+Example:
+<code>
+yes = 1:2:[]
+</code>
+<br>
+Found:
+<code>
+1 : 2 : []
+</code>
+<br>
+Suggestion:
+<code>
+[1, 2]
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use list literal pattern</td>
+<td>
+Example:
+<code>
+yes (1:2:[]) = 1
+</code>
+<br>
+Found:
+<code>
+(1 : 2 : [])
+</code>
+<br>
+Suggestion:
+<code>
+[1, 2]
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use foldM</td>
+<td>
+Example:
+<code>
+f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax
+</code>
+<br>
+Found:
+<pre>
+f [] a = return a
+f (x : xs) a = a + x >>= \ fax -> f xs fax
+</pre>
+Suggestion:
+<code>
+f xs a = foldM (+) a xs
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use foldl</td>
+<td>
+Example:
+<code>
+f z (x:xs) = f (z*x) xs ; f z [] = z
+</code>
+<br>
+Found:
+<pre>
+f z (x : xs) = f (z * x) xs
+f z [] = z
+</pre>
+Suggestion:
+<code>
+f z xs = foldl (*) z xs
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use foldr</td>
+<td>
+Example:
+<code>
+f (x:xs) = negate x + f xs ; f [] = 0
+</code>
+<br>
+Found:
+<pre>
+f (x : xs) = negate x + f xs
+f [] = 0
+</pre>
+Suggestion:
+<code>
+f xs = foldr ((+) . negate) 0 xs
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use map</td>
+<td>
+Example:
+<code>
+f (x:xs) = x + 1 : f xs ; f [] = []
+</code>
+<br>
+Found:
+<pre>
+f (x : xs) = x + 1 : f xs
+f [] = []
+</pre>
+Suggestion:
+<code>
+f xs = map (+ 1) xs
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant do</td>
+<td>
+Example:
+<code>
+yes = do (bar+foo)
+</code>
+<br>
+Found:
+<code>
+do
+</code>
+<br>
+Suggestion:
+<code>
+Perhaps you should remove it.
+</code>
+<br>
+</td>
+<td>Ignore</td>
+</tr>
+<tr>
+<td>Redundant return</td>
+<td>
+Example:
+<code>
+yes = do bar; a <- foo; return a
+</code>
+<br>
+Found:
+<pre>
+do bar
+   a <- foo
+   return a
+</pre>
+Suggestion:
+<pre>
+do bar
+   foo
+</pre>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant variable capture</td>
+<td>
+Example:
+<code>
+main = do _ <- forM_ f xs; bar
+</code>
+<br>
+Found:
+<code>
+_ <- forM_ f xs
+</code>
+<br>
+Suggestion:
+<code>
+forM_ f xs
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant void</td>
+<td>
+Example:
+<code>
+main = void $ forM_ f xs
+</code>
+<br>
+Found:
+<code>
+void $ forM_ f xs
+</code>
+<br>
+Suggestion:
+<code>
+forM_ f xs
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use <$></td>
+<td>
+Example:
+<code>
+yes = do x <- bar; return (f x)
+</code>
+<br>
+Found:
+<pre>
+do x <- bar
+   return (f x)
+</pre>
+Suggestion:
+<code>
+do f <$> bar
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use foldM_</td>
+<td>
+Example:
+<code>
+folder f a xs = foldM f a xs >> return ()
+</code>
+<br>
+Found:
+<code>
+foldM f a xs
+</code>
+<br>
+Suggestion:
+<code>
+foldM_ f a xs
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use forM_</td>
+<td>
+Example:
+<code>
+yes = do forM files $ \x -> return (); return ()
+</code>
+<br>
+Found:
+<code>
+forM files $ \ x -> return ()
+</code>
+<br>
+Suggestion:
+<code>
+forM_ files $ \ x -> return ()
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use join</td>
+<td>
+Example:
+<code>
+yes = do x <- bar; x
+</code>
+<br>
+Found:
+<pre>
+do x <- bar
+   x
+</pre>
+Suggestion:
+<code>
+do join bar
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use let</td>
+<td>
+Example:
+<code>
+yes = do x <- return y; foo x
+</code>
+<br>
+Found:
+<code>
+x <- return y
+</code>
+<br>
+Suggestion:
+<code>
+let x = y
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use mapM_</td>
+<td>
+Example:
+<code>
+yes = do mapM print a; return b
+</code>
+<br>
+Found:
+<code>
+mapM print a
+</code>
+<br>
+Suggestion:
+<code>
+mapM_ print a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Avoid lambda</td>
 <td>
 Example:
@@ -116,390 +579,6 @@ fun = f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Fix pragma markup</td>
-<td>
-Example:
-<code>
-{- MISSING HASH #-}
-</code>
-<br>
-Found:
-<code>
-{- MISSING HASH #-}
-</code>
-<br>
-Suggestion:
-<code>
-{-# MISSING HASH #-}
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Missing NOINLINE pragma</td>
-<td>
-Example:
-<code>
-slaves = unsafePerformIO Multimap.newIO
-</code>
-<br>
-Found:
-<code>
-slaves = unsafePerformIO Multimap.newIO
-</code>
-<br>
-Suggestion:
-<pre>
-{-# NOINLINE slaves #-}
-slaves = unsafePerformIO Multimap.newIO
-</pre>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Move brackets to avoid $</td>
-<td>
-Example:
-<code>
-yes = (b $ c d) ++ e
-</code>
-<br>
-Found:
-<code>
-(b $ c d) ++ e
-</code>
-<br>
-Suggestion:
-<code>
-b (c d) ++ e
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Move guards forward</td>
-<td>
-Example:
-<code>
-foo = [x + 1 | x <- [1..10], feature]
-</code>
-<br>
-Found:
-<code>
-[x + 1 | x <- [1 .. 10], feature]
-</code>
-<br>
-Suggestion:
-<code>
-[x + 1 | feature, x <- [1 .. 10]]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Move map inside list comprehension</td>
-<td>
-Example:
-<code>
-foo = map f [x + 1 | x <- [1..10]]
-</code>
-<br>
-Found:
-<code>
-map f [x + 1 | x <- [1 .. 10]]
-</code>
-<br>
-Suggestion:
-<code>
-[f (x + 1) | x <- [1 .. 10]]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Reduce duplication</td>
-<td>
-Example:
-<code>
-{-# ANN main "HLint: ignore Reduce duplication" #-}; main = do a; a; a; a; a; a
-</code>
-<br>
-Found:
-<pre>
-a
-a
-a
-
-</pre>
-Suggestion:
-<code>
-Combine with src/Hint/Duplicate.hs:1:73
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Ignore</td>
-</tr>
-<tr>
-<td>Reduce duplication</td>
-<td>
-Example:
-<pre>
-foo = a where {a = 1; b = 2; c = 3} 
-bar = a where {a = 1; b = 2; c = 3}
-</pre>
-Found:
-<pre>
-a = 1
-b = 2
-c = 3
-
-</pre>
-Suggestion:
-<code>
-Combine with src/Hint/Duplicate.hs:2:16-20
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant $</td>
-<td>
-Example:
-<code>
-yes = split "to" $ names
-</code>
-<br>
-Found:
-<code>
-split "to" $ names
-</code>
-<br>
-Suggestion:
-<code>
-split "to" names
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant True guards</td>
-<td>
-Example:
-<code>
-foo = [myexpr | True, a]
-</code>
-<br>
-Found:
-<code>
-[myexpr | True, a]
-</code>
-<br>
-Suggestion:
-<code>
-[myexpr | a]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant as</td>
-<td>
-Example:
-<code>
-import A as A
-</code>
-<br>
-Found:
-<code>
-import A as A
-</code>
-<br>
-Suggestion:
-<code>
-import A
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant as-pattern</td>
-<td>
-Example:
-<code>
-foo x@_ = x
-</code>
-<br>
-Found:
-<code>
-x@_
-</code>
-<br>
-Suggestion:
-<code>
-x
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant bang pattern</td>
-<td>
-Example:
-<code>
-foo = case v of !True -> x
-</code>
-<br>
-Found:
-<code>
-!True
-</code>
-<br>
-Suggestion:
-<code>
-True
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant bracket</td>
-<td>
-Example:
-<code>
-yes = (f x) x
-</code>
-<br>
-Found:
-<code>
-(f x) x
-</code>
-<br>
-Suggestion:
-<code>
-f x x
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant bracket</td>
-<td>
-Example:
-<code>
-yes = (foo)
-</code>
-<br>
-Found:
-<code>
-(foo)
-</code>
-<br>
-Suggestion:
-<code>
-foo
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant case</td>
-<td>
-Example:
-<code>
-foo = case f v of _ -> x
-</code>
-<br>
-Found:
-<code>
-case f v of { _ -> x }
-</code>
-<br>
-Suggestion:
-<code>
-x
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant do</td>
-<td>
-Example:
-<code>
-yes = do (bar+foo)
-</code>
-<br>
-Found:
-<code>
-do
-</code>
-<br>
-Suggestion:
-<code>
-Perhaps you should remove it.
-</code>
-<br>
-</td>
-<td>Ignore</td>
-</tr>
-<tr>
-<td>Redundant guard</td>
-<td>
-Example:
-<code>
-foo x | otherwise = y
-</code>
-<br>
-Found:
-<code>
-foo x | otherwise = y
-</code>
-<br>
-Suggestion:
-<code>
-foo x = y
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant irrefutable pattern</td>
-<td>
-Example:
-<code>
-foo = let ~x = 1 in y
-</code>
-<br>
-Found:
-<code>
-~x
-</code>
-<br>
-Suggestion:
-<code>
-x
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
 <td>Redundant lambda</td>
 <td>
 Example:
@@ -515,500 +594,6 @@ f a = \ x -> x + x
 Suggestion:
 <code>
 f a x = x + x
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant return</td>
-<td>
-Example:
-<code>
-yes = do bar; a <- foo; return a
-</code>
-<br>
-Found:
-<pre>
-do bar
-   a <- foo
-   return a
-</pre>
-Suggestion:
-<pre>
-do bar
-   foo
-</pre>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant section</td>
-<td>
-Example:
-<code>
-issue970 = (f x +) (g x)
-</code>
-<br>
-Found:
-<code>
-(f x +) (g x)
-</code>
-<br>
-Suggestion:
-<code>
-f x + (g x)
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant variable capture</td>
-<td>
-Example:
-<code>
-main = do _ <- forM_ f xs; bar
-</code>
-<br>
-Found:
-<code>
-_ <- forM_ f xs
-</code>
-<br>
-Suggestion:
-<code>
-forM_ f xs
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant void</td>
-<td>
-Example:
-<code>
-main = void $ forM_ f xs
-</code>
-<br>
-Found:
-<code>
-void $ forM_ f xs
-</code>
-<br>
-Suggestion:
-<code>
-forM_ f xs
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant where</td>
-<td>
-Example:
-<code>
-foo x = x + x where
-</code>
-<br>
-Found:
-<code>
-where
-</code>
-<br>
-Suggestion:
-<code>
-Perhaps you should remove it.
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Short-circuited list comprehension</td>
-<td>
-Example:
-<code>
-foo = [myexpr | False]
-</code>
-<br>
-Found:
-<code>
-[myexpr | False]
-</code>
-<br>
-Suggestion:
-<code>
-[]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Unused LANGUAGE pragma</td>
-<td>
-Example:
-<pre>
-{-# LANGUAGE Arrows #-} 
-f = id
-</pre>
-Found:
-<code>
-{-# LANGUAGE Arrows #-}
-</code>
-<br>
-Suggestion:
-<code>
-Perhaps you should remove it.
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use :</td>
-<td>
-Example:
-<code>
-yes = [x] ++ xs
-</code>
-<br>
-Found:
-<code>
-[x] ++ xs
-</code>
-<br>
-Suggestion:
-<code>
-x : xs
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use <$></td>
-<td>
-Example:
-<code>
-yes = do x <- bar; return (f x)
-</code>
-<br>
-Found:
-<pre>
-do x <- bar
-   return (f x)
-</pre>
-Suggestion:
-<code>
-do f <$> bar
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use DerivingStrategies</td>
-<td>
-Example:
-<code>
-newtype Foo = Foo Int deriving (Show, Eq)
-</code>
-<br>
-Found:
-<pre>
-newtype Foo
-  = Foo Int
-  deriving (Show, Eq)
-</pre>
-Suggestion:
-<code>
-
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Ignore</td>
-</tr>
-<tr>
-<td>Use LANGUAGE pragmas</td>
-<td>
-Example:
-<code>
-{-# OPTIONS_GHC -cpp #-}
-</code>
-<br>
-Found:
-<pre>
-{-# OPTIONS_GHC -cpp #-}
-
-</pre>
-Suggestion:
-<pre>
-{-# LANGUAGE CPP #-}
-
-</pre>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use String</td>
-<td>
-Example:
-<code>
-data Yes = Yes (Maybe [Char])
-</code>
-<br>
-Found:
-<code>
-Maybe [Char]
-</code>
-<br>
-Suggestion:
-<code>
-Maybe String
-</code>
-<br>
-</td>
-<td>Ignore</td>
-</tr>
-<tr>
-<td>Use camelCase</td>
-<td>
-Example:
-<code>
-data Yes = Bar | Test_Bar
-</code>
-<br>
-Found:
-<code>
-data Yes = Bar | Test_Bar
-</code>
-<br>
-Suggestion:
-<code>
-data Yes = Bar | TestBar
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use explicit module export list</td>
-<td>
-Example:
-<code>
-module Foo(module Foo) where foo = 1
-</code>
-<br>
-Found:
-<pre>
-module Foo (
-        module Foo
-    ) where
-</pre>
-Suggestion:
-<pre>
-module Foo (
-         ... 
-    ) where
-</pre>
-Does not support refactoring.
-</td>
-<td>Ignore</td>
-</tr>
-<tr>
-<td>Use fewer LANGUAGE pragmas</td>
-<td>
-Example:
-<code>
-{-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-}
-</code>
-<br>
-Found:
-<code>
-{-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-}
-</code>
-<br>
-Suggestion:
-<code>
-{-# LANGUAGE RebindableSyntax, EmptyCase #-}
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use fewer imports</td>
-<td>
-Example:
-<code>
-import A; import A
-</code>
-<br>
-Found:
-<pre>
-import A
-import A
-
-</pre>
-Suggestion:
-<pre>
-import A
-
-</pre>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use foldM</td>
-<td>
-Example:
-<code>
-f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax
-</code>
-<br>
-Found:
-<pre>
-f [] a = return a
-f (x : xs) a = a + x >>= \ fax -> f xs fax
-</pre>
-Suggestion:
-<code>
-f xs a = foldM (+) a xs
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use foldM_</td>
-<td>
-Example:
-<code>
-folder f a xs = foldM f a xs >> return ()
-</code>
-<br>
-Found:
-<code>
-foldM f a xs
-</code>
-<br>
-Suggestion:
-<code>
-foldM_ f a xs
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use foldl</td>
-<td>
-Example:
-<code>
-f z (x:xs) = f (z*x) xs ; f z [] = z
-</code>
-<br>
-Found:
-<pre>
-f z (x : xs) = f (z * x) xs
-f z [] = z
-</pre>
-Suggestion:
-<code>
-f z xs = foldl (*) z xs
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use foldr</td>
-<td>
-Example:
-<code>
-f (x:xs) = negate x + f xs ; f [] = 0
-</code>
-<br>
-Found:
-<pre>
-f (x : xs) = negate x + f xs
-f [] = 0
-</pre>
-Suggestion:
-<code>
-f xs = foldr ((+) . negate) 0 xs
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use forM_</td>
-<td>
-Example:
-<code>
-yes = do forM files $ \x -> return (); return ()
-</code>
-<br>
-Found:
-<code>
-forM files $ \ x -> return ()
-</code>
-<br>
-Suggestion:
-<code>
-forM_ files $ \ x -> return ()
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use guards</td>
-<td>
-Example:
-<code>
-yes x y = if a then b else if c then d else e
-</code>
-<br>
-Found:
-<code>
-yes x y = if a then b else if c then d else e
-</code>
-<br>
-Suggestion:
-<pre>
-yes x y
-  | a = b
-  | c = d
-  | otherwise = e
-</pre>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use join</td>
-<td>
-Example:
-<code>
-yes = do x <- bar; x
-</code>
-<br>
-Found:
-<pre>
-do x <- bar
-   x
-</pre>
-Suggestion:
-<code>
-do join bar
 </code>
 <br>
 </td>
@@ -1062,221 +647,6 @@ Does not support refactoring.
 <td>Suggestion</td>
 </tr>
 <tr>
-<td>Use let</td>
-<td>
-Example:
-<code>
-yes = do x <- return y; foo x
-</code>
-<br>
-Found:
-<code>
-x <- return y
-</code>
-<br>
-Suggestion:
-<code>
-let x = y
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use list literal</td>
-<td>
-Example:
-<code>
-yes = 1:2:[]
-</code>
-<br>
-Found:
-<code>
-1 : 2 : []
-</code>
-<br>
-Suggestion:
-<code>
-[1, 2]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use list literal pattern</td>
-<td>
-Example:
-<code>
-yes (1:2:[]) = 1
-</code>
-<br>
-Found:
-<code>
-(1 : 2 : [])
-</code>
-<br>
-Suggestion:
-<code>
-[1, 2]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use map</td>
-<td>
-Example:
-<code>
-f (x:xs) = x + 1 : f xs ; f [] = []
-</code>
-<br>
-Found:
-<pre>
-f (x : xs) = x + 1 : f xs
-f [] = []
-</pre>
-Suggestion:
-<code>
-f xs = map (+ 1) xs
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use mapM_</td>
-<td>
-Example:
-<code>
-yes = do mapM print a; return b
-</code>
-<br>
-Found:
-<code>
-mapM print a
-</code>
-<br>
-Suggestion:
-<code>
-mapM_ print a
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use module export list</td>
-<td>
-Example:
-<code>
-module Foo where foo = 1
-</code>
-<br>
-Found:
-<code>
-module Foo where
-</code>
-<br>
-Suggestion:
-<pre>
-module Foo (
-        module Foo
-    ) where
-</pre>
-Does not support refactoring.
-</td>
-<td>Ignore</td>
-</tr>
-<tr>
-<td>Use newtype instead of data</td>
-<td>
-Example:
-<code>
-data Foo = Foo Int
-</code>
-<br>
-Found:
-<code>
-data Foo = Foo Int
-</code>
-<br>
-Suggestion:
-<code>
-newtype Foo = Foo Int
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use otherwise</td>
-<td>
-Example:
-<code>
-foo x | a = b | True = d
-</code>
-<br>
-Found:
-<pre>
-foo x
-  | a = b
-  | True = d
-</pre>
-Suggestion:
-<pre>
-foo x
-  | a = b
-  | otherwise = d
-</pre>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use pragma syntax</td>
-<td>
-Example:
-<code>
-{- INLINE Y -}
-</code>
-<br>
-Found:
-<code>
-{- INLINE Y -}
-</code>
-<br>
-Suggestion:
-<code>
-{-# INLINE Y #-}
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use record patterns</td>
-<td>
-Example:
-<code>
-foo (Bar _ _ _ _) = x
-</code>
-<br>
-Found:
-<code>
-Bar _ _ _ _
-</code>
-<br>
-Suggestion:
-<code>
-Bar {}
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
 <td>Use section</td>
 <td>
 Example:
@@ -1320,6 +690,327 @@ Does not support refactoring.
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Move brackets to avoid $</td>
+<td>
+Example:
+<code>
+yes = (b $ c d) ++ e
+</code>
+<br>
+Found:
+<code>
+(b $ c d) ++ e
+</code>
+<br>
+Suggestion:
+<code>
+b (c d) ++ e
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant $</td>
+<td>
+Example:
+<code>
+yes = split "to" $ names
+</code>
+<br>
+Found:
+<code>
+split "to" $ names
+</code>
+<br>
+Suggestion:
+<code>
+split "to" names
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant bracket</td>
+<td>
+Example:
+<code>
+yes = (f x) x
+</code>
+<br>
+Found:
+<code>
+(f x) x
+</code>
+<br>
+Suggestion:
+<code>
+f x x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant bracket</td>
+<td>
+Example:
+<code>
+yes = (foo)
+</code>
+<br>
+Found:
+<code>
+(foo)
+</code>
+<br>
+Suggestion:
+<code>
+foo
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant section</td>
+<td>
+Example:
+<code>
+issue970 = (f x +) (g x)
+</code>
+<br>
+Found:
+<code>
+(f x +) (g x)
+</code>
+<br>
+Suggestion:
+<code>
+f x + (g x)
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use camelCase</td>
+<td>
+Example:
+<code>
+data Yes = Bar | Test_Bar
+</code>
+<br>
+Found:
+<code>
+data Yes = Bar | Test_Bar
+</code>
+<br>
+Suggestion:
+<code>
+data Yes = Bar | TestBar
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant as-pattern</td>
+<td>
+Example:
+<code>
+foo x@_ = x
+</code>
+<br>
+Found:
+<code>
+x@_
+</code>
+<br>
+Suggestion:
+<code>
+x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant bang pattern</td>
+<td>
+Example:
+<code>
+foo = case v of !True -> x
+</code>
+<br>
+Found:
+<code>
+!True
+</code>
+<br>
+Suggestion:
+<code>
+True
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant case</td>
+<td>
+Example:
+<code>
+foo = case f v of _ -> x
+</code>
+<br>
+Found:
+<code>
+case f v of { _ -> x }
+</code>
+<br>
+Suggestion:
+<code>
+x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant guard</td>
+<td>
+Example:
+<code>
+foo x | otherwise = y
+</code>
+<br>
+Found:
+<code>
+foo x | otherwise = y
+</code>
+<br>
+Suggestion:
+<code>
+foo x = y
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant irrefutable pattern</td>
+<td>
+Example:
+<code>
+foo = let ~x = 1 in y
+</code>
+<br>
+Found:
+<code>
+~x
+</code>
+<br>
+Suggestion:
+<code>
+x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant where</td>
+<td>
+Example:
+<code>
+foo x = x + x where
+</code>
+<br>
+Found:
+<code>
+where
+</code>
+<br>
+Suggestion:
+<code>
+Perhaps you should remove it.
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use guards</td>
+<td>
+Example:
+<code>
+yes x y = if a then b else if c then d else e
+</code>
+<br>
+Found:
+<code>
+yes x y = if a then b else if c then d else e
+</code>
+<br>
+Suggestion:
+<pre>
+yes x y
+  | a = b
+  | c = d
+  | otherwise = e
+</pre>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use otherwise</td>
+<td>
+Example:
+<code>
+foo x | a = b | True = d
+</code>
+<br>
+Found:
+<pre>
+foo x
+  | a = b
+  | True = d
+</pre>
+Suggestion:
+<pre>
+foo x
+  | a = b
+  | otherwise = d
+</pre>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use record patterns</td>
+<td>
+Example:
+<code>
+foo (Bar _ _ _ _) = x
+</code>
+<br>
+Found:
+<code>
+Bar _ _ _ _
+</code>
+<br>
+Suggestion:
+<code>
+Bar {}
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Used otherwise as a pattern</td>
 <td>
 Example:
@@ -1340,6 +1031,315 @@ _
 Does not support refactoring.
 </td>
 <td>Warning</td>
+</tr>
+<tr>
+<td>Redundant as</td>
+<td>
+Example:
+<code>
+import A as A
+</code>
+<br>
+Found:
+<code>
+import A as A
+</code>
+<br>
+Suggestion:
+<code>
+import A
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use fewer imports</td>
+<td>
+Example:
+<code>
+import A; import A
+</code>
+<br>
+Found:
+<pre>
+import A
+import A
+
+</pre>
+Suggestion:
+<pre>
+import A
+
+</pre>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use explicit module export list</td>
+<td>
+Example:
+<code>
+module Foo(module Foo) where foo = 1
+</code>
+<br>
+Found:
+<pre>
+module Foo (
+        module Foo
+    ) where
+</pre>
+Suggestion:
+<pre>
+module Foo (
+         ... 
+    ) where
+</pre>
+Does not support refactoring.
+</td>
+<td>Ignore</td>
+</tr>
+<tr>
+<td>Use module export list</td>
+<td>
+Example:
+<code>
+module Foo where foo = 1
+</code>
+<br>
+Found:
+<code>
+module Foo where
+</code>
+<br>
+Suggestion:
+<pre>
+module Foo (
+        module Foo
+    ) where
+</pre>
+Does not support refactoring.
+</td>
+<td>Ignore</td>
+</tr>
+<tr>
+<td>Use LANGUAGE pragmas</td>
+<td>
+Example:
+<code>
+{-# OPTIONS_GHC -cpp #-}
+</code>
+<br>
+Found:
+<pre>
+{-# OPTIONS_GHC -cpp #-}
+
+</pre>
+Suggestion:
+<pre>
+{-# LANGUAGE CPP #-}
+
+</pre>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use fewer LANGUAGE pragmas</td>
+<td>
+Example:
+<code>
+{-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-}
+</code>
+<br>
+Found:
+<code>
+{-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-}
+</code>
+<br>
+Suggestion:
+<code>
+{-# LANGUAGE RebindableSyntax, EmptyCase #-}
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Unused LANGUAGE pragma</td>
+<td>
+Example:
+<pre>
+{-# LANGUAGE Arrows #-} 
+f = id
+</pre>
+Found:
+<code>
+{-# LANGUAGE Arrows #-}
+</code>
+<br>
+Suggestion:
+<code>
+Perhaps you should remove it.
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Missing NOINLINE pragma</td>
+<td>
+Example:
+<code>
+slaves = unsafePerformIO Multimap.newIO
+</code>
+<br>
+Found:
+<code>
+slaves = unsafePerformIO Multimap.newIO
+</code>
+<br>
+Suggestion:
+<pre>
+{-# NOINLINE slaves #-}
+slaves = unsafePerformIO Multimap.newIO
+</pre>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Reduce duplication</td>
+<td>
+Example:
+<code>
+{-# ANN main "HLint: ignore Reduce duplication" #-}; main = do a; a; a; a; a; a
+</code>
+<br>
+Found:
+<pre>
+a
+a
+a
+
+</pre>
+Suggestion:
+<code>
+Combine with src/Hint/Duplicate.hs:1:73
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Ignore</td>
+</tr>
+<tr>
+<td>Reduce duplication</td>
+<td>
+Example:
+<pre>
+foo = a where {a = 1; b = 2; c = 3} 
+bar = a where {a = 1; b = 2; c = 3}
+</pre>
+Found:
+<pre>
+a = 1
+b = 2
+c = 3
+
+</pre>
+Suggestion:
+<code>
+Combine with src/Hint/Duplicate.hs:2:16-20
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Fix pragma markup</td>
+<td>
+Example:
+<code>
+{- MISSING HASH #-}
+</code>
+<br>
+Found:
+<code>
+{- MISSING HASH #-}
+</code>
+<br>
+Suggestion:
+<code>
+{-# MISSING HASH #-}
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use pragma syntax</td>
+<td>
+Example:
+<code>
+{- INLINE Y -}
+</code>
+<br>
+Found:
+<code>
+{- INLINE Y -}
+</code>
+<br>
+Suggestion:
+<code>
+{-# INLINE Y #-}
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use DerivingStrategies</td>
+<td>
+Example:
+<code>
+newtype Foo = Foo Int deriving (Show, Eq)
+</code>
+<br>
+Found:
+<pre>
+newtype Foo
+  = Foo Int
+  deriving (Show, Eq)
+</pre>
+Suggestion:
+<code>
+
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Ignore</td>
+</tr>
+<tr>
+<td>Use newtype instead of data</td>
+<td>
+Example:
+<code>
+data Foo = Foo Int
+</code>
+<br>
+Found:
+<code>
+data Foo = Foo Int
+</code>
+<br>
+Suggestion:
+<code>
+newtype Foo = Foo Int
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Suggestion</td>
 </tr>
 </table>
 
