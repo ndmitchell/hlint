@@ -226,6 +226,8 @@ import Data.Foldable -- @NoRefactor: refactor only works when using GHC 8.10
 {-# LANGUAGE StandaloneKindSignatures #-} \
 type T :: (k -> Type) -> k -> Type \
 data T m a = MkT (m a) (T Maybe (m a))
+{-# LANGUAGE NoMonomorphismRestriction, NamedFieldPuns #-} \
+main = 1 -- @Note Extension NamedFieldPuns is not used
 </TEST>
 -}
 
@@ -271,8 +273,8 @@ extensionsHint _ x =
         (comment (mkLanguagePragmas sl exts))
         (Just newPragma)
         ( [RequiresExtension (show gone) | (_, Just x) <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
-            [ Note $ "Extension " ++ show x ++ " is " ++ reason x
-            | (_, Just x) <- explainedRemovals])
+            [ Note $ "Extension " ++ s ++ " is " ++ reason x
+            | (s, Just x) <- explainedRemovals])
         [ModifyComment (toSS (mkLanguagePragmas sl exts)) newPragma]
     | (L sl _,  exts) <- languagePragmas $ pragmas (ghcAnnotations x)
     , let before = [(x, readExtension x) | x <- exts]
