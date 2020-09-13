@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #75, make Windows 10 use color terminals
     Make sure the extension removed matches what you called it
 *   #1124, make test into a flag rather than a mode, use --test
     #1073, add LHS/RHS hints to the summary
