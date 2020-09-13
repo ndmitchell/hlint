@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, DeriveDataTypeable, TupleSections, NamedFieldPuns #-}
+{-# LANGUAGE PatternGuards, DeriveDataTypeable, TupleSections #-}
 {-# OPTIONS_GHC -Wno-missing-fields -fno-cse -O0 #-}
 
 module CmdLine(
