@@ -332,7 +332,7 @@ You can customize the `Note:` for restricted modules, functions and extensions, 
 
 ## Hacking HLint
 
-Contributions to HLint are most welcome, following [my standard contribution guidelines](https://github.com/ndmitchell/neil/blob/master/README.md#contributions). You can run the tests either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `cabal run hlint test` or `stack run hlint test`. After changing hints, you will need to regenerate the [hints.md](hints.md) file with `hlint --generate-summary`.
+Contributions to HLint are most welcome, following [my standard contribution guidelines](https://github.com/ndmitchell/neil/blob/master/README.md#contributions). You can run the tests either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `cabal run -- hlint --test` or `stack run -- hlint --test`. After changing hints, you will need to regenerate the [hints.md](hints.md) file with `hlint --generate-summary`.
 
 New tests for individual hints can be added directly to source and hint files by adding annotations bracketed in `<TEST></TEST>` code comment blocks. As some examples:
 

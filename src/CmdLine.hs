@@ -48,9 +48,7 @@ getCmd args = withArgs (map f args) $ automatic =<< cmdArgsRun mode
 
 
 automatic :: Cmd -> IO Cmd
-automatic cmd = case cmd of
-    CmdMain{} -> dataDir =<< path =<< git =<< extension cmd
-    CmdTest{} -> dataDir cmd
+automatic cmd = dataDir =<< path =<< git =<< extension cmd
     where
         path cmd = pure $ if null $ cmdPath cmd then cmd{cmdPath=["."]} else cmd
         extension cmd = pure $ if null $ cmdExtension cmd then cmd{cmdExtension=["hs","lhs"]} else cmd
@@ -129,12 +127,7 @@ data Cmd
         ,cmdWithRefactor :: FilePath    -- ^ Path to refactor tool
         ,cmdIgnoreGlob :: [FilePattern]
         ,cmdGenerateSummary :: [FilePath]  -- ^ Generate a summary of available hints
-        }
-    | CmdTest
-        {cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
-        ,cmdDataDir :: FilePath          -- ^ the data directory
-        ,cmdReports :: [FilePath]        -- ^ where to generate reports
-        ,cmdWithRefactor :: FilePath
+        ,cmdTest :: Bool
         }
     deriving (Data,Typeable,Show)
 
@@ -173,9 +166,8 @@ mode = cmdArgsMode $ modes
         ,cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
         ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern"
         ,cmdGenerateSummary = nam_ "generate-summary" &= opt "hints.md" &= help "Generate a summary of built-in hints"
+        ,cmdTest = nam_ "test" &= help "Run the test suite"
         } &= auto &= explicit &= name "lint"
-    ,CmdTest{
-        } &= explicit &= name "test"
         &= details ["HLint gives hints on how to improve Haskell code."
                    ,""
                    ,"To check all Haskell files in 'src' and generate a report type:"
@@ -196,12 +188,8 @@ cmdHintFiles cmd = do
     when (bad /= []) $
         fail $ unlines $ "Failed to find requested hint files:" : map ("  "++) bad
 
-    let generateSummary = case cmd of
-            CmdMain{cmdGenerateSummary} -> notNull cmdGenerateSummary
-            _ -> False
-
     -- if the user has given any explicit hints, ignore the local ones
-    implicit <- if explicit /= [] || generateSummary then pure Nothing else do
+    implicit <- if explicit /= [] || cmdGenerateSummary cmd /= [] then pure Nothing else do
         -- we follow the stylish-haskell config file search policy
         -- 1) current directory or its ancestors; 2) home directory
         curdir <- getCurrentDirectory

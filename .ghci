@@ -5,7 +5,7 @@
 :set -isrc
 :load src/Main.hs src/Paths.hs src/Language/Haskell/HLint.hs
 
-:def test const $ return ":main test"
+:def test const $ return ":main --test"
 
 :{
 let _ghci_make dir flags = ":!" ++

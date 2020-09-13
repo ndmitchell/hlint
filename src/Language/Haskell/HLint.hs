@@ -32,12 +32,11 @@ module Language.Haskell.HLint(
 
 import Config.Type
 import Config.Read
-import Control.Exception.Extra
 import Idea
 import qualified Apply as H
 import HLint
 import Fixity
-import FastString
+import FastString ( unpackFS )
 import GHC.All
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
@@ -78,17 +77,14 @@ autoSettings = do
 --   Arguments which have no representation in the return type are silently ignored.
 argsSettings :: [String] -> IO (ParseFlags, [Classify], Hint)
 argsSettings args = do
-    cmd <- getCmd args
-    case cmd of
-        CmdMain{..} -> do
-            -- FIXME: One thing that could be supported (but isn't) is 'cmdGivenHints'
-            (_,settings) <- readAllSettings args cmd
-            let (fixities, classify, hints) = splitSettings settings
-            let flags = parseFlagsSetLanguage (cmdExtensions cmd) $ parseFlagsAddFixities fixities $
-                        defaultParseFlags{cppFlags = cmdCpp cmd}
-            let ignore = [Classify Ignore x "" "" | x <- cmdIgnore]
-            pure (flags, classify ++ ignore, hints)
-        _ -> errorIO "Can only invoke autoSettingsArgs with the root process"
+    cmd@CmdMain{..} <- getCmd args
+    -- FIXME: One thing that could be supported (but isn't) is 'cmdGivenHints'
+    (_,settings) <- readAllSettings args cmd
+    let (fixities, classify, hints) = splitSettings settings
+    let flags = parseFlagsSetLanguage (cmdExtensions cmd) $ parseFlagsAddFixities fixities $
+                defaultParseFlags{cppFlags = cmdCpp cmd}
+    let ignore = [Classify Ignore x "" "" | x <- cmdIgnore]
+    pure (flags, classify ++ ignore, hints)
 
 
 -- | Given a directory (or 'Nothing' to imply 'getHLintDataDir'), and a module name

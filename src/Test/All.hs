@@ -29,7 +29,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 
 test :: Cmd -> ([String] -> IO ()) -> FilePath -> [FilePath] -> IO Int
-test CmdTest{..} main dataDir files = do
+test CmdMain{..} main dataDir files = do
     rpath <- refactorPath (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
 
     (failures, ideas) <- withBuffering stdout NoBuffering $ withTests $ do

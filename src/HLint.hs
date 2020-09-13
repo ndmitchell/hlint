@@ -12,6 +12,7 @@ import System.Console.CmdArgs.Verbosity
 import GHC.Util.DynFlags
 import Data.List.Extra
 import GHC.Conc
+import System.Directory
 import System.Exit
 import System.IO.Extra
 import System.Time.Extra
@@ -53,17 +54,17 @@ hlint args = do
     startTimings
     cmd <- getCmd args
     timedIO "Initialise" "global flags" initGlobalDynFlags
-    case cmd of
-        CmdMain{} -> do
-            (time, xs) <- duration $ hlintMain args cmd
-            when (cmdTiming cmd) $ do
-                printTimings
-                putStrLn $ "Took " ++ showDuration time
-            pure $ if cmdNoExitCode cmd then [] else xs
-        CmdTest{} -> hlintTest cmd >> pure []
+    if cmdTest cmd then
+        hlintTest cmd >> pure []
+     else do
+        (time, xs) <- duration $ hlintMain args cmd
+        when (cmdTiming cmd) $ do
+            printTimings
+            putStrLn $ "Took " ++ showDuration time
+        pure $ if cmdNoExitCode cmd then [] else xs
 
 hlintTest :: Cmd -> IO ()
-hlintTest cmd@CmdTest{..} = do
+hlintTest cmd@CmdMain{..} = do
     failed <- test cmd (\args -> do errs <- hlint args; unless (null errs) $ exitWith $ ExitFailure 1) cmdDataDir cmdGivenHints
     when (failed > 0) exitFailure
 
@@ -110,11 +111,17 @@ runHlintMain args cmd tmpFile = do
 
 resolveFiles :: Cmd -> Maybe FilePath -> IO Cmd
 resolveFiles cmd@CmdMain{..} tmpFile = do
+    -- if the first file is named 'lint' and there is no 'lint' file
+    -- then someone is probably invoking the older hlint multi-mode command
+    -- so skip it
+    cmdFiles <- if not $ ["lint"] `isPrefixOf` cmdFiles then pure cmdFiles else do
+        b <- doesDirectoryExist "lint"
+        pure $ if b then cmdFiles else drop1 cmdFiles
+
     files <- concatMapM (resolveFile cmd tmpFile) cmdFiles
     if null files
         then error "No files found"
         else pure cmd { cmdFiles = files }
-resolveFiles cmd _ = pure cmd
 
 readAllSettings :: [String] -> Cmd -> IO (Cmd, [Setting])
 readAllSettings args1 cmd@CmdMain{..} = do

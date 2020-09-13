@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+*   #1124, make test into a flag rather than a mode, use --test
     #1073, add LHS/RHS hints to the summary
 *   Remove test --proof, --quickcheck and --typecheck, --tempdir
 *   #1123, delete grep mode
