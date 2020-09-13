@@ -1190,18 +1190,18 @@ Perhaps you should remove it.
 <td>
 Example:
 <code>
-slaves = unsafePerformIO Multimap.newIO
+entries = unsafePerformIO Multimap.newIO
 </code>
 <br>
 Found:
 <code>
-slaves = unsafePerformIO Multimap.newIO
+entries = unsafePerformIO Multimap.newIO
 </code>
 <br>
 Suggestion:
 <pre>
-{-# NOINLINE slaves #-}
-slaves = unsafePerformIO Multimap.newIO
+{-# NOINLINE entries #-}
+entries = unsafePerformIO Multimap.newIO
 </pre>
 </td>
 <td>Warning</td>

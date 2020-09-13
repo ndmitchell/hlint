@@ -3,15 +3,15 @@
     Find things that are unsafe
 
 <TEST>
-{-# NOINLINE slaves #-}; slaves = unsafePerformIO newIO
-slaves = unsafePerformIO Multimap.newIO -- {-# NOINLINE slaves #-} ; slaves = unsafePerformIO Multimap.newIO
-slaves = unsafePerformIO $ f y where foo = 1 -- {-# NOINLINE slaves #-} ; slaves = unsafePerformIO $ f y where foo = 1
-slaves v = unsafePerformIO $ Multimap.newIO where foo = 1
-slaves v = x where x = unsafePerformIO $ Multimap.newIO
-slaves = x where x = unsafePerformIO $ Multimap.newIO -- {-# NOINLINE slaves #-} ; slaves = x where x = unsafePerformIO $ Multimap.newIO
-slaves = unsafePerformIO . bar
-slaves = unsafePerformIO . baz $ x -- {-# NOINLINE slaves #-} ; slaves = unsafePerformIO . baz $ x
-slaves = unsafePerformIO . baz $ x -- {-# NOINLINE slaves #-} ; slaves = unsafePerformIO . baz $ x
+{-# NOINLINE entries #-}; entries = unsafePerformIO newIO
+entries = unsafePerformIO Multimap.newIO -- {-# NOINLINE entries #-} ; entries = unsafePerformIO Multimap.newIO
+entries = unsafePerformIO $ f y where foo = 1 -- {-# NOINLINE entries #-} ; entries = unsafePerformIO $ f y where foo = 1
+entries v = unsafePerformIO $ Multimap.newIO where foo = 1
+entries v = x where x = unsafePerformIO $ Multimap.newIO
+entries = x where x = unsafePerformIO $ Multimap.newIO -- {-# NOINLINE entries #-} ; entries = x where x = unsafePerformIO $ Multimap.newIO
+entries = unsafePerformIO . bar
+entries = unsafePerformIO . baz $ x -- {-# NOINLINE entries #-} ; entries = unsafePerformIO . baz $ x
+entries = unsafePerformIO . baz $ x -- {-# NOINLINE entries #-} ; entries = unsafePerformIO . baz $ x
 </TEST>
 -}
 
