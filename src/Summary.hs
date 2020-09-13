@@ -6,6 +6,7 @@ import qualified Data.Map as Map
 import Control.Monad
 import System.FilePath
 import Data.List.Extra
+import System.Directory
 
 import Idea
 import Apply
@@ -40,8 +41,13 @@ mkBuiltinSummary = foldM f Map.empty builtinHints
     f :: BuiltinSummary -> (String, Hint) -> IO BuiltinSummary
     f summ (name, hint) = do
         let file = "src/Hint" </> name <.> "hs"
-        tests <- parseTestFile file
-        foldM (g hint file) summ tests
+        b <- doesFileExist file
+        if b then do
+          tests <- parseTestFile file
+          foldM (g hint file) summ tests
+         else do
+          putStrLn $ "Couldn't find source hint file " ++ file ++ ", some hints will be missing"
+          return summ
 
     g :: Hint -> FilePath -> BuiltinSummary -> TestCase -> IO BuiltinSummary
     g hint file summ (TestCase _ _ inp _ _) = do
