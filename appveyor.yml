@@ -6,7 +6,7 @@ test_script:
 - set HASKELL_DEPENDENCIES=apply-refact
 - ps: Invoke-Expression (Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/neil/master/appveyor.ps1')
 # - set UNIPLATE_VERBOSE=-1 # Temporary
-- stack exec -- hlint test
+- stack exec -- hlint --test
 - stack exec -- hlint src
 # Test the documented way of running it in appveyor
 - ps: Invoke-Command ([Scriptblock]::Create((Invoke-WebRequest 'https://raw.githubusercontent.com/ndmitchell/hlint/master/misc/appveyor.ps1').Content)) -ArgumentList @('--version')
