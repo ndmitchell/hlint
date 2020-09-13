@@ -6,7 +6,6 @@
 :load src/Main.hs src/Paths.hs src/Language/Haskell/HLint.hs
 
 :def test const $ return ":main test"
-:def testfull const $ return ":main test --typecheck --quickcheck"
 
 :{
 let _ghci_make dir flags = ":!" ++
