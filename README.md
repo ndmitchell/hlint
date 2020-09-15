@@ -332,9 +332,15 @@ You can customize the `Note:` for restricted modules, functions and extensions, 
 
 ## Hacking HLint
 
-Contributions to HLint are most welcome, following [my standard contribution guidelines](https://github.com/ndmitchell/neil/blob/master/README.md#contributions). You can run the tests either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `cabal run -- hlint --test` or `stack run -- hlint --test`. After changing hints, you will need to regenerate the [hints.md](hints.md) file with `hlint --generate-summary`.
+Contributions to HLint are most welcome, following [my standard contribution guidelines](https://github.com/ndmitchell/neil/blob/master/README.md#contributions).
 
-New tests for individual hints can be added directly to source and hint files by adding annotations bracketed in `<TEST></TEST>` code comment blocks. As some examples:
+### How to run tests
+
+You can run the tests either from within a `ghci` session by typing `:test` or by running the standalone binary's tests via `cabal run -- hlint --test` or `stack run -- hlint --test`. After changing hints, you will need to regenerate the [hints.md](hints.md) file with `hlint --generate-summary`.
+
+### How to add tests
+
+New tests for individual hints can be added directly to source and hint files by adding annotations bracketed in `<TEST></TEST>` code comment blocks. Here are some examples:
 
 ```haskell
 {-
@@ -349,6 +355,12 @@ zip [1..length x] x -- ??? @Warning
 ```
 
 The general syntax is `lhs -- rhs` with `lhs` being the expression you expect to be rewritten as `rhs`. The absence of `rhs` means you expect no hints to fire. In addition `???` lets you assert a warning without a particular suggestion, while `@` tags require a specific severity -- both these features are used less commonly.
+
+### Printing abstract syntax
+
+Getting started on problems in HLint often means wanting to inspect a GHC parse tree to get a sense of what it looks like (to see how to match on it for example). Given a source program `Foo.hs` (say), you can get GHC to print a textual representation of `Foo`'s AST via the `-ddump-parsed-ast` flag e.g. `ghc -fforce-recomp -ddump-parsed-ast -c Foo.hs`.
+
+When you have an [`HsSyn`](https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/compiler/hs-syn-type) term in your program, it's quite common to want to print it (e.g. via `Debug.Trace.trace`). Types in `HsSyn` aren't in [`Show`](https://hoogle.haskell.org/?hoogle=Show). Not all types in `HsSyn` are [`Outputable`](https://hoogle.haskell.org/?hoogle=Outputable) but when they are you can call `ppr` to get `SDoc`s. This idiom is common enough that there exists [`unsafePrettyPrint`](https://hackage.haskell.org/package/ghc-lib-parser-ex-8.10.0.16/docs/Language-Haskell-GhclibParserEx-GHC-Utils-Outputable.html#v:unsafePrettyPrint). The function [`showAstData`](https://hoogle.haskell.org/?hoogle=showAstData) can be called on any `HsSyn` term to get output like with the `dump-parsed-ast` flag. The `showAstData` approach is preferable to `ppr` when both choices exist in that two ASTs that differ only in fixity arrangments will render differently with the former.
 
 ### Acknowledgements
 
