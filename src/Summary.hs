@@ -30,7 +30,7 @@ data BuiltinValue = BuiltinValue
 
 
 dedupeBuiltin :: [(BuiltinKey, BuiltinValue)] -> [(BuiltinKey, BuiltinValue)]
-dedupeBuiltin = Map.toAscList . Map.fromListWith (curry snd)
+dedupeBuiltin = Map.toAscList . Map.fromListWith (\_ old -> old)
 
 
 -- | Generate a summary of hints, including built-in hints and YAML-configured hints
