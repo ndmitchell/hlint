@@ -297,8 +297,8 @@
     - warn: {lhs: \x -> x, rhs: id}
     - warn: {lhs: \x y -> x, rhs: const}
     - warn: {lhs: curry fst, rhs: const}
-    - warn: {lhs: curry snd, rhs: const id}
-    - warn: {lhs: flip const, rhs: const id}
+    - warn: {lhs: curry snd, rhs: \_ x -> x, note: "Alternatively, use const id"}
+    - warn: {lhs: flip const, rhs: \_ x -> x, note: "Alternatively, use const id"}
     - warn: {lhs: "\\(x,y) -> y", rhs: snd}
     - warn: {lhs: "\\(x,y) -> x", rhs: fst}
     - hint: {lhs: "\\x y -> f (x,y)", rhs: curry f}
