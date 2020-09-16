@@ -227,7 +227,7 @@
     - warn: {lhs: head (scanr f z x), rhs: foldr f z x}
     - warn: {lhs: iterate id, rhs: repeat}
     - warn: {lhs: zipWith f (repeat x), rhs: map (f x)}
-    - warn: {lhs: zipWith f y (repeat z), rhs: map (\x -> f x z) y}
+    - warn: {lhs: zipWith f y (repeat z), rhs: map (`f` z) y}
     - warn: {lhs: listToMaybe (filter p x), rhs: find p x}
     - warn: {lhs: zip (take n x) (take n y), rhs: take n (zip x y)}
     - warn: {lhs: zip (take n x) (take m y), rhs: take (min n m) (zip x y), side: notEq n m, note: [IncreasesLaziness, DecreasesLaziness], name: Redundant take}
@@ -1176,7 +1176,8 @@
 # f condition tChar tBool = if condition then _monoField tChar else _monoField tBool
 # foo = maybe Bar{..} id -- Data.Maybe.fromMaybe Bar{..}
 # foo = (\a -> Foo {..}) 1
-# foo = zipWith SymInfo [0 ..] (repeat ty) -- map (\ x -> SymInfo x ty) [0 ..]
+# foo = zipWith SymInfo [0 ..] (repeat ty) -- map (`SymInfo` ty) [0 ..] @NoRefactor
+# foo = zipWith (SymInfo q) [0 ..] (repeat ty) -- map (\ x -> SymInfo q x ty) [0 ..]
 # f rec = rec
 # mean x = fst $ foldl (\(m, n) x' -> (m+(x'-m)/(n+1),n+1)) (0,0) x
 # {-# LANGUAGE TypeApplications #-} \
