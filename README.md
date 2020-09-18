@@ -238,6 +238,24 @@ You can see the output of `--default` [here](https://github.com/ndmitchell/hlint
 
 If you wish to use the [Dhall configuration language](https://github.com/dhall-lang/dhall-lang) to customize HLint, there [is an example](https://kowainik.github.io/posts/2018-09-09-dhall-to-hlint) and [type definition](https://github.com/kowainik/relude/blob/master/hlint/Rule.dhall).
 
+### Finding the name of a hint
+
+Hints are named with the string they display in their help message
+
+For example, if hlints outputs a warning like
+
+```
+./backend/tests/api-tests/src/Main.hs:116:51: Warning: Redundant ==
+Found:
+  regIsEnabled rr == True
+Perhaps:
+  regIsEnabled rr
+```
+
+the name of the lint is `Redundant ==`.
+
+You can use that name to refer to the lint in the configuration file and `ANN` pragmas, see the following sections.
+
 ### Ignoring hints
 
 Some of the hints are subjective, and some users believe they should be ignored. Some hints are applicable usually, but occasionally don't always make sense. The ignoring mechanism provides features for suppressing certain hints. Ignore directives can either be written as pragmas in the file being analysed, or in the hint files. Examples of pragmas are:
