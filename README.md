@@ -143,7 +143,53 @@ HLint runs the [cpphs C preprocessor](http://hackage.haskell.org/package/cpphs) 
 
 ## FAQ
 
-### Why are hints not applied recursively?
+### Usage
+
+#### Why doesn't the compiler automatically apply the optimisations?
+
+HLint doesn't suggest optimisations, it suggests code improvements - the intention is to make the code simpler, rather than making the code perform faster. The [GHC compiler](http://haskell.org/ghc/) automatically applies many of the rules suggested by HLint, so HLint suggestions will rarely improve performance.
+
+#### Why do I sometimes get a "Note" with my hint?
+
+Most hints are perfect substitutions, and these are displayed without any notes. However, some hints change the semantics of your program - typically in irrelevant ways - but HLint shows a warning note. HLint does not warn when assuming typeclass laws (such as `==` being symmetric). Some notes you may see include:
+
+* __Increases laziness__ - for example `foldl (&&) True` suggests `and` including this note. The new code will work on infinite lists, while the old code would not. Increasing laziness is usually a good idea.
+* __Decreases laziness__ - for example `(fst a, snd a)` suggests `a` including this note. On evaluation the new code will raise an error if a is an error, while the old code would produce a pair containing two error values. Only a small number of hints decrease laziness, and anyone relying on the laziness of the original code would be advised to include a comment.
+* __Removes error__ - for example `foldr1 (&&)` suggests `and` including the note `Removes error on []`. The new code will produce `True` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment.
+
+#### What is the difference between error/warning/suggestion?
+
+Every hint has a severity level:
+
+* __Error__ - by default only used for parse errors.
+* __Warning__ - for example `concat (map f x)` suggests `concatMap f x` as a "warning" severity hint. From a style point of view, you should always replace a combination of `concat` and `map` with `concatMap`.
+* __Suggestion__ - for example `x !! 0` suggests `head x` as a "suggestion" severity hint. Typically `head` is a simpler way of expressing the first element of a list, especially if you are treating the list inductively. However, in the expression `f (x !! 4) (x !! 0) (x !! 7)`, replacing the middle argument with `head` makes it harder to follow the pattern, and is probably a bad idea. Suggestion hints are often worthwhile, but should not be applied blindly.
+
+The difference between warning and suggestion is one of personal taste, typically my personal taste. If you already have a well developed sense of Haskell style, you should ignore the difference. If you are a beginner Haskell programmer you may wish to focus on warning hints before suggestion hints.
+
+#### Why do I get a parse error?
+
+HLint enables/disables a set of extensions designed to allow as many files to parse as possible, but sometimes you'll need to enable an additional extension (e.g. Arrows, QuasiQuotes, ...), or disable some (e.g. MagicHash) to enable your code to parse.
+
+You can enable extensions by specifying additional command line arguments in [.hlint.yaml](./README.md#customizing-the-hints), e.g.: `- arguments: [-XQuasiQuotes]`.
+
+### Configuration
+
+#### Why doesn't HLint know the fixity for my custom !@%$ operator?
+
+HLint knows the fixities for all the operators in the base library, as well as operators whose fixities are declared in the module being linted, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file named `.hlint.yaml` with the syntax `- fixity: "infixr 5 !@%$"`. You can also use `--find` to automatically produce a list of fixity declarations in a file.
+
+#### Which hints are ignored?
+
+Some hints are off-by-default. Some are ignored by the configuration settings. To see all hints pass `--show`. This feature is often useful in conjunction with `--report` which shows the hints in an interactive web page, allowing them to be browsed broken down by hint.
+
+#### Which hints are used?
+
+HLint uses the `hlint.yaml` file it ships with by default (containing things like the `concatMap` hint above), along with the first `.hlint.yaml` file it finds in the current directory or any parent thereof. To include other hints, pass `--hint=filename.yaml`.
+
+### Design
+
+#### Why are hints not applied recursively?
 
 Consider:
 
@@ -160,41 +206,7 @@ This will suggest eta reduction to `concat . map op`, and then after making that
 * Sometimes a transformed expression will be large, and a further hint will apply to some small part of the result, which appears confusing.
 * Consider `f $ (a b)`. There are two valid hints, either remove the $ or remove the brackets, but only one can be applied.
 
-### Why doesn't the compiler automatically apply the optimisations?
-
-HLint doesn't suggest optimisations, it suggests code improvements - the intention is to make the code simpler, rather than making the code perform faster. The [GHC compiler](http://haskell.org/ghc/) automatically applies many of the rules suggested by HLint, so HLint suggestions will rarely improve performance.
-
-### Why doesn't HLint know the fixity for my custom !@%$ operator?
-
-HLint knows the fixities for all the operators in the base library, as well as operators whose fixities are declared in the module being linted, but no others. HLint works on a single file at a time, and does not resolve imports, so cannot see fixity declarations from imported modules. You can tell HLint about fixities by putting them in a hint file named `.hlint.yaml` with the syntax `- fixity: "infixr 5 !@%$"`. You can also use `--find` to automatically produce a list of fixity declarations in a file.
-
-### Which hints are ignored?
-
-Some hints are off-by-default. Some are ignored by the configuration settings. To see all hints pass `--show`. This feature is often useful in conjunction with `--report` which shows the hints in an interactive web page, allowing them to be browsed broken down by hint.
-
-### Which hints are used?
-
-HLint uses the `hlint.yaml` file it ships with by default (containing things like the `concatMap` hint above), along with the first `.hlint.yaml` file it finds in the current directory or any parent thereof. To include other hints, pass `--hint=filename.yaml`.
-
-### Why do I sometimes get a "Note" with my hint?
-
-Most hints are perfect substitutions, and these are displayed without any notes. However, some hints change the semantics of your program - typically in irrelevant ways - but HLint shows a warning note. HLint does not warn when assuming typeclass laws (such as `==` being symmetric). Some notes you may see include:
-
-* __Increases laziness__ - for example `foldl (&&) True` suggests `and` including this note. The new code will work on infinite lists, while the old code would not. Increasing laziness is usually a good idea.
-* __Decreases laziness__ - for example `(fst a, snd a)` suggests `a` including this note. On evaluation the new code will raise an error if a is an error, while the old code would produce a pair containing two error values. Only a small number of hints decrease laziness, and anyone relying on the laziness of the original code would be advised to include a comment.
-* __Removes error__ - for example `foldr1 (&&)` suggests `and` including the note `Removes error on []`. The new code will produce `True` on the empty list, while the old code would raise an error. Unless you are relying on the exception thrown by the empty list, this hint is safe - and if you do rely on the exception, you would be advised to add a comment.
-
-### What is the difference between error/warning/suggestion?
-
-Every hint has a severity level:
-
-* __Error__ - by default only used for parse errors.
-* __Warning__ - for example `concat (map f x)` suggests `concatMap f x` as a "warning" severity hint. From a style point of view, you should always replace a combination of `concat` and `map` with `concatMap`.
-* __Suggestion__ - for example `x !! 0` suggests `head x` as a "suggestion" severity hint. Typically `head` is a simpler way of expressing the first element of a list, especially if you are treating the list inductively. However, in the expression `f (x !! 4) (x !! 0) (x !! 7)`, replacing the middle argument with `head` makes it harder to follow the pattern, and is probably a bad idea. Suggestion hints are often worthwhile, but should not be applied blindly.
-
-The difference between warning and suggestion is one of personal taste, typically my personal taste. If you already have a well developed sense of Haskell style, you should ignore the difference. If you are a beginner Haskell programmer you may wish to focus on warning hints before suggestion hints.
-
-### Is it possible to use pragma annotations in code that is read by `ghci` (conflicts with `OverloadedStrings`)?
+#### Is it possible to use pragma annotations in code that is read by `ghci` (conflicts with `OverloadedStrings`)?
 
 Short answer: yes, it is!
 
@@ -212,12 +224,6 @@ In this case, a solution is to add the `:: String` type annotation.  For example
 ```
 
 See discussion in [issue #372](https://github.com/ndmitchell/hlint/issues/372).
-
-### Why do I get a parse error?
-
-HLint enables/disables a set of extensions designed to allow as many files to parse as possible, but sometimes you'll need to enable an additional extension (e.g. Arrows, QuasiQuotes, ...), or disable some (e.g. MagicHash) to enable your code to parse.
-
-You can enable extensions by specifying additional command line arguments in [.hlint.yaml](./README.md#customizing-the-hints), e.g.: `- arguments: [-XQuasiQuotes]`.
 
 ## Customizing the hints
 

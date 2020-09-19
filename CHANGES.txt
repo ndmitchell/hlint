@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1138, show allowed fields in YAML error message
     #1131, fix potential variable capture in zipWith/repeat hint
     #1129, add hints to use const and \_ x -> x where appropriate
 3.2, released 2020-09-14
