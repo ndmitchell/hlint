@@ -186,7 +186,9 @@ allowFields v allow = do
     mp <- parseObject v
     let bad = map T.unpack (Map.keys mp) \\ allow
     when (bad /= []) $
-        parseFail v $ "Not allowed keys: " ++ unwords bad
+        parseFail v
+          $ "Not allowed keys: " ++ unwords bad
+          ++ ", Allowed keys: " ++ unwords allow
 
 parseGHC :: (ParseFlags -> String -> ParseResult v) -> Val -> Parser v
 parseGHC parser v = do
