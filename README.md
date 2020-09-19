@@ -2,16 +2,16 @@
 
 HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
 
-* [Installing and running HLint](#installing-and-running-hlint)
-* [FAQ](#faq)
-* [Customizing the hints](#customizing-the-hints)
-* [Hacking HLint](#hacking-hlint)
+* [Installing and running HLint](./README.md#installing-and-running-hlint)
+* [FAQ](./README.md#faq)
+* [Customizing the hints](./README.md#customizing-the-hints)
+* [Hacking HLint](./README.md#hacking-hlint)
 
 ### Bugs and limitations
 
 Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/issues). There are some issues that I do not intend to fix:
 
-* HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope. This decision is deliberate, allowing HLint to parallelise and be used incrementally on code that may not type-check. If fixities are required to parse the code properly, they [can be supplied](#why-doesnt-hlint-know-the-fixity-for-my-custom--operator).
+* HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope. This decision is deliberate, allowing HLint to parallelise and be used incrementally on code that may not type-check. If fixities are required to parse the code properly, they [can be supplied](./README.md#why-doesnt-hlint-know-the-fixity-for-my-custom--operator).
 * The presence of `seq` may cause some hints (i.e. eta-reduction) to change the semantics of a program.
 * Some transformed programs may require additional type signatures, particularly if the transformations trigger the monomorphism restriction or involve rank-2 types.
 * Sometimes HLint will change the code in a way that causes values to default to different types, which may change the behaviour.
@@ -55,7 +55,7 @@ Each hint says which file/line the hint relates to, how serious an issue it is, 
 
 The first hint is marked as an warning, because using `concatMap` in preference to the two separate functions is always desirable. In contrast, the removal of brackets is probably a good idea, but not always. Reasons that a hint might be a suggestion include requiring an additional import, something not everyone agrees on, and functions only available in more recent versions of the base library.
 
-Any configuration can be done via [.hlint.yaml](#customizing-the-hints) file.
+Any configuration can be done via [.hlint.yaml](./README.md#customizing-the-hints) file.
 
 **Bug reports:** The suggested replacement should be equivalent - please report all incorrect suggestions not mentioned as known limitations.
 
@@ -65,7 +65,7 @@ HLint usage tends to proceed in three distinct phases:
 
 1. Initially, run `hlint . --report` to generate `report.html` containing a list of all issues HLint has found. Fix those you think are worth fixing and keep repeating.
 1. Once you are happy, run `hlint . --default > .hlint.yaml`, which will generate a settings file ignoring all the hints currently outstanding. Over time you may wish to edit the list.
-1. For larger projects, add [custom hints or rules](#customizing-the-hints).
+1. For larger projects, add [custom hints or rules](./README.md#customizing-the-hints).
 
 Most hints are intended to be a good idea in most circumstances, but not universally - judgement is required. When contributing to someone else's project, HLint can identify pieces of code to look at, but only make changes you consider improvements - not merely to adhere to HLint rules.
 
@@ -171,7 +171,7 @@ The difference between warning and suggestion is one of personal taste, typicall
 
 HLint enables/disables a set of extensions designed to allow as many files to parse as possible, but sometimes you'll need to enable an additional extension (e.g. Arrows, QuasiQuotes, ...), or disable some (e.g. MagicHash) to enable your code to parse.
 
-You can enable extensions by specifying additional command line arguments in [.hlint.yaml](#customizing-the-hints), e.g.: `- arguments: [-XQuasiQuotes]`.
+You can enable extensions by specifying additional command line arguments in [.hlint.yaml](./README.md#customizing-the-hints), e.g.: `- arguments: [-XQuasiQuotes]`.
 
 ### Configuration
 
