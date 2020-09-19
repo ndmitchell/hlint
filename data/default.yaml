@@ -37,7 +37,7 @@
 # The hints are named by the string they display in warning messages.
 # For example, if you see a warning starting like
 #
-#   ./Main.hs:116:51: Warning: Redundant ==
+# Main.hs:116:51: Warning: Redundant ==
 #
 # You can refer to that hint with `{name: Redundant ==}` (see below).
 
