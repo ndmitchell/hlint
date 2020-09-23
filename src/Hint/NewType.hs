@@ -67,7 +67,7 @@ newTypeDerivingStrategiesHintDecl _ = []
 
 -- | Determine if the given data definition should use deriving strategies.
 shouldSuggestStrategies :: HsDataDefn GhcPs -> Bool
-shouldSuggestStrategies dataDef = all not [isData dataDef, hasAllStrategies dataDef]
+shouldSuggestStrategies dataDef = not (isData dataDef) && not (hasAllStrategies dataDef)
 
 hasAllStrategies :: HsDataDefn GhcPs -> Bool
 hasAllStrategies (HsDataDefn _ NewType _ _ _ _ (L _ xs)) = all hasStrategyClause xs
