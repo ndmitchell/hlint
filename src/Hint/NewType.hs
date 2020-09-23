@@ -116,7 +116,7 @@ singleSimpleField (L loc (InstD ext inst@(DataFamInstD instExt (DataFamInstDecl 
 singleSimpleField _ = Nothing
 
 dropBangs :: HsDataDefn GhcPs -> [LConDecl GhcPs]
-dropBangs = map (\(L consloc x) -> L consloc $ dropConsBang x) . dd_cons
+dropBangs = map (fmap dropConsBang) . dd_cons
 
 -- | Checks whether its argument is a \"simple\" data definition (see 'singleSimpleField')
 -- returning the type inside its constructor if it is.
