@@ -115,13 +115,13 @@ singleSimpleField (L loc (InstD ext inst@(DataFamInstD instExt (DataFamInstDecl 
               }
 singleSimpleField _ = Nothing
 
--- | Checks whether its argument is a \"simple\" data definition (see 'singleSimpleFieldNew')
+-- | Checks whether its argument is a \"simple\" data definition (see 'singleSimpleField')
 -- returning the type inside its constructor if it is.
 simpleHsDataDefn :: HsDataDefn GhcPs -> Maybe (HsType GhcPs)
 simpleHsDataDefn dataDef@(HsDataDefn _ DataType _ _ _ [L _ constructor] _) = simpleCons constructor
 simpleHsDataDefn _ = Nothing
 
--- | Checks whether its argument is a \"simple\" constructor (see criteria in 'singleSimpleFieldNew')
+-- | Checks whether its argument is a \"simple\" constructor (see criteria in 'singleSimpleField')
 -- returning the type inside the constructor if it is. This is needed for strictness analysis.
 simpleCons :: ConDecl GhcPs -> Maybe (HsType GhcPs)
 simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [L _ inType]) _)
