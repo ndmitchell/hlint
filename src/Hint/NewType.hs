@@ -100,7 +100,7 @@ singleSimpleField (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef)))
         Just WarnNewtype
               { newDecl = L loc $ TyClD ext decl {tcdDataDefn = dataDef
                   { dd_ND = NewType
-                  , dd_cons = map (\(L consloc x) -> L consloc $ dropConsBang x) $ dd_cons dataDef
+                  , dd_cons = dropBangs dataDef
                   }}
               , insideType = inType
               }
@@ -109,11 +109,14 @@ singleSimpleField (L loc (InstD ext inst@(DataFamInstD instExt (DataFamInstDecl 
         Just WarnNewtype
           { newDecl = L loc $ InstD ext $ DataFamInstD instExt $ DataFamInstDecl $ HsIB hsibExt famEqn {feqn_rhs = dataDef
                   { dd_ND = NewType
-                  , dd_cons = map (\(L consloc x) -> L consloc $ dropConsBang x) $ dd_cons dataDef
+                  , dd_cons = dropBangs dataDef
                   }}
               , insideType = inType
               }
 singleSimpleField _ = Nothing
+
+dropBangs :: HsDataDefn GhcPs -> [LConDecl GhcPs]
+dropBangs = map (\(L consloc x) -> L consloc $ dropConsBang x) . dd_cons
 
 -- | Checks whether its argument is a \"simple\" data definition (see 'singleSimpleField')
 -- returning the type inside its constructor if it is.
