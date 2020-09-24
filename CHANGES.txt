@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1142, suggest newtype instead of data for data family instances
     #1138, show allowed fields in YAML error message
     #1131, fix potential variable capture in zipWith/repeat hint
     #1129, add hints to use const and \_ x -> x where appropriate
