@@ -27,6 +27,15 @@ data A = A () -- newtype A = A ()
 newtype Foo = Foo Int deriving (Show, Eq) --
 newtype Foo = Foo { getFoo :: Int } deriving (Show, Eq) --
 newtype Foo = Foo Int deriving stock Show
+data instance Foo Int = Bar Bool -- newtype instance Foo Int = Bar Bool
+data instance Foo Int = Bar {field :: Bool} -- newtype instance Foo Int = Bar {field :: Bool}
+data instance Foo Int = Bar {field :: Int#}
+data instance Foo Int = Bar
+data instance Foo Int = Bar {field1 :: Bool, field2 :: ()}
+newtype instance Foo Int = Bar Bool deriving (Show, Eq) --
+newtype instance Foo Int = Bar {field :: Bool} deriving Show --
+newtype instance Foo Int = Bar {field :: Bool} deriving stock Show
+{-# LANGUAGE RankNTypes #-}; data instance Foo Int = forall a. Show a => Foo a
 </TEST>
 -}
 module Hint.NewType (newtypeHint) where
@@ -51,8 +60,14 @@ newtypeHintDecl _ = []
 
 newTypeDerivingStrategiesHintDecl :: LHsDecl GhcPs -> [Idea]
 newTypeDerivingStrategiesHintDecl decl@(L _ (TyClD _ (DataDecl _ _ _ _ dataDef))) =
-    [ignoreNoSuggestion "Use DerivingStrategies" decl | not $ isData dataDef, not $ hasAllStrategies dataDef]
+    [ignoreNoSuggestion "Use DerivingStrategies" decl | shouldSuggestStrategies dataDef]
+newTypeDerivingStrategiesHintDecl decl@(L _ (InstD _ (DataFamInstD _ (DataFamInstDecl (HsIB _ (FamEqn _ _ _ _ _ dataDef)))))) =
+    [ignoreNoSuggestion "Use DerivingStrategies" decl | shouldSuggestStrategies dataDef]
 newTypeDerivingStrategiesHintDecl _ = []
+
+-- | Determine if the given data definition should use deriving strategies.
+shouldSuggestStrategies :: HsDataDefn GhcPs -> Bool
+shouldSuggestStrategies dataDef = not (isData dataDef) && not (hasAllStrategies dataDef)
 
 hasAllStrategies :: HsDataDefn GhcPs -> Bool
 hasAllStrategies (HsDataDefn _ NewType _ _ _ _ (L _ xs)) = all hasStrategyClause xs
@@ -80,18 +95,36 @@ data WarnNewtype = WarnNewtype
 -- * Single record field constructors get newtyped - @data X = X {getX :: Int}@ -> @newtype X = X {getX :: Int}@
 -- * All other declarations are ignored.
 singleSimpleField :: LHsDecl GhcPs -> Maybe WarnNewtype
-singleSimpleField (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef@(HsDataDefn _ DataType _ _ _ [L _ constructor] _))))
-    | Just inType <- simpleCons constructor =
+singleSimpleField (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef)))
+    | Just inType <- simpleHsDataDefn dataDef =
         Just WarnNewtype
               { newDecl = L loc $ TyClD ext decl {tcdDataDefn = dataDef
                   { dd_ND = NewType
-                  , dd_cons = map (\(L consloc x) -> L consloc $ dropConsBang x) $ dd_cons dataDef
+                  , dd_cons = dropBangs dataDef
+                  }}
+              , insideType = inType
+              }
+singleSimpleField (L loc (InstD ext inst@(DataFamInstD instExt (DataFamInstDecl (HsIB hsibExt famEqn@(FamEqn _ _ _ _ _ dataDef))))))
+    | Just inType <- simpleHsDataDefn dataDef =
+        Just WarnNewtype
+          { newDecl = L loc $ InstD ext $ DataFamInstD instExt $ DataFamInstDecl $ HsIB hsibExt famEqn {feqn_rhs = dataDef
+                  { dd_ND = NewType
+                  , dd_cons = dropBangs dataDef
                   }}
               , insideType = inType
               }
 singleSimpleField _ = Nothing
 
--- | Checks whether its argument is a \"simple constructor\" (see criteria in 'singleSimpleFieldNew')
+dropBangs :: HsDataDefn GhcPs -> [LConDecl GhcPs]
+dropBangs = map (fmap dropConsBang) . dd_cons
+
+-- | Checks whether its argument is a \"simple\" data definition (see 'singleSimpleField')
+-- returning the type inside its constructor if it is.
+simpleHsDataDefn :: HsDataDefn GhcPs -> Maybe (HsType GhcPs)
+simpleHsDataDefn dataDef@(HsDataDefn _ DataType _ _ _ [L _ constructor] _) = simpleCons constructor
+simpleHsDataDefn _ = Nothing
+
+-- | Checks whether its argument is a \"simple\" constructor (see criteria in 'singleSimpleField')
 -- returning the type inside the constructor if it is. This is needed for strictness analysis.
 simpleCons :: ConDecl GhcPs -> Maybe (HsType GhcPs)
 simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [L _ inType]) _)
