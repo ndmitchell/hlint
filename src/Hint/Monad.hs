@@ -43,7 +43,7 @@ main = "wait" ~> do f a $ sleep 10
 {-# LANGUAGE BlockArguments #-}; main = print do 17 --
 main = f $ do g a $ sleep 10 --
 main = do f a $ sleep 10 -- @Ignore
-main = do foo x; return 3; bar z -- do foo x; bar z
+main = do foo x; return 3; bar z -- 
 main = void $ forM_ f xs -- forM_ f xs
 main = void $ forM f xs -- void $ forM_ f xs
 main = do _ <- forM_ f xs; bar -- forM_ f xs
@@ -181,8 +181,8 @@ monadStep :: ([ExprLStmt GhcPs] -> LHsExpr GhcPs)
            -> [ExprLStmt GhcPs] -> [Idea]
 
 -- Rewrite 'do return x; $2' as 'do $2'.
-monadStep wrap os@(o@(L _ (BodyStmt _ (fromRet -> Just (ret, _)) _ _ )) : xs@(_:_))
-  = [warn ("Redundant " ++ ret) (wrap os) (wrap xs) [Delete Stmt (toSS o)]]
+monadStep wrap (o@(L _ (BodyStmt _ (fromRet -> Just (ret, _)) _ _ )) : xs@(_:_))
+  = [ideaRemove Hint.Type.Warning ("Redundant " ++ ret) (getLoc o) (unsafePrettyPrint o) [Delete Stmt (toSS o)]]
 
 -- Rewrite 'do a <- $1; return a' as 'do $1'.
 monadStep wrap o@[ g@(L _ (BindStmt _ (LL _ (VarPat _ (L _ p))) x _ _ ))
