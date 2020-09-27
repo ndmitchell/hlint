@@ -60,9 +60,9 @@ issue978 = do \
 
 module Hint.Monad(monadHint) where
 
-import Hint.Type(DeclHint,Idea(..),Severity(..),ideaNote,warn,ideaRemove,toSS,suggest,Note(Note))
+import Hint.Type
 
-import GHC.Hs
+import GHC.Hs hiding (Warning)
 import SrcLoc
 import BasicTypes
 import TcEvidence
@@ -182,7 +182,7 @@ monadStep :: ([ExprLStmt GhcPs] -> LHsExpr GhcPs)
 
 -- Rewrite 'do return x; $2' as 'do $2'.
 monadStep wrap (o@(L _ (BodyStmt _ (fromRet -> Just (ret, _)) _ _ )) : xs@(_:_))
-  = [ideaRemove Hint.Type.Warning ("Redundant " ++ ret) (getLoc o) (unsafePrettyPrint o) [Delete Stmt (toSS o)]]
+  = [ideaRemove Warning ("Redundant " ++ ret) (getLoc o) (unsafePrettyPrint o) [Delete Stmt (toSS o)]]
 
 -- Rewrite 'do a <- $1; return a' as 'do $1'.
 monadStep wrap o@[ g@(L _ (BindStmt _ (LL _ (VarPat _ (L _ p))) x _ _ ))
