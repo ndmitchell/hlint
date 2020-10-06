@@ -114,7 +114,7 @@ classify xs i = let s = foldl' (f i) (ideaSeverity i) xs in s `seq` i{ideaSeveri
         f :: Idea -> Severity -> Classify -> Severity
         f i r c | classifyHint c ~~= ideaHint i && classifyModule c ~= ideaModule i && classifyDecl c ~= ideaDecl i = classifySeverity c
                 | otherwise = r
-        x ~= y = x == "" || x `elem` y || any (wildcardMatch x) y
+        x ~= y = x == "" || any (wildcardMatch x) y
         x  ~~= y = x == "" || x == y || ((x ++ ":") `isPrefixOf` y)
 
 -- | Returns true if the pattern matches the string. For example:
@@ -131,6 +131,4 @@ classify xs i = let s = foldl' (f i) (ideaSeverity i) xs in s `seq` i{ideaSeveri
 --
 -- See this issue for details: <https://github.com/ndmitchell/hlint/issues/402>.
 wildcardMatch :: FilePattern -> String -> Bool
-wildcardMatch p m =
-    let f x = if x == '.' then '/' else x
-    in '*' `elem` p && fmap f p ?== fmap f m
+wildcardMatch p m = let f = replace "." "/" in f p ?== f m
