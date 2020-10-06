@@ -1,0 +1,7 @@
+---------------------------------------------------------------------
+RUN tests/wildcard.hs --hint=data/wildcard.yaml
+FILE tests/wildcard.hs
+module Spec where
+main = print $ (\ _ -> 'a') ()
+OUTPUT
+No hints

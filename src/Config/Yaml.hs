@@ -304,14 +304,18 @@ parseRestrict restrictType v = do
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
 parseWithin v = do
-    x <- parseGHC parseExpGhcWithMode v
-    case x of
-        L _ (HsVar _ (L _ (Unqual x))) -> pure $ f "" (occNameString x)
-        L _ (HsVar _ (L _ (Qual mod x))) -> pure $ f (moduleNameString mod) (occNameString x)
-        _ -> parseFail v "Bad classification rule"
-    where
-        f mod name@(c:_) | isUpper c = [(mod,name),(mod ++ ['.' | mod /= ""] ++ name, "")]
-        f mod name = [(mod, name)]
+    s <- parseString v
+    if '*' `elem` s
+        then pure [(s, "")]
+        else do
+            x <- parseGHC parseExpGhcWithMode v
+            case x of
+                L _ (HsVar _ (L _ (Unqual x))) -> pure $ f "" (occNameString x)
+                L _ (HsVar _ (L _ (Qual mod x))) -> pure $ f (moduleNameString mod) (occNameString x)
+                _ -> parseFail v "Bad classification rule"
+            where
+                f mod name@(c:_) | isUpper c = [(mod,name),(mod ++ ['.' | mod /= ""] ++ name, "")]
+                f mod name = [(mod, name)]
 
 parseSeverityKey :: Val -> Parser (Severity, Val)
 parseSeverityKey v = do

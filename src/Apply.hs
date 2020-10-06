@@ -20,6 +20,7 @@ import GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Hs
 import qualified Data.HashSet as Set
 import Prelude
+import System.FilePattern (FilePattern, (?==))
 
 
 -- | Apply hints to a single file, you may have the contents of the file.
@@ -113,5 +114,23 @@ classify xs i = let s = foldl' (f i) (ideaSeverity i) xs in s `seq` i{ideaSeveri
         f :: Idea -> Severity -> Classify -> Severity
         f i r c | classifyHint c ~~= ideaHint i && classifyModule c ~= ideaModule i && classifyDecl c ~= ideaDecl i = classifySeverity c
                 | otherwise = r
-        x ~= y = x == "" || x `elem` y
+        x ~= y = x == "" || x `elem` y || any (wildcardMatch x) y
         x  ~~= y = x == "" || x == y || ((x ++ ":") `isPrefixOf` y)
+
+-- | Returns true if the pattern matches the string. For example:
+--
+-- >>> let isSpec = wildcardMatch "**.*Spec"
+-- >>> isSpec "Example"
+-- False
+-- >>> isSpec "ExampleSpec"
+-- True
+-- >>> isSpec "Namespaced.ExampleSpec"
+-- True
+-- >>> isSpec "Deeply.Nested.ExampleSpec"
+-- True
+--
+-- See this issue for details: <https://github.com/ndmitchell/hlint/issues/402>.
+wildcardMatch :: FilePattern -> String -> Bool
+wildcardMatch p m =
+    let f x = if x == '.' then '/' else x
+    in '*' `elem` p && fmap f p ?== fmap f m
