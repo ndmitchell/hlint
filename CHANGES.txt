@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1149, allow within to use module wildcards, e.g. **.Foo
     #1141, make redundant return highlight just the return
     #1142, suggest newtype instead of data for data family instances
     #1138, show allowed fields in YAML error message
