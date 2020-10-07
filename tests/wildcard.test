@@ -1,0 +1,45 @@
+---------------------------------------------------------------------
+RUN tests/wildcard-1.hs --hint=data/wildcard.yaml
+FILE tests/wildcard-1.hs
+module SpecNoMatch where
+main = print $ (\ _ -> 'a') ()
+OUTPUT
+tests/wildcard-1.hs:2:17-26: Suggestion: Use const
+Found:
+  \ _ -> 'a'
+Perhaps:
+  const 'a'
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/wildcard-2.hs --hint=data/wildcard.yaml
+FILE tests/wildcard-2.hs
+module Spec where
+main = print $ (\ _ -> 'a') ()
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/wildcard-3.hs --hint=data/wildcard.yaml
+FILE tests/wildcard-3.hs
+module PrefixedSpec where
+main = print $ (\ _ -> 'a') ()
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/wildcard-4.hs --hint=data/wildcard.yaml
+FILE tests/wildcard-4.hs
+module Namespaced.Spec where
+main = print $ (\ _ -> 'a') ()
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/wildcard-5.hs --hint=data/wildcard.yaml
+FILE tests/wildcard-5.hs
+module Deeply.Nested.Spec where
+main = print $ (\ _ -> 'a') ()
+OUTPUT
+No hints
