@@ -41,6 +41,9 @@ data HintBuiltin =
     HintComment | HintNewType | HintSmell
     deriving (Show,Eq,Ord,Bounded,Enum)
 
+-- See https://github.com/ndmitchell/hlint/issues/1150 - Duplicate is too slow
+-- and doesn't provide much value anyway.
+issue1150 = True
 
 builtin :: HintBuiltin -> Hint
 builtin x = case x of
@@ -50,7 +53,7 @@ builtin x = case x of
     HintExport     -> modu exportHint
     HintComment    -> modu commentHint
     HintPragma     -> modu pragmaHint
-    HintDuplicate  -> mods duplicateHint
+    HintDuplicate  -> if issue1150 then mempty else mods duplicateHint
     HintRestrict   -> mempty{hintModule=restrictHint}
     HintList       -> decl listHint
     HintNewType    -> decl newtypeHint

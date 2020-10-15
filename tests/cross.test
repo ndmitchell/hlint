@@ -22,12 +22,4 @@ foo = 1
         c = 3
 
 OUTPUT
-tests/cross.hs1:7:9-13: Suggestion: Reduce duplication
-Found:
-  a = 1
-  b = 2
-  c = 3
-Perhaps:
-  Combine with tests/cross.hs2:6:9-13
-
-1 hint
+No hints

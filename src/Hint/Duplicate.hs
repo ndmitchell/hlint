@@ -5,7 +5,7 @@
 Find bindings within a let, and lists of statements
 If you have n the same, error out
 
-<TEST>
+<TEST_DISABLED_1150>
 foo = a where {a = 1; b = 2; c = 3} \
 bar = a where {a = 1; b = 2; c = 3} -- ???
 main = do a; a; a; a
@@ -17,7 +17,7 @@ main = do a; a; a; b; a; a
 {-# ANN main "HLint: ignore Reduce duplication" #-}; main = do a; a; a; a; a; a -- @Ignore ???
 {-# HLINT ignore main "Reduce duplication" #-}; main = do a; a; a; a; a; a -- @Ignore ???
 {- HLINT ignore main "Reduce duplication" -}; main = do a; a; a; a; a; a -- @Ignore ???
-</TEST>
+</TEST_DISABLED_1150>
 -}
 
 
