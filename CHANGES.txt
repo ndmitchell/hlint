@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.2.1, released 2020-10-15
     #1150, remove the Duplicate hint (was slow)
     #1149, allow within to use module wildcards, e.g. **.Foo
     #1141, make redundant return highlight just the return
