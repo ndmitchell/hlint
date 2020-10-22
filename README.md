@@ -92,7 +92,6 @@ HLint is integrated into lots of places:
 * [Code Climate](https://docs.codeclimate.com/v1.0/docs/hlint) is a CI for analysis which integrates HLint.
 * [Danger](http://allocinit.io/haskell/danger-and-hlint/) can be used to automatically comment on pull requests with HLint suggestions.
 * [Restyled](https://restyled.io) includes an HLint Restyler to automatically run `hlint --refactor` on files changed in GitHub Pull Requests.
-* [lpaste](http://lpaste.net/) integrates with HLint - suggestions are shown at the bottom.
 * [hlint-test](https://hackage.haskell.org/package/hlint-test) helps you write a small test runner with HLint.
 * [hint-man](https://github.com/apps/hint-man) automatically submits reviews to opened pull requests in your repositories with inline hints.
 * [CircleCI](https://circleci.com/orbs/registry/orb/haskell-works/hlint) has a plugin to run HLint more easily.
