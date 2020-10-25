@@ -172,6 +172,20 @@ HLint enables/disables a set of extensions designed to allow as many files to pa
 
 You can enable extensions by specifying additional command line arguments in [.hlint.yaml](./README.md#customizing-the-hints), e.g.: `- arguments: [-XQuasiQuotes]`.
 
+#### How do I only run hlint on changed files?
+
+If you're using git, it may be helpful to only run hlint on changed files. This can be a considerable speedup on very large codebases.
+
+```bash
+{ git diff --diff-filter=d --name-only $(git merge-base HEAD origin/master) -- "***.hs" && git ls-files -o --exclude-standard -- "***.hs"; } | xargs hlint
+```
+
+Because hlint's `--refactor` option only works when you pass a single file, this approach is also helpful to enable refactoring many files in a single command:
+
+```bash
+{ git diff --diff-filter=d --name-only $(git merge-base HEAD origin/master) -- "***.hs" && git ls-files -o --exclude-standard -- "***.hs"; } | xargs -I file hlint file --refactor --refactor-options="--inplace --step"
+```
+
 ### Configuration
 
 #### Why doesn't HLint know the fixity for my custom !@%$ operator?
