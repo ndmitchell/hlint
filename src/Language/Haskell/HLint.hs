@@ -15,7 +15,7 @@ module Language.Haskell.HLint(
     -- * Generate hints
     hlint, applyHints,
     -- * Idea data type
-    Idea(..), Severity(..), Note(..), unpackSrcSpan, showANSI,
+    Idea(..), Severity(..), Note(..), unpackSrcSpan, showIdeaANSI,
     -- * Settings
     Classify(..),
     getHLintDataDir, autoSettings, argsSettings,

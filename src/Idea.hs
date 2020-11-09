@@ -4,7 +4,7 @@ module Idea(
     Idea(..),
     rawIdea, idea, suggest, suggestRemove, ideaRemove, warn, ignore,
     rawIdeaN, suggestN, ignoreNoSuggestion,
-    showIdeasJson, showANSI,
+    showIdeasJson, showANSI, showIdeaANSI,
     Note(..), showNotes,
     Severity(..),
     ) where
@@ -60,6 +60,7 @@ showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = dict
     dict xs = "{" ++ intercalate "," [show k ++ ":" ++ v | (k,v) <- xs] ++ "}"
     list xs = "[" ++ intercalate "," xs ++ "]"
 
+-- | Show a list of 'Idea' values as a JSON string.
 showIdeasJson :: [Idea] -> String
 showIdeasJson ideas = "[" ++ intercalate "\n," (map showIdeaJson ideas) ++ "]"
 
@@ -67,8 +68,13 @@ instance Show Idea where
     show = showEx id
 
 
+-- | Show an 'Idea' with ANSI color, using the hscolour preferences file.
 showANSI :: IO (Idea -> String)
 showANSI = showEx <$> hsColourConsole
+
+-- | Show an 'Idea' with ANSI color codes to give syntax coloring to the Haskell code.
+showIdeaANSI :: Idea -> String
+showIdeaANSI = showEx hsColourConsolePure
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
