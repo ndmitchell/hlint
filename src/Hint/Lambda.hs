@@ -80,6 +80,7 @@ foo = bar (\x -> shakeRoot </> "src" </> x)
 baz = bar (\x -> (x +)) -- (+)
 xs `withArgsFrom` args = f args
 foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z
+foo = bar (\x -> case x of Y z | z > 0 -> z) -- \case Y z | z > 0 -> z
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b
 yes = blah (\ x -> case x of A -> a; B -> b) -- @Note may require `{-# LANGUAGE LambdaCase #-}` adding to the top of the file
 no = blah (\ x -> case x of A -> a x; B -> b x)
@@ -249,7 +250,8 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                  -- we need to
                  --     * add brackets to the match, because matches in lambdas require them
                  --     * mark match as being in a lambda context so that it's printed properly
-                 oldMG@(MG _ (L _ [L _ oldmatch]) _) ->
+                 oldMG@(MG _ (L _ [L _ oldmatch]) _)
+                   | all (\(L _ (GRHS _ stmts _)) -> null stmts) (grhssGRHSs (m_grhss oldmatch)) ->
                      [suggestN "Use lambda" o $ noLoc $ HsLam noExtField oldMG
                          { mg_alts = noLoc
                              [noLoc oldmatch
