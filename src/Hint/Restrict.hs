@@ -191,10 +191,7 @@ findFunction
     -> Located RdrName
     -> [ModuleName]
     -> Maybe ([(String, String)], Maybe String)
-findFunction restrictMap (rdrNameStr -> x) (map moduleNameString -> possMods) =
-    case Map.lookup x restrictMap of
-        Just (RestrictFun mp) -> do
-            n <- NonEmpty.nonEmpty . Map.elems $ Map.filterWithKey (const . maybe True (`elem` possMods)) mp
-            pure (sconcat n)
-        Nothing ->
-            Nothing
+findFunction restrictMap (rdrNameStr -> x) (map moduleNameString -> possMods) = do
+    (RestrictFun mp) <- Map.lookup x restrictMap
+    n <- NonEmpty.nonEmpty . Map.elems $ Map.filterWithKey (const . maybe True (`elem` possMods)) mp
+    pure (sconcat n)
