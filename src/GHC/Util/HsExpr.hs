@@ -102,8 +102,7 @@ descendBracket op x = descendIndex g x
     where
         g i y = if a then f i b else b
             where (a, b) = op y
-        f i y@(L _ e) | needBracket i x y = addParen y
-        f _ y = y
+        f i y = if needBracket i x y then addParen y else y
 
 -- Add brackets as suggested 'needBracket at 1-level of depth.
 rebracket1 :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -203,8 +202,8 @@ niceLambdaR [x] y
   where
     -- Factor the expression with respect to x.
     factor :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [LHsExpr GhcPs])
-    factor y@(L _ (HsApp _ ini lst)) | view lst == Var_ x = Just (ini, [ini])
-    factor y@(L _ (HsApp _ ini lst)) | Just (z, ss) <- factor lst
+    factor (L _ (HsApp _ ini lst)) | view lst == Var_ x = Just (ini, [ini])
+    factor (L _ (HsApp _ ini lst)) | Just (z, ss) <- factor lst
       = let r = niceDotApp ini z
         in if astEq r z then Just (r, ss) else Just (r, ini : ss)
     factor (L _ (OpApp _ y op (factor -> Just (z, ss))))| isDol op

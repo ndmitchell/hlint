@@ -104,7 +104,7 @@ singleSimpleField (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef)))
                   }}
               , insideType = inType
               }
-singleSimpleField (L loc (InstD ext inst@(DataFamInstD instExt (DataFamInstDecl (HsIB hsibExt famEqn@(FamEqn _ _ _ _ _ dataDef))))))
+singleSimpleField (L loc (InstD ext (DataFamInstD instExt (DataFamInstDecl (HsIB hsibExt famEqn@(FamEqn _ _ _ _ _ dataDef))))))
     | Just inType <- simpleHsDataDefn dataDef =
         Just WarnNewtype
           { newDecl = L loc $ InstD ext $ DataFamInstD instExt $ DataFamInstDecl $ HsIB hsibExt famEqn {feqn_rhs = dataDef
@@ -121,7 +121,7 @@ dropBangs = map (fmap dropConsBang) . dd_cons
 -- | Checks whether its argument is a \"simple\" data definition (see 'singleSimpleField')
 -- returning the type inside its constructor if it is.
 simpleHsDataDefn :: HsDataDefn GhcPs -> Maybe (HsType GhcPs)
-simpleHsDataDefn dataDef@(HsDataDefn _ DataType _ _ _ [L _ constructor] _) = simpleCons constructor
+simpleHsDataDefn (HsDataDefn _ DataType _ _ _ [L _ constructor] _) = simpleCons constructor
 simpleHsDataDefn _ = Nothing
 
 -- | Checks whether its argument is a \"simple\" constructor (see criteria in 'singleSimpleField')

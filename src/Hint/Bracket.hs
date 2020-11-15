@@ -124,7 +124,7 @@ bracketHint _ _ x =
      -- Brackets the roots of annotations are fine, so we strip them.
      annotations :: AnnDecl GhcPs -> AnnDecl GhcPs
      annotations= descendBi $ \x -> case (x :: LHsExpr GhcPs) of
-       L l (HsPar _ x) -> x
+       L _ (HsPar _ x) -> x
        x -> x
 
 -- If we find ourselves in the context of a section and we want to
@@ -233,7 +233,7 @@ fieldDecl _ = []
 dollar :: LHsExpr GhcPs -> [Idea]
 dollar = concatMap f . universe
   where
-    f x = [ (suggest "Redundant $" x y [r]){ideaSpan = getLoc d} | o@(L _ (OpApp _ a d b)) <- [x], isDol d
+    f x = [ (suggest "Redundant $" x y [r]){ideaSpan = getLoc d} | L _ (OpApp _ a d b) <- [x], isDol d
             , let y = noLoc (HsApp noExtField a b) :: LHsExpr GhcPs
             , not $ needBracket 0 y a
             , not $ needBracket 1 y b
@@ -249,7 +249,7 @@ dollar = concatMap f . universe
             , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]
           ++  -- Special case of (v1 . v2) <$> v3
           [ (suggest "Redundant bracket" x y [r]){ideaSpan = locPar}
-          | L _ (OpApp _ (L locPar (HsPar _ o1@(L locNoPar (OpApp _ v1 (isDot -> True) v2)))) o2 v3) <- [x], varToStr o2 == "<$>"
+          | L _ (OpApp _ (L locPar (HsPar _ o1@(L locNoPar (OpApp _ _ (isDot -> True) _)))) o2 v3) <- [x], varToStr o2 == "<$>"
           , let y = noLoc (OpApp noExtField o1 o2 v3) :: LHsExpr GhcPs
           , let r = Replace Expr (toRefactSrcSpan locPar) [("a", toRefactSrcSpan locNoPar)] "a"]
           ++

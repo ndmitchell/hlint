@@ -135,7 +135,7 @@ lambdaDecl
         origBind@FunBind {fun_id = funName@(L loc1 _), fun_matches =
             MG {mg_alts =
                 L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _) pats (GRHSs _ [L _ (GRHS _ [] origBody@(L loc2 _))] bind))]}}))
-    | L _ (EmptyLocalBinds noExtField) <- bind
+    | L _ (EmptyLocalBinds _) <- bind
     , isLambda $ fromParen origBody
     , null (universeBi pats :: [HsExpr GhcPs])
     = let (newPats, newBody) = fromLambda . lambda pats $ origBody
@@ -262,7 +262,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                      ]
 
                  -- otherwise we should use @LambdaCase@
-                 MG _ (L _ xs) _ ->
+                 MG _ (L _ _) _ ->
                      [(suggestN "Use lambda-case" o $ noLoc $ HsLamCase noExtField matchGroup)
                          {ideaNote=[RequiresExtension "LambdaCase"]}]
                  _ -> []
@@ -271,7 +271,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
         -- | Filter out tuple arguments, converting the @x@ (matched in the lambda) variable argument
         -- to a missing argument, so that we get the proper section.
         removeX :: LHsTupArg GhcPs -> LHsTupArg GhcPs
-        removeX arg@(L _ (Present _ (view -> Var_ x')))
+        removeX (L _ (Present _ (view -> Var_ x')))
             | x == x' = noLoc $ Missing noExtField
         removeX y = y
         -- | Extract the name of an argument of a tuple if it's present and a variable.
