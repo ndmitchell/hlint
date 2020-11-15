@@ -86,7 +86,7 @@ The arguments after `-s` are passed to `hlint`, so modify the final `.` if you w
 HLint is integrated into lots of places:
 
 * Lots of editors have HLint plugins (quite a few have more than one HLint plugin).
-* HLint is part of the multiple editor plugins [ghc-mod](https://hackage.haskell.org/package/ghc-mod) and [Intero](https://github.com/commercialhaskell/intero).
+* HLint is part of the multiple Haskell IDEs, [haskell-language-server](https://github.com/haskell/haskell-language-server), [ghc-mod](https://hackage.haskell.org/package/ghc-mod) and [Intero](https://github.com/commercialhaskell/intero).
 * [HLint Source Plugin](https://github.com/ocharles/hlint-source-plugin) makes HLint available as a GHC plugin.
 * [Splint](https://github.com/tfausak/splint) is another source plugin that doesn't require reparsing the GHC source if you are on the latest GHC version.
 * [Code Climate](https://docs.codeclimate.com/v1.0/docs/hlint) is a CI for analysis which integrates HLint.
