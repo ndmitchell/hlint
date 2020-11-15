@@ -92,6 +92,9 @@ special = foo $ f{x=1}
 special = foo $ Rec{x=1}
 special = foo (f{x=1})
 loadCradleOnlyonce = skipManyTill anyMessage (message @PublishDiagnosticsNotification)
+
+-- type splices are a bit special
+no = f @($x)
 </TEST>
 -}
 

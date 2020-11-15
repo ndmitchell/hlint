@@ -46,7 +46,9 @@ instance Brackets (LHsExpr GhcPs) where
       RecordUpd{} -> True
       ArithSeq{}-> True
       HsBracket{} -> True
-      HsSpliceE {} -> True
+      -- HsSplice might be $foo, where @($foo) would require brackets,
+      -- but in that case the $foo is a type, so we can still mark Splice as atomic
+      HsSpliceE{} -> True
       HsOverLit _ x | not $ isNegativeOverLit x -> True
       HsLit _ x     | not $ isNegativeLit x     -> True
       _  -> False
@@ -144,8 +146,8 @@ instance Brackets (LHsType GhcPs) where
       HsExplicitListTy{} -> True
       HsTyVar{} -> True
       HsSumTy{} -> True
-      HsSpliceTy{} -> True
       HsWildCardTy{} -> True
+      -- HsSpliceTy{} is not atomic, because of @($foo)
       _ -> False
   isAtom _ = False -- '{-# COMPLETE L #-}'
 

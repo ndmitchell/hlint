@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1153, fix incorrect redundant bracket with @($foo)
     #1163, do not suggest "Use lambda" when there are guards
     #1160, add showIdeaANSI to show Idea values with escape codes
 3.2.1, released 2020-10-15
