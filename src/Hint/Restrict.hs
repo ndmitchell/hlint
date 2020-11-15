@@ -178,16 +178,23 @@ checkFunctions scope modu decls (def, mp) =
     , let dname = fromMaybe "" (declName d)
     , x <- universeBi d :: [Located RdrName]
     , let xMods = possModules scope x
-    , let (withins, message) = fromMaybe ([("","") | def], Nothing) (findFunction x xMods)
+    , let (withins, message) = fromMaybe ([("","") | def], Nothing) (findFunction mp x xMods)
     , not $ within modu dname withins
     ]
-  where
-    -- Returns Just iff there are rules for x, which are either unqualified, or qualified with a module that is
-    -- one of x's possible modules.
-    -- If there are multiple matching rules (e.g., there's both an unqualified version and a qualified version), their
-    -- withins and messages are concatenated with (<>).
-    findFunction :: Located RdrName -> [ModuleName] -> Maybe ([(String, String)], Maybe String)
-    findFunction (rdrNameStr -> x) (map moduleNameString -> possMods)
-      | Just (RestrictFun mp) <- Map.lookup x mp =
-          fmap sconcat . NonEmpty.nonEmpty . Map.elems $ Map.filterWithKey (const . maybe True (`elem` possMods)) mp
-      | otherwise = Nothing
+
+-- Returns Just iff there are rules for x, which are either unqualified, or qualified with a module that is
+-- one of x's possible modules.
+-- If there are multiple matching rules (e.g., there's both an unqualified version and a qualified version), their
+-- withins and messages are concatenated with (<>).
+findFunction
+    :: Map.Map String RestrictFunction
+    -> Located RdrName
+    -> [ModuleName]
+    -> Maybe ([(String, String)], Maybe String)
+findFunction restrictMap (rdrNameStr -> x) (map moduleNameString -> possMods) =
+    case Map.lookup x restrictMap of
+        Just (RestrictFun mp) -> do
+            n <- NonEmpty.nonEmpty . Map.elems $ Map.filterWithKey (const . maybe True (`elem` possMods)) mp
+            pure (sconcat n)
+        Nothing ->
+            Nothing
