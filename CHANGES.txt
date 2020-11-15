@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1166, detect more unboxed data to avoid suggesting newtype
     #1153, fix incorrect redundant bracket with @($foo)
     #1163, do not suggest "Use lambda" when there are guards
     #1160, add showIdeaANSI to show Idea values with escape codes

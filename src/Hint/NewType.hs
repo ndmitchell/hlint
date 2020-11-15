@@ -21,6 +21,7 @@ data Foo a = () => Foo a -- newtype Foo a = Foo a
 data X = Y {-# UNPACK #-} !Int -- newtype X = Y Int
 data A = A {b :: !C} -- newtype A = A {b :: C}
 data A = A Int#
+data A = A (MutableByteArray# s)
 {-# LANGUAGE UnboxedTuples #-}; data WithAnn x = WithAnn (# Ann, x #)
 {-# LANGUAGE UnboxedTuples #-}; data WithAnn x = WithAnn {getWithAnn :: (# Ann, x #)}
 data A = A () -- newtype A = A ()
@@ -45,8 +46,9 @@ import Hint.Type (Idea, DeclHint, Note(DecreasesLaziness), ideaNote, ignoreNoSug
 import Data.List (isSuffixOf)
 import GHC.Hs.Decls
 import GHC.Hs
-import Outputable
 import SrcLoc
+import Data.Generics.Uniplate.Data
+import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 newtypeHint :: DeclHint
 newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
@@ -140,8 +142,7 @@ simpleCons (ConDeclH98 _ _ _ [] context (RecCon (L _ [L _ (ConDeclField _ [_] (L
 simpleCons _ = Nothing
 
 isHashy :: HsType GhcPs -> Bool
-isHashy (HsTyVar _ _ identifier) = "#" `isSuffixOf` showSDocUnsafe (ppr identifier)
-isHashy _ = False
+isHashy x = or ["#" `isSuffixOf` unsafePrettyPrint v | v@HsTyVar{} <- universe x]
 
 warnBang :: HsType GhcPs -> Bool
 warnBang (HsBangTy _ (HsSrcBang _ _ SrcStrict) _) = False
