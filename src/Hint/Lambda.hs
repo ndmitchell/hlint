@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, PatternGuards, ViewPatterns #-}
+{-# LANGUAGE LambdaCase, PatternGuards, TypeApplications, ViewPatterns #-}
 
 {-
     Concept:
@@ -80,6 +80,7 @@ foo = bar (\x -> shakeRoot </> "src" </> x)
 baz = bar (\x -> (x +)) -- (+)
 xs `withArgsFrom` args = f args
 foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z
+foo = bar (\x -> case x of [y, z] -> z) -- \[y, z] -> z
 foo = bar (\x -> case x of Y z | z > 0 -> z) -- \case Y z | z > 0 -> z
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b
 yes = blah (\ x -> case x of A -> a; B -> b) -- @Note may require `{-# LANGUAGE LambdaCase #-}` adding to the top of the file
@@ -103,7 +104,7 @@ f = map (\s -> MkFoo s 0 s) ["a","b","c"]
 
 module Hint.Lambda(lambdaHint) where
 
-import Hint.Type (DeclHint, Idea, Note(RequiresExtension), suggest, warn, toSS, suggestN, ideaNote, substVars)
+import Hint.Type (DeclHint, Idea, Note(RequiresExtension), suggest, warn, toSS, suggestN, ideaNote, substVars, toRefactSrcSpan)
 import Util
 import Data.List.Extra
 import Data.Set (Set)
@@ -252,14 +253,29 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                  --     * mark match as being in a lambda context so that it's printed properly
                  oldMG@(MG _ (L _ [L _ oldmatch]) _)
                    | all (\(L _ (GRHS _ stmts _)) -> null stmts) (grhssGRHSs (m_grhss oldmatch)) ->
-                     [suggestN "Use lambda" o $ noLoc $ HsLam noExtField oldMG
-                         { mg_alts = noLoc
-                             [noLoc oldmatch
-                                 { m_pats = map mkParPat $ m_pats oldmatch
-                                 , m_ctxt = LambdaExpr
+                     let patLocs = fmap getLoc (m_pats oldmatch)
+                         bodyLocs = concatMap (\case L _ (GRHS _ _ body) -> [getLoc body]; _ -> [])
+                                        $ grhssGRHSs (m_grhss oldmatch)
+                         r | notNull patLocs && notNull bodyLocs =
+                             let xloc = foldl1' combineSrcSpans patLocs
+                                 yloc = foldl1' combineSrcSpans bodyLocs
+                              in [ Replace Expr (toSS o) [("x", toRefactSrcSpan xloc), ("y", toRefactSrcSpan yloc)]
+                                     ((if needParens then "\\(x)" else "\\x") ++ " -> y")
+                                 ]
+                           | otherwise = []
+                         needParens = any (patNeedsParens appPrec . unLoc) (m_pats oldmatch)
+                      in [ suggest "Use lambda" o
+                             ( noLoc @(LHsExpr GhcPs) $ HsLam noExtField oldMG
+                                 { mg_alts = noLoc
+                                     [ noLoc oldmatch
+                                         { m_pats = map mkParPat $ m_pats oldmatch
+                                         , m_ctxt = LambdaExpr
+                                         }
+                                     ]
                                  }
-                             ] }
-                     ]
+                             )
+                             r
+                         ]
 
                  -- otherwise we should use @LambdaCase@
                  MG _ (L _ _) _ ->
