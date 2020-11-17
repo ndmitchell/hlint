@@ -647,7 +647,6 @@ Suggestion:
 \ (Y z) -> z
 </code>
 <br>
-Does not support refactoring.
 </td>
 <td>Suggestion</td>
 </tr>
@@ -1325,54 +1324,6 @@ entries = unsafePerformIO Multimap.newIO
 <th>Hint Name</th>
 <th>Hint</th>
 <th>Severity</th>
-</tr>
-<tr>
-<td>Reduce duplication</td>
-<td>
-Example:
-<code>
-{-# ANN main "HLint: ignore Reduce duplication" #-}; main = do a; a; a; a; a; a
-</code>
-<br>
-Found:
-<pre>
-a
-a
-a
-
-</pre>
-Suggestion:
-<code>
-Combine with src/Hint/Duplicate.hs:1:73
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Ignore</td>
-</tr>
-<tr>
-<td>Reduce duplication</td>
-<td>
-Example:
-<pre>
-foo = a where {a = 1; b = 2; c = 3} 
-bar = a where {a = 1; b = 2; c = 3}
-</pre>
-Found:
-<pre>
-a = 1
-b = 2
-c = 3
-
-</pre>
-Suggestion:
-<code>
-Combine with src/Hint/Duplicate.hs:2:16-20
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Suggestion</td>
 </tr>
 </table>
 
@@ -3889,7 +3840,7 @@ zipWith f y (repeat z)
 <br>
 RHS:
 <code>
-map (\ x -> f x z) y
+map (`f` z) y
 </code>
 <br>
 </td>
@@ -4738,6 +4689,54 @@ LHS:
 RHS:
 <code>
 const
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use const</td>
+<td>
+LHS:
+<code>
+curry fst
+</code>
+<br>
+RHS:
+<code>
+const
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant curry</td>
+<td>
+LHS:
+<code>
+curry snd
+</code>
+<br>
+RHS:
+<code>
+\ _ x -> x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant flip</td>
+<td>
+LHS:
+<code>
+flip const
+</code>
+<br>
+RHS:
+<code>
+\ _ x -> x
 </code>
 <br>
 </td>

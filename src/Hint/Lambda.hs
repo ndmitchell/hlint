@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, PatternGuards, TypeApplications, ViewPatterns #-}
+{-# LANGUAGE LambdaCase, PatternGuards, ViewPatterns #-}
 
 {-
     Concept:
@@ -81,10 +81,10 @@ baz = bar (\x -> (x +)) -- (+)
 xs `withArgsFrom` args = f args
 foo = bar (\x -> case x of Y z -> z) -- \(Y z) -> z
 foo = bar (\x -> case x of [y, z] -> z) -- \[y, z] -> z
-foo = bar (\x -> case x of Y z | z > 0 -> z) -- \case Y z | z > 0 -> z
 yes = blah (\ x -> case x of A -> a; B -> b) -- \ case A -> a; B -> b
 yes = blah (\ x -> case x of A -> a; B -> b) -- @Note may require `{-# LANGUAGE LambdaCase #-}` adding to the top of the file
 no = blah (\ x -> case x of A -> a x; B -> b x)
+foo = bar (\x -> case x of Y z | z > 0 -> z) -- \case Y z | z > 0 -> z
 yes = blah (\ x -> (y, x)) -- (y,)
 yes = blah (\ x -> (y, x, z+q)) -- (y, , z+q)
 yes = blah (\ x -> (y, x, y, u, v)) -- (y, , y, u, v)
@@ -265,7 +265,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                            | otherwise = []
                          needParens = any (patNeedsParens appPrec . unLoc) (m_pats oldmatch)
                       in [ suggest "Use lambda" o
-                             ( noLoc @(LHsExpr GhcPs) $ HsLam noExtField oldMG
+                             ( noLoc $ HsLam noExtField oldMG
                                  { mg_alts = noLoc
                                      [ noLoc oldmatch
                                          { m_pats = map mkParPat $ m_pats oldmatch
@@ -273,6 +273,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                                          }
                                      ]
                                  }
+                               :: LHsExpr GhcPs
                              )
                              r
                          ]
