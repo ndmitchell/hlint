@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1167, enable refactoring for "Use lambda"
 3.2.2, released 2020-11-15
     #1166, detect more unboxed data to avoid suggesting newtype
     #1153, fix incorrect redundant bracket with @($foo)
