@@ -134,6 +134,8 @@ readAllSettings args1 cmd@CmdMain{..} = do
     cmd@CmdMain{..} <- if null args2 then pure cmd else getCmd $ args2 ++ args1 -- command line arguments are passed last
     settings2 <- concatMapM (fmap snd . computeSettings (cmdParseFlags cmd)) cmdFindHints
     let settings3 = [SettingClassify $ Classify Ignore x "" "" | x <- cmdIgnore]
+    cmdThreads <- if cmdThreads == 0 then getNumProcessors else pure cmdThreads
+    cmd <- pure CmdMain {..}
     pure (cmd, settings1 ++ settings2 ++ settings3)
     where
         enableGroup groupName =
@@ -144,9 +146,8 @@ readAllSettings args1 cmd@CmdMain{..} = do
             ]
 
 runHints :: [String] -> [Setting] -> Cmd -> IO [Idea]
-runHints args settings cmd@CmdMain{..} = do
-    j <- if cmdThreads == 0 then getNumProcessors else pure cmdThreads
-    withNumCapabilities j $ do
+runHints args settings cmd@CmdMain{..} =
+    withNumCapabilities cmdThreads $ do
         let outStrLn = whenNormal . putStrLn
         ideas <- getIdeas cmd settings
         ideas <- pure $ if cmdShowAll then ideas else  filter (\i -> ideaSeverity i /= Ignore) ideas
