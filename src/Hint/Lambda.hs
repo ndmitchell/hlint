@@ -143,7 +143,11 @@ lambdaDecl
           (sub, tpl) = mkSubtsAndTpl newPats newBody
           gen :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
           gen ps = uncurry reform . fromLambda . lambda ps
-       in [warn "Redundant lambda" o (gen pats origBody) [Replace Decl (toSS o) sub tpl]]
+          refacts = case newBody of
+              -- https://github.com/alanz/ghc-exactprint/issues/97
+              L _ HsCase{} -> []
+              _ -> [Replace Decl (toSS o) sub tpl]
+       in [warn "Redundant lambda" o (gen pats origBody) refacts]
 
     | let (newPats, newBody) = etaReduce pats origBody
     , length newPats < length pats, pvars (drop (length newPats) pats) `disjoint` varss bind
