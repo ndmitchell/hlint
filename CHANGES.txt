@@ -1,7 +1,7 @@
 Changelog for HLint (* = breaking change)
 
     #1160, never consult the .hscolour file for color preferences
-    #1171, do not refactor redundant lambda with case, avoid refactor bug
+    #1171, do not refactor redundant lambda with case
     #1169, default to -A32 (doubles speed for 4 CPU)
     #1169, make -j actually use parallelism
     #1167, enable refactoring for "Use lambda"
