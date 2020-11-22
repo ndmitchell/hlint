@@ -162,7 +162,7 @@ runHints args settings cmd@CmdMain{..} =
             handleRefactoring ideas cmdFiles cmd
          else do
             usecolour <- cmdUseColour cmd
-            showItem <- if usecolour then showANSI else pure show
+            let showItem = if usecolour then showIdeaANSI else show
             mapM_ (outStrLn . showItem) ideas
             handleReporting ideas cmd
         pure ideas

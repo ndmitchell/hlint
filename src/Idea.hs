@@ -4,12 +4,11 @@ module Idea(
     Idea(..),
     rawIdea, idea, suggest, suggestRemove, ideaRemove, warn, ignore,
     rawIdeaN, suggestN, ignoreNoSuggestion,
-    showIdeasJson, showANSI, showIdeaANSI,
+    showIdeasJson, showIdeaANSI,
     Note(..), showNotes,
     Severity(..),
     ) where
 
-import Data.Functor
 import Data.List.Extra
 import Config.Type
 import HsColour
@@ -68,13 +67,9 @@ instance Show Idea where
     show = showEx id
 
 
--- | Show an 'Idea' with ANSI color, using the hscolour preferences file.
-showANSI :: IO (Idea -> String)
-showANSI = showEx <$> hsColourConsole
-
 -- | Show an 'Idea' with ANSI color codes to give syntax coloring to the Haskell code.
 showIdeaANSI :: Idea -> String
-showIdeaANSI = showEx hsColourConsolePure
+showIdeaANSI = showEx hsColourConsole
 
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
