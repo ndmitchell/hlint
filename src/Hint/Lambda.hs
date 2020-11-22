@@ -144,6 +144,7 @@ lambdaDecl
           gen :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
           gen ps = uncurry reform . fromLambda . lambda ps
           refacts = case newBody of
+              -- https://github.com/alanz/ghc-exactprint/issues/97
               L _ HsCase{} -> []
               _ -> [Replace Decl (toSS o) sub tpl]
        in [warn "Redundant lambda" o (gen pats origBody) refacts]
