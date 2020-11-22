@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1169, default to -A32 (doubles speed for 4 CPU)
     #1169, make -j actually use parallelism
     #1167, enable refactoring for "Use lambda"
 3.2.2, released 2020-11-15

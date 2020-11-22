@@ -165,6 +165,8 @@ executable hlint
     build-depends:      base, hlint
     main-is:            src/Main.hs
 
-    ghc-options:        -rtsopts
+    -- See https://github.com/ndmitchell/hlint/pull/1169 for benchmarks
+    -- that indicate -A32 is a good idea
+    ghc-options:        -rtsopts -with-rtsopts=-A32m
     if flag(threaded)
         ghc-options:    -threaded
