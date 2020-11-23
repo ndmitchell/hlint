@@ -30,3 +30,5 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
         restore-keys: ${{ runner.os }}-${{ matrix.ghc }}-
     - uses: ndmitchell/neil@master
+      with:
+        hlint-arguments: src
