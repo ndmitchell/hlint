@@ -14,6 +14,7 @@ jobs:
         ghc: ['8.10', '8.8', '8.6']
         include:
         - os: windows-latest
+          ghc: '8.10.2.2'
         - os: macOS-latest
 
     steps:
