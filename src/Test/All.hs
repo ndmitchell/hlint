@@ -43,7 +43,7 @@ test CmdMain{..} main dataDir files = do
             pure (file, hints ++ (if takeBaseName file /= "Test" then [] else map (Builtin . fst) builtinHints))
         let wrap msg act = do liftIO $ putStr (msg ++ " "); act; liftIO $ putStrLn ""
 
-        liftIO $ putStrLn "Testing"
+        liftIO $ putStrLn $ "Testing (" ++ (if isRight rpath then "with" else "WITHOUT") ++ " refactoring)"
         liftIO $ checkCommentedYaml $ dataDir </> "default.yaml"
         when useSrc $ wrap "Source annotations" $ do
             config <- liftIO $ readFilesConfig [(".hlint.yaml",Nothing)]
