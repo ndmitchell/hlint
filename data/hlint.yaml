@@ -609,6 +609,8 @@
     - warn: {lhs: isRight (fmap f x), rhs: isRight x}
     - warn: {lhs: fromLeft x (fmap f y), rhs: fromLeft x y}
     - warn: {lhs: fromRight x (fmap f y), rhs: either (const x) f y}
+    - warn: {lhs: either (const x) id, rhs: fromRight x}
+    - warn: {lhs: either id (const x), rhs: fromLeft x}
 
     # INFIX
 
