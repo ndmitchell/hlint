@@ -7,6 +7,7 @@ import GHC.Hs
 import SrcLoc
 import BasicTypes
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
+import Refact.Types
 
 class Brackets a where
   remParen :: a -> Maybe a -- Remove one paren or nothing if there is no paren.
@@ -17,6 +18,7 @@ class Brackets a where
   -- | Is the child safe free from brackets in the parent
   -- position. Err on the side of caution, True = don't know.
   needBracket :: Int -> a -> a -> Bool
+  findType :: a -> RType
 
 instance Brackets (LHsExpr GhcPs) where
   -- When GHC parses a section in concrete syntax, it will produce an
@@ -88,6 +90,8 @@ instance Brackets (LHsExpr GhcPs) where
      | L _ HsPar{} <- parent = False
      | otherwise = True
 
+  findType _ = Expr
+
 -- | Am I an HsApp such that having me in an infix doesn't require brackets.
 --   Before BlockArguments that was _all_ HsApps. Now, imagine:
 --
@@ -133,6 +137,8 @@ instance Brackets (Located (Pat GhcPs)) where
     | L _ ListPat{} <- parent = False
     | otherwise = True
 
+  findType _ = Pattern
+
 instance Brackets (LHsType GhcPs) where
   remParen (L _ (HsParTy _ x)) = Just x
   remParen _ = Nothing
@@ -164,3 +170,5 @@ instance Brackets (LHsType GhcPs) where
     | L _ HsOpTy{} <- parent, L _ HsAppTy{} <- child = False
     | L _ HsParTy{} <- parent = False
     | otherwise = True
+
+  findType _ = Type

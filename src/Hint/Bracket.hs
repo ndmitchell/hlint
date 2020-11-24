@@ -138,17 +138,6 @@ prettyExpr s@(L _ SectionL{}) = unsafePrettyPrint (noLoc (HsPar noExtField s) ::
 prettyExpr s@(L _ SectionR{}) = unsafePrettyPrint (noLoc (HsPar noExtField s) :: LHsExpr GhcPs)
 prettyExpr x = unsafePrettyPrint x
 
--- Dirty, should add to Brackets type class I think
-tyConToRtype :: String -> RType
-tyConToRtype "Exp"    = Expr
-tyConToRtype "Type"   = Type
-tyConToRtype "HsType" = Type
-tyConToRtype "Pat"    = Pattern
-tyConToRtype _        = Expr
-
-findType :: (Data a) => a -> RType
-findType = tyConToRtype . dataTypeName . dataTypeOf
-
 -- 'Just _' if at least one set of parens were removed. 'Nothing' if
 -- zero parens were removed.
 remParens' :: Brackets a => a -> Maybe a
@@ -162,7 +151,7 @@ isPartialAtom (L _ (HsSpliceE _ (HsTypedSplice _ HasDollar _ _) )) = True
 isPartialAtom (L _ (HsSpliceE _ (HsUntypedSplice _ HasDollar _ _) )) = True
 isPartialAtom x = isRecConstr x || isRecUpdate x
 
-bracket :: forall a . (Data a, Data (SrcSpanLess a), HasSrcSpan a, Outputable a, Brackets a) => (a -> String) -> (a -> Bool) -> Bool -> a -> [Idea]
+bracket :: forall a . (Data a, HasSrcSpan a, Outputable a, Brackets a) => (a -> String) -> (a -> Bool) -> Bool -> a -> [Idea]
 bracket pretty isPartialAtom root = f Nothing
   where
     msg = "Redundant bracket"
@@ -188,7 +177,7 @@ bracket pretty isPartialAtom root = f Nothing
       | not $ needBracket i o x, not $ isPartialAtom x =
           rawIdea Suggestion msg (getLoc v) (pretty o) (Just (pretty (gen x))) [] [r] : g x
       where
-        typ = findType (unLoc v)
+        typ = findType v
         r = Replace typ (toSS v) [("x", toSS x)] "x"
     -- Regardless of the context, there are no parentheses to remove
     -- from 'x'.
@@ -199,13 +188,13 @@ bracket pretty isPartialAtom root = f Nothing
     -- redundant parentheses in each.
     g o = concat [f (Just (i, o, gen)) x | (i, (x, gen)) <- zipFrom 0 $ holes o]
 
-bracketWarning :: (HasSrcSpan a, HasSrcSpan b, Data (SrcSpanLess b), Outputable a, Outputable b) => String -> a -> b -> Idea
+bracketWarning :: (HasSrcSpan a, HasSrcSpan b, Outputable a, Outputable b, Brackets b)  => String -> a -> b -> Idea
 bracketWarning msg o x =
-  suggest msg o x [Replace (findType (unLoc x)) (toSS o) [("x", toSS x)] "x"]
+  suggest msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 
-bracketError :: (HasSrcSpan a, HasSrcSpan b, Data (SrcSpanLess b), Outputable a, Outputable b ) => String -> a -> b -> Idea
+bracketError :: (HasSrcSpan a, HasSrcSpan b, Outputable a, Outputable b, Brackets b) => String -> a -> b -> Idea
 bracketError msg o x =
-  warn msg o x [Replace (findType (unLoc x)) (toSS o) [("x", toSS x)] "x"]
+  warn msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 
 fieldDecl ::  LConDeclField GhcPs -> [Idea]
 fieldDecl o@(L loc f@ConDeclField{cd_fld_type=v@(L l (HsParTy _ c))}) =
