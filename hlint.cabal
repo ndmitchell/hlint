@@ -140,6 +140,7 @@ library
         Hint.Duplicate
         Hint.Export
         Hint.Extensions
+        Hint.Fixities
         Hint.Import
         Hint.Lambda
         Hint.List
