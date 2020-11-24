@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1159, spot redundant brackets due to fixities, default ignored
     #1172, suggest reusing fromLeft/fromRight
 3.2.3, released 2020-11-23
     #1160, never consult the .hscolour file for color preferences
