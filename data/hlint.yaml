@@ -168,6 +168,7 @@
     - warn: {lhs: all f (map g x), rhs: all (f . g) x}
     - warn: {lhs: "zipWith (,)", rhs: zip}
     - warn: {lhs: "zipWith3 (,,)", rhs: zip3}
+    - hint: {lhs: map fst &&& map snd, rhs: unzip}
     - hint: {lhs: length x == 0, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: 0 == length x, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: length x < 1, rhs: null x, note: IncreasesLaziness}
