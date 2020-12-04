@@ -183,6 +183,9 @@
     - hint: {lhs: 0 /= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - hint: {lhs: "\\x -> [x]", rhs: "(:[])", name: "Use :"}
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: not (isApp f)}
+    - warn: {lhs: zip x (map f x), rhs: "map (\\y -> (y, f y)) x"}
+    - warn: {lhs: zip (map f x) x, rhs: "map (\\y -> (f y, y)) x"}
+    - warn: {lhs: zip x <$> traverse f x, rhs: "traverse (\\y -> (,) y <$> f y) x"}
     - hint: {lhs: "map f (fromMaybe [] x)", rhs: "maybe [] (map f) x"}
     - warn: {lhs: not (elem x y), rhs: notElem x y}
     - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
