@@ -561,8 +561,10 @@
     - warn: {lhs: maybe True (x /=), rhs: (Just x /=)}
     - warn: {lhs: maybe False (== x), rhs: (Just x ==), note: ValidInstance Eq x}
     - warn: {lhs: maybe True (/= x), rhs: (Just x /=), note: ValidInstance Eq x}
-    - warn: {lhs: fromMaybe False x, rhs: Just True == x} # Eta expanded, see https://github.com/ndmitchell/hlint/issues/970#issuecomment-643645053
-    - warn: {lhs: fromMaybe True x, rhs: Just False /= x}
+    # The following two hints seem to be somewhat unwelcome, e.g.
+    # https://github.com/ndmitchell/hlint/issues/1177
+    - ignore: {lhs: fromMaybe False x, rhs: Just True == x} # Eta expanded, see https://github.com/ndmitchell/hlint/issues/970#issuecomment-643645053
+    - ignore: {lhs: fromMaybe True x, rhs: Just False /= x}
     - warn: {lhs: not (isNothing x), rhs: isJust x}
     - warn: {lhs: not (isJust x), rhs: isNothing x}
     - warn: {lhs: "maybe [] (:[])", rhs: maybeToList}
