@@ -99,6 +99,7 @@
     - warn: {lhs: compare x y == GT, rhs: x > y}
     - warn: {lhs: compare x y == EQ, rhs: x == y}
     - warn: {lhs: compare x y /= EQ, rhs: x /= y}
+    - warn: {lhs: compare `on` a, rhs: comparing a}
     - warn: {lhs: head (sort x), rhs: minimum x}
     - warn: {lhs: last (sort x), rhs: maximum x}
     - warn: {lhs: head (sortBy f x), rhs: minimumBy f x, side: isCompare f}
@@ -1170,7 +1171,8 @@
 # foo = return $! "test"
 # bar = [x | (x,_) <- pts]
 # return' x = x `seq` return x
-# foo = last (sortBy (compare `on` fst) xs) -- maximumBy (compare `on` fst) xs
+# foo = last (sortBy (compare `on` fst) xs) -- comparing fst
+# foo = last (sortBy (comparing fst) xs) -- maximumBy (comparing fst) xs
 # g = \ f -> parseFile f >>= (\ cu -> return (f, cu))
 # foo = bar $ \(x,y) -> x x y
 # foo = (\x -> f x >>= g) -- f Control.Monad.>=> g
