@@ -1206,6 +1206,8 @@
 # issue1049 = elem True -- or
 # issue1062 = bar (\(f, x) -> baz () () . f $ x) -- uncurry ((.) (baz () ()))
 # issue1058 n = [] ++ issue1058 (n+1) -- issue1058 (n+1)
+# issue1183 = (a >= 'a') && a <= 'z' -- isAsciiLower a
+# issue1183 = (a >= 'a') && (a <= 'z') -- isAsciiLower a
 
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM

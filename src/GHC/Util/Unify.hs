@@ -189,13 +189,15 @@ noExtra _ = Nothing
 -- dot at the root, since otherwise you get two matches because of
 -- 'readRule' (Bug #570).
 unifyExp' :: NameMatch -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst (LHsExpr GhcPs))
--- Brackets are not added when expanding '$' in user code, so tolerate
--- them in the match even if they aren't in the user code.
-unifyExp' nm root x y | not root, isPar x, not $ isPar y = unifyExp' nm root (fromParen x) y
 -- Don't subsitute for type apps, since no one writes rules imagining
 -- they exist.
 unifyExp' nm root (L _ (HsVar _ (rdrNameStr -> v))) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst [(v, y)]
 unifyExp' nm root (L _ (HsVar _ x)) (L _ (HsVar _ y)) | nm x y = Just mempty
+
+-- Brackets are not added when expanding '$' in user code, so tolerate
+-- them in the match even if they aren't in the user code.
+-- Also, allow the user to put in more brackets than they strictly need (e.g. with infix).
+unifyExp' nm root x y | not root, isPar x || isPar y = unifyExp' nm root (fromParen x) (fromParen y)
 
 unifyExp' nm root x@(L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr -> v))) rhs1))
                   y@(L _ (OpApp _ lhs2 (L _ (HsVar _ op2)) rhs2)) =
