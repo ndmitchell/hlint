@@ -24,6 +24,11 @@ data-files:
     hlint.ghci
     HLint_QuickCheck.hs
     HLint_TypeCheck.hs
+extra-source-files:
+    .hlint.yaml
+    data/*.hs
+    data/*.yaml
+    tests/*.test
 extra-doc-files:
     README.md
     CHANGES.txt
