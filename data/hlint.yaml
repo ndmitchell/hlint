@@ -320,6 +320,11 @@
     - warn: {lhs: x . id, rhs: x, name: Redundant id}
     - warn: {lhs: "((,) x)", rhs: "(_noParen_ x,)", name: Use tuple-section, note: RequiresExtension TupleSections}
     - warn: {lhs: "flip (,) x", rhs: "(,_noParen_ x)", name: Use tuple-section, note: RequiresExtension TupleSections}
+    - warn: {lhs: flip (flip f), rhs: f}
+    - warn: {lhs: flip f <*> g, rhs: f =<< g, name: Redundant flip}
+    - warn: {lhs: g <**> flip f, rhs: g >>= f, name: Redundant flip}
+    - warn: {lhs: flip f =<< g, rhs: f <*> g, name: Redundant flip}
+    - warn: {lhs: g >>= flip f, rhs: f <*> g, name: Redundant flip}
 
     # CHAR
 
