@@ -73,7 +73,7 @@ jobs:
         asset_content_type: application/zip
 
     - uses: actions/upload-release-asset@v1
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-16.04'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
