@@ -44,15 +44,20 @@ jobs:
         include:
         - os: ubuntu-latest
           SUFFIX: x86_64-linux.tar.gz
-        - os: windows-latest
-          SUFFIX: x86_64-windows.zip
+          ghc: '8.10'
         - os: macOS-latest
           SUFFIX: x86_64-osx.tar.gz
+          ghc: '8.10'
+        - os: windows-latest
+          SUFFIX: x86_64-windows.zip
+          ghc: '8.6' # All later versions segfault a lot
 
     steps:
     - run: git config --global core.autocrlf false
     - uses: actions/checkout@v2
     - uses: actions/setup-haskell@v1
+      with:
+        ghc-version: ${{ matrix.ghc }}
     - uses: ndmitchell/neil@master
       with:
         make-release: true
