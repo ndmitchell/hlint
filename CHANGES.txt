@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.2.4, released 2020-12-30
     #1193, add warnings for redundant flip
     #1183, allow matches where users specify unnecessary brackets
     #1177, remove suggestions for fromMaybe False/fromMaybe True
