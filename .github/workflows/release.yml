@@ -55,6 +55,7 @@ jobs:
     - uses: ndmitchell/neil@master
       with:
         make-release: true
+        hlint-arguments: src
 
     - uses: actions/upload-release-asset@v1
       env:
