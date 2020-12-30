@@ -1,0 +1,76 @@
+name: release
+on:
+  # Match when pushing tags v*, i.e. v1.0, v20.15.10
+  push:
+    tags: ['v*']
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create-release.outputs.upload_url }}
+      filename: ${{ steps.username_repo.outputs._1 }}-${{ steps.reftags_version.outputs._1 }}
+
+    steps:
+    - uses: rishabhgupta/split-by@v1
+      id: username_repo
+      with:
+        string: ${{ github.repository }} # e.g. ndmitchell/neil
+        split-by: '/'
+
+    - uses: rishabhgupta/split-by@v1
+      id: reftags_version
+      with:
+        string: ${{ github.ref }} # e.g. refs/tags/v0.11.1.1
+        split-by: 'v'
+
+    - uses: actions/create-release@v1
+      id: create-release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.reftags_version.outputs._1 }}
+        release_name: v${{ steps.reftags_version.outputs._1 }}
+
+
+
+  build:
+    needs: init
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-latest
+          SUFFIX: x86_64-linux.tar.gz
+        - os: windows-latest
+          SUFFIX: x86_64-windows.zip
+        - os: macOS-latest
+          SUFFIX: x86_64-osx.tar.gz
+
+    steps:
+    - run: git config --global core.autocrlf false
+    - uses: actions/checkout@v2
+    - uses: actions/setup-haskell@v1
+    - uses: ndmitchell/neil@master
+      with:
+        make-release: true
+
+    - uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.init.outputs.upload_url }}
+        asset_path: dist/bin/${{ needs.init.outputs.filename }}-${{ matrix.SUFFIX }}
+        asset_name: ${{ needs.init.outputs.filename }}-${{ matrix.SUFFIX }}
+        asset_content_type: application/zip
+
+    - uses: actions/upload-release-asset@v1
+      if: matrix.os == 'ubuntu-latest'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.init.outputs.upload_url }}
+        asset_path: dist/${{ needs.init.outputs.filename }}.tar.gz
+        asset_name: ${{ needs.init.outputs.filename }}.tar.gz
+        asset_content_type: application/zip
