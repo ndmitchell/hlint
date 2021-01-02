@@ -1257,7 +1257,9 @@
 # fromList [] -- Data.Map.Strict.empty
 # test953 = for [] $ \n -> bar n >>= \case {Just n  -> pure (); Nothing -> baz n}
 # f = map (flip (,) "a") "123" -- (,"a")
+# test1196 = map (flip (,) (+ 1)) "123" -- (,(+ 1))
 # f = map ((,) "a") "123" -- ("a",)
+# test1196 = map ((,) (+ 1)) "123" -- ((+ 1),)
 # test979 = flip Map.traverseWithKey blocks \k v -> lots_of_code_goes_here
 # infixl 4 <*! \
 # test993 = f =<< g <$> x <*! y

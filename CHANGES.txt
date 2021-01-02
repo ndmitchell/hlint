@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1196, fix removed parens with operator sections in some cases
 3.2.6, released 2020-12-30
     Fixes to the release generation script
 3.2.5, released 2020-12-30

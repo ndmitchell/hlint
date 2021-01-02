@@ -33,6 +33,7 @@ import Data.Data
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
 import Data.Tuple.Extra
+import Data.Maybe
 
 import Refact (substVars, toSS)
 import Refact.Types hiding (SrcSpan, Match)
@@ -306,5 +307,4 @@ descendBracketOld op x = (descendIndex g1 x, descendIndex g2 x)
       _ -> False
 
 fromParen1 :: LHsExpr GhcPs -> LHsExpr GhcPs
-fromParen1 (L _ (HsPar _ x)) = x
-fromParen1 x = x
+fromParen1 x = fromMaybe x $ remParen x
