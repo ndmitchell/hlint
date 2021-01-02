@@ -26,6 +26,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util.HsExpr
 import GHC.Util.View
+import Data.Maybe
 import FastString
 
 isUnifyVar :: String -> Bool
@@ -197,7 +198,11 @@ unifyExp' nm root (L _ (HsVar _ x)) (L _ (HsVar _ y)) | nm x y = Just mempty
 -- Brackets are not added when expanding '$' in user code, so tolerate
 -- them in the match even if they aren't in the user code.
 -- Also, allow the user to put in more brackets than they strictly need (e.g. with infix).
-unifyExp' nm root x y | not root, isPar x || isPar y = unifyExp' nm root (fromParen x) (fromParen y)
+unifyExp' nm root x y | not root, isJust x2 || isJust y2 = unifyExp' nm root (fromMaybe x x2) (fromMaybe y y2)
+    where
+        -- Make sure we deal with the weird brackets that can't be removed around sections
+        x2 = remParen x
+        y2 = remParen y
 
 unifyExp' nm root x@(L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr -> v))) rhs1))
                   y@(L _ (OpApp _ lhs2 (L _ (HsVar _ op2)) rhs2)) =
