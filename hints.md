@@ -720,6 +720,37 @@ Does not support refactoring.
 </tr>
 </table>
 
+## Builtin Fixities
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Redundant bracket due to operator fixities</td>
+<td>
+Example:
+<code>
+yes = 1 + (2 * 3)
+</code>
+<br>
+Found:
+<code>
+1 + (2 * 3)
+</code>
+<br>
+Suggestion:
+<code>
+1 + 2 * 3
+</code>
+<br>
+</td>
+<td>Ignore</td>
+</tr>
+</table>
+
 ## Builtin Bracket
 
 <table>
@@ -2887,6 +2918,22 @@ zip3
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use unzip</td>
+<td>
+LHS:
+<code>
+map fst &&& map snd
+</code>
+<br>
+RHS:
+<code>
+unzip
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Use null</td>
 <td>
 LHS:
@@ -5041,6 +5088,86 @@ flip (,) x
 RHS:
 <code>
 (, _noParen_ x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant flip</td>
+<td>
+LHS:
+<code>
+flip (flip f)
+</code>
+<br>
+RHS:
+<code>
+f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant flip</td>
+<td>
+LHS:
+<code>
+flip f <*> g
+</code>
+<br>
+RHS:
+<code>
+f =<< g
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant flip</td>
+<td>
+LHS:
+<code>
+g <**> flip f
+</code>
+<br>
+RHS:
+<code>
+g >>= f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant flip</td>
+<td>
+LHS:
+<code>
+flip f =<< g
+</code>
+<br>
+RHS:
+<code>
+f <*> g
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant flip</td>
+<td>
+LHS:
+<code>
+g >>= flip f
+</code>
+<br>
+RHS:
+<code>
+g Control.Applicative.<**> f
 </code>
 <br>
 </td>
@@ -8232,7 +8359,7 @@ Just True == x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>Ignore</td>
 </tr>
 <tr>
 <td>Use Just</td>
@@ -8248,7 +8375,7 @@ Just False /= x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>Ignore</td>
 </tr>
 <tr>
 <td>Use isJust</td>
@@ -8954,6 +9081,38 @@ fromRight x (fmap f y)
 RHS:
 <code>
 either (const x) f y
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use fromRight</td>
+<td>
+LHS:
+<code>
+either (const x) id
+</code>
+<br>
+RHS:
+<code>
+fromRight x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use fromLeft</td>
+<td>
+LHS:
+<code>
+either id (const x)
+</code>
+<br>
+RHS:
+<code>
+fromLeft x
 </code>
 <br>
 </td>
