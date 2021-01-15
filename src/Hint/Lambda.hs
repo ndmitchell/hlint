@@ -63,6 +63,7 @@ f = bar (flip Foo.bar x) -- (`Foo.bar` x)
 f = a b (\x -> c x d)  -- (`c` d)
 yes = \x -> a x where -- a
 yes = \x y -> op y x where -- flip op
+yes = \x y -> op z y x where -- flip (op z)
 f = \y -> nub $ reverse y where -- nub . reverse
 f = \z -> foo $ bar $ baz z where -- foo . bar . baz
 f = \z -> foo $ bar x $ baz z where -- foo . bar x . baz

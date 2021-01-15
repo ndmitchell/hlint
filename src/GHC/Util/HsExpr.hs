@@ -228,6 +228,7 @@ niceLambdaR [x, y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
       )
   where
     gen = noLoc . HsApp noExtField (strToVar "flip")
+        . case op of L _ HsVar{} -> id; _ -> noLoc . HsPar noExtField
 
 -- We're done factoring, but have no variables left, so we shouldn't make a lambda.
 -- @\ -> e@ ==> @e@
