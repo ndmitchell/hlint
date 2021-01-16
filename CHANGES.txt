@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.2.7, released 2021-01-16
     #1202, add missing parentheses for Avoid Lambda
     #1201, allow matching through the & operator (similar to $)
     #1196, fix removed parens with operator sections in some cases
