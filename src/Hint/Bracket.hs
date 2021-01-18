@@ -42,6 +42,7 @@ issue909 = let ((x:: y) -> z) = q in q
 issue909 = do {((x :: y) -> z) <- e; return 1}
 issue970 = (f x +) (g x) -- f x + (g x)
 issue969 = (Just \x -> x || x) *> Just True
+issue1179 = do(this is a test) -- do this is a test
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
