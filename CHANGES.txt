@@ -1,5 +1,17 @@
 Changelog for HLint (* = breaking change)
 
+    #1206, require apply-refact 0.9.0.0 or higher
+    #1205, generalize hints which were with '&' form
+3.2.7, released 2021-01-16
+    #1202, add missing parentheses for Avoid Lambda
+    #1201, allow matching through the & operator (similar to $)
+    #1196, fix removed parens with operator sections in some cases
+3.2.6, released 2020-12-30
+    Fixes to the release generation script
+3.2.5, released 2020-12-30
+    Fixes to the release generation script
+3.2.4, released 2020-12-30
+    #1193, add warnings for redundant flip
     #1183, allow matches where users specify unnecessary brackets
     #1177, remove suggestions for fromMaybe False/fromMaybe True
     #1176, suggest use of unzip

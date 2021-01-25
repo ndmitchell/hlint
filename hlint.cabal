@@ -1,13 +1,13 @@
 cabal-version:      >= 1.18
 build-type:         Simple
 name:               hlint
-version:            3.2.3
+version:            3.2.7
 license:            BSD3
 license-file:       LICENSE
 category:           Development
 author:             Neil Mitchell <ndmitchell@gmail.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
-copyright:          Neil Mitchell 2006-2020
+copyright:          Neil Mitchell 2006-2021
 synopsis:           Source code suggestions
 description:
     HLint gives suggestions on how to improve your source code.
@@ -24,6 +24,11 @@ data-files:
     hlint.ghci
     HLint_QuickCheck.hs
     HLint_TypeCheck.hs
+extra-source-files:
+    .hlint.yaml
+    data/*.hs
+    data/*.yaml
+    tests/*.test
 extra-doc-files:
     README.md
     CHANGES.txt
@@ -80,7 +85,7 @@ library
       build-depends:
           ghc-lib-parser == 8.10.*
     build-depends:
-        ghc-lib-parser-ex >= 8.10.0.16 && < 8.10.1
+        ghc-lib-parser-ex >= 8.10.0.17 && < 8.10.1
 
     if flag(gpl)
         build-depends: hscolour >= 1.21

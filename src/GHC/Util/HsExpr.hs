@@ -33,6 +33,7 @@ import Data.Data
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
 import Data.Tuple.Extra
+import Data.Maybe
 
 import Refact (substVars, toSS)
 import Refact.Types hiding (SrcSpan, Match)
@@ -227,6 +228,7 @@ niceLambdaR [x, y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
       )
   where
     gen = noLoc . HsApp noExtField (strToVar "flip")
+        . if isAtom op then id else addParen
 
 -- We're done factoring, but have no variables left, so we shouldn't make a lambda.
 -- @\ -> e@ ==> @e@
@@ -306,5 +308,4 @@ descendBracketOld op x = (descendIndex g1 x, descendIndex g2 x)
       _ -> False
 
 fromParen1 :: LHsExpr GhcPs -> LHsExpr GhcPs
-fromParen1 (L _ (HsPar _ x)) = x
-fromParen1 x = x
+fromParen1 x = fromMaybe x $ remParen x

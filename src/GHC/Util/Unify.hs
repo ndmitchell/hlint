@@ -26,6 +26,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util.HsExpr
 import GHC.Util.View
+import Data.Maybe
 import FastString
 
 isUnifyVar :: String -> Bool
@@ -171,6 +172,7 @@ unifyExp nm root x (L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2))
     | (L _ (OpApp _ lhs1 op1@(L _ (HsVar _ op1')) rhs1)) <- x =
         guard (nm op1' op2') >> (, Nothing) <$> liftA2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
     | isDol op2 = unifyExp nm root x $ noLoc (HsApp noExtField lhs2 rhs2)
+    | isAmp op2 = unifyExp nm root x $ noLoc (HsApp noExtField rhs2 lhs2)
     | otherwise  = unifyExp nm root x $ noLoc (HsApp noExtField (noLoc (HsApp noExtField op2 (addPar lhs2))) (addPar rhs2))
         where
           -- add parens around when desugaring the expression, if necessary
@@ -178,6 +180,9 @@ unifyExp nm root x (L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2))
           addPar x = if isAtom x then x else addParen x
 
 unifyExp nm root x y = (, Nothing) <$> unifyExp' nm root x y
+
+isAmp :: LHsExpr GhcPs -> Bool
+isAmp (L _ (HsVar _ x)) = rdrNameStr x == "&"
 
 -- | If we "throw away" the extra than we have no where to put it, and the substitution is wrong
 noExtra :: Maybe (Subst (LHsExpr GhcPs), Maybe (LHsExpr GhcPs)) -> Maybe (Subst (LHsExpr GhcPs))
@@ -197,7 +202,11 @@ unifyExp' nm root (L _ (HsVar _ x)) (L _ (HsVar _ y)) | nm x y = Just mempty
 -- Brackets are not added when expanding '$' in user code, so tolerate
 -- them in the match even if they aren't in the user code.
 -- Also, allow the user to put in more brackets than they strictly need (e.g. with infix).
-unifyExp' nm root x y | not root, isPar x || isPar y = unifyExp' nm root (fromParen x) (fromParen y)
+unifyExp' nm root x y | not root, isJust x2 || isJust y2 = unifyExp' nm root (fromMaybe x x2) (fromMaybe y y2)
+    where
+        -- Make sure we deal with the weird brackets that can't be removed around sections
+        x2 = remParen x
+        y2 = remParen y
 
 unifyExp' nm root x@(L _ (OpApp _ lhs1 (L _ (HsVar _ (rdrNameStr -> v))) rhs1))
                   y@(L _ (OpApp _ lhs2 (L _ (HsVar _ op2)) rhs2)) =

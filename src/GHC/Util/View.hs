@@ -12,10 +12,10 @@ import RdrName
 import SrcLoc
 import BasicTypes
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
+import GHC.Util.Brackets
 
 fromParen :: LHsExpr GhcPs -> LHsExpr GhcPs
-fromParen (L _ (HsPar _ x)) = fromParen x
-fromParen x = x
+fromParen x = maybe x fromParen $ remParen x
 
 fromPParen :: LPat GhcPs -> LPat GhcPs
 fromPParen (L _ (ParPat _ x)) = fromPParen x

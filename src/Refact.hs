@@ -51,7 +51,9 @@ refactorPath rpath = do
             ver <- readVersion . tail <$> readProcess exc ["--version"] ""
             pure $ if ver >= minRefactorVersion
                        then Right exc
-                       else Left $ "Your version of refactor is too old, please upgrade to " ++ showVersion minRefactorVersion ++ " or later"
+                       else Left $ "Your version of refactor is too old, please install apply-refact "
+                                ++ showVersion minRefactorVersion
+                                ++ " or later. Apply-refact can be installed from Cabal or Stack."
         Nothing -> pure $ Left $ unlines
                        [ "Could not find 'refactor' executable"
                        , "Tried to find '" ++ excPath ++ "' on the PATH"
@@ -72,4 +74,4 @@ runRefactoring rpath fin hints enabled disabled opts =  do
     waitForProcess phand
 
 minRefactorVersion :: Version
-minRefactorVersion = makeVersion [0,8,2,0]
+minRefactorVersion = makeVersion [0,9,0,0]
