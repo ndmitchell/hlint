@@ -15,7 +15,6 @@ jobs:
         ghc: ['8.10', '8.8', '8.6']
         include:
         - os: windows-latest
-          ghc: '8.6' # Every later version segfaults a lot :(
         - os: macOS-latest
 
     steps:
