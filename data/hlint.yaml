@@ -36,6 +36,7 @@
     - import Maybe as Data.Maybe
     - import Monad as Control.Monad
     - import Char as Data.Char
+    - import Language.Haskell.TH as TH
 
 - package:
     name: lens
@@ -811,6 +812,10 @@
     - warn: {lhs: "Data.Map.Lazy.fromList []", rhs: Data.Map.Lazy.empty}
     - warn: {lhs: "Data.Map.Strict.fromList []", rhs: Data.Map.Strict.empty}
 
+    # TEMPLATE HASKELL
+
+    - hint: {lhs: "TH.varE 'a", rhs: "[|a|]", name: Use TH quotation brackets}
+
 - group:
     name: lens
     enabled: true
@@ -1217,6 +1222,8 @@
 # issue1183 = (a >= 'a') && a <= 'z' -- isAsciiLower a
 # issue1183 = (a >= 'a') && (a <= 'z') -- isAsciiLower a
 
+# import Language.Haskell.TH\
+# yes = varE 'foo -- [|foo|]
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM
 # import Control.Monad \

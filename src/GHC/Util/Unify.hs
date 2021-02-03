@@ -224,6 +224,10 @@ unifyExp' nm root x@(L _ (HsApp _ x1 x2)) y@(L _ (HsApp _ y1 y2)) =
 unifyExp' nm root x y@(L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2)) =
   noExtra $ unifyExp nm root x y
 
+unifyExp' nm root (L _ (HsBracket _ (VarBr _ b0 (occNameStr -> v1))))
+                  (L _ (HsBracket _ (VarBr _ b1 (occNameStr -> v2))))
+    | b0 == b1 && isUnifyVar v1 = Just (Subst [(v1, strToVar v2)])
+
 unifyExp' nm root x y | isOther x, isOther y = unifyDef' nm x y
     where
         -- Types that are not already handled in unify.
