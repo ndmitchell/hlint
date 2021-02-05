@@ -28,11 +28,11 @@ yes = f ((x)) -- @Warning x
 main = do f; (print x) -- @Suggestion do f print x
 yes = f (x) y -- @Warning x
 no = f (+x) y
-no = f ($x) y
-no = ($x)
-yes = (($x))
-no = ($1)
-yes = (($1)) -- @Warning ($1)
+no = f ($ x) y
+no = ($ x)
+yes = (($ x))  -- @Warning ($ x)
+no = ($ 1)
+yes = (($ 1)) -- @Warning ($ 1)
 no = (+5)
 yes = ((+5)) -- @Warning (+5)
 issue909 = case 0 of { _ | n <- (0 :: Int) -> n }
@@ -109,8 +109,8 @@ import Data.Generics.Uniplate.DataOnly
 import Refact.Types
 
 import GHC.Hs
-import Outputable
-import SrcLoc
+import GHC.Utils.Outputable
+import GHC.Types.SrcLoc
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -141,25 +141,25 @@ prettyExpr x = unsafePrettyPrint x
 
 -- 'Just _' if at least one set of parens were removed. 'Nothing' if
 -- zero parens were removed.
-remParens' :: Brackets a => a -> Maybe a
+remParens' :: Brackets (Located a) => Located a -> Maybe (Located a)
 remParens' = fmap go . remParen
   where
     go e = maybe e go (remParen e)
 
 isPartialAtom :: LHsExpr GhcPs -> Bool
 -- Might be '$x', which was really '$ x', but TH enabled misparsed it.
-isPartialAtom (L _ (HsSpliceE _ (HsTypedSplice _ HasDollar _ _) )) = True
-isPartialAtom (L _ (HsSpliceE _ (HsUntypedSplice _ HasDollar _ _) )) = True
+isPartialAtom (L _ (HsSpliceE _ (HsTypedSplice _ DollarSplice _ _) )) = True
+isPartialAtom (L _ (HsSpliceE _ (HsUntypedSplice _ DollarSplice _ _) )) = True
 isPartialAtom x = isRecConstr x || isRecUpdate x
 
-bracket :: forall a . (Data a, HasSrcSpan a, Outputable a, Brackets a) => (a -> String) -> (a -> Bool) -> Bool -> a -> [Idea]
+bracket :: forall a . (Data a, Outputable a, Brackets (Located a)) => (Located a -> String) -> (Located a -> Bool) -> Bool -> Located a -> [Idea]
 bracket pretty isPartialAtom root = f Nothing
   where
     msg = "Redundant bracket"
     -- 'f' is a (generic) function over types in 'Brackets
     -- (expressions, patterns and types). Arguments are, 'f (Maybe
     -- (index, parent, gen)) child'.
-    f :: (HasSrcSpan a, Data a, Outputable a, Brackets a) => Maybe (Int, a , a -> a) -> a -> [Idea]
+    f :: (Data a, Outputable a, Brackets (Located a)) => Maybe (Int, Located a , Located a -> Located a) -> Located a -> [Idea]
     -- No context. Removing parentheses from 'x' succeeds?
     f Nothing o@(remParens' -> Just x)
       -- If at the root, or 'x' is an atom, 'x' parens are redundant.
@@ -184,16 +184,16 @@ bracket pretty isPartialAtom root = f Nothing
     -- from 'x'.
     f _ x = g x
 
-    g :: (HasSrcSpan a, Data a, Outputable a, Brackets a) => a -> [Idea]
+    g :: (Data a, Outputable a, Brackets (Located a)) => Located a -> [Idea]
     -- Enumerate over all the immediate children of 'o' looking for
     -- redundant parentheses in each.
     g o = concat [f (Just (i, o, gen)) x | (i, (x, gen)) <- zipFrom 0 $ holes o]
 
-bracketWarning :: (HasSrcSpan a, HasSrcSpan b, Outputable a, Outputable b, Brackets b)  => String -> a -> b -> Idea
+bracketWarning :: (Outputable a, Outputable b, Brackets (Located b))  => String -> Located a -> Located b -> Idea
 bracketWarning msg o x =
   suggest msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 
-bracketError :: (HasSrcSpan a, HasSrcSpan b, Outputable a, Outputable b, Brackets b) => String -> a -> b -> Idea
+bracketError :: (Outputable a, Outputable b, Brackets (Located b)) => String -> Located a -> Located b -> Idea
 bracketError msg o x =
   warn msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
 

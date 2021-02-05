@@ -24,14 +24,14 @@ import Data.Map
 import Data.Generics.Uniplate.DataOnly
 import Refact.Types
 
-import BasicTypes (compareFixity)
+import GHC.Types.Basic (compareFixity)
 import Fixity
 import GHC.Hs
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
-import OccName
-import SrcLoc
-import RdrName
+import GHC.Types.SrcLoc
+import GHC.Types.Name.Reader
+import GHC.Types.Name.Occurrence
 
 fixitiesHint :: [Setting] -> DeclHint
 fixitiesHint settings _ _ x =

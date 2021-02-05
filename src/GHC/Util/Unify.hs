@@ -16,9 +16,9 @@ import Data.List.Extra
 import Util
 
 import GHC.Hs
-import SrcLoc
-import Outputable hiding ((<>))
-import RdrName
+import GHC.Types.SrcLoc
+import GHC.Utils.Outputable hiding ((<>))
+import GHC.Types.Name.Reader
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -27,7 +27,7 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util.HsExpr
 import GHC.Util.View
 import Data.Maybe
-import FastString
+import GHC.Data.FastString
 
 isUnifyVar :: String -> Bool
 isUnifyVar [x] = x == '?' || isAlpha x
@@ -73,13 +73,13 @@ substitute (Subst bind) = transformBracketOld exp . transformBi pat . transformB
     exp (L _ (HsVar _ x)) = lookup (rdrNameStr x) bind
     -- Operator applications.
     exp (L loc (OpApp _ lhs (L _ (HsVar _ x)) rhs))
-      | Just y <- lookup (rdrNameStr x) bind = Just (cL loc (OpApp noExtField lhs y rhs))
+      | Just y <- lookup (rdrNameStr x) bind = Just (L loc (OpApp noExtField lhs y rhs))
     -- Left sections.
     exp (L loc (SectionL _ exp (L _ (HsVar _ x))))
-      | Just y <- lookup (rdrNameStr x) bind = Just (cL loc (SectionL noExtField exp y))
+      | Just y <- lookup (rdrNameStr x) bind = Just (L loc (SectionL noExtField exp y))
     -- Right sections.
     exp (L loc (SectionR _ (L _ (HsVar _ x)) exp))
-      | Just y <- lookup (rdrNameStr x) bind = Just (cL loc (SectionR noExtField y exp))
+      | Just y <- lookup (rdrNameStr x) bind = Just (L loc (SectionR noExtField y exp))
     exp _ = Nothing
 
     pat :: LPat GhcPs -> LPat GhcPs
@@ -242,7 +242,7 @@ unifyPat' nm (L _ (VarPat _ x)) (L _ (VarPat _ y)) =
   Just $ Subst [(rdrNameStr x, strToVar(rdrNameStr y))]
 unifyPat' nm (L _ (VarPat _ x)) (L _ (WildPat _)) =
   let s = rdrNameStr x in Just $ Subst [(s, strToVar("_" ++ s))]
-unifyPat' nm (L _ (ConPatIn x _)) (L _ (ConPatIn y _)) | rdrNameStr x /= rdrNameStr y =
+unifyPat' nm (L _ (ConPat _ x _)) (L _ (ConPat _ y _)) | rdrNameStr x /= rdrNameStr y =
   Nothing
 unifyPat' nm x y =
   unifyDef' nm x y
@@ -251,6 +251,6 @@ unifyType' :: NameMatch -> LHsType GhcPs -> LHsType GhcPs -> Maybe (Subst (LHsEx
 unifyType' nm (L loc (HsTyVar _ _ x)) y =
   let wc = HsWC noExtField y :: LHsWcType (NoGhcTc GhcPs)
       unused = strToVar "__unused__" :: LHsExpr GhcPs
-      appType = cL loc (HsAppType noExtField unused wc) :: LHsExpr GhcPs
+      appType = L loc (HsAppType noExtField unused wc) :: LHsExpr GhcPs
  in Just $ Subst [(rdrNameStr x, appType)]
 unifyType' nm x y = unifyDef' nm x y

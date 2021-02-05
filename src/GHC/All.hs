@@ -20,17 +20,17 @@ import qualified Data.Map as Map
 import System.IO.Extra
 import Fixity
 import Extension
-import FastString
+import GHC.Data.FastString
 
 import GHC.Hs
-import SrcLoc
-import ErrUtils
-import Outputable
-import Lexer hiding (context)
+import GHC.Types.SrcLoc
+import GHC.Utils.Error
+import GHC.Utils.Outputable
+import GHC.Parser.Lexer hiding (context)
 import GHC.LanguageExtensions.Type
-import ApiAnnotation
-import DynFlags hiding (extensions)
-import Bag
+import GHC.Parser.Annotation
+import GHC.Driver.Session hiding (extensions)
+import GHC.Data.Bag
 
 import Language.Haskell.GhclibParserEx.GHC.Parser
 import Language.Haskell.GhclibParserEx.Fixity
@@ -84,26 +84,34 @@ data ParseError = ParseError
 
 -- | Result of 'parseModuleEx', representing a parsed module.
 data ModuleEx = ModuleEx {
-    ghcModule :: Located (HsModule GhcPs)
+    ghcModule :: Located HsModule
   , ghcAnnotations :: ApiAnns
 }
 
 -- | Extract a list of all of a parsed module's comments.
 ghcComments :: ModuleEx -> [Located AnnotationComment]
-ghcComments m = concat (Map.elems $ snd (ghcAnnotations m))
-
+ghcComments m =
+  map realToLoc $
+    concat (Map.elems $ apiAnnComments (ghcAnnotations m)) ++
+      apiAnnRogueComments (ghcAnnotations m)
+   where
+     -- TODO (2020-10-03, SF): This utility is repeated in
+     -- ApiAnnotation.hs. Consider doing something in
+     -- ghc-lib-parser-ex to clean this up.
+     realToLoc :: RealLocated a -> Located a
+     realToLoc (L r x) = L (RealSrcSpan r Nothing) x
 
 -- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String
                        -> FilePath
                        -> String
-                       -> (SrcSpan, ErrUtils.MsgDoc)
+                       -> (SrcSpan, GHC.Utils.Error.MsgDoc)
                        -> IO (Either ParseError ModuleEx)
 ghcFailOpParseModuleEx ppstr file str (loc, err) = do
    let pe = case loc of
-            RealSrcSpan r -> context (srcSpanStartLine r) ppstr
+            RealSrcSpan r _ -> context (srcSpanStartLine r) ppstr
             _ -> ""
-       msg = Outputable.showSDoc baseDynFlags err
+       msg = GHC.Utils.Outputable.showSDoc baseDynFlags err
    pure $ Left $ ParseError loc msg pe
 
 -- GHC extensions to enable/disable given HSE parse flags.
@@ -144,7 +152,7 @@ parseDeclGhcWithMode parseMode s =
 -- | Create a 'ModuleEx' from GHC annotations and module tree. It
 -- is assumed the incoming parse module has not been adjusted to
 -- account for operator fixities (it uses the HLint default fixities).
-createModuleEx :: ApiAnns -> Located (HsModule GhcPs) -> ModuleEx
+createModuleEx :: ApiAnns -> Located HsModule -> ModuleEx
 createModuleEx anns ast =
   ModuleEx (applyFixities (fixitiesFromModule ast ++ map toFixity defaultFixities) ast) anns
 
@@ -181,10 +189,12 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
       if not $ null errs then
         ExceptT $ parseFailureErr dynFlags str file str errs
       else do
-        let anns =
-              ( Map.fromListWith (++) $ annotations s
-              , Map.fromList ((noSrcSpan, comment_q s) : annotations_comments s)
-              )
+        let anns = ApiAnns {
+              apiAnnItems = Map.fromListWith (++) $ annotations s
+            , apiAnnEofPos = Nothing
+            , apiAnnComments = Map.fromListWith (++) $ annotations_comments s
+            , apiAnnRogueComments = comment_q s
+            }
         let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
         pure $ ModuleEx (applyFixities fixes a) anns
     PFailed s ->
@@ -199,7 +209,9 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
     parseFailureErr dynFlags ppstr file str errs =
       let errMsg = head errs
           loc = errMsgSpan errMsg
-          doc = formatErrDoc dynFlags (errMsgDoc errMsg)
+          style = mkErrStyle (errMsgContext errMsg)
+          ctx = initSDocContext dynFlags style
+          doc = formatErrDoc ctx (errMsgDoc errMsg)
       in ghcFailOpParseModuleEx ppstr file str (loc, doc)
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.

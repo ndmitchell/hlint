@@ -47,10 +47,11 @@ import Data.Maybe
 import Control.Applicative
 import Prelude
 
-import FastString
-import BasicTypes
+import GHC.Data.FastString
+import GHC.Types.Basic
 import GHC.Hs
-import SrcLoc
+import GHC.Types.SrcLoc
+import GHC.Unit.Types -- for 'NotBoot'
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
@@ -60,7 +61,7 @@ importHint _ ModuleEx {ghcModule=L _ HsModule{hsmodImports=ms}} =
   -- Ideas for combining multiple imports.
   concatMap (reduceImports . snd) (
     groupSort [((n, pkg), i) | i <- ms
-              , not $ ideclSource (unLoc i)
+              , ideclSource (unLoc i) == NotBoot
               , let i' = unLoc i
               , let n = unLoc $ ideclName i'
               , let pkg  = unpackFS . sl_fs <$> ideclPkgQual i']) ++
@@ -133,5 +134,5 @@ stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
 stripRedundantAlias x@(L loc i@ImportDecl {..})
   -- Suggest 'import M as M' be just 'import M'.
   | Just (unLoc ideclName) == fmap unLoc ideclAs =
-      [suggest "Redundant as" x (cL loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS x)]]
+      [suggest "Redundant as" x (L loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS x)]]
 stripRedundantAlias _ = []

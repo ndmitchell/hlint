@@ -113,11 +113,11 @@ import qualified Data.Set as Set
 import Refact.Types hiding (RType(Match))
 import Data.Generics.Uniplate.DataOnly (universe, universeBi, transformBi)
 
-import BasicTypes
+import GHC.Types.Basic
 import GHC.Hs
-import OccName
-import RdrName
-import SrcLoc
+import GHC.Types.Name.Occurrence
+import GHC.Types.Name.Reader
+import GHC.Types.SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol, strToVar)
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
@@ -259,7 +259,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                  oldMG@(MG _ (L _ [L _ oldmatch]) _)
                    | all (\(L _ (GRHS _ stmts _)) -> null stmts) (grhssGRHSs (m_grhss oldmatch)) ->
                      let patLocs = fmap getLoc (m_pats oldmatch)
-                         bodyLocs = concatMap (\case L _ (GRHS _ _ body) -> [getLoc body]; _ -> [])
+                         bodyLocs = concatMap (\case L _ (GRHS _ _ body) -> [getLoc body])
                                         $ grhssGRHSs (m_grhss oldmatch)
                          r | notNull patLocs && notNull bodyLocs =
                              let xloc = foldl1' combineSrcSpans patLocs
@@ -287,7 +287,6 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                  MG _ (L _ _) _ ->
                      [(suggestN "Use lambda-case" o $ noLoc $ HsLamCase noExtField matchGroup)
                          {ideaNote=[RequiresExtension "LambdaCase"]}]
-                 _ -> []
         _ -> []
     where
         -- | Filter out tuple arguments, converting the @x@ (matched in the lambda) variable argument

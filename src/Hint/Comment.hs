@@ -18,8 +18,8 @@ import Hint.Type
 import Data.Char
 import Data.List.Extra
 import Refact.Types(Refactoring(ModifyComment))
-import SrcLoc
-import ApiAnnotation
+import GHC.Types.SrcLoc
+import GHC.Parser.Annotation
 import GHC.Util
 
 directives :: [String]

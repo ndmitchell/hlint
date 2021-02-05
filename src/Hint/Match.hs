@@ -40,6 +40,10 @@ not . not . x ==> x
 module Hint.Match(readMatch) where
 
 import Hint.Type (ModuleEx,Idea,idea,ideaNote,toSS)
+
+-- import Language.Haskell.GhclibParserEx.Dump
+-- import GHC.Utils.Outputable
+
 import Util
 import Timing
 import qualified Data.Set as Set
@@ -51,18 +55,19 @@ import Data.Maybe
 import Config.Type
 import Data.Generics.Uniplate.DataOnly
 
-import Bag
+import GHC.Data.Bag
 import GHC.Hs
-import SrcLoc
-import BasicTypes
-import RdrName
-import OccName
+import GHC.Types.SrcLoc
+import GHC.Types.Basic
+import GHC.Types.Name.Reader
+import GHC.Types.Name.Occurrence
 import Data.Data
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
+-- import Debug.Trace
 
 readMatch :: [HintRule] -> Scope -> ModuleEx -> LHsDecl GhcPs -> [Idea]
 readMatch settings = findIdeas (concatMap readRule settings)
@@ -99,8 +104,8 @@ dotVersion (L l (OpApp _ x op y)) =
 
   --   If a == b then
   --   x is 'a', op is '==' and y is 'b' and,
-  let lSec = addParen (cL l (SectionL noExtField x op)) -- (a == )
-      rSec = addParen (cL l (SectionR noExtField op y)) -- ( == b)
+  let lSec = addParen (L l (SectionL noExtField x op)) -- (a == )
+      rSec = addParen (L l (SectionR noExtField op y)) -- ( == b)
   in (first (lSec :) <$> dotVersion y) ++ (first (rSec :) <$> dotVersion x) -- [([(a ==)], b), ([(b == )], a])].
 dotVersion _ = []
 
@@ -215,8 +220,8 @@ checkSide x bind = maybe True bool x
       asInt :: LHsExpr GhcPs -> Maybe Integer
       asInt (L _ (HsPar _ x)) = asInt x
       asInt (L _ (NegApp _ x _)) = negate <$> asInt x
-      asInt (L _ (HsLit _ (HsInt _ (IL _ neg x)) )) = Just $ if neg then -x else x
-      asInt (L _ (HsOverLit _ (OverLit _ (HsIntegral (IL _ neg x)) _))) = Just $ if neg then -x else x
+      asInt (L _ (HsLit _ (HsInt _ (IL _ _ x)) )) = Just x
+      asInt (L _ (HsOverLit _ (OverLit _ (HsIntegral (IL _ _ x)) _))) = Just x
       asInt _ = Nothing
 
       list :: LHsExpr GhcPs -> [LHsExpr GhcPs]

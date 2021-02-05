@@ -19,7 +19,7 @@ import qualified Data.ByteString.Lazy.Char8 as C8
 
 import Idea (Idea(..), Severity(..))
 
-import qualified SrcLoc as GHC
+import qualified GHC.Types.SrcLoc as GHC
 import qualified GHC.Util as GHC
 
 data Issue = Issue

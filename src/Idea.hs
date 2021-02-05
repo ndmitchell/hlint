@@ -15,8 +15,8 @@ import HsColour
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
 import Prelude
-import SrcLoc
-import Outputable
+import GHC.Types.SrcLoc
+import GHC.Utils.Outputable
 import GHC.Util
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -33,7 +33,7 @@ data Idea = Idea
     ,ideaNote :: [Note] -- ^ Notes about the effect of applying the replacement.
     ,ideaRefactoring :: [Refactoring R.SrcSpan] -- ^ How to perform this idea
     }
-    deriving (Eq,Ord)
+    deriving Eq
 
 -- I don't use aeson here for 2 reasons:
 -- 1) Aeson doesn't esape unicode characters, and I want to (allows me to ignore encoding)
@@ -89,8 +89,8 @@ rawIdea = Idea [] []
 rawIdeaN :: Severity -> String -> SrcSpan -> String -> Maybe String -> [Note] -> Idea
 rawIdeaN a b c d e f = Idea [] [] a b c d e f []
 
-idea :: (HasSrcSpan a, Outputable.Outputable a, HasSrcSpan b, Outputable.Outputable b) =>
-         Severity -> String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
+idea :: (GHC.Utils.Outputable.Outputable a, GHC.Utils.Outputable.Outputable b) =>
+         Severity -> String -> Located a -> Located b -> [Refactoring R.SrcSpan] -> Idea
 idea severity hint from to =
   rawIdea severity hint (getLoc from) (unsafePrettyPrint from) (Just $ unsafePrettyPrint to) []
 
@@ -98,29 +98,29 @@ idea severity hint from to =
 ideaRemove :: Severity -> String -> SrcSpan -> String -> [Refactoring R.SrcSpan] -> Idea
 ideaRemove severity hint span from = rawIdea severity hint span from (Just "") []
 
-suggest :: (HasSrcSpan a, Outputable.Outputable a, HasSrcSpan b, Outputable.Outputable b) =>
-            String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
+suggest :: (GHC.Utils.Outputable.Outputable a, GHC.Utils.Outputable.Outputable b) =>
+            String -> Located a -> Located b -> [Refactoring R.SrcSpan] -> Idea
 suggest = idea Suggestion
 
 suggestRemove :: String -> SrcSpan -> String -> [Refactoring R.SrcSpan] -> Idea
 suggestRemove = ideaRemove Suggestion
 
-warn :: (HasSrcSpan a, Outputable.Outputable a, HasSrcSpan b, Outputable.Outputable b) =>
-         String -> a -> b -> [Refactoring R.SrcSpan] -> Idea
+warn :: (GHC.Utils.Outputable.Outputable a, GHC.Utils.Outputable.Outputable b) =>
+         String -> Located a -> Located b -> [Refactoring R.SrcSpan] -> Idea
 warn = idea Warning
 
-ignoreNoSuggestion :: (HasSrcSpan a, Outputable.Outputable a)
-                    => String -> a -> Idea
+ignoreNoSuggestion :: (GHC.Utils.Outputable.Outputable a)
+                    => String -> Located a -> Idea
 ignoreNoSuggestion hint x = rawIdeaN Ignore hint (getLoc x) (unsafePrettyPrint x) Nothing []
 
-ignore :: (HasSrcSpan a, Outputable.Outputable a) =>
-           String -> a -> a -> [Refactoring R.SrcSpan] -> Idea
+ignore :: (GHC.Utils.Outputable.Outputable a) =>
+           String -> Located a -> Located a -> [Refactoring R.SrcSpan] -> Idea
 ignore = idea Ignore
 
-ideaN :: (HasSrcSpan a, Outputable.Outputable a) =>
-          Severity -> String -> a -> a -> Idea
+ideaN :: (GHC.Utils.Outputable.Outputable a) =>
+          Severity -> String -> Located a -> Located a -> Idea
 ideaN severity hint from to = idea severity hint from to []
 
-suggestN :: (HasSrcSpan a, Outputable.Outputable a) =>
-             String -> a -> a -> Idea
+suggestN :: (GHC.Utils.Outputable.Outputable a) =>
+             String -> Located a -> Located a -> Idea
 suggestN = ideaN Suggestion

@@ -15,12 +15,12 @@ module GHC.Util.HsExpr (
 ) where
 
 import GHC.Hs
-import BasicTypes
-import SrcLoc
-import FastString
-import RdrName
-import OccName
-import Bag(bagToList)
+import GHC.Types.Basic
+import GHC.Types.SrcLoc
+import GHC.Data.FastString
+import GHC.Types.Name.Reader
+import GHC.Types.Name.Occurrence
+import GHC.Data.Bag(bagToList)
 
 import GHC.Util.Brackets
 import GHC.Util.FreeVars
@@ -121,7 +121,7 @@ simplifyExp (L l (OpApp _ x op y)) | isDol op = L l (HsApp noExtField x (noLoc (
 simplifyExp e@(L _ (HsLet _ (L _ (HsValBinds _ (ValBinds _ binds []))) z)) =
   -- An expression of the form, 'let x = y in z'.
   case bagToList binds of
-    [L _ (FunBind _ _(MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] (L _ (EmptyLocalBinds _))))]) _) _ _)]
+    [L _ (FunBind _ _ (MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] (L _ (EmptyLocalBinds _))))]) _) _)]
          -- If 'x' is not in the free variables of 'y', beta-reduce to
          -- 'z[(y)/x]'.
       | occNameStr x `notElem` vars y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
@@ -245,10 +245,10 @@ niceLambdaR ss e =
 -- 'case' and 'if' expressions have branches, nothing else does (this
 -- doesn't consider 'HsMultiIf' perhaps it should?).
 replaceBranches :: LHsExpr GhcPs -> ([LHsExpr GhcPs], [LHsExpr GhcPs] -> LHsExpr GhcPs)
-replaceBranches (L l (HsIf _ _ a b c)) = ([b, c], \[b, c] -> cL l (HsIf noExtField Nothing a b c))
+replaceBranches (L l (HsIf _ a b c)) = ([b, c], \[b, c] -> L l (HsIf noExtField a b c))
 
 replaceBranches (L s (HsCase _ a (MG _ (L l bs) FromSource))) =
-  (concatMap f bs, \xs -> cL s (HsCase noExtField a (MG noExtField (cL l (g bs xs)) Generated)))
+  (concatMap f bs, \xs -> L s (HsCase noExtField a (MG noExtField (L l (g bs xs)) Generated)))
   where
     f :: LMatch GhcPs (LHsExpr GhcPs) -> [LHsExpr GhcPs]
     f (L _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (L _ (GRHS _ _ x)) <- xs]
@@ -256,7 +256,7 @@ replaceBranches (L s (HsCase _ a (MG _ (L l bs) FromSource))) =
 
     g :: [LMatch GhcPs (LHsExpr GhcPs)] -> [LHsExpr GhcPs] -> [LMatch GhcPs (LHsExpr GhcPs)]
     g (L s1 (Match _ CaseAlt a (GRHSs _ ns b)) : rest) xs =
-      cL s1 (Match noExtField CaseAlt a (GRHSs noExtField [cL a (GRHS noExtField gs x) | (L a (GRHS _ gs _), x) <- zip ns as] b)) : g rest bs
+      L s1 (Match noExtField CaseAlt a (GRHSs noExtField [L a (GRHS noExtField gs x) | (L a (GRHS _ gs _), x) <- zip ns as] b)) : g rest bs
       where  (as, bs) = splitAt (length ns) xs
     g [] [] = []
     g _ _ = error "GHC.Util.HsExpr.replaceBranches': internal invariant failed, lists are of differing lengths"

@@ -8,9 +8,9 @@ module GHC.Util.View (
 ) where
 
 import GHC.Hs
-import RdrName
-import SrcLoc
-import BasicTypes
+import GHC.Types.Name.Reader
+import GHC.Types.SrcLoc
+import GHC.Types.Basic
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util.Brackets
 
@@ -54,9 +54,9 @@ instance View (Located (Pat GhcPs)) PVar_ where
   view _ = NoPVar_
 
 instance View (Located (Pat GhcPs)) PApp_ where
-  view (fromPParen -> L _ (ConPatIn (L _ x) (PrefixCon args))) =
+  view (fromPParen -> L _ (ConPat _ (L _ x) (PrefixCon args))) =
     PApp_ (occNameStr x) args
-  view (fromPParen -> L _ (ConPatIn (L _ x) (InfixCon lhs rhs))) =
+  view (fromPParen -> L _ (ConPat _ (L _ x) (InfixCon lhs rhs))) =
     PApp_ (occNameStr x) [lhs, rhs]
   view _ = NoPApp_
 

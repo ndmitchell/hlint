@@ -51,12 +51,11 @@ import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
 
 import GHC.Hs
-import SrcLoc
-import BasicTypes
-import RdrName
-import Name
-import FastString
-import TysWiredIn
+import GHC.Types.SrcLoc
+import GHC.Types.Basic
+import GHC.Types.Name.Reader
+import GHC.Data.FastString
+import GHC.Builtin.Types
 
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
@@ -65,6 +64,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Types
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
+
 
 listHint :: DeclHint
 listHint _ _ = listDecl
@@ -92,7 +92,7 @@ listComp o@(view -> App2 mp f (L _ (HsDo _ MonadComp (L _ stmts)))) =
   listCompCheckMap o mp f MonadComp stmts
 listComp _ = []
 
-listCompCheckGuards :: LHsExpr GhcPs -> HsStmtContext Name -> [ExprLStmt GhcPs] -> [Idea]
+listCompCheckGuards :: LHsExpr GhcPs -> HsStmtContext GhcRn -> [ExprLStmt GhcPs] -> [Idea]
 listCompCheckGuards o ctx stmts =
   let revs = reverse stmts
       e@(L _ LastStmt{}) = head revs -- In a ListComp, this is always last.
@@ -115,7 +115,7 @@ listCompCheckGuards o ctx stmts =
         qualCon _ = Nothing
 
 listCompCheckMap ::
-  LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs -> HsStmtContext Name -> [ExprLStmt GhcPs] -> [Idea]
+  LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs -> HsStmtContext GhcRn -> [ExprLStmt GhcPs] -> [Idea]
 listCompCheckMap o mp f ctx stmts  | varToStr mp == "map" =
     [suggest "Move map inside list comprehension" o o2 (suggestExpr o o2)]
     where
@@ -131,7 +131,7 @@ suggestExpr o o2 = [Replace Expr (toSS o) [] (unsafePrettyPrint o2)]
 moveGuardsForward :: [ExprLStmt GhcPs] -> [ExprLStmt GhcPs]
 moveGuardsForward = reverse . f [] . reverse
   where
-    f guards (x@(L _ (BindStmt _ p _ _ _)) : xs) = reverse stop ++ x : f move xs
+    f guards (x@(L _ (BindStmt _ p _)) : xs) = reverse stop ++ x : f move xs
       where (move, stop) =
               span (if any hasPFieldsDotDot (universeBi x)
                        || any isPFieldWildcard (universeBi x)

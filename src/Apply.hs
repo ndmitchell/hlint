@@ -15,7 +15,7 @@ import Data.Maybe
 import Data.Ord
 import Config.Type
 import Config.Haskell
-import SrcLoc
+import GHC.Types.SrcLoc
 import GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Hs
 import qualified Data.HashSet as Set
@@ -58,8 +58,8 @@ applyHintsReal settings hints_ ms = concat $
     , let classifiers = cls ++ mapMaybe readPragma (universeBi (ghcModule m)) ++ concatMap readComment (ghcComments m)
     , seq (length classifiers) True -- to force any errors from readPragma or readComment
     , let decHints = hintDecl hints settings nm m -- partially apply
-    , let order n = map (\i -> i{ideaModule = f $ modName (ghcModule m) : ideaModule i, ideaDecl = f $ n ++ ideaDecl i}) . sortOn ideaSpan
-    , let merge = mergeBy (comparing ideaSpan)] ++
+    , let order n = map (\i -> i{ideaModule = f $ modName (ghcModule m) : ideaModule i, ideaDecl = f $ n ++ ideaDecl i}) . sortOn (SrcSpanD . ideaSpan)
+    , let merge = mergeBy (comparing (SrcSpanD . ideaSpan))] ++
     [map (classify cls) (hintModules hints settings mns)]
     where
         f = nubOrd . filter (/= "")

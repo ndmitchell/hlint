@@ -1,6 +1,6 @@
 module GHC.Util.DynFlags (initGlobalDynFlags, baseDynFlags) where
 
-import DynFlags
+import GHC.Driver.Session
 import GHC.LanguageExtensions.Type
 import Data.List.Extra
 import Language.Haskell.GhclibParserEx.GHC.Settings.Config

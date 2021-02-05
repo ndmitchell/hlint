@@ -15,14 +15,14 @@ import Prelude
 
 import GHC.Util
 
-import SrcLoc
+import GHC.Types.SrcLoc
 import GHC.Hs.Extension
 import GHC.Hs.Decls hiding (SpliceDecl)
 import GHC.Hs.Expr hiding (Match)
 import GHC.Hs.Lit
-import FastString
-import ApiAnnotation
-import Outputable
+import GHC.Data.FastString
+import GHC.Parser.Annotation
+import GHC.Utils.Outputable
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
@@ -45,7 +45,6 @@ readPragma (HsAnnotation _ _ provenance expr) = f expr
         f (L _ (HsPar _ x)) = f x
         f (L _ (ExprWithTySig _ x _)) = f x
         f _ = Nothing
-readPragma _ = Nothing
 
 readComment :: Located AnnotationComment -> [Classify]
 readComment c@(L pos AnnBlockComment{})

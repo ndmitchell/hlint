@@ -33,15 +33,15 @@ import Language.Haskell.GhclibParserEx.GHC.Driver.Session (parsePragmasIntoDynFl
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 import GHC.Hs
-import Lexer
-import SrcLoc
-import DynFlags
-import FastString
+import GHC.Parser.Lexer
+import GHC.Types.SrcLoc
+import GHC.Driver.Session
+import GHC.Data.FastString
 
 import System.FilePath
 import Language.Preprocessor.Unlit
 
-fileToModule :: FilePath -> String -> DynFlags -> ParseResult (Located (HsModule GhcPs))
+fileToModule :: FilePath -> String -> DynFlags -> ParseResult (Located HsModule)
 fileToModule filename str flags =
   parseFile filename flags
     (if takeExtension filename /= ".lhs" then str else unlit filename str)
@@ -66,7 +66,7 @@ pattern SrcSpan
       ))
 
 toOldeSpan :: SrcSpan -> (String, Int, Int, Int, Int)
-toOldeSpan (RealSrcSpan span) =
+toOldeSpan (RealSrcSpan span _) =
   ( unpackFS $ srcSpanFile span
   , srcSpanStartLine span
   , srcSpanStartCol span
@@ -75,8 +75,8 @@ toOldeSpan (RealSrcSpan span) =
   )
 -- TODO: the bad locations are all (-1) right now
 -- is this fine? it should be, since noLoc from HSE previously also used (-1) as an invalid location
-toOldeSpan (UnhelpfulSpan str) =
-  ( unpackFS str
+toOldeSpan (UnhelpfulSpan _) =
+  ( "no-span"
   , -1
   , -1
   , -1
@@ -98,13 +98,13 @@ pattern SrcLoc
       ))
 
 toOldeLoc :: SrcLoc -> (String, Int, Int)
-toOldeLoc (RealSrcLoc loc) =
+toOldeLoc (RealSrcLoc loc _) =
   ( unpackFS $ srcLocFile loc
   , srcLocLine loc
   , srcLocCol loc
   )
-toOldeLoc (UnhelpfulLoc str) =
-  ( unpackFS str
+toOldeLoc (UnhelpfulLoc _) =
+  ( "no-loc"
   , -1
   , -1
   )

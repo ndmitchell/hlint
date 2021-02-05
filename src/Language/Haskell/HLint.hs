@@ -36,11 +36,11 @@ import Idea
 import qualified Apply as H
 import HLint
 import Fixity
-import FastString ( unpackFS )
+import GHC.Data.FastString ( unpackFS )
 import GHC.All
 import Hint.All hiding (resolveHints)
 import qualified Hint.All as H
-import SrcLoc
+import GHC.Types.SrcLoc
 import CmdLine
 import Paths_hlint
 
@@ -144,7 +144,7 @@ _docs = do
 --   Following the GHC API, he end column is the column /after/ the end of the error.
 --   Lines and columns are 1-based. Returns 'Nothing' if there is no helpful location information.
 unpackSrcSpan :: SrcSpan -> Maybe (FilePath, (Int, Int), (Int, Int))
-unpackSrcSpan (RealSrcSpan x) = Just
+unpackSrcSpan (RealSrcSpan x _) = Just
     (unpackFS $ srcSpanFile x
     ,(srcSpanStartLine x, srcSpanStartCol x)
     ,(srcSpanEndLine x, srcSpanEndCol x))

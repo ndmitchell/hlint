@@ -8,12 +8,12 @@ module GHC.Util.Scope (
 ) where
 
 import GHC.Hs
-import SrcLoc
-import BasicTypes
-import Module
-import FastString
-import RdrName
-import OccName
+import GHC.Types.SrcLoc
+import GHC.Types.Basic
+import GHC.Unit.Module
+import GHC.Data.FastString
+import GHC.Types.Name.Reader
+import GHC.Types.Name.Occurrence
 
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -29,7 +29,7 @@ instance Show Scope where
     show (Scope x) = unsafePrettyPrint x
 
 -- Create a 'Scope from a module's import declarations.
-scopeCreate :: HsModule GhcPs -> Scope
+scopeCreate :: HsModule -> Scope
 scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
   where
     -- Package qualifier of an import declaration.

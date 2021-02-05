@@ -40,16 +40,16 @@ import Data.Either.Extra
 import Control.Monad
 import Refact.Types hiding (RType(Match))
 
-import SrcLoc
+import GHC.Types.SrcLoc
 import GHC.Hs.Extension
 import GHC.Hs.Pat
-import GHC.Hs.Types
-import TysWiredIn
-import RdrName
+import GHC.Builtin.Types
+import GHC.Hs.Type
+import GHC.Types.Name.Reader
 import GHC.Hs.Binds
 import GHC.Hs.Expr
 import GHC.Hs.Decls
-import BasicTypes
+import GHC.Types.Basic
 
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
@@ -119,7 +119,7 @@ matchListRec o@(ListCase vs nil (x, xs, cons))
       appsBracket [ strToVar "foldl", niceLambda [v,x] lhs, strToVar v, strToVar xs]
     -- Suggest 'foldM'?
     | [v] <- vs, (L _ (HsApp _ ret res)) <- nil, isReturn ret, varToStr res == "()" || view res == Var_ v
-    , [L _ (BindStmt _ (view -> PVar_ b1) e _ _), L _ (BodyStmt _ (fromParen -> (L _ (HsApp _ r (view -> Var_ b2)))) _ _)] <- asDo cons
+    , [L _ (BindStmt _ (view -> PVar_ b1) e), L _ (BodyStmt _ (fromParen -> (L _ (HsApp _ r (view -> Var_ b2)))) _ _)] <- asDo cons
     , b1 == b2, astEq r recursive, xs `notElem` vars e
     , name <- "foldM" ++ ['_' | varToStr res == "()"]
     = Just $ (,,) name Suggestion $
@@ -141,9 +141,9 @@ asDo (view ->
                                         [L _ (GRHS _ [] rhs)]
                                         (L _ (EmptyLocalBinds _))}]}))
       ) =
-  [ noLoc $ BindStmt noExtField v lhs noSyntaxExpr noSyntaxExpr
+  [ noLoc $ BindStmt noExtField v lhs
   , noLoc $ BodyStmt noExtField rhs noSyntaxExpr noSyntaxExpr ]
-asDo (L _ (HsDo _ DoExpr (L _ stmts))) = stmts
+asDo (L _ (HsDo _ (DoExpr _) (L _ stmts))) = stmts
 asDo x = [noLoc $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr]
 
 
@@ -223,8 +223,8 @@ findPat ps = do
 
 readPat :: LPat GhcPs -> Maybe (Either String BList)
 readPat (view -> PVar_ x) = Just $ Left x
-readPat (L _ (ParPat _ (L _ (ConPatIn (L _ n) (InfixCon (view -> PVar_ x) (view -> PVar_ xs))))))
+readPat (L _ (ParPat _ (L _ (ConPat _ (L _ n) (InfixCon (view -> PVar_ x) (view -> PVar_ xs))))))
  | n == consDataCon_RDR = Just $ Right $ BCons x xs
-readPat (L _ (ConPatIn (L _ n) (PrefixCon [])))
+readPat (L _ (ConPat _ (L _ n) (PrefixCon [])))
   | n == nameRdrName nilDataConName = Just $ Right BNil
 readPat _ = Nothing

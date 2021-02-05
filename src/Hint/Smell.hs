@@ -85,12 +85,11 @@ import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
 import qualified Data.Map as Map
 
-import BasicTypes
+import GHC.Types.Basic
 import GHC.Hs
-import RdrName
-import Outputable
-import Bag
-import SrcLoc
+import GHC.Utils.Outputable
+import GHC.Data.Bag
+import GHC.Types.SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 smellModuleHint :: [Setting] -> ModuHint
@@ -145,11 +144,10 @@ declSpans f@(L l (ValD _ FunBind {})) = [(l, warn "Long function" f f [])]
 declSpans _ = []
 
 -- The span of a guarded right hand side.
-rhsSpans :: HsMatchContext RdrName -> LGRHS GhcPs (LHsExpr GhcPs) -> [(SrcSpan, Idea)]
+rhsSpans :: HsMatchContext GhcPs -> LGRHS GhcPs (LHsExpr GhcPs) -> [(SrcSpan, Idea)]
 rhsSpans _ (L _ (GRHS _ _ (L _ RecordCon {}))) = [] -- record constructors get a pass
 rhsSpans ctx (L _ r@(GRHS _ _ (L l _))) =
   [(l, rawIdea Config.Type.Warning "Long function" l (showSDocUnsafe (pprGRHS ctx r)) Nothing [] [])]
-rhsSpans _ _ = []
 
 -- The spans of a 'where' clause are the spans of its bindings.
 whereSpans :: LHsLocalBinds GhcPs -> [(SrcSpan, Idea)]
@@ -158,7 +156,7 @@ whereSpans (L l (HsValBinds _ (ValBinds _ bs _))) =
 whereSpans _ = []
 
 spanLength :: SrcSpan -> Int
-spanLength (RealSrcSpan span) = srcSpanEndLine span - srcSpanStartLine span + 1
+spanLength (RealSrcSpan span _) = srcSpanEndLine span - srcSpanStartLine span + 1
 spanLength (UnhelpfulSpan _) = -1
 
 smellLongTypeLists :: LHsDecl GhcPs -> Int -> [Idea]
@@ -177,7 +175,7 @@ smellManyArgFunctions d@(L _ (SigD _ (TypeSig _ _ (HsWC _ (HsIB _ (L _ t)))))) n
 smellManyArgFunctions _ _ = []
 
 countFunctionArgs :: HsType GhcPs -> Int
-countFunctionArgs (HsFunTy _ _ t) = 1 + countFunctionArgs (unLoc t)
+countFunctionArgs (HsFunTy _ _ _ t) = 1 + countFunctionArgs (unLoc t)
 countFunctionArgs (HsParTy _ t) = countFunctionArgs (unLoc t)
 countFunctionArgs _ = 0
 
