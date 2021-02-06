@@ -5,12 +5,10 @@ module GHC.Util.ApiAnnotation (
   , mkFlags, mkLanguagePragmas
 ) where
 
-import ApiAnnotation
-import SrcLoc
+import GHC.Parser.Annotation
+import GHC.Types.SrcLoc
 
 import Control.Applicative
-import qualified Data.Map.Strict as Map
-import Data.Maybe
 import Data.List.Extra
 
 trimCommentStart :: String -> String
@@ -56,12 +54,15 @@ pragmas anns =
   -- encountered in the source file with the last at the head of the
   -- list (makes sense when you think about it).
   reverse
-    [ (c, s) |
-        c@(L _ (AnnBlockComment comm)) <- fromMaybe [] $ Map.lookup noSrcSpan (snd anns)
+    [ (realToLoc c, s) |
+        c@(L _ (AnnBlockComment comm)) <- apiAnnRogueComments anns
       , let body = trimCommentDelims comm
       , Just rest <- [stripSuffix "#" =<< stripPrefix "#" body]
       , let s = trim rest
     ]
+   where
+     realToLoc :: RealLocated a -> Located a
+     realToLoc (L r x) = L (RealSrcSpan r Nothing) x
 
 -- Utility for a case insensitive prefix strip.
 stripPrefixCI :: String -> String -> Maybe String

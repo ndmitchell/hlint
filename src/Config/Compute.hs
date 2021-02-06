@@ -10,10 +10,10 @@ import Config.Type
 import Fixity
 import Data.Generics.Uniplate.DataOnly
 import GHC.Hs hiding (Warning)
-import RdrName
-import Name
-import Bag
-import SrcLoc
+import GHC.Types.Name.Reader
+import GHC.Types.Name
+import GHC.Data.Bag
+import GHC.Types.SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable

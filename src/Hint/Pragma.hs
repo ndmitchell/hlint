@@ -39,11 +39,11 @@ import Data.Maybe
 import Refact.Types
 import qualified Refact.Types as R
 
-import ApiAnnotation
-import SrcLoc
+import GHC.Parser.Annotation
+import GHC.Types.SrcLoc
 
 import GHC.Util
-import DynFlags
+import GHC.Driver.Session
 
 pragmaHint :: ModuHint
 pragmaHint _ modu =

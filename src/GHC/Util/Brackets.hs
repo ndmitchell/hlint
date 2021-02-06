@@ -4,8 +4,8 @@
 module GHC.Util.Brackets (Brackets(..), isApp,isOpApp,isAnyApp) where
 
 import GHC.Hs
-import SrcLoc
-import BasicTypes
+import GHC.Types.SrcLoc
+import GHC.Types.Basic
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Refact.Types
 
@@ -111,8 +111,8 @@ instance Brackets (Located (Pat GhcPs)) where
     ParPat{} -> True
     TuplePat{} -> True
     ListPat{} -> True
-    ConPatIn _ RecCon{} -> True
-    ConPatIn _ (PrefixCon []) -> True
+    ConPat _ _ RecCon{} -> True
+    ConPat _ _ (PrefixCon []) -> True
     VarPat{} -> True
     WildPat{} -> True
     SumPat{} -> True

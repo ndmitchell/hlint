@@ -69,11 +69,11 @@ import Refact.Types hiding (RType(Pattern, Match), SrcSpan)
 import qualified Refact.Types as R (RType(Pattern, Match), SrcSpan)
 
 import GHC.Hs
-import SrcLoc
-import RdrName
-import OccName
-import Bag
-import BasicTypes
+import GHC.Types.SrcLoc
+import GHC.Types.Name.Reader
+import GHC.Types.Name.Occurrence
+import GHC.Data.Bag
+import GHC.Types.Basic
 
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
@@ -161,10 +161,10 @@ hints _ (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
     f _ = False
     whereSpan = case l of
       UnhelpfulSpan s -> UnhelpfulSpan s
-      RealSrcSpan s ->
+      RealSrcSpan s _ ->
         let end = realSrcSpanEnd s
             start = mkRealSrcLoc (srcSpanFile s) (srcLocLine end) (srcLocCol end - 5)
-         in RealSrcSpan (mkRealSrcSpan start end)
+         in RealSrcSpan (mkRealSrcSpan start end) Nothing
 hints gen (Pattern l t pats o@(GRHSs _ (unsnoc -> Just (gs, L _ (GRHS _ [test] bod))) binds))
   | unsafePrettyPrint test == "True"
   = let otherwise_ = noLoc $ BodyStmt noExtField (strToVar "otherwise") noSyntaxExpr noSyntaxExpr in
@@ -173,7 +173,7 @@ hints _ _ = []
 
 asGuards :: LHsExpr GhcPs -> [(LHsExpr GhcPs, LHsExpr GhcPs)]
 asGuards (L _ (HsPar _ x)) = asGuards x
-asGuards (L _ (HsIf _ _ a b c)) = (a, b) : asGuards c
+asGuards (L _ (HsIf _ a b c)) = (a, b) : asGuards c
 asGuards x = [(strToVar "otherwise", x)]
 
 data Pattern = Pattern SrcSpan R.RType [LPat GhcPs] (GRHSs GhcPs (LHsExpr GhcPs))
@@ -184,20 +184,19 @@ asPattern (L loc x) = concatMap decl (universeBi x)
   where
     decl :: HsBind GhcPs -> [(Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)]
     decl o@(PatBind _ pat rhs _) = [(Pattern loc Bind [pat] rhs, \msg (Pattern _ _ [pat] rhs) rs -> suggest msg (L loc o :: LHsBind GhcPs) (noLoc (PatBind noExtField pat rhs ([], [])) :: LHsBind GhcPs) rs)]
-    decl (FunBind _ _ (MG _ (L _ xs) _) _ _) = map match xs
+    decl (FunBind _ _ (MG _ (L _ xs) _) _) = map match xs
     decl _ = []
 
     match :: LMatch GhcPs (LHsExpr GhcPs) -> (Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)
     match o@(L loc (Match _ ctx pats grhss)) = (Pattern loc R.Match pats grhss, \msg (Pattern _ _ pats grhss) rs -> suggest msg o (noLoc (Match noExtField ctx  pats grhss) :: LMatch GhcPs (LHsExpr GhcPs)) rs)
-    match _ = undefined -- {-# COMPLETE L #-}
 
 -- First Bool is if 'Strict' is a language extension. Second Bool is
 -- if this pattern in this context is going to be evaluated strictly.
 patHint :: Bool -> Bool -> LPat GhcPs -> [Idea]
-patHint _ _ o@(L _ (ConPatIn name (PrefixCon args)))
+patHint _ _ o@(L _ (ConPat _ name (PrefixCon args)))
   | length args >= 3 && all isPWildcard args =
   let rec_fields = HsRecFields [] Nothing :: HsRecFields GhcPs (LPat GhcPs)
-      new        = noLoc $ ConPatIn name (RecCon rec_fields) :: LPat GhcPs
+      new        = noLoc $ ConPat noExtField name (RecCon rec_fields) :: LPat GhcPs
   in
   [suggest "Use record patterns" o new [Replace R.Pattern (toSS o) [] (unsafePrettyPrint new)]]
 patHint _ _ o@(L _ (VarPat _ (L _ name)))
@@ -211,7 +210,7 @@ patHint lang strict o@(L _ (BangPat _ pat@(L _ x)))
     f (AsPat _ _ (L _ x)) = f x
     f LitPat {} = True
     f NPat {} = True
-    f ConPatIn {} = True
+    f ConPat {} = True
     f TuplePat {} = True
     f ListPat {} = True
     f (SigPat _ (L _ p) _) = f p

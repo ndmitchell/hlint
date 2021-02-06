@@ -17,7 +17,7 @@ import Data.Functor
 import GHC.All(CppFlags(..))
 import GHC.LanguageExtensions.Type
 import Language.Haskell.GhclibParserEx.GHC.Driver.Session as GhclibParserEx
-import DynFlags hiding (verbosity)
+import GHC.Driver.Session hiding (verbosity)
 
 import Language.Preprocessor.Cpphs
 import System.Console.ANSI(hSupportsANSIWithoutEmulation)

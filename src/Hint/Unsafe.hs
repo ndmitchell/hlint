@@ -24,11 +24,11 @@ import Refact.Types hiding(Match)
 import Data.Generics.Uniplate.DataOnly
 
 import GHC.Hs
-import OccName
-import RdrName
-import FastString
-import BasicTypes
-import SrcLoc
+import GHC.Types.Name.Occurrence
+import GHC.Types.Name.Reader
+import GHC.Data.FastString
+import GHC.Types.Basic
+import GHC.Types.SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 

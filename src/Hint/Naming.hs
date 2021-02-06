@@ -49,13 +49,13 @@ import Data.Char
 import Data.Maybe
 import qualified Data.Set as Set
 
-import BasicTypes
-import FastString
+import GHC.Types.Basic
+import GHC.Data.FastString
 import GHC.Hs.Decls
 import GHC.Hs.Extension
 import GHC.Hs
-import OccName
-import SrcLoc
+import GHC.Types.Name.Occurrence
+import GHC.Types.SrcLoc
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -84,7 +84,7 @@ naming seen originalDecl =
         replacedDecl = replaceNames suggestedNames originalDecl
 
 shorten :: LHsDecl GhcPs -> LHsDecl GhcPs
-shorten (L locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG _ (L locMatches matches) FromSource) _ _))) =
+shorten (L locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG _ (L locMatches matches) FromSource) _))) =
     L locDecl (ValD ttg0 bind {fun_matches = matchGroup {mg_alts = L locMatches $ map shortenMatch matches}})
 shorten (L locDecl (ValD ttg0 bind@(PatBind _ _ grhss@(GRHSs _ rhss _) _))) =
     L locDecl (ValD ttg0 bind {pat_rhs = grhss {grhssGRHSs = map shortenLGRHS rhss}})
@@ -93,22 +93,24 @@ shorten x = x
 shortenMatch :: LMatch GhcPs (LHsExpr GhcPs) -> LMatch GhcPs (LHsExpr GhcPs)
 shortenMatch (L locMatch match@(Match _ _ _ grhss@(GRHSs _ rhss _))) =
     L locMatch match {m_grhss = grhss {grhssGRHSs = map shortenLGRHS rhss}}
-shortenMatch x = x
 
 shortenLGRHS :: LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
 shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
-    L locGRHS (GRHS ttg0 guards (cL locExpr dots))
+    L locGRHS (GRHS ttg0 guards (L locExpr dots))
     where
         dots :: HsExpr GhcPs
         dots = HsLit noExtField (HsString (SourceText "...") (mkFastString "..."))
-shortenLGRHS x = x
 
 getNames :: LHsDecl GhcPs -> [String]
 getNames decl = maybeToList (declName decl) ++ getConstructorNames (unLoc decl)
 
 getConstructorNames :: HsDecl GhcPs -> [String]
 getConstructorNames (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ _ cons _))) =
-    concatMap (map unsafePrettyPrint . getConNames . unLoc) cons
+    concatMap (map unsafePrettyPrint . getConNames' . unLoc) cons
+    where
+      getConNames' ConDeclH98  {con_name  = name}  = [name]
+      getConNames' ConDeclGADT {con_names = names} = names
+
 getConstructorNames _ = []
 
 isSym :: String -> Bool

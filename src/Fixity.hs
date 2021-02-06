@@ -9,10 +9,10 @@ module Fixity(
 import GHC.Generics(Associativity(..))
 import GHC.Hs.Binds
 import GHC.Hs.Extension
-import OccName
-import RdrName
-import SrcLoc
-import BasicTypes
+import GHC.Types.Name.Occurrence
+import GHC.Types.Name.Reader
+import GHC.Types.SrcLoc
+import GHC.Types.Basic
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.Fixity
 
@@ -33,7 +33,6 @@ fromFixitySig (FixitySig _ names (Fixity _ i dir)) =
         f InfixL = LeftAssociative
         f InfixR = RightAssociative
         f InfixN = NotAssociative
-fromFixitySig _ = []
 
 toFixity :: FixityInfo -> (String, Fixity)
 toFixity (name, dir, i) = (name, Fixity NoSourceText i $ f dir)

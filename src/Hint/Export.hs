@@ -16,10 +16,10 @@ module Hint.Export(exportHint) where
 import Hint.Type(ModuHint, ModuleEx(..),ideaNote,ignore,Note(..))
 
 import GHC.Hs
-import Module
-import SrcLoc
-import OccName
-import RdrName
+import GHC.Unit.Module
+import GHC.Types.SrcLoc
+import GHC.Types.Name.Occurrence
+import GHC.Types.Name.Reader
 
 exportHint :: ModuHint
 exportHint _ (ModuleEx (L s m@HsModule {hsmodName = Just name, hsmodExports = exports}) _)

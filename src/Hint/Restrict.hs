@@ -37,11 +37,11 @@ import Control.Monad
 import Prelude
 
 import GHC.Hs
-import RdrName
-import ApiAnnotation
-import Module
-import SrcLoc
-import OccName
+import GHC.Types.Name.Reader
+import GHC.Parser.Annotation
+import GHC.Unit.Module
+import GHC.Types.SrcLoc
+import GHC.Types.Name.Occurrence
 import Language.Haskell.GhclibParserEx.GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util

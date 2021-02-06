@@ -22,20 +22,20 @@ import Data.Generics.Uniplate.DataOnly
 import GHC.All
 import Fixity
 import Extension
-import Module
+import GHC.Unit.Module
 import Data.Functor
 import Data.Semigroup
 import Timing
 import Prelude
 
-import Bag
-import Lexer
-import ErrUtils hiding (Severity)
-import Outputable
+import GHC.Data.Bag
+import GHC.Parser.Lexer
+import GHC.Utils.Error hiding (Severity)
+import GHC.Utils.Outputable
 import GHC.Hs
-import SrcLoc
-import RdrName
-import OccName
+import GHC.Types.SrcLoc
+import GHC.Types.Name.Reader
+import GHC.Types.Name.Occurrence
 import GHC.Util (baseDynFlags, Scope, scopeCreate)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
@@ -198,7 +198,7 @@ parseGHC parser v = do
         PFailed ps ->
           let (_, errs) = getMessages ps baseDynFlags
               errMsg = head (bagToList errs)
-              msg = Outputable.showSDoc baseDynFlags $ ErrUtils.pprLocErrMsg errMsg
+              msg = GHC.Utils.Outputable.showSDoc baseDynFlags $ GHC.Utils.Error.pprLocErrMsg errMsg
           in parseFail v $ "Failed to parse " ++ msg ++ ", when parsing:\n " ++ x
 
 ---------------------------------------------------------------------
@@ -364,7 +364,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
               scope'= asScope' packageMap' (map (fmap unextendInstances) groupImports)
 
 asScope' :: Map.HashMap String [LImportDecl GhcPs] -> [Either String (LImportDecl GhcPs)] -> Scope
-asScope' packages xs = scopeCreate (HsModule Nothing Nothing (concatMap f xs) [] Nothing Nothing)
+asScope' packages xs = scopeCreate (HsModule NoLayoutInfo Nothing Nothing (concatMap f xs) [] Nothing Nothing)
     where
         f (Right x) = [x]
         f (Left x) | Just pkg <- Map.lookup x packages = pkg

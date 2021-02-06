@@ -27,10 +27,10 @@ import Refact
 import Test.Util
 import Prelude
 import Config.Yaml
-import FastString
+import GHC.Data.FastString
 
 import GHC.Util
-import SrcLoc
+import GHC.Types.SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 #ifdef HS_YAML

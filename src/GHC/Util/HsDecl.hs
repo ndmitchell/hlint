@@ -4,7 +4,7 @@ module GHC.Util.HsDecl (declName,bindName)
 where
 
 import GHC.Hs
-import SrcLoc
+import GHC.Types.SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 -- | @declName x@ returns the \"new name\" that is created (for

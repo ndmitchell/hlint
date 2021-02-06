@@ -46,7 +46,7 @@ import Hint.Type (Idea, DeclHint, Note(DecreasesLaziness), ideaNote, ignoreNoSug
 import Data.List (isSuffixOf)
 import GHC.Hs.Decls
 import GHC.Hs
-import SrcLoc
+import GHC.Types.SrcLoc
 import Data.Generics.Uniplate.Data
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
@@ -78,7 +78,6 @@ hasAllStrategies _ = False
 isData :: HsDataDefn GhcPs -> Bool
 isData (HsDataDefn _ NewType _ _ _ _ _) = False
 isData (HsDataDefn _ DataType _ _ _ _ _) = True
-isData _ = False
 
 hasStrategyClause :: LHsDerivingClause GhcPs -> Bool
 hasStrategyClause (L _ (HsDerivingClause _ (Just _) _)) = True
@@ -129,7 +128,7 @@ simpleHsDataDefn _ = Nothing
 -- | Checks whether its argument is a \"simple\" constructor (see criteria in 'singleSimpleField')
 -- returning the type inside the constructor if it is. This is needed for strictness analysis.
 simpleCons :: ConDecl GhcPs -> Maybe (HsType GhcPs)
-simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [L _ inType]) _)
+simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [HsScaled _ (L _ inType)]) _)
     | emptyOrNoContext context
     , not $ isUnboxedTuple inType
     , not $ isHashy inType
@@ -155,10 +154,13 @@ emptyOrNoContext _ = False
 
 -- | The \"Bang\" here refers to 'HsSrcBang', which notably also includes @UNPACK@ pragmas!
 dropConsBang :: ConDecl GhcPs -> ConDecl GhcPs
+-- fields [HsScaled GhcPs (LBangType GhcPs)]
 dropConsBang decl@(ConDeclH98 _ _ _ _ _ (PrefixCon fields) _) =
-    decl {con_args = PrefixCon $ map getBangType fields}
+    -- decl {con_args = PrefixCon $ map getBangType fields}
+    let fs' = map (\(HsScaled s lt) -> HsScaled s (getBangType lt)) fields  :: [HsScaled GhcPs (LBangType GhcPs)]
+    in decl {con_args = PrefixCon fs'}
 dropConsBang decl@(ConDeclH98 _ _ _ _ _ (RecCon (L recloc conDeclFields)) _) =
-    decl {con_args = RecCon $ cL recloc $ removeUnpacksRecords conDeclFields}
+    decl {con_args = RecCon $ L recloc $ removeUnpacksRecords conDeclFields}
     where
         removeUnpacksRecords :: [LConDeclField GhcPs] -> [LConDeclField GhcPs]
         removeUnpacksRecords = map (\(L conDeclFieldLoc x) -> L conDeclFieldLoc $ removeConDeclFieldUnpacks x)
@@ -166,8 +168,6 @@ dropConsBang decl@(ConDeclH98 _ _ _ _ _ (RecCon (L recloc conDeclFields)) _) =
         removeConDeclFieldUnpacks :: ConDeclField GhcPs -> ConDeclField GhcPs
         removeConDeclFieldUnpacks conDeclField@(ConDeclField _ _ fieldType _) =
             conDeclField {cd_fld_type = getBangType fieldType}
-        removeConDeclFieldUnpacks x = x
-dropConsBang x = x
 
 isUnboxedTuple :: HsType GhcPs -> Bool
 isUnboxedTuple (HsTupleTy _ HsUnboxedTuple _) = True

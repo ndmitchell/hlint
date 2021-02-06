@@ -246,12 +246,12 @@ import Refact.Types
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 
-import SrcLoc
+import GHC.Types.SrcLoc
 import GHC.Hs
-import BasicTypes
-import Class
-import RdrName
-import ForeignCall
+import GHC.Types.Basic
+import GHC.Core.Class
+import GHC.Types.Name.Reader
+import GHC.Types.ForeignCall
 
 import GHC.Util
 import GHC.LanguageExtensions.Type
@@ -342,7 +342,7 @@ noDeriveNewtype =
 deriveStock :: [String]
 deriveStock = deriveHaskell ++ deriveGenerics ++ deriveCategory
 
-usedExt :: Extension -> Located (HsModule GhcPs) -> Bool
+usedExt :: Extension -> Located HsModule -> Bool
 usedExt NumDecimals = hasS isWholeFrac
   -- Only whole number fractions are permitted by NumDecimals
   -- extension.  Anything not-whole raises an error.
@@ -350,8 +350,16 @@ usedExt DeriveLift = hasDerive ["Lift"]
 usedExt DeriveAnyClass = not . null . derivesAnyclass . derives
 usedExt x = used x
 
-used :: Extension -> Located (HsModule GhcPs) -> Bool
-used RecursiveDo = hasS isMDo ||^ hasS isRecStmt
+-- The ghc-lib-parser-ex functions are getting fixed to have the new
+-- signatures.
+isMDo' :: HsStmtContext GhcRn -> Bool
+isMDo' = \case MDoExpr _ -> True; _ -> False
+isStrictMatch' :: HsMatchContext GhcPs -> Bool
+isStrictMatch' = \case FunRhs{mc_strictness=SrcStrict} -> True; _ -> False
+
+used :: Extension -> Located HsModule -> Bool
+
+used RecursiveDo = hasS isMDo' ||^ hasS isRecStmt
 used ParallelListComp = hasS isParComp
 used FunctionalDependencies = hasT (un :: FunDep (Located RdrName))
 used ImplicitParams = hasT (un :: HsIPName)
@@ -368,7 +376,7 @@ used EmptyCase = hasS f
     f (HsLamCase _ (MG _ (L _ []) _)) = True
     f _ = False
 used KindSignatures = hasT (un :: HsKind GhcPs)
-used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
+used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch'
 used TemplateHaskell = hasT2' (un :: (HsBracket GhcPs, HsSplice GhcPs)) ||^ hasS f ||^ hasS isSpliceDecl
   where
     f :: HsBracket GhcPs -> Bool
@@ -380,7 +388,6 @@ used PatternGuards = hasS f
   where
     f :: GRHS GhcPs (LHsExpr GhcPs) -> Bool
     f (GRHS _ xs _) = g xs
-    f _ = False -- Extension constructor
     g :: [GuardLStmt GhcPs] -> Bool
     g [] = False
     g [L _ BodyStmt{}] = False
@@ -471,7 +478,7 @@ used StandaloneKindSignatures = hasT (un :: StandaloneKindSig GhcPs)
 
 used _= const True
 
-hasDerive :: [String] -> Located (HsModule GhcPs) -> Bool
+hasDerive :: [String] -> Located HsModule -> Bool
 hasDerive want = any (`elem` want) . derivesStock' . derives
 
 -- Derivations can be implemented using any one of 3 strategies, so for each derivation
@@ -500,12 +507,11 @@ addDerives nt _ xs = mempty
     ,derivesNewtype' = if maybe True isNewType nt then filter (`notElem` noDeriveNewtype) xs else []}
     where (stock, other) = partition (`elem` deriveStock) xs
 
-derives :: Located (HsModule GhcPs) -> Derives
+derives :: Located HsModule -> Derives
 derives (L _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
   where
     idecl :: Located (DataFamInstDecl GhcPs) -> Derives
     idecl (L _ (DataFamInstDecl (HsIB _ FamEqn {feqn_rhs=HsDataDefn {dd_ND=dn, dd_derivs=(L _ ds)}}))) = g dn ds
-    idecl _ = mempty
 
     decl :: LHsDecl GhcPs -> Derives
     decl (L _ (TyClD _ (DataDecl _ _ _ _ HsDataDefn {dd_ND=dn, dd_derivs=(L _ ds)}))) = g dn ds -- Data declaration.
@@ -524,7 +530,6 @@ derives (L _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
         ih (L _ (HsAppTy _ a _)) = ih a
         ih (L _ (HsTyVar _ _ a)) = unsafePrettyPrint $ unqual a
         ih (L _ a) = unsafePrettyPrint a -- I don't anticipate this case is called.
-    derivedToStr _ = "" -- new ctor
 
 un = undefined
 

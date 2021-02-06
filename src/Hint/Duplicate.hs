@@ -33,10 +33,10 @@ import Data.List hiding (find)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as Map
 
-import SrcLoc
+import GHC.Types.SrcLoc
 import GHC.Hs
-import Outputable
-import Bag
+import GHC.Utils.Outputable
+import GHC.Data.Bag
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
