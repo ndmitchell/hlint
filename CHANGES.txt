@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    Drop GHC 8.6 support
     #1206, require apply-refact 0.9.0.0 or higher
     #1205, generalize hints which were with '&' form
 3.2.7, released 2021-01-16
