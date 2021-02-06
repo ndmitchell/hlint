@@ -1,4 +1,4 @@
-resolver: nightly-2020-01-25 # ghc-8.8.2
+resolver: nightly-2021-02-06 # ghc-8.10.3
 packages:
   - .
 extra-deps:
@@ -8,11 +8,6 @@ extra-deps:
 # modify extra-deps like this:
 #  - archive: /users/shayne/project/ghc-lib-parser-ex.git/ghc-lib-parser-ex-8.10.0.18.tar.gz
 #    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
-  - apply-refact-0.9.0.0
-  - extra-1.7.9
-  - ghc-exactprint-0.6.3.3
-  - optparse-applicative-0.15.1.0
-  - uniplate-1.6.13
 ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-local-binds -Werror=unused-top-binds -Werror=orphans}
 # Enabling this stanza forces both hlint and ghc-lib-parser-ex to
 # depend on ghc-lib-parser.
