@@ -2,7 +2,7 @@ resolver: nightly-2021-02-06 # ghc-8.10.3
 packages:
   - .
 extra-deps:
-  - ghc-lib-parser-9.0.1.20210205
+  - ghc-lib-parser-9.0.1.20210207
   - ghc-lib-parser-ex-9.0.0.1
 # To test hlint against experimental builds of ghc-lib-parser-ex,
 # modify extra-deps like this:
