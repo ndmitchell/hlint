@@ -74,4 +74,4 @@ runRefactoring rpath fin hints enabled disabled opts =  do
     waitForProcess phand
 
 minRefactorVersion :: Version
-minRefactorVersion = makeVersion [0,9,0,0]
+minRefactorVersion = makeVersion [0,9,1,0]
