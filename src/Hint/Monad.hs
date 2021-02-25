@@ -29,6 +29,7 @@ no = do x <- bar; return (f x x)
 {-# LANGUAGE RecursiveDo #-}; no = mdo hook <- mkTrigger pat (act >> rmHook hook) ; return hook
 yes = do x <- return y; foo x -- @Suggestion let x = y
 yes = do x <- return $ y + z; foo x -- let x = y + z
+yes = do x <- return a; y <- return b; return $ foo x y -- let x = a
 no = do x <- return x; foo x
 no = do x <- return y; x <- return y; foo x
 yes = do forM files $ \x -> return (); return () -- forM_ files $ \x -> return ()
@@ -238,8 +239,21 @@ monadSteps _ _ = []
 
 -- | Rewrite 'do ...; x <- return y; ...' as 'do ...; let x = y; ...'.
 monadLet :: [ExprLStmt GhcPs] -> [(ExprLStmt GhcPs, ExprLStmt GhcPs, Refactoring R.SrcSpan)]
-monadLet xs = mapMaybe mkLet xs
+monadLet xs = go mkLet xs
   where
+    go f = \case
+      [] -> []
+      -- If the do block is possibly an ApplicativeDo block, don't make a suggestion on the
+      -- second last statement.
+      [_, x] | mayBeApplicativeDo x -> go f [x]
+      x : xs -> maybe id (:) (f x) (go f xs)
+
+    -- A do block is possibly an ApplicativeDo block if the last statement is one of
+    -- 'pure ...' , 'pure $ ...', 'return ...' or 'return $ ...'.
+    mayBeApplicativeDo = \case
+      L _ (BodyStmt _ body _ _) -> isJust (fromRet body)
+      _ -> False
+
     vs = concatMap pvars [p | (L _ (BindStmt _ p _ )) <- xs]
 
     mkLet :: ExprLStmt GhcPs -> Maybe (ExprLStmt GhcPs, ExprLStmt GhcPs, Refactoring R.SrcSpan)
