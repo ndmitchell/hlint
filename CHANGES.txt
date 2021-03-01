@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #1215, suggest varE 'foo ==> [|foo|]
+    #1215, allow matching on Template Haskell variables
     #1216, require apply-refact 0.9.1.0
 *   #1209, switch to the GHC 9.0.1 parse tree
     Drop GHC 8.6 support
