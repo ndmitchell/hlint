@@ -106,6 +106,8 @@ instance FreeVars (LHsExpr GhcPs) where
   freeVars (L _ (RecordCon _ _ (HsRecFields flds _))) = Set.unions $ map freeVars flds -- Record construction.
   freeVars (L _ (RecordUpd _ e flds)) = Set.unions $ freeVars e : map freeVars flds -- Record update.
   freeVars (L _ (HsMultiIf _ grhss)) = free (allVars grhss) -- Multi-way if.
+  freeVars (L _ (HsBracket _ (ExpBr _ e))) = freeVars e
+  freeVars (L _ (HsBracket _ (VarBr _ _ v))) = Set.fromList [occName v]
 
   freeVars (L _ HsConLikeOut{}) = mempty -- After typechecker.
   freeVars (L _ HsRecFld{}) = mempty -- Variable pointing to a record selector.
