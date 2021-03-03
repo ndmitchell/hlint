@@ -310,6 +310,7 @@
     - warn: {lhs: "curry (\\(x,y) -> z)", rhs: "\\x y -> z"}
     - warn: {lhs: uncurry (curry f), rhs: f}
     - warn: {lhs: curry (uncurry f), rhs: f}
+    - warn: {lhs: "uncurry f (a, b)", rhs: f a b}
     - warn: {lhs: ($) (f x), rhs: f x, name: Redundant $}
     - warn: {lhs: (f $), rhs: f, name: Redundant $}
     - warn: {lhs: (Data.Function.& f), rhs: f, name: Redundant Data.Function.&}
@@ -1221,6 +1222,7 @@
 # issue1058 n = [] ++ issue1058 (n+1) -- issue1058 (n+1)
 # issue1183 = (a >= 'a') && a <= 'z' -- isAsciiLower a
 # issue1183 = (a >= 'a') && (a <= 'z') -- isAsciiLower a
+# issue1218 = uncurry (zipWith g) $ (a, b) -- zipWith g a b
 
 # import Language.Haskell.TH\
 # yes = varE 'foo -- [|foo|]
