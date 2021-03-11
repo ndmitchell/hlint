@@ -85,7 +85,7 @@ library
       build-depends:
           ghc-lib-parser == 9.0.*
     build-depends:
-        ghc-lib-parser-ex >= 9.0.0.3 && < 9.0.1
+        ghc-lib-parser-ex >= 9.0.0.4 && < 9.0.1
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
