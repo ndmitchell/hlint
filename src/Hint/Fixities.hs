@@ -38,7 +38,7 @@ fixitiesHint settings _ _ x =
   concatMap (infixBracket fixities) (childrenBi x :: [LHsExpr GhcPs])
    where
      fixities = foldMap getFixity settings `mappend` fromList (toFixity <$> defaultFixities)
-     getFixity (Infix x) = uncurry singleton (toFixity x)
+     getFixity (Infix x) = uncurry Data.Map.singleton (toFixity x)
      getFixity _ = mempty
 
 infixBracket :: Map String Fixity -> LHsExpr GhcPs -> [Idea]
