@@ -1,0 +1,27 @@
+---------------------------------------------------------------------
+RUN tests/wildcard-import-1.hs --hint=data/wildcard-import.yaml
+FILE tests/wildcard-import-1.hs
+import Data.Map.Lazy as Foo
+OUTPUT
+tests/wildcard-import-1.hs:1:1-27: Warning: Avoid restricted qualification
+Found:
+  import Data.Map.Lazy as Foo
+Perhaps:
+  import Data.Map.Lazy as Map
+Note: may break the code
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/wildcard-import-2.hs --hint=data/wildcard-import.yaml
+FILE tests/wildcard-import-2.hs
+import Data.Map.Strict as Foo
+OUTPUT
+tests/wildcard-import-2.hs:1:1-29: Warning: Avoid restricted qualification
+Found:
+  import Data.Map.Strict as Foo
+Perhaps:
+  import Data.Map.Strict as Map
+Note: may break the code
+
+1 hint
