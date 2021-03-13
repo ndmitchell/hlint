@@ -4,7 +4,7 @@ module Util(
     forceList,
     gzip, universeParentBi,
     exitMessage, exitMessageImpure,
-    getContentsUTF8
+    getContentsUTF8, wildcardMatch
     ) where
 
 import System.Exit
@@ -13,6 +13,8 @@ import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.DataOnly
+import System.FilePattern (FilePattern, (?==))
+import Data.List.Extra (replace)
 
 
 ---------------------------------------------------------------------
@@ -64,3 +66,23 @@ universeParent x = (Nothing,x) : f x
 
 universeParentBi :: (Data a, Data b) => a -> [(Maybe b, b)]
 universeParentBi = concatMap universeParent . childrenBi
+
+
+---------------------------------------------------------------------
+-- SYSTEM.FILEPATTERN
+
+-- | Returns true if the pattern matches the string. For example:
+--
+-- >>> let isSpec = wildcardMatch "**.*Spec"
+-- >>> isSpec "Example"
+-- False
+-- >>> isSpec "ExampleSpec"
+-- True
+-- >>> isSpec "Namespaced.ExampleSpec"
+-- True
+-- >>> isSpec "Deeply.Nested.ExampleSpec"
+-- True
+--
+-- See this issue for details: <https://github.com/ndmitchell/hlint/issues/402>.
+wildcardMatch :: FilePattern -> String -> Bool
+wildcardMatch p m = let f = replace "." "/" in f p ?== f m
