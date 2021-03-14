@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.3, released 2021-03-14
     #1212, don't suggest redundant brackets on $(x)
     #1215, suggest varE 'foo ==> [|foo|]
     #1215, allow matching on Template Haskell variables
