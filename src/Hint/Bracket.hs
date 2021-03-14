@@ -43,6 +43,7 @@ issue909 = do {((x :: y) -> z) <- e; return 1}
 issue970 = (f x +) (g x) -- f x + (g x)
 issue969 = (Just \x -> x || x) *> Just True
 issue1179 = do(this is a test) -- do this is a test
+issue1212 = $(Git.hash)
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
@@ -118,8 +119,8 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 bracketHint :: DeclHint
 bracketHint _ _ x =
   concatMap (\x -> bracket prettyExpr isPartialAtom True x ++ dollar x) (childrenBi (descendBi annotations x) :: [LHsExpr GhcPs]) ++
-  concatMap (bracket unsafePrettyPrint (const False) False) (childrenBi x :: [LHsType GhcPs]) ++
-  concatMap (bracket unsafePrettyPrint (const False) False) (childrenBi x :: [LPat GhcPs]) ++
+  concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi x :: [LHsType GhcPs]) ++
+  concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi x :: [LPat GhcPs]) ++
   concatMap fieldDecl (childrenBi x)
    where
      -- Brackets the roots of annotations are fine, so we strip them.
@@ -146,13 +147,15 @@ remParens' = fmap go . remParen
   where
     go e = maybe e go (remParen e)
 
-isPartialAtom :: LHsExpr GhcPs -> Bool
+isPartialAtom :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
 -- Might be '$x', which was really '$ x', but TH enabled misparsed it.
-isPartialAtom (L _ (HsSpliceE _ (HsTypedSplice _ DollarSplice _ _) )) = True
-isPartialAtom (L _ (HsSpliceE _ (HsUntypedSplice _ DollarSplice _ _) )) = True
-isPartialAtom x = isRecConstr x || isRecUpdate x
+isPartialAtom _ (L _ (HsSpliceE _ (HsTypedSplice _ DollarSplice _ _) )) = True
+isPartialAtom _ (L _ (HsSpliceE _ (HsUntypedSplice _ DollarSplice _ _) )) = True
+-- Might be '$(x)' where the brackets are required in GHC 8.10 and below
+isPartialAtom (Just (L _ HsSpliceE{})) _ = True
+isPartialAtom _ x = isRecConstr x || isRecUpdate x
 
-bracket :: forall a . (Data a, Outputable a, Brackets (Located a)) => (Located a -> String) -> (Located a -> Bool) -> Bool -> Located a -> [Idea]
+bracket :: forall a . (Data a, Outputable a, Brackets (Located a)) => (Located a -> String) -> (Maybe (Located a) -> Located a -> Bool) -> Bool -> Located a -> [Idea]
 bracket pretty isPartialAtom root = f Nothing
   where
     msg = "Redundant bracket"
@@ -164,18 +167,18 @@ bracket pretty isPartialAtom root = f Nothing
     f Nothing o@(remParens' -> Just x)
       -- If at the root, or 'x' is an atom, 'x' parens are redundant.
       | root || isAtom x
-      , not $ isPartialAtom x =
+      , not $ isPartialAtom Nothing x =
           (if isAtom x then bracketError else bracketWarning) msg o x : g x
     -- In some context, removing parentheses from 'x' succeeds and 'x'
     -- is atomic?
-    f Just{} o@(remParens' -> Just x)
+    f (Just (_, p, _)) o@(remParens' -> Just x)
       | isAtom x
-      , not $ isPartialAtom x =
+      , not $ isPartialAtom (Just p) x =
           bracketError msg o x : g x
     -- In some context, removing parentheses from 'x' succeeds. Does
     -- 'x' actually need bracketing in this context?
     f (Just (i, o, gen)) v@(remParens' -> Just x)
-      | not $ needBracket i o x, not $ isPartialAtom x =
+      | not $ needBracket i o x, not $ isPartialAtom (Just o) x =
           rawIdea Suggestion msg (getLoc v) (pretty o) (Just (pretty (gen x))) [] [r] : g x
       where
         typ = findType v
@@ -227,7 +230,7 @@ dollar = concatMap f . universe
             , let y = noLoc (HsApp noExtField a b) :: LHsExpr GhcPs
             , not $ needBracket 0 y a
             , not $ needBracket 1 y b
-            , not $ isPartialAtom b
+            , not $ isPartialAtom (Just x) b
             , let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"]
           ++
           [ suggest "Move brackets to avoid $" x (t y) [r]
