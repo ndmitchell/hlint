@@ -146,7 +146,7 @@ matchIdea sb declName HintRule{..} parent x = do
   -- (with 'e') need to unqualify before substitution (with 'res').
   let rhs' | Just fun <- extra = rebracket1 $ noLoc (HsApp noExtField fun rhs)
            | otherwise = rhs
-      (e, tpl) = substitute u rhs'
+      (e, (tpl, substNoParens)) = substitute u rhs'
       noParens = [varToStr $ fromParen x | L _ (HsApp _ (varToStr -> "_noParen_") x) <- universe tpl]
 
   u <- pure (removeParens noParens u)
@@ -167,7 +167,11 @@ matchIdea sb declName HintRule{..} parent x = do
   (u, tpl) <- pure $ if any ((== noSrcSpan) . getLoc . snd) (fromSubst u) then (mempty, res) else (u, tpl)
   tpl <- pure $ unqualify sa sb (performSpecial tpl)
 
-  pure (res, tpl, hintRuleNotes, [(s, toSS pos) | (s, pos) <- fromSubst u, getLoc pos /= noSrcSpan])
+  pure ( res, tpl, hintRuleNotes,
+         [ (s, toSS pos') | (s, pos) <- fromSubst u, getLoc pos /= noSrcSpan
+                          , let pos' = if s `elem` substNoParens then fromParen pos else pos
+         ]
+       )
 
 ---------------------------------------------------------------------
 -- SIDE CONDITIONS

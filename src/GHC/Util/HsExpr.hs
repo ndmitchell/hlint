@@ -27,7 +27,9 @@ import GHC.Util.FreeVars
 import GHC.Util.View
 
 import Control.Applicative
+import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
+import Control.Monad.Trans.Writer.CPS
 
 import Data.Data
 import Data.Generics.Uniplate.DataOnly
@@ -91,10 +93,13 @@ transformAppsM :: Monad m => (LHsExpr GhcPs -> m (LHsExpr GhcPs)) -> LHsExpr Ghc
 transformAppsM f x = f =<< descendAppsM (transformAppsM f) x
 
 descendIndex :: Data a => (Int -> a -> a) -> a -> a
-descendIndex f x = flip evalState 0 $ flip descendM x $ \y -> do
+descendIndex f = fst . descendIndex' (\x a -> writer (f x a, ()))
+
+descendIndex' :: (Data a, Monoid w) => (Int -> a -> Writer w a) -> a -> (a, w)
+descendIndex' f x = runWriter $ flip evalStateT 0 $ flip descendM x $ \y -> do
     i <- get
     modify (+1)
-    pure $ f i y
+    lift $ f i y
 
 --  There are differences in pretty-printing between GHC and HSE. This
 --  version never removes brackets.
@@ -113,7 +118,6 @@ rebracket1 = descendBracket (True, )
 appsBracket :: [LHsExpr GhcPs] -> LHsExpr GhcPs
 appsBracket = foldl1 mkApp
   where mkApp x y = rebracket1 (noLoc $ HsApp noExtField x y)
-
 
 simplifyExp :: LHsExpr GhcPs -> LHsExpr GhcPs
 -- Replace appliciations 'f $ x' with 'f (x)'.
@@ -135,7 +139,6 @@ simplifyExp e = e
 niceDotApp :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
 niceDotApp (L _ (HsVar _ (L _ r))) b | occNameStr r == "$" = b
 niceDotApp a b = dotApp a b
-
 
 -- Generate a lambda expression but prettier if possible.
 niceLambda :: [String] -> LHsExpr GhcPs -> LHsExpr GhcPs
@@ -271,37 +274,45 @@ needBracketOld i parent child
   | isDotApp parent, isDotApp child, i == 2 = False
   | otherwise = needBracket i parent child
 
-transformBracketOld :: (LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
+transformBracketOld :: (LHsExpr GhcPs -> Maybe (LHsExpr GhcPs))
+                    -> LHsExpr GhcPs
+                    -> (LHsExpr GhcPs, (LHsExpr GhcPs, [String]))
 transformBracketOld op = first snd . g
   where
     g = first f . descendBracketOld g
     f x = maybe (False, x) (True, ) (op x)
 
 -- Descend, and if something changes then add/remove brackets
--- appropriately. Returns (suggested replacement, refactor template).
--- Whenever a bracket is added to the suggested replacement, a
--- corresponding bracket is added to the refactor template.
-descendBracketOld :: (LHsExpr GhcPs -> ((Bool, LHsExpr GhcPs), LHsExpr GhcPs))
-                   -> LHsExpr GhcPs
-                   -> (LHsExpr GhcPs, LHsExpr GhcPs)
-descendBracketOld op x = (descendIndex g1 x, descendIndex g2 x)
+-- appropriately. Returns (suggested replacement, (refactor template, no bracket vars)),
+-- where "no bracket vars" is a list of substitution variables which, when expanded,
+-- should have the brackets stripped.
+descendBracketOld :: (LHsExpr GhcPs -> ((Bool, LHsExpr GhcPs), (LHsExpr GhcPs, [String])))
+                  -> LHsExpr GhcPs
+                  -> (LHsExpr GhcPs, (LHsExpr GhcPs, [String]))
+descendBracketOld op x = (descendIndex g1 x, descendIndex' g2 x)
   where
-    g i y = if a then (f1 i b z, f2 i b z) else (b, z)
-      where ((a, b), z) = op y
+    g i y = if a then (f1 i b z w, f2 i b z w) else (b, (z, w))
+      where ((a, b), (z, w)) = op y
 
-    g1 = (fst .) . g
-    g2 = (snd .) . g
+    g1 a b = fst (g a b)
+    g2 a b = writer $ snd (g a b)
 
-    f i (L _ (HsPar _ y)) z
-      | not $ needBracketOld i x y = (y, z)
-    f i y z
-      | needBracketOld i x y = (addParen y, addParen z)
+    f i (L _ (HsPar _ y)) z w
+      | not $ needBracketOld i x y = (y, removeBracket z)
+      where
+        -- If the template expr is a Var, record it so that we can remove the brackets
+        -- later when expanding it. Otherwise, remove the enclosing brackets (if any).
+        removeBracket = \case
+          var@(L _ HsVar{}) -> (z, varToStr var : w)
+          other -> (fromParen z, w)
+    f i y z w
+      | needBracketOld i x y = (addParen y, (addParen z, w))
       -- https://github.com/mpickering/apply-refact/issues/7
-      | isOp y = (y, addParen z)
-    f _ y z                 = (y, z)
+      | isOp y = (y, (addParen z, w))
+    f _ y z w = (y, (z, w))
 
-    f1 = ((fst .) .) . f
-    f2 = ((snd .) .) . f
+    f1 a b c d = fst (f a b c d)
+    f2 a b c d = snd (f a b c d)
 
     isOp = \case
       L _ (HsVar _ (L _ name)) -> isSymbolRdrName name
