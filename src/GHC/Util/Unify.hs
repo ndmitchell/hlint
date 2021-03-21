@@ -62,10 +62,14 @@ removeParens noParens (Subst xs) = Subst $
   map (\(x, y) -> if x `elem` noParens then (x, fromParen y) else (x, y)) xs
 
 -- Peform a substition.
--- Returns (suggested replacement, refactor template), both with brackets added
--- as needed.
--- Example: (traverse foo (bar baz), traverse f (x))
-substitute :: Subst (LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, LHsExpr GhcPs)
+-- Returns (suggested replacement, (refactor template, no bracket vars)). It adds/removes brackets
+-- for both the suggested replacement and the refactor template appropriately. The "no bracket vars"
+-- is a list of substituation variables which, when expanded, should have the brackets stripped.
+--
+-- Examples:
+--   (traverse foo (bar baz), (traverse f (x), []))
+--   (zipWith foo bar baz, (f a b, [f]))
+substitute :: Subst (LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, (LHsExpr GhcPs, [String]))
 substitute (Subst bind) = transformBracketOld exp . transformBi pat . transformBi typ
   where
     exp :: LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
