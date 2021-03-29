@@ -117,6 +117,7 @@ data Cmd
         ,cmdJson :: Bool                -- ^ display hint data as JSON
         ,cmdCC :: Bool                  -- ^ display hint data as Code Climate Issues
         ,cmdNoSummary :: Bool           -- ^ do not show the summary info
+        ,cmdNoDefaultExtensions :: Bool -- ^ do not default enable extensions
         ,cmdOnly :: [String]            -- ^ specify which hints explicitly
         ,cmdNoExitCode :: Bool
         ,cmdTiming :: Bool
@@ -156,6 +157,7 @@ mode = cmdArgsMode $ modes
         ,cmdJson = nam_ "json" &= help "Display hint data as JSON"
         ,cmdCC = nam_ "cc" &= help "Display hint data as Code Climate Issues"
         ,cmdNoSummary = nam_ "no-summary" &= help "Do not show summary information"
+        ,cmdNoDefaultExtensions = nam_ "no-default-extensions" &= help "Do not default enable extensions"
         ,cmdOnly = nam "only" &= typ "HINT" &= help "Specify which hints explicitly"
         ,cmdNoExitCode = nam_ "no-exit-code" &= help "Do not give a negative exit if hints"
         ,cmdTiming = nam_ "timing" &= help "Display timing information"
@@ -201,8 +203,10 @@ cmdHintFiles cmd = do
         ancestors = init . map joinPath . reverse . inits . splitPath
 
 cmdExtensions :: Cmd -> (Maybe Language, ([Extension], [Extension]))
-cmdExtensions = getExtensions . cmdLanguage
-
+cmdExtensions cmd =
+  if cmdNoDefaultExtensions cmd
+    then (Nothing, ([], []))
+    else getExtensions (cmdLanguage cmd)
 
 cmdCpp :: Cmd -> CppFlags
 cmdCpp cmd
