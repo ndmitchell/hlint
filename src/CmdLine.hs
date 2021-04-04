@@ -288,23 +288,41 @@ getModule _ _ _ = pure Nothing
 
 
 getExtensions :: [String] -> (Maybe Language, ([Extension], [Extension]))
-getExtensions args =
-  (lang, foldl f (if null langs then (defaultExtensions, []) else ([], [])) exts)
-    where
-        lang = if null langs then Nothing else Just $ fromJust $ lookup (last langs) ls
-        (langs, exts) = partition (isJust . flip lookup ls) args
-        ls = [(show x, x) | x <- [Haskell98, Haskell2010]]
+getExtensions args = (lang, foldl f (startExts, []) exts)
+  where
+        -- If a language specifier is provided e.g. Haskell98 or
+        -- Haskell2010 (and soon GHC2021), then it represents a
+        -- specific set of extensions which we default enable.
 
-        f (a, e) "Haskell98" = ([], [])
-        f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x, let xs = expandDisable x =
-            (deletes xs a, xs ++ deletes xs e)
+        -- If no language specifier is provided we construct our own
+        -- set of extensions to default enable. The set that we
+        -- construct default enables more extensions than GHC would
+        -- default enable were it to be invoked without an explicit
+        -- language specifier given.
+        startExts :: [Extension]
+        startExts = case lang of
+          Nothing -> defaultExtensions
+          Just _ -> GHC.Driver.Session.languageExtensions lang
+
+        -- If multiple languages are given, the last language "wins".
+        lang :: Maybe Language
+        lang = fromJust . flip lookup ls . snd <$> unsnoc langs
+
+        langs, exts :: [String]
+        (langs, exts) = partition (isJust . flip lookup ls) args
+        ls = [ (show x, x) | x <- [Haskell98, Haskell2010 {-, GHC2021-}] ]
+
+        f :: ([Extension], [Extension]) -> String -> ([Extension], [Extension])
+        f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x, let xs = expandDisable x = (deletes xs a, xs ++ deletes xs e)
         f (a, e) x | Just x <- GhclibParserEx.readExtension x = (x : delete x a, delete x e)
         f (a, e) x = error $ "Unknown extension: '" ++ x ++ "'"
 
+        deletes :: [Extension] -> [Extension] -> [Extension]
         deletes [] ys = ys
-        deletes (x:xs) ys = deletes xs $ delete x ys
+        deletes (x : xs) ys = deletes xs $ delete x ys
 
         -- if you disable a feature that implies another feature, sometimes we should disable both
         -- e.g. no one knows what TemplateHaskellQuotes is https://github.com/ndmitchell/hlint/issues/1038
+        expandDisable :: Extension -> [Extension]
         expandDisable TemplateHaskell = [TemplateHaskell, TemplateHaskellQuotes]
         expandDisable x = [x]
