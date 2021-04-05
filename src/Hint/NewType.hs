@@ -168,6 +168,7 @@ dropConsBang decl@(ConDeclH98 _ _ _ _ _ (RecCon (L recloc conDeclFields)) _) =
         removeConDeclFieldUnpacks :: ConDeclField GhcPs -> ConDeclField GhcPs
         removeConDeclFieldUnpacks conDeclField@(ConDeclField _ _ fieldType _) =
             conDeclField {cd_fld_type = getBangType fieldType}
+dropConsBang x = x
 
 isUnboxedTuple :: HsType GhcPs -> Bool
 isUnboxedTuple (HsTupleTy _ HsUnboxedTuple _) = True

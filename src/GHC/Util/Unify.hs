@@ -187,6 +187,7 @@ unifyExp nm root x y = (, Nothing) <$> unifyExp' nm root x y
 
 isAmp :: LHsExpr GhcPs -> Bool
 isAmp (L _ (HsVar _ x)) = rdrNameStr x == "&"
+isAmp _ = False
 
 -- | If we "throw away" the extra than we have no where to put it, and the substitution is wrong
 noExtra :: Maybe (Subst (LHsExpr GhcPs), Maybe (LHsExpr GhcPs)) -> Maybe (Subst (LHsExpr GhcPs))

@@ -200,6 +200,7 @@ instance AllVars (LHsLocalBinds GhcPs) where
   allVars (L _ (HsValBinds _ (ValBinds _ binds _))) = allVars (bagToList binds) -- Value bindings.
   allVars (L _ (HsIPBinds _ (IPBinds _ binds))) = allVars binds -- Implicit parameter bindings.
   allVars (L _ EmptyLocalBinds{}) =  mempty -- The case of no local bindings (signals the empty `let` or `where` clause).
+  allVars _ = mempty -- extension points
 
 instance AllVars (LIPBind GhcPs) where
   allVars (L _ (IPBind _ _ e)) = freeVars_ e
@@ -225,6 +226,7 @@ instance AllVars (HsStmtContext GhcPs) where
   allVars (PatGuard FunRhs{mc_fun=n}) = allVars (noLoc $ VarPat noExtField n :: LPat GhcPs)
   allVars ParStmtCtxt{} = mempty -- Come back to it.
   allVars TransStmtCtxt{}  = mempty -- Come back to it.
+  allVars _ = mempty
 
 instance AllVars (GRHSs GhcPs (LHsExpr GhcPs)) where
   allVars (GRHSs _ grhss binds) = inVars binds (mconcatMap allVars grhss)
@@ -234,6 +236,7 @@ instance AllVars (LGRHS GhcPs (LHsExpr GhcPs)) where
 
 instance AllVars (LHsDecl GhcPs) where
   allVars (L l (ValD _ bind)) = allVars (L l bind :: LHsBind GhcPs)
+  allVars _ = mempty
 
 
 vars :: FreeVars a => a -> [String]

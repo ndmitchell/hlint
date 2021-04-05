@@ -110,6 +110,7 @@ getConstructorNames (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ _ cons _))) =
     where
       getConNames' ConDeclH98  {con_name  = name}  = [name]
       getConNames' ConDeclGADT {con_names = names} = names
+      getConNames' XConDecl{} = []
 
 getConstructorNames _ = []
 
