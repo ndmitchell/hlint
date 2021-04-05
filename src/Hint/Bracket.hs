@@ -94,6 +94,9 @@ special = foo $ f{x=1}
 special = foo $ Rec{x=1}
 special = foo (f{x=1})
 loadCradleOnlyonce = skipManyTill anyMessage (message @PublishDiagnosticsNotification)
+-- These used to require a bracket
+$(pure [])
+$(x)
 
 -- type splices are a bit special
 no = f @($x)
@@ -118,7 +121,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 bracketHint :: DeclHint
 bracketHint _ _ x =
-  concatMap (\x -> bracket prettyExpr isPartialAtom True x ++ dollar x) (childrenBi (descendBi annotations x) :: [LHsExpr GhcPs]) ++
+  concatMap (\x -> bracket prettyExpr isPartialAtom True x ++ dollar x) (childrenBi (descendBi splices $ descendBi annotations x) :: [LHsExpr GhcPs]) ++
   concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi x :: [LHsType GhcPs]) ++
   concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi x :: [LPat GhcPs]) ++
   concatMap fieldDecl (childrenBi x)
@@ -128,6 +131,13 @@ bracketHint _ _ x =
      annotations= descendBi $ \x -> case (x :: LHsExpr GhcPs) of
        L _ (HsPar _ x) -> x
        x -> x
+
+     -- Brackets at the root of splices used to be required, but now they aren't
+     splices :: HsDecl GhcPs -> HsDecl GhcPs
+     splices (SpliceD a x) = SpliceD a $ flip descendBi x $ \x -> case (x :: LHsExpr GhcPs) of
+       L _ (HsPar _ x) -> x
+       x -> x
+     splices x = x
 
 -- If we find ourselves in the context of a section and we want to
 -- issue a warning that a child therein has unneccessary brackets,
