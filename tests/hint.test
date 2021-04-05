@@ -47,7 +47,7 @@ tests/brackets.hs:1:8-49: Warning: Use fromMaybe
 Found:
   if isNothing x then (- 1.0) else fromJust x
 Perhaps:
-  fromMaybe (-1.0) x
+  fromMaybe (- 1.0) x
 
 1 hint
 
