@@ -55,7 +55,6 @@ data Foo = Foo {foo :: (Maybe Foo)} -- @Suggestion foo :: Maybe Foo
 foo (x:xs) = 1
 foo (True) = 1 -- @Warning True
 foo ((True)) = 1 -- @Warning True
-foo (A{}) = True -- A{}
 f x = case x of (Nothing) -> 1; _ -> 2 -- Nothing
 
 -- dollar reduction tests
@@ -97,6 +96,8 @@ loadCradleOnlyonce = skipManyTill anyMessage (message @PublishDiagnosticsNotific
 -- These used to require a bracket
 $(pure [])
 $(x)
+-- People aren't a fan of the record constructors being secretly atomic
+function (Ctor (Rec { field })) = Ctor (Rec {field = 1})
 
 -- type splices are a bit special
 no = f @($x)

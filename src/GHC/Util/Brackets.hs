@@ -36,7 +36,8 @@ instance Brackets (LHsExpr GhcPs) where
   isAtom (L _ x) = case x of
       HsVar{} -> True
       HsUnboundVar{} -> True
-      HsRecFld{} -> True
+      -- Technically atomic, but lots of people think it shouldn't be
+      HsRecFld{} -> False
       HsOverLabel{} -> True
       HsIPVar{} -> True
       -- Note that sections aren't atoms (but parenthesized sections are).
@@ -111,7 +112,8 @@ instance Brackets (Located (Pat GhcPs)) where
     ParPat{} -> True
     TuplePat{} -> True
     ListPat{} -> True
-    ConPat _ _ RecCon{} -> True
+    -- This is technically atomic, but lots of people think it shouldn't be
+    ConPat _ _ RecCon{} -> False
     ConPat _ _ (PrefixCon []) -> True
     VarPat{} -> True
     WildPat{} -> True
