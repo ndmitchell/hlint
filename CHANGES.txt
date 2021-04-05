@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1233, -XHaskell98 and -XHaskell2010 now disable extensions too
     #1226, don't warn on top-level splices with brackets
     #1230, disable LexicalNegation by default
     #1219, suggest uncurry f (a, b) ==> f a b
