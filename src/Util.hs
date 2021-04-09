@@ -13,8 +13,8 @@ import System.IO.Unsafe
 import Unsafe.Coerce
 import Data.Data
 import Data.Generics.Uniplate.DataOnly
-import System.FilePattern (FilePattern, (?==))
-import Data.List.Extra (replace)
+import System.FilePattern
+import Data.List.Extra
 
 
 ---------------------------------------------------------------------

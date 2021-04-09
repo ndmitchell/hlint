@@ -23,7 +23,7 @@ foo = nub s
 
 import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea)
 import Config.Type
-import Util (wildcardMatch)
+import Util
 
 import Data.Generics.Uniplate.DataOnly
 import qualified Data.List.NonEmpty as NonEmpty

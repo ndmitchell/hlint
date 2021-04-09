@@ -20,7 +20,7 @@ import GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Hs
 import qualified Data.HashSet as Set
 import Prelude
-import Util (wildcardMatch)
+import Util
 
 
 -- | Apply hints to a single file, you may have the contents of the file.
