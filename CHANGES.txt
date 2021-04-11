@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1221, allow restrictions to use wildcards
     #1225, treat A{} as not-atomic for bracket hints
     #1233, -XHaskell98 and -XHaskell2010 now disable extensions too
     #1226, don't warn on top-level splices with brackets
