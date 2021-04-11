@@ -367,6 +367,14 @@ This fragment requires that all imports of `Set` must be `qualified Data.Set as 
 
 You can customize the `Note:` for restricted modules, functions and extensions, by providing a `message` field (default: `may break the code`).
 
+You can use [glob](https://en.wikipedia.org/wiki/Glob_(programming))-style wildcards to match on module names.
+
+```yaml
+- modules:
+  - {name: [Data.Map, Data.Map.*], as: Map}
+  - {name: Test.Hspec, within: **.*Spec }
+```
+
 ## Hacking HLint
 
 Contributions to HLint are most welcome, following [my standard contribution guidelines](https://github.com/ndmitchell/neil/blob/master/README.md#contributions).

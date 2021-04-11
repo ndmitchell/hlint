@@ -23,6 +23,7 @@ foo = nub s
 
 import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea)
 import Config.Type
+import Util
 
 import Data.Generics.Uniplate.DataOnly
 import qualified Data.List.NonEmpty as NonEmpty
@@ -141,7 +142,7 @@ checkImports modu imp (def, mp) =
            | not allowQual   -> warn "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
            | otherwise       -> error "checkImports: unexpected case"
     | i@(L _ ImportDecl {..}) <- imp
-    , let RestrictItem{..} = Map.findWithDefault (RestrictItem [] [("","") | def] [] Nothing) (moduleNameString (unLoc ideclName)) mp
+    , let RestrictItem{..} = getRestrictItem def ideclName mp
     , let allowImport = within modu "" riWithin
     , let allowIdent = Set.disjoint
                        (Set.fromList riBadIdents)
@@ -149,6 +150,19 @@ checkImports modu imp (def, mp) =
     , let allowQual = maybe True (\x -> null riAs || moduleNameString (unLoc x) `elem` riAs) ideclAs
     , not allowImport || not allowQual || not allowIdent
     ]
+
+getRestrictItem :: Bool -> Located ModuleName -> Map.Map String RestrictItem -> RestrictItem
+getRestrictItem def ideclName = fromMaybe (RestrictItem [] [("","") | def] [] Nothing) . lookupRestrictItem ideclName
+
+lookupRestrictItem :: Located ModuleName -> Map.Map String RestrictItem -> Maybe RestrictItem
+lookupRestrictItem ideclName mp =
+    let moduleName = moduleNameString $ unLoc ideclName
+        exact = Map.lookup moduleName mp
+        wildcard = fmap snd
+            . find (flip wildcardMatch moduleName . fst)
+            . filter (elem '*' . fst)
+            $ Map.toList mp
+    in exact <|> wildcard
 
 importListToIdents :: IE GhcPs -> [String]
 importListToIdents =
