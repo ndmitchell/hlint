@@ -4934,6 +4934,22 @@ f
 <td>Warning</td>
 </tr>
 <tr>
+<td>Redundant uncurry</td>
+<td>
+LHS:
+<code>
+uncurry f (a, b)
+</code>
+<br>
+RHS:
+<code>
+f a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Redundant $</td>
 <td>
 LHS:
@@ -11522,6 +11538,22 @@ Data.Map.Strict.empty
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use TH quotation brackets</td>
+<td>
+LHS:
+<code>
+TH.varE 'a
+</code>
+<br>
+RHS:
+<code>
+[| a |]
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Redundant ^.</td>
 <td>
 LHS:
@@ -11574,7 +11606,7 @@ a ?~ b
 <td>
 LHS:
 <code>
-a & (mapped %~ b)
+(mapped %~ b) a
 </code>
 <br>
 RHS:
@@ -11590,7 +11622,7 @@ a <&> b
 <td>
 LHS:
 <code>
-a & ((mapped . b) %~ c)
+((mapped . b) %~ c) a
 </code>
 <br>
 RHS:
@@ -11606,7 +11638,7 @@ a <&> b %~ c
 <td>
 LHS:
 <code>
-a & (mapped .~ b)
+(mapped .~ b) a
 </code>
 <br>
 RHS:
