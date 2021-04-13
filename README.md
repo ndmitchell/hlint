@@ -407,6 +407,10 @@ Getting started on problems in HLint often means wanting to inspect a GHC parse 
 
 When you have an [`HsSyn`](https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/compiler/hs-syn-type) term in your program, it's quite common to want to print it (e.g. via `Debug.Trace.trace`). Types in `HsSyn` aren't in [`Show`](https://hoogle.haskell.org/?hoogle=Show). Not all types in `HsSyn` are [`Outputable`](https://hoogle.haskell.org/?hoogle=Outputable) but when they are you can call `ppr` to get `SDoc`s. This idiom is common enough that there exists [`unsafePrettyPrint`](https://hackage.haskell.org/package/ghc-lib-parser-ex-8.10.0.16/docs/Language-Haskell-GhclibParserEx-GHC-Utils-Outputable.html#v:unsafePrettyPrint). The function [`showAstData`](https://hoogle.haskell.org/?hoogle=showAstData) can be called on any `HsSyn` term to get output like with the `dump-parsed-ast` flag. The `showAstData` approach is preferable to `ppr` when both choices exist in that two ASTs that differ only in fixity arrangements will render differently with the former.
 
+### Generating the hints summary
+
+The hints summary is an auto-generated list of hlint's builtin hints. This can be generated with `hlint --generate-summary`, which will output the summary to `hints.md`.
+
 ### Acknowledgements
 
 Many improvements to this program have been made by [Niklas Broberg](http://www.nbroberg.se) in response to feature requests. Additionally, many people have provided help and patches, including Lennart Augustsson, Malcolm Wallace, Henk-Jan van Tuyl, Gwern Branwen, Alex Ott, Andy Stewart, Roman Leshchinskiy, Johannes Lippmann, Iustin Pop, Steve Purcell, Mitchell Rosen and others.
