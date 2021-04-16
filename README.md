@@ -13,7 +13,7 @@ Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/is
 
 * HLint operates on each module at a time in isolation, as a result HLint does not know about types or which names are in scope. This decision is deliberate, allowing HLint to parallelise and be used incrementally on code that may not type-check. If fixities are required to parse the code properly, they [can be supplied](./README.md#why-doesnt-hlint-know-the-fixity-for-my-custom--operator).
 * The presence of `seq` may cause some hints (i.e. eta-reduction) to change the semantics of a program.
-* Some transformed programs may require additional type signatures, particularly if the transformations trigger the monomorphism restriction or involve rank-2 types.
+* Some transformed programs may require [additional type signatures](https://stackoverflow.com/questions/16402942/how-can-eta-reduction-of-a-well-typed-function-result-in-a-type-error/), particularly if the transformations trigger the monomorphism restriction or involve rank-2 types. In rare cases, there might be [nowhere to write](https://stackoverflow.com/questions/19758828/eta-reduce-is-not-always-held-in-haskell) the required type signature.
 * Sometimes HLint will change the code in a way that causes values to default to different types, which may change the behaviour.
 * HLint assumes duplicate identical expressions within in a single expression are used at the same type.
 * The `RebindableSyntax` extension can cause HLint to suggest incorrect changes.
