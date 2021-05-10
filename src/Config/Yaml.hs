@@ -292,12 +292,18 @@ parseRestrict restrictType v = do
         Just def -> do
             b <- parseBool def
             allowFields v ["default"]
-            pure $ Restrict restrictType b [] [] [] [] Nothing
+            pure $ Restrict restrictType b [] [] [] NoRestrictIdents Nothing
         Nothing -> do
             restrictName <- parseFieldOpt "name" v >>= maybe (pure []) parseArrayString
             restrictWithin <- parseFieldOpt "within" v >>= maybe (pure [("","")]) (parseArray >=> concatMapM parseWithin)
             restrictAs <- parseFieldOpt "as" v >>= maybe (pure []) parseArrayString
-            restrictBadIdents <- parseFieldOpt "badidents" v >>= maybe (pure []) parseArrayString
+
+            restrictBadIdents <- parseFieldOpt "badidents" v
+            restrictIdents <-
+                case restrictBadIdents of
+                    Just badIdents -> ForbidIdents <$> parseArrayString badIdents
+                    Nothing -> return NoRestrictIdents
+
             restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
             allowFields v $ concat
                 [ ["name", "within", "message"]

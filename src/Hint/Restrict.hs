@@ -66,7 +66,7 @@ restrictHint settings scope m =
 data RestrictItem = RestrictItem
     {riAs :: [String]
     ,riWithin :: [(String, String)]
-    ,riBadIdents :: [String]
+    ,riRestrictIdents :: RestrictIdents
     ,riMessage :: Maybe String
     }
 
@@ -97,7 +97,7 @@ restrictions settings = (rFunction, rOthers)
 
         rOthers = Map.map f $ Map.fromListWith (++) (map (second pure) ros)
         f rs = (all restrictDefault rs
-               ,Map.fromListWith (<>) [(s, RestrictItem restrictAs restrictWithin restrictBadIdents restrictMessage) | Restrict{..} <- rs, s <- restrictName])
+               ,Map.fromListWith (<>) [(s, RestrictItem restrictAs restrictWithin restrictIdents restrictMessage) | Restrict{..} <- rs, s <- restrictName])
 
 ideaMessage :: Maybe String -> Idea -> Idea
 ideaMessage (Just message) w = w{ideaNote=[Note message]}
@@ -147,7 +147,10 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
               case ideclHiding of
                 Just (False, lxs) -> concatMap (importListToIdents . unLoc) (unLoc lxs)
                 _ -> []
-        unless (Set.disjoint (Set.fromList riBadIdents) importedIdents) $
+            invalidIdents = case riRestrictIdents of
+              NoRestrictIdents -> Set.empty
+              ForbidIdents badIdents -> importedIdents `Set.intersection` Set.fromList badIdents
+        unless (Set.null invalidIdents) $
           Left $ ideaNoTo $ warn "Avoid restricted identifiers" i i []
 
         let qualAllowed = case (riAs, ideclAs) of
@@ -159,7 +162,7 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
           Left $ warn "Avoid restricted qualification" i i' []
 
 getRestrictItem :: Bool -> Located ModuleName -> Map.Map String RestrictItem -> RestrictItem
-getRestrictItem def ideclName = fromMaybe (RestrictItem [] [("","") | def] [] Nothing) . lookupRestrictItem ideclName
+getRestrictItem def ideclName = fromMaybe (RestrictItem [] [("","") | def] NoRestrictIdents Nothing) . lookupRestrictItem ideclName
 
 lookupRestrictItem :: Located ModuleName -> Map.Map String RestrictItem -> Maybe RestrictItem
 lookupRestrictItem ideclName mp =

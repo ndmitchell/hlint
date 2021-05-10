@@ -1,7 +1,7 @@
 
 module Config.Type(
     Severity(..), Classify(..), HintRule(..), Note(..), Setting(..),
-    Restrict(..), RestrictType(..), SmellType(..),
+    Restrict(..), RestrictType(..), RestrictIdents(..), SmellType(..),
     defaultHintName, isUnifyVar, showNotes, getSeverity, getRestrictType, getSmellType
     ) where
 
@@ -106,13 +106,23 @@ data HintRule = HintRule
 
 data RestrictType = RestrictModule | RestrictExtension | RestrictFlag | RestrictFunction deriving (Show,Eq,Ord)
 
+data RestrictIdents
+    = NoRestrictIdents -- No restrictions on module imports
+    | ForbidIdents [String] -- Forbid importing the given identifiers from this module
+    deriving Show
+
+instance Semigroup RestrictIdents where
+    NoRestrictIdents <> ri = ri
+    ri <> NoRestrictIdents = ri
+    ForbidIdents x1 <> ForbidIdents y1 = ForbidIdents $ x1 <> y1
+
 data Restrict = Restrict
     {restrictType :: RestrictType
     ,restrictDefault :: Bool
     ,restrictName :: [String]
     ,restrictAs :: [String] -- for RestrictModule only, what module names you can import it as
     ,restrictWithin :: [(String, String)]
-    ,restrictBadIdents :: [String]
+    ,restrictIdents :: RestrictIdents -- for RestrictModule only, what identifiers can be imported from it
     ,restrictMessage :: Maybe String
     } deriving Show
 
