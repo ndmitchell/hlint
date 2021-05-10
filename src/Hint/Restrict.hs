@@ -140,18 +140,17 @@ checkImports modu imp (def, mp) = mapMaybe getImportHint imp
     getImportHint :: LImportDecl GhcPs -> Maybe Idea
     getImportHint i@(L _ ImportDecl{..}) = do
       let RestrictItem{..} = getRestrictItem def ideclName mp
+      either (Just . ideaMessage riMessage) (const Nothing) $ do
+        let allowImport = within modu "" riWithin
+        let allowIdent = Set.disjoint
+                         (Set.fromList riBadIdents)
+                         (Set.fromList (maybe [] (\(b, lxs) -> if b then [] else concatMap (importListToIdents . unLoc) (unLoc lxs)) ideclHiding))
+        let allowQual = maybe True (\x -> null riAs || moduleNameString (unLoc x) `elem` riAs) ideclAs
 
-      let allowImport = within modu "" riWithin
-      let allowIdent = Set.disjoint
-                       (Set.fromList riBadIdents)
-                       (Set.fromList (maybe [] (\(b, lxs) -> if b then [] else concatMap (importListToIdents . unLoc) (unLoc lxs)) ideclHiding))
-      let allowQual = maybe True (\x -> null riAs || moduleNameString (unLoc x) `elem` riAs) ideclAs
-
-      fmap (ideaMessage riMessage) $
-        if | not allowImport -> Just $ ideaNoTo $ warn "Avoid restricted module" i i []
-           | not allowIdent -> Just $ ideaNoTo $ warn "Avoid restricted identifiers" i i []
-           | not allowQual -> Just $ warn "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
-           | otherwise -> Nothing
+        if | not allowImport -> Left $ ideaNoTo $ warn "Avoid restricted module" i i []
+           | not allowIdent -> Left $ ideaNoTo $ warn "Avoid restricted identifiers" i i []
+           | not allowQual -> Left $ warn "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
+           | otherwise -> Right ()
 
 getRestrictItem :: Bool -> Located ModuleName -> Map.Map String RestrictItem -> RestrictItem
 getRestrictItem def ideclName = fromMaybe (RestrictItem [] [("","") | def] [] Nothing) . lookupRestrictItem ideclName
