@@ -299,7 +299,12 @@ parseRestrict restrictType v = do
             restrictAs <- parseFieldOpt "as" v >>= maybe (pure []) parseArrayString
             restrictBadIdents <- parseFieldOpt "badidents" v >>= maybe (pure []) parseArrayString
             restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
-            allowFields v $ ["as" | restrictType == RestrictModule] ++ ["badidents", "name", "within", "message"]
+            allowFields v $ concat
+                [ ["name", "within", "message"]
+                , if restrictType == RestrictModule
+                    then ["as", "badidents"]
+                    else []
+                ]
             pure Restrict{restrictDefault=True,..}
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
