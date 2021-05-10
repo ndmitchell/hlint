@@ -1,5 +1,4 @@
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -141,16 +140,14 @@ checkImports modu imp (def, mp) = mapMaybe getImportHint imp
     getImportHint i@(L _ ImportDecl{..}) = do
       let RestrictItem{..} = getRestrictItem def ideclName mp
       either (Just . ideaMessage riMessage) (const Nothing) $ do
-        let allowImport = within modu "" riWithin
-        let allowIdent = Set.disjoint
-                         (Set.fromList riBadIdents)
-                         (Set.fromList (maybe [] (\(b, lxs) -> if b then [] else concatMap (importListToIdents . unLoc) (unLoc lxs)) ideclHiding))
-        let allowQual = maybe True (\x -> null riAs || moduleNameString (unLoc x) `elem` riAs) ideclAs
+        unless (within modu "" riWithin) $
+          Left $ ideaNoTo $ warn "Avoid restricted module" i i []
 
-        if | not allowImport -> Left $ ideaNoTo $ warn "Avoid restricted module" i i []
-           | not allowIdent -> Left $ ideaNoTo $ warn "Avoid restricted identifiers" i i []
-           | not allowQual -> Left $ warn "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
-           | otherwise -> Right ()
+        unless (Set.disjoint (Set.fromList riBadIdents) (Set.fromList (maybe [] (\(b, lxs) -> if b then [] else concatMap (importListToIdents . unLoc) (unLoc lxs)) ideclHiding))) $
+          Left $ ideaNoTo $ warn "Avoid restricted identifiers" i i []
+
+        unless (maybe True (\x -> null riAs || moduleNameString (unLoc x) `elem` riAs) ideclAs) $
+          Left $ warn "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs = noLoc . mkModuleName <$> listToMaybe riAs }) []
 
 getRestrictItem :: Bool -> Located ModuleName -> Map.Map String RestrictItem -> RestrictItem
 getRestrictItem def ideclName = fromMaybe (RestrictItem [] [("","") | def] [] Nothing) . lookupRestrictItem ideclName
