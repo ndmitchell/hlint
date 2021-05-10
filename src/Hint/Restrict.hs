@@ -135,12 +135,12 @@ checkPragmas modu flags exts mps =
    isGood def mp x = maybe def (within modu "" . riWithin) $ Map.lookup x mp
 
 checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
-checkImports modu imp (def, mp) =
-    [ ideaMessage riMessage
-      $ if | not allowImport -> ideaNoTo $ warn "Avoid restricted module" i i []
-           | not allowIdent  -> ideaNoTo $ warn "Avoid restricted identifiers" i i []
-           | not allowQual   -> warn "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
-           | otherwise       -> error "checkImports: unexpected case"
+checkImports modu imp (def, mp) = catMaybes $
+    [ fmap (ideaMessage riMessage) $
+        if | not allowImport -> Just $ ideaNoTo $ warn "Avoid restricted module" i i []
+           | not allowIdent  -> Just $ ideaNoTo $ warn "Avoid restricted identifiers" i i []
+           | not allowQual   -> Just $ warn "Avoid restricted qualification" i (noLoc $ (unLoc i){ ideclAs=noLoc . mkModuleName <$> listToMaybe riAs} :: Located (ImportDecl GhcPs)) []
+           | otherwise       -> Nothing
     | i@(L _ ImportDecl {..}) <- imp
     , let RestrictItem{..} = getRestrictItem def ideclName mp
     , let allowImport = within modu "" riWithin
@@ -148,7 +148,6 @@ checkImports modu imp (def, mp) =
                        (Set.fromList riBadIdents)
                        (Set.fromList (maybe [] (\(b, lxs) -> if b then [] else concatMap (importListToIdents . unLoc) (unLoc lxs)) ideclHiding))
     , let allowQual = maybe True (\x -> null riAs || moduleNameString (unLoc x) `elem` riAs) ideclAs
-    , not allowImport || not allowQual || not allowIdent
     ]
 
 getRestrictItem :: Bool -> Located ModuleName -> Map.Map String RestrictItem -> RestrictItem
