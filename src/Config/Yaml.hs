@@ -299,16 +299,19 @@ parseRestrict restrictType v = do
             restrictAs <- parseFieldOpt "as" v >>= maybe (pure []) parseArrayString
 
             restrictBadIdents <- parseFieldOpt "badidents" v
+            restrictOnlyAllowedIdents <- parseFieldOpt "only" v
             restrictIdents <-
-                case restrictBadIdents of
-                    Just badIdents -> ForbidIdents <$> parseArrayString badIdents
-                    Nothing -> return NoRestrictIdents
+                case (restrictBadIdents, restrictOnlyAllowedIdents) of
+                    (Just badIdents, Nothing) -> ForbidIdents <$> parseArrayString badIdents
+                    (Nothing, Just onlyIdents) -> OnlyIdents <$> parseArrayString onlyIdents
+                    (Nothing, Nothing) -> return NoRestrictIdents
+                    _ -> parseFail v "The following options are mutually exclusive: badidents, only"
 
             restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
             allowFields v $ concat
                 [ ["name", "within", "message"]
                 , if restrictType == RestrictModule
-                    then ["as", "badidents"]
+                    then ["as", "badidents", "only"]
                     else []
                 ]
             pure Restrict{restrictDefault=True,..}

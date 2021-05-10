@@ -109,12 +109,15 @@ data RestrictType = RestrictModule | RestrictExtension | RestrictFlag | Restrict
 data RestrictIdents
     = NoRestrictIdents -- No restrictions on module imports
     | ForbidIdents [String] -- Forbid importing the given identifiers from this module
+    | OnlyIdents [String] -- Forbid importing all identifiers from this module, except the given identifiers
     deriving Show
 
 instance Semigroup RestrictIdents where
     NoRestrictIdents <> ri = ri
     ri <> NoRestrictIdents = ri
     ForbidIdents x1 <> ForbidIdents y1 = ForbidIdents $ x1 <> y1
+    OnlyIdents x1 <> OnlyIdents x2 = OnlyIdents $ x1 <> x2
+    ri1 <> ri2 = error $ "Incompatible restrictions: " ++ show (ri1, ri2)
 
 data Restrict = Restrict
     {restrictType :: RestrictType

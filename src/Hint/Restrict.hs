@@ -150,6 +150,7 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
             invalidIdents = case riRestrictIdents of
               NoRestrictIdents -> Set.empty
               ForbidIdents badIdents -> importedIdents `Set.intersection` Set.fromList badIdents
+              OnlyIdents onlyIdents -> importedIdents `Set.difference` Set.fromList onlyIdents
         unless (Set.null invalidIdents) $
           Left $ ideaNoTo $ warn "Avoid restricted identifiers" i i []
 
