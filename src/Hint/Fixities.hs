@@ -16,7 +16,7 @@ no = (a >>= \x -> b) >>= g
 
 module Hint.Fixities(fixitiesHint) where
 
-import Hint.Type(DeclHint,Idea(..),rawIdea,toSS)
+import Hint.Type(DeclHint,Idea(..),rawIdea,toSSA)
 import Config.Type
 import Control.Monad
 import Data.List.Extra
@@ -24,7 +24,7 @@ import Data.Map
 import Data.Generics.Uniplate.DataOnly
 import Refact.Types
 
-import GHC.Types.Basic (compareFixity)
+import GHC.Types.Fixity(compareFixity)
 import Fixity
 import GHC.Hs
 import GHC.Util
@@ -51,8 +51,8 @@ infixBracket fixities = f Nothing
       Just x <- [remParen v]
       guard $ redundantInfixBracket fixities i o x
       pure $
-        rawIdea Ignore msg (getLoc v) (unsafePrettyPrint o)
-        (Just (unsafePrettyPrint (gen x))) [] [Replace (findType v) (toSS v) [("x", toSS x)] "x"]
+        rawIdea Ignore msg (locA (getLoc v)) (unsafePrettyPrint o)
+        (Just (unsafePrettyPrint (gen x))) [] [Replace (findType v) (toSSA v) [("x", toSSA x)] "x"]
 
 redundantInfixBracket :: Map String Fixity -> Int -> LHsExpr GhcPs -> LHsExpr GhcPs -> Bool
 redundantInfixBracket fixities i parent child

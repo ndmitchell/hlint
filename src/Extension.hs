@@ -17,6 +17,9 @@ badExtensions =
   , QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
   , {- DoRec , -} RecursiveDo -- breaks rec
   , LexicalNegation -- changes '-', see https://github.com/ndmitchell/hlint/issues/1230
+  -- These next two change syntax significantly and must be opt-in.
+  , OverloadedRecordDot
+  , OverloadedRecordUpdate
   ]
 
 reallyBadExtensions =
