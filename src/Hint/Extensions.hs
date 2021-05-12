@@ -98,7 +98,7 @@ deriving instance Show Bar -- {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-} \
 newtype Micro = Micro Int deriving Generic -- {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveGeneric, TypeFamilies #-} \
-data family Bar a; data instance Bar Foo = Foo deriving (Generic)
+data family Bar a; data instance Bar Foo = Foo deriving Generic
 {-# LANGUAGE GeneralizedNewtypeDeriving #-} \
 instance Class Int where {newtype MyIO a = MyIO a deriving NewClass}
 {-# LANGUAGE UnboxedTuples #-} \

@@ -37,6 +37,12 @@ newtype SrcSpanD = SrcSpanD SrcSpan
   deriving (Outputable, Eq)
 instance Default SrcSpanD where def = SrcSpanD noSrcSpan
 
+newtype FastStringD = FastStringD FastString
+  deriving Eq
+compareFastStrings (FastStringD f) (FastStringD g) =
+  lexicalCompareFS f g
+instance Ord FastStringD where compare = compareFastStrings
+
 -- SrcSpan no longer provides 'Ord' so we are forced to roll our own.
 --
 -- Note: This implementation chooses that any span compares 'EQ to an
