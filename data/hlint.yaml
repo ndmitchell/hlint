@@ -137,6 +137,7 @@
     - warn: {lhs: head (reverse x), rhs: last x}
     - warn: {lhs: head (drop n x), rhs: x !! n, side: isNat n}
     - warn: {lhs: head (drop n x), rhs: x !! max 0 n, side: not (isNat n) && not (isNeg n)}
+    - warn: {lhs: reverse (init x), rhs: tail (reverse x)}
     - warn: {lhs: reverse (tail (reverse x)), rhs: init x, note: IncreasesLaziness}
     - warn: {lhs: reverse (reverse x), rhs: x, note: IncreasesLaziness, name: Avoid reverse}
     - warn: {lhs: isPrefixOf (reverse x) (reverse y), rhs: isSuffixOf x y}
@@ -191,6 +192,7 @@
     - warn: {lhs: intercalate " ", rhs: unwords}
     - hint: {lhs: concat (intersperse x y), rhs: intercalate x y, side: notEq x " "}
     - hint: {lhs: concat (intersperse " " x), rhs: unwords x}
+    - warn: {lhs: null (concat x), rhs: all null x}
     - warn: {lhs: null (filter f x), rhs: not (any f x), name: Use any}
     - warn: {lhs: "filter f x == []", rhs: not (any f x), name: Use any}
     - warn: {lhs: "filter f x /= []", rhs: any f x}
