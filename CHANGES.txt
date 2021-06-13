@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1254, suggest null [x] ==> False
     #1253, suggest reverse . init ==> tail . reverse
     #1253, suggest null . concat ==> all null
     #1255, suggest filter instead of list comprehension in teaching
