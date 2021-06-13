@@ -4102,6 +4102,38 @@ mempty
 <td>Warning</td>
 </tr>
 <tr>
+<td>Traversable law</td>
+<td>
+LHS:
+<code>
+traverse pure
+</code>
+<br>
+RHS:
+<code>
+pure
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Traversable law</td>
+<td>
+LHS:
+<code>
+traverse (pure . f) x
+</code>
+<br>
+RHS:
+<code>
+pure (fmap f x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use traverse</td>
 <td>
 LHS:

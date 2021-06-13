@@ -249,6 +249,8 @@
 
     # TRAVERSABLES
 
+    - warn: {lhs: traverse pure, rhs: pure, name: "Traversable law"}
+    - warn: {lhs: traverse (pure . f) x, rhs: pure (fmap f x), name: "Traversable law"}
     - warn: {lhs: sequenceA (map f x), rhs: traverse f x}
     - warn: {lhs: sequenceA (fmap f x), rhs: traverse f x}
     - warn: {lhs: sequenceA_ (map f x), rhs: traverse_ f x}
