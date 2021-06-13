@@ -737,6 +737,7 @@
     - warn: {lhs: "fst (x,y)", rhs: x, name: Evaluate}
     - warn: {lhs: "snd (x,y)", rhs: "y", name: Evaluate}
     - warn: {lhs: "init [x]", rhs: "[]", name: Evaluate}
+    - warn: {lhs: "null [x]", rhs: "False", name: Evaluate}
     - warn: {lhs: "null []", rhs: "True", name: Evaluate}
     - warn: {lhs: "length []", rhs: "0", name: Evaluate}
     - warn: {lhs: "foldl f z []", rhs: z, name: Evaluate}
