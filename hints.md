@@ -10502,6 +10502,22 @@ RHS:
 <td>
 LHS:
 <code>
+null [x]
+</code>
+<br>
+RHS:
+<code>
+False
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
 null []
 </code>
 <br>
