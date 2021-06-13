@@ -1,5 +1,8 @@
 Changelog for HLint (* = breaking change)
 
+    #1253, suggest reverse . init ==> tail . reverse
+    #1253, suggest null . concat ==> all null
+    #1255, suggest filter instead of list comprehension in teaching
 3.3.1, released 2021-04-26
     #1221, allow restrictions to use wildcards
     #1225, treat A{} as not-atomic for bracket hints

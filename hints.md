@@ -2406,6 +2406,22 @@ x !! max 0 n
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use tail</td>
+<td>
+LHS:
+<code>
+reverse (init x)
+</code>
+<br>
+RHS:
+<code>
+tail (reverse x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use init</td>
 <td>
 LHS:
@@ -3268,6 +3284,22 @@ unwords x
 <br>
 </td>
 <td>Suggestion</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+null (concat x)
+</code>
+<br>
+RHS:
+<code>
+all null x
+</code>
+<br>
+</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use any</td>
