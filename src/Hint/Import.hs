@@ -37,7 +37,7 @@ import A (baz) -- import A ( foo, bar, baz )
 
 module Hint.Import(importHint) where
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),suggest,toSS,rawIdea)
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),suggest,toSSA,rawIdea)
 import Refact.Types hiding (ModuleName)
 import qualified Refact.Types as R
 import Data.Tuple.Extra
@@ -48,13 +48,12 @@ import Control.Applicative
 import Prelude
 
 import GHC.Data.FastString
-import GHC.Types.Basic
+import GHC.Types.SourceText
 import GHC.Hs
 import GHC.Types.SrcLoc
 import GHC.Unit.Types -- for 'NotBoot'
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
-
 
 importHint :: ModuHint
 importHint _ ModuleEx {ghcModule=L _ HsModule{hsmodImports=ms}} =
@@ -71,7 +70,7 @@ importHint _ ModuleEx {ghcModule=L _ HsModule{hsmodImports=ms}} =
 reduceImports :: [LImportDecl GhcPs] -> [Idea]
 reduceImports [] = []
 reduceImports ms@(m:_) =
-  [rawIdea Hint.Type.Warning "Use fewer imports" (getLoc m) (f ms) (Just $ f x) [] rs
+  [rawIdea Hint.Type.Warning "Use fewer imports" (locA (getLoc m)) (f ms) (Just $ f x) [] rs
   | Just (x, rs) <- [simplify ms]]
   where f = unlines . map unsafePrettyPrint
 
@@ -97,25 +96,25 @@ combine :: LImportDecl GhcPs
         -> Maybe (LImportDecl GhcPs, [Refactoring R.SrcSpan])
 combine x@(L loc x') y@(L _ y')
   -- Both (un/)qualified, common 'as', same names : Delete the second.
-  | qual, as, specs = Just (x, [Delete Import (toSS y)])
+  | qual, as, specs = Just (x, [Delete Import (toSSA y)])
     -- Both (un/)qualified, common 'as', different names : Merge the
     -- second into the first and delete it.
   | qual, as
   , Just (False, xs) <- ideclHiding x'
   , Just (False, ys) <- ideclHiding y' =
-      let newImp = L loc x'{ideclHiding = Just (False, noLoc (unLoc xs ++ unLoc ys))}
-      in Just (newImp, [Replace Import (toSS x) [] (unsafePrettyPrint (unLoc newImp))
-                       , Delete Import (toSS y)])
+      let newImp = L loc x'{ideclHiding = Just (False, noLocA (unLoc xs ++ unLoc ys))}
+      in Just (newImp, [Replace Import (toSSA x) [] (unsafePrettyPrint (unLoc newImp))
+                       , Delete Import (toSSA y)])
   -- Both (un/qualified), common 'as', one has names the other doesn't
   -- : Delete the one with names.
   | qual, as, isNothing (ideclHiding x') || isNothing (ideclHiding y') =
        let (newImp, toDelete) = if isNothing (ideclHiding x') then (x, y) else (y, x)
-       in Just (newImp, [Delete Import (toSS toDelete)])
+       in Just (newImp, [Delete Import (toSSA toDelete)])
   -- Both unqualified, same names, one (and only one) has an 'as'
   -- clause : Delete the one without an 'as'.
   | ideclQualified x' == NotQualified, qual, specs, length ass == 1 =
        let (newImp, toDelete) = if isJust (ideclAs x') then (x, y) else (y, x)
-       in Just (newImp, [Delete Import (toSS toDelete)])
+       in Just (newImp, [Delete Import (toSSA toDelete)])
   -- No hints.
   | otherwise = Nothing
     where
@@ -131,8 +130,8 @@ combine x@(L loc x') y@(L _ y')
                     transformBi (const noSrcSpan) (ideclHiding y')
 
 stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
-stripRedundantAlias x@(L loc i@ImportDecl {..})
+stripRedundantAlias x@(L _ i@ImportDecl {..})
   -- Suggest 'import M as M' be just 'import M'.
   | Just (unLoc ideclName) == fmap unLoc ideclAs =
-      [suggest "Redundant as" x (L loc i{ideclAs=Nothing} :: LImportDecl GhcPs) [RemoveAsKeyword (toSS x)]]
+      [suggest "Redundant as" (reLoc x) (noLoc i{ideclAs=Nothing} :: Located (ImportDecl GhcPs)) [RemoveAsKeyword (toSSA x)]]
 stripRedundantAlias _ = []

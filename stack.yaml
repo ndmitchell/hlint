@@ -1,19 +1,21 @@
-resolver: nightly-2021-02-06 # ghc-8.10.3
+resolver: nightly-2021-03-31 # ghc-8.10.4
+
 packages:
   - .
+
 extra-deps:
-  - ghc-lib-parser-9.0.1.20210207
-  - ghc-lib-parser-ex-9.0.0.4
-# To test hlint against experimental builds of ghc-lib-parser-ex,
-# modify extra-deps like this:
-#  - archive: /users/shayne/project/ghc-lib-parser-ex.git/ghc-lib-parser-ex-8.10.0.18.tar.gz
-#    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+  - archive: ./ghc-lib-parser-9.2.1.20210509.tar.gz
+    sha256: "70573193b73632248f24dd748f781c5ffb6beabbbf40b67de3dbe26cbd7e174f"
+  - archive: ./ghc-lib-parser-ex-9.2.1.20210509.tar.gz
+    sha256: "2344fbbdfe7c0a848bed07c173f4a3bfb4b1356e27f39f3cc2d8dd512744ac48"
+
 ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-local-binds -Werror=unused-top-binds -Werror=orphans}
+
 # Enabling this stanza forces both hlint and ghc-lib-parser-ex to
 # depend on ghc-lib-parser.
-# flags:
-#   hlint:
-#     ghc-lib: true
-#   ghc-lib-parser-ex:
-#     auto: false
-#     no-ghc-lib: false
+flags:
+  hlint:
+    ghc-lib: true
+  ghc-lib-parser-ex:
+    auto: false
+    no-ghc-lib: false

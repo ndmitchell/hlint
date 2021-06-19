@@ -8,7 +8,7 @@ import System.Exit
 
 main :: IO ()
 main = do
-    args <- getArgs
-    errs <- hlint args
-    unless (null errs) $
-        exitWith $ ExitFailure 1
+     args <- getArgs
+     errs <- hlint args
+     unless (null errs) $
+         exitWith $ ExitFailure 1

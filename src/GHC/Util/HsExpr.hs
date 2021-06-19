@@ -37,7 +37,7 @@ import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Maybe
 
-import Refact (substVars, toSS)
+import Refact (substVars, toSSA)
 import Refact.Types hiding (SrcSpan, Match)
 import qualified Refact.Types as R (SrcSpan)
 
@@ -49,7 +49,7 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 -- | 'dotApp a b' makes 'a . b'.
 dotApp :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
-dotApp x y = noLoc $ OpApp noExtField x (noLoc $ HsVar noExtField (noLoc $ mkVarUnqual (fsLit "."))) y
+dotApp x y = noLocA $ OpApp EpAnnNotUsed x (noLocA $ HsVar noExtField (noLocA $ mkVarUnqual (fsLit "."))) y
 
 dotApps :: [LHsExpr GhcPs] -> LHsExpr GhcPs
 dotApps [] = error "GHC.Util.HsExpr.dotApps', does not work on an empty list"
@@ -58,7 +58,7 @@ dotApps (x : xs) = dotApp x (dotApps xs)
 
 -- | @lambda [p0, p1..pn] body@ makes @\p1 p1 .. pn -> body@
 lambda :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
-lambda vs body = noLoc $ HsLam noExtField (MG noExtField (noLoc [noLoc $ Match noExtField LambdaExpr vs (GRHSs noExtField [noLoc $ GRHS noExtField [] body] (noLoc $ EmptyLocalBinds noExtField))]) Generated)
+lambda vs body = noLocA $ HsLam noExtField (MG noExtField (noLocA [noLocA $ Match EpAnnNotUsed LambdaExpr vs (GRHSs noExtField [noLoc $ GRHS EpAnnNotUsed [] body] (EmptyLocalBinds noExtField))]) Generated)
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -72,7 +72,7 @@ universeParentExp xs = concat [(Nothing, x) : f x | x <- childrenBi xs]
 
 
 apps :: [LHsExpr GhcPs] -> LHsExpr GhcPs
-apps = foldl1' mkApp where mkApp x y = noLoc (HsApp noExtField x y)
+apps = foldl1' mkApp where mkApp x y = noLocA (HsApp EpAnnNotUsed x y)
 
 fromApps :: LHsExpr GhcPs  -> [LHsExpr GhcPs]
 fromApps (L _ (HsApp _ x y)) = fromApps x ++ [y]
@@ -86,7 +86,7 @@ universeApps :: LHsExpr GhcPs -> [LHsExpr GhcPs]
 universeApps x = x : concatMap universeApps (childrenApps x)
 
 descendAppsM :: Monad m => (LHsExpr GhcPs  -> m (LHsExpr GhcPs)) -> LHsExpr GhcPs -> m (LHsExpr GhcPs)
-descendAppsM f (L l (HsApp _ x y)) = liftA2 (\x y -> L l $ HsApp noExtField x y) (descendAppsM f x) (f y)
+descendAppsM f (L l (HsApp _ x y)) = liftA2 (\x y -> L l $ HsApp EpAnnNotUsed x y) (descendAppsM f x) (f y)
 descendAppsM f x = descendM f x
 
 transformAppsM :: Monad m => (LHsExpr GhcPs -> m (LHsExpr GhcPs)) -> LHsExpr GhcPs -> m (LHsExpr GhcPs)
@@ -117,15 +117,15 @@ rebracket1 = descendBracket (True, )
 -- A list of application, with any necessary brackets.
 appsBracket :: [LHsExpr GhcPs] -> LHsExpr GhcPs
 appsBracket = foldl1 mkApp
-  where mkApp x y = rebracket1 (noLoc $ HsApp noExtField x y)
+  where mkApp x y = rebracket1 (noLocA $ HsApp EpAnnNotUsed x y)
 
 simplifyExp :: LHsExpr GhcPs -> LHsExpr GhcPs
 -- Replace appliciations 'f $ x' with 'f (x)'.
-simplifyExp (L l (OpApp _ x op y)) | isDol op = L l (HsApp noExtField x (noLoc (HsPar noExtField y)))
-simplifyExp e@(L _ (HsLet _ (L _ (HsValBinds _ (ValBinds _ binds []))) z)) =
+simplifyExp (L l (OpApp _ x op y)) | isDol op = L l (HsApp EpAnnNotUsed x (noLocA (HsPar EpAnnNotUsed y)))
+simplifyExp e@(L _ (HsLet _ ((HsValBinds _ (ValBinds _ binds []))) z)) =
   -- An expression of the form, 'let x = y in z'.
   case bagToList binds of
-    [L _ (FunBind _ _ (MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] (L _ (EmptyLocalBinds _))))]) _) _)]
+    [L _ (FunBind _ _ (MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] ((EmptyLocalBinds _))))]) _) _)]
          -- If 'x' is not in the free variables of 'y', beta-reduce to
          -- 'z[(y)/x]'.
       | occNameStr x `notElem` vars y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
@@ -177,7 +177,7 @@ niceLambdaR [v] (L _ (OpApp _ e f (view -> Var_ v')))
   , vars e `disjoint` [v]
   , L _ (HsVar _ (L _ fname)) <- f
   , isSymOcc $ rdrNameOcc fname
-  = let res = noLoc $ HsPar noExtField $ noLoc $ SectionL noExtField e f
+  = let res = noLocA $ HsPar EpAnnNotUsed $ noLocA $ SectionL EpAnnNotUsed e f
      in (res, \s -> [Replace Expr s [] (unsafePrettyPrint res)])
 
 -- @\vs v -> f x v@ ==> @\vs -> f x@
@@ -198,7 +198,7 @@ niceLambdaR xs (SimpleLambda ((view -> PVar_ v):vs) x)
 -- lexeme, or it all gets too complex).
 niceLambdaR [x] (view -> App2 op@(L _ (HsVar _ (L _ tag))) l r)
   | isLexeme r, view l == Var_ x, x `notElem` vars r, allowRightSection (occNameStr tag) =
-      let e = rebracket1 $ addParen (noLoc $ SectionR noExtField op r)
+      let e = rebracket1 $ addParen (noLocA $ SectionR EpAnnNotUsed op r)
       in (e, \s -> [Replace Expr s [] (unsafePrettyPrint e)])
 -- Rewrite (1) @\x -> f (b x)@ as @f . b@, (2) @\x -> f $ b x@ as @f . b@.
 niceLambdaR [x] y
@@ -217,7 +217,7 @@ niceLambdaR [x] y
     factor _ = Nothing
     mkRefact :: [LHsExpr GhcPs] -> R.SrcSpan -> Refactoring R.SrcSpan
     mkRefact subts s =
-      let tempSubts = zipWith (\a b -> (a, toSS b)) substVars subts
+      let tempSubts = zipWith (\a b -> (a, toSSA b)) substVars subts
           template = dotApps (map (strToVar . fst) tempSubts)
       in Replace Expr s tempSubts (unsafePrettyPrint template)
 -- Rewrite @\x y -> x + y@ as @(+)@.
@@ -227,31 +227,32 @@ niceLambdaR [x,y] (L _ (OpApp _ (view -> Var_ x1) op@(L _ HsVar {}) (view -> Var
 niceLambdaR [x, y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
   | x == x1, y == y1, vars op `disjoint` [x, y] =
       ( gen op
-      , \s -> [Replace Expr s [("x", toSS op)] (unsafePrettyPrint $ gen (strToVar "x"))]
+      , \s -> [Replace Expr s [("x", toSSA op)] (unsafePrettyPrint $ gen (strToVar "x"))]
       )
   where
-    gen = noLoc . HsApp noExtField (strToVar "flip")
+    gen :: LHsExpr GhcPs -> LHsExpr GhcPs
+    gen = noLocA . HsApp EpAnnNotUsed (strToVar "flip")
         . if isAtom op then id else addParen
 
 -- We're done factoring, but have no variables left, so we shouldn't make a lambda.
 -- @\ -> e@ ==> @e@
-niceLambdaR [] e = (e, \s -> [Replace Expr s [("a", toSS e)] "a"])
+niceLambdaR [] e = (e, \s -> [Replace Expr s [("a", toSSA e)] "a"])
 -- Base case. Just a good old fashioned lambda.
 niceLambdaR ss e =
-  let grhs = noLoc $ GRHS noExtField [] e :: LGRHS GhcPs (LHsExpr GhcPs)
-      grhss = GRHSs {grhssExt = noExtField, grhssGRHSs=[grhs], grhssLocalBinds=noLoc $ EmptyLocalBinds noExtField}
-      match = noLoc $ Match {m_ext=noExtField, m_ctxt=LambdaExpr, m_pats=map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
-      matchGroup = MG {mg_ext=noExtField, mg_origin=Generated, mg_alts=noLoc [match]}
-  in (noLoc $ HsLam noExtField matchGroup, const [])
+  let grhs = noLoc $ GRHS EpAnnNotUsed [] e :: LGRHS GhcPs (LHsExpr GhcPs)
+      grhss = GRHSs {grhssExt = noExtField, grhssGRHSs=[grhs], grhssLocalBinds=EmptyLocalBinds noExtField}
+      match = noLocA $ Match {m_ext=EpAnnNotUsed, m_ctxt=LambdaExpr, m_pats=map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
+      matchGroup = MG {mg_ext=noExtField, mg_origin=Generated, mg_alts=noLocA [match]}
+  in (noLocA $ HsLam noExtField matchGroup, const [])
 
 
 -- 'case' and 'if' expressions have branches, nothing else does (this
 -- doesn't consider 'HsMultiIf' perhaps it should?).
 replaceBranches :: LHsExpr GhcPs -> ([LHsExpr GhcPs], [LHsExpr GhcPs] -> LHsExpr GhcPs)
-replaceBranches (L l (HsIf _ a b c)) = ([b, c], \[b, c] -> L l (HsIf noExtField a b c))
+replaceBranches (L l (HsIf _ a b c)) = ([b, c], \[b, c] -> L l (HsIf EpAnnNotUsed a b c))
 
 replaceBranches (L s (HsCase _ a (MG _ (L l bs) FromSource))) =
-  (concatMap f bs, \xs -> L s (HsCase noExtField a (MG noExtField (L l (g bs xs)) Generated)))
+  (concatMap f bs, \xs -> L s (HsCase EpAnnNotUsed a (MG noExtField (L l (g bs xs)) Generated)))
   where
     f :: LMatch GhcPs (LHsExpr GhcPs) -> [LHsExpr GhcPs]
     f (L _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (L _ (GRHS _ _ x)) <- xs]
@@ -259,7 +260,7 @@ replaceBranches (L s (HsCase _ a (MG _ (L l bs) FromSource))) =
 
     g :: [LMatch GhcPs (LHsExpr GhcPs)] -> [LHsExpr GhcPs] -> [LMatch GhcPs (LHsExpr GhcPs)]
     g (L s1 (Match _ CaseAlt a (GRHSs _ ns b)) : rest) xs =
-      L s1 (Match noExtField CaseAlt a (GRHSs noExtField [L a (GRHS noExtField gs x) | (L a (GRHS _ gs _), x) <- zip ns as] b)) : g rest bs
+      L s1 (Match EpAnnNotUsed CaseAlt a (GRHSs noExtField [L a (GRHS EpAnnNotUsed gs x) | (L a (GRHS _ gs _), x) <- zip ns as] b)) : g rest bs
       where  (as, bs) = splitAt (length ns) xs
     g [] [] = []
     g _ _ = error "GHC.Util.HsExpr.replaceBranches': internal invariant failed, lists are of differing lengths"

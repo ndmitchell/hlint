@@ -8,6 +8,8 @@ module Config.Yaml(
     settingsFromConfigYaml
     ) where
 
+import GHC.Driver.Ppr
+import GHC.Parser.Errors.Ppr
 import Config.Type
 import Data.Either
 import Data.Maybe
@@ -31,7 +33,6 @@ import Prelude
 import GHC.Data.Bag
 import GHC.Parser.Lexer
 import GHC.Utils.Error hiding (Severity)
-import GHC.Utils.Outputable
 import GHC.Hs
 import GHC.Types.SrcLoc
 import GHC.Types.Name.Reader
@@ -196,9 +197,8 @@ parseGHC parser v = do
     case parser defaultParseFlags{enabledExtensions=configExtensions, disabledExtensions=[]} x of
         POk _ x -> pure x
         PFailed ps ->
-          let (_, errs) = getMessages ps baseDynFlags
-              errMsg = head (bagToList errs)
-              msg = GHC.Utils.Outputable.showSDoc baseDynFlags $ GHC.Utils.Error.pprLocErrMsg errMsg
+          let errMsg = pprError . head . bagToList . snd $ getMessages ps
+              msg = showSDoc baseDynFlags $ pprLocMsgEnvelope errMsg
           in parseFail v $ "Failed to parse " ++ msg ++ ", when parsing:\n " ++ x
 
 ---------------------------------------------------------------------
@@ -363,8 +363,8 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
             where
               scope'= asScope' packageMap' (map (fmap unextendInstances) groupImports)
 
-asScope' :: Map.HashMap String [LImportDecl GhcPs] -> [Either String (LImportDecl GhcPs)] -> Scope
-asScope' packages xs = scopeCreate (HsModule NoLayoutInfo Nothing Nothing (concatMap f xs) [] Nothing Nothing)
+asScope' :: Map.HashMap String [LocatedA (ImportDecl GhcPs)] -> [Either String (LocatedA (ImportDecl GhcPs))] -> Scope
+asScope' packages xs = scopeCreate (HsModule EpAnnNotUsed NoLayoutInfo Nothing Nothing (concatMap f xs) [] Nothing Nothing)
     where
         f (Right x) = [x]
         f (Left x) | Just pkg <- Map.lookup x packages = pkg

@@ -32,28 +32,29 @@
 
 module Hint.Pragma(pragmaHint) where
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),toSS,rawIdea)
+import Hint.Type(ModuHint,Idea(..),Severity(..),toSSAnc,rawIdea,modComments)
 import Data.List.Extra
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import Refact.Types
 import qualified Refact.Types as R
 
-import GHC.Parser.Annotation
+import GHC.Hs
 import GHC.Types.SrcLoc
+import GHC.Data.FastString
 
 import GHC.Util
 import GHC.Driver.Session
 
 pragmaHint :: ModuHint
 pragmaHint _ modu =
-  let ps = pragmas (ghcAnnotations modu)
+  let ps = pragmas (modComments modu)
       opts = flags ps
       lang = languagePragmas ps in
     languageDupes lang ++ optToPragma opts lang
 
-optToPragma :: [(Located AnnotationComment, [String])]
-             -> [(Located AnnotationComment, [String])]
+optToPragma :: [(LEpaComment, [String])]
+             -> [(LEpaComment, [String])]
              -> [Idea]
 optToPragma flags languagePragmas =
   [pragmaIdea (OptionsToComment (fst <$> old2) ys rs) | Just old2 <- [NE.nonEmpty old]]
@@ -66,40 +67,44 @@ optToPragma flags languagePragmas =
       ls = concatMap snd languagePragmas
       ns2 = nubOrd (concat ns) \\ ls
 
-      ys = [mkLanguagePragmas noSrcSpan ns2 | ns2 /= []] ++ catMaybes new
-      mkRefact :: (Located AnnotationComment, [String])
-               -> Maybe (Located AnnotationComment)
+      dummyLoc = mkRealSrcLoc (fsLit "dummy") 1 1
+      dummySpan = mkRealSrcSpan dummyLoc dummyLoc
+      dummyAnchor = realSpanAsAnchor dummySpan
+
+      ys = [mkLanguagePragmas dummyAnchor ns2 | ns2 /= []] ++ catMaybes new
+      mkRefact :: (LEpaComment, [String])
+               -> Maybe LEpaComment
                -> [String]
                -> Refactoring R.SrcSpan
-      mkRefact old (maybe "" comment -> new) ns =
-        let ns' = map (\n -> comment (mkLanguagePragmas noSrcSpan [n])) ns
-        in ModifyComment (toSS (fst old)) (intercalate "\n" (filter (not . null) (ns' `snoc` new)))
+      mkRefact old (maybe "" comment_ -> new) ns =
+        let ns' = map (\n -> comment_ (mkLanguagePragmas dummyAnchor [n])) ns
+        in ModifyComment (toSSAnc (fst old)) (intercalate "\n" (filter (not . null) (ns' `snoc` new)))
 
-data PragmaIdea = SingleComment (Located AnnotationComment) (Located AnnotationComment)
-                 | MultiComment (Located AnnotationComment) (Located AnnotationComment) (Located AnnotationComment)
-                 | OptionsToComment (NE.NonEmpty (Located AnnotationComment)) [Located AnnotationComment] [Refactoring R.SrcSpan]
+data PragmaIdea = SingleComment LEpaComment LEpaComment
+                 | MultiComment LEpaComment LEpaComment LEpaComment
+                 | OptionsToComment (NE.NonEmpty LEpaComment) [LEpaComment] [Refactoring R.SrcSpan]
 
 pragmaIdea :: PragmaIdea -> Idea
 pragmaIdea pidea =
   case pidea of
     SingleComment old new ->
-      mkFewer (getLoc old) (comment old) (Just $ comment new) []
-      [ModifyComment (toSS old) (comment new)]
+      mkFewer (getAncLoc old) (comment_ old) (Just $ comment_ new) []
+      [ModifyComment (toSSAnc old) (comment_ new)]
     MultiComment repl delete new ->
-      mkFewer (getLoc repl)
-        (f [repl, delete]) (Just $ comment new) []
-        [ ModifyComment (toSS repl) (comment new)
-        , ModifyComment (toSS delete) ""]
+      mkFewer (getAncLoc repl)
+        (f [repl, delete]) (Just $ comment_ new) []
+        [ ModifyComment (toSSAnc repl) (comment_ new)
+        , ModifyComment (toSSAnc delete) ""]
     OptionsToComment old new r ->
-      mkLanguage (getLoc . NE.head $ old)
+      mkLanguage (getAncLoc . NE.head $ old)
         (f $ NE.toList old) (Just $ f new) []
         r
     where
-          f = unlines . map comment
+          f = unlines . map comment_
           mkFewer = rawIdea Hint.Type.Warning "Use fewer LANGUAGE pragmas"
           mkLanguage = rawIdea Hint.Type.Warning "Use LANGUAGE pragmas"
 
-languageDupes :: [(Located AnnotationComment, [String])] -> [Idea]
+languageDupes :: [(LEpaComment, [String])] -> [Idea]
 languageDupes ( (a@(L l _), les) : cs ) =
   (if nubOrd les /= les
        then [pragmaIdea (SingleComment a (mkLanguagePragmas l $ nubOrd les))]
@@ -126,9 +131,9 @@ strToLanguage _ = Nothing
 -- extension enabling flags. Return that together with a list of any
 -- language extensions enabled by this pragma that are not otherwise
 -- enabled by LANGUAGE pragmas in the module.
-optToLanguage :: (Located AnnotationComment, [String])
+optToLanguage :: (LEpaComment, [String])
                -> [String]
-               -> Maybe (Maybe (Located AnnotationComment), [String])
+               -> Maybe (Maybe LEpaComment, [String])
 optToLanguage (L loc _, flags) languagePragmas
   | any isJust vs =
       -- 'ls' is a list of language features enabled by this

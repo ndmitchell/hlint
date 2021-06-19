@@ -1,8 +1,5 @@
 
-module Hint.Smell (
-  smellModuleHint,
-  smellHint
-  ) where
+module Hint.Smell (smellModuleHint,smellHint) where
 
 {-
 <TEST> [{smell: { type: many arg functions, limit: 2 }}]
@@ -85,9 +82,9 @@ import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
 import qualified Data.Map as Map
 
+import GHC.Driver.Ppr
 import GHC.Types.Basic
 import GHC.Hs
-import GHC.Utils.Outputable
 import GHC.Data.Bag
 import GHC.Types.SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -98,7 +95,7 @@ smellModuleHint settings scope m =
       imports = hsmodImports mod in
   case Map.lookup SmellManyImports (smells settings) of
     Just n | length imports >= n ->
-             let span = foldl1 combineSrcSpans $ getLoc <$> imports
+             let span = foldl1 combineSrcSpans $ locA . getLoc <$> imports
                  displayImports = unlines $ f <$> imports
              in [rawIdea Config.Type.Warning "Many imports" span displayImports  Nothing [] [] ]
       where
@@ -140,18 +137,18 @@ declSpans
  -- the where clause.
  rhsSpans ctx locGrhs ++ whereSpans where_
 -- Any other kind of function.
-declSpans f@(L l (ValD _ FunBind {})) = [(l, warn "Long function" f f [])]
+declSpans f@(L l (ValD _ FunBind {})) = [(locA l, warn "Long function" (reLoc f) (reLoc f) [])]
 declSpans _ = []
 
 -- The span of a guarded right hand side.
 rhsSpans :: HsMatchContext GhcPs -> LGRHS GhcPs (LHsExpr GhcPs) -> [(SrcSpan, Idea)]
 rhsSpans _ (L _ (GRHS _ _ (L _ RecordCon {}))) = [] -- record constructors get a pass
 rhsSpans ctx (L _ r@(GRHS _ _ (L l _))) =
-  [(l, rawIdea Config.Type.Warning "Long function" l (showSDocUnsafe (pprGRHS ctx r)) Nothing [] [])]
+  [(locA l, rawIdea Config.Type.Warning "Long function" (locA l) (showSDocUnsafe (pprGRHS ctx r)) Nothing [] [])]
 
 -- The spans of a 'where' clause are the spans of its bindings.
-whereSpans :: LHsLocalBinds GhcPs -> [(SrcSpan, Idea)]
-whereSpans (L l (HsValBinds _ (ValBinds _ bs _))) =
+whereSpans :: HsLocalBinds GhcPs -> [(SrcSpan, Idea)]
+whereSpans (HsValBinds _ (ValBinds _ bs _)) =
   concatMap (declSpans . (\(L loc bind) -> L loc (ValD noExtField bind))) (bagToList bs)
 whereSpans _ = []
 
@@ -160,16 +157,16 @@ spanLength (RealSrcSpan span _) = srcSpanEndLine span - srcSpanStartLine span + 
 spanLength (UnhelpfulSpan _) = -1
 
 smellLongTypeLists :: LHsDecl GhcPs -> Int -> [Idea]
-smellLongTypeLists d@(L _ (SigD _ (TypeSig _ _ (HsWC _ (HsIB _ (L _ t)))))) n =
-  warn "Long type list" d d [] <$ filter longTypeList (universe t)
+smellLongTypeLists d@(L _ (SigD _ (TypeSig _ _ (HsWC _ (L _ (HsSig _ _ (L _ t))))))) n =
+  warn "Long type list" (reLoc d) (reLoc d) [] <$ filter longTypeList (universe t)
   where
     longTypeList (HsExplicitListTy _ IsPromoted x) = length x >= n
     longTypeList _ = False
 smellLongTypeLists _ _ = []
 
 smellManyArgFunctions :: LHsDecl GhcPs -> Int -> [Idea]
-smellManyArgFunctions d@(L _ (SigD _ (TypeSig _ _ (HsWC _ (HsIB _ (L _ t)))))) n =
-  warn "Many arg function" d d [] <$  filter manyArgFunction (universe t)
+smellManyArgFunctions d@(L _ (SigD _ (TypeSig _ _ (HsWC _ (L _ (HsSig _ _ (L _ t))))))) n =
+  warn "Many arg function" (reLoc d) (reLoc d) [] <$  filter manyArgFunction (universe t)
   where
     manyArgFunction t = countFunctionArgs t >= n
 smellManyArgFunctions _ _ = []

@@ -22,9 +22,9 @@ import GHC.Types.Name.Occurrence
 import GHC.Types.Name.Reader
 
 exportHint :: ModuHint
-exportHint _ (ModuleEx (L s m@HsModule {hsmodName = Just name, hsmodExports = exports}) _)
+exportHint _ (ModuleEx (L s m@HsModule {hsmodName = Just name, hsmodExports = exports}) )
   | Nothing <- exports =
-      let r = o{ hsmodExports = Just (noLoc [noLoc (IEModuleContents noExtField name)] )} in
+      let r = o{ hsmodExports = Just (noLocA [noLocA (IEModuleContents EpAnnNotUsed name)] )} in
       [(ignore "Use module export list" (L s o) (noLoc r) []){ideaNote = [Note "an explicit list is usually better"]}]
   | Just (L _ xs) <- exports
   , mods <- [x | x <- xs, isMod x]
@@ -33,7 +33,7 @@ exportHint _ (ModuleEx (L s m@HsModule {hsmodName = Just name, hsmodExports = ex
   , exports' <- [x | x <- xs, not (matchesModName modName x)]
   , modName `elem` names =
       let dots = mkRdrUnqual (mkVarOcc " ... ")
-          r = o{ hsmodExports = Just (noLoc (noLoc (IEVar noExtField (noLoc (IEName (noLoc dots)))) : exports') )}
+          r = o{ hsmodExports = Just (noLocA (noLocA (IEVar noExtField (noLocA (IEName (noLocA dots)))) : exports') )}
       in
         [ignore "Use explicit module export list" (L s o) (noLoc r) []]
       where

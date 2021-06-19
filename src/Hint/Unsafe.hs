@@ -18,7 +18,7 @@ entries = unsafePerformIO . baz $ x -- {-# NOINLINE entries #-} ; entries = unsa
 
 module Hint.Unsafe(unsafeHint) where
 
-import Hint.Type(DeclHint,ModuleEx(..),Severity(..),rawIdea,toSS)
+import Hint.Type(DeclHint,ModuleEx(..),Severity(..),rawIdea,toSSA)
 import Data.List.Extra
 import Refact.Types hiding(Match)
 import Data.Generics.Uniplate.DataOnly
@@ -28,6 +28,7 @@ import GHC.Types.Name.Occurrence
 import GHC.Types.Name.Reader
 import GHC.Data.FastString
 import GHC.Types.Basic
+import GHC.Types.SourceText
 import GHC.Types.SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -45,11 +46,11 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 -- @
 -- is. We advise that such constants should have a @NOINLINE@ pragma.
 unsafeHint :: DeclHint
-unsafeHint _ (ModuleEx (L _ m) _) = \(L loc d) ->
-  [rawIdea Hint.Type.Warning "Missing NOINLINE pragma" loc
+unsafeHint _ (ModuleEx (L _ m)) = \ld@(L loc d) ->
+  [rawIdea Hint.Type.Warning "Missing NOINLINE pragma" (locA loc)
          (unsafePrettyPrint d)
          (Just $ trimStart (unsafePrettyPrint $ gen x) ++ "\n" ++ unsafePrettyPrint d)
-         [] [InsertComment (toSS (L loc d)) (unsafePrettyPrint $ gen x)]
+         [] [InsertComment (toSSA ld) (unsafePrettyPrint $ gen x)]
      -- 'x' does not declare a new function.
      | d@(ValD _
            FunBind {fun_id=L _ (Unqual x)
@@ -60,8 +61,8 @@ unsafeHint _ (ModuleEx (L _ m) _) = \(L loc d) ->
      , x `notElem` noinline]
   where
     gen :: OccName -> LHsDecl GhcPs
-    gen x = noLoc $
-      SigD noExtField (InlineSig noExtField (noLoc (mkRdrUnqual x))
+    gen x = noLocA $
+      SigD noExtField (InlineSig EpAnnNotUsed (noLocA (mkRdrUnqual x))
                       (InlinePragma (SourceText "{-# NOINLINE") NoInline Nothing NeverActive FunLike))
     noinline :: [OccName]
     noinline = [q | L _(SigD _ (InlineSig _ (L _ (Unqual q))

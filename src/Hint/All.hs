@@ -48,7 +48,6 @@ issue1150 = True
 
 builtin :: HintBuiltin -> Hint
 builtin x = case x of
-    -- Ghc.
     HintLambda     -> decl lambdaHint
     HintImport     -> modu importHint
     HintExport     -> modu exportHint

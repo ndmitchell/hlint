@@ -31,7 +31,7 @@ fun [] = []; fun (x:xs) = f x xs ++ fun xs
 
 module Hint.ListRec(listRecHint) where
 
-import Hint.Type (DeclHint, Severity(Suggestion, Warning), idea, toSS)
+import Hint.Type (DeclHint, Severity(Suggestion, Warning), idea, toSSA)
 
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
@@ -51,6 +51,9 @@ import GHC.Hs.Expr
 import GHC.Hs.Decls
 import GHC.Types.Basic
 
+import GHC.Parser.Annotation
+import Language.Haskell.Syntax.Extension
+
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -69,7 +72,7 @@ listRecHint _ _ = concatMap f . universe
             guard $ recursiveStr `notElem` varss y
             -- Maybe we can do better here maintaining source
             -- formatting?
-            pure $ idea severity ("Use " ++ use) o y [Replace Decl (toSS o) [] (unsafePrettyPrint y)]
+            pure $ idea severity ("Use " ++ use) (reLoc o) (reLoc y) [Replace Decl (toSSA o) [] (unsafePrettyPrint y)]
 
 recursiveStr :: String
 recursiveStr = "_recursive_"
@@ -92,7 +95,6 @@ data Branch =
     [String]  -- parameters
     Int -- list position
     BList (LHsExpr GhcPs) -- list type/body
-
 
 ---------------------------------------------------------------------
 -- MATCH THE RECURSION
@@ -139,12 +141,12 @@ asDo (view ->
                             , m_pats=[v@(L _ VarPat{})]
                             , m_grhss=GRHSs _
                                         [L _ (GRHS _ [] rhs)]
-                                        (L _ (EmptyLocalBinds _))}]}))
+                                        (EmptyLocalBinds _)}]}))
       ) =
-  [ noLoc $ BindStmt noExtField v lhs
-  , noLoc $ BodyStmt noExtField rhs noSyntaxExpr noSyntaxExpr ]
+  [ noLocA $ BindStmt EpAnnNotUsed v lhs
+  , noLocA $ BodyStmt noExtField rhs noSyntaxExpr noSyntaxExpr ]
 asDo (L _ (HsDo _ (DoExpr _) (L _ stmts))) = stmts
-asDo x = [noLoc $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr]
+asDo x = [noLocA $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr]
 
 
 ---------------------------------------------------------------------
@@ -170,14 +172,14 @@ findCase x = do
   (ps, b2) <- pure $ eliminateArgs ps1 b2
 
   let ps12 = let (a, b) = splitAt p1 ps1 in map strToPat (a ++ xs : b) -- Function arguments.
-      emptyLocalBinds = noLoc $ EmptyLocalBinds noExtField -- Empty where clause.
-      gRHS e = noLoc $ GRHS noExtField [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
+      emptyLocalBinds = EmptyLocalBinds noExtField :: HsLocalBindsLR GhcPs GhcPs -- Empty where clause.
+      gRHS e = noLoc $ GRHS EpAnnNotUsed [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
       gRHSSs e = GRHSs noExtField [gRHS e] emptyLocalBinds -- Guarded rhs set.
-      match e = Match{m_ext=noExtField,m_pats=ps12, m_grhss=gRHSSs e, ..} -- Match.
-      matchGroup e = MG{mg_alts=noLoc [noLoc $ match e], mg_origin=Generated, ..} -- Match group.
+      match e = Match{m_ext=EpAnnNotUsed,m_pats=ps12, m_grhss=gRHSSs e, ..} -- Match.
+      matchGroup e = MG{mg_alts=noLocA [noLocA $ match e], mg_origin=Generated, ..} -- Match group.
       funBind e = FunBind {fun_matches=matchGroup e, ..} :: HsBindLR GhcPs GhcPs -- Fun bind.
 
-  pure (ListCase ps b1 (x, xs, b2), noLoc . ValD noExtField . funBind)
+  pure (ListCase ps b1 (x, xs, b2), noLocA . ValD noExtField . funBind)
 
 delCons :: String -> Int -> String -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs)
 delCons func pos var (fromApps -> (view -> Var_ x) : xs) | func == x = do
@@ -207,7 +209,7 @@ findBranch (L _ x) = do
             , m_pats = ps
             , m_grhss =
               GRHSs {grhssGRHSs=[L l (GRHS _ [] body)]
-                        , grhssLocalBinds=L _ (EmptyLocalBinds _)
+                        , grhssLocalBinds=EmptyLocalBinds _
                         }
             } <- pure x
   (a, b, c) <- findPat ps
@@ -225,6 +227,6 @@ readPat :: LPat GhcPs -> Maybe (Either String BList)
 readPat (view -> PVar_ x) = Just $ Left x
 readPat (L _ (ParPat _ (L _ (ConPat _ (L _ n) (InfixCon (view -> PVar_ x) (view -> PVar_ xs))))))
  | n == consDataCon_RDR = Just $ Right $ BCons x xs
-readPat (L _ (ConPat _ (L _ n) (PrefixCon [])))
+readPat (L _ (ConPat _ (L _ n) (PrefixCon [] [])))
   | n == nameRdrName nilDataConName = Just $ Right BNil
 readPat _ = Nothing

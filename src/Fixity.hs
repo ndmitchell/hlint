@@ -11,8 +11,10 @@ import GHC.Hs.Binds
 import GHC.Hs.Extension
 import GHC.Types.Name.Occurrence
 import GHC.Types.Name.Reader
-import GHC.Types.SrcLoc
-import GHC.Types.Basic
+import GHC.Types.Fixity
+import GHC.Types.SourceText
+import GHC.Parser.Annotation
+import Language.Haskell.Syntax.Extension
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.Fixity
 
@@ -50,7 +52,7 @@ fromFixity (name, Fixity _ i dir) = (name, assoc dir, i)
       InfixN -> NotAssociative
 
 toFixitySig :: FixityInfo -> FixitySig GhcPs
-toFixitySig (toFixity -> (name, x)) = FixitySig noExtField [noLoc $ mkRdrUnqual (mkVarOcc name)] x
+toFixitySig (toFixity -> (name, x)) = FixitySig noExtField [noLocA $ mkRdrUnqual (mkVarOcc name)] x
 
 defaultFixities :: [FixityInfo]
 defaultFixities = map fromFixity $ customFixities ++ baseFixities ++ lensFixities ++ otherFixities

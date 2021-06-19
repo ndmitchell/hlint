@@ -1,5 +1,5 @@
 
-{-# LANGUAGE ViewPatterns #-}
+{-# Language ViewPatterns #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module GHC.Util.Scope (
@@ -9,7 +9,7 @@ module GHC.Util.Scope (
 
 import GHC.Hs
 import GHC.Types.SrcLoc
-import GHC.Types.Basic
+import GHC.Types.SourceText
 import GHC.Unit.Module
 import GHC.Data.FastString
 import GHC.Types.Name.Reader
@@ -38,11 +38,13 @@ scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
 
     -- The import declaraions contained by the module 'xs'.
     res :: [LImportDecl GhcPs]
-    res = [x | x <- hsmodImports xs , pkg x /= Just (StringLiteral NoSourceText (fsLit "hint"))]
+    res = [x | x <- hsmodImports xs
+              , pkg x /= Just (StringLiteral NoSourceText (fsLit "hint") Nothing)
+            ]
 
     -- Mock up an import declaraion corresponding to 'import Prelude'.
     prelude :: LImportDecl GhcPs
-    prelude = noLoc $ simpleImportDecl (mkModuleName "Prelude")
+    prelude = noLocA $ simpleImportDecl (mkModuleName "Prelude")
 
     -- Predicate to test for a 'Prelude' import declaration.
     isPrelude :: LImportDecl GhcPs -> Bool
@@ -52,7 +54,7 @@ scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
 -- thing. This is the case if the names are equal and (1) denote a
 -- builtin type or data constructor or (2) the intersection of the
 -- candidate modules where the two names arise is non-empty.
-scopeMatch :: (Scope, Located RdrName) -> (Scope, Located RdrName) -> Bool
+scopeMatch :: (Scope, LocatedN RdrName) -> (Scope, LocatedN RdrName) -> Bool
 scopeMatch (a, x) (b, y)
   | isSpecial x && isSpecial y = rdrNameStr x == rdrNameStr y
   | isSpecial x || isSpecial y = False
@@ -62,14 +64,14 @@ scopeMatch (a, x) (b, y)
 -- Given a name in a scope, and a new scope, create a name for the new
 -- scope that will refer to the same thing. If the resulting name is
 -- ambiguous, pick a plausible candidate.
-scopeMove :: (Scope, Located RdrName) -> Scope -> Located RdrName
+scopeMove :: (Scope, LocatedN RdrName) -> Scope -> LocatedN RdrName
 scopeMove (a, x@(fromQual -> Just name)) (Scope b) = case imps of
   [] -> headDef x real
-  imp:_ | all (\x -> ideclQualified x /= NotQualified) imps -> noLoc $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
+  imp:_ | all (\x -> ideclQualified x /= NotQualified) imps -> noLocA $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
         | otherwise -> unqual x
   where
-    real :: [Located RdrName]
-    real = [noLoc $ mkRdrQual m name | m <- possModules a x]
+    real :: [LocatedN RdrName]
+    real = [noLocA $ mkRdrQual m name | m <- possModules a x]
 
     imps :: [ImportDecl GhcPs]
     imps = [unLoc i | r <- real, i <- b, possImport i r]
@@ -78,27 +80,27 @@ scopeMove (_, x) _ = x
 -- Calculate which modules a name could possibly lie in. If 'x' is
 -- qualified but no imported element matches it, assume the user just
 -- lacks an import.
-possModules :: Scope -> Located RdrName -> [ModuleName]
+possModules :: Scope -> LocatedN RdrName -> [ModuleName]
 possModules (Scope is) x = f x
   where
     res :: [ModuleName]
     res = [unLoc $ ideclName $ unLoc i | i <- is, possImport i x]
 
-    f :: Located RdrName -> [ModuleName]
+    f :: LocatedN RdrName -> [ModuleName]
     f n | isSpecial n = [mkModuleName ""]
     f (L _ (Qual mod _)) = [mod | null res] ++ res
     f _ = res
 
 -- Determine if 'x' could possibly lie in the module named by the
 -- import declaration 'i'.
-possImport :: LImportDecl GhcPs -> Located RdrName -> Bool
+possImport :: LImportDecl GhcPs -> LocatedN RdrName -> Bool
 possImport i n | isSpecial n = False
 possImport (L _ i) (L _ (Qual mod x)) =
-  mod `elem` ms && possImport (noLoc i{ideclQualified=NotQualified}) (noLoc $ mkRdrUnqual x)
+  mod `elem` ms && possImport (noLocA i{ideclQualified=NotQualified}) (noLocA $ mkRdrUnqual x)
   where ms = map unLoc $ ideclName i : maybeToList (ideclAs i)
 possImport (L _ i) (L _ (Unqual x)) = ideclQualified i == NotQualified && maybe True f (ideclHiding i)
   where
-    f :: (Bool, Located [LIE GhcPs]) -> Bool
+    f :: (Bool, LocatedL [LIE GhcPs]) -> Bool
     f (hide, L _ xs) =
       if hide then
         Just True `notElem` ms
@@ -113,7 +115,7 @@ possImport (L _ i) (L _ (Unqual x)) = ideclQualified i == NotQualified && maybe 
     g (L _ (IEVar _ y)) = Just $ tag == unwrapName y
     g (L _ (IEThingAbs _ y)) = Just $ tag == unwrapName y
     g (L _ (IEThingAll _ y)) = if tag == unwrapName y then Just True else Nothing
-    g (L _ (IEThingWith _ y _wildcard ys _fields)) = Just $ tag `elem` unwrapName y : map unwrapName ys
+    g (L _ (IEThingWith _ y _wildcard ys)) = Just $ tag `elem` unwrapName y : map unwrapName ys
     g _ = Just False
 
     unwrapName :: LIEWrappedName RdrName -> String

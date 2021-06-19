@@ -31,7 +31,7 @@ directives = words $
 commentHint :: ModuHint
 commentHint _ m = concatMap chk (ghcComments m)
     where
-        chk :: Located AnnotationComment -> [Idea]
+        chk :: LEpaComment -> [Idea]
         chk comm
           | isMultiline, "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
           | isMultiline, name `elem` directives = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
@@ -41,9 +41,11 @@ commentHint _ m = concatMap chk (ghcComments m)
                  name = takeWhile (\x -> isAlphaNum x || x == '_') $ trimStart s
         chk _ = []
 
-        grab :: String -> Located AnnotationComment -> String -> Idea
+        grab :: String -> LEpaComment -> String -> Idea
         grab msg o@(L pos _) s2 =
-          let s1 = commentText o in
-          rawIdea Suggestion msg pos (f s1) (Just $ f s2) [] refact
+          let s1 = commentText o
+              loc = RealSrcSpan (anchor pos) Nothing
+          in
+          rawIdea Suggestion msg loc (f s1) (Just $ f s2) [] (refact loc)
             where f s = if isCommentMultiline o then "{-" ++ s ++ "-}" else "--" ++ s
-                  refact = [ModifyComment (toRefactSrcSpan pos) (f s2)]
+                  refact loc = [ModifyComment (toRefactSrcSpan loc) (f s2)]

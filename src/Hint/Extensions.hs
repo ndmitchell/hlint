@@ -234,7 +234,7 @@ main = 1 -- @Note Extension NamedFieldPuns is not used
 
 module Hint.Extensions(extensionsHint) where
 
-import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSS,ghcAnnotations,ghcModule)
+import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSSAnc,ghcModule,modComments)
 import Extension
 
 import Data.Generics.Uniplate.DataOnly
@@ -247,6 +247,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 
 import GHC.Types.SrcLoc
+import GHC.Types.SourceText
 import GHC.Hs
 import GHC.Types.Basic
 import GHC.Core.Class
@@ -268,15 +269,16 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 extensionsHint :: ModuHint
 extensionsHint _ x =
-    [ rawIdea Hint.Type.Warning "Unused LANGUAGE pragma"
-        sl
-        (comment (mkLanguagePragmas sl exts))
+    [
+        rawIdea Hint.Type.Warning "Unused LANGUAGE pragma"
+        (RealSrcSpan (anchor sl) Nothing)
+        (comment_ (mkLanguagePragmas sl exts))
         (Just newPragma)
         ( [RequiresExtension (show gone) | (_, Just x) <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
             [ Note $ "Extension " ++ s ++ " is " ++ reason x
             | (s, Just x) <- explainedRemovals])
-        [ModifyComment (toSS (mkLanguagePragmas sl exts)) newPragma]
-    | (L sl _,  exts) <- languagePragmas $ pragmas (ghcAnnotations x)
+        [ModifyComment (toSSAnc (mkLanguagePragmas sl exts)) newPragma]
+    | (L sl _,  exts) <- languagePragmas $ pragmas (modComments x)
     , let before = [(x, readExtension x) | x <- exts]
     , let after = filter (maybe True (`Set.member` keep) . snd) before
     , before /= after
@@ -284,7 +286,7 @@ extensionsHint _ x =
             | null after && not (any (`Map.member` implied) $ mapMaybe snd before) = []
             | otherwise = before \\ after
     , let newPragma =
-            if null after then "" else comment (mkLanguagePragmas sl $ map fst after)
+            if null after then "" else comment_ (mkLanguagePragmas sl $ map fst after)
     ]
   where
     usedTH :: Bool
@@ -295,7 +297,7 @@ extensionsHint _ x =
     -- All the extensions defined to be used.
     extensions :: Set.Set Extension
     extensions = Set.fromList $ mapMaybe readExtension $
-        concatMap snd $ languagePragmas (pragmas (ghcAnnotations x))
+        concatMap snd $ languagePragmas (pragmas (modComments x))
 
     -- Those extensions we detect to be useful.
     useful :: Set.Set Extension
@@ -361,7 +363,7 @@ used :: Extension -> Located HsModule -> Bool
 
 used RecursiveDo = hasS isMDo' ||^ hasS isRecStmt
 used ParallelListComp = hasS isParComp
-used FunctionalDependencies = hasT (un :: FunDep (Located RdrName))
+used FunctionalDependencies = hasT (un :: GHC.Core.Class.FunDep (LocatedN RdrName))
 used ImplicitParams = hasT (un :: HsIPName)
 used TypeApplications = hasS isTypeApp
 used EmptyDataDecls = hasS f
@@ -442,7 +444,7 @@ used NumericUnderscores = hasS f
   where
     f :: OverLitVal -> Bool
     f (HsIntegral (IL (SourceText t) _ _)) = '_' `elem` t
-    f (HsFractional (FL (SourceText t) _ _)) = '_' `elem` t
+    f (HsFractional (FL (SourceText t) _ _ _ _)) = '_' `elem` t
     f _ = False
 
 used LambdaCase = hasS isLCase
@@ -497,10 +499,10 @@ instance Monoid Derives where
 
 addDerives :: Maybe NewOrData -> Maybe (DerivStrategy GhcPs) -> [String] -> Derives
 addDerives _ (Just s) xs = case s of
-    StockStrategy -> mempty{derivesStock' = xs}
-    AnyclassStrategy -> mempty{derivesAnyclass = xs}
-    NewtypeStrategy -> mempty{derivesNewtype' = xs}
-    ViaStrategy{} -> mempty
+    StockStrategy {} -> mempty{derivesStock' = xs}
+    AnyclassStrategy {} -> mempty{derivesAnyclass = xs}
+    NewtypeStrategy {} -> mempty{derivesNewtype' = xs}
+    ViaStrategy {} -> mempty
 addDerives nt _ xs = mempty
     {derivesStock' = stock
     ,derivesAnyclass = other
@@ -510,19 +512,21 @@ addDerives nt _ xs = mempty
 derives :: Located HsModule -> Derives
 derives (L _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
   where
-    idecl :: Located (DataFamInstDecl GhcPs) -> Derives
-    idecl (L _ (DataFamInstDecl (HsIB _ FamEqn {feqn_rhs=HsDataDefn {dd_ND=dn, dd_derivs=(L _ ds)}}))) = g dn ds
+    idecl :: LocatedA (DataFamInstDecl GhcPs) -> Derives
+    idecl (L _ (DataFamInstDecl FamEqn {feqn_rhs=HsDataDefn {dd_ND=dn, dd_derivs=ds}})) = g dn ds
 
     decl :: LHsDecl GhcPs -> Derives
-    decl (L _ (TyClD _ (DataDecl _ _ _ _ HsDataDefn {dd_ND=dn, dd_derivs=(L _ ds)}))) = g dn ds -- Data declaration.
+    decl (L _ (TyClD _ (DataDecl _ _ _ _ HsDataDefn {dd_ND=dn, dd_derivs=ds}))) = g dn ds -- Data declaration.
     decl (L _ (DerivD _ (DerivDecl _ (HsWC _ sig) strategy _))) = addDerives Nothing (fmap unLoc strategy) [derivedToStr sig] -- A deriving declaration.
     decl _ = mempty
 
     g :: NewOrData -> [LHsDerivingClause GhcPs] -> Derives
-    g dn ds = mconcat [addDerives (Just dn) (fmap unLoc strategy) $ map derivedToStr tys | L _ (HsDerivingClause _ strategy (L _ tys)) <- ds]
+    g dn ds = mconcat
+      ([addDerives (Just dn) (fmap unLoc strategy) $ map derivedToStr tys  | L _ (HsDerivingClause _ strategy (L _ (DctMulti _ tys))) <- ds] ++
+       [addDerives (Just dn) (fmap unLoc strategy) $ map derivedToStr [ty] | L _ (HsDerivingClause _ strategy (L _ (DctSingle _ ty))) <- ds])
 
     derivedToStr :: LHsSigType GhcPs -> String
-    derivedToStr (HsIB _ t) = ih t
+    derivedToStr (L _ (HsSig _ _ t)) = ih t
       where
         ih :: LHsType GhcPs -> String
         ih (L _ (HsQualTy _ _ a)) = ih a

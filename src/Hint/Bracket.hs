@@ -107,13 +107,14 @@ no = f @($x)
 
 module Hint.Bracket(bracketHint) where
 
-import Hint.Type(DeclHint,Idea(..),rawIdea,warn,suggest,Severity(..),toRefactSrcSpan,toSS)
+import Hint.Type(DeclHint,Idea(..),rawIdea,warn,suggest,Severity(..),toRefactSrcSpan,toSSA)
 import Data.Data
 import Data.List.Extra
 import Data.Generics.Uniplate.DataOnly
 import Refact.Types
 
 import GHC.Hs
+import GHC.Driver.Ppr
 import GHC.Utils.Outputable
 import GHC.Types.SrcLoc
 import GHC.Util
@@ -147,13 +148,13 @@ bracketHint _ _ x =
 -- latter (in contrast to the HSE pretty printer). This patches things
 -- up.
 prettyExpr :: LHsExpr GhcPs -> String
-prettyExpr s@(L _ SectionL{}) = unsafePrettyPrint (noLoc (HsPar noExtField s) :: LHsExpr GhcPs)
-prettyExpr s@(L _ SectionR{}) = unsafePrettyPrint (noLoc (HsPar noExtField s) :: LHsExpr GhcPs)
+prettyExpr s@(L _ SectionL{}) = unsafePrettyPrint (noLocA (HsPar EpAnnNotUsed s) :: LHsExpr GhcPs)
+prettyExpr s@(L _ SectionR{}) = unsafePrettyPrint (noLocA (HsPar EpAnnNotUsed s) :: LHsExpr GhcPs)
 prettyExpr x = unsafePrettyPrint x
 
 -- 'Just _' if at least one set of parens were removed. 'Nothing' if
 -- zero parens were removed.
-remParens' :: Brackets (Located a) => Located a -> Maybe (Located a)
+remParens' :: Brackets (LocatedA a) => LocatedA a -> Maybe (LocatedA a)
 remParens' = fmap go . remParen
   where
     go e = maybe e go (remParen e)
@@ -166,14 +167,14 @@ isPartialAtom _ (L _ (HsSpliceE _ (HsUntypedSplice _ DollarSplice _ _) )) = True
 isPartialAtom (Just (L _ HsSpliceE{})) _ = True
 isPartialAtom _ x = isRecConstr x || isRecUpdate x
 
-bracket :: forall a . (Data a, Outputable a, Brackets (Located a)) => (Located a -> String) -> (Maybe (Located a) -> Located a -> Bool) -> Bool -> Located a -> [Idea]
+bracket :: forall a . (Data a, Outputable a, Brackets (LocatedA a)) => (LocatedA a -> String) -> (Maybe (LocatedA a) -> LocatedA a -> Bool) -> Bool -> LocatedA a -> [Idea]
 bracket pretty isPartialAtom root = f Nothing
   where
     msg = "Redundant bracket"
     -- 'f' is a (generic) function over types in 'Brackets
     -- (expressions, patterns and types). Arguments are, 'f (Maybe
     -- (index, parent, gen)) child'.
-    f :: (Data a, Outputable a, Brackets (Located a)) => Maybe (Int, Located a , Located a -> Located a) -> Located a -> [Idea]
+    f :: (Data a, Outputable a, Brackets (LocatedA a)) => Maybe (Int, LocatedA a , LocatedA a -> LocatedA a) -> LocatedA a -> [Idea]
     -- No context. Removing parentheses from 'x' succeeds?
     f Nothing o@(remParens' -> Just x)
       -- If at the root, or 'x' is an atom, 'x' parens are redundant.
@@ -190,35 +191,35 @@ bracket pretty isPartialAtom root = f Nothing
     -- 'x' actually need bracketing in this context?
     f (Just (i, o, gen)) v@(remParens' -> Just x)
       | not $ needBracket i o x, not $ isPartialAtom (Just o) x =
-          rawIdea Suggestion msg (getLoc v) (pretty o) (Just (pretty (gen x))) [] [r] : g x
+          rawIdea Suggestion msg (getLocA v) (pretty o) (Just (pretty (gen x))) [] [r] : g x
       where
         typ = findType v
-        r = Replace typ (toSS v) [("x", toSS x)] "x"
+        r = Replace typ (toSSA v) [("x", toSSA x)] "x"
     -- Regardless of the context, there are no parentheses to remove
     -- from 'x'.
     f _ x = g x
 
-    g :: (Data a, Outputable a, Brackets (Located a)) => Located a -> [Idea]
+    g :: (Data a, Outputable a, Brackets (LocatedA a)) => LocatedA a -> [Idea]
     -- Enumerate over all the immediate children of 'o' looking for
     -- redundant parentheses in each.
     g o = concat [f (Just (i, o, gen)) x | (i, (x, gen)) <- zipFrom 0 $ holes o]
 
-bracketWarning :: (Outputable a, Outputable b, Brackets (Located b))  => String -> Located a -> Located b -> Idea
+bracketWarning :: (Outputable a, Outputable b, Brackets (LocatedA b))  => String -> LocatedA a -> LocatedA b -> Idea
 bracketWarning msg o x =
-  suggest msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
+  suggest msg (reLoc o) (reLoc x) [Replace (findType x) (toSSA o) [("x", toSSA x)] "x"]
 
-bracketError :: (Outputable a, Outputable b, Brackets (Located b)) => String -> Located a -> Located b -> Idea
+bracketError :: (Outputable a, Outputable b, Brackets (LocatedA b)) => String -> LocatedA a -> LocatedA b -> Idea
 bracketError msg o x =
-  warn msg o x [Replace (findType x) (toSS o) [("x", toSS x)] "x"]
+  warn msg (reLoc o) (reLoc x) [Replace (findType x) (toSSA o) [("x", toSSA x)] "x"]
 
 fieldDecl ::  LConDeclField GhcPs -> [Idea]
 fieldDecl o@(L loc f@ConDeclField{cd_fld_type=v@(L l (HsParTy _ c))}) =
    let r = L loc (f{cd_fld_type=c}) :: LConDeclField GhcPs in
-   [rawIdea Suggestion "Redundant bracket" l
+   [rawIdea Suggestion "Redundant bracket" (locA l)
     (showSDocUnsafe $ ppr_fld o) -- Note this custom printer!
     (Just (showSDocUnsafe $ ppr_fld r))
     []
-    [Replace Type (toSS v) [("x", toSS c)] "x"]]
+    [Replace Type (toSSA v) [("x", toSSA c)] "x"]]
    where
      -- If we call 'unsafePrettyPrint' on a field decl, we won't like
      -- the output (e.g. "[foo, bar] :: T"). Here we use a custom
@@ -237,33 +238,33 @@ fieldDecl _ = []
 dollar :: LHsExpr GhcPs -> [Idea]
 dollar = concatMap f . universe
   where
-    f x = [ (suggest "Redundant $" x y [r]){ideaSpan = getLoc d} | L _ (OpApp _ a d b) <- [x], isDol d
-            , let y = noLoc (HsApp noExtField a b) :: LHsExpr GhcPs
+    f x = [ (suggest "Redundant $" (reLoc x) (reLoc y) [r]){ideaSpan = locA (getLoc d)} | L _ (OpApp _ a d b) <- [x], isDol d
+            , let y = noLocA (HsApp EpAnnNotUsed a b) :: LHsExpr GhcPs
             , not $ needBracket 0 y a
             , not $ needBracket 1 y b
             , not $ isPartialAtom (Just x) b
-            , let r = Replace Expr (toSS x) [("a", toSS a), ("b", toSS b)] "a b"]
+            , let r = Replace Expr (toSSA x) [("a", toSSA a), ("b", toSSA b)] "a b"]
           ++
-          [ suggest "Move brackets to avoid $" x (t y) [r]
+          [ suggest "Move brackets to avoid $" (reLoc x) (reLoc (t y)) [r]
             |(t, e@(L _ (HsPar _ (L _ (OpApp _ a1 op1 a2))))) <- splitInfix x
             , isDol op1
             , isVar a1 || isApp a1 || isPar a1, not $ isAtom a2
             , varToStr a1 /= "select" -- special case for esqueleto, see #224
-            , let y = noLoc $ HsApp noExtField a1 (noLoc (HsPar noExtField a2))
-            , let r = Replace Expr (toSS e) [("a", toSS a1), ("b", toSS a2)] "a (b)" ]
+            , let y = noLocA $ HsApp EpAnnNotUsed a1 (noLocA (HsPar EpAnnNotUsed a2))
+            , let r = Replace Expr (toSSA e) [("a", toSSA a1), ("b", toSSA a2)] "a (b)" ]
           ++  -- Special case of (v1 . v2) <$> v3
-          [ (suggest "Redundant bracket" x y [r]){ideaSpan = locPar}
+          [ (suggest "Redundant bracket" (reLoc x) (reLoc y) [r]){ideaSpan = locA locPar}
           | L _ (OpApp _ (L locPar (HsPar _ o1@(L locNoPar (OpApp _ _ (isDot -> True) _)))) o2 v3) <- [x], varToStr o2 == "<$>"
-          , let y = noLoc (OpApp noExtField o1 o2 v3) :: LHsExpr GhcPs
-          , let r = Replace Expr (toRefactSrcSpan locPar) [("a", toRefactSrcSpan locNoPar)] "a"]
+          , let y = noLocA (OpApp EpAnnNotUsed o1 o2 v3) :: LHsExpr GhcPs
+          , let r = Replace Expr (toRefactSrcSpan (locA locPar)) [("a", toRefactSrcSpan (locA locNoPar))] "a"]
           ++
-          [ suggest "Redundant section" x y [r]
+          [ suggest "Redundant section" (reLoc x) (reLoc y) [r]
           | L _ (HsApp _ (L _ (HsPar _ (L _ (SectionL _ a b)))) c) <- [x]
           -- , error $ show (unsafePrettyPrint a, gshow b, unsafePrettyPrint c)
-          , let y = noLoc $ OpApp noExtField a b c :: LHsExpr GhcPs
-          , let r = Replace Expr (toSS x) [("x", toSS a), ("op", toSS b), ("y", toSS c)] "x op y"]
+          , let y = noLocA $ OpApp EpAnnNotUsed a b c :: LHsExpr GhcPs
+          , let r = Replace Expr (toSSA x) [("x", toSSA a), ("op", toSSA b), ("y", toSSA c)] "x op y"]
 
 splitInfix :: LHsExpr GhcPs -> [(LHsExpr GhcPs -> LHsExpr GhcPs, LHsExpr GhcPs)]
 splitInfix (L l (OpApp _ lhs op rhs)) =
-  [(L l . OpApp noExtField lhs op, rhs), (\lhs -> L l (OpApp noExtField lhs op rhs), lhs)]
+  [(L l . OpApp EpAnnNotUsed lhs op, rhs), (\lhs -> L l (OpApp EpAnnNotUsed lhs op rhs), lhs)]
 splitInfix _ = []

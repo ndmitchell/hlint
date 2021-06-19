@@ -43,7 +43,7 @@ renderSetting (Infix x) =
     ["- fixity: " ++ show (unsafePrettyPrint $ toFixitySig x)]
 renderSetting _ = []
 
-findSetting :: LHsDecl GhcPs -> [Setting]
+findSetting :: LocatedA (HsDecl GhcPs) -> [Setting]
 findSetting (L _ (ValD _ x)) = findBind x
 findSetting (L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
     concatMap (findBind . unLoc) $ bagToList cid_binds
@@ -57,26 +57,26 @@ findBind FunBind{fun_id, fun_matches} = findExp (unLoc fun_id) [] $ HsLam noExtF
 findBind _ = []
 
 findExp :: IdP GhcPs -> [String] -> HsExpr GhcPs -> [Setting]
-findExp name vs (HsLam _ MG{mg_alts=L _ [L _ Match{m_pats, m_grhss=GRHSs{grhssGRHSs=[L _ (GRHS _ [] x)], grhssLocalBinds=L _ (EmptyLocalBinds _)}}]})
+findExp name vs (HsLam _ MG{mg_alts=L _ [L _ Match{m_pats, m_grhss=GRHSs{grhssGRHSs=[L _ (GRHS _ [] x)], grhssLocalBinds=(EmptyLocalBinds _)}}]})
     = if length m_pats == length ps then findExp name (vs++ps) $ unLoc x else []
     where ps = [rdrNameStr x | L _ (VarPat _ x) <- m_pats]
 findExp name vs HsLam{} = []
 findExp name vs HsVar{} = []
 findExp name vs (OpApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $
-    HsApp noExtField x $ noLoc $ HsPar noExtField $ noLoc $ HsApp noExtField y $ noLoc $ mkVar "_hlint"
+    HsApp EpAnnNotUsed x $ noLocA $ HsPar EpAnnNotUsed $ noLocA $ HsApp EpAnnNotUsed y $ noLocA $ mkVar "_hlint"
 
 findExp name vs bod = [SettingMatchExp $
         HintRule Warning defaultHintName []
         mempty (extendInstances lhs) (extendInstances $ fromParen rhs) Nothing]
     where
-        lhs = fromParen $ noLoc $ transform f bod
-        rhs = apps $ map noLoc $ HsVar noExtField (noLoc name) : map snd rep
+        lhs = fromParen $ noLocA $ transform f bod
+        rhs = apps $ map noLocA $ HsVar noExtField (noLocA name) : map snd rep
 
         rep = zip vs $ map (mkVar . pure) ['a'..]
         f (HsVar _ x) | Just y <- lookup (rdrNameStr x) rep = y
-        f (OpApp _ x dol y) | isDol dol = HsApp noExtField x $ noLoc $ HsPar noExtField y
+        f (OpApp _ x dol y) | isDol dol = HsApp EpAnnNotUsed x $ noLocA $ HsPar EpAnnNotUsed y
         f x = x
 
 
 mkVar :: String -> HsExpr GhcPs
-mkVar = HsVar noExtField . noLoc . Unqual . mkVarOcc
+mkVar = HsVar noExtField . noLocA . Unqual . mkVarOcc

@@ -50,6 +50,7 @@ import Data.Maybe
 import qualified Data.Set as Set
 
 import GHC.Types.Basic
+import GHC.Types.SourceText
 import GHC.Data.FastString
 import GHC.Hs.Decls
 import GHC.Hs.Extension
@@ -67,8 +68,8 @@ namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ hsmodDecls $ un
 naming :: Set.Set String -> LHsDecl GhcPs -> [Idea]
 naming seen originalDecl =
     [ suggest "Use camelCase"
-               (shorten originalDecl)
-               (shorten replacedDecl)
+               (reLoc (shorten originalDecl))
+               (reLoc (shorten replacedDecl))
                [ -- https://github.com/mpickering/apply-refact/issues/39
                ]
     | not $ null suggestedNames
@@ -99,7 +100,7 @@ shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
     L locGRHS (GRHS ttg0 guards (L locExpr dots))
     where
         dots :: HsExpr GhcPs
-        dots = HsLit noExtField (HsString (SourceText "...") (mkFastString "..."))
+        dots = HsLit EpAnnNotUsed (HsString (SourceText "...") (mkFastString "..."))
 
 getNames :: LHsDecl GhcPs -> [String]
 getNames decl = maybeToList (declName decl) ++ getConstructorNames (unLoc decl)

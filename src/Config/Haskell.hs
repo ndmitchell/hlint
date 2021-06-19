@@ -37,6 +37,7 @@ readPragma (HsAnnotation _ _ provenance expr) = f expr
             TypeAnnProvenance (L _ x) -> occNameStr x
             ModuleAnnProvenance -> ""
 
+        f :: LocatedA (HsExpr GhcPs) -> Maybe Classify
         f (L _ (HsLit _ (HsString _ (unpackFS -> s)))) | "hlint:" `isPrefixOf` lower s =
                 case getSeverity a of
                     Nothing -> errorOn expr "bad classify pragma"
@@ -46,8 +47,8 @@ readPragma (HsAnnotation _ _ provenance expr) = f expr
         f (L _ (ExprWithTySig _ x _)) = f x
         f _ = Nothing
 
-readComment :: Located AnnotationComment -> [Classify]
-readComment c@(L pos AnnBlockComment{})
+readComment :: LEpaComment -> [Classify]
+readComment c@(L pos (EpaComment EpaBlockComment{} _))
     | (hash, x) <- maybe (False, x) (True,) $ stripPrefix "#" x
     , x <- trim x
     , (hlint, x) <- word1 x
@@ -73,15 +74,15 @@ readComment c@(L pos AnnBlockComment{})
 readComment _ = []
 
 
-errorOn :: Outputable a => Located a -> String -> b
+errorOn :: Outputable a => LocatedA a -> String -> b
 errorOn (L pos val) msg = exitMessageImpure $
-    showSrcSpan pos ++
+    showSrcSpan (locA pos) ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     unsafePrettyPrint val
 
-errorOnComment :: Located AnnotationComment -> String -> b
+errorOnComment :: LEpaComment -> String -> b
 errorOnComment c@(L s _) msg = exitMessageImpure $
     let isMultiline = isCommentMultiline c in
-    showSrcSpan s ++
+    showSrcSpan (RealSrcSpan (anchor s) Nothing) ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     (if isMultiline then "{-" else "--") ++ commentText c ++ (if isMultiline then "-}" else "")
