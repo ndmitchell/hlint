@@ -66,6 +66,8 @@
     # I/O
 
     - warn: {lhs: putStrLn (show x), rhs: print x}
+    - warn: {lhs: putStr (x ++ "\n"), rhs: putStrLn x}
+    - warn: {lhs: putStr (x ++ y ++ "\n"), rhs: putStrLn (x ++ y)}
     - warn: {lhs: mapM_ putChar, rhs: putStr}
     - warn: {lhs: hGetChar stdin, rhs: getChar}
     - warn: {lhs: hGetLine stdin, rhs: getLine}
