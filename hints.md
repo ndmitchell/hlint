@@ -1510,6 +1510,38 @@ print x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use putStrLn</td>
+<td>
+LHS:
+<code>
+putStr (x ++ "\n")
+</code>
+<br>
+RHS:
+<code>
+putStrLn x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use putStrLn</td>
+<td>
+LHS:
+<code>
+putStr (x ++ y ++ "\n")
+</code>
+<br>
+RHS:
+<code>
+putStrLn (x ++ y)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use putStr</td>
 <td>
 LHS:
