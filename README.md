@@ -281,7 +281,7 @@ Some of the hints are subjective, and some users believe they should be ignored.
 
 * `{-# ANN module "HLint: ignore" #-}` or `{-# HLINT ignore #-}` or `{- HLINT ignore -}` - ignore all hints in this module (use `module` literally, not the name of the module).
 * `{-# ANN module "HLint: ignore Eta reduce" #-}` or `{-# HLINT ignore "Eta reduce" #-}` or `{- HLINT ignore "Eta reduce" -}` - ignore all eta reduction suggestions in this module.
-* `{-# ANN myFunction "HLint: ignore" #-}` or `{-# HLINT ignore myFunction #-}` or `{- HLINT ignore myFunction -}` - don't give any hints in the function `myFunction`.
+* `{-# ANN myFunction "HLint: ignore" #-}` or `{-# HLINT ignore myFunction #-}` or `{- HLINT ignore myFunction -}` - don't give any hints in the function `myFunction`. This may be combined with hint names, `{- HLINT ignore myFunction "Eta reduce" -}`, to only ignore that hint in that function.
 * `{-# ANN myFunction "HLint: error" #-}` or `{-# HLINT error myFunction #-}` or `{- HLINT error myFunction -}` - any hint in the function `myFunction` is an error.
 * `{-# ANN module "HLint: error Use concatMap" #-}` or `{-# HLINT error "Use concatMap" #-}` or `{- HLINT error "Use concatMap" -}` - the hint to use `concatMap` is an error (you may also use `warn` or `suggest` in place of `error` for other severity levels).
 
