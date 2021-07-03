@@ -27,6 +27,7 @@ reallyBadExtensions =
   , NegativeLiterals -- Was not enabled by HSE and enabling breaks tests.
   , StarIsType -- conflicts with TypeOperators. StarIsType is currently enabled by default,
                -- so adding it here has no effect, but it may not be the case in future GHC releases.
+  , MonadComprehensions -- Discussed in https://github.com/ndmitchell/hlint/issues/1261
   ]
 
 -- | Extensions we turn on by default when parsing. Aim to parse as
