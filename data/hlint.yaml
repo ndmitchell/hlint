@@ -471,6 +471,7 @@
     - hint: {lhs: a >> return (), rhs: Control.Monad.void a, side: isAtom a || isApp a}
     - warn: {lhs: fmap (const ()), rhs: Control.Monad.void}
     - warn: {lhs: const () <$> x, rhs: Control.Monad.void x}
+    - warn: {lhs: () <$ x, rhs: Control.Monad.void x}
     - warn: {lhs: flip (>=>), rhs: (<=<)}
     - warn: {lhs: flip (<=<), rhs: (>=>)}
     - warn: {lhs: flip (>>=), rhs: (=<<)}
