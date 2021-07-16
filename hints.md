@@ -7162,6 +7162,22 @@ Control.Monad.void x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use void</td>
+<td>
+LHS:
+<code>
+() <$ x
+</code>
+<br>
+RHS:
+<code>
+Control.Monad.void x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use <=<</td>
 <td>
 LHS:

@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1266, suggest () <$ x ==> void x
     #1223, add some traverse laws
     #1254, suggest null [x] ==> False
     #1253, suggest reverse . init ==> tail . reverse
