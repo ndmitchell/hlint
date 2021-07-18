@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, PatternGuards, ViewPatterns #-}
+{-# LANGUAGE LambdaCase, PatternGuards, TupleSections, ViewPatterns #-}
 
 {-
     Concept:
@@ -32,6 +32,8 @@ fun x y z = f x y z -- fun = f
 fun x y z = f x x y z -- fun x = f x x
 fun x y z = f g z -- fun x y = f g
 fun x = f . g $ x -- fun = f . g
+fun a b = f a b c where g x y = h x y -- g = h
+fun a b = let g x y = h x y in f a b c -- g = h
 f = foo (\y -> g x . h $ y) -- g x . h
 f = foo (\y -> g x . h $ y) -- @Message Avoid lambda
 f = foo ((*) x) -- (x *)
@@ -110,7 +112,7 @@ import Util
 import Data.List.Extra
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Refact.Types hiding (RType(Match))
+import Refact.Types hiding (Match)
 import Data.Generics.Uniplate.DataOnly (universe, universeBi, transformBi)
 
 import GHC.Types.Basic
@@ -129,14 +131,22 @@ import GHC.Util.View
 lambdaHint :: DeclHint
 lambdaHint _ _ x
     =  concatMap (uncurry lambdaExp) (universeParentBi x)
-    ++ concatMap lambdaDecl (universe x)
+    ++ concatMap (uncurry lambdaBind) binds
+  where
+    binds =
+        ( case x of
+            -- Turn a top-level HsBind under a ValD into an LHsBind.
+            -- Also, its refact type needs to be Decl.
+            L loc (ValD _ bind) -> ((L loc bind, Decl) :)
+            _ -> id
+        )
+            ((,Bind) <$> universeBi x)
 
-lambdaDecl :: LHsDecl GhcPs -> [Idea]
-lambdaDecl
-    o@(L _ (ValD _
-        origBind@FunBind {fun_id = funName@(L loc1 _), fun_matches =
-            MG {mg_alts =
-                L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _) pats (GRHSs _ [L _ (GRHS _ [] origBody@(L loc2 _))] bind))]}}))
+lambdaBind :: LHsBind GhcPs -> RType -> [Idea]
+lambdaBind
+    o@(L _ origBind@FunBind {fun_id = funName@(L loc1 _), fun_matches =
+        MG {mg_alts =
+            L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _) pats (GRHSs _ [L _ (GRHS _ [] origBody@(L loc2 _))] bind))]}}) rtype
     | L _ (EmptyLocalBinds _) <- bind
     , isLambda $ fromParen origBody
     , null (universeBi pats :: [HsExpr GhcPs])
@@ -147,14 +157,14 @@ lambdaDecl
           refacts = case newBody of
               -- https://github.com/alanz/ghc-exactprint/issues/97
               L _ HsCase{} -> []
-              _ -> [Replace Decl (toSS o) sub tpl]
+              _ -> [Replace rtype (toSS o) sub tpl]
        in [warn "Redundant lambda" o (gen pats origBody) refacts]
 
     | let (newPats, newBody) = etaReduce pats origBody
     , length newPats < length pats, pvars (drop (length newPats) pats) `disjoint` varss bind
     = let (sub, tpl) = mkSubtsAndTpl newPats newBody
        in [warn "Eta reduce" (reform pats origBody) (reform newPats newBody)
-            [Replace Decl (toSS $ reform pats origBody) sub tpl]
+            [Replace rtype (toSS $ reform pats origBody) sub tpl]
           ]
     where reform :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsDecl GhcPs
           reform ps b = L (combineSrcSpans loc1 loc2) $ ValD noExtField $
@@ -167,8 +177,7 @@ lambdaDecl
               sub = ("body", toSS newBody) : zip vars (map toSS newPats)
               tpl = unsafePrettyPrint (reform origPats varBody)
 
-lambdaDecl _ = []
-
+lambdaBind _ _ = []
 
 etaReduce :: [LPat GhcPs] -> LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
 etaReduce (unsnoc -> Just (ps, view -> PVar_ p)) (L _ (HsApp _ x (view -> Var_ y)))
