@@ -4070,7 +4070,7 @@ x
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use mconcat</td>
+<td>Use fold</td>
 <td>
 LHS:
 <code>
@@ -4079,14 +4079,14 @@ foldr (<>) mempty
 <br>
 RHS:
 <code>
-mconcat
+Data.Foldable.fold
 </code>
 <br>
 </td>
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use mconcat</td>
+<td>Use fold</td>
 <td>
 LHS:
 <code>
@@ -4095,7 +4095,7 @@ foldr mappend mempty
 <br>
 RHS:
 <code>
-mconcat
+Data.Foldable.fold
 </code>
 <br>
 </td>

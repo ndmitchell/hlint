@@ -244,8 +244,8 @@
     - warn: {lhs: mempty `mappend` x, rhs: x, name: "Monoid law, left identity"}
     - warn: {lhs: x <> mempty, rhs: x, name: "Monoid law, right identity"}
     - warn: {lhs: x `mappend` mempty, rhs: x, name: "Monoid law, right identity"}
-    - warn: {lhs: foldr (<>) mempty, rhs: mconcat}
-    - warn: {lhs: foldr mappend mempty, rhs: mconcat}
+    - warn: {lhs: foldr (<>) mempty, rhs: Data.Foldable.fold}
+    - warn: {lhs: foldr mappend mempty, rhs: Data.Foldable.fold}
     - warn: {lhs: mempty x, rhs: mempty, name: Evaluate}
     - warn: {lhs: x `mempty` y, rhs: mempty, name: Evaluate, note: "Make sure you didn't mean to use mappend instead of mempty"}
 
