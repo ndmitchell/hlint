@@ -45,7 +45,7 @@ import Data.List.Extra
 import Data.Maybe
 import Prelude
 
-import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSS)
+import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSS,ghcAnnotations)
 
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
@@ -67,11 +67,13 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 
 listHint :: DeclHint
-listHint _ _ = listDecl
+listHint _ modu = listDecl exts
+  where
+    exts = nubOrd $ concatMap snd (languagePragmas (pragmas (ghcAnnotations modu)))
 
-listDecl :: LHsDecl GhcPs -> [Idea]
-listDecl x =
-  concatMap (listExp False) (childrenBi x) ++
+listDecl :: [String] -> LHsDecl GhcPs -> [Idea]
+listDecl exts x =
+  concatMap (listExp exts False) (childrenBi x) ++
   stringType x ++
   concatMap listPat (childrenBi x) ++
   concatMap listComp (universeBi x)
@@ -149,12 +151,12 @@ moveGuardsForward = reverse . f [] . reverse
     f guards (x@(L _ LetStmt{}):xs) = f (x:guards) xs
     f guards xs = reverse guards ++ xs
 
-listExp :: Bool -> LHsExpr GhcPs -> [Idea]
-listExp b (fromParen -> x) =
-  if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
+listExp :: [String] -> Bool -> LHsExpr GhcPs -> [Idea]
+listExp exts b (fromParen -> x) =
+  if null res then concatMap (listExp exts $ isAppend x) $ children x else [head res]
   where
     res = [suggest name x x2 [r]
-          | (name, f) <- checks
+          | (name, f) <- checks exts
           , Just (x2, subts, temp) <- [f b x]
           , let r = Replace Expr (toSS x) subts temp ]
 
@@ -168,12 +170,12 @@ isAppend :: View a App2 => a -> Bool
 isAppend (view -> App2 op _ _) = varToStr op == "++"
 isAppend _ = False
 
-checks ::[(String, Bool -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String))]
-checks = let (*) = (,) in drop1 -- see #174
+checks :: [String] -> [(String, Bool -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String))]
+checks exts = let (*) = (,) in drop1 -- see #174
   [ "Use string literal" * useString
-  , "Use list literal" * useList
   , "Use :" * useCons
   ]
+  <> ["Use list literal" * useList | "OverloadedLists" `notElem` exts] -- see #114
 
 pchecks :: [(String, LPat GhcPs -> Maybe (LPat GhcPs, [(String, R.SrcSpan)], String))]
 pchecks = let (*) = (,) in drop1 -- see #174
