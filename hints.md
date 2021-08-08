@@ -5078,11 +5078,11 @@ f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Redundant Data.Function.&</td>
+<td>Redundant &</td>
 <td>
 LHS:
 <code>
-(Data.Function.& f)
+(& f)
 </code>
 <br>
 RHS:

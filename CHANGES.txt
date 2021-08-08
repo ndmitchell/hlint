@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1274, make the (& f) ==> f hint apply more
     #1264, suggest eta reduction under a where
     #1266, suggest () <$ x ==> void x
     #1223, add some traverse laws

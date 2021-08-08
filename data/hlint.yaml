@@ -319,7 +319,7 @@
     - warn: {lhs: "uncurry f (a, b)", rhs: f a b}
     - warn: {lhs: ($) (f x), rhs: f x, name: Redundant $}
     - warn: {lhs: (f $), rhs: f, name: Redundant $}
-    - warn: {lhs: (Data.Function.& f), rhs: f, name: Redundant Data.Function.&}
+    - warn: {lhs: (& f), rhs: f, name: Redundant &}
     - hint: {lhs: \x -> y, rhs: const y, side: isAtom y && not (isWildcard y)}
         # If any isWildcard recursively then x may be used but not mentioned explicitly
     - warn: {lhs: flip f x y, rhs: f y x, side: isApp original && isAtom y}
