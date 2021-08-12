@@ -3,13 +3,19 @@ module GHC.Util.ApiAnnotation (
     comment, commentText, isCommentMultiline
   , pragmas, flags, languagePragmas
   , mkFlags, mkLanguagePragmas
+  , extensions
 ) where
 
+import GHC.LanguageExtensions.Type (Extension)
 import GHC.Parser.Annotation
 import GHC.Types.SrcLoc
 
+import Language.Haskell.GhclibParserEx.GHC.Driver.Session
+
 import Control.Applicative
 import Data.List.Extra
+import Data.Maybe (mapMaybe)
+import qualified Data.Set as Set
 
 trimCommentStart :: String -> String
 trimCommentStart s
@@ -63,6 +69,11 @@ pragmas anns =
    where
      realToLoc :: RealLocated a -> Located a
      realToLoc (L r x) = L (RealSrcSpan r Nothing) x
+
+-- All the extensions defined to be used.
+extensions :: ApiAnns -> Set.Set Extension
+extensions = Set.fromList . mapMaybe readExtension .
+    concatMap snd . languagePragmas . pragmas
 
 -- Utility for a case insensitive prefix strip.
 stripPrefixCI :: String -> String -> Maybe String

@@ -160,6 +160,7 @@ library
         Hint.Smell
         Hint.Type
         Hint.Unsafe
+        Hint.NumLiteral
         Test.All
         Test.Annotations
         Test.InputOutput
