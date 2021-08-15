@@ -95,6 +95,8 @@ deriving instance Functor Bar
 deriving instance Show Bar -- {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-} \
 newtype Micro = Micro Int deriving Generic -- {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric, TypeFamilies #-} \
+data family Bar a; data instance Bar Foo = Foo deriving (Generic)
 {-# LANGUAGE GeneralizedNewtypeDeriving #-} \
 instance Class Int where {newtype MyIO a = MyIO a deriving NewClass}
 {-# LANGUAGE UnboxedTuples #-} \
@@ -510,8 +512,8 @@ addDerives nt _ xs = mempty
 derives :: Located HsModule -> Derives
 derives (L _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
   where
-    idecl :: Located (DataFamInstDecl GhcPs) -> Derives
-    idecl (L _ (DataFamInstDecl (HsIB _ FamEqn {feqn_rhs=HsDataDefn {dd_ND=dn, dd_derivs=(L _ ds)}}))) = g dn ds
+    idecl :: DataFamInstDecl GhcPs -> Derives
+    idecl (DataFamInstDecl (HsIB _ FamEqn {feqn_rhs=HsDataDefn {dd_ND=dn, dd_derivs=(L _ ds)}})) = g dn ds
 
     decl :: LHsDecl GhcPs -> Derives
     decl (L _ (TyClD _ (DataDecl _ _ _ _ HsDataDefn {dd_ND=dn, dd_derivs=(L _ ds)}))) = g dn ds -- Data declaration.
