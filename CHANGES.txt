@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1276, fix some incorrect unused LANGUAGE warnings
     #1271, suggest foldr (<>) mempty ==> fold (not mconcat)
     #1274, make the (& f) ==> f hint apply more
     #1264, suggest eta reduction under a where
