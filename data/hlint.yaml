@@ -615,6 +615,18 @@
     - warn: {lhs: isNothing (fmap f x), rhs: isNothing x}
     - warn: {lhs: fromJust (fmap f x), rhs: f (fromJust x), note: IncreasesLaziness}
     - warn: {lhs: mapMaybe f (fmap g x), rhs: mapMaybe (f . g) x, name: Redundant fmap}
+    - warn: {lhs: catMaybes (nub x), rhs: nub (catMaybes x)}
+    - warn: {lhs: lefts (nub x), rhs: nub (lefts x)}
+    - warn: {lhs: rights (nub x), rhs: nub (rights x)}
+    - warn: {lhs: catMaybes (reverse x), rhs: reverse (catMaybes x)}
+    - warn: {lhs: lefts (reverse x), rhs: reverse (lefts x)}
+    - warn: {lhs: rights (reverse x), rhs: reverse (rights x)}
+    - warn: {lhs: catMaybes (sort x), rhs: sort (catMaybes x)}
+    - warn: {lhs: lefts (sort x), rhs: sort (lefts x)}
+    - warn: {lhs: rights (sort x), rhs: sort (rights x)}
+    - warn: {lhs: catMaybes (nubOrd x), rhs: nubOrd (catMaybes x)}
+    - warn: {lhs: lefts (nubOrd x), rhs: nubOrd (lefts x)}
+    - warn: {lhs: rights (nubOrd x), rhs: nubOrd (rights x)}
 
     # EITHER
 
