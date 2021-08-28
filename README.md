@@ -361,9 +361,14 @@ This declares that the `nub` function can't be used in any modules, and thus is 
   - {name: [Data.Set, Data.HashSet], as: Set}
   - {name: Control.Arrow, within: []}
   - {name: Control.Monad.State, badidents: [modify, get, put], message: "Use Control.Monad.State.Class instead"}
+  - {name: Control.Exception, only: [Exception], message: "Use UnliftIO.Exception instead"}
 ```
 
-This fragment requires that all imports of `Set` must be `qualified Data.Set as Set`, enforcing consistency. It also ensures the module `Control.Arrow` can't be used anywhere. It also prevents explicit imports of the `modify` identifier from `Control.Monad.State` (this is meant to allow you to prevent people from importing reexported identifiers).
+This fragment adds the following hints:
+* Requires that all imports of `Set` must be `qualified Data.Set as Set`, enforcing consistency
+* Ensures the module `Control.Arrow` can't be used anywhere
+* Prevents explicit imports of the given identifiers from `Control.Monad.State` (e.g. to prevent people from importing reexported identifiers).
+* Prevents all imports from `Control.Exception`, except `Exception`
 
 You can customize the `Note:` for restricted modules, functions and extensions, by providing a `message` field (default: `may break the code`).
 

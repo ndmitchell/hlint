@@ -1,6 +1,8 @@
 - modules:
   - {name: Restricted.Module, within: []}
   - {name: Restricted.Module.Message, within: [], message: "Custom message"}
+  - {name: Restricted.Module.BadIdents, badidents: ['bad']}
+  - {name: Restricted.Module.OnlyIdents, only: ['good']}
 
 - functions:
   - {name: restricted, within: []}

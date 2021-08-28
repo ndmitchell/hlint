@@ -100,6 +100,82 @@ Note: Custom message
 1 hint
 
 ---------------------------------------------------------------------
+RUN tests/restricted-badidents-bad.lhs --hint=data/test-restrict.yaml
+FILE tests/restricted-badidents-bad.lhs
+> import Restricted.Module.BadIdents (bad)
+OUTPUT
+tests/restricted-badidents-bad.lhs:1:3-42: Warning: Avoid restricted identifiers
+Found:
+  import Restricted.Module.BadIdents ( bad )
+Note: may break the code
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/restricted-badidents-multibad.lhs --hint=data/test-restrict.yaml
+FILE tests/restricted-badidents-multibad.lhs
+> import Restricted.Module.BadIdents (bad, good)
+OUTPUT
+tests/restricted-badidents-multibad.lhs:1:3-48: Warning: Avoid restricted identifiers
+Found:
+  import Restricted.Module.BadIdents ( bad, good )
+Note: may break the code
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/restricted-badidents-valid.lhs --hint=data/test-restrict.yaml
+FILE tests/restricted-badidents-valid.lhs
+> import Restricted.Module.BadIdents (good)
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/restricted-badidents-universal.lhs --hint=data/test-restrict.yaml
+FILE tests/restricted-badidents-universal.lhs
+> import Restricted.Module.BadIdents
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/restricted-onlyidents-bad.lhs --hint=data/test-restrict.yaml
+FILE tests/restricted-onlyidents-bad.lhs
+> import Restricted.Module.OnlyIdents (bad)
+OUTPUT
+tests/restricted-onlyidents-bad.lhs:1:3-43: Warning: Avoid restricted identifiers
+Found:
+  import Restricted.Module.OnlyIdents ( bad )
+Note: may break the code
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/restricted-onlyidents-multibad.lhs --hint=data/test-restrict.yaml
+FILE tests/restricted-onlyidents-multibad.lhs
+> import Restricted.Module.OnlyIdents (bad, good)
+OUTPUT
+tests/restricted-onlyidents-multibad.lhs:1:3-49: Warning: Avoid restricted identifiers
+Found:
+  import Restricted.Module.OnlyIdents ( bad, good )
+Note: may break the code
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/restricted-onlyidents-valid.lhs --hint=data/test-restrict.yaml
+FILE tests/restricted-onlyidents-valid.lhs
+> import Restricted.Module.OnlyIdents (good)
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/restricted-onlyidents-universal.lhs --hint=data/test-restrict.yaml
+FILE tests/restricted-onlyidents-universal.lhs
+> import Restricted.Module.OnlyIdents
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
 RUN tests/restricted-function.lhs --hint=data/test-restrict.yaml
 FILE tests/restricted-function.lhs
 > main = restricted ()
