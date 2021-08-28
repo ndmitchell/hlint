@@ -9087,7 +9087,7 @@ mapMaybe (f . g) x
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move nub out</td>
 <td>
 LHS:
 <code>
@@ -9103,7 +9103,7 @@ nub (catMaybes x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move nub out</td>
 <td>
 LHS:
 <code>
@@ -9119,7 +9119,7 @@ nub (lefts x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move nub out</td>
 <td>
 LHS:
 <code>
@@ -9135,7 +9135,7 @@ nub (rights x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move reverse out</td>
 <td>
 LHS:
 <code>
@@ -9151,7 +9151,7 @@ reverse (catMaybes x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move reverse out</td>
 <td>
 LHS:
 <code>
@@ -9167,7 +9167,7 @@ reverse (lefts x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move reverse out</td>
 <td>
 LHS:
 <code>
@@ -9183,7 +9183,7 @@ reverse (rights x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move sort out</td>
 <td>
 LHS:
 <code>
@@ -9199,7 +9199,7 @@ sort (catMaybes x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move sort out</td>
 <td>
 LHS:
 <code>
@@ -9215,7 +9215,7 @@ sort (lefts x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move sort out</td>
 <td>
 LHS:
 <code>
@@ -9231,7 +9231,7 @@ sort (rights x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move nubOrd out</td>
 <td>
 LHS:
 <code>
@@ -9247,7 +9247,7 @@ nubOrd (catMaybes x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move nubOrd out</td>
 <td>
 LHS:
 <code>
@@ -9263,7 +9263,7 @@ nubOrd (lefts x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use alternative</td>
+<td>Move nubOrd out</td>
 <td>
 LHS:
 <code>
