@@ -163,7 +163,7 @@ mode = cmdArgsMode $ modes
         ,cmdRefactor = nam_ "refactor" &= help "Automatically invoke `refactor` to apply hints"
         ,cmdRefactorOptions = nam_ "refactor-options" &= typ "OPTIONS" &= help "Options to pass to the `refactor` executable"
         ,cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
-        ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern"
+        ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern (e.g. foo/bar/*.hs)"
         ,cmdGenerateSummary = nam_ "generate-summary" &= opt "hints.md" &= help "Generate a summary of built-in hints"
         ,cmdTest = nam_ "test" &= help "Run the test suite"
         } &= auto &= explicit &= name "lint"
