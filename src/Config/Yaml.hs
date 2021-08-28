@@ -304,16 +304,15 @@ parseRestrict restrictType v = do
                 case (restrictBadIdents, restrictOnlyAllowedIdents) of
                     (Just badIdents, Nothing) -> ForbidIdents <$> parseArrayString badIdents
                     (Nothing, Just onlyIdents) -> OnlyIdents <$> parseArrayString onlyIdents
-                    (Nothing, Nothing) -> return NoRestrictIdents
+                    (Nothing, Nothing) -> pure NoRestrictIdents
                     _ -> parseFail v "The following options are mutually exclusive: badidents, only"
 
             restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
-            allowFields v $ concat
-                [ ["name", "within", "message"]
-                , if restrictType == RestrictModule
+            allowFields v $
+                ["name", "within", "message"] ++
+                if restrictType == RestrictModule
                     then ["as", "badidents", "only"]
                     else []
-                ]
             pure Restrict{restrictDefault=True,..}
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
