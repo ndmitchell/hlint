@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1244, add `only` restriction to modules
     #1278, make --ignore-glob patterns also ignore directories
     #1268, move nub/sort/reverse over catMaybes/lefts/rights
     #1276, fix some incorrect unused LANGUAGE warnings
