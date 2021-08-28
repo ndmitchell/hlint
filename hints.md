@@ -9087,6 +9087,198 @@ mapMaybe (f . g) x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+catMaybes (nub x)
+</code>
+<br>
+RHS:
+<code>
+nub (catMaybes x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+lefts (nub x)
+</code>
+<br>
+RHS:
+<code>
+nub (lefts x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+rights (nub x)
+</code>
+<br>
+RHS:
+<code>
+nub (rights x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+catMaybes (reverse x)
+</code>
+<br>
+RHS:
+<code>
+reverse (catMaybes x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+lefts (reverse x)
+</code>
+<br>
+RHS:
+<code>
+reverse (lefts x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+rights (reverse x)
+</code>
+<br>
+RHS:
+<code>
+reverse (rights x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+catMaybes (sort x)
+</code>
+<br>
+RHS:
+<code>
+sort (catMaybes x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+lefts (sort x)
+</code>
+<br>
+RHS:
+<code>
+sort (lefts x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+rights (sort x)
+</code>
+<br>
+RHS:
+<code>
+sort (rights x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+catMaybes (nubOrd x)
+</code>
+<br>
+RHS:
+<code>
+nubOrd (catMaybes x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+lefts (nubOrd x)
+</code>
+<br>
+RHS:
+<code>
+nubOrd (lefts x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use alternative</td>
+<td>
+LHS:
+<code>
+rights (nubOrd x)
+</code>
+<br>
+RHS:
+<code>
+nubOrd (rights x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use lefts</td>
 <td>
 LHS:
