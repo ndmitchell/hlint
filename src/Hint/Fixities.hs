@@ -62,7 +62,7 @@ redundantInfixBracket fixities i parent child
             | i == 0 = (c, p)
             | otherwise = (p, c)
     in
-    case compareFixity <$> (fixities !? occNameString lop) <*> (fixities !? occNameString rop) of
+    case compareFixity <$> (fixities Data.Map.!? occNameString lop) <*> (fixities Data.Map.!? occNameString rop) of
     Just (False, r)
         | i == 0 -> not (needParenAsChild cr || r)
         | otherwise -> r
