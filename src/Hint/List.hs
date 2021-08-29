@@ -71,7 +71,7 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 listHint :: DeclHint
 listHint _ modu = listDecl overloadedListsOn
   where
-    exts = nubOrd $ concatMap snd (languagePragmas (pragmas (ghcAnnotations modu)))
+    exts = concatMap snd (languagePragmas (pragmas (ghcAnnotations modu)))
     overloadedListsOn = "OverloadedLists" `elem` exts
 
 listDecl :: Bool -> LHsDecl GhcPs -> [Idea]
