@@ -34,6 +34,8 @@ issue619 = [pkgJobs | Pkg{pkgGpd, pkgJobs} <- pkgs, not $ null $ C.condTestSuite
 foo = [x | False, x <- [1 .. 10]] -- []
 foo = [_ | x <- _, let _ = A{x}]
 issue1039 = foo (map f [1 | _ <- []]) -- [f 1 | _ <- []]
+{-# LANGUAGE OverloadedLists #-} \
+issue114 = True:[]
 </TEST>
 -}
 
