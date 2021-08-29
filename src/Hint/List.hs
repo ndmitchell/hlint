@@ -34,6 +34,8 @@ issue619 = [pkgJobs | Pkg{pkgGpd, pkgJobs} <- pkgs, not $ null $ C.condTestSuite
 foo = [x | False, x <- [1 .. 10]] -- []
 foo = [_ | x <- _, let _ = A{x}]
 issue1039 = foo (map f [1 | _ <- []]) -- [f 1 | _ <- []]
+{-# LANGUAGE OverloadedLists #-} \
+issue114 = True:[]
 </TEST>
 -}
 
@@ -45,7 +47,7 @@ import Data.List.Extra
 import Data.Maybe
 import Prelude
 
-import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSS)
+import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSS,ghcAnnotations)
 
 import Refact.Types hiding (SrcSpan)
 import qualified Refact.Types as R
@@ -67,11 +69,14 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 
 listHint :: DeclHint
-listHint _ _ = listDecl
+listHint _ modu = listDecl overloadedListsOn
+  where
+    exts = concatMap snd (languagePragmas (pragmas (ghcAnnotations modu)))
+    overloadedListsOn = "OverloadedLists" `elem` exts
 
-listDecl :: LHsDecl GhcPs -> [Idea]
-listDecl x =
-  concatMap (listExp False) (childrenBi x) ++
+listDecl :: Bool -> LHsDecl GhcPs -> [Idea]
+listDecl overloadedListsOn x =
+  concatMap (listExp overloadedListsOn False) (childrenBi x) ++
   stringType x ++
   concatMap listPat (childrenBi x) ++
   concatMap listComp (universeBi x)
@@ -149,12 +154,14 @@ moveGuardsForward = reverse . f [] . reverse
     f guards (x@(L _ LetStmt{}):xs) = f (x:guards) xs
     f guards xs = reverse guards ++ xs
 
-listExp :: Bool -> LHsExpr GhcPs -> [Idea]
-listExp b (fromParen -> x) =
-  if null res then concatMap (listExp $ isAppend x) $ children x else [head res]
+listExp :: Bool -> Bool -> LHsExpr GhcPs -> [Idea]
+listExp overloadedListsOn b (fromParen -> x) =
+  if null res
+    then concatMap (listExp overloadedListsOn $ isAppend x) $ children x
+    else [head res]
   where
     res = [suggest name x x2 [r]
-          | (name, f) <- checks
+          | (name, f) <- checks overloadedListsOn
           , Just (x2, subts, temp) <- [f b x]
           , let r = Replace Expr (toSS x) subts temp ]
 
@@ -168,12 +175,12 @@ isAppend :: View a App2 => a -> Bool
 isAppend (view -> App2 op _ _) = varToStr op == "++"
 isAppend _ = False
 
-checks ::[(String, Bool -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String))]
-checks = let (*) = (,) in drop1 -- see #174
+checks :: Bool -> [(String, Bool -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String))]
+checks overloadedListsOn = let (*) = (,) in drop1 -- see #174
   [ "Use string literal" * useString
-  , "Use list literal" * useList
   , "Use :" * useCons
   ]
+  <> ["Use list literal" * useList | not overloadedListsOn ] -- see #114
 
 pchecks :: [(String, LPat GhcPs -> Maybe (LPat GhcPs, [(String, R.SrcSpan)], String))]
 pchecks = let (*) = (,) in drop1 -- see #174
