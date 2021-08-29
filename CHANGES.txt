@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #114, if OverloadedLists are enabled, don't suggest list literals
 3.3.2, released 2021-08-28
     #1244, add `only` restriction to modules
     #1278, make --ignore-glob patterns also ignore directories
