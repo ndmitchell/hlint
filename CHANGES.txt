@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+3.3.4, released 2021-08-30
+    #1288, fix generation of Linux binaries
 3.3.3, released 2021-08-29
     #1286, compatibility with extra-1.7.10
     #114, if OverloadedLists are enabled, don't suggest list literals
