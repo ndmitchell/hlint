@@ -42,7 +42,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: ubuntu-16.04
+        - os: ubuntu-18.04
           SUFFIX: x86_64-linux.tar.gz
         - os: macOS-latest
           SUFFIX: x86_64-osx.tar.gz
@@ -68,7 +68,7 @@ jobs:
         asset_content_type: application/zip
 
     - uses: actions/upload-release-asset@v1
-      if: matrix.os == 'ubuntu-16.04'
+      if: matrix.os == 'ubuntu-18.04'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
