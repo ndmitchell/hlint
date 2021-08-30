@@ -14,7 +14,7 @@ import Language.Haskell.GhclibParserEx.GHC.Driver.Session
 
 import Control.Applicative
 import Data.List.Extra
-import Data.Maybe (mapMaybe)
+import Data.Maybe
 import qualified Data.Set as Set
 
 trimCommentStart :: String -> String

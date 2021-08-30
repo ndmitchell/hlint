@@ -33,11 +33,11 @@ import Hint.Type (DeclHint, toSS, ghcAnnotations)
 import Idea (Idea, suggest)
 
 numLiteralHint :: DeclHint
-numLiteralHint _ modu decl =
+numLiteralHint _ modu =
   if NumericUnderscores `elem` extensions (ghcAnnotations modu) then
-     concatMap suggestUnderscore $ universeBi decl
+     concatMap suggestUnderscore . universeBi
   else
-     []
+     const []
 
 suggestUnderscore :: LHsExpr GhcPs -> [Idea]
 suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsIntegral intLit@(IL (SourceText srcTxt) _ _)) _))) =
