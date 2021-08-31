@@ -4,13 +4,13 @@
 <TEST>
 123456
 {-# LANGUAGE NumericUnderscores #-} \
-12345 -- @Suggestion 12_345
+12345 -- @Suggestion 12_345 @NoRefactor
 {-# LANGUAGE NumericUnderscores #-} \
-123456789.0441234e-123456 -- @Suggestion 123_456_789.044_123_4e-123_456
+123456789.0441234e-123456 -- @Suggestion 123_456_789.044_123_4e-123_456 @NoRefactor
 {-# LANGUAGE NumericUnderscores #-} \
-0x12abc.523defp+172345 -- @Suggestion 0x1_2abc.523d_efp+172_345
+0x12abc.523defp+172345 -- @Suggestion 0x1_2abc.523d_efp+172_345 @NoRefactor
 {-# LANGUAGE NumericUnderscores #-} \
-3.14159265359 -- @Suggestion 3.141_592_653_59
+3.14159265359 -- @Suggestion 3.141_592_653_59 @NoRefactor
 {-# LANGUAGE NumericUnderscores #-} \
 12_33574_56
 </TEST>
