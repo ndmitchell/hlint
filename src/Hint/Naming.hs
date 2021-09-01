@@ -124,7 +124,7 @@ suggestName original
         any (`isPrefixOf` original) ["prop_","case_","unit_","test_","spec_","scprop_","hprop_"] = Nothing
     | otherwise = Just $ f original
     where
-        good = all isAlphaNum $ drp '_' $ drp '#' $ filter (/= '\'') $ reverse $ drp '_' original
+        good = all isAlphaNum $ drp '_' $ drp '#' $ reverse $ filter (/= '\'') $ drp '_' original
         drp x = dropWhile (== x)
 
         f xs = us ++ g ys
