@@ -1485,6 +1485,37 @@ Does not support refactoring.
 </tr>
 </table>
 
+## Builtin NumLiteral
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Use underscore</td>
+<td>
+Example:
+<pre>
+{-# LANGUAGE NumericUnderscores #-} 
+12345
+</pre>
+Found:
+<code>
+12345
+</code>
+<br>
+Suggestion:
+<code>
+12_345
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+</table>
+
 ## Configured hints
 
 <table>

@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1279, suggest using NumericUnderscores more if it is enabled
     #1290, move reverse out of filter
 3.3.4, released 2021-08-30
     #1288, fix generation of Linux binaries
