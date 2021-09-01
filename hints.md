@@ -9279,6 +9279,22 @@ nubOrd (rights x)
 <td>Warning</td>
 </tr>
 <tr>
+<td>Move reverse out</td>
+<td>
+LHS:
+<code>
+filter f (reverse x)
+</code>
+<br>
+RHS:
+<code>
+reverse (filter f x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use lefts</td>
 <td>
 LHS:
