@@ -1,5 +1,8 @@
 Changelog for HLint (* = breaking change)
 
+    #1289, suggest expanding tuple sections in some cases
+    #1289, suggest length [1..n] ==> max 0 n
+    #1289, suggest replicate instead of map (const x)
     #1279, suggest using NumericUnderscores more if it is enabled
     #1290, move reverse out of filter
 3.3.4, released 2021-08-30

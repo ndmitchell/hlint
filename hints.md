@@ -2361,6 +2361,22 @@ head x
 <td>
 LHS:
 <code>
+map (const x) l
+</code>
+<br>
+RHS:
+<code>
+replicate (length l) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use replicate</td>
+<td>
+LHS:
+<code>
 take n (repeat x)
 </code>
 <br>
@@ -3775,6 +3791,22 @@ notElem x [y]
 RHS:
 <code>
 x /= y
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use max</td>
+<td>
+LHS:
+<code>
+length [1 .. n]
+</code>
+<br>
+RHS:
+<code>
+max 0 n
 </code>
 <br>
 </td>
@@ -7785,6 +7817,22 @@ Control.Monad.replicateM_ n (f x)
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use replicateM</td>
+<td>
+LHS:
+<code>
+mapM (const x) l
+</code>
+<br>
+RHS:
+<code>
+Control.Monad.replicateM (length l) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Fuse mapM/map</td>
 <td>
 LHS:
@@ -8371,6 +8419,38 @@ LHS:
 RHS:
 <code>
 (,,)
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+(, b) a
+</code>
+<br>
+RHS:
+<code>
+(a, b)
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+(a,) b
+</code>
+<br>
+RHS:
+<code>
+(a, b)
 </code>
 <br>
 </td>
