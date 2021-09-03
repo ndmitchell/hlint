@@ -132,6 +132,7 @@
     - hint: {lhs: map f (map g x), rhs: map (f . g) x, name: Use map once}
     - hint: {lhs: concatMap f (map g x), rhs: concatMap (f . g) x, name: Fuse concatMap/map}
     - hint: {lhs: x !! 0, rhs: head x}
+    - warn: {lhs: map (const x) l, rhs: replicate (length l) x}
     - warn: {lhs: take n (repeat x), rhs: replicate n x}
     - warn: {lhs: map f (replicate n x), rhs: replicate n (f x)}
     - warn: {lhs: map f (repeat x), rhs: repeat (f x)}
@@ -221,6 +222,7 @@
     - warn: {lhs: "lookup b (zip l [0..])", rhs: elemIndex b l}
     - hint: {lhs: "elem x [y]", rhs: x == y, note: ValidInstance Eq a}
     - hint: {lhs: "notElem x [y]", rhs: x /= y, note: ValidInstance Eq a}
+    - hint: {lhs: "length [1..n]", rhs: max 0 n}
     - hint: {lhs: length x >= 0, rhs: "True", name: Length always non-negative}
     - hint: {lhs: 0 <= length x, rhs: "True", name: Length always non-negative}
     - hint: {lhs: length x > 0, rhs: not (null x), note: IncreasesLaziness, name: Use null}
@@ -514,6 +516,7 @@
     - warn: {lhs: sequenceA_ (replicate n x), rhs: Control.Monad.replicateM_ n x}
     - warn: {lhs: mapM f (replicate n x), rhs: Control.Monad.replicateM n (f x)}
     - warn: {lhs: mapM_ f (replicate n x), rhs: Control.Monad.replicateM_ n (f x)}
+    - warn: {lhs: mapM (const x) l, rhs: Control.Monad.replicateM (length l) x}
     - warn: {lhs: mapM f (map g x), rhs: mapM (f . g) x, name: Fuse mapM/map}
     - warn: {lhs: mapM_ f (map g x), rhs: mapM_ (f . g) x, name: Fuse mapM_/map}
     - warn: {lhs: traverse f (map g x), rhs: traverse (f . g) x, name: Fuse traverse/map}
@@ -564,6 +567,8 @@
     - warn: {lhs: snd (unzip x), rhs: map snd x}
     - hint: {lhs: "\\x y -> (x, y)", rhs: "(,)"}
     - hint: {lhs: "\\x y z -> (x, y, z)", rhs: "(,,)"}
+    - hint: {lhs: "(,b) a", rhs: "(a,b)", side: isAtom a, name: Evaluate}
+    - hint: {lhs: "(a,) b", rhs: "(a,b)", side: isAtom b, name: Evaluate}
 
     # MAYBE
 
