@@ -101,6 +101,9 @@ function (Ctor (Rec { field })) = Ctor (Rec {field = 1})
 
 -- type splices are a bit special
 no = f @($x)
+
+-- template haskell is harder
+issue1292 = [e| handleForeignCatch $ \ $(varP pylonExPtrVarName) -> $(quoteExp C.block modifiedStr) |]
 </TEST>
 -}
 
@@ -189,8 +192,10 @@ bracket pretty isPartialAtom root = f Nothing
     -- In some context, removing parentheses from 'x' succeeds. Does
     -- 'x' actually need bracketing in this context?
     f (Just (i, o, gen)) v@(remParens' -> Just x)
-      | not $ needBracket i o x, not $ isPartialAtom (Just o) x =
-          rawIdea Suggestion msg (getLoc v) (pretty o) (Just (pretty (gen x))) [] [r] : g x
+      | not $ needBracket i o x
+      , not $ isPartialAtom (Just o) x
+      , not $ any isSplicePat $ universeBi o -- over-appoximate ,see #1292
+      = rawIdea Suggestion msg (getLoc v) (pretty o) (Just (pretty (gen x))) [] [r] : g x
       where
         typ = findType v
         r = Replace typ (toSS v) [("x", toSS x)] "x"
@@ -202,6 +207,10 @@ bracket pretty isPartialAtom root = f Nothing
     -- Enumerate over all the immediate children of 'o' looking for
     -- redundant parentheses in each.
     g o = concat [f (Just (i, o, gen)) x | (i, (x, gen)) <- zipFrom 0 $ holes o]
+
+isSplicePat :: Pat GhcPs -> Bool
+isSplicePat SplicePat{} = True
+isSplicePat _ = False
 
 bracketWarning :: (Outputable a, Outputable b, Brackets (Located b))  => String -> Located a -> Located b -> Idea
 bracketWarning msg o x =
