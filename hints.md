@@ -2361,22 +2361,6 @@ head x
 <td>
 LHS:
 <code>
-map (const x) l
-</code>
-<br>
-RHS:
-<code>
-replicate (length l) x
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use replicate</td>
-<td>
-LHS:
-<code>
 take n (repeat x)
 </code>
 <br>
@@ -7811,22 +7795,6 @@ mapM_ f (replicate n x)
 RHS:
 <code>
 Control.Monad.replicateM_ n (f x)
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use replicateM</td>
-<td>
-LHS:
-<code>
-mapM (const x) l
-</code>
-<br>
-RHS:
-<code>
-Control.Monad.replicateM (length l) x
 </code>
 <br>
 </td>
