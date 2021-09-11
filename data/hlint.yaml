@@ -856,7 +856,6 @@
     - warn: {lhs: "(mapped .~ b) a", rhs: "b <$ a"}
     - warn: {lhs: "ask <&> (^. a)", rhs: "view a"}
     - warn: {lhs: "view a <&> (^. b)", rhs: "view (a . b)"}
-    - warn: {lhs: "a ^.. b . c <> a ^.. b . d", rhs: "a ^.. b . (c <> d)"}
 
     # `at` pitfalls:
 
