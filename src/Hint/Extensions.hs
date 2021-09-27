@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, NamedFieldPuns #-}
+{-# LANGUAGE LambdaCase, NamedFieldPuns, ScopedTypeVariables #-}
 
 {-
     Suggest removal of unnecessary extensions
@@ -15,7 +15,9 @@ data Foo
 {-# LANGUAGE TemplateHaskell #-} \
 $(deriveNewtypes typeInfo)
 {-# LANGUAGE TemplateHaskell #-} \
-main = foo ''Bar
+main = foo ''Bar --
+{-# LANGUAGE QuasiQuotes, TemplateHaskell #-} \
+f x = x + [e| x + 1 |] + [foo| x + 1 |] -- {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE PatternGuards #-} \
 test = case x of _ | y <- z -> w
 {-# LANGUAGE TemplateHaskell,EmptyDataDecls #-} \
@@ -290,7 +292,9 @@ extensionsHint _ x =
     ]
   where
     usedTH :: Bool
-    usedTH = used TemplateHaskell (ghcModule x) || used QuasiQuotes (ghcModule x)
+    usedTH = used TemplateHaskell (ghcModule x)
+               || used TemplateHaskellQuotes (ghcModule x)
+               || used QuasiQuotes (ghcModule x)
       -- If TH or QuasiQuotes is on, can use all other extensions
       -- programmatically.
 
@@ -301,7 +305,10 @@ extensionsHint _ x =
 
     -- Those extensions we detect to be useful.
     useful :: Set.Set Extension
-    useful = if usedTH then extensions else Set.filter (`usedExt` ghcModule x) extensions
+    useful =
+      if usedTH
+        then Set.filter (\case TemplateHaskell -> usedExt TemplateHaskell (ghcModule x); _ -> True) extensions
+        else Set.filter (`usedExt` ghcModule x) extensions
     -- Those extensions which are useful, but implied by other useful
     -- extensions.
     implied :: Map.Map Extension Extension
@@ -379,12 +386,8 @@ used EmptyCase = hasS f
     f _ = False
 used KindSignatures = hasT (un :: HsKind GhcPs)
 used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch'
-used TemplateHaskell = hasT2' (un :: (HsBracket GhcPs, HsSplice GhcPs)) ||^ hasS f ||^ hasS isSpliceDecl
-  where
-    f :: HsBracket GhcPs -> Bool
-    f VarBr{} = True
-    f TypBr{} = True
-    f _ = False
+used TemplateHaskell = hasS $ \case (HsQuasiQuote{} :: HsSplice GhcPs) -> False; _ -> True
+used TemplateHaskellQuotes = hasT (un :: HsBracket GhcPs)
 used ForeignFunctionInterface = hasT (un :: CCallConv)
 used PatternGuards = hasS f
   where
@@ -536,7 +539,6 @@ derives (L _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
 un = undefined
 
 hasT t x = not $ null (universeBi x `asTypeOf` [t])
-hasT2' ~(t1,t2) = hasT t1 ||^ hasT t2
 
 hasS :: (Data x, Data a) => (a -> Bool) -> x -> Bool
 hasS test = any test . universeBi
