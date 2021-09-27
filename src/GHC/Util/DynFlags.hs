@@ -1,23 +1,14 @@
 module GHC.Util.DynFlags (initGlobalDynFlags, baseDynFlags) where
 
 import GHC.Driver.Session
-import GHC.LanguageExtensions.Type
-import Data.List.Extra
 import Language.Haskell.GhclibParserEx.GHC.Settings.Config
 
+-- The list of default enabled extensions is empty. This is because:
+-- the extensions to enable/disable are set exclusively in
+-- 'parsePragmasIntoDynFlags' based solely on the parse flags
+-- (and source level annotations).
 baseDynFlags :: DynFlags
-baseDynFlags =
-  -- The list of default enabled extensions is empty except for
-  -- 'TemplateHaskellQuotes'. This is because:
-  --  * The extensions to enable/disable are set exclusively in
-  --    'parsePragmasIntoDynFlags' based solely on HSE parse flags
-  --    (and source level annotations);
-  --  * 'TemplateHaskellQuotes' is not a known HSE extension but IS
-  --    needed if the GHC parse is to succeed for the unit-test at
-  --    hlint.yaml:860
-  let enable = [TemplateHaskellQuotes]
-  in foldl' xopt_set (defaultDynFlags fakeSettings fakeLlvmConfig) enable
-
+baseDynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
 
 initGlobalDynFlags :: IO ()
 initGlobalDynFlags = setUnsafeGlobalDynFlags baseDynFlags
