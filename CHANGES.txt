@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1295, suggest TemplateHaskell to TemplateHaskellQuotes if it works
     #1292, don't say redundant bracket around pattern splices
     #1289, suggest expanding tuple sections in some cases
     #1289, suggest length [1..n] ==> max 0 n
