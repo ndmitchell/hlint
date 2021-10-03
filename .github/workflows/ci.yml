@@ -24,6 +24,7 @@ jobs:
       id: setup-haskell
       with:
         ghc-version: ${{ matrix.ghc }}
+    - run: cabal new-install apply-refact --install-method=copy
     - run: cabal v2-freeze --enable-tests
     - uses: actions/cache@v2
       with:
