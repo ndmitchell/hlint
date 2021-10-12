@@ -40,6 +40,9 @@ import GHC.Util (baseDynFlags, Scope, scopeCreate)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Data.Char
+#if MIN_VERSION_aeson(2,0,0)
+import Data.Aeson.KeyMap (toHashMapText)
+#endif
 
 #ifdef HS_YAML
 
@@ -68,6 +71,10 @@ import Control.Exception.Extra
 
 #endif
 
+#if !MIN_VERSION_aeson(2,0,0)
+toHashMapText :: a -> a
+toHashMapText = id
+#endif
 
 -- | Read a config file in YAML format. Takes a filename, and optionally the contents.
 --   Fails if the YAML doesn't parse or isn't valid HLint YAML
@@ -138,7 +145,7 @@ parseArray v@(getVal -> Array xs) = concatMapM parseArray $ zipWithFrom (\i x ->
 parseArray v = pure [v]
 
 parseObject :: Val -> Parser (Map.HashMap T.Text Value)
-parseObject (getVal -> Object x) = pure x
+parseObject (getVal -> Object x) = pure (toHashMapText x)
 parseObject v = parseFail v "Expected an Object"
 
 parseObject1 :: Val -> Parser (String, Val)
