@@ -9534,6 +9534,22 @@ fromLeft x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use =<<</td>
+<td>
+LHS:
+<code>
+either Left f x
+</code>
+<br>
+RHS:
+<code>
+f =<< x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use infix</td>
 <td>
 LHS:

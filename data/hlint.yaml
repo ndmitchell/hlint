@@ -644,6 +644,7 @@
     - warn: {lhs: fromRight x (fmap f y), rhs: either (const x) f y}
     - warn: {lhs: either (const x) id, rhs: fromRight x}
     - warn: {lhs: either id (const x), rhs: fromLeft x}
+    - warn: {lhs: either Left f x, rhs: f =<< x}
 
     # INFIX
 
