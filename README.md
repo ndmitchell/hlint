@@ -20,6 +20,7 @@ Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/is
 * HLint can be configured with knowledge of C Pre Processor flags, but it can only see one conditional set of code at a time.
 * HLint turns on many language extensions so it can parse more documents, occasionally some break otherwise legal syntax - e.g. `{-#INLINE foo#-}` doesn't work with `MagicHash`, `foo $bar` means something different with `TemplateHaskell`. These extensions can be disabled with `-XNoMagicHash` or `-XNoTemplateHaskell` etc.
 * HLint doesn't run any custom preprocessors, e.g. [markdown-unlit](https://hackage.haskell.org/package/markdown-unlit) or [record-dot-preprocessor](https://hackage.haskell.org/package/record-dot-preprocessor), so code making use of them will usually fail to parse.
+* Some hints, like `Use const`, don't work for non-lifted (i.e. unlifted and unboxed) types
 
 ## Installing and running HLint
 
