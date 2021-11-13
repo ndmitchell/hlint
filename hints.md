@@ -7597,12 +7597,12 @@ m
 <td>
 LHS:
 <code>
-return
+return x
 </code>
 <br>
 RHS:
 <code>
-pure
+pure x
 </code>
 <br>
 </td>
