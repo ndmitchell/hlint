@@ -416,19 +416,14 @@
     - hint: {lhs: fmap f $ x, rhs: f <$> x, side: isApp x || isAtom x}
     - hint: {lhs: \x -> a <$> b x, rhs: fmap a . b}
     - hint: {lhs: x *> pure y, rhs: x Data.Functor.$> y}
-    - hint: {lhs: x *> pure y, rhs: x Data.Functor.$> y}
-    - hint: {lhs: pure x <* y, rhs: x Data.Functor.<$ y}
     - hint: {lhs: pure x <* y, rhs: x Data.Functor.<$ y}
     - hint: {lhs: const x <$> y, rhs: x <$ y}
     - hint: {lhs: pure x <$> y, rhs: x <$ y}
-    - hint: {lhs: pure x <$> y, rhs: x <$ y}
     - hint: {lhs: x <&> const y, rhs: x Data.Functor.$> y}
-    - hint: {lhs: x <&> pure y, rhs: x Data.Functor.$> y}
     - hint: {lhs: x <&> pure y, rhs: x Data.Functor.$> y}
 
     # APPLICATIVE
 
-    - hint: {lhs: pure x <*> y, rhs: x <$> y}
     - hint: {lhs: pure x <*> y, rhs: x <$> y}
     - warn: {lhs: x <* pure y, rhs: x}
     - warn: {lhs: pure x *> y, rhs: "y"}
@@ -485,7 +480,6 @@
     - hint: {lhs: liftM2 id, rhs: ap}
     - warn: {lhs: liftA2 f (pure x), rhs: fmap (f x)}
     - warn: {lhs: liftM2 f (pure x), rhs: fmap (f x)}
-    - warn: {lhs: liftM2 f (pure x), rhs: fmap (f x)}
     - warn: {lhs: fmap f (pure x), rhs: pure (f x)}
     - warn: {lhs: f <$> pure x, rhs: pure (f x)}
     - warn: {lhs: mapM (uncurry f) (zip l m), rhs: zipWithM f l m}
@@ -494,7 +488,6 @@
     - warn: {lhs: a >>= \_ -> b, rhs: a >> b}
     - warn: {lhs: m <* pure x, rhs: m}
     - warn: {lhs: pure x *> m, rhs: m}
-    - warn: {lhs: pure x >> m, rhs: m}
     - warn: {lhs: pure x >> m, rhs: m}
     - hint: {lhs: return, rhs: pure, name: Use pure, note: "GHC >=9.2 phases-out `return` instances."}
 
@@ -944,15 +937,11 @@
     - warn: {lhs: fmap concat (forM_ a b), rhs: concatForM_ a b}
     - warn: {lhs: concat <$> forM_ a b, rhs: concatForM_ a b}
     - warn: {lhs: "maybe (pure ()) b a", rhs: "whenJust a b"}
-    - warn: {lhs: "maybe (pure ()) b a", rhs: "whenJust a b"}
-    - warn: {lhs: "maybeM (pure ()) b a", rhs: "whenJustM a b"}
     - warn: {lhs: "maybeM (pure ()) b a", rhs: "whenJustM a b"}
     - warn: {lhs: "if a then Just <$> b else pure Nothing", rhs: "whenMaybe a b"}
     - warn: {lhs: "maybe a b =<< c", rhs: "maybeM a b c"}
     - warn: {lhs: "maybeM a pure x", rhs: "fromMaybeM a b"}
-    - warn: {lhs: "maybeM a pure x", rhs: "fromMaybeM a b"}
     - warn: {lhs: "either a b =<< c", rhs: "eitherM a b c"}
-    - warn: {lhs: "fold1M a b >> pure ()", rhs: "fold1M_ a b"}
     - warn: {lhs: "fold1M a b >> pure ()", rhs: "fold1M_ a b"}
     - warn: {lhs: "flip concatMapM", rhs: "concatForM"}
     - warn: {lhs: "liftM mconcat (mapM a b)", rhs: "mconcatMapM a b"}
