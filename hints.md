@@ -7593,6 +7593,22 @@ m
 <td>Warning</td>
 </tr>
 <tr>
+<td>GHC >=9.2 phases-out `return` use.</td>
+<td>
+LHS:
+<code>
+return
+</code>
+<br>
+RHS:
+<code>
+pure
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Use evalState</td>
 <td>
 LHS:

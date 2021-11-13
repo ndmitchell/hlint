@@ -496,6 +496,7 @@
     - warn: {lhs: return x *> m, rhs: m}
     - warn: {lhs: pure x >> m, rhs: m}
     - warn: {lhs: return x >> m, rhs: m}
+    - hint: {lhs: return, rhs: pure, name: Use pure, note: "GHC >=9.2 phases-out `return` instances."}
 
     # STATE MONAD
 
@@ -1002,7 +1003,7 @@
     name: future
     enabled: false
     rules:
-    - warn: {lhs: return, rhs: pure}
+    - warn: {lhs: return, rhs: pure} #  2021-11-13: NOTE: This rule got enabled by default as `hint` but I do not know if removing group breaks configuration.
 
 - group:
     name: dollar
