@@ -278,7 +278,7 @@
 
     # FOLDS
 
-    - warn: {lhs: foldr  (>>) (return ()), rhs: sequence_}
+    - warn: {lhs: foldr  (>>) (pure ()), rhs: sequence_}
     - warn: {lhs: foldr  (&&) True, rhs: and}
     - warn: {lhs: foldl  (&&) True, rhs: and, note: IncreasesLaziness}
     - warn: {lhs: foldr1 (&&) , rhs: and, note: "RemovesError on `[]`"}
@@ -416,43 +416,43 @@
     - hint: {lhs: fmap f $ x, rhs: f <$> x, side: isApp x || isAtom x}
     - hint: {lhs: \x -> a <$> b x, rhs: fmap a . b}
     - hint: {lhs: x *> pure y, rhs: x Data.Functor.$> y}
-    - hint: {lhs: x *> return y, rhs: x Data.Functor.$> y}
+    - hint: {lhs: x *> pure y, rhs: x Data.Functor.$> y}
     - hint: {lhs: pure x <* y, rhs: x Data.Functor.<$ y}
-    - hint: {lhs: return x <* y, rhs: x Data.Functor.<$ y}
+    - hint: {lhs: pure x <* y, rhs: x Data.Functor.<$ y}
     - hint: {lhs: const x <$> y, rhs: x <$ y}
     - hint: {lhs: pure x <$> y, rhs: x <$ y}
-    - hint: {lhs: return x <$> y, rhs: x <$ y}
+    - hint: {lhs: pure x <$> y, rhs: x <$ y}
     - hint: {lhs: x <&> const y, rhs: x Data.Functor.$> y}
     - hint: {lhs: x <&> pure y, rhs: x Data.Functor.$> y}
-    - hint: {lhs: x <&> return y, rhs: x Data.Functor.$> y}
+    - hint: {lhs: x <&> pure y, rhs: x Data.Functor.$> y}
 
     # APPLICATIVE
 
-    - hint: {lhs: return x <*> y, rhs: x <$> y}
+    - hint: {lhs: pure x <*> y, rhs: x <$> y}
     - hint: {lhs: pure x <*> y, rhs: x <$> y}
     - warn: {lhs: x <* pure y, rhs: x}
     - warn: {lhs: pure x *> y, rhs: "y"}
 
     # MONAD
 
-    - warn: {lhs: return a >>= f, rhs: f a, name: "Monad law, left identity"}
-    - warn: {lhs: f =<< return a, rhs: f a, name: "Monad law, left identity"}
-    - warn: {lhs: m >>= return, rhs: m, name: "Monad law, right identity"}
-    - warn: {lhs: return =<< m, rhs: m, name: "Monad law, right identity"}
+    - warn: {lhs: pure a >>= f, rhs: f a, name: "Monad law, left identity"}
+    - warn: {lhs: f =<< pure a, rhs: f a, name: "Monad law, left identity"}
+    - warn: {lhs: m >>= pure, rhs: m, name: "Monad law, right identity"}
+    - warn: {lhs: pure =<< m, rhs: m, name: "Monad law, right identity"}
     - warn: {lhs: liftM, rhs: fmap}
     - warn: {lhs: liftA, rhs: fmap}
-    - hint: {lhs: m >>= return . f, rhs: m Data.Functor.<&> f}
-    - hint: {lhs: return . f =<< m, rhs: f <$> m}
+    - hint: {lhs: m >>= pure . f, rhs: m Data.Functor.<&> f}
+    - hint: {lhs: pure . f =<< m, rhs: f <$> m}
     - warn: {lhs: fmap f x >>= g, rhs: x >>= g . f}
     - warn: {lhs: f <$> x >>= g, rhs: x >>= g . f}
     - warn: {lhs: x Data.Functor.<&> f >>= g, rhs: x >>= g . f}
     - warn: {lhs: g =<< fmap f x, rhs: g . f =<< x}
     - warn: {lhs: g =<< f <$> x, rhs: g . f =<< x}
     - warn: {lhs: g =<< (x Data.Functor.<&> f), rhs: g . f =<< x}
-    - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x $ _noParen_ y, side: not (isAtom y)}
-    - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x y, side: isAtom y}
-    - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: isAtom y}
-    - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x y, side: isAtom y}
+    - warn: {lhs: if x then y else pure (), rhs: Control.Monad.when x $ _noParen_ y, side: not (isAtom y)}
+    - warn: {lhs: if x then y else pure (), rhs: Control.Monad.when x y, side: isAtom y}
+    - warn: {lhs: if x then pure () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: isAtom y}
+    - warn: {lhs: if x then pure () else y, rhs: Control.Monad.unless x y, side: isAtom y}
     - warn: {lhs: sequence (map f x), rhs: mapM f x}
     - warn: {lhs: sequence_ (map f x), rhs: mapM_ f x}
     - warn: {lhs: sequence (fmap f x), rhs: mapM f x}
@@ -469,7 +469,7 @@
     - warn: {lhs: id =<< x, rhs: Control.Monad.join x}
     - hint: {lhs: join (f <$> x), rhs: f =<< x}
     - hint: {lhs: join (fmap f x), rhs: f =<< x}
-    - hint: {lhs: a >> return (), rhs: Control.Monad.void a, side: isAtom a || isApp a}
+    - hint: {lhs: a >> pure (), rhs: Control.Monad.void a, side: isAtom a || isApp a}
     - warn: {lhs: fmap (const ()), rhs: Control.Monad.void}
     - warn: {lhs: const () <$> x, rhs: Control.Monad.void x}
     - warn: {lhs: () <$ x, rhs: Control.Monad.void x}
@@ -483,19 +483,19 @@
     - hint: {lhs: (f =<<) . g, rhs: f Control.Monad.<=< g}
     - warn: {lhs: a >> forever a, rhs: forever a}
     - hint: {lhs: liftM2 id, rhs: ap}
-    - warn: {lhs: liftA2 f (return x), rhs: fmap (f x)}
+    - warn: {lhs: liftA2 f (pure x), rhs: fmap (f x)}
     - warn: {lhs: liftM2 f (pure x), rhs: fmap (f x)}
-    - warn: {lhs: liftM2 f (return x), rhs: fmap (f x)}
-    - warn: {lhs: fmap f (return x), rhs: return (f x)}
-    - warn: {lhs: f <$> return x, rhs: return (f x)}
+    - warn: {lhs: liftM2 f (pure x), rhs: fmap (f x)}
+    - warn: {lhs: fmap f (pure x), rhs: pure (f x)}
+    - warn: {lhs: f <$> pure x, rhs: pure (f x)}
     - warn: {lhs: mapM (uncurry f) (zip l m), rhs: zipWithM f l m}
     - warn: {lhs: mapM_ (void . f), rhs: mapM_ f}
     - warn: {lhs: forM_ x (void . f), rhs: forM_ x f}
     - warn: {lhs: a >>= \_ -> b, rhs: a >> b}
-    - warn: {lhs: m <* return x, rhs: m}
-    - warn: {lhs: return x *> m, rhs: m}
+    - warn: {lhs: m <* pure x, rhs: m}
+    - warn: {lhs: pure x *> m, rhs: m}
     - warn: {lhs: pure x >> m, rhs: m}
-    - warn: {lhs: return x >> m, rhs: m}
+    - warn: {lhs: pure x >> m, rhs: m}
     - hint: {lhs: return, rhs: pure, name: Use pure, note: "GHC >=9.2 phases-out `return` instances."}
 
     # STATE MONAD
@@ -557,7 +557,7 @@
     - warn: {lhs: id $! x, rhs: x, name: Redundant $!}
     - warn: {lhs: seq x y, rhs: "y", side: isWHNF x, name: Redundant seq}
     - warn: {lhs: f $! x, rhs: f x, side: isWHNF x, name: Redundant $!}
-    - warn: {lhs: evaluate x, rhs: return x, side: isWHNF x, name: Redundant evaluate}
+    - warn: {lhs: evaluate x, rhs: pure x, side: isWHNF x, name: Redundant evaluate}
     - warn: {lhs: seq (rnf x) (), rhs: rnf x, name: Redundant seq}
 
     # TUPLE
@@ -727,9 +727,9 @@
 
     # FOLDABLE
 
-    - warn: {lhs: case m of Nothing -> return (); Just x -> f x, rhs: Data.Foldable.forM_ m f}
-    - warn: {lhs: case m of Just x -> f x; Nothing -> return (), rhs: Data.Foldable.forM_ m f}
-    - warn: {lhs: case m of Just x -> f x; _ -> return (), rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Nothing -> pure (); Just x -> f x, rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Just x -> f x; Nothing -> pure (), rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Just x -> f x; _ -> pure (), rhs: Data.Foldable.forM_ m f}
     - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.forM_ m f}
 
     # STATE MONAD
@@ -944,22 +944,22 @@
     - warn: {lhs: fmap concat (forM_ a b), rhs: concatForM_ a b}
     - warn: {lhs: concat <$> forM_ a b, rhs: concatForM_ a b}
     - warn: {lhs: "maybe (pure ()) b a", rhs: "whenJust a b"}
-    - warn: {lhs: "maybe (return ()) b a", rhs: "whenJust a b"}
+    - warn: {lhs: "maybe (pure ()) b a", rhs: "whenJust a b"}
     - warn: {lhs: "maybeM (pure ()) b a", rhs: "whenJustM a b"}
-    - warn: {lhs: "maybeM (return ()) b a", rhs: "whenJustM a b"}
+    - warn: {lhs: "maybeM (pure ()) b a", rhs: "whenJustM a b"}
     - warn: {lhs: "if a then Just <$> b else pure Nothing", rhs: "whenMaybe a b"}
     - warn: {lhs: "maybe a b =<< c", rhs: "maybeM a b c"}
     - warn: {lhs: "maybeM a pure x", rhs: "fromMaybeM a b"}
-    - warn: {lhs: "maybeM a return x", rhs: "fromMaybeM a b"}
+    - warn: {lhs: "maybeM a pure x", rhs: "fromMaybeM a b"}
     - warn: {lhs: "either a b =<< c", rhs: "eitherM a b c"}
-    - warn: {lhs: "fold1M a b >> return ()", rhs: "fold1M_ a b"}
+    - warn: {lhs: "fold1M a b >> pure ()", rhs: "fold1M_ a b"}
     - warn: {lhs: "fold1M a b >> pure ()", rhs: "fold1M_ a b"}
     - warn: {lhs: "flip concatMapM", rhs: "concatForM"}
     - warn: {lhs: "liftM mconcat (mapM a b)", rhs: "mconcatMapM a b"}
-    - warn: {lhs: "ifM a b (return ())", rhs: "whenM a b"}
-    - warn: {lhs: "ifM a (return ()) b", rhs: "unlessM a b"}
-    - warn: {lhs: "ifM a (return True) b", rhs: "(||^) a b"}
-    - warn: {lhs: "ifM a b (return False)", rhs: "(&&^) a b"}
+    - warn: {lhs: "ifM a b (pure ())", rhs: "whenM a b"}
+    - warn: {lhs: "ifM a (pure ()) b", rhs: "unlessM a b"}
+    - warn: {lhs: "ifM a (pure True) b", rhs: "(||^) a b"}
+    - warn: {lhs: "ifM a b (pure False)", rhs: "(&&^) a b"}
     - warn: {lhs: "anyM id", rhs: "orM"}
     - warn: {lhs: "allM id", rhs: "andM"}
     - warn: {lhs: "either id id", rhs: "fromEither"}
@@ -1093,20 +1093,20 @@
 # yes = not . (/= a) -- (== a)
 # yes = if a then 1 else if b then 1 else 2 -- if a || b then 1 else 2
 # no  = if a then 1 else if b then 3 else 2
-# yes = a >>= return . bob -- a Data.Functor.<&> bob
-# yes = return . bob =<< a -- bob <$> a
+# yes = a >>= pure . bob -- a Data.Functor.<&> bob
+# yes = pure . bob =<< a -- bob <$> a
 # yes = m alice >>= pure . b -- m alice Data.Functor.<&> b
 # yes = pure .b =<< m alice -- b <$> m alice
 # yes = asciiCI "hi" *> pure Hi -- asciiCI "hi" Data.Functor.$> Hi
-# yes = asciiCI "bye" *> return Bye -- asciiCI "bye" Data.Functor.$> Bye
+# yes = asciiCI "bye" *> pure Bye -- asciiCI "bye" Data.Functor.$> Bye
 # yes = pure x <* y -- x Data.Functor.<$ y
-# yes = return x <* y -- x Data.Functor.<$ y
+# yes = pure x <* y -- x Data.Functor.<$ y
 # yes = const x <$> y -- x <$ y
 # yes = pure alice <$> [1, 2] -- alice <$ [1, 2]
-# yes = return alice <$> "Bob" -- alice <$ "Bob"
+# yes = pure alice <$> "Bob" -- alice <$ "Bob"
 # yes = Just a <&> const b -- Just a Data.Functor.$> b
 # yes = [a,b] <&> pure c -- [a,b] Data.Functor.$> c
-# yes = Hi <&> return bye -- Hi Data.Functor.$> bye
+# yes = Hi <&> pure bye -- Hi Data.Functor.$> bye
 # yes = (x !! 0) + (x !! 2) -- head x
 # yes = if b < 42 then [a] else [] -- [a | b < 42]
 # no  = take n (foo xs) == "hello"
@@ -1118,11 +1118,11 @@
 # yes = map (\(a,_) -> a) xs -- fst
 # yes = readFile $ args !! 0 -- head args
 # yes = if Debug `elem` opts then ["--debug"] else [] -- ["--debug" | Debug `elem` opts]
-# yes = if nullPS s then return False else if headPS s /= '\n' then return False else alter_input tailPS >> return True \
-#     -- if nullPS s || (headPS s /= '\n') then return False else alter_input tailPS >> return True
-# yes = if foo then do stuff; moreStuff; lastOfTheStuff else return () \
+# yes = if nullPS s then pure False else if headPS s /= '\n' then pure False else alter_input tailPS >> pure True \
+#     -- if nullPS s || (headPS s /= '\n') then pure False else alter_input tailPS >> pure True
+# yes = if foo then do stuff; moreStuff; lastOfTheStuff else pure () \
 #     -- Control.Monad.when foo $ do stuff ; moreStuff ; lastOfTheStuff
-# yes = if foo then stuff else return () -- Control.Monad.when foo stuff
+# yes = if foo then stuff else pure () -- Control.Monad.when foo stuff
 # yes = foo $ \(a, b) -> (a, y + b) -- Data.Bifunctor.second ((+) y)
 # no  = foo $ \(a, b) -> (a, a + b)
 # yes = map (uncurry (+)) $ zip [1 .. 5] [6 .. 10] -- zipWith (curry (uncurry (+))) [1 .. 5] [6 .. 10]
@@ -1152,7 +1152,7 @@
 # yes x = case x of {False -> a ; _ -> b} -- if x then b else a
 # no = const . ok . toResponse $ "saved"
 # yes = case x z of Nothing -> y; Just pat -> pat -- Data.Maybe.fromMaybe y (x z)
-# yes = if p then s else return () -- Control.Monad.when p s
+# yes = if p then s else pure () -- Control.Monad.when p s
 # warn = a $$$$ b $$$$ c ==> a . b $$$$$ c
 # yes = when (not . null $ asdf) -- unless (null asdf)
 # yes = (foo . bar . when) (not . null $ asdf) -- (foo . bar) (unless (null asdf))
@@ -1160,7 +1160,7 @@
 # yes = case concat (map f x) of [] -> [] -- concatMap f x
 # yes = [v | v <- xs] -- xs
 # no  = [Left x | Left x <- xs]
-# when p s = if p then s else return ()
+# when p s = if p then s else pure ()
 # no = x ^^ 18.5
 # instance Arrow (->) where first f = f *** id
 # yes = fromInteger 12 -- 12
@@ -1168,11 +1168,11 @@
 # import Control.Exception as E; no = E.catch
 # main = do f; putStrLn $ show x -- print x
 # main = map (writer,) $ map arcObj $ filter (rdfPredEq (Res dctreferences)) ts -- map ((writer,) . arcObj) (filter (rdfPredEq (Res dctreferences)) ts)
-# h x y = return $! (x, y) -- return (x, y)
-# h x y = return $! x
-# getInt = do { x <- readIO "0"; return $! (x :: Int) }
-# foo = evaluate [12] -- return [12]
-# test = \ a -> f a >>= \ b -> return (a, b)
+# h x y = pure $! (x, y) -- pure (x, y)
+# h x y = pure $! x
+# getInt = do { x <- readIO "0"; pure $! (x :: Int) }
+# foo = evaluate [12] -- pure [12]
+# test = \ a -> f a >>= \ b -> pure (a, b)
 # fooer input = catMaybes . map Just $ input -- mapMaybe Just
 # yes = mapMaybe id -- catMaybes
 # foo = magic . isLeft $ fmap f x -- magic (isLeft x)
@@ -1202,19 +1202,19 @@
 # used = not . not . any (`notElem` special) . fst . derives -- any (`notElem` special) . fst . derives
 # test = foo . id . map -- map
 # test = food id xs
-# yes = baz baz >> return () -- Control.Monad.void (baz baz)
-# no = foo >>= bar >>= something >>= elsee >> return ()
+# yes = baz baz >> pure () -- Control.Monad.void (baz baz)
+# no = foo >>= bar >>= something >>= elsee >> pure ()
 # no = f (#) x
-# data Pair = P {a :: !Int}; foo = return $! P{a=undefined}
-# data Pair = P {a :: !Int}; foo = return $! P undefined
-# foo = return $! Just undefined -- return (Just undefined)
-# foo = return $! (a,b) -- return (a,b)
-# foo = return $! 1
-# foo = return $! "test"
+# data Pair = P {a :: !Int}; foo = pure $! P{a=undefined}
+# data Pair = P {a :: !Int}; foo = pure $! P undefined
+# foo = pure $! Just undefined -- pure (Just undefined)
+# foo = pure $! (a,b) -- pure (a,b)
+# foo = pure $! 1
+# foo = pure $! "test"
 # bar = [x | (x,_) <- pts]
-# return' x = x `seq` return x
+# pure' x = x `seq` pure x
 # foo = last (sortBy (compare `on` fst) xs) -- maximumBy (compare `on` fst) xs
-# g = \ f -> parseFile f >>= (\ cu -> return (f, cu))
+# g = \ f -> parseFile f >>= (\ cu -> pure (f, cu))
 # foo = bar $ \(x,y) -> x x y
 # foo = (\x -> f x >>= g) -- f Control.Monad.>=> g
 # foo = (\f -> h f >>= g) -- h Control.Monad.>=> g
@@ -1236,7 +1236,7 @@
 # yes = foldr (\ curr acc -> (+ 1) curr : acc) [] -- map (\ curr -> (+ 1) curr)
 # yes = foldr (\ curr acc -> curr + curr : acc) [] -- map (\ curr -> curr + curr)
 # no = foo $ (,) x $ do {this is a test; and another test}
-# no = sequence (return x)
+# no = sequence (pure x)
 # no = sequenceA (pure a)
 # yes = zipWith func xs ys & sequenceA -- Control.Monad.zipWithM func xs ys
 # {-# LANGUAGE QuasiQuotes #-}; no = f (\url -> [hamlet|foo @{url}|])
