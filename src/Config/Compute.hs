@@ -63,7 +63,7 @@ findExp name vs (HsLam _ MG{mg_alts=L _ [L _ Match{m_pats, m_grhss=GRHSs{grhssGR
 findExp name vs HsLam{} = []
 findExp name vs HsVar{} = []
 findExp name vs (OpApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $
-    HsApp EpAnnNotUsed x $ noLocA $ HsPar EpAnnNotUsed $ noLocA $ HsApp EpAnnNotUsed y $ noLocA $ mkVar "_hlint"
+    HsApp EpAnnNotUsed x $ nlHsPar $ noLocA $ HsApp EpAnnNotUsed y $ noLocA $ mkVar "_hlint"
 
 findExp name vs bod = [SettingMatchExp $
         HintRule Warning defaultHintName []
@@ -74,7 +74,7 @@ findExp name vs bod = [SettingMatchExp $
 
         rep = zip vs $ map (mkVar . pure) ['a'..]
         f (HsVar _ x) | Just y <- lookup (rdrNameStr x) rep = y
-        f (OpApp _ x dol y) | isDol dol = HsApp EpAnnNotUsed x $ noLocA $ HsPar EpAnnNotUsed y
+        f (OpApp _ x dol y) | isDol dol = HsApp EpAnnNotUsed x $ nlHsPar y
         f x = x
 
 

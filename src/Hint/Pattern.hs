@@ -73,7 +73,8 @@ import GHC.Types.SrcLoc
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
 import GHC.Data.Bag
-import GHC.Types.Basic
+import GHC.Types.Basic hiding (Pattern)
+import qualified GHC.Data.Strict
 
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
@@ -120,7 +121,7 @@ hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
     mkGuard a = GRHS EpAnnNotUsed [noLocA $ BodyStmt noExtField a noSyntaxExpr noSyntaxExpr]
 
     guards :: [LGRHS GhcPs (LHsExpr GhcPs)]
-    guards = map (noLoc . uncurry mkGuard) rawGuards
+    guards = map (noLocA . uncurry mkGuard) rawGuards
 
     (lhs, rhs) = unzip rawGuards
 
@@ -137,7 +138,7 @@ hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
         ps  -> mkTemplate "p100" ps
     guardSubts = mkTemplate "g100" lhs
     exprSubts  = mkTemplate "e100" rhs
-    templateGuards = map noLoc (zipWith (mkGuard `on` toString) guardSubts exprSubts)
+    templateGuards = map noLocA (zipWith (mkGuard `on` toString) guardSubts exprSubts)
 
     toString (Left e) = e
     toString (Right (v, _)) = strToVar v
@@ -151,7 +152,7 @@ hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
     refactoring = Replace rtype (toRefactSrcSpan l) (f patSubts ++ f guardSubts ++ f exprSubts) template
 hints gen (Pattern l t pats o@(GRHSs _ [L _ (GRHS _ [test] bod)] bind))
   | unsafePrettyPrint test `elem` ["otherwise", "True"]
-  = [gen "Redundant guard" (Pattern l t pats o{grhssGRHSs=[noLoc (GRHS EpAnnNotUsed [] bod)]}) [Delete Stmt (toSSA test)]]
+  = [gen "Redundant guard" (Pattern l t pats o{grhssGRHSs=[noLocA (GRHS EpAnnNotUsed [] bod)]}) [Delete Stmt (toSSA test)]]
 hints _ (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
   = [suggestRemove "Redundant where" whereSpan "where" [ {- TODO refactoring for redundant where -} ]]
   where
@@ -164,15 +165,15 @@ hints _ (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
       RealSrcSpan s _ ->
         let end = realSrcSpanEnd s
             start = mkRealSrcLoc (srcSpanFile s) (srcLocLine end) (srcLocCol end - 5)
-         in RealSrcSpan (mkRealSrcSpan start end) Nothing
+         in RealSrcSpan (mkRealSrcSpan start end) GHC.Data.Strict.Nothing
 hints gen (Pattern l t pats o@(GRHSs _ (unsnoc -> Just (gs, L _ (GRHS _ [test] bod))) binds))
   | unsafePrettyPrint test == "True"
   = let otherwise_ = noLocA $ BodyStmt noExtField (strToVar "otherwise") noSyntaxExpr noSyntaxExpr in
-      [gen "Use otherwise" (Pattern l t pats o{grhssGRHSs = gs ++ [noLoc (GRHS EpAnnNotUsed [otherwise_] bod)]}) [Replace Expr (toSSA test) [] "otherwise"]]
+      [gen "Use otherwise" (Pattern l t pats o{grhssGRHSs = gs ++ [noLocA (GRHS EpAnnNotUsed [otherwise_] bod)]}) [Replace Expr (toSSA test) [] "otherwise"]]
 hints _ _ = []
 
 asGuards :: LHsExpr GhcPs -> [(LHsExpr GhcPs, LHsExpr GhcPs)]
-asGuards (L _ (HsPar _ x)) = asGuards x
+asGuards (L _ (HsPar _ _ x _)) = asGuards x
 asGuards (L _ (HsIf _ a b c)) = (a, b) : asGuards c
 asGuards x = [(strToVar "otherwise", x)]
 
@@ -206,7 +207,7 @@ patHint lang strict o@(L _ (BangPat _ pat@(L _ x)))
   | strict, f x = [warn "Redundant bang pattern" (reLoc o) (noLoc x :: Located (Pat GhcPs)) [r]]
   where
     f :: Pat GhcPs -> Bool
-    f (ParPat _ (L _ x)) = f x
+    f (ParPat _ _ (L _ x) _) = f x
     f (AsPat _ _ (L _ x)) = f x
     f LitPat {} = True
     f NPat {} = True
@@ -220,7 +221,7 @@ patHint False _ o@(L _ (LazyPat _ pat@(L _ x)))
   | f x = [warn "Redundant irrefutable pattern" (reLoc o) (noLoc x :: Located (Pat GhcPs)) [r]]
   where
     f :: Pat GhcPs -> Bool
-    f (ParPat _ (L _ x)) = f x
+    f (ParPat _ _ (L _ x) _) = f x
     f (AsPat _ _ (L _ x)) = f x
     f WildPat{} = True
     f VarPat{} = True

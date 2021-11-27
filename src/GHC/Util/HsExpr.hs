@@ -58,7 +58,7 @@ dotApps (x : xs) = dotApp x (dotApps xs)
 
 -- | @lambda [p0, p1..pn] body@ makes @\p1 p1 .. pn -> body@
 lambda :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
-lambda vs body = noLocA $ HsLam noExtField (MG noExtField (noLocA [noLocA $ Match EpAnnNotUsed LambdaExpr vs (GRHSs emptyComments [noLoc $ GRHS EpAnnNotUsed [] body] (EmptyLocalBinds noExtField))]) Generated)
+lambda vs body = noLocA $ HsLam noExtField (MG noExtField (noLocA [noLocA $ Match EpAnnNotUsed LambdaExpr vs (GRHSs emptyComments [noLocA $ GRHS EpAnnNotUsed [] body] (EmptyLocalBinds noExtField))]) Generated)
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -121,8 +121,8 @@ appsBracket = foldl1 mkApp
 
 simplifyExp :: LHsExpr GhcPs -> LHsExpr GhcPs
 -- Replace appliciations 'f $ x' with 'f (x)'.
-simplifyExp (L l (OpApp _ x op y)) | isDol op = L l (HsApp EpAnnNotUsed x (noLocA (HsPar EpAnnNotUsed y)))
-simplifyExp e@(L _ (HsLet _ ((HsValBinds _ (ValBinds _ binds []))) z)) =
+simplifyExp (L l (OpApp _ x op y)) | isDol op = L l (HsApp EpAnnNotUsed x (nlHsPar y))
+simplifyExp e@(L _ (HsLet _ _ ((HsValBinds _ (ValBinds _ binds []))) _ z)) =
   -- An expression of the form, 'let x = y in z'.
   case bagToList binds of
     [L _ (FunBind _ _ (MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] ((EmptyLocalBinds _))))]) _) _)]
@@ -159,7 +159,7 @@ niceLambdaR :: [String]
 niceLambdaR xs (SimpleLambda [] x) = niceLambdaR xs x
 
 -- Rewrite @\xs -> (e)@ as @\xs -> e@.
-niceLambdaR xs (L _ (HsPar _ x)) = niceLambdaR xs x
+niceLambdaR xs (L _ (HsPar _ _ x _)) = niceLambdaR xs x
 
 -- @\vs v -> ($) e v@ ==> @\vs -> e@
 -- @\vs v -> e $ v@ ==> @\vs -> e@
@@ -177,7 +177,7 @@ niceLambdaR [v] (L _ (OpApp _ e f (view -> Var_ v')))
   , vars e `disjoint` [v]
   , L _ (HsVar _ (L _ fname)) <- f
   , isSymOcc $ rdrNameOcc fname
-  = let res = noLocA $ HsPar EpAnnNotUsed $ noLocA $ SectionL EpAnnNotUsed e f
+  = let res = nlHsPar $ noLocA $ SectionL EpAnnNotUsed e f
      in (res, \s -> [Replace Expr s [] (unsafePrettyPrint res)])
 
 -- @\vs v -> f x v@ ==> @\vs -> f x@
@@ -213,7 +213,7 @@ niceLambdaR [x] y
     factor (L _ (OpApp _ y op (factor -> Just (z, ss))))| isDol op
       = let r = niceDotApp y z
         in if astEq r z then Just (r, ss) else Just (r, y : ss)
-    factor (L _ (HsPar _ y@(L _ HsApp{}))) = factor y
+    factor (L _ (HsPar _ _ y@(L _ HsApp{}) _)) = factor y
     factor _ = Nothing
     mkRefact :: [LHsExpr GhcPs] -> R.SrcSpan -> Refactoring R.SrcSpan
     mkRefact subts s =
@@ -239,7 +239,7 @@ niceLambdaR [x, y] (view -> App2 op (view -> Var_ y1) (view -> Var_ x1))
 niceLambdaR [] e = (e, \s -> [Replace Expr s [("a", toSSA e)] "a"])
 -- Base case. Just a good old fashioned lambda.
 niceLambdaR ss e =
-  let grhs = noLoc $ GRHS EpAnnNotUsed [] e :: LGRHS GhcPs (LHsExpr GhcPs)
+  let grhs = noLocA $ GRHS EpAnnNotUsed [] e :: LGRHS GhcPs (LHsExpr GhcPs)
       grhss = GRHSs {grhssExt = emptyComments, grhssGRHSs=[grhs], grhssLocalBinds=EmptyLocalBinds noExtField}
       match = noLocA $ Match {m_ext=EpAnnNotUsed, m_ctxt=LambdaExpr, m_pats=map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
       matchGroup = MG {mg_ext=noExtField, mg_origin=Generated, mg_alts=noLocA [match]}
@@ -298,7 +298,7 @@ descendBracketOld op x = (descendIndex g1 x, descendIndex' g2 x)
     g1 a b = fst (g a b)
     g2 a b = writer $ snd (g a b)
 
-    f i (L _ (HsPar _ y)) z w
+    f i (L _ (HsPar _ _ y _)) z w
       | not $ needBracketOld i x y = (y, removeBracket z)
       where
         -- If the template expr is a Var, record it so that we can remove the brackets

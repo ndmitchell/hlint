@@ -23,6 +23,7 @@ import GHC.Hs.Lit
 import GHC.Data.FastString
 import GHC.Parser.Annotation
 import GHC.Utils.Outputable
+import qualified GHC.Data.Strict
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
@@ -43,7 +44,7 @@ readPragma (HsAnnotation _ _ provenance expr) = f expr
                     Nothing -> errorOn expr "bad classify pragma"
                     Just severity -> Just $ Classify severity (trimStart b) "" name
             where (a,b) = break isSpace $ trimStart $ drop 6 s
-        f (L _ (HsPar _ x)) = f x
+        f (L _ (HsPar _ _ x _)) = f x
         f (L _ (ExprWithTySig _ x _)) = f x
         f _ = Nothing
 
@@ -83,6 +84,6 @@ errorOn (L pos val) msg = exitMessageImpure $
 errorOnComment :: LEpaComment -> String -> b
 errorOnComment c@(L s _) msg = exitMessageImpure $
     let isMultiline = isCommentMultiline c in
-    showSrcSpan (RealSrcSpan (anchor s) Nothing) ++
+    showSrcSpan (RealSrcSpan (anchor s) GHC.Data.Strict.Nothing) ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     (if isMultiline then "{-" else "--") ++ commentText c ++ (if isMultiline then "-}" else "")

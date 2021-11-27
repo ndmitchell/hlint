@@ -268,6 +268,8 @@ import GHC.Hs
 import GHC.Types.Basic
 import GHC.Types.Name.Reader
 import GHC.Types.ForeignCall
+import qualified GHC.Data.Strict
+import GHC.Types.PkgQual
 
 import GHC.Util
 import GHC.LanguageExtensions.Type
@@ -286,7 +288,7 @@ extensionsHint :: ModuHint
 extensionsHint _ x =
     [
         rawIdea Hint.Type.Warning "Unused LANGUAGE pragma"
-        (RealSrcSpan (anchor sl) Nothing)
+        (RealSrcSpan (anchor sl) GHC.Data.Strict.Nothing)
         (comment_ (mkLanguagePragmas sl exts))
         (Just newPragma)
         ( [RequiresExtension (show gone) | (_, Just x) <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
@@ -372,21 +374,9 @@ usedExt DeriveLift = hasDerive ["Lift"]
 usedExt DeriveAnyClass = not . null . derivesAnyclass . derives
 usedExt x = used x
 
--- The ghc-lib-parser-ex functions are getting fixed to have the new
--- signatures.
-isMDo' :: HsStmtContext GhcRn -> Bool
-isMDo' = \case MDoExpr _ -> True; _ -> False
-isStrictMatch' :: HsMatchContext GhcPs -> Bool
-isStrictMatch' = \case FunRhs{mc_strictness=SrcStrict} -> True; _ -> False
-
-isGetField :: LHsExpr GhcPs -> Bool
-isGetField = \case (L _ HsGetField{}) -> True; _ -> False
-isProjection :: LHsExpr GhcPs -> Bool
-isProjection = \case (L _ HsProjection{}) -> True; _ -> False
-
 used :: Extension -> Located HsModule -> Bool
 
-used RecursiveDo = hasS isMDo' ||^ hasS isRecStmt
+used RecursiveDo = hasS isMDo ||^ hasS isRecStmt
 used ParallelListComp = hasS isParComp
 used FunctionalDependencies = hasT (un :: FunDep GhcPs)
 used ImplicitParams = hasT (un :: HsIPName)
@@ -403,9 +393,9 @@ used EmptyCase = hasS f
     f (HsLamCase _ (MG _ (L _ []) _)) = True
     f _ = False
 used KindSignatures = hasT (un :: HsKind GhcPs)
-used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch'
-used TemplateHaskell = hasS $ \case (HsQuasiQuote{} :: HsSplice GhcPs) -> False; _ -> True
-used TemplateHaskellQuotes = hasT (un :: HsBracket GhcPs)
+used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
+used TemplateHaskell = hasS $ not . isQuasiQuoteSplice
+used TemplateHaskellQuotes = hasT (un :: HsQuote GhcPs)
 used ForeignFunctionInterface = hasT (un :: CCallConv)
 used PatternGuards = hasS f
   where
@@ -433,7 +423,7 @@ used TypeOperators = hasS tyOpInSig ||^ hasS tyOpInDecl
     isOp (L _ name) = isSymbolRdrName name
 
 used RecordWildCards = hasS hasFieldsDotDot ||^ hasS hasPFieldsDotDot
-used RecordPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
+used NamedFieldPuns = hasS isPFieldPun ||^ hasS isFieldPun ||^ hasS isFieldPunUpdate
 used UnboxedTuples = hasS isUnboxedTuple ||^ hasS (== Unboxed) ||^ hasS isDeriving
   where
       -- detect if there are deriving declarations or data ... deriving stuff
@@ -444,9 +434,9 @@ used UnboxedTuples = hasS isUnboxedTuple ||^ hasS (== Unboxed) ||^ hasS isDerivi
 used PackageImports = hasS f
   where
       f :: ImportDecl GhcPs -> Bool
-      f ImportDecl{ideclPkgQual=Just _} = True
+      f ImportDecl{ideclPkgQual=RawPkgQual _} = True
       f _ = False
-used QuasiQuotes = hasS isQuasiQuote ||^ hasS isTyQuasiQuote
+used QuasiQuotes = hasS isQuasiQuoteExpr ||^ hasS isTyQuasiQuote
 used ViewPatterns = hasS isPViewPat
 used InstanceSigs = hasS f
   where
@@ -483,11 +473,7 @@ used OverloadedLists = hasS isListExpr ||^ hasS isListPat
     isListPat ListPat{} = True
     isListPat _ = False
 
-used OverloadedLabels = hasS isLabel
-  where
-    isLabel :: HsExpr GhcPs -> Bool
-    isLabel HsOverLabel{} = True
-    isLabel _ = False
+used OverloadedLabels = hasS isOverLabel
 
 used Arrows = hasS isProc
 used TransformListComp = hasS isTransStmt
@@ -498,7 +484,7 @@ used MagicHash = hasS f ||^ hasS isPrimLiteral
 used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
 used ImportQualifiedPost = hasS (== QualifiedPost)
 used StandaloneKindSignatures = hasT (un :: StandaloneKindSig GhcPs)
-used OverloadedRecordDot = hasS isGetField ||^ hasS isProjection
+used OverloadedRecordDot = hasT (un :: DotFieldOcc GhcPs)
 
 used _= const True
 

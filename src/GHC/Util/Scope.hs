@@ -14,6 +14,7 @@ import GHC.Unit.Module
 import GHC.Data.FastString
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
+import GHC.Types.PkgQual
 
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -34,7 +35,10 @@ scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
   where
     -- Package qualifier of an import declaration.
     pkg :: LImportDecl GhcPs -> Maybe StringLiteral
-    pkg (L _ x) = ideclPkgQual x
+    pkg (L _ x) =
+      case ideclPkgQual x of
+        RawPkgQual s -> Just s
+        NoRawPkgQual -> Nothing
 
     -- The import declaraions contained by the module 'xs'.
     res :: [LImportDecl GhcPs]

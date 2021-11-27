@@ -69,6 +69,8 @@ import GHC.Types.Basic
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
 import GHC.Data.Bag
+import qualified GHC.Data.Strict
+
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -132,7 +134,7 @@ monadExp decl parentDo parentExpr x =
       RealSrcSpan s _ ->
         let start = realSrcSpanStart s
             end = mkRealSrcLoc (srcSpanFile s) (srcLocLine start) (srcLocCol start + length doOrMDo)
-         in RealSrcSpan (mkRealSrcSpan start end) Nothing
+         in RealSrcSpan (mkRealSrcSpan start end) GHC.Data.Strict.Nothing
 
 -- Sometimes people write 'a * do a + b', to avoid brackets,
 -- or using BlockArguments they can write 'a do a b',
@@ -156,7 +158,7 @@ doAsAvoidingIndentation parent self = False
 
 
 returnsUnit :: LHsExpr GhcPs -> Bool
-returnsUnit (L _ (HsPar _ x)) = returnsUnit x
+returnsUnit (L _ (HsPar _ _ x _)) = returnsUnit x
 returnsUnit (L _ (HsApp _ x _)) = returnsUnit x
 returnsUnit (L _ (OpApp _ x op _)) | isDol op = returnsUnit x
 returnsUnit (L _ (HsVar _ (L _ x))) = occNameStr x `elem` map (++ "_") badFuncs ++ unitFuncs
@@ -165,7 +167,7 @@ returnsUnit _ = False
 -- See through HsPar, and down HsIf/HsCase, return the name to use in
 -- the hint, and the revised expression.
 monadNoResult :: String -> (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
-monadNoResult inside wrap (L l (HsPar _ x)) = monadNoResult inside (wrap . L l . HsPar EpAnnNotUsed) x
+monadNoResult inside wrap (L l (HsPar _ _ x _)) = monadNoResult inside (wrap . nlHsPar) x
 monadNoResult inside wrap (L l (HsApp _ x y)) = monadNoResult inside (\x -> wrap $ L l (HsApp EpAnnNotUsed x y)) x
 monadNoResult inside wrap (L l (OpApp _ x tag@(L _ (HsVar _ (L _ op))) y))
     | isDol tag = monadNoResult inside (\x -> wrap $ L l (OpApp EpAnnNotUsed x tag y)) x
@@ -255,7 +257,7 @@ monadLet xs = mapMaybe mkLet xs
     template :: String -> LHsExpr GhcPs -> ExprLStmt GhcPs
     template lhs rhs =
         let p = noLocA $ mkRdrUnqual (mkVarOcc lhs)
-            grhs = noLoc (GRHS EpAnnNotUsed [] rhs)
+            grhs = noLocA (GRHS EpAnnNotUsed [] rhs)
             grhss = GRHSs emptyComments [grhs] (EmptyLocalBinds noExtField)
             match = noLocA $ Match EpAnnNotUsed (FunRhs p Prefix NoSrcStrict) [] grhss
             fb = noLocA $ FunBind noExtField p (MG noExtField (noLocA [match]) Generated) []
@@ -270,7 +272,7 @@ fromApplies (L _ (OpApp _ f (isDol -> True) x)) = first (f:) $ fromApplies x
 fromApplies x = ([], x)
 
 fromRet :: LHsExpr GhcPs -> Maybe (String, LHsExpr GhcPs)
-fromRet (L _ (HsPar _ x)) = fromRet x
+fromRet (L _ (HsPar _ _ x _)) = fromRet x
 fromRet (L _ (OpApp _ x (L _ (HsVar _ (L _ y))) z)) | occNameStr y == "$" = fromRet $ noLocA (HsApp EpAnnNotUsed x z)
 fromRet (L _ (HsApp _ x y)) | isReturn x = Just (unsafePrettyPrint x, y)
 fromRet _ = Nothing

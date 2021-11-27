@@ -52,8 +52,15 @@ import GHC.Types.SourceText
 import GHC.Hs
 import GHC.Types.SrcLoc
 import GHC.Unit.Types -- for 'NotBoot'
+import GHC.Types.PkgQual
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
+
+rawPkgQualToMaybe :: RawPkgQual -> Maybe StringLiteral
+rawPkgQualToMaybe x =
+  case x of
+    NoRawPkgQual -> Nothing
+    RawPkgQual lit -> Just lit
 
 importHint :: ModuHint
 importHint _ ModuleEx {ghcModule=L _ HsModule{hsmodImports=ms}} =
@@ -63,7 +70,7 @@ importHint _ ModuleEx {ghcModule=L _ HsModule{hsmodImports=ms}} =
               , ideclSource (unLoc i) == NotBoot
               , let i' = unLoc i
               , let n = unLoc $ ideclName i'
-              , let pkg  = unpackFS . sl_fs <$> ideclPkgQual i']) ++
+              , let pkg  = unpackFS . sl_fs <$> rawPkgQualToMaybe (ideclPkgQual i')]) ++
   -- Ideas for removing redundant 'as' clauses.
   concatMap stripRedundantAlias ms
 

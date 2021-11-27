@@ -8,6 +8,7 @@ module GHC.Util.ApiAnnotation (
 
 import GHC.LanguageExtensions.Type (Extension)
 import GHC.Parser.Annotation
+import GHC.Hs.DocString
 import GHC.Types.SrcLoc
 
 import Language.Haskell.GhclibParserEx.GHC.Driver.Session
@@ -33,14 +34,11 @@ trimCommentDelims = trimCommentEnd . trimCommentStart
 
 -- | A comment as a string.
 comment_ :: LEpaComment -> String
-comment_ (L _ (EpaComment (EpaBlockComment s ) _)) = s
-comment_ (L _ (EpaComment (EpaLineComment s) _)) = s
+comment_ (L _ (EpaComment (EpaDocComment ds ) _)) = renderHsDocString ds
 comment_ (L _ (EpaComment (EpaDocOptions s) _)) = s
-comment_ (L _ (EpaComment (EpaDocCommentNamed s) _)) = s
-comment_ (L _ (EpaComment (EpaDocCommentPrev s) _)) = s
-comment_ (L _ (EpaComment (EpaDocCommentNext s) _)) = s
-comment_ (L _ (EpaComment (EpaDocSection _ s) _)) = s
-comment_ (L _ (EpaComment  EpaEofComment _)) = ""
+comment_ (L _ (EpaComment (EpaLineComment s) _)) = s
+comment_ (L _ (EpaComment (EpaBlockComment s) _)) = s
+comment_ (L _ (EpaComment EpaEofComment _)) = ""
 
 -- | The comment string with delimiters removed.
 commentText :: LEpaComment -> String

@@ -18,7 +18,7 @@ fromParen :: LocatedA (HsExpr GhcPs) -> LocatedA (HsExpr GhcPs)
 fromParen x = maybe x fromParen $ remParen x
 
 fromPParen :: LocatedA (Pat GhcPs) -> LocatedA (Pat GhcPs)
-fromPParen (L _ (ParPat _ x)) = fromPParen x
+fromPParen (L _ (ParPat _ _ x _ )) = fromPParen x
 fromPParen x = x
 
 class View a b where

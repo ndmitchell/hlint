@@ -173,7 +173,7 @@ findCase x = do
 
   let ps12 = let (a, b) = splitAt p1 ps1 in map strToPat (a ++ xs : b) -- Function arguments.
       emptyLocalBinds = EmptyLocalBinds noExtField :: HsLocalBindsLR GhcPs GhcPs -- Empty where clause.
-      gRHS e = noLoc $ GRHS EpAnnNotUsed [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
+      gRHS e = noLocA $ GRHS EpAnnNotUsed [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
       gRHSSs e = GRHSs emptyComments [gRHS e] emptyLocalBinds -- Guarded rhs set.
       match e = Match{m_ext=EpAnnNotUsed,m_pats=ps12, m_grhss=gRHSSs e, ..} -- Match.
       matchGroup e = MG{mg_alts=noLocA [noLocA $ match e], mg_origin=Generated, ..} -- Match group.
@@ -225,7 +225,7 @@ findPat ps = do
 
 readPat :: LPat GhcPs -> Maybe (Either String BList)
 readPat (view -> PVar_ x) = Just $ Left x
-readPat (L _ (ParPat _ (L _ (ConPat _ (L _ n) (InfixCon (view -> PVar_ x) (view -> PVar_ xs))))))
+readPat (L _ (ParPat _ _ (L _ (ConPat _ (L _ n) (InfixCon (view -> PVar_ x) (view -> PVar_ xs)))) _))
  | n == consDataCon_RDR = Just $ Right $ BCons x xs
 readPat (L _ (ConPat _ (L _ n) (PrefixCon [] [])))
   | n == nameRdrName nilDataConName = Just $ Right BNil

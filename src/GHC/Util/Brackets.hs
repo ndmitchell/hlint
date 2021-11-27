@@ -26,18 +26,18 @@ instance Brackets (LocatedA (HsExpr GhcPs)) where
   -- result in a "naked" section. Consequently, given an expression,
   -- when stripping brackets (c.f. 'Hint.Brackets), don't remove the
   -- paren's surrounding a section - they are required.
-  remParen (L _ (HsPar _ (L _ SectionL{}))) = Nothing
-  remParen (L _ (HsPar _ (L _ SectionR{}))) = Nothing
-  remParen (L _ (HsPar _ x)) = Just x
+  remParen (L _ (HsPar _ _ (L _ SectionL{}) _)) = Nothing
+  remParen (L _ (HsPar _ _ (L _ SectionR{}) _)) = Nothing
+  remParen (L _ (HsPar _ _ x _)) = Just x
   remParen _ = Nothing
 
-  addParen e = noLocA $ HsPar EpAnnNotUsed e
+  addParen e = nlHsPar e
 
   isAtom (L _ x) = case x of
       HsVar{} -> True
       HsUnboundVar{} -> True
       -- Technically atomic, but lots of people think it shouldn't be
-      HsRecFld{} -> False
+      HsRecSel{} -> False
       HsOverLabel{} -> True
       HsIPVar{} -> True
       -- Note that sections aren't atoms (but parenthesized sections are).
@@ -48,7 +48,8 @@ instance Brackets (LocatedA (HsExpr GhcPs)) where
       RecordCon{} -> True
       RecordUpd{} -> True
       ArithSeq{}-> True
-      HsBracket{} -> True
+      HsTypedBracket{} -> True
+      HsUntypedBracket{} -> True
       -- HsSplice might be $foo, where @($foo) would require brackets,
       -- but in that case the $foo is a type, so we can still mark Splice as atomic
       HsSpliceE{} -> True
@@ -104,9 +105,9 @@ isAtomOrApp (L _ (HsApp _ _ x)) = isAtomOrApp x
 isAtomOrApp _ = False
 
 instance Brackets (LocatedA (Pat GhcPs)) where
-  remParen (L _ (ParPat _ x)) = Just x
+  remParen (L _ (ParPat _ _ x _)) = Just x
   remParen _ = Nothing
-  addParen e = noLocA $ ParPat EpAnnNotUsed e
+  addParen e = nlParPat e
 
   isAtom (L _ x) = case x of
     ParPat{} -> True

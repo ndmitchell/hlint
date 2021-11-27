@@ -10,6 +10,7 @@ import GHC.Parser.Annotation
 import GHC.Types.SrcLoc
 import GHC.Utils.Outputable
 import GHC.Data.FastString
+import qualified GHC.Data.Strict
 
 import Data.Default
 import Data.Data
@@ -18,7 +19,7 @@ import Data.Generics.Uniplate.DataOnly
 -- Get the 'SrcSpan' out of a value located by an 'Anchor' (e.g.
 -- comments).
 getAncLoc :: GenLocated Anchor a -> SrcSpan
-getAncLoc o = RealSrcSpan (anchor (getLoc o)) Nothing
+getAncLoc o = RealSrcSpan (anchor (getLoc o)) GHC.Data.Strict.Nothing
 
 -- 'stripLocs x' is 'x' with all contained source locs replaced by
 -- 'noSrcSpan'.
