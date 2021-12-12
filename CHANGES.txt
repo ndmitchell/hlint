@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1304, support aeson-2.0
     #1309, suggest `either Left f x` becomes `f =<< x`
     #1295, suggest TemplateHaskell to TemplateHaskellQuotes if it works
     #1292, don't say redundant bracket around pattern splices
