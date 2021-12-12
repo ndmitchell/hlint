@@ -29,6 +29,10 @@ extra-source-files:
     data/*.hs
     data/*.yaml
     tests/*.test
+    -- These are needed because of haskell/cabal#7862
+    data/default.yaml
+    data/hlint.yaml
+    data/report_template.yaml
 extra-doc-files:
     README.md
     CHANGES.txt
