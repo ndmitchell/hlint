@@ -148,12 +148,11 @@ parseDeclGhcWithMode parseMode s =
 -- parsed module has not been adjusted to account for operator
 -- fixities (it uses the HLint default fixities).
 createModuleEx :: Located HsModule -> ModuleEx
-createModuleEx ast =
-  ModuleEx (applyFixities (fixitiesFromModule ast ++ map toFixity defaultFixities) ast)
+createModuleEx = createModuleExWithFixities (map toFixity defaultFixities)
 
-createModuleExWithFixities :: [(String, Fixity)] -> ApiAnns -> Located HsModule -> ModuleEx
-createModuleExWithFixities fixities anns ast =
-  ModuleEx (applyFixities (fixitiesFromModule ast ++ fixities) ast) anns
+createModuleExWithFixities :: [(String, Fixity)] -> Located HsModule -> ModuleEx
+createModuleExWithFixities fixities ast =
+  ModuleEx (applyFixities (fixitiesFromModule ast ++ fixities) ast)
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
