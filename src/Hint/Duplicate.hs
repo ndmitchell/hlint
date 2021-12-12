@@ -57,10 +57,10 @@ duplicateHint ms =
          ]
     where
       ds = [(modName m, fromMaybe "" (declName d), unLoc d)
-           | ModuleEx m _ <- map snd ms
+           | ModuleEx m <- map snd ms
            , d <- hsmodDecls (unLoc m)]
 
-dupes :: (Outputable e, Data e) => [(String, String, [Located e])] -> [Idea]
+dupes :: (Outputable e, Data e) => [(String, String, [LocatedA e])] -> [Idea]
 dupes ys =
     [(rawIdeaN
         (if length xs >= 5 then Hint.Type.Warning else Suggestion)
@@ -72,7 +72,7 @@ dupes ys =
     | ((m1, d1, SrcSpanD p1), (m2, d2, SrcSpanD p2), xs) <- duplicateOrdered 3 $ map f ys]
     where
       f (m, d, xs) =
-        [((m, d, SrcSpanD (getLoc x)), extendInstances (stripLocs x)) | x <- xs]
+        [((m, d, SrcSpanD (locA (getLoc x))), extendInstances (stripLocs x)) | x <- xs]
 
 ---------------------------------------------------------------------
 -- DUPLICATE FINDING

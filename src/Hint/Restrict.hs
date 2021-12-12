@@ -20,7 +20,7 @@ foo = nub s
 </TEST>
 -}
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea)
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea,modComments)
 import Config.Type
 import Util
 
@@ -38,7 +38,6 @@ import Prelude
 
 import GHC.Hs
 import GHC.Types.Name.Reader
-import GHC.Parser.Annotation
 import GHC.Unit.Module
 import GHC.Types.SrcLoc
 import GHC.Types.Name.Occurrence
@@ -49,7 +48,7 @@ import GHC.Util
 -- FIXME: The settings should be partially applied, but that's hard to orchestrate right now
 restrictHint :: [Setting] -> ModuHint
 restrictHint settings scope m =
-    let anns = ghcAnnotations m
+    let anns = modComments m
         ps   = pragmas anns
         opts = flags ps
         exts = languagePragmas ps in
@@ -116,17 +115,17 @@ within modu func = any (\(a,b) -> (a == modu || a == "") && (b == func || b == "
 -- CHECKS
 
 checkPragmas :: String
-              -> [(Located AnnotationComment, [String])]
-              -> [(Located AnnotationComment, [String])]
+              -> [(LEpaComment, [String])]
+              -> [(LEpaComment, [String])]
               ->  Map.Map RestrictType (Bool, Map.Map String RestrictItem)
               -> [Idea]
 checkPragmas modu flags exts mps =
   f RestrictFlag "flags" flags ++ f RestrictExtension "extensions" exts
   where
    f tag name xs =
-     [(if null good then ideaNoTo else id) $ notes $ rawIdea Hint.Type.Warning ("Avoid restricted " ++ name) l c Nothing [] []
+     [(if null good then ideaNoTo else id) $ notes $ rawIdea Hint.Type.Warning ("Avoid restricted " ++ name) (getAncLoc l) c Nothing [] []
      | Just (def, mp) <- [Map.lookup tag mps]
-     , (L l (AnnBlockComment c), les) <- xs
+     , (l@(L _ (EpaComment (EpaBlockComment c) _)), les) <- xs
      , let (good, bad) = partition (isGood def mp) les
      , let note = maybe noteMayBreak Note . (=<<) riMessage . flip Map.lookup mp
      , let notes w = w {ideaNote=note <$> bad}
@@ -141,7 +140,7 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
       let RestrictItem{..} = getRestrictItem def ideclName mp
       either (Just . ideaMessage riMessage) (const Nothing) $ do
         unless (within modu "" riWithin) $
-          Left $ ideaNoTo $ warn "Avoid restricted module" i i []
+          Left $ ideaNoTo $ warn "Avoid restricted module" (reLoc i) (reLoc i) []
 
         let importedIdents = Set.fromList $
               case ideclHiding of
@@ -152,20 +151,20 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
               ForbidIdents badIdents -> importedIdents `Set.intersection` Set.fromList badIdents
               OnlyIdents onlyIdents -> importedIdents `Set.difference` Set.fromList onlyIdents
         unless (Set.null invalidIdents) $
-          Left $ ideaNoTo $ warn "Avoid restricted identifiers" i i []
+          Left $ ideaNoTo $ warn "Avoid restricted identifiers" (reLoc i) (reLoc i) []
 
         let qualAllowed = case (riAs, ideclAs) of
               ([], _) -> True
               (_, Nothing) -> True
               (_, Just (L _ modName)) -> moduleNameString modName `elem` riAs
         unless qualAllowed $ do
-          let i' = noLoc $ (unLoc i){ ideclAs = noLoc . mkModuleName <$> listToMaybe riAs }
-          Left $ warn "Avoid restricted qualification" i i' []
+          let i' = noLoc $ (unLoc i){ ideclAs = noLocA . mkModuleName <$> listToMaybe riAs }
+          Left $ warn "Avoid restricted qualification" (reLoc i) i' []
 
-getRestrictItem :: Bool -> Located ModuleName -> Map.Map String RestrictItem -> RestrictItem
+getRestrictItem :: Bool -> LocatedA ModuleName -> Map.Map String RestrictItem -> RestrictItem
 getRestrictItem def ideclName = fromMaybe (RestrictItem [] [("","") | def] NoRestrictIdents Nothing) . lookupRestrictItem ideclName
 
-lookupRestrictItem :: Located ModuleName -> Map.Map String RestrictItem -> Maybe RestrictItem
+lookupRestrictItem :: LocatedA ModuleName -> Map.Map String RestrictItem -> Maybe RestrictItem
 lookupRestrictItem ideclName mp =
     let moduleName = moduleNameString $ unLoc ideclName
         exact = Map.lookup moduleName mp
@@ -181,14 +180,15 @@ importListToIdents =
   \case (IEVar _ n)              -> [fromName n]
         (IEThingAbs _ n)         -> [fromName n]
         (IEThingAll _ n)         -> [fromName n]
-        (IEThingWith _ n _ ns _) -> fromName n : map fromName ns
+        (IEThingWith _ n _ ns)   -> fromName n : map fromName ns
         _                        -> []
   where
     fromName :: LIEWrappedName (IdP GhcPs) -> Maybe String
-    fromName wrapped = case unLoc wrapped of
-                         IEName    n -> fromId (unLoc n)
-                         IEPattern n -> ("pattern " ++) <$> fromId (unLoc n)
-                         IEType    n -> ("type " ++) <$> fromId (unLoc n)
+    fromName wrapped =
+      case unLoc wrapped of
+        IEName      n   -> fromId (unLoc n)
+        IEPattern _ n -> ("pattern " ++) <$> fromId (unLoc n)
+        IEType    _ n-> ("type " ++) <$> fromId (unLoc n)
 
     fromId :: IdP GhcPs -> Maybe String
     fromId (Unqual n) = Just $ occNameString n
@@ -198,10 +198,10 @@ importListToIdents =
 
 checkFunctions :: Scope -> String -> [LHsDecl GhcPs] -> RestrictFunctions -> [Idea]
 checkFunctions scope modu decls (def, mp) =
-    [ (ideaMessage message $ ideaNoTo $ warn "Avoid restricted function" x x []){ideaDecl = [dname]}
+    [ (ideaMessage message $ ideaNoTo $ warn "Avoid restricted function" (reLocN x) (reLocN x) []){ideaDecl = [dname]}
     | d <- decls
     , let dname = fromMaybe "" (declName d)
-    , x <- universeBi d :: [Located RdrName]
+    , x <- universeBi d :: [LocatedN RdrName]
     , let xMods = possModules scope x
     , let (withins, message) = fromMaybe ([("","") | def], Nothing) (findFunction mp x xMods)
     , not $ within modu dname withins
@@ -213,7 +213,7 @@ checkFunctions scope modu decls (def, mp) =
 -- withins and messages are concatenated with (<>).
 findFunction
     :: Map.Map String RestrictFunction
-    -> Located RdrName
+    -> LocatedN RdrName
     -> [ModuleName]
     -> Maybe ([(String, String)], Maybe String)
 findFunction restrictMap (rdrNameStr -> x) (map moduleNameString -> possMods) = do

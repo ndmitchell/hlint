@@ -5,7 +5,7 @@ module GHC.Util.Brackets (Brackets(..), isApp,isOpApp,isAnyApp) where
 
 import GHC.Hs
 import GHC.Types.SrcLoc
-import GHC.Types.Basic
+import GHC.Types.SourceText
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Refact.Types
 
@@ -20,7 +20,7 @@ class Brackets a where
   needBracket :: Int -> a -> a -> Bool
   findType :: a -> RType
 
-instance Brackets (LHsExpr GhcPs) where
+instance Brackets (LocatedA (HsExpr GhcPs)) where
   -- When GHC parses a section in concrete syntax, it will produce an
   -- 'HsPar (Section[L|R])'. There is no concrete syntax that will
   -- result in a "naked" section. Consequently, given an expression,
@@ -31,7 +31,7 @@ instance Brackets (LHsExpr GhcPs) where
   remParen (L _ (HsPar _ x)) = Just x
   remParen _ = Nothing
 
-  addParen e = noLoc $ HsPar noExtField e
+  addParen e = noLocA $ HsPar EpAnnNotUsed e
 
   isAtom (L _ x) = case x of
       HsVar{} -> True
@@ -98,15 +98,15 @@ instance Brackets (LHsExpr GhcPs) where
 --
 --   (f \x -> x) *> ...
 --   (f do x) *> ...
-isAtomOrApp :: LHsExpr GhcPs -> Bool
+isAtomOrApp :: LocatedA (HsExpr GhcPs) -> Bool
 isAtomOrApp x | isAtom x = True
 isAtomOrApp (L _ (HsApp _ _ x)) = isAtomOrApp x
 isAtomOrApp _ = False
 
-instance Brackets (Located (Pat GhcPs)) where
+instance Brackets (LocatedA (Pat GhcPs)) where
   remParen (L _ (ParPat _ x)) = Just x
   remParen _ = Nothing
-  addParen e = noLoc $ ParPat noExtField e
+  addParen e = noLocA $ ParPat EpAnnNotUsed e
 
   isAtom (L _ x) = case x of
     ParPat{} -> True
@@ -114,7 +114,7 @@ instance Brackets (Located (Pat GhcPs)) where
     ListPat{} -> True
     -- This is technically atomic, but lots of people think it shouldn't be
     ConPat _ _ RecCon{} -> False
-    ConPat _ _ (PrefixCon []) -> True
+    ConPat _ _ (PrefixCon _ []) -> True
     VarPat{} -> True
     WildPat{} -> True
     SumPat{} -> True
@@ -141,10 +141,10 @@ instance Brackets (Located (Pat GhcPs)) where
 
   findType _ = Pattern
 
-instance Brackets (LHsType GhcPs) where
+instance Brackets (LocatedA (HsType GhcPs)) where
   remParen (L _ (HsParTy _ x)) = Just x
   remParen _ = Nothing
-  addParen e = noLoc $ HsParTy noExtField e
+  addParen e = noLocA $ HsParTy EpAnnNotUsed e
 
   isAtom (L _ x) = case x of
       HsParTy{} -> True

@@ -639,7 +639,7 @@ foo = bar (\x -> case x of Y z -> z)
 <br>
 Found:
 <code>
-\ x -> case x of { Y z -> z }
+\ x -> case x of Y z -> z
 </code>
 <br>
 Suggestion:
@@ -958,7 +958,7 @@ foo = case f v of _ -> x
 <br>
 Found:
 <code>
-case f v of { _ -> x }
+case f v of _ -> x
 </code>
 <br>
 Suggestion:

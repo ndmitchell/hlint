@@ -72,7 +72,7 @@ applyHintsReal settings hints_ ms = concat $
 removeRequiresExtensionNotes :: ModuleEx -> Idea -> Idea
 removeRequiresExtensionNotes m = \x -> x{ideaNote = filter keep $ ideaNote x}
     where
-        exts = Set.fromList $ concatMap snd $ languagePragmas $ pragmas $ ghcAnnotations m
+        exts = Set.fromList $ concatMap snd $ languagePragmas $ pragmas (comments (hsmodAnn (unLoc . ghcModule $ m)))
         keep (RequiresExtension x) = not $ x `Set.member` exts
         keep _ = True
 
@@ -90,10 +90,18 @@ parseModuleApply flags s file src = do
       Left (ParseError sl msg ctxt) ->
             pure $ Left $ classify [x | SettingClassify x <- s] $ rawIdeaN Error (adjustMessage msg) sl ctxt Nothing []
     where
+
         -- important the message has "Parse error:" as the prefix so "--ignore=Parse error" works
         -- try and tidy up things like "parse error (mismatched brackets)" to not look silly
         adjustMessage :: String -> String
-        adjustMessage x = "Parse error: " ++ dropBrackets (dropPrefix "parse error " x)
+        adjustMessage x =
+          "Parse error: " ++
+          dropBrackets (
+            case stripInfix "parse error " x of
+              Nothing -> x
+              Just (prefix, _) ->
+                dropPrefix (prefix ++ "parse error ") x
+          )
 
         dropBrackets ('(':xs) | Just (xs,')') <- unsnoc xs = xs
         dropBrackets xs = xs

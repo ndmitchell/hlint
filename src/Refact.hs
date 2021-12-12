@@ -3,7 +3,7 @@
 module Refact
     ( substVars
     , toRefactSrcSpan
-    , toSS
+    , toSS, toSSA, toSSAnc
     , checkRefactor, refactorPath, runRefactoring
     ) where
 
@@ -20,6 +20,9 @@ import System.Process.Extra
 import qualified Refact.Types as R
 
 import qualified GHC.Types.SrcLoc as GHC
+import qualified GHC.Parser.Annotation as GHC
+
+import GHC.Util.SrcLoc (getAncLoc)
 
 substVars :: [String]
 substVars = [letter : number | number <- "" : map show [0..], letter <- ['a'..'z']]
@@ -38,6 +41,12 @@ toRefactSrcSpan = \case
 -- opting instead to show @-1 -1 -1 -1@ coordinates.
 toSS :: GHC.Located a -> R.SrcSpan
 toSS = toRefactSrcSpan . GHC.getLoc
+
+toSSA :: GHC.GenLocated (GHC.SrcSpanAnn' a) e -> R.SrcSpan
+toSSA = toRefactSrcSpan . GHC.getLocA
+
+toSSAnc :: GHC.GenLocated GHC.Anchor e -> R.SrcSpan
+toSSAnc = toRefactSrcSpan . getAncLoc
 
 checkRefactor :: Maybe FilePath -> IO FilePath
 checkRefactor = refactorPath >=> either errorIO pure

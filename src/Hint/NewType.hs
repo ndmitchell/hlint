@@ -12,7 +12,7 @@ data Foo a b = Foo a -- newtype Foo a b = Foo a
 data Foo = Foo { field1, field2 :: Int}
 data S a = forall b . Show b => S b
 {-# LANGUAGE RankNTypes #-}; data S a = forall b . Show b => S b
-{-# LANGUAGE RankNTypes #-}; data Foo = Foo (forall a. a) -- newtype Foo = Foo (forall a. a)
+{-# LANGUAGE RankNTypes #-}; data Foo = Foo (forall a . a) -- newtype Foo = Foo (forall a. a)
 data Color a = Red a | Green a | Blue a
 data Pair a b = Pair a b
 data Foo = Bar
@@ -56,15 +56,15 @@ newtypeHint _ _ x = newtypeHintDecl x ++ newTypeDerivingStrategiesHintDecl x
 newtypeHintDecl :: LHsDecl GhcPs -> [Idea]
 newtypeHintDecl old
     | Just WarnNewtype{newDecl, insideType} <- singleSimpleField old
-    = [(suggestN "Use newtype instead of data" old newDecl)
+    = [(suggestN "Use newtype instead of data" (reLoc old) (reLoc newDecl))
             {ideaNote = [DecreasesLaziness | warnBang insideType]}]
 newtypeHintDecl _ = []
 
 newTypeDerivingStrategiesHintDecl :: LHsDecl GhcPs -> [Idea]
 newTypeDerivingStrategiesHintDecl decl@(L _ (TyClD _ (DataDecl _ _ _ _ dataDef))) =
-    [ignoreNoSuggestion "Use DerivingStrategies" decl | shouldSuggestStrategies dataDef]
-newTypeDerivingStrategiesHintDecl decl@(L _ (InstD _ (DataFamInstD _ (DataFamInstDecl (HsIB _ (FamEqn _ _ _ _ _ dataDef)))))) =
-    [ignoreNoSuggestion "Use DerivingStrategies" decl | shouldSuggestStrategies dataDef]
+    [ignoreNoSuggestion "Use DerivingStrategies" (reLoc decl) | shouldSuggestStrategies dataDef]
+newTypeDerivingStrategiesHintDecl decl@(L _ (InstD _ (DataFamInstD _ (DataFamInstDecl ((FamEqn _ _ _ _ _ dataDef)))))) =
+    [ignoreNoSuggestion "Use DerivingStrategies" (reLoc decl) | shouldSuggestStrategies dataDef]
 newTypeDerivingStrategiesHintDecl _ = []
 
 -- | Determine if the given data definition should use deriving strategies.
@@ -72,7 +72,7 @@ shouldSuggestStrategies :: HsDataDefn GhcPs -> Bool
 shouldSuggestStrategies dataDef = not (isData dataDef) && not (hasAllStrategies dataDef)
 
 hasAllStrategies :: HsDataDefn GhcPs -> Bool
-hasAllStrategies (HsDataDefn _ NewType _ _ _ _ (L _ xs)) = all hasStrategyClause xs
+hasAllStrategies (HsDataDefn _ NewType _ _ _ _  xs) = all hasStrategyClause xs
 hasAllStrategies _ = False
 
 isData :: HsDataDefn GhcPs -> Bool
@@ -105,10 +105,10 @@ singleSimpleField (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef)))
                   }}
               , insideType = inType
               }
-singleSimpleField (L loc (InstD ext (DataFamInstD instExt (DataFamInstDecl (HsIB hsibExt famEqn@(FamEqn _ _ _ _ _ dataDef))))))
+singleSimpleField (L loc (InstD ext (DataFamInstD instExt (DataFamInstDecl famEqn@(FamEqn _ _ _ _ _ dataDef)))))
     | Just inType <- simpleHsDataDefn dataDef =
         Just WarnNewtype
-          { newDecl = L loc $ InstD ext $ DataFamInstD instExt $ DataFamInstDecl $ HsIB hsibExt famEqn {feqn_rhs = dataDef
+          { newDecl = L loc $ InstD ext $ DataFamInstD instExt $ DataFamInstDecl $ famEqn {feqn_rhs = dataDef
                   { dd_ND = NewType
                   , dd_cons = dropBangs dataDef
                   }}
@@ -128,7 +128,7 @@ simpleHsDataDefn _ = Nothing
 -- | Checks whether its argument is a \"simple\" constructor (see criteria in 'singleSimpleField')
 -- returning the type inside the constructor if it is. This is needed for strictness analysis.
 simpleCons :: ConDecl GhcPs -> Maybe (HsType GhcPs)
-simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [HsScaled _ (L _ inType)]) _)
+simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [] [HsScaled _ (L _ inType)]) _)
     | emptyOrNoContext context
     , not $ isUnboxedTuple inType
     , not $ isHashy inType
@@ -155,10 +155,10 @@ emptyOrNoContext _ = False
 -- | The \"Bang\" here refers to 'HsSrcBang', which notably also includes @UNPACK@ pragmas!
 dropConsBang :: ConDecl GhcPs -> ConDecl GhcPs
 -- fields [HsScaled GhcPs (LBangType GhcPs)]
-dropConsBang decl@(ConDeclH98 _ _ _ _ _ (PrefixCon fields) _) =
+dropConsBang decl@(ConDeclH98 _ _ _ _ _ (PrefixCon [] fields) _) =
     -- decl {con_args = PrefixCon $ map getBangType fields}
     let fs' = map (\(HsScaled s lt) -> HsScaled s (getBangType lt)) fields  :: [HsScaled GhcPs (LBangType GhcPs)]
-    in decl {con_args = PrefixCon fs'}
+    in decl {con_args = PrefixCon [] fs'}
 dropConsBang decl@(ConDeclH98 _ _ _ _ _ (RecCon (L recloc conDeclFields)) _) =
     decl {con_args = RecCon $ L recloc $ removeUnpacksRecords conDeclFields}
     where
