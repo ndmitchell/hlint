@@ -186,9 +186,9 @@ importListToIdents =
     fromName :: LIEWrappedName (IdP GhcPs) -> Maybe String
     fromName wrapped =
       case unLoc wrapped of
-        IEName      n   -> fromId (unLoc n)
+        IEName      n -> fromId (unLoc n)
         IEPattern _ n -> ("pattern " ++) <$> fromId (unLoc n)
-        IEType    _ n-> ("type " ++) <$> fromId (unLoc n)
+        IEType    _ n -> ("type " ++) <$> fromId (unLoc n)
 
     fromId :: IdP GhcPs -> Maybe String
     fromId (Unqual n) = Just $ occNameString n

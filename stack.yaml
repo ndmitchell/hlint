@@ -16,8 +16,8 @@ ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror
 # Enabling this stanza forces both hlint and ghc-lib-parser-ex to
 # depend on ghc-lib-parser.
 # flags:
-#  hlint:
-#    ghc-lib: true
-#  ghc-lib-parser-ex:
-#    auto: false
-#    no-ghc-lib: false
+#   hlint:
+#     ghc-lib: true
+#   ghc-lib-parser-ex:
+#     auto: false
+#     no-ghc-lib: false

@@ -94,9 +94,7 @@ parseModuleApply flags s file src = do
         -- important the message has "Parse error:" as the prefix so "--ignore=Parse error" works
         -- try and tidy up things like "parse error (mismatched brackets)" to not look silly
         adjustMessage :: String -> String
-        adjustMessage x =
-          "Parse error: " ++
-          dropBrackets (
+        adjustMessage x = "Parse error: " ++ dropBrackets (
             case stripInfix "parse error " x of
               Nothing -> x
               Just (prefix, _) ->
