@@ -32,7 +32,7 @@ extra-source-files:
     -- These are needed because of haskell/cabal#7862
     data/default.yaml
     data/hlint.yaml
-    data/report_template.yaml
+    data/report_template.html
 extra-doc-files:
     README.md
     CHANGES.txt
