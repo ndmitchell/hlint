@@ -1281,6 +1281,17 @@
 # import Prelude((==)) \
 # import qualified Prelude as P \
 # main = P.length xs == 0 -- P.null xs
+# import Prelude () \
+# main = length xs == 0 -- null xs
+# import Prelude () \
+# import Foo \
+# main = length xs == 0 -- null xs
+# import Prelude () \
+# import Data.Text (length) \
+# main = length xs == 0
+# import Prelude () \
+# import qualified Data.Text (length) \
+# main = length xs == 0 -- null xs
 # main = hello .~ Just 12 -- hello ?~ 12
 # foo = liftIO $ window `on` deleteEvent $ do a; b
 # no = sort <$> f input `shouldBe` sort <$> x
