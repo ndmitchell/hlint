@@ -232,6 +232,8 @@ type T :: (k -> Type) -> k -> Type \
 data T m a = MkT (m a) (T Maybe (m a))
 {-# LANGUAGE NoMonomorphismRestriction, NamedFieldPuns #-} \
 main = 1 -- @Note Extension NamedFieldPuns is not used
+{-# LANGUAGE FunctionalDependencies #-} \
+class HasField x r a | x r -> a
 </TEST>
 -}
 
@@ -254,7 +256,6 @@ import GHC.Types.SrcLoc
 import GHC.Types.SourceText
 import GHC.Hs
 import GHC.Types.Basic
-import GHC.Core.Class
 import GHC.Types.Name.Reader
 import GHC.Types.ForeignCall
 
@@ -372,7 +373,7 @@ used :: Extension -> Located HsModule -> Bool
 
 used RecursiveDo = hasS isMDo' ||^ hasS isRecStmt
 used ParallelListComp = hasS isParComp
-used FunctionalDependencies = hasT (un :: GHC.Core.Class.FunDep (LocatedN RdrName))
+used FunctionalDependencies = hasT (un :: FunDep GhcPs)
 used ImplicitParams = hasT (un :: HsIPName)
 used TypeApplications = hasS isTypeApp
 used EmptyDataDecls = hasS f
