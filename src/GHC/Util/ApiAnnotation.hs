@@ -52,13 +52,13 @@ isCommentMultiline _ = False
 
 -- Pragmas have the form @{-# ...#-}@.
 pragmas :: EpAnnComments -> [(LEpaComment, String)]
-pragmas (EpaCommentsBalanced prior _) =
+pragmas x =
   -- 'EpaAnnComments' stores pragmas in reverse order to how they were
   -- encountered in the source file with the last at the head of the
   -- list (makes sense when you think about it).
   reverse
     [ (c, s) |
-        c@(L _ (EpaComment (EpaBlockComment comm) _)) <- prior
+        c@(L _ (EpaComment (EpaBlockComment comm) _)) <- priorComments x
       , let body = trimCommentDelims comm
       , Just rest <- [stripSuffix "#" =<< stripPrefix "#" body]
       , let s = trim rest
