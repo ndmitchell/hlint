@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #1332, suggest using iterate instead of scanl/foldl
+    #1331, suggest using min/max instead of if
 *   #1247, move to GHC 9.2
 3.3.5, released 2021-12-12
     #1304, support aeson-2.0
