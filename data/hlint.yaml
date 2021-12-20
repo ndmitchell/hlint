@@ -236,6 +236,8 @@
     - warn: {lhs: drop i x, rhs: x, side: isNegZero i, name: Drop on a non-positive}
     - warn: {lhs: last (scanl f z x), rhs: foldl f z x}
     - warn: {lhs: head (scanr f z x), rhs: foldr f z x}
+    - warn: {lhs: "scanl (\\x _ -> a) b (replicate c d)", rhs: "take c (iterate (\\x -> a) b)"}
+    - warn: {lhs: "foldl (\\x _ -> a) b [1..c]", rhs: "iterate (\\x -> a) b !! c"}
     - warn: {lhs: iterate id, rhs: repeat}
     - warn: {lhs: zipWith f (repeat x), rhs: map (f x)}
     - warn: {lhs: zipWith f y (repeat z), rhs: map (`f` z) y}
@@ -1168,6 +1170,7 @@
 # instance Arrow (->) where first f = f *** id
 # yes = fromInteger 12 -- 12
 # yes = if x * y > u * v then x * y else u * v -- max (x * y) (u * v)
+# yes = scanl (\x _ -> x + 1) 7 (replicate 8 3) -- take 8 (iterate (\x -> x + 1) 7)
 # import Prelude hiding (catch); no = catch
 # import Control.Exception as E; no = E.catch
 # main = do f; putStrLn $ show x -- print x
