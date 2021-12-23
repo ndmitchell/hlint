@@ -124,6 +124,8 @@ class Val a where; val :: a; default val :: Int
 foo = id --
 {-# LANGUAGE TypeApplications #-} \
 foo = id @Int
+{-# LANGUAGE TypeApplications #-} \
+x :: Typeable b => TypeRep @Bool b
 {-# LANGUAGE LambdaCase #-} \
 foo = id --
 {-# LANGUAGE LambdaCase #-} \
@@ -369,13 +371,17 @@ isMDo' = \case MDoExpr _ -> True; _ -> False
 isStrictMatch' :: HsMatchContext GhcPs -> Bool
 isStrictMatch' = \case FunRhs{mc_strictness=SrcStrict} -> True; _ -> False
 
+-- TODO(SF, 2012-12-22): Replace with ghc-lib-parser-ex.
+isKindTyApp :: LHsType GhcPs -> Bool
+isKindTyApp = \case (L _ HsAppKindTy{}) -> True; _ -> False
+
 used :: Extension -> Located HsModule -> Bool
 
 used RecursiveDo = hasS isMDo' ||^ hasS isRecStmt
 used ParallelListComp = hasS isParComp
 used FunctionalDependencies = hasT (un :: FunDep GhcPs)
 used ImplicitParams = hasT (un :: HsIPName)
-used TypeApplications = hasS isTypeApp
+used TypeApplications = hasS isTypeApp ||^ hasS isKindTyApp
 used EmptyDataDecls = hasS f
   where
     f :: HsDataDefn GhcPs -> Bool
