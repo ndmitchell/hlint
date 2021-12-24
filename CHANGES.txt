@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #1304, support aeson-2.0
+    #1286, compatibility with extra-1.7.10
 3.2.7, released 2021-01-16
     #1202, add missing parentheses for Avoid Lambda
     #1201, allow matching through the & operator (similar to $)
