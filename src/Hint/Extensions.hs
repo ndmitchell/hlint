@@ -236,6 +236,14 @@ data T m a = MkT (m a) (T Maybe (m a))
 main = 1 -- @Note Extension NamedFieldPuns is not used
 {-# LANGUAGE FunctionalDependencies #-} \
 class HasField x r a | x r -> a
+{-# LANGUAGE OverloadedRecordDot #-} \
+f x = x.foo
+{-# LANGUAGE OverloadedRecordDot #-} \
+f x = x . foo -- @NoRefactor: refactor requires GHC >= 9.2.1
+{-# LANGUAGE OverloadedRecordDot #-} \
+f = (.foo)
+{-# LANGUAGE OverloadedRecordDot #-} \
+f = (. foo) -- @NoRefactor: refactor requires GHC >= 9.2.1
 </TEST>
 -}
 
@@ -374,6 +382,10 @@ isStrictMatch' = \case FunRhs{mc_strictness=SrcStrict} -> True; _ -> False
 -- TODO(SF, 2012-12-22): Replace with ghc-lib-parser-ex.
 isKindTyApp :: LHsType GhcPs -> Bool
 isKindTyApp = \case (L _ HsAppKindTy{}) -> True; _ -> False
+isGetField :: LHsExpr GhcPs -> Bool
+isGetField = \case (L _ HsGetField{}) -> True; _ -> False
+isProjection :: LHsExpr GhcPs -> Bool
+isProjection = \case (L _ HsProjection{}) -> True; _ -> False
 
 used :: Extension -> Located HsModule -> Bool
 
@@ -489,6 +501,7 @@ used MagicHash = hasS f ||^ hasS isPrimLiteral
 used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
 used ImportQualifiedPost = hasS (== QualifiedPost)
 used StandaloneKindSignatures = hasT (un :: StandaloneKindSig GhcPs)
+used OverloadedRecordDot = hasS isGetField ||^ hasS isProjection
 
 used _= const True
 
