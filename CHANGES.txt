@@ -1,6 +1,6 @@
 Changelog for HLint (* = breaking change)
 
-    #1336, warn on unused OverloadedRecordDot 
+    #1336, warn on unused OverloadedRecordDot
     #1334, don't remove TypeApplications if there are type-level type applications
     #1332, suggest using iterate instead of scanl/foldl
     #1331, suggest using min/max instead of if
