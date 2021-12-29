@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+3.3.6, released 2021-12-29
+    #1326, produce release binaries
 3.3.5, released 2021-12-12
     #1304, support aeson-2.0
     #1309, suggest `either Left f x` becomes `f =<< x`
