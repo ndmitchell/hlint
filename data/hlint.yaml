@@ -792,6 +792,10 @@
     - warn: {lhs: all (const True), rhs: const True, note: IncreasesLaziness, name: Evaluate}
     - warn: {lhs: "[] ++ x", rhs: x, name: Evaluate}
     - warn: {lhs: "x ++ []", rhs: x, name: Evaluate}
+    - warn: {lhs: "all f [a]", rhs: f a, name: Evaluate}
+    - warn: {lhs: "all f []", rhs: True, name: Evaluate}
+    - warn: {lhs: "any f [a]", rhs: f a, name: Evaluate}
+    - warn: {lhs: "any f []", rhs: False, name: Evaluate}
 
     # FOLDABLE + TUPLES
 
@@ -967,6 +971,10 @@
     - warn: {lhs: "ifM a b (return False)", rhs: "(&&^) a b"}
     - warn: {lhs: "anyM id", rhs: "orM"}
     - warn: {lhs: "allM id", rhs: "andM"}
+    - warn: {lhs: "allM f [a]", rhs: f a, name: Evaluate}
+    - warn: {lhs: "allM f []", rhs: return True, name: Evaluate}
+    - warn: {lhs: "anyM f [a]", rhs: f a, name: Evaluate}
+    - warn: {lhs: "anyM f []", rhs: return False, name: Evaluate}
     - warn: {lhs: "either id id", rhs: "fromEither"}
     - warn: {lhs: "either (const Nothing) Just", rhs: "eitherToMaybe"}
     - warn: {lhs: "either (Left . a) Right", rhs: "mapLeft a"}

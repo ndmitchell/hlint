@@ -5,7 +5,7 @@ module GHC.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
-    parseModuleEx, createModuleEx, ghcComments, modComments,
+    parseModuleEx, createModuleEx, createModuleExWithFixities, ghcComments, modComments,
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
     ) where
 
@@ -148,8 +148,11 @@ parseDeclGhcWithMode parseMode s =
 -- parsed module has not been adjusted to account for operator
 -- fixities (it uses the HLint default fixities).
 createModuleEx :: Located HsModule -> ModuleEx
-createModuleEx ast =
-  ModuleEx (applyFixities (fixitiesFromModule ast ++ map toFixity defaultFixities) ast)
+createModuleEx = createModuleExWithFixities (map toFixity defaultFixities)
+
+createModuleExWithFixities :: [(String, Fixity)] -> Located HsModule -> ModuleEx
+createModuleExWithFixities fixities ast =
+  ModuleEx (applyFixities (fixitiesFromModule ast ++ fixities) ast)
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
