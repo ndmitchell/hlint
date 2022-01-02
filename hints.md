@@ -11377,6 +11377,70 @@ x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+all f [a]
+</code>
+<br>
+RHS:
+<code>
+f a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+all f []
+</code>
+<br>
+RHS:
+<code>
+True
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+any f [a]
+</code>
+<br>
+RHS:
+<code>
+f a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+any f []
+</code>
+<br>
+RHS:
+<code>
+False
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Using foldr on tuple</td>
 <td>
 LHS:
