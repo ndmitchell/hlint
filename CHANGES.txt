@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1303, allow more matches for modules doing `import Prelude ()`
     #1324, add createModuleExWithFixities
     #1336, warn on unused OverloadedRecordDot
     #1334, don't remove TypeApplications if there are type-level type applications
