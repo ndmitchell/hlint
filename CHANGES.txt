@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1317, evaluating all/any/allM/anyM on simple lists
     #1303, allow more matches for modules doing `import Prelude ()`
     #1324, add createModuleExWithFixities
     #1336, warn on unused OverloadedRecordDot
