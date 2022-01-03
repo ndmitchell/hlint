@@ -4,14 +4,17 @@
 
 module Config.Yaml(
     ConfigYaml,
+    ConfigYamlBuiltin (..),
+    ConfigYamlUser (..),
     readFileConfigYaml,
-    settingsFromConfigYaml
+    settingsFromConfigYaml,
+    isBuiltinYaml,
     ) where
 
 import GHC.Driver.Ppr
 import GHC.Parser.Errors.Ppr
 import Config.Type
-import Data.Either
+import Data.Either.Extra
 import Data.Maybe
 import Data.List.Extra
 import Data.Tuple.Extra
@@ -82,12 +85,20 @@ toHashMapText = id
 readFileConfigYaml :: FilePath -> Maybe String -> IO ConfigYaml
 readFileConfigYaml file contents = timedIO "Config" file $ do
     val <- case contents of
-        Nothing -> decodeFileEither file
-        Just src -> pure $ decodeEither' $ BS.pack src
+        Nothing ->
+            if isBuiltinYaml file
+                then mapRight getConfigYamlBuiltin <$> decodeFileEither file
+                else mapRight getConfigYamlUser <$> decodeFileEither file
+        Just src -> pure $
+            if isBuiltinYaml file
+                then mapRight getConfigYamlBuiltin $ decodeEither' $ BS.pack src
+                else mapRight getConfigYamlUser $ decodeEither' $ BS.pack src
     case val of
         Left e -> fail $ "Failed to read YAML configuration file " ++ file ++ "\n  " ++ displayException e
         Right v -> pure v
 
+isBuiltinYaml :: FilePath -> Bool
+isBuiltinYaml = (== "data/hlint.yaml")
 
 ---------------------------------------------------------------------
 -- YAML DATA TYPE
@@ -211,22 +222,32 @@ parseGHC parser v = do
 ---------------------------------------------------------------------
 -- YAML TO DATA TYPE
 
-instance FromJSON ConfigYaml where
-    parseJSON Null = pure mempty
-    parseJSON x = parseConfigYaml $ newVal x
+newtype ConfigYamlBuiltin = ConfigYamlBuiltin { getConfigYamlBuiltin :: ConfigYaml }
+  deriving (Semigroup, Monoid)
 
-parseConfigYaml :: Val -> Parser ConfigYaml
-parseConfigYaml v = do
+newtype ConfigYamlUser = ConfigYamlUser { getConfigYamlUser :: ConfigYaml }
+  deriving (Semigroup, Monoid)
+
+instance FromJSON ConfigYamlBuiltin where
+    parseJSON Null = pure mempty
+    parseJSON x = ConfigYamlBuiltin <$> parseConfigYaml True (newVal x)
+
+instance FromJSON ConfigYamlUser where
+  parseJSON Null = pure mempty
+  parseJSON x = ConfigYamlUser <$> parseConfigYaml False (newVal x)
+
+parseConfigYaml :: Bool -> Val -> Parser ConfigYaml
+parseConfigYaml isBuiltin v = do
     vs <- parseArray v
     fmap ConfigYaml $ forM vs $ \o -> do
         (s, v) <- parseObject1 o
         case s of
             "package" -> ConfigPackage <$> parsePackage v
-            "group" -> ConfigGroup <$> parseGroup v
+            "group" -> ConfigGroup <$> parseGroup isBuiltin v
             "arguments" -> ConfigSetting . map SettingArgument <$> parseArrayString v
             "fixity" -> ConfigSetting <$> parseFixity v
             "smell" -> ConfigSetting <$> parseSmell v
-            _ | isJust $ getSeverity s -> ConfigGroup . ruleToGroup <$> parseRule o
+            _ | isJust $ getSeverity s -> ConfigGroup . ruleToGroup <$> parseRule isBuiltin o
             _ | Just r <- getRestrictType s -> ConfigSetting . map SettingRestrict <$> (parseArray v >>= mapM (parseRestrict r))
             _ -> parseFail v "Expecting an object with a 'package' or 'group' key, a hint or a restriction"
 
@@ -255,12 +276,12 @@ parseSmell v = do
       require _ _ (Just a) = pure a
       require val err Nothing = parseFail val err
 
-parseGroup :: Val -> Parser Group
-parseGroup v = do
+parseGroup :: Bool -> Val -> Parser Group
+parseGroup isBuiltin v = do
     groupName <- parseField "name" v >>= parseString
     groupEnabled <- parseFieldOpt "enabled" v >>= maybe (pure True) parseBool
     groupImports <- parseFieldOpt "imports" v >>= maybe (pure []) (parseArray >=> mapM parseImport)
-    groupRules <- parseFieldOpt "rules" v >>= maybe (pure []) parseArray >>= concatMapM parseRule
+    groupRules <- parseFieldOpt "rules" v >>= maybe (pure []) parseArray >>= concatMapM (parseRule isBuiltin)
     allowFields v ["name","enabled","imports","rules"]
     pure Group{..}
     where
@@ -273,8 +294,8 @@ parseGroup v = do
 ruleToGroup :: [Either HintRule Classify] -> Group
 ruleToGroup = Group "" True []
 
-parseRule :: Val -> Parser [Either HintRule Classify]
-parseRule v = do
+parseRule :: Bool -> Val -> Parser [Either HintRule Classify]
+parseRule isBuiltin v = do
     (severity, v) <- parseSeverityKey v
     isRule <- isJust <$> parseFieldOpt "lhs" v
     if isRule then do
@@ -286,7 +307,9 @@ parseRule v = do
 
         allowFields v ["lhs","rhs","note","name","side"]
         let hintRuleScope = mempty
-        pure [Left HintRule{hintRuleSeverity=severity,hintRuleLHS=extendInstances lhs,hintRuleRHS=extendInstances rhs, ..}]
+        pure $
+          Left HintRule {hintRuleSeverity = severity, hintRuleLHS = extendInstances lhs, hintRuleRHS = extendInstances rhs, ..}
+            : [Right $ Classify severity hintRuleName "" "" | not isBuiltin]
      else do
         names <- parseFieldOpt "name" v >>= maybe (pure []) parseArrayString
         within <- parseFieldOpt "within" v >>= maybe (pure [("","")]) (parseArray >=> concatMapM parseWithin)

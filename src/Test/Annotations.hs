@@ -123,7 +123,10 @@ parseTestFile file =
         open line
           |  "<TEST>" `isPrefixOf` line =
              let suffix = dropPrefix "<TEST>" line
-                 config = decodeEither'  $ BS.pack suffix
+                 config =
+                   if isBuiltinYaml file
+                     then mapRight getConfigYamlBuiltin $ decodeEither' $ BS.pack suffix
+                     else mapRight getConfigYamlUser $ decodeEither' $ BS.pack suffix
              in case config of
                   Left err -> Just []
                   Right config -> Just $ settingsFromConfigYaml [config]
