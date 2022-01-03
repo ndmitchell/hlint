@@ -1,6 +1,15 @@
 Changelog for HLint (* = breaking change)
 
+    #1317, evaluating all/any/allM/anyM on simple lists
+    #1303, allow more matches for modules doing `import Prelude ()`
+    #1324, add createModuleExWithFixities
+    #1336, warn on unused OverloadedRecordDot
+    #1334, don't remove TypeApplications if there are type-level type applications
+    #1332, suggest using iterate instead of scanl/foldl
+    #1331, suggest using min/max instead of if
 *   #1247, move to GHC 9.2
+3.3.6, released 2021-12-29
+    #1326, produce release binaries
 3.3.5, released 2021-12-12
     #1304, support aeson-2.0
     #1309, suggest `either Left f x` becomes `f =<< x`
@@ -46,6 +55,9 @@ Changelog for HLint (* = breaking change)
     Drop GHC 8.6 support
     #1206, require apply-refact 0.9.0.0 or higher
     #1205, generalize hints which were with '&' form
+3.2.8, released 2021-12-27
+    #1304, support aeson-2.0
+    #1286, compatibility with extra-1.7.10
 3.2.7, released 2021-01-16
     #1202, add missing parentheses for Avoid Lambda
     #1201, allow matching through the & operator (similar to $)

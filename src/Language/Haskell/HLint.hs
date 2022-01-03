@@ -23,7 +23,7 @@ module Language.Haskell.HLint(
     -- * Hints
     Hint,
     -- * Modules
-    ModuleEx, parseModuleEx, createModuleEx, ParseError(..),
+    ModuleEx, parseModuleEx, createModuleEx, createModuleExWithFixities, ParseError(..),
     -- * Parse flags
     defaultParseFlags,
     ParseFlags(..), CppFlags(..), FixityInfo,

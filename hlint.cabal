@@ -7,7 +7,7 @@ license-file:       LICENSE
 category:           Development
 author:             Neil Mitchell <ndmitchell@gmail.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
-copyright:          Neil Mitchell 2006-2021
+copyright:          Neil Mitchell 2006-2022
 synopsis:           Source code suggestions
 description:
     HLint gives suggestions on how to improve your source code.
@@ -32,7 +32,7 @@ extra-source-files:
     -- These are needed because of haskell/cabal#7862
     data/default.yaml
     data/hlint.yaml
-    data/report_template.yaml
+    data/report_template.html
 extra-doc-files:
     README.md
     CHANGES.txt

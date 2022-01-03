@@ -66,7 +66,10 @@ scopeMatch (a, x) (b, y)
 -- ambiguous, pick a plausible candidate.
 scopeMove :: (Scope, LocatedN RdrName) -> Scope -> LocatedN RdrName
 scopeMove (a, x@(fromQual -> Just name)) (Scope b) = case imps of
-  [] -> headDef x real
+  [] | -- If `possModules a x` includes Prelude, but `b` does not contain any module that may import `x`,
+       -- then unqualify `x` and assume that it is from Prelude (#1298).
+       any (\(L _ x) -> (moduleNameString . fst <$> isQual_maybe x) == Just "Prelude") real -> unqual x
+     | otherwise -> headDef x real
   imp:_ | all (\x -> ideclQualified x /= NotQualified) imps -> noLocA $ mkRdrQual (unLoc . fromMaybe (ideclName imp) $ firstJust ideclAs imps) name
         | otherwise -> unqual x
   where
@@ -74,38 +77,50 @@ scopeMove (a, x@(fromQual -> Just name)) (Scope b) = case imps of
     real = [noLocA $ mkRdrQual m name | m <- possModules a x]
 
     imps :: [ImportDecl GhcPs]
-    imps = [unLoc i | r <- real, i <- b, possImport i r]
+    imps = [unLoc i | r <- real, i <- b, possImport i r /= NotImported]
 scopeMove (_, x) _ = x
 
 -- Calculate which modules a name could possibly lie in. If 'x' is
 -- qualified but no imported element matches it, assume the user just
 -- lacks an import.
+-- 'prelude' is added to the result, unless we are certain which module a name is from (#1298).
 possModules :: Scope -> LocatedN RdrName -> [ModuleName]
-possModules (Scope is) x = f x
+possModules (Scope is) x =
+    [prelude | prelude `notElem` map fst res, not (any snd res)] ++ fmap fst res
   where
-    res :: [ModuleName]
-    res = [unLoc $ ideclName $ unLoc i | i <- is, possImport i x]
+    -- The 'Bool' signals whether we are certain that 'x' is imported from the module.
+    res0, res :: [(ModuleName, Bool)]
+    res0 = [ (unLoc $ ideclName $ unLoc i, isImported == Imported)
+           | i <- is, let isImported = possImport i x, isImported /= NotImported ]
 
-    f :: LocatedN RdrName -> [ModuleName]
-    f n | isSpecial n = [mkModuleName ""]
-    f (L _ (Qual mod _)) = [mod | null res] ++ res
-    f _ = res
+    res | isSpecial x = [(mkModuleName "", True)]
+        | L _ (Qual mod _) <- x = [(mod, True) | null res0] ++ res0
+        | otherwise = res0
+
+    prelude = mkModuleName "Prelude"
+
+data IsImported = Imported | PossiblyImported | NotImported  deriving (Eq)
 
 -- Determine if 'x' could possibly lie in the module named by the
 -- import declaration 'i'.
-possImport :: LImportDecl GhcPs -> LocatedN RdrName -> Bool
-possImport i n | isSpecial n = False
+possImport :: LImportDecl GhcPs -> LocatedN RdrName -> IsImported
+possImport i n | isSpecial n = NotImported
 possImport (L _ i) (L _ (Qual mod x)) =
-  mod `elem` ms && possImport (noLocA i{ideclQualified=NotQualified}) (noLocA $ mkRdrUnqual x)
+  if mod `elem` ms && NotImported /= possImport (noLocA i{ideclQualified=NotQualified}) (noLocA $ mkRdrUnqual x)
+    then Imported
+    else NotImported
   where ms = map unLoc $ ideclName i : maybeToList (ideclAs i)
-possImport (L _ i) (L _ (Unqual x)) = ideclQualified i == NotQualified && maybe True f (ideclHiding i)
+possImport (L _ i) (L _ (Unqual x)) =
+  if ideclQualified i == NotQualified
+    then maybe PossiblyImported f (ideclHiding i)
+    else NotImported
   where
-    f :: (Bool, LocatedL [LIE GhcPs]) -> Bool
-    f (hide, L _ xs) =
-      if hide then
-        Just True `notElem` ms
-      else
-        Nothing `elem` ms || Just True `elem` ms
+    f :: (Bool, LocatedL [LIE GhcPs]) -> IsImported
+    f (hide, L _ xs)
+      | hide = if Just True `elem` ms then NotImported else PossiblyImported
+      | Just True `elem` ms = Imported
+      | Nothing `elem` ms = PossiblyImported
+      | otherwise = NotImported
       where ms = map g xs
 
     tag :: String
@@ -120,4 +135,4 @@ possImport (L _ i) (L _ (Unqual x)) = ideclQualified i == NotQualified && maybe 
 
     unwrapName :: LIEWrappedName RdrName -> String
     unwrapName x = occNameString (rdrNameOcc $ ieWrappedName (unLoc x))
-possImport _ _ = False
+possImport _ _ = NotImported

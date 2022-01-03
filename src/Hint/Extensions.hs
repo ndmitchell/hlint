@@ -124,6 +124,8 @@ class Val a where; val :: a; default val :: Int
 foo = id --
 {-# LANGUAGE TypeApplications #-} \
 foo = id @Int
+{-# LANGUAGE TypeApplications #-} \
+x :: Typeable b => TypeRep @Bool b
 {-# LANGUAGE LambdaCase #-} \
 foo = id --
 {-# LANGUAGE LambdaCase #-} \
@@ -232,6 +234,16 @@ type T :: (k -> Type) -> k -> Type \
 data T m a = MkT (m a) (T Maybe (m a))
 {-# LANGUAGE NoMonomorphismRestriction, NamedFieldPuns #-} \
 main = 1 -- @Note Extension NamedFieldPuns is not used
+{-# LANGUAGE FunctionalDependencies #-} \
+class HasField x r a | x r -> a
+{-# LANGUAGE OverloadedRecordDot #-} \
+f x = x.foo
+{-# LANGUAGE OverloadedRecordDot #-} \
+f x = x . foo -- @NoRefactor: refactor requires GHC >= 9.2.1
+{-# LANGUAGE OverloadedRecordDot #-} \
+f = (.foo)
+{-# LANGUAGE OverloadedRecordDot #-} \
+f = (. foo) -- @NoRefactor: refactor requires GHC >= 9.2.1
 </TEST>
 -}
 
@@ -254,7 +266,6 @@ import GHC.Types.SrcLoc
 import GHC.Types.SourceText
 import GHC.Hs
 import GHC.Types.Basic
-import GHC.Core.Class
 import GHC.Types.Name.Reader
 import GHC.Types.ForeignCall
 
@@ -368,13 +379,21 @@ isMDo' = \case MDoExpr _ -> True; _ -> False
 isStrictMatch' :: HsMatchContext GhcPs -> Bool
 isStrictMatch' = \case FunRhs{mc_strictness=SrcStrict} -> True; _ -> False
 
+-- TODO(SF, 2012-12-22): Replace with ghc-lib-parser-ex.
+isKindTyApp :: LHsType GhcPs -> Bool
+isKindTyApp = \case (L _ HsAppKindTy{}) -> True; _ -> False
+isGetField :: LHsExpr GhcPs -> Bool
+isGetField = \case (L _ HsGetField{}) -> True; _ -> False
+isProjection :: LHsExpr GhcPs -> Bool
+isProjection = \case (L _ HsProjection{}) -> True; _ -> False
+
 used :: Extension -> Located HsModule -> Bool
 
 used RecursiveDo = hasS isMDo' ||^ hasS isRecStmt
 used ParallelListComp = hasS isParComp
-used FunctionalDependencies = hasT (un :: GHC.Core.Class.FunDep (LocatedN RdrName))
+used FunctionalDependencies = hasT (un :: FunDep GhcPs)
 used ImplicitParams = hasT (un :: HsIPName)
-used TypeApplications = hasS isTypeApp
+used TypeApplications = hasS isTypeApp ||^ hasS isKindTyApp
 used EmptyDataDecls = hasS f
   where
     f :: HsDataDefn GhcPs -> Bool
@@ -482,6 +501,7 @@ used MagicHash = hasS f ||^ hasS isPrimLiteral
 used PatternSynonyms = hasS isPatSynBind ||^ hasS isPatSynIE
 used ImportQualifiedPost = hasS (== QualifiedPost)
 used StandaloneKindSignatures = hasT (un :: StandaloneKindSig GhcPs)
+used OverloadedRecordDot = hasS isGetField ||^ hasS isProjection
 
 used _= const True
 

@@ -2181,6 +2181,70 @@ f `on` (g . h)
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Use max</td>
+<td>
+LHS:
+<code>
+if a >= b then a else b
+</code>
+<br>
+RHS:
+<code>
+max a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use max</td>
+<td>
+LHS:
+<code>
+if a > b then a else b
+</code>
+<br>
+RHS:
+<code>
+max a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use min</td>
+<td>
+LHS:
+<code>
+if a <= b then a else b
+</code>
+<br>
+RHS:
+<code>
+min a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use min</td>
+<td>
+LHS:
+<code>
+if a < b then a else b
+</code>
+<br>
+RHS:
+<code>
+min a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use show</td>
 <td>
 LHS:
@@ -3951,6 +4015,38 @@ head (scanr f z x)
 RHS:
 <code>
 foldr f z x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use take</td>
+<td>
+LHS:
+<code>
+scanl (\ x _ -> a) b (replicate c d)
+</code>
+<br>
+RHS:
+<code>
+take c (iterate (\ x -> a) b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use iterate</td>
+<td>
+LHS:
+<code>
+foldl (\ x _ -> a) b [1 .. c]
+</code>
+<br>
+RHS:
+<code>
+iterate (\ x -> a) b !! c
 </code>
 <br>
 </td>
@@ -11275,6 +11371,70 @@ x ++ []
 RHS:
 <code>
 x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+all f [a]
+</code>
+<br>
+RHS:
+<code>
+f a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+all f []
+</code>
+<br>
+RHS:
+<code>
+True
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+any f [a]
+</code>
+<br>
+RHS:
+<code>
+f a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+any f []
+</code>
+<br>
+RHS:
+<code>
+False
 </code>
 <br>
 </td>
