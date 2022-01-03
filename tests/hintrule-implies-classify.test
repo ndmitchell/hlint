@@ -1,0 +1,12 @@
+---------------------------------------------------------------------
+RUN tests/hintrule-implies-classify.hs --hint=data/hintrule-implies-classify.yaml
+FILE tests/hintrule-implies-classify.hs
+x = mapM print [1, 2, 3]
+OUTPUT
+tests/hintrule-implies-classify.hs:1:5-8: Warning: Use traverse
+Found:
+  mapM
+Perhaps:
+  traverse
+
+1 hint
