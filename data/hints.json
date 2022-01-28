@@ -1,0 +1,1763 @@
+[
+  {
+    "name": "Move guards forward",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "List",
+    "examples": [
+      {
+        "context": "foo = [x + 1 | x <- [1..10], let q = even 1, q]",
+        "from": "[x + 1 | x <- [1 .. 10], let q = even 1, q]",
+        "to": "[x + 1 | let q = even 1, q, x <- [1 .. 10]]"
+      },
+      {
+        "context": "foo = [x + 1 | x <- [1..10], feature]",
+        "from": "[x + 1 | x <- [1 .. 10], feature]",
+        "to": "[x + 1 | feature, x <- [1 .. 10]]"
+      }
+    ]
+  },
+  {
+    "name": "Move map inside list comprehension",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "List",
+    "examples": [
+      {
+        "context": "issue1039 = foo (map f [1 | _ <- []])",
+        "from": "map f [1 | _ <- []]",
+        "to": "[f 1 | _ <- []]"
+      },
+      {
+        "context": "foo = map f [x + 1 | x <- [1..10]]",
+        "from": "map f [x + 1 | x <- [1 .. 10]]",
+        "to": "[f (x + 1) | x <- [1 .. 10]]"
+      }
+    ]
+  },
+  {
+    "name": "Redundant True guards",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "List",
+    "examples": [
+      {
+        "context": "foo = [myexpr | True, a]",
+        "from": "[myexpr | True, a]",
+        "to": "[myexpr | a]"
+      }
+    ]
+  },
+  {
+    "name": "Short-circuited list comprehension",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "List",
+    "examples": [
+      {
+        "context": "{-# LANGUAGE MonadComprehensions #-}\nfoo = [x | False, x <- [1 .. 10]]",
+        "from": "[x | False, x <- [1 .. 10]]",
+        "to": "[]"
+      },
+      {
+        "context": "foo = [myexpr | False]",
+        "from": "[myexpr | False]",
+        "to": "[]"
+      }
+    ]
+  },
+  {
+    "name": "Use :",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "List",
+    "examples": [
+      {
+        "context": "foo = [a b] ++ xs",
+        "from": "[a b] ++ xs",
+        "to": "a b : xs"
+      },
+      {
+        "context": "yes = if x == e then l2 ++ xs else [x] ++ check_elem xs",
+        "from": "[x] ++ check_elem xs",
+        "to": "x : check_elem xs"
+      },
+      {
+        "context": "yes = [if a then b else c] ++ xs",
+        "from": "[if a then b else c] ++ xs",
+        "to": "(if a then b else c) : xs"
+      },
+      { "context": "yes = [x] ++ xs", "from": "[x] ++ xs", "to": "x : xs" }
+    ]
+  },
+  {
+    "name": "Use String",
+    "severity": "Ignore",
+    "refactoring": true,
+    "category": "List",
+    "examples": [
+      {
+        "context": "yes = y :: [Char] -> a",
+        "from": "[Char] -> a",
+        "to": "String -> a"
+      },
+      {
+        "context": "data Yes = Yes (Maybe [Char])",
+        "from": "Maybe [Char]",
+        "to": "Maybe String"
+      }
+    ]
+  },
+  {
+    "name": "Use list literal",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "List",
+    "examples": [
+      {
+        "context": "yes = [1] : [2] : [3] : [4] : [5] : []",
+        "from": "[1] : [2] : [3] : [4] : [5] : []",
+        "to": "[[1], [2], [3], [4], [5]]"
+      },
+      { "context": "yes = 1:2:[]", "from": "1 : 2 : []", "to": "[1, 2]" }
+    ]
+  },
+  {
+    "name": "Use list literal pattern",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "List",
+    "examples": [
+      { "context": "yes (1:2:[]) = 1", "from": "(1 : 2 : [])", "to": "[1, 2]" }
+    ]
+  },
+  {
+    "name": "Use foldM",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "ListRec",
+    "examples": [
+      {
+        "context": "f (x:xs) a = a + x >>= \\fax -> f xs fax ; f [] a = pure a",
+        "from": "f (x : xs) a = a + x >>= \\ fax -> f xs fax\nf [] a = pure a",
+        "to": "f xs a = foldM (+) a xs"
+      },
+      {
+        "context": "f [] a = return a ; f (x:xs) a = a + x >>= \\fax -> f xs fax",
+        "from": "f [] a = return a\nf (x : xs) a = a + x >>= \\ fax -> f xs fax",
+        "to": "f xs a = foldM (+) a xs"
+      }
+    ]
+  },
+  {
+    "name": "Use foldl",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "ListRec",
+    "examples": [
+      {
+        "context": "f [] y = y; f (x : xs) y = let z = g x y in f xs z",
+        "from": "f [] y = y\nf (x : xs) y = let z = g x y in f xs z",
+        "to": "f xs y = foldl (flip g) y xs"
+      },
+      {
+        "context": "f [] y = y; f (x:xs) y = f xs $ g x y",
+        "from": "f [] y = y\nf (x : xs) y = f xs $ g x y",
+        "to": "f xs y = foldl (flip g) y xs"
+      },
+      {
+        "context": "f z (x:xs) = f (z*x) xs ; f z [] = z",
+        "from": "f z (x : xs) = f (z * x) xs\nf z [] = z",
+        "to": "f z xs = foldl (*) z xs"
+      }
+    ]
+  },
+  {
+    "name": "Use foldr",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "ListRec",
+    "examples": [
+      {
+        "context": "foos [] x = x; foos (y:ys) x = foo y $ foos ys x",
+        "from": "foos [] x = x\nfoos (y : ys) x = foo y $ foos ys x",
+        "to": "foos ys x = foldr foo x ys"
+      },
+      {
+        "context": "f (x:xs) = negate x + f xs ; f [] = 0",
+        "from": "f (x : xs) = negate x + f xs\nf [] = 0",
+        "to": "f xs = foldr ((+) . negate) 0 xs"
+      }
+    ]
+  },
+  {
+    "name": "Use map",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "ListRec",
+    "examples": [
+      {
+        "context": "f a (x:xs) b = x + a + b : f a xs b ; f a [] b = []",
+        "from": "f a (x : xs) b = x + a + b : f a xs b\nf a [] b = []",
+        "to": "f a xs b = map (\\ x -> x + a + b) xs"
+      },
+      {
+        "context": "f (x:xs) = x + 1 : f xs ; f [] = []",
+        "from": "f (x : xs) = x + 1 : f xs\nf [] = []",
+        "to": "f xs = map (+ 1) xs"
+      }
+    ]
+  },
+  {
+    "name": "Redundant do",
+    "severity": "Ignore",
+    "refactoring": true,
+    "category": "Monad",
+    "examples": [
+      { "context": "main = do f a $ sleep 10", "from": "do", "to": "" },
+      { "context": "main = f $ do g a $ sleep 10", "from": "do", "to": "" },
+      {
+        "context": "{-# LANGUAGE BlockArguments #-}; main = print do 17",
+        "from": "do",
+        "to": ""
+      },
+      { "context": "yes = do (bar+foo)", "from": "do", "to": "" }
+    ]
+  },
+  {
+    "name": "Redundant return",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Monad",
+    "examples": [
+      {
+        "context": "main = do a; when b c; return ()",
+        "from": "do a\n   when b c\n   return ()",
+        "to": "do a\n   when b c"
+      },
+      {
+        "context": "main = do bar; forM_ f xs; return ()",
+        "from": "do bar\n   forM_ f xs\n   return ()",
+        "to": "do bar\n   forM_ f xs"
+      },
+      {
+        "context": "main = do foo x; return 3; bar z",
+        "from": "return 3",
+        "to": ""
+      },
+      {
+        "context": "yes = do bar; a <- foo; return a",
+        "from": "do bar\n   a <- foo\n   return a",
+        "to": "do bar\n   foo"
+      }
+    ]
+  },
+  {
+    "name": "Redundant variable capture",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Monad",
+    "examples": [
+      {
+        "context": "main = do _ <- forM_ f xs; bar",
+        "from": "_ <- forM_ f xs",
+        "to": "forM_ f xs"
+      }
+    ]
+  },
+  {
+    "name": "Redundant void",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Monad",
+    "examples": [
+      {
+        "context": "main = void $ forM_ f xs",
+        "from": "void $ forM_ f xs",
+        "to": "forM_ f xs"
+      }
+    ]
+  },
+  {
+    "name": "Use <$>",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Monad",
+    "examples": [
+      {
+        "context": "yes = do x <- bar; return (f $ g x)",
+        "from": "do x <- bar\n   return (f $ g x)",
+        "to": "do f . g <$> bar"
+      },
+      {
+        "context": "yes = do x <- bar; return $ f (g x)",
+        "from": "do x <- bar\n   return $ f (g x)",
+        "to": "do f . g <$> bar"
+      },
+      {
+        "context": "yes = do x <- bar; pure $ f x",
+        "from": "do x <- bar\n   pure $ f x",
+        "to": "do f <$> bar"
+      },
+      {
+        "context": "yes = do x <- bar; return $ f x",
+        "from": "do x <- bar\n   return $ f x",
+        "to": "do f <$> bar"
+      },
+      {
+        "context": "yes = do x <- bar; return (f x)",
+        "from": "do x <- bar\n   return (f x)",
+        "to": "do f <$> bar"
+      }
+    ]
+  },
+  {
+    "name": "Use foldM_",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Monad",
+    "examples": [
+      {
+        "context": "folder f a xs = foldM f a xs >>= \\_ -> return ()",
+        "from": "foldM f a xs",
+        "to": "foldM_ f a xs"
+      },
+      {
+        "context": "folder f a xs = foldM f a xs >> return ()",
+        "from": "foldM f a xs",
+        "to": "foldM_ f a xs"
+      }
+    ]
+  },
+  {
+    "name": "Use forM_",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Monad",
+    "examples": [
+      {
+        "context": "main = void $ forM f xs",
+        "from": "void $ forM f xs",
+        "to": "void $ forM_ f xs"
+      },
+      {
+        "context": "yes = do case a of {_ -> forM x y; x:xs -> foo xs}; return ()",
+        "from": "forM x y",
+        "to": "forM_ x y"
+      },
+      {
+        "context": "yes = do if a then forM x y else return (); return 12",
+        "from": "forM x y",
+        "to": "forM_ x y"
+      },
+      {
+        "context": "yes = do forM files $ \\x -> return (); return ()",
+        "from": "forM files $ \\ x -> return ()",
+        "to": "forM_ files $ \\ x -> return ()"
+      }
+    ]
+  },
+  {
+    "name": "Use join",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Monad",
+    "examples": [
+      {
+        "context": "yes = do x <- bar; x",
+        "from": "do x <- bar\n   x",
+        "to": "do join bar"
+      }
+    ]
+  },
+  {
+    "name": "Use let",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Monad",
+    "examples": [
+      {
+        "context": "yes = do x <- return $ y + z; foo x",
+        "from": "x <- return $ y + z",
+        "to": "let x = y + z"
+      },
+      {
+        "context": "yes = do x <- return y; foo x",
+        "from": "x <- return y",
+        "to": "let x = y"
+      }
+    ]
+  },
+  {
+    "name": "Use mapM_",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Monad",
+    "examples": [
+      {
+        "context": "yes = mapM async ds >>= mapM wait >> return ()",
+        "from": "mapM async ds >>= mapM wait",
+        "to": "mapM async ds >>= mapM_ wait"
+      },
+      {
+        "context": "yes = do _ <- mapM print a; return b",
+        "from": "mapM print a",
+        "to": "mapM_ print a"
+      },
+      {
+        "context": "yes = do mapM print a; return b",
+        "from": "mapM print a",
+        "to": "mapM_ print a"
+      }
+    ]
+  },
+  {
+    "name": "Avoid lambda",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Lambda",
+    "examples": [
+      {
+        "context": "yes = map (\\f -> dataDir </> f) dataFiles",
+        "from": "(\\ f -> dataDir </> f)",
+        "to": "(dataDir </>)"
+      },
+      {
+        "context": "f = \\x -> bar map (filter x) where",
+        "from": "\\ x -> bar map (filter x)",
+        "to": "bar map . filter"
+      },
+      {
+        "context": "f = \\z -> foo $ bar x $ baz z where",
+        "from": "\\ z -> foo $ bar x $ baz z",
+        "to": "foo . bar x . baz"
+      },
+      {
+        "context": "f = \\z -> foo $ bar $ baz z where",
+        "from": "\\ z -> foo $ bar $ baz z",
+        "to": "foo . bar . baz"
+      },
+      {
+        "context": "f = \\y -> nub $ reverse y where",
+        "from": "\\ y -> nub $ reverse y",
+        "to": "nub . reverse"
+      },
+      {
+        "context": "yes = \\x y -> op z y x where",
+        "from": "\\ x y -> op z y x",
+        "to": "flip (op z)"
+      },
+      {
+        "context": "yes = \\x y -> op y x where",
+        "from": "\\ x y -> op y x",
+        "to": "flip op"
+      },
+      {
+        "context": "f = foo (\\z -> f x $ z)",
+        "from": "\\ z -> f x $ z",
+        "to": "f x"
+      },
+      {
+        "context": "f = foo (\\y -> g x . h $ y)",
+        "from": "\\ y -> g x . h $ y",
+        "to": "g x . h"
+      },
+      {
+        "context": "f = foo (\\y -> g x . h $ y)",
+        "from": "\\ y -> g x . h $ y",
+        "to": "g x . h"
+      }
+    ]
+  },
+  {
+    "name": "Avoid lambda",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Lambda",
+    "examples": [
+      {
+        "context": "baz = bar (\\x -> (x +))",
+        "from": "\\ x -> (x +)",
+        "to": "(+)"
+      },
+      {
+        "context": "foo = bar (\\x -> (x `f`))",
+        "from": "(\\ x -> (x `f`))",
+        "to": "f"
+      },
+      {
+        "context": "yes = foo (\\x -> Just x)",
+        "from": "(\\ x -> Just x)",
+        "to": "Just"
+      },
+      { "context": "yes = \\x -> a x where", "from": "\\ x -> a x", "to": "a" },
+      {
+        "context": "f = foo (\\x y -> x + y)",
+        "from": "\\ x y -> x + y",
+        "to": "(+)"
+      },
+      {
+        "context": "f = foo (\\x y z -> fun x y z)",
+        "from": "(\\ x y z -> fun x y z)",
+        "to": "fun"
+      },
+      {
+        "context": "f = foo (\\x y -> fun x y)",
+        "from": "(\\ x y -> fun x y)",
+        "to": "fun"
+      }
+    ]
+  },
+  {
+    "name": "Avoid lambda using `infix`",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Lambda",
+    "examples": [
+      {
+        "context": "f = a b (\\x -> c x d) ",
+        "from": "(\\ x -> c x d)",
+        "to": "(`c` d)"
+      },
+      {
+        "context": "f = foo (\\x -> x * y)",
+        "from": "(\\ x -> x * y)",
+        "to": "(* y)"
+      },
+      {
+        "context": "foo x = bar (\\ d -> search d table)",
+        "from": "(\\ d -> search d table)",
+        "to": "(`search` table)"
+      },
+      {
+        "context": "foo x = bar (\\ d -> search d table)",
+        "from": "(\\ d -> search d table)",
+        "to": "(`search` table)"
+      }
+    ]
+  },
+  {
+    "name": "Collapse lambdas",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Lambda",
+    "examples": [
+      {
+        "context": "f = foo (\\x -> \\y -> \\z -> x x y y z z)",
+        "from": "\\ x -> \\ y -> \\ z -> x x y y z z",
+        "to": "\\ x y z -> x x y y z z"
+      },
+      {
+        "context": "f = foo (\\(x:xs) -> \\x -> foo x x)",
+        "from": "\\ (x : xs) -> \\ x -> foo x x",
+        "to": "\\ (_ : xs) x -> foo x x"
+      },
+      {
+        "context": "f = foo (\\x -> \\x -> foo x x)",
+        "from": "\\ x -> \\ x -> foo x x",
+        "to": "\\ _ x -> foo x x"
+      },
+      {
+        "context": "f = foo (\\x -> \\y -> x x y y)",
+        "from": "\\ x -> \\ y -> x x y y",
+        "to": "\\ x y -> x x y y"
+      }
+    ]
+  },
+  {
+    "name": "Eta reduce",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Lambda",
+    "examples": [
+      {
+        "context": "foo a b c = bar (flux ++ quux) c where flux = a",
+        "from": "foo a b c = bar (flux ++ quux) c",
+        "to": "foo a b = bar (flux ++ quux)"
+      },
+      {
+        "context": "fun a b = let g x y = h x y in f a b c",
+        "from": "g x y = h x y",
+        "to": "g = h"
+      },
+      {
+        "context": "fun a b = f a b c where g x y = h x y",
+        "from": "g x y = h x y",
+        "to": "g = h"
+      },
+      {
+        "context": "fun x = f . g $ x",
+        "from": "fun x = f . g $ x",
+        "to": "fun = f . g"
+      },
+      {
+        "context": "fun x y z = f g z",
+        "from": "fun x y z = f g z",
+        "to": "fun x y = f g"
+      },
+      {
+        "context": "fun x y z = f x x y z",
+        "from": "fun x y z = f x x y z",
+        "to": "fun x = f x x"
+      },
+      {
+        "context": "fun x y z = f x y z",
+        "from": "fun x y z = f x y z",
+        "to": "fun = f"
+      }
+    ]
+  },
+  {
+    "name": "Redundant lambda",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Lambda",
+    "examples": [
+      {
+        "context": "f = \\x -> x + x",
+        "from": "f = \\ x -> x + x",
+        "to": "f x = x + x"
+      },
+      {
+        "context": "f (Foo a b c) = \\c -> c + c",
+        "from": "f (Foo a b c) = \\ c -> c + c",
+        "to": "f (Foo a b _) c = c + c"
+      },
+      {
+        "context": "f (Just a) = \\a -> a + a",
+        "from": "f (Just a) = \\ a -> a + a",
+        "to": "f (Just _) a = a + a"
+      },
+      {
+        "context": "a = \\x -> x + x",
+        "from": "a = \\ x -> x + x",
+        "to": "a x = x + x"
+      },
+      {
+        "context": "f a = \\a -> a + a",
+        "from": "f a = \\ a -> a + a",
+        "to": "f _ a = a + a"
+      },
+      {
+        "context": "f a = \\x -> x + x",
+        "from": "f a = \\ x -> x + x",
+        "to": "f a x = x + x"
+      }
+    ]
+  },
+  {
+    "name": "Use lambda",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Lambda",
+    "examples": [
+      {
+        "context": "foo = bar (\\x -> case x of [y, z] -> z)",
+        "from": "\\ x -> case x of [y, z] -> z",
+        "to": "\\ [y, z] -> z"
+      },
+      {
+        "context": "foo = bar (\\x -> case x of Y z -> z)",
+        "from": "\\ x -> case x of Y z -> z",
+        "to": "\\ (Y z) -> z"
+      }
+    ]
+  },
+  {
+    "name": "Use lambda-case",
+    "severity": "Suggestion",
+    "refactoring": false,
+    "category": "Lambda",
+    "examples": [
+      {
+        "context": "foo = bar (\\x -> case x of Y z | z > 0 -> z)",
+        "from": "\\ x -> case x of Y z | z > 0 -> z",
+        "to": "\\case Y z | z > 0 -> z"
+      },
+      {
+        "context": "yes = blah (\\ x -> case x of A -> a; B -> b)",
+        "from": "\\ x\n  -> case x of\n       A -> a\n       B -> b",
+        "to": "\\case\n  A -> a\n  B -> b"
+      },
+      {
+        "context": "yes = blah (\\ x -> case x of A -> a; B -> b)",
+        "from": "\\ x\n  -> case x of\n       A -> a\n       B -> b",
+        "to": "\\case\n  A -> a\n  B -> b"
+      }
+    ]
+  },
+  {
+    "name": "Use section",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Lambda",
+    "examples": [
+      {
+        "context": "f = bar (flip Foo.bar x)",
+        "from": "(flip Foo.bar x)",
+        "to": "(`Foo.bar` x)"
+      },
+      {
+        "context": "f = foo (flip (Prelude.*) x)",
+        "from": "(flip (Prelude.*) x)",
+        "to": "(Prelude.* x)"
+      },
+      {
+        "context": "f = foo (flip (*) x)",
+        "from": "(flip (*) x)",
+        "to": "(* x)"
+      },
+      {
+        "context": "f = foo (flip x y)",
+        "from": "(flip x y)",
+        "to": "(`x` y)"
+      },
+      {
+        "context": "f = foo (flip op x)",
+        "from": "(flip op x)",
+        "to": "(`op` x)"
+      },
+      {
+        "context": "f = foo (flip op x)",
+        "from": "(flip op x)",
+        "to": "(`op` x)"
+      },
+      { "context": "f = foo ((*) x)", "from": "((*) x)", "to": "(x *)" }
+    ]
+  },
+  {
+    "name": "Use tuple-section",
+    "severity": "Suggestion",
+    "refactoring": false,
+    "category": "Lambda",
+    "examples": [
+      {
+        "context": "yes = blah (\\ x -> (y, x, z+q))",
+        "from": "\\ x -> (y, x, z + q)",
+        "to": "(y,, z + q)"
+      },
+      {
+        "context": "yes = blah (\\ x -> (y, x, y, u, v))",
+        "from": "\\ x -> (y, x, y, u, v)",
+        "to": "(y,, y, u, v)"
+      },
+      {
+        "context": "yes = blah (\\ x -> (y, x, z+q))",
+        "from": "\\ x -> (y, x, z + q)",
+        "to": "(y,, z + q)"
+      },
+      {
+        "context": "yes = blah (\\ x -> (y, x))",
+        "from": "\\ x -> (y, x)",
+        "to": "(y,)"
+      }
+    ]
+  },
+  {
+    "name": "Redundant bracket due to operator fixities",
+    "severity": "Ignore",
+    "refactoring": true,
+    "category": "Fixities",
+    "examples": [
+      {
+        "context": "yes = (a >>= f) >>= g",
+        "from": "(a >>= f) >>= g",
+        "to": "a >>= f >>= g"
+      },
+      {
+        "context": "yes = (2 * 3) + 1",
+        "from": "(2 * 3) + 1",
+        "to": "2 * 3 + 1"
+      },
+      {
+        "context": "yes = 1 + (2 * 3)",
+        "from": "1 + (2 * 3)",
+        "to": "1 + 2 * 3"
+      }
+    ]
+  },
+  {
+    "name": "Move brackets to avoid $",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Bracket",
+    "examples": [
+      {
+        "context": "yes = (a b $ c d) ++ e",
+        "from": "(a b $ c d) ++ e",
+        "to": "a b (c d) ++ e"
+      },
+      {
+        "context": "yes = (b $ c d) ++ e",
+        "from": "(b $ c d) ++ e",
+        "to": "b (c d) ++ e"
+      }
+    ]
+  },
+  {
+    "name": "Redundant $",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Bracket",
+    "examples": [
+      {
+        "context": "no = f $ [1,2..5]",
+        "from": "f $ [1, 2 .. 5]",
+        "to": "f [1, 2 .. 5]"
+      },
+      {
+        "context": "yes = operator foo $ operator",
+        "from": "operator foo $ operator",
+        "to": "operator foo operator"
+      },
+      {
+        "context": "yes = white $ keysymbol",
+        "from": "white $ keysymbol",
+        "to": "white keysymbol"
+      },
+      {
+        "context": "yes = split \"to\" $ names",
+        "from": "split \"to\" $ names",
+        "to": "split \"to\" names"
+      }
+    ]
+  },
+  {
+    "name": "Redundant bracket",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Bracket",
+    "examples": [
+      {
+        "context": "yes = (foo . bar x) <$> baz q",
+        "from": "(foo . bar x) <$> baz q",
+        "to": "foo . bar x <$> baz q"
+      },
+      {
+        "context": "data Foo = Foo {foo :: (Maybe Foo)}",
+        "from": "foo :: (Maybe Foo)",
+        "to": "foo :: Maybe Foo"
+      },
+      {
+        "context": "foo :: (Maybe Int) -> a",
+        "from": "(Maybe Int) -> a",
+        "to": "Maybe Int -> a"
+      },
+      {
+        "context": "issue1179 = do(this is a test)",
+        "from": "do (this is a test)",
+        "to": "do this is a test"
+      },
+      {
+        "context": "issue909 = foo (\\((x : z) -> y) -> 9 + x * 7)",
+        "from": "\\ ((x : z) -> y) -> 9 + x * 7",
+        "to": "\\ (x : z -> y) -> 9 + x * 7"
+      },
+      {
+        "context": "main = do f; (print x)",
+        "from": "do f\n   (print x)",
+        "to": "do f\n   print x"
+      },
+      {
+        "context": "yes = (`foo` (bar baz))",
+        "from": "(`foo` (bar baz))",
+        "to": "(`foo` bar baz)"
+      },
+      {
+        "context": "yes = \\ x -> (x && x)",
+        "from": "\\ x -> (x && x)",
+        "to": "\\ x -> x && x"
+      },
+      {
+        "context": "yes = C { f = (e h) }",
+        "from": "C {f = (e h)}",
+        "to": "C {f = e h}"
+      },
+      {
+        "context": "yes = foo ((x y), z)",
+        "from": "((x y), z)",
+        "to": "(x y, z)"
+      },
+      {
+        "context": "yes = [(foo bar)]",
+        "from": "[(foo bar)]",
+        "to": "[foo bar]"
+      },
+      {
+        "context": "yes = (a foo) :: Int",
+        "from": "  (a foo) :: Int",
+        "to": "  a foo :: Int"
+      },
+      {
+        "context": "yes = if x then (f y) else z",
+        "from": "if x then (f y) else z",
+        "to": "if x then f y else z"
+      },
+      {
+        "context": "yes = if (f x) then y else z",
+        "from": "if (f x) then y else z",
+        "to": "if f x then y else z"
+      },
+      {
+        "context": "yes = (f x) ||| y",
+        "from": "(f x) ||| y",
+        "to": "f x ||| y"
+      },
+      { "context": "yes = foo ((x x))", "from": "((x x))", "to": "(x x)" },
+      { "context": "yes = (foo bar)", "from": "(foo bar)", "to": "foo bar" },
+      { "context": "yes = (f x) x", "from": "(f x) x", "to": "f x x" }
+    ]
+  },
+  {
+    "name": "Redundant bracket",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Bracket",
+    "examples": [
+      {
+        "context": "main = 1; {-# ANN module (1 + (2)) #-}",
+        "from": "(2)",
+        "to": "2"
+      },
+      {
+        "context": "f x = case x of (Nothing) -> 1; _ -> 2",
+        "from": "(Nothing)",
+        "to": "Nothing"
+      },
+      { "context": "foo ((True)) = 1", "from": "((True))", "to": "True" },
+      { "context": "foo (True) = 1", "from": "(True)", "to": "True" },
+      { "context": "yes = ((+5))", "from": "((+ 5))", "to": "(+ 5)" },
+      { "context": "yes = (($ 1))", "from": "(($ 1))", "to": "($ 1)" },
+      { "context": "yes = (($ x)) ", "from": "(($ x))", "to": "($ x)" },
+      { "context": "yes = f (x) y", "from": "(x)", "to": "x" },
+      { "context": "yes = f ((x))", "from": "((x))", "to": "x" },
+      { "context": "yes = foo (bar)", "from": "(bar)", "to": "bar" },
+      { "context": "yes = (foo)", "from": "(foo)", "to": "foo" }
+    ]
+  },
+  {
+    "name": "Redundant section",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Bracket",
+    "examples": [
+      {
+        "context": "issue970 = (f x +) (g x)",
+        "from": "(f x +) (g x)",
+        "to": "f x + (g x)"
+      }
+    ]
+  },
+  {
+    "name": "Use camelCase",
+    "severity": "Suggestion",
+    "refactoring": false,
+    "category": "Naming",
+    "examples": [
+      {
+        "context": "cast_foo = 1",
+        "from": "cast_foo = ...",
+        "to": "castFoo = ..."
+      },
+      {
+        "context": "data Yes = FOO_A | Foo_B",
+        "from": "data Yes = FOO_A | Foo_B",
+        "to": "data Yes = FOO_A | FooB"
+      },
+      {
+        "context": "yes_fooPattern Nothing = 0",
+        "from": "yes_fooPattern Nothing = ...",
+        "to": "yesFooPattern Nothing = ..."
+      },
+      {
+        "context": "yes_foo = yes_foo + yes_foo",
+        "from": "yes_foo = ...",
+        "to": "yesFoo = ..."
+      },
+      {
+        "context": "data Yes = Bar | Test_Bar",
+        "from": "data Yes = Bar | Test_Bar",
+        "to": "data Yes = Bar | TestBar"
+      }
+    ]
+  },
+  {
+    "name": "Redundant as-pattern",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Pattern",
+    "examples": [{ "context": "foo x@_ = x", "from": "x@_", "to": "x" }]
+  },
+  {
+    "name": "Redundant bang pattern",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Pattern",
+    "examples": [
+      {
+        "context": "{-# LANGUAGE BangPatterns #-}; l !(() :: ()) = x",
+        "from": "!(() :: ())",
+        "to": "(() :: ())"
+      },
+      {
+        "context": "foo !Bar { bar = x } = x",
+        "from": "!Bar {bar = x}",
+        "to": "Bar {bar = x}"
+      },
+      {
+        "context": "{-# LANGUAGE BangPatterns #-}; foo ![x] = x",
+        "from": "![x]",
+        "to": "[x]"
+      },
+      {
+        "context": "{-# LANGUAGE BangPatterns #-}; foo !(x, y) = x",
+        "from": "!(x, y)",
+        "to": "(x, y)"
+      },
+      {
+        "context": "{-# LANGUAGE BangPatterns #-}; foo = 1 where g (Just !True) = Nothing",
+        "from": "!True",
+        "to": "True"
+      },
+      {
+        "context": "{-# LANGUAGE BangPatterns #-}; foo = 1 where f !False = 2",
+        "from": "!False",
+        "to": "False"
+      },
+      {
+        "context": "{-# LANGUAGE BangPatterns #-}; foo = case v of !(I# x) -> y",
+        "from": "!(I# x)",
+        "to": "(I# x)"
+      },
+      {
+        "context": "{-# LANGUAGE BangPatterns #-}; foo = case v of !1 -> x",
+        "from": "!1",
+        "to": "1"
+      },
+      {
+        "context": "{-# LANGUAGE BangPatterns #-}; foo = case v of !(x : xs) -> x",
+        "from": "!(x : xs)",
+        "to": "(x : xs)"
+      },
+      {
+        "context": "{-# LANGUAGE BangPatterns #-}; foo = case v of !(Just x) -> x",
+        "from": "!(Just x)",
+        "to": "(Just x)"
+      },
+      {
+        "context": "{-# LANGUAGE BangPatterns #-}; foo = case v of !True -> x",
+        "from": "!True",
+        "to": "True"
+      },
+      { "context": "foo = case v of !True -> x", "from": "!True", "to": "True" }
+    ]
+  },
+  {
+    "name": "Redundant case",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Pattern",
+    "examples": [
+      {
+        "context": "foo = case v of v -> x",
+        "from": "case v of v -> x",
+        "to": "x"
+      },
+      {
+        "context": "foo = case f v of _ -> x",
+        "from": "case f v of _ -> x",
+        "to": "x"
+      }
+    ]
+  },
+  {
+    "name": "Redundant guard",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Pattern",
+    "examples": [
+      {
+        "context": "foo x | otherwise = y",
+        "from": "foo x | otherwise = y",
+        "to": "foo x = y"
+      }
+    ]
+  },
+  {
+    "name": "Redundant irrefutable pattern",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Pattern",
+    "examples": [
+      { "context": "foo ~x = y", "from": "~x", "to": "x" },
+      { "context": "foo = let ~x = 1 in y", "from": "~x", "to": "x" }
+    ]
+  },
+  {
+    "name": "Redundant where",
+    "severity": "Suggestion",
+    "refactoring": false,
+    "category": "Pattern",
+    "examples": [
+      { "context": "foo x = x + x where", "from": "where", "to": "" }
+    ]
+  },
+  {
+    "name": "Use guards",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Pattern",
+    "examples": [
+      {
+        "context": "foo x = yes x x where yes x y = if a then b else if c then d else e",
+        "from": "yes x y = if a then b else if c then d else e",
+        "to": "yes x y\n  | a = b\n  | c = d\n  | otherwise = e"
+      },
+      {
+        "context": "x `yes` y = if a then b else if c then d else e",
+        "from": "x `yes` y = if a then b else if c then d else e",
+        "to": "x `yes` y\n  | a = b\n  | c = d\n  | otherwise = e"
+      },
+      {
+        "context": "yes x y = if a then b else if c then d else e",
+        "from": "yes x y = if a then b else if c then d else e",
+        "to": "yes x y\n  | a = b\n  | c = d\n  | otherwise = e"
+      }
+    ]
+  },
+  {
+    "name": "Use otherwise",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Pattern",
+    "examples": [
+      {
+        "context": "foo x | a = b | True = d",
+        "from": "foo x\n  | a = b\n  | True = d",
+        "to": "foo x\n  | a = b\n  | otherwise = d"
+      }
+    ]
+  },
+  {
+    "name": "Use record patterns",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Pattern",
+    "examples": [
+      {
+        "context": "foo (Bar _ _ _ _) = x",
+        "from": "Bar _ _ _ _",
+        "to": "Bar {}"
+      }
+    ]
+  },
+  {
+    "name": "Used otherwise as a pattern",
+    "severity": "Warning",
+    "refactoring": false,
+    "category": "Pattern",
+    "examples": [
+      { "context": "foo otherwise = 1", "from": "otherwise", "to": "_" }
+    ]
+  },
+  {
+    "name": "Redundant as",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Import",
+    "examples": [
+      {
+        "context": "import qualified A as A",
+        "from": "import qualified A as A",
+        "to": "import qualified A"
+      },
+      { "context": "import A as A", "from": "import A as A", "to": "import A" }
+    ]
+  },
+  {
+    "name": "Use fewer imports",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Import",
+    "examples": [
+      {
+        "context": "import A (foo) \nimport A (bar) \nimport A (baz)",
+        "from": "import A ( foo )\nimport A ( bar )\nimport A ( baz )\n",
+        "to": "import A ( foo, bar, baz )\n"
+      },
+      {
+        "context": "import B; import A; import A",
+        "from": "import A\nimport A\n",
+        "to": "import A\n"
+      },
+      {
+        "context": "import A; import B; import A",
+        "from": "import A\nimport A\n",
+        "to": "import A\n"
+      },
+      {
+        "context": "import A; import A as Y",
+        "from": "import A\nimport A as Y\n",
+        "to": "import A as Y\n"
+      },
+      {
+        "context": "import A; import A hiding (C)",
+        "from": "import A\nimport A hiding ( C )\n",
+        "to": "import A\n"
+      },
+      {
+        "context": "import A(B) ; import A(C)",
+        "from": "import A ( B )\nimport A ( C )\n",
+        "to": "import A ( B, C )\n"
+      },
+      {
+        "context": "import A ;import A(Foo)",
+        "from": "import A\nimport A ( Foo )\n",
+        "to": "import A\n"
+      },
+      {
+        "context": "import A(Foo) ; import A",
+        "from": "import A ( Foo )\nimport A\n",
+        "to": "import A\n"
+      },
+      {
+        "context": "import A; import A; import A",
+        "from": "import A\nimport A\nimport A\n",
+        "to": "import A\n"
+      },
+      {
+        "context": "import A; import A",
+        "from": "import A\nimport A\n",
+        "to": "import A\n"
+      }
+    ]
+  },
+  {
+    "name": "Use explicit module export list",
+    "severity": "Ignore",
+    "refactoring": false,
+    "category": "Export",
+    "examples": [
+      {
+        "context": "module Foo(module Foo, foo) where foo = 1",
+        "from": "module Foo (\n        module Foo, foo\n    ) where",
+        "to": "module Foo (\n         ... , foo\n    ) where"
+      },
+      {
+        "context": "module Foo(module Foo) where foo = 1",
+        "from": "module Foo (\n        module Foo\n    ) where",
+        "to": "module Foo (\n         ... \n    ) where"
+      }
+    ]
+  },
+  {
+    "name": "Use module export list",
+    "severity": "Ignore",
+    "refactoring": false,
+    "category": "Export",
+    "examples": [
+      {
+        "context": "module Foo where foo = 1",
+        "from": "module Foo where",
+        "to": "module Foo (\n        module Foo\n    ) where"
+      }
+    ]
+  },
+  {
+    "name": "Use LANGUAGE pragmas",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Pragma",
+    "examples": [
+      {
+        "context": "{-# OPTIONS_GHC -cpp -w #-}",
+        "from": "{-# OPTIONS_GHC -cpp -w #-}\n",
+        "to": "{-# LANGUAGE CPP #-}\n{-# OPTIONS_GHC -w #-}\n"
+      },
+      {
+        "context": "{-# OPTIONS_GHC -cpp -foo #-}",
+        "from": "{-# OPTIONS_GHC -cpp -foo #-}\n",
+        "to": "{-# LANGUAGE CPP #-}\n{-# OPTIONS_GHC -foo #-}\n"
+      },
+      {
+        "context": "{-# OPTIONS_GHC -fglasgow-exts #-}",
+        "from": "{-# OPTIONS_GHC -fglasgow-exts #-}\n",
+        "to": "{-# LANGUAGE ConstrainedClassMethods, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, DeriveTraversable, EmptyDataDecls, ExistentialQuantification, ExplicitNamespaces, FlexibleContexts, FlexibleInstances, ForeignFunctionInterface, FunctionalDependencies, GeneralizedNewtypeDeriving, ImplicitParams, KindSignatures, LiberalTypeSynonyms, MagicHash, MultiParamTypeClasses, ParallelListComp, PatternGuards, PostfixOperators, RankNTypes, RecursiveDo, ScopedTypeVariables, StandaloneDeriving, TypeOperators, TypeSynonymInstances, UnboxedTuples, UnicodeSyntax, UnliftedFFITypes #-}\n"
+      },
+      {
+        "context": "{-# OPTIONS_GHC -XFoo #-}",
+        "from": "{-# OPTIONS_GHC -XFoo #-}\n",
+        "to": "{-# LANGUAGE Foo #-}\n"
+      },
+      {
+        "context": "{-# OPTIONS     -cpp #-}",
+        "from": "{-# OPTIONS     -cpp #-}\n",
+        "to": "{-# LANGUAGE CPP #-}\n"
+      },
+      {
+        "context": "{-# OPTIONS_GHC -cpp #-}",
+        "from": "{-# OPTIONS_GHC -cpp #-}\n",
+        "to": "{-# LANGUAGE CPP #-}\n"
+      }
+    ]
+  },
+  {
+    "name": "Use fewer LANGUAGE pragmas",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Pragma",
+    "examples": [
+      {
+        "context": "{-# LANGUAGE RebindableSyntax #-} \n{-# LANGUAGE EmptyCase, RebindableSyntax #-}",
+        "from": "{-# LANGUAGE RebindableSyntax #-}\n{-# LANGUAGE EmptyCase, RebindableSyntax #-}\n",
+        "to": "{-# LANGUAGE RebindableSyntax, EmptyCase #-}"
+      },
+      {
+        "context": "{-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields, RebindableSyntax #-}",
+        "from": "{-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields, RebindableSyntax #-}",
+        "to": "{-# LANGUAGE RebindableSyntax, EmptyCase, DuplicateRecordFields #-}"
+      },
+      {
+        "context": "{-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-}",
+        "from": "{-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-}",
+        "to": "{-# LANGUAGE RebindableSyntax, EmptyCase #-}"
+      }
+    ]
+  },
+  {
+    "name": "Unused LANGUAGE pragma",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Extensions",
+    "examples": [
+      {
+        "context": "{-# LANGUAGE OverloadedRecordDot #-} \nf = (. foo)",
+        "from": "{-# LANGUAGE OverloadedRecordDot #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE OverloadedRecordDot #-} \nf x = x . foo",
+        "from": "{-# LANGUAGE OverloadedRecordDot #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE NoMonomorphismRestriction, NamedFieldPuns #-} \nmain = 1",
+        "from": "{-# LANGUAGE NoMonomorphismRestriction, NamedFieldPuns #-}",
+        "to": "{-# LANGUAGE NoMonomorphismRestriction #-}"
+      },
+      {
+        "context": "{-# LANGUAGE ImportQualifiedPost #-} \nimport qualified Control.Monad as CM hiding (mapM) \nimport Data.Foldable",
+        "from": "{-# LANGUAGE ImportQualifiedPost #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE LambdaCase, MultiWayIf, NoRebindableSyntax #-} \nfoo = \\case True -> 3",
+        "from": "{-# LANGUAGE LambdaCase, MultiWayIf, NoRebindableSyntax #-}",
+        "to": "{-# LANGUAGE LambdaCase, NoRebindableSyntax #-}"
+      },
+      {
+        "context": "{-# LANGUAGE Trustworthy, NamedFieldPuns #-}",
+        "from": "{-# LANGUAGE Trustworthy, NamedFieldPuns #-}",
+        "to": "{-# LANGUAGE Trustworthy #-}"
+      },
+      {
+        "context": "{-# LANGUAGE NumericUnderscores #-} \navogadro = 6.022140857e+23",
+        "from": "{-# LANGUAGE NumericUnderscores #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE NamedFieldPuns #-}",
+        "from": "{-# LANGUAGE NamedFieldPuns #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE MultiWayIf #-} \nx = if b1 then v1 else if b2 then v2 else v3",
+        "from": "{-# LANGUAGE MultiWayIf #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE PatternSynonyms #-} \nx = 42",
+        "from": "{-# LANGUAGE PatternSynonyms #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE PolyKinds, KindSignatures #-} \ndata Set (cxt :: * -> *) a = Set [a]",
+        "from": "{-# LANGUAGE PolyKinds, KindSignatures #-}",
+        "to": "{-# LANGUAGE PolyKinds #-}"
+      },
+      {
+        "context": "{-# LANGUAGE PolyKinds, KindSignatures #-}",
+        "from": "{-# LANGUAGE PolyKinds, KindSignatures #-}",
+        "to": "{-# LANGUAGE PolyKinds #-}"
+      },
+      {
+        "context": "{-# LANGUAGE EmptyCase #-} \nmain = case () of x -> x",
+        "from": "{-# LANGUAGE EmptyCase #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE EmptyCase #-} \nmain = case () of x -> x",
+        "from": "{-# LANGUAGE EmptyCase #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE MagicHash #-} \nfoo = id",
+        "from": "{-# LANGUAGE MagicHash #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE DeriveAnyClass #-} \ndata Foo a = Foo a deriving (Eq,Data,Functor)",
+        "from": "{-# LANGUAGE DeriveAnyClass #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE DeriveAnyClass #-} \nmain = id",
+        "from": "{-# LANGUAGE DeriveAnyClass #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE OverloadedLabels #-} \nmain = id",
+        "from": "{-# LANGUAGE OverloadedLabels #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE OverloadedLists #-} \nmain = id",
+        "from": "{-# LANGUAGE OverloadedLists #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE OverloadedStrings #-} \nmain = id",
+        "from": "{-# LANGUAGE OverloadedStrings #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE TupleSections #-} \nmain = id",
+        "from": "{-# LANGUAGE TupleSections #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE NumDecimals #-} \nfoo = 12.345e2",
+        "from": "{-# LANGUAGE NumDecimals #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE NumDecimals #-} \nfoo = id",
+        "from": "{-# LANGUAGE NumDecimals #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE LambdaCase #-} \nfoo = id",
+        "from": "{-# LANGUAGE LambdaCase #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE TypeApplications #-} \nfoo = id",
+        "from": "{-# LANGUAGE TypeApplications #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE DefaultSignatures #-} \nclass Val a where; val :: a",
+        "from": "{-# LANGUAGE DefaultSignatures #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE InstanceSigs #-} \ninstance Eq a => Eq (T a) where \n  (==) (T x) (T y) = x==y",
+        "from": "{-# LANGUAGE InstanceSigs #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE UnboxedTuples #-} \nf :: x -> (x, x); f x = (x, x)",
+        "from": "{-# LANGUAGE UnboxedTuples #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-} \nnewtype Micro = Micro Int deriving Generic",
+        "from": "{-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-}",
+        "to": "{-# LANGUAGE DeriveGeneric #-}"
+      },
+      {
+        "context": "{-# LANGUAGE DeriveFunctor, GeneralizedNewtypeDeriving, StandaloneDeriving #-} \nderiving instance Show Bar",
+        "from": "{-# LANGUAGE DeriveFunctor, GeneralizedNewtypeDeriving, StandaloneDeriving #-}",
+        "to": "{-# LANGUAGE StandaloneDeriving #-}"
+      },
+      {
+        "context": "{-# LANGUAGE GeneralizedNewtypeDeriving #-} \nnewtype Foo = Foo Int deriving Data",
+        "from": "{-# LANGUAGE GeneralizedNewtypeDeriving #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-} \ndata Foo = Foo Int deriving Class",
+        "from": "{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-} \nnewtype Foo = Foo Int deriving Class",
+        "from": "{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-}",
+        "to": "{-# LANGUAGE GeneralizedNewtypeDeriving #-}"
+      },
+      {
+        "context": "{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-} \ndata Foo = Foo Int deriving Data",
+        "from": "{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-}",
+        "to": "{-# LANGUAGE DeriveDataTypeable #-}"
+      },
+      {
+        "context": "{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-} \nnewtype Foo = Foo Int deriving Data",
+        "from": "{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-}",
+        "to": "{-# LANGUAGE DeriveDataTypeable #-}"
+      },
+      {
+        "context": "{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-} \nrecord = 1",
+        "from": "{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE UnboxedTuples #-} \nrecord = 1",
+        "from": "{-# LANGUAGE UnboxedTuples #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE RecordWildCards #-} \n{-# LANGUAGE DisambiguateRecordFields #-} \nrecord = 1",
+        "from": "{-# LANGUAGE RecordWildCards #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE RecordWildCards #-} \nrecord = 1",
+        "from": "{-# LANGUAGE RecordWildCards #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE TypeOperators #-} \n(<+>) :: Int -> Int -> Int \nx <+> y = x + y",
+        "from": "{-# LANGUAGE TypeOperators #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE TypeOperators #-} \nfoo :: Int -> (<+>) Double Bool \nfoo x = y",
+        "from": "{-# LANGUAGE TypeOperators #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE TypeOperators, TypeFamilies #-} \ntype family Foo a b :: Type where Foo a b = (<+>) a b",
+        "from": "{-# LANGUAGE TypeOperators, TypeFamilies #-}",
+        "to": "{-# LANGUAGE TypeFamilies #-}"
+      },
+      {
+        "context": "{-# LANGUAGE TypeOperators #-} \ndata Foo a b = a :+ b",
+        "from": "{-# LANGUAGE TypeOperators #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE BangPatterns #-} \ndata Foo = Foo !Int",
+        "from": "{-# LANGUAGE BangPatterns #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE QuasiQuotes, TemplateHaskell #-} \nf x = x + [e| x + 1 |] + [foo| x + 1 |]",
+        "from": "{-# LANGUAGE QuasiQuotes, TemplateHaskell #-}",
+        "to": "{-# LANGUAGE QuasiQuotes #-}"
+      },
+      {
+        "context": "{-# LANGUAGE TemplateHaskell #-} \nmain = foo ''Bar",
+        "from": "{-# LANGUAGE TemplateHaskell #-}",
+        "to": ""
+      },
+      {
+        "context": "{-# LANGUAGE RebindableSyntax, ParallelListComp, ImplicitParams #-} \nf = [(a,c) | a <- b | c <- d]",
+        "from": "{-# LANGUAGE RebindableSyntax, ParallelListComp, ImplicitParams #-}",
+        "to": "{-# LANGUAGE RebindableSyntax, ParallelListComp #-}"
+      },
+      {
+        "context": "{-# LANGUAGE Arrows #-} \nf = id",
+        "from": "{-# LANGUAGE Arrows #-}",
+        "to": ""
+      }
+    ]
+  },
+  {
+    "name": "Missing NOINLINE pragma",
+    "severity": "Warning",
+    "refactoring": true,
+    "category": "Unsafe",
+    "examples": [
+      {
+        "context": "entries = unsafePerformIO . baz $ x",
+        "from": "entries = unsafePerformIO . baz $ x",
+        "to": "{-# NOINLINE entries #-}\nentries = unsafePerformIO . baz $ x"
+      },
+      {
+        "context": "entries = unsafePerformIO . baz $ x",
+        "from": "entries = unsafePerformIO . baz $ x",
+        "to": "{-# NOINLINE entries #-}\nentries = unsafePerformIO . baz $ x"
+      },
+      {
+        "context": "entries = x where x = unsafePerformIO $ Multimap.newIO",
+        "from": "entries\n  = x\n  where\n      x = unsafePerformIO $ Multimap.newIO",
+        "to": "{-# NOINLINE entries #-}\nentries\n  = x\n  where\n      x = unsafePerformIO $ Multimap.newIO"
+      },
+      {
+        "context": "entries = unsafePerformIO $ f y where foo = 1",
+        "from": "entries\n  = unsafePerformIO $ f y\n  where\n      foo = 1",
+        "to": "{-# NOINLINE entries #-}\nentries\n  = unsafePerformIO $ f y\n  where\n      foo = 1"
+      },
+      {
+        "context": "entries = unsafePerformIO Multimap.newIO",
+        "from": "entries = unsafePerformIO Multimap.newIO",
+        "to": "{-# NOINLINE entries #-}\nentries = unsafePerformIO Multimap.newIO"
+      }
+    ]
+  },
+  {
+    "name": "Fix pragma markup",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Comment",
+    "examples": [
+      {
+        "context": "{- MISSING HASH #-}",
+        "from": "{- MISSING HASH #-}",
+        "to": "{-# MISSING HASH #-}"
+      }
+    ]
+  },
+  {
+    "name": "Use pragma syntax",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "Comment",
+    "examples": [
+      {
+        "context": "{- NOINLINE Y -}",
+        "from": "{- NOINLINE Y -}",
+        "to": "{-# NOINLINE Y #-}"
+      },
+      {
+        "context": "{- INLINE[~k] f -}",
+        "from": "{- INLINE[~k] f -}",
+        "to": "{-# INLINE[~k] f #-}"
+      },
+      {
+        "context": "{- INLINE Y -}",
+        "from": "{- INLINE Y -}",
+        "to": "{-# INLINE Y #-}"
+      }
+    ]
+  },
+  {
+    "name": "Use DerivingStrategies",
+    "severity": "Ignore",
+    "refactoring": false,
+    "category": "NewType",
+    "examples": [
+      {
+        "context": "newtype instance Foo Int = Bar {field :: Bool} deriving Show",
+        "from": "newtype instance Foo Int\n  = Bar {field :: Bool}\n  deriving Show",
+        "to": null
+      },
+      {
+        "context": "newtype instance Foo Int = Bar Bool deriving (Show, Eq)",
+        "from": "newtype instance Foo Int\n  = Bar Bool\n  deriving (Show, Eq)",
+        "to": null
+      },
+      {
+        "context": "newtype Foo = Foo { getFoo :: Int } deriving (Show, Eq)",
+        "from": "newtype Foo\n  = Foo {getFoo :: Int}\n  deriving (Show, Eq)",
+        "to": null
+      },
+      {
+        "context": "newtype Foo = Foo Int deriving (Show, Eq)",
+        "from": "newtype Foo\n  = Foo Int\n  deriving (Show, Eq)",
+        "to": null
+      }
+    ]
+  },
+  {
+    "name": "Use newtype instead of data",
+    "severity": "Suggestion",
+    "refactoring": false,
+    "category": "NewType",
+    "examples": [
+      {
+        "context": "data instance Foo Int = Bar {field :: Bool}",
+        "from": "data instance Foo Int = Bar {field :: Bool}",
+        "to": "newtype instance Foo Int = Bar {field :: Bool}"
+      },
+      {
+        "context": "data instance Foo Int = Bar Bool",
+        "from": "data instance Foo Int = Bar Bool",
+        "to": "newtype instance Foo Int = Bar Bool"
+      },
+      {
+        "context": "data A = A ()",
+        "from": "data A = A ()",
+        "to": "newtype A = A ()"
+      },
+      {
+        "context": "data A = A {b :: !C}",
+        "from": "data A = A {b :: !C}",
+        "to": "newtype A = A {b :: C}"
+      },
+      {
+        "context": "data X = Y {-# UNPACK #-} !Int",
+        "from": "data X = Y {-# UNPACK #-} !Int",
+        "to": "newtype X = Y Int"
+      },
+      {
+        "context": "data Foo a = () => Foo a",
+        "from": "data Foo a = Foo a",
+        "to": "newtype Foo a = Foo a"
+      },
+      {
+        "context": "{-# LANGUAGE RankNTypes #-}; data Foo = Foo (forall a . a)",
+        "from": "data Foo = Foo (forall a. a)",
+        "to": "newtype Foo = Foo (forall a. a)"
+      },
+      {
+        "context": "data Foo a b = Foo a",
+        "from": "data Foo a b = Foo a",
+        "to": "newtype Foo a b = Foo a"
+      },
+      {
+        "context": "data Foo = Foo { field :: Int } deriving Show",
+        "from": "data Foo\n  = Foo {field :: Int}\n  deriving Show",
+        "to": "newtype Foo\n  = Foo {field :: Int}\n  deriving Show"
+      },
+      {
+        "context": "data Foo = Foo Int deriving (Show, Eq)",
+        "from": "data Foo\n  = Foo Int\n  deriving (Show, Eq)",
+        "to": "newtype Foo\n  = Foo Int\n  deriving (Show, Eq)"
+      },
+      {
+        "context": "data Foo = Foo Int",
+        "from": "data Foo = Foo Int",
+        "to": "newtype Foo = Foo Int"
+      }
+    ]
+  },
+  {
+    "name": "Use underscore",
+    "severity": "Suggestion",
+    "refactoring": true,
+    "category": "NumLiteral",
+    "examples": [
+      {
+        "context": "{-# LANGUAGE NumericUnderscores #-} \n3.14159265359",
+        "from": "3.14159265359",
+        "to": "3.141_592_653_59"
+      },
+      {
+        "context": "{-# LANGUAGE NumericUnderscores #-} \n0x12abc.523defp+172345",
+        "from": "0x12abc.523defp+172345",
+        "to": "0x1_2abc.523d_efp+172_345"
+      },
+      {
+        "context": "{-# LANGUAGE NumericUnderscores #-} \n123456789.0441234e-123456",
+        "from": "123456789.0441234e-123456",
+        "to": "123_456_789.044_123_4e-123_456"
+      },
+      {
+        "context": "{-# LANGUAGE NumericUnderscores #-} \n12345",
+        "from": "12345",
+        "to": "12_345"
+      }
+    ]
+  }
+]

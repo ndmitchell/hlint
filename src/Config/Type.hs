@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE DataKinds #-}
 
 module Config.Type(
     Severity(..), Classify(..), HintRule(..), Note(..), Setting(..),
@@ -16,6 +19,7 @@ import qualified GHC.Hs
 import Fixity
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
+import Deriving.Aeson
 
 getSeverity :: String -> Maybe Severity
 getSeverity "ignore" = Just Ignore
@@ -44,7 +48,8 @@ data Severity
     | Suggestion -- ^ Suggestions are things that some people may consider improvements, but some may not.
     | Warning -- ^ Warnings are suggestions that are nearly always a good idea to apply.
     | Error -- ^ Available as a setting for the user. Only parse errors have this setting by default.
-      deriving (Eq,Ord,Show,Read,Bounded,Enum)
+      deriving (Eq,Ord,Show,Read,Bounded,Enum,Generic)
+      deriving (ToJSON) via CustomJSON '[FieldLabelModifier CamelToSnake] Severity
 
 
 -- Any 1-letter variable names are assumed to be unification variables

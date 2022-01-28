@@ -88,11 +88,23 @@ hlintMain args cmd@CmdMain{..}
                          ["- ignore: {name: " ++ show x ++ "}" | x <- bad]
             putStr $ unlines $ intercalate ["",""] $ group1:group2:groups
         pure []
-    | cmdGenerateSummary /= [] = do
-        forM_ cmdGenerateSummary $ \file -> timedIO "Summary" file $ do
-            whenNormal $ putStrLn $ "Writing summary to " ++ file ++ " ..."
-            summary <- generateSummary . snd =<< readAllSettings args cmd
+    | cmdGenerateMdSummary /= [] = do
+        forM_ cmdGenerateMdSummary $ \file -> timedIO "Summary" file $ do
+            whenNormal $ putStrLn $ "Writing Markdown summary to " ++ file ++ " ..."
+            summary <- generateMdSummary . snd =<< readAllSettings args cmd
             writeFileBinary file summary
+        pure []
+    | cmdGenerateJsonSummary /= [] = do
+        forM_ cmdGenerateJsonSummary $ \file -> timedIO "Summary" file $ do
+            whenNormal $ putStrLn $ "Writing JSON summary to " ++ file ++ " ..."
+            summary <- generateJsonSummary . snd =<< readAllSettings args cmd
+            writeFileBinary file summary
+        pure []
+    | cmdGenerateIgnoreAll /= [] = do
+        forM_ cmdGenerateIgnoreAll $ \file -> timedIO "Ignore list" file $ do
+            whenNormal $ putStrLn $ "Writing ignore list to " ++ file ++ " ..."
+            ignoreList <- generateIgnoreList . snd =<< readAllSettings args cmd
+            writeFileBinary file ignoreList
         pure []
     | null cmdFiles && not (null cmdFindHints) = do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints

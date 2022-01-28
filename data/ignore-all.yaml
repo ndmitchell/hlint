@@ -1,0 +1,70 @@
+# HLint configuration file
+# https://github.com/ndmitchell/hlint
+##########################
+
+# This file contains a template configuration file, which is typically
+# placed as .hlint.yaml in the root of your project
+
+# All built-in hints
+- ignore: {name: "Move guards forward"}
+- ignore: {name: "Move map inside list comprehension"}
+- ignore: {name: "Redundant True guards"}
+- ignore: {name: "Short-circuited list comprehension"}
+- ignore: {name: "Use :"}
+- ignore: {name: "Use String"}
+- ignore: {name: "Use list literal"}
+- ignore: {name: "Use list literal pattern"}
+- ignore: {name: "Use foldM"}
+- ignore: {name: "Use foldl"}
+- ignore: {name: "Use foldr"}
+- ignore: {name: "Use map"}
+- ignore: {name: "Redundant do"}
+- ignore: {name: "Redundant return"}
+- ignore: {name: "Redundant variable capture"}
+- ignore: {name: "Redundant void"}
+- ignore: {name: "Use <$>"}
+- ignore: {name: "Use foldM_"}
+- ignore: {name: "Use forM_"}
+- ignore: {name: "Use join"}
+- ignore: {name: "Use let"}
+- ignore: {name: "Use mapM_"}
+- ignore: {name: "Avoid lambda"}
+- ignore: {name: "Avoid lambda"}
+- ignore: {name: "Avoid lambda using `infix`"}
+- ignore: {name: "Collapse lambdas"}
+- ignore: {name: "Eta reduce"}
+- ignore: {name: "Redundant lambda"}
+- ignore: {name: "Use lambda"}
+- ignore: {name: "Use lambda-case"}
+- ignore: {name: "Use section"}
+- ignore: {name: "Use tuple-section"}
+- ignore: {name: "Redundant bracket due to operator fixities"}
+- ignore: {name: "Move brackets to avoid $"}
+- ignore: {name: "Redundant $"}
+- ignore: {name: "Redundant bracket"}
+- ignore: {name: "Redundant bracket"}
+- ignore: {name: "Redundant section"}
+- ignore: {name: "Use camelCase"}
+- ignore: {name: "Redundant as-pattern"}
+- ignore: {name: "Redundant bang pattern"}
+- ignore: {name: "Redundant case"}
+- ignore: {name: "Redundant guard"}
+- ignore: {name: "Redundant irrefutable pattern"}
+- ignore: {name: "Redundant where"}
+- ignore: {name: "Use guards"}
+- ignore: {name: "Use otherwise"}
+- ignore: {name: "Use record patterns"}
+- ignore: {name: "Used otherwise as a pattern"}
+- ignore: {name: "Redundant as"}
+- ignore: {name: "Use fewer imports"}
+- ignore: {name: "Use explicit module export list"}
+- ignore: {name: "Use module export list"}
+- ignore: {name: "Use LANGUAGE pragmas"}
+- ignore: {name: "Use fewer LANGUAGE pragmas"}
+- ignore: {name: "Unused LANGUAGE pragma"}
+- ignore: {name: "Missing NOINLINE pragma"}
+- ignore: {name: "Fix pragma markup"}
+- ignore: {name: "Use pragma syntax"}
+- ignore: {name: "Use DerivingStrategies"}
+- ignore: {name: "Use newtype instead of data"}
+- ignore: {name: "Use underscore"}
