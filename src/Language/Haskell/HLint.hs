@@ -49,6 +49,7 @@ import Data.Maybe
 import System.FilePath
 import Data.Functor
 import Prelude
+import qualified Hint.Restrict as Restrict
 
 
 -- | Get the Cabal configured data directory of HLint.
@@ -116,7 +117,9 @@ splitSettings :: [Setting] -> ([FixityInfo], [Classify], Hint)
 splitSettings xs =
     ([x | Infix x <- xs]
     ,[x | SettingClassify x <- xs]
-    ,H.resolveHints $ [Right x | SettingMatchExp x <- xs] ++ map Left enumerate)
+    ,H.resolveHints ([Right x | SettingMatchExp x <- xs] ++ map Left enumerate)
+    <> mempty { hintModule = Restrict.restrictHint . (xs++)}
+    )
 
 
 -- | Given a way of classifying results, and a 'Hint', apply to a set of modules generating a list of 'Idea's.
