@@ -59,8 +59,6 @@ dedupBuiltin = fmap makeHint . Map.toAscList . Map.fromListWith (<>) . fmap exam
 -- from @data/hlint.yaml@.
 generateMdSummary :: [Setting] -> IO String
 generateMdSummary settings = do
-    -- Do not insert if the key already exists in the map. This has the effect
-    -- of picking the first test case of a hint as the example in the summary.
     builtinHints <- mkBuiltinSummary
     let lhsRhsHints = [hint | SettingMatchExp hint <- settings]
     pure $ genSummaryMd builtinHints lhsRhsHints
