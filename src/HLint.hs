@@ -100,11 +100,13 @@ hlintMain args cmd@CmdMain{..}
             summary <- generateJsonSummary . snd =<< readAllSettings args cmd
             writeFileBinary file summary
         pure []
-    | cmdGenerateIgnoreAll /= [] = do
-        forM_ cmdGenerateIgnoreAll $ \file -> timedIO "Ignore list" file $ do
-            whenNormal $ putStrLn $ "Writing ignore list to " ++ file ++ " ..."
-            ignoreList <- generateIgnoreList . snd =<< readAllSettings args cmd
-            writeFileBinary file ignoreList
+    | cmdGenerateExhaustiveConf /= [] = do
+        forM_ cmdGenerateExhaustiveConf $ \severity ->
+            let file = show severity ++ "-all.yaml"
+             in timedIO "Exhaustive config file" file $ do
+                whenNormal $ putStrLn $ "Writing " ++ show severity ++ "-all list to " ++ file ++ " ..."
+                exhaustiveConfig <- generateExhaustiveConfig severity . snd =<< readAllSettings args cmd
+                writeFileBinary file exhaustiveConfig
         pure []
     | null cmdFiles && not (null cmdFindHints) = do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints
