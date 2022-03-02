@@ -323,6 +323,67 @@ OUTPUT
 No hints
 
 ----
+RUN tests/wildcards-u.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-u.hs
+module U where import U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-module-xu.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-module-xu.hs
+module XU where import U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-module-x-u.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-module-x-u.hs
+module X.U where import U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-module-x-y-u.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-module-x-y-u.hs
+module X.Y.U where import U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-import-xu.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-import-xu.hs
+module U where import XU
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-import-x-u.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-import-x-u.hs
+module U where import X.U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-import-x-y-u.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-import-x-y-u.hs
+module U where import X.Y.U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-module-w.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-module-w.hs
+module W where import U
+OUTPUT
+tests/wildcards-module-w.hs:1:16-23: Warning: Avoid restricted module
+Found:
+  import U
+Note: may break the code
+
+1 hint
+
+----
 RUN tests/wildcard-i.hs --hint=data/wildcards.yaml
 FILE tests/wildcard-i.hs
 module I where x = y (\ _ -> z)

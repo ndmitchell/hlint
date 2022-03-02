@@ -7,6 +7,7 @@
   - { name: F, within: '*F' }
   - { name: G, within: '**.G' }
   - { name: H, within: '**.*H' }
+  - { name: '**.*U', within: '**.*U' }
 - ignore:
     name: Use const
     within:
