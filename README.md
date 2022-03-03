@@ -373,7 +373,7 @@ This fragment adds the following hints:
 
 You can customize the `Note:` for restricted modules, functions and extensions, by providing a `message` field (default: `may break the code`).
 
-You can use [glob](https://en.wikipedia.org/wiki/Glob_(programming))-style wildcards to match on module names.
+You can match on module names using [glob](https://en.wikipedia.org/wiki/Glob_(programming))-style wildcards. Module names are treated like file paths, except that periods in module names are like directory separators in file paths. So `**.*Spec` will match `Spec`, `PreludeSpec`, `Data.ListSpec`, and many more. But `*Spec` won't match `Data.ListSpec` because of the separator. See [the filepattern library](https://hackage.haskell.org/package/filepattern) for a more thorough description of the matching.
 
 ```yaml
 - modules:
