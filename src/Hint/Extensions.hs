@@ -274,7 +274,7 @@ import GHC.LanguageExtensions.Type
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
-import Language.Haskell.GhclibParserEx.GHC.Hs.Types
+import Language.Haskell.GhclibParserEx.GHC.Hs.Type
 import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
 import Language.Haskell.GhclibParserEx.GHC.Hs.Binds
 import Language.Haskell.GhclibParserEx.GHC.Hs.ImpExp
@@ -379,9 +379,6 @@ isMDo' = \case MDoExpr _ -> True; _ -> False
 isStrictMatch' :: HsMatchContext GhcPs -> Bool
 isStrictMatch' = \case FunRhs{mc_strictness=SrcStrict} -> True; _ -> False
 
--- TODO(SF, 2012-12-22): Replace with ghc-lib-parser-ex.
-isKindTyApp :: LHsType GhcPs -> Bool
-isKindTyApp = \case (L _ HsAppKindTy{}) -> True; _ -> False
 isGetField :: LHsExpr GhcPs -> Bool
 isGetField = \case (L _ HsGetField{}) -> True; _ -> False
 isProjection :: LHsExpr GhcPs -> Bool
