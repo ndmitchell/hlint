@@ -1,5 +1,5 @@
-:set -fwarn-incomplete-patterns
-:set -fwarn-unused-binds -fwarn-unused-imports -fwarn-orphans
+:set -Wincomplete-patterns
+:set -Wunused-binds -Wunused-imports -Worphans
 :set -isrc
 :load src/Main.hs src/Paths.hs src/Language/Haskell/HLint.hs
 
