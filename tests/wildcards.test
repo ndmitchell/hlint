@@ -1,0 +1,816 @@
+----
+RUN tests/wildcards-a.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-a.hs
+import A as Z
+OUTPUT
+tests/wildcards-a.hs:1:1-13: Warning: Avoid restricted qualification
+Found:
+  import A as Z
+Perhaps:
+  import A as A
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-xa.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-xa.hs
+import XA as Z
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-x-a.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-a.hs
+import X.A as Z
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-x-y-a.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-y-a.hs
+import X.Y.A as Z
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-b.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-b.hs
+import B as Z
+OUTPUT
+tests/wildcards-b.hs:1:1-13: Warning: Avoid restricted qualification
+Found:
+  import B as Z
+Perhaps:
+  import B as B
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-xb.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-xb.hs
+import XB as Z
+OUTPUT
+tests/wildcards-xb.hs:1:1-14: Warning: Avoid restricted qualification
+Found:
+  import XB as Z
+Perhaps:
+  import XB as B
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-x-b.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-b.hs
+import X.B as Z
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-x-y-b.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-y-b.hs
+import X.Y.B as Z
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-c.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-c.hs
+import C as Z
+OUTPUT
+tests/wildcards-c.hs:1:1-13: Warning: Avoid restricted qualification
+Found:
+  import C as Z
+Perhaps:
+  import C as C
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-xc.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-xc.hs
+import XC as Z
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-x-c.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-c.hs
+import X.C as Z
+OUTPUT
+tests/wildcards-x-c.hs:1:1-15: Warning: Avoid restricted qualification
+Found:
+  import X.C as Z
+Perhaps:
+  import X.C as C
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-x-y-c.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-y-c.hs
+import X.Y.C as Z
+OUTPUT
+tests/wildcards-x-y-c.hs:1:1-17: Warning: Avoid restricted qualification
+Found:
+  import X.Y.C as Z
+Perhaps:
+  import X.Y.C as C
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-d.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-d.hs
+import D as Z
+OUTPUT
+tests/wildcards-d.hs:1:1-13: Warning: Avoid restricted qualification
+Found:
+  import D as Z
+Perhaps:
+  import D as D
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-xd.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-xd.hs
+import XD as Z
+OUTPUT
+tests/wildcards-xd.hs:1:1-14: Warning: Avoid restricted qualification
+Found:
+  import XD as Z
+Perhaps:
+  import XD as D
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-x-d.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-d.hs
+import X.D as Z
+OUTPUT
+tests/wildcards-x-d.hs:1:1-15: Warning: Avoid restricted qualification
+Found:
+  import X.D as Z
+Perhaps:
+  import X.D as D
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-x-y-d.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-y-d.hs
+import X.Y.D as Z
+OUTPUT
+tests/wildcards-x-y-d.hs:1:1-17: Warning: Avoid restricted qualification
+Found:
+  import X.Y.D as Z
+Perhaps:
+  import X.Y.D as D
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-e.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-e.hs
+module E where import E
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-xe.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-xe.hs
+module XE where import E
+OUTPUT
+tests/wildcards-xe.hs:1:17-24: Warning: Avoid restricted module
+Found:
+  import E
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-x-e.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-e.hs
+module X.E where import E
+OUTPUT
+tests/wildcards-x-e.hs:1:18-25: Warning: Avoid restricted module
+Found:
+  import E
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-x-y-e.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-y-e.hs
+module X.Y.E where import E
+OUTPUT
+tests/wildcards-x-y-e.hs:1:20-27: Warning: Avoid restricted module
+Found:
+  import E
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-f.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-f.hs
+module F where import F
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-xf.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-xf.hs
+module XF where import F
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-x-f.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-f.hs
+module X.F where import F
+OUTPUT
+tests/wildcards-x-f.hs:1:18-25: Warning: Avoid restricted module
+Found:
+  import F
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-x-y-f.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-y-f.hs
+module X.Y.F where import F
+OUTPUT
+tests/wildcards-x-y-f.hs:1:20-27: Warning: Avoid restricted module
+Found:
+  import F
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-g.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-g.hs
+module G where import G
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-xg.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-xg.hs
+module XG where import G
+OUTPUT
+tests/wildcards-xg.hs:1:17-24: Warning: Avoid restricted module
+Found:
+  import G
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcards-x-g.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-g.hs
+module X.G where import G
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-x-y-g.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-y-g.hs
+module X.Y.G where import G
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-h.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-h.hs
+module H where import H
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-xh.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-xh.hs
+module XH where import H
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-x-h.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-h.hs
+module X.H where import H
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-x-y-h.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-x-y-h.hs
+module X.Y.H where import H
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-u.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-u.hs
+module U where import U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-module-xu.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-module-xu.hs
+module XU where import U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-module-x-u.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-module-x-u.hs
+module X.U where import U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-module-x-y-u.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-module-x-y-u.hs
+module X.Y.U where import U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-import-xu.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-import-xu.hs
+module U where import XU
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-import-x-u.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-import-x-u.hs
+module U where import X.U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-import-x-y-u.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-import-x-y-u.hs
+module U where import X.Y.U
+OUTPUT
+No hints
+
+----
+RUN tests/wildcards-module-w.hs --hint=data/wildcards.yaml
+FILE tests/wildcards-module-w.hs
+module W where import U
+OUTPUT
+tests/wildcards-module-w.hs:1:16-23: Warning: Avoid restricted module
+Found:
+  import U
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-i.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-i.hs
+module I where x = y (\ _ -> z)
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xi.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xi.hs
+module XI where x = y (\ _ -> z)
+OUTPUT
+tests/wildcard-xi.hs:1:24-31: Suggestion: Use const
+Found:
+  \ _ -> z
+Perhaps:
+  const z
+
+1 hint
+
+----
+RUN tests/wildcard-x-i.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-i.hs
+module X.I where x = y (\ _ -> z)
+OUTPUT
+tests/wildcard-x-i.hs:1:25-32: Suggestion: Use const
+Found:
+  \ _ -> z
+Perhaps:
+  const z
+
+1 hint
+
+----
+RUN tests/wildcard-x-y-i.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-i.hs
+module X.Y.I where x = y (\ _ -> z)
+OUTPUT
+tests/wildcard-x-y-i.hs:1:27-34: Suggestion: Use const
+Found:
+  \ _ -> z
+Perhaps:
+  const z
+
+1 hint
+
+----
+RUN tests/wildcard-j.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-j.hs
+module J where x = y (\ _ -> z)
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xj.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xj.hs
+module XJ where x = y (\ _ -> z)
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-j.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-j.hs
+module X.J where x = y (\ _ -> z)
+OUTPUT
+tests/wildcard-x-j.hs:1:25-32: Suggestion: Use const
+Found:
+  \ _ -> z
+Perhaps:
+  const z
+
+1 hint
+
+----
+RUN tests/wildcard-x-y-j.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-j.hs
+module X.Y.J where x = y (\ _ -> z)
+OUTPUT
+tests/wildcard-x-y-j.hs:1:27-34: Suggestion: Use const
+Found:
+  \ _ -> z
+Perhaps:
+  const z
+
+1 hint
+
+----
+RUN tests/wildcard-k.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-k.hs
+module K where x = y (\ _ -> z)
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xk.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xk.hs
+module XK where x = y (\ _ -> z)
+OUTPUT
+tests/wildcard-xk.hs:1:24-31: Suggestion: Use const
+Found:
+  \ _ -> z
+Perhaps:
+  const z
+
+1 hint
+
+----
+RUN tests/wildcard-x-k.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-k.hs
+module X.K where x = y (\ _ -> z)
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-y-k.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-k.hs
+module X.Y.K where x = y (\ _ -> z)
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-l.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-l.hs
+module L where x = y (\ _ -> z)
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xl.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xl.hs
+module XL where x = y (\ _ -> z)
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-l.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-l.hs
+module X.L where x = y (\ _ -> z)
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-y-l.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-l.hs
+module X.Y.L where x = y (\ _ -> z)
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-m.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-m.hs
+{-# LANGUAGE CPP #-} module M where
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xm.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xm.hs
+{-# LANGUAGE CPP #-} module XM where
+OUTPUT
+tests/wildcard-xm.hs:1:1-20: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE CPP #-}
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-x-m.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-m.hs
+{-# LANGUAGE CPP #-} module X.M where
+OUTPUT
+tests/wildcard-x-m.hs:1:1-20: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE CPP #-}
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-x-y-m.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-m.hs
+{-# LANGUAGE CPP #-} module X.Y.M where
+OUTPUT
+tests/wildcard-x-y-m.hs:1:1-20: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE CPP #-}
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-n.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-n.hs
+{-# LANGUAGE CPP #-} module N where
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xn.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xn.hs
+{-# LANGUAGE CPP #-} module XN where
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-n.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-n.hs
+{-# LANGUAGE CPP #-} module X.N where
+OUTPUT
+tests/wildcard-x-n.hs:1:1-20: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE CPP #-}
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-x-y-n.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-n.hs
+{-# LANGUAGE CPP #-} module X.Y.N where
+OUTPUT
+tests/wildcard-x-y-n.hs:1:1-20: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE CPP #-}
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-o.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-o.hs
+{-# LANGUAGE CPP #-} module O where
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xo.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xo.hs
+{-# LANGUAGE CPP #-} module XO where
+OUTPUT
+tests/wildcard-xo.hs:1:1-20: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE CPP #-}
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-x-o.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-o.hs
+{-# LANGUAGE CPP #-} module X.O where
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-y-o.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-o.hs
+{-# LANGUAGE CPP #-} module X.Y.O where
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-p.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-p.hs
+{-# LANGUAGE CPP #-} module P where
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xp.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xp.hs
+{-# LANGUAGE CPP #-} module XP where
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-p.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-p.hs
+{-# LANGUAGE CPP #-} module X.P where
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-y-p.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-p.hs
+{-# LANGUAGE CPP #-} module X.Y.P where
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-q.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-q.hs
+module Q where x = read ""
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xq.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xq.hs
+module XQ where x = read ""
+OUTPUT
+tests/wildcard-xq.hs:1:21-24: Warning: Avoid restricted function
+Found:
+  read
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-x-q.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-q.hs
+module X.Q where x = read ""
+OUTPUT
+tests/wildcard-x-q.hs:1:22-25: Warning: Avoid restricted function
+Found:
+  read
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-x-y-q.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-q.hs
+module X.Y.Q where x = read ""
+OUTPUT
+tests/wildcard-x-y-q.hs:1:24-27: Warning: Avoid restricted function
+Found:
+  read
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-r.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-r.hs
+module R where x = read ""
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xr.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xr.hs
+module XR where x = read ""
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-r.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-r.hs
+module X.R where x = read ""
+OUTPUT
+tests/wildcard-x-r.hs:1:22-25: Warning: Avoid restricted function
+Found:
+  read
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-x-y-r.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-r.hs
+module X.Y.R where x = read ""
+OUTPUT
+tests/wildcard-x-y-r.hs:1:24-27: Warning: Avoid restricted function
+Found:
+  read
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-s.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-s.hs
+module S where x = read ""
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xs.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xs.hs
+module XS where x = read ""
+OUTPUT
+tests/wildcard-xs.hs:1:21-24: Warning: Avoid restricted function
+Found:
+  read
+Note: may break the code
+
+1 hint
+
+----
+RUN tests/wildcard-x-s.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-s.hs
+module X.S where x = read ""
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-y-s.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-s.hs
+module X.Y.S where x = read ""
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-t.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-t.hs
+module T where x = read ""
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-xt.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-xt.hs
+module XT where x = read ""
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-t.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-t.hs
+module X.T where x = read ""
+OUTPUT
+No hints
+
+----
+RUN tests/wildcard-x-y-t.hs --hint=data/wildcards.yaml
+FILE tests/wildcard-x-y-t.hs
+module X.Y.T where x = read ""
+OUTPUT
+No hints

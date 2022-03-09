@@ -1,0 +1,31 @@
+- modules:
+  - { name: A, as: A }
+  - { name: '*B', as: B }
+  - { name: '**.C', as: C }
+  - { name: '**.*D', as: D }
+  - { name: E, within: E }
+  - { name: F, within: '*F' }
+  - { name: G, within: '**.G' }
+  - { name: H, within: '**.*H' }
+  - { name: '**.*U', within: '**.*U' }
+- ignore:
+    name: Use const
+    within:
+    - I
+    - '*J'
+    - '**.K'
+    - '**.*L'
+- extensions:
+  - name: CPP
+    within:
+    - M
+    - '*N'
+    - '**.O'
+    - '**.*P'
+- functions:
+  - name: read
+    within:
+    - Q
+    - '*R'
+    - '**.S'
+    - '**.*T'

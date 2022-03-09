@@ -109,7 +109,8 @@ noteMayBreak :: Note
 noteMayBreak = Note "may break the code"
 
 within :: String -> String -> [(String, String)] -> Bool
-within modu func = any (\(a,b) -> (a == modu || a == "") && (b == func || b == ""))
+within modu func = any (\(a,b) -> (a ~= modu || a == "") && (b ~= func || b == ""))
+  where (~=) = wildcardMatch
 
 ---------------------------------------------------------------------
 -- CHECKS
