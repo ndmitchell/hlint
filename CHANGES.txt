@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1342, make module wildcards work with `within` restrictions
     #1340, include Restriction hints in splitSettings and argsSettings output
     #1330, make ignore: {} not ignore subsequent hints
     #1317, evaluating all/any/allM/anyM on simple lists
