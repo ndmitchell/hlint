@@ -63,7 +63,7 @@ import GHC.Builtin.Types
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
-import Language.Haskell.GhclibParserEx.GHC.Hs.Types
+import Language.Haskell.GhclibParserEx.GHC.Hs.Type
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
