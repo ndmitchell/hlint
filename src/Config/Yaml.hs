@@ -11,6 +11,16 @@ module Config.Yaml(
     isBuiltinYaml,
     ) where
 
+#if defined(MIN_VERSION_aeson)
+#if MIN_VERSION_aeson(2,0,0)
+#define AESON 2
+#else
+#define AESON 1
+#endif
+#else
+#define AESON 2
+#endif
+
 import GHC.Driver.Ppr
 import GHC.Parser.Errors.Ppr
 import Config.Type
@@ -44,7 +54,7 @@ import GHC.Util (baseDynFlags, Scope, scopeCreate)
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Data.Char
-#if MIN_VERSION_aeson(2,0,0)
+#if AESON == 2
 import Data.Aeson.KeyMap (toHashMapText)
 #endif
 
@@ -75,7 +85,7 @@ import Control.Exception.Extra
 
 #endif
 
-#if !MIN_VERSION_aeson(2,0,0)
+#if AESON == 1
 toHashMapText :: a -> a
 toHashMapText = id
 #endif
