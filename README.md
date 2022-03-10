@@ -373,12 +373,51 @@ This fragment adds the following hints:
 
 You can customize the `Note:` for restricted modules, functions and extensions, by providing a `message` field (default: `may break the code`).
 
+Other options are available:
+
+- `asRequired`: boolean.
+
+  If true, `as` alias is required. Ignored if `as` is empty.
+- `importStyle`: one of `'qualified'`, `'unqualified'`, `'explicit'`,
+  `'explicitOrQualified'`, `'unrestricted'`.
+
+  The preferred import style.
+
+  `explicitOrQualified` accepts both `import Foo (a,b,c)` and `import qualified Foo`, but not `import Foo` or `import Foo hiding (x)`.
+
+  `explicit` is basically the same, but doesn't accept `import qualified`.
+
+  `qualified` and `unqualified` do not care about the import list at all.
+- `qualifiedStyle`: either `'pre'`, `'post'` or `'unrestricted'`; how should the module be qualified? This option also affects how suggestions are formatted.
+
+For examlple:
+
+```yaml
+- modules:
+  - {name: [Data.Set, Data.HashSet], as: Set, asRequired: true}
+  - {name: Debug, importStyle: explicitOrQualified}
+  - {name: Unsafe, importStyle: qualified, qualifiedStyle: post, as: Unsafe}
+  - {name: Prelude, importStyle: unqualified}
+```
+
+This:
+* Requires `Data.Set` and `Data.HashSet` to be imported with alias `Set`; if imported without alias, a warning is generated.
+* Says that `Debug` must be imported either qualified with post-qualification, i.e. `import Debug qualified`, or with an explicit import list, e.g. `Debug (debugPrint)`.
+* Requires that `Unsafe` must always be imported qualified, and can't be aliased.
+* Forbids `import qualified Prelude` and `import Prelude qualified` (with or without explicit import list).
+
 You can match on module names using [glob](https://en.wikipedia.org/wiki/Glob_(programming))-style wildcards. Module names are treated like file paths, except that periods in module names are like directory separators in file paths. So `**.*Spec` will match `Spec`, `PreludeSpec`, `Data.ListSpec`, and many more. But `*Spec` won't match `Data.ListSpec` because of the separator. See [the filepattern library](https://hackage.haskell.org/package/filepattern) for a more thorough description of the matching.
+
+Restrictions are unified between wildcard and specific matches. With `asRequired`, `importStyle` and `qualifiedStyle` fields, the more specific option takes precedence. The list fields are merged. With multiple wildcard matches, the precedence between them is not guaranteed (but in practice, names are sorted in the reverse lexicograpic order, and the first one wins -- which hopefully means the more specific one more often than not)
+
+If the same module is specified multiple times, for `asRequired`, `importStyle`
+and `qualifiedStyle` fields, only the first definition will take effect.
 
 ```yaml
 - modules:
   - {name: [Data.Map, Data.Map.*], as: Map}
   - {name: Test.Hspec, within: **.*Spec }
+  - {name: '**', importStyle: post}
 ```
 
 ## Hacking HLint
