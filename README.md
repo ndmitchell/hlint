@@ -282,11 +282,11 @@ Some of the hints are subjective, and some users believe they should be ignored.
 
 * `{-# ANN module "HLint: ignore" #-}` or `{-# HLINT ignore #-}` or `{- HLINT ignore -}` - ignore all hints in this module (use `module` literally, not the name of the module).
 * `{-# ANN module "HLint: ignore Eta reduce" #-}` or `{-# HLINT ignore "Eta reduce" #-}` or `{- HLINT ignore "Eta reduce" -}` - ignore all eta reduction suggestions in this module.
-* `{-# ANN myFunction "HLint: ignore" #-}` or `{-# HLINT ignore myFunction #-}` or `{- HLINT ignore myFunction -}` - don't give any hints in the function `myFunction`. This may be combined with hint names, `{- HLINT ignore myFunction "Eta reduce" -}`, to only ignore that hint in that function.
-* `{-# ANN myFunction "HLint: error" #-}` or `{-# HLINT error myFunction #-}` or `{- HLINT error myFunction -}` - any hint in the function `myFunction` is an error.
+* `{-# ANN myDef "HLint: ignore" #-}` or `{-# HLINT ignore myDef #-}` or `{- HLINT ignore myDef -}` - don't give any hints in the definition `myDef`. This may be combined with hint names, `{- HLINT ignore myDef "Eta reduce" -}`, to only ignore that hint in that definition.
+* `{-# ANN myDef "HLint: error" #-}` or `{-# HLINT error myDef #-}` or `{- HLINT error myDef -}` - any hint in the definition `myDef` is an error.
 * `{-# ANN module "HLint: error Use concatMap" #-}` or `{-# HLINT error "Use concatMap" #-}` or `{- HLINT error "Use concatMap" -}` - the hint to use `concatMap` is an error (you may also use `warn` or `suggest` in place of `error` for other severity levels).
 
-For `ANN` pragmas it is important to put them _after_ any `import` statements. If you have the `OverloadedStrings` extension enabled you will need to give an explicit type to the annotation, e.g. `{-# ANN myFunction ("HLint: ignore" :: String) #-}`. The `ANN` pragmas can also increase compile times or cause more recompilation than otherwise required, since they are evaluated by `TemplateHaskell`.
+For `ANN` pragmas it is important to put them _after_ any `import` statements. If you have the `OverloadedStrings` extension enabled you will need to give an explicit type to the annotation, e.g. `{-# ANN myDef ("HLint: ignore" :: String) #-}`. The `ANN` pragmas can also increase compile times or cause more recompilation than otherwise required, since they are evaluated by `TemplateHaskell`.
 
 For `{-# HLINT #-}` pragmas GHC may give a warning about an unrecognised pragma, which can be suppressed with `-Wno-unrecognised-pragmas`.
 
@@ -296,8 +296,8 @@ Ignore directives can also be written in the hint files:
 
 * `- ignore: {name: Eta reduce}` - suppress all eta reduction suggestions.
 * `- ignore: {name: Eta reduce, within: [MyModule1, MyModule2]}` - suppress eta reduction hints in the `MyModule1` and `MyModule2` modules.
-* `- ignore: {within: MyModule.myFunction}` - don't give any hints in the function `MyModule.myFunction`.
-* `- error: {within: MyModule.myFunction}` - any hint in the function `MyModule.myFunction` is an error.
+* `- ignore: {within: MyModule.myDef}` - don't give any hints in the definition `MyModule.myDef`.
+* `- error: {within: MyModule.myDef}` - any hint in the definition `MyModule.myDef` is an error.
 * `- error: {name: Use concatMap}` - the hint to use `concatMap` is an error (you may also use `warn` or `suggest` in place of `error` for other severity levels).
 
 These directives are applied in the order they are given, with later hints overriding earlier ones.
