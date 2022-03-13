@@ -1,3 +1,4 @@
+:set -W
 :set -Wincomplete-patterns
 :set -Wunused-binds -Wunused-imports -Worphans
 :set -isrc
