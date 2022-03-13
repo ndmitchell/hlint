@@ -5,7 +5,7 @@ packages:
 
 extra-deps:
   - ghc-lib-parser-9.2.2.20220307
-  - ghc-lib-parser-ex-9.2.0.2
+  - ghc-lib-parser-ex-9.2.0.3
 # To test hlint against experimental builds of ghc-lib-parser-ex,
 # modify extra-deps like this:
 #  - archive: /users/shayne/project/ghc-lib-parser-ex/ghc-lib-parser-ex-8.10.0.18.tar.gz
