@@ -291,8 +291,8 @@ getExtensions :: [String] -> (Maybe Language, ([Extension], [Extension]))
 getExtensions args = (lang, foldl f (startExts, []) exts)
   where
         -- If a language specifier is provided e.g. Haskell98 or
-        -- Haskell2010 (and soon GHC2021), then it represents a
-        -- specific set of extensions which we default enable.
+        -- Haskell2010 or GHC2021, then it represents a specific set
+        -- of extensions which we default enable.
 
         -- If no language specifier is provided we construct our own
         -- set of extensions to default enable. The set that we
@@ -310,7 +310,7 @@ getExtensions args = (lang, foldl f (startExts, []) exts)
 
         langs, exts :: [String]
         (langs, exts) = partition (isJust . flip lookup ls) args
-        ls = [ (show x, x) | x <- [Haskell98, Haskell2010 {-, GHC2021-}] ]
+        ls = [ (show x, x) | x <- [Haskell98, Haskell2010 , GHC2021] ]
 
         f :: ([Extension], [Extension]) -> String -> ([Extension], [Extension])
         f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x, let xs = expandDisable x = (deletes xs a, xs ++ deletes xs e)
