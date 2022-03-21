@@ -131,6 +131,7 @@
     # LIST
 
     - warn: {lhs: concat (map f x), rhs: concatMap f x}
+    - warn: {lhs: concat (f <$> x), rhs: concatMap f x}
     - warn: {lhs: concat (fmap f x), rhs: concatMap f x}
     - hint: {lhs: "concat [a, b]", rhs: a ++ b}
     - hint: {lhs: map f (map g x), rhs: map (f . g) x, name: Use map once}
@@ -261,12 +262,16 @@
     - warn: {lhs: traverse pure, rhs: pure, name: "Traversable law"}
     - warn: {lhs: traverse (pure . f) x, rhs: pure (fmap f x), name: "Traversable law"}
     - warn: {lhs: sequenceA (map f x), rhs: traverse f x}
+    - warn: {lhs: sequenceA (f <$> x), rhs: traverse f x}
     - warn: {lhs: sequenceA (fmap f x), rhs: traverse f x}
     - warn: {lhs: sequenceA_ (map f x), rhs: traverse_ f x}
+    - warn: {lhs: sequenceA_ (f <$> x), rhs: traverse_ f x}
     - warn: {lhs: sequenceA_ (fmap f x), rhs: traverse_ f x}
     - warn: {lhs: foldMap id, rhs: fold}
+    - warn: {lhs: fold (f <$> x), rhs: foldMap f x}
     - warn: {lhs: fold (fmap f x), rhs: foldMap f x}
     - warn: {lhs: fold (map f x), rhs: foldMap f x}
+    - warn: {lhs: foldMap f (g <$> x), rhs: foldMap (f . g) x, name: Fuse foldMap/fmap}
     - warn: {lhs: foldMap f (fmap g x), rhs: foldMap (f . g) x, name: Fuse foldMap/fmap}
     - warn: {lhs: foldMap f (map g x), rhs: foldMap (f . g) x, name: Fuse foldMap/map}
 
@@ -461,7 +466,9 @@
     - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x y, side: isAtom y}
     - warn: {lhs: sequence (map f x), rhs: mapM f x}
     - warn: {lhs: sequence_ (map f x), rhs: mapM_ f x}
+    - warn: {lhs: sequence (f <$> x), rhs: mapM f x}
     - warn: {lhs: sequence (fmap f x), rhs: mapM f x}
+    - warn: {lhs: sequence_ (f <$> x), rhs: mapM_ f x}
     - warn: {lhs: sequence_ (fmap f x), rhs: mapM_ f x}
     - hint: {lhs: flip mapM, rhs: Control.Monad.forM}
     - hint: {lhs: flip mapM_, rhs: Control.Monad.forM_}
@@ -510,6 +517,7 @@
 
     # MONAD LIST
 
+    - warn: {lhs: unzip <$> mapM f x, rhs: Control.Monad.mapAndUnzipM f x}
     - warn: {lhs: fmap unzip (mapM f x), rhs: Control.Monad.mapAndUnzipM f x}
     - warn: {lhs: sequence (zipWith f x y), rhs: Control.Monad.zipWithM f x y}
     - warn: {lhs: sequence_ (zipWith f x y), rhs: Control.Monad.zipWithM_ f x y}
@@ -592,6 +600,7 @@
     - warn: {lhs: not (isJust x), rhs: isNothing x}
     - warn: {lhs: "maybe [] (:[])", rhs: maybeToList}
     - warn: {lhs: catMaybes (map f x), rhs: mapMaybe f x}
+    - warn: {lhs: catMaybes (f <$> x), rhs: mapMaybe f x}
     - warn: {lhs: catMaybes (fmap f x), rhs: mapMaybe f x}
     - hint: {lhs: case x of Nothing -> y; Just a -> a , rhs: Data.Maybe.fromMaybe y x, side: isAtom y, name: Replace case with fromMaybe}
     - hint: {lhs: case x of Just a -> a; Nothing -> y, rhs: Data.Maybe.fromMaybe y x, side: isAtom y, name: Replace case with fromMaybe}
@@ -619,10 +628,15 @@
     - hint: {lhs: case m of Nothing -> Nothing; Just x -> x, rhs: Control.Monad.join m}
     - hint: {lhs: maybe Nothing id, rhs: join}
     - hint: {lhs: maybe Nothing f x, rhs: f =<< x}
+    - warn: {lhs: maybe x f (g <$> y), rhs: maybe x (f . g) y, name: Redundant fmap}
     - warn: {lhs: maybe x f (fmap g y), rhs: maybe x (f . g) y, name: Redundant fmap}
+    - warn: {lhs: isJust (f <$> x), rhs: isJust x}
     - warn: {lhs: isJust (fmap f x), rhs: isJust x}
+    - warn: {lhs: isNothing (f <$> x), rhs: isNothing x}
     - warn: {lhs: isNothing (fmap f x), rhs: isNothing x}
+    - warn: {lhs: fromJust (f <$> x), rhs: f (fromJust x), note: IncreasesLaziness}
     - warn: {lhs: fromJust (fmap f x), rhs: f (fromJust x), note: IncreasesLaziness}
+    - warn: {lhs: mapMaybe f (g <$> x), rhs: mapMaybe (f . g) x, name: Redundant fmap}
     - warn: {lhs: mapMaybe f (fmap g x), rhs: mapMaybe (f . g) x, name: Redundant fmap}
     - warn: {lhs: catMaybes (nub x), rhs: nub (catMaybes x), name: Move nub out}
     - warn: {lhs: lefts (nub x), rhs: nub (lefts x), name: Move nub out}
