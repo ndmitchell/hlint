@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1363, add more hints for <$>
     #1362, add support for language specifier GHC2021
     #1342, make module wildcards work with `within` restrictions
     #1340, include Restriction hints in splitSettings and argsSettings output
