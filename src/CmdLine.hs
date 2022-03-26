@@ -207,13 +207,12 @@ cmdExtensions = getExtensions . cmdLanguage
 cmdCpp :: Cmd -> CppFlags
 cmdCpp cmd
     | cmdCppSimple cmd = CppSimple
-    | Cpp `elem` (fst . snd) (cmdExtensions cmd) = Cpphs defaultCpphsOptions
+    | otherwise = Cpphs defaultCpphsOptions
         {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi cmd}
         ,includes = cmdCppInclude cmd
         ,preInclude = cmdCppFile cmd
         ,defines = ("__HLINT__","1") : [(a,drop1 b) | x <- cmdCppDefine cmd, let (a,b) = break (== '=') x]
         }
-    | otherwise = NoCpp
 
 
 -- | Determines whether to use colour or not.

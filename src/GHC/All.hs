@@ -39,8 +39,7 @@ import GHC.Util
 
 -- | What C pre processor should be used.
 data CppFlags
-    = NoCpp -- ^ No pre processing is done.
-    | CppSimple -- ^ Lines prefixed with @#@ are stripped.
+    = CppSimple -- ^ Lines prefixed with @#@ are stripped.
     | Cpphs CpphsOptions -- ^ The @cpphs@ library is used.
 
 -- | Created with 'defaultParseFlags', used by 'parseModuleEx'.
@@ -54,7 +53,7 @@ data ParseFlags = ParseFlags
 
 -- | Default value for 'ParseFlags'.
 defaultParseFlags :: ParseFlags
-defaultParseFlags = ParseFlags NoCpp Nothing defaultExtensions [] defaultFixities
+defaultParseFlags = ParseFlags CppSimple Nothing defaultExtensions [] defaultFixities
 
 -- | Given some fixities, add them to the existing fixities in 'ParseFlags'.
 parseFlagsAddFixities :: [FixityInfo] -> ParseFlags -> ParseFlags
@@ -65,7 +64,6 @@ parseFlagsSetLanguage (l, (es, ds)) x = x{baseLanguage = l, enabledExtensions = 
 
 
 runCpp :: CppFlags -> FilePath -> String -> IO String
-runCpp NoCpp _ x = pure x
 runCpp CppSimple _ x = pure $ unlines [if "#" `isPrefixOf` trimStart x then "" else x | x <- lines x]
 runCpp (Cpphs o) file x = dropLine <$> runCpphs o file x
     where
