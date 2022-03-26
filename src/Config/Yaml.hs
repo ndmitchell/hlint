@@ -39,6 +39,7 @@ import Fixity
 import Extension
 import GHC.Unit.Module
 import Data.Functor
+import Data.Monoid
 import Data.Semigroup
 import Timing
 import Prelude
@@ -192,6 +193,12 @@ maybeParse :: (Val -> Parser a) -> Maybe Val -> Parser (Maybe a)
 maybeParse parseValue Nothing = pure Nothing
 maybeParse parseValue (Just value) = Just <$> parseValue value
 
+maybeParseEnum :: [(T.Text, a)] -> Maybe Val -> Parser (Maybe a)
+maybeParseEnum _ Nothing = pure Nothing
+maybeParseEnum dict (Just val) = case getVal val of
+  String str | Just x <- lookup str dict -> pure $ Just x
+  _ -> parseFail val . T.unpack $ "expected '" <> T.intercalate "', '" (fst <$> dict) <> "'"
+
 parseBool :: Val -> Parser Bool
 parseBool (getVal -> Bool b) = pure b
 parseBool v = parseFail v "Expected a Bool"
@@ -332,11 +339,25 @@ parseRestrict restrictType v = do
         Just def -> do
             b <- parseBool def
             allowFields v ["default"]
-            pure $ Restrict restrictType b [] [] [] NoRestrictIdents Nothing
+            pure $ Restrict restrictType b [] mempty mempty mempty mempty [] NoRestrictIdents Nothing
         Nothing -> do
             restrictName <- parseFieldOpt "name" v >>= maybe (pure []) parseArrayString
             restrictWithin <- parseFieldOpt "within" v >>= maybe (pure [("","")]) (parseArray >=> concatMapM parseWithin)
             restrictAs <- parseFieldOpt "as" v >>= maybe (pure []) parseArrayString
+            restrictAsRequired <- parseFieldOpt "asRequired" v >>= fmap Alt . maybeParse parseBool
+            restrictImportStyle <- parseFieldOpt "importStyle" v >>= fmap Alt . maybeParseEnum
+              [ ("qualified"          , ImportStyleQualified)
+              , ("unqualified"        , ImportStyleUnqualified)
+              , ("explicit"           , ImportStyleExplicit)
+              , ("explicitOrQualified", ImportStyleExplicitOrQualified)
+              , ("unrestricted"       , ImportStyleUnrestricted)
+              ]
+            restrictQualifiedStyle <- parseFieldOpt "qualifiedStyle" v >>= fmap Alt . maybeParseEnum
+              [ ("pre"         , QualifiedStylePre)
+              , ("post"        , QualifiedStylePost)
+              , ("unrestricted", QualifiedStyleUnrestricted)
+              ]
+
 
             restrictBadIdents <- parseFieldOpt "badidents" v
             restrictOnlyAllowedIdents <- parseFieldOpt "only" v
@@ -351,7 +372,7 @@ parseRestrict restrictType v = do
             allowFields v $
                 ["name", "within", "message"] ++
                 if restrictType == RestrictModule
-                    then ["as", "badidents", "only"]
+                    then ["as", "asRequired", "importStyle", "qualifiedStyle", "badidents", "only"]
                     else []
             pure Restrict{restrictDefault=True,..}
 

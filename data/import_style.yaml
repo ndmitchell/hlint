@@ -1,0 +1,6 @@
+- modules:
+  - {name: HypotheticalModule1, as: HM1, asRequired: true}
+  - {name: HypotheticalModule2, importStyle: explicitOrQualified}
+  - {name: HypotheticalModule3, importStyle: qualified}
+  - {name: 'HypotheticalModule3.*', importStyle: unqualified}
+  - {name: 'HypotheticalModule3.OtherSubModule', importStyle: unrestricted, qualifiedStyle: post}

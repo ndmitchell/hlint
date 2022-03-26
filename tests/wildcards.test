@@ -3,7 +3,7 @@ RUN tests/wildcards-a.hs --hint=data/wildcards.yaml
 FILE tests/wildcards-a.hs
 import A as Z
 OUTPUT
-tests/wildcards-a.hs:1:1-13: Warning: Avoid restricted qualification
+tests/wildcards-a.hs:1:1-13: Warning: Avoid restricted alias
 Found:
   import A as Z
 Perhaps:
@@ -38,7 +38,7 @@ RUN tests/wildcards-b.hs --hint=data/wildcards.yaml
 FILE tests/wildcards-b.hs
 import B as Z
 OUTPUT
-tests/wildcards-b.hs:1:1-13: Warning: Avoid restricted qualification
+tests/wildcards-b.hs:1:1-13: Warning: Avoid restricted alias
 Found:
   import B as Z
 Perhaps:
@@ -52,7 +52,7 @@ RUN tests/wildcards-xb.hs --hint=data/wildcards.yaml
 FILE tests/wildcards-xb.hs
 import XB as Z
 OUTPUT
-tests/wildcards-xb.hs:1:1-14: Warning: Avoid restricted qualification
+tests/wildcards-xb.hs:1:1-14: Warning: Avoid restricted alias
 Found:
   import XB as Z
 Perhaps:
@@ -80,7 +80,7 @@ RUN tests/wildcards-c.hs --hint=data/wildcards.yaml
 FILE tests/wildcards-c.hs
 import C as Z
 OUTPUT
-tests/wildcards-c.hs:1:1-13: Warning: Avoid restricted qualification
+tests/wildcards-c.hs:1:1-13: Warning: Avoid restricted alias
 Found:
   import C as Z
 Perhaps:
@@ -101,7 +101,7 @@ RUN tests/wildcards-x-c.hs --hint=data/wildcards.yaml
 FILE tests/wildcards-x-c.hs
 import X.C as Z
 OUTPUT
-tests/wildcards-x-c.hs:1:1-15: Warning: Avoid restricted qualification
+tests/wildcards-x-c.hs:1:1-15: Warning: Avoid restricted alias
 Found:
   import X.C as Z
 Perhaps:
@@ -115,7 +115,7 @@ RUN tests/wildcards-x-y-c.hs --hint=data/wildcards.yaml
 FILE tests/wildcards-x-y-c.hs
 import X.Y.C as Z
 OUTPUT
-tests/wildcards-x-y-c.hs:1:1-17: Warning: Avoid restricted qualification
+tests/wildcards-x-y-c.hs:1:1-17: Warning: Avoid restricted alias
 Found:
   import X.Y.C as Z
 Perhaps:
@@ -129,7 +129,7 @@ RUN tests/wildcards-d.hs --hint=data/wildcards.yaml
 FILE tests/wildcards-d.hs
 import D as Z
 OUTPUT
-tests/wildcards-d.hs:1:1-13: Warning: Avoid restricted qualification
+tests/wildcards-d.hs:1:1-13: Warning: Avoid restricted alias
 Found:
   import D as Z
 Perhaps:
@@ -143,7 +143,7 @@ RUN tests/wildcards-xd.hs --hint=data/wildcards.yaml
 FILE tests/wildcards-xd.hs
 import XD as Z
 OUTPUT
-tests/wildcards-xd.hs:1:1-14: Warning: Avoid restricted qualification
+tests/wildcards-xd.hs:1:1-14: Warning: Avoid restricted alias
 Found:
   import XD as Z
 Perhaps:
@@ -157,7 +157,7 @@ RUN tests/wildcards-x-d.hs --hint=data/wildcards.yaml
 FILE tests/wildcards-x-d.hs
 import X.D as Z
 OUTPUT
-tests/wildcards-x-d.hs:1:1-15: Warning: Avoid restricted qualification
+tests/wildcards-x-d.hs:1:1-15: Warning: Avoid restricted alias
 Found:
   import X.D as Z
 Perhaps:
@@ -171,7 +171,7 @@ RUN tests/wildcards-x-y-d.hs --hint=data/wildcards.yaml
 FILE tests/wildcards-x-y-d.hs
 import X.Y.D as Z
 OUTPUT
-tests/wildcards-x-y-d.hs:1:1-17: Warning: Avoid restricted qualification
+tests/wildcards-x-y-d.hs:1:1-17: Warning: Avoid restricted alias
 Found:
   import X.Y.D as Z
 Perhaps:

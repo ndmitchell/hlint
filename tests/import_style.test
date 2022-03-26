@@ -1,0 +1,68 @@
+---------------------------------------------------------------------
+RUN tests/importStyle-1.hs --hint=data/import_style.yaml
+FILE tests/importStyle-1.hs
+import HypotheticalModule1
+import HypotheticalModule2
+import HypotheticalModule3
+import qualified HypotheticalModule3.SomeModule
+import HypotheticalModule3.SomeModule qualified
+import qualified HypotheticalModule3.OtherSubModule
+OUTPUT
+tests/importStyle-1.hs:1:1-26: Warning: Avoid restricted alias
+Found:
+  import HypotheticalModule1
+Perhaps:
+  import HypotheticalModule1 as HM1
+Note: may break the code
+
+tests/importStyle-1.hs:2:1-26: Warning: HypotheticalModule2 should be imported qualified or with an explicit import list
+Found:
+  import HypotheticalModule2
+Perhaps:
+  import qualified HypotheticalModule2
+Note: may break the code
+
+tests/importStyle-1.hs:3:1-26: Warning: HypotheticalModule3 should be imported qualified
+Found:
+  import HypotheticalModule3
+Perhaps:
+  import qualified HypotheticalModule3
+Note: may break the code
+
+tests/importStyle-1.hs:4:1-47: Warning: HypotheticalModule3.SomeModule should be imported unqualified
+Found:
+  import qualified HypotheticalModule3.SomeModule
+Perhaps:
+  import HypotheticalModule3.SomeModule
+Note: may break the code
+
+tests/importStyle-1.hs:5:1-47: Warning: HypotheticalModule3.SomeModule should be imported unqualified
+Found:
+  import HypotheticalModule3.SomeModule qualified
+Perhaps:
+  import HypotheticalModule3.SomeModule
+Note: may break the code
+
+tests/importStyle-1.hs:6:1-51: Warning: HypotheticalModule3.OtherSubModule should be imported post-qualified or unqualified
+Found:
+  import qualified HypotheticalModule3.OtherSubModule
+Perhaps:
+  import HypotheticalModule3.OtherSubModule qualified
+Note: may break the code
+
+6 hints
+
+---------------------------------------------------------------------
+RUN tests/importStyle-2.hs --hint=data/import_style.yaml
+FILE tests/importStyle-2.hs
+import HypotheticalModule1 as HM1
+import qualified HypotheticalModule2
+import HypotheticalModule2 (a, b, c, d)
+import qualified HypotheticalModule3
+import HypotheticalModule3.SomeModule
+import HypotheticalModule3.OtherSubModule qualified
+import HypotheticalModule3.OtherSubModule
+OUTPUT
+No hints
+
+---------------------------------------------------------------------

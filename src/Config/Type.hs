@@ -2,11 +2,13 @@
 module Config.Type(
     Severity(..), Classify(..), HintRule(..), Note(..), Setting(..),
     Restrict(..), RestrictType(..), RestrictIdents(..), SmellType(..),
+    RestrictImportStyle(..), QualifiedStyle(..),
     defaultHintName, isUnifyVar, showNotes, getSeverity, getRestrictType, getSmellType
     ) where
 
 import Data.Char
 import Data.List.Extra
+import Data.Monoid
 import Prelude
 
 
@@ -119,11 +121,28 @@ instance Semigroup RestrictIdents where
     OnlyIdents x1 <> OnlyIdents x2 = OnlyIdents $ x1 <> x2
     ri1 <> ri2 = error $ "Incompatible restrictions: " ++ show (ri1, ri2)
 
+data RestrictImportStyle
+  = ImportStyleQualified
+  | ImportStyleUnqualified
+  | ImportStyleExplicit
+  | ImportStyleExplicitOrQualified
+  | ImportStyleUnrestricted
+  deriving Show
+
+data QualifiedStyle
+  = QualifiedStylePre
+  | QualifiedStylePost
+  | QualifiedStyleUnrestricted
+  deriving Show
+
 data Restrict = Restrict
     {restrictType :: RestrictType
     ,restrictDefault :: Bool
     ,restrictName :: [String]
     ,restrictAs :: [String] -- for RestrictModule only, what module names you can import it as
+    ,restrictAsRequired :: Alt Maybe Bool -- for RestrictModule only
+    ,restrictImportStyle :: Alt Maybe RestrictImportStyle -- for RestrictModule only
+    ,restrictQualifiedStyle :: Alt Maybe QualifiedStyle -- for RestrictModule only
     ,restrictWithin :: [(String, String)]
     ,restrictIdents :: RestrictIdents -- for RestrictModule only, what identifiers can be imported from it
     ,restrictMessage :: Maybe String
