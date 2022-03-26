@@ -52,7 +52,8 @@ instance Brackets (LocatedA (HsExpr GhcPs)) where
       HsUntypedBracket{} -> True
       -- HsSplice might be $foo, where @($foo) would require brackets,
       -- but in that case the $foo is a type, so we can still mark Splice as atomic
-      HsSpliceE{} -> True
+      HsTypedSplice{} -> True
+      HsUntypedSplice{} -> True
       HsOverLit _ x | not $ isNegativeOverLit x -> True
       HsLit _ x     | not $ isNegativeLit x     -> True
       _  -> False
@@ -107,6 +108,7 @@ isAtomOrApp _ = False
 instance Brackets (LocatedA (Pat GhcPs)) where
   remParen (L _ (ParPat _ _ x _)) = Just x
   remParen _ = Nothing
+
   addParen = nlParPat
 
   isAtom (L _ x) = case x of

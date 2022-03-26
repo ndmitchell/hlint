@@ -54,7 +54,6 @@ import qualified Refact.Types as R
 
 import GHC.Hs
 import GHC.Types.SrcLoc
-import GHC.Types.Basic hiding (Pattern)
 import GHC.Types.SourceText
 import GHC.Types.Name.Reader
 import GHC.Data.FastString

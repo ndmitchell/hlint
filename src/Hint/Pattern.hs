@@ -87,7 +87,7 @@ patternHint _scope modu x =
     concatMap (uncurry hints . swap) (asPattern x) ++
     -- PatBind (used in 'let' and 'where') contains lazy-by-default
     -- patterns, everything else is strict.
-    concatMap (patHint strict False) [p | PatBind _ p _ _ <- universeBi x :: [HsBind GhcPs]] ++
+    concatMap (patHint strict False) [p | PatBind _ p _ <- universeBi x :: [HsBind GhcPs]] ++
     concatMap (patHint strict True) (universeBi $ transformBi noPatBind x) ++
     concatMap expHint (universeBi x)
   where
@@ -184,8 +184,8 @@ asPattern :: LHsDecl GhcPs  -> [(Pattern, String -> Pattern -> [Refactoring R.Sr
 asPattern (L loc x) = concatMap decl (universeBi x)
   where
     decl :: HsBind GhcPs -> [(Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)]
-    decl o@(PatBind _ pat rhs _) = [(Pattern (locA loc) Bind [pat] rhs, \msg (Pattern _ _ [pat] rhs) rs -> suggest msg (noLoc o :: Located (HsBind GhcPs)) (noLoc (PatBind EpAnnNotUsed pat rhs ([], [])) :: Located (HsBind GhcPs)) rs)]
-    decl (FunBind _ _ (MG _ (L _ xs) _) _) = map match xs
+    decl o@(PatBind _ pat rhs) = [(Pattern (locA loc) Bind [pat] rhs, \msg (Pattern _ _ [pat] rhs) rs -> suggest msg (noLoc o :: Located (HsBind GhcPs)) (noLoc (PatBind EpAnnNotUsed pat rhs) :: Located (HsBind GhcPs)) rs)]
+    decl (FunBind _ _ (MG _ (L _ xs))) = map match xs
     decl _ = []
 
     match :: LMatch GhcPs (LHsExpr GhcPs) -> (Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)
@@ -208,7 +208,7 @@ patHint lang strict o@(L _ (BangPat _ pat@(L _ x)))
   where
     f :: Pat GhcPs -> Bool
     f (ParPat _ _ (L _ x) _) = f x
-    f (AsPat _ _ (L _ x)) = f x
+    f (AsPat _ _ _ (L _ x)) = f x
     f LitPat {} = True
     f NPat {} = True
     f ConPat {} = True
@@ -222,22 +222,22 @@ patHint False _ o@(L _ (LazyPat _ pat@(L _ x)))
   where
     f :: Pat GhcPs -> Bool
     f (ParPat _ _ (L _ x) _) = f x
-    f (AsPat _ _ (L _ x)) = f x
+    f (AsPat _ _ _ (L _ x)) = f x
     f WildPat{} = True
     f VarPat{} = True
     f _ = False
     r = Replace R.Pattern (toSSA o) [("x", toSSA pat)] "x"
-patHint _ _ o@(L _ (AsPat _ v (L _ (WildPat _)))) =
+patHint _ _ o@(L _ (AsPat _ v _ (L _ (WildPat _)))) =
   [warn "Redundant as-pattern" (reLoc o) (reLoc v) [Replace R.Pattern (toSSA o) [] (rdrNameStr v)]]
 patHint _ _ _ = []
 
 expHint :: LHsExpr GhcPs -> [Idea]
  -- Note the 'FromSource' in these equations (don't warn on generated match groups).
-expHint o@(L _ (HsCase _ _ (MG _ (L _ [L _ (Match _ CaseAlt [L _ (WildPat _)] (GRHSs _ [L _ (GRHS _ [] e)] (EmptyLocalBinds _))) ]) FromSource ))) =
+expHint o@(L _ (HsCase _ _ (MG FromSource (L _ [L _ (Match _ CaseAlt [L _ (WildPat _)] (GRHSs _ [L _ (GRHS _ [] e)] (EmptyLocalBinds _))) ])))) =
   [suggest "Redundant case" (reLoc o) (reLoc e) [r]]
   where
     r = Replace Expr (toSSA o) [("x", toSSA e)] "x"
-expHint o@(L _ (HsCase _ (L _ (HsVar _ (L _ x))) (MG _ (L _ [L _ (Match _ CaseAlt [L _ (VarPat _ (L _ y))] (GRHSs _ [L _ (GRHS _ [] e)] (EmptyLocalBinds _))) ]) FromSource )))
+expHint o@(L _ (HsCase _ (L _ (HsVar _ (L _ x))) (MG FromSource (L _ [L _ (Match _ CaseAlt [L _ (VarPat _ (L _ y))] (GRHSs _ [L _ (GRHS _ [] e)] (EmptyLocalBinds _))) ]))))
   | occNameStr x == occNameStr y =
       [suggest "Redundant case" (reLoc o) (reLoc e) [r]]
   where

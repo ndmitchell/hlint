@@ -162,12 +162,15 @@ remParens' = fmap go . remParen
   where
     go e = maybe e go (remParen e)
 
+-- note(sf, 2022-06-02): i've completely bluffed my way through this.
+-- see
+-- https://gitlab.haskell.org/ghc/ghc/-/commit/7975202ba9010c581918413808ee06fbab9ac85f
+-- for where splice expressions were refactored.
 isPartialAtom :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
 -- Might be '$x', which was really '$ x', but TH enabled misparsed it.
-isPartialAtom _ (L _ (HsSpliceE _ (HsTypedSplice _ DollarSplice _ _) )) = True
-isPartialAtom _ (L _ (HsSpliceE _ (HsUntypedSplice _ DollarSplice _ _) )) = True
+isPartialAtom _ (L _ (HsUntypedSplice _ HsUntypedSpliceExpr{})) = True
 -- Might be '$(x)' where the brackets are required in GHC 8.10 and below
-isPartialAtom (Just (L _ HsSpliceE{})) _ = True
+isPartialAtom (Just (L _ HsUntypedSplice{})) _ = True
 isPartialAtom _ x = isRecConstr x || isRecUpdate x
 
 bracket :: forall a . (Data a, Outputable a, Brackets (LocatedA a)) => (LocatedA a -> String) -> (Maybe (LocatedA a) -> LocatedA a -> Bool) -> Bool -> LocatedA a -> [Idea]

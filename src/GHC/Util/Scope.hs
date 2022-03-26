@@ -10,7 +10,6 @@ module GHC.Util.Scope (
 import GHC.Hs
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
-import GHC.Unit.Module
 import GHC.Data.FastString
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
@@ -21,6 +20,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 import Data.List.Extra
 import Data.Maybe
+import Data.Bifunctor
 
 -- A scope is a list of import declarations.
 newtype Scope = Scope [LImportDecl GhcPs]
@@ -30,7 +30,7 @@ instance Show Scope where
     show (Scope x) = unsafePrettyPrint x
 
 -- Create a 'Scope from a module's import declarations.
-scopeCreate :: HsModule -> Scope
+scopeCreate :: HsModule GhcPs -> Scope
 scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
   where
     -- Package qualifier of an import declaration.
@@ -116,7 +116,7 @@ possImport (L _ i) (L _ (Qual mod x)) =
   where ms = map unLoc $ ideclName i : maybeToList (ideclAs i)
 possImport (L _ i) (L _ (Unqual x)) =
   if ideclQualified i == NotQualified
-    then maybe PossiblyImported f (ideclHiding i)
+    then maybe PossiblyImported f (first (== EverythingBut) <$> ideclImportList i)
     else NotImported
   where
     f :: (Bool, LocatedL [LIE GhcPs]) -> IsImported
@@ -137,6 +137,6 @@ possImport (L _ i) (L _ (Unqual x)) =
     g (L _ (IEThingWith _ y _wildcard ys)) = Just $ tag `elem` unwrapName y : map unwrapName ys
     g _ = Just False
 
-    unwrapName :: LIEWrappedName RdrName -> String
+    unwrapName :: LIEWrappedName GhcPs -> String
     unwrapName x = occNameString (rdrNameOcc $ ieWrappedName (unLoc x))
 possImport _ _ = NotImported

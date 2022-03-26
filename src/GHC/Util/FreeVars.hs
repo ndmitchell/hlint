@@ -180,7 +180,7 @@ instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldLabelStrings 
 
 instance AllVars (LocatedA (Pat GhcPs)) where
   allVars (L _ (VarPat _ (L _ x))) = Vars (Set.singleton $ rdrNameOcc x) Set.empty -- Variable pattern.
-  allVars (L _ (AsPat _  n x)) = allVars (noLocA $ VarPat noExtField n :: LocatedA (Pat GhcPs)) <> allVars x -- As pattern.
+  allVars (L _ (AsPat _  n _ x)) = allVars (noLocA $ VarPat noExtField n :: LocatedA (Pat GhcPs)) <> allVars x -- As pattern.
   allVars (L _ (ConPat _ _ (RecCon (HsRecFields flds _)))) = allVars flds
   allVars (L _ (NPlusKPat _ n _ _ _ _)) = allVars (noLocA $ VarPat noExtField n :: LocatedA (Pat GhcPs)) -- n+k pattern.
   allVars (L _ (ViewPat _ e p)) = freeVars_ e <> allVars p -- View pattern.
@@ -231,7 +231,7 @@ instance AllVars (LocatedA (HsBindLR GhcPs GhcPs)) where
   allVars (L _ (PatSynBind _ PSB{})) = mempty -- Come back to it.
 
 instance AllVars (MatchGroup GhcPs (LocatedA (HsExpr GhcPs))) where
-  allVars (MG _ _alts@(L _ alts) _) = inVars (foldMap (allVars . m_pats) ms) (allVars (map m_grhss ms))
+  allVars (MG _ _alts@(L _ alts)) = inVars (foldMap (allVars . m_pats) ms) (allVars (map m_grhss ms))
     where ms = map unLoc alts
 
 instance AllVars (LocatedA (Match GhcPs (LocatedA (HsExpr GhcPs)))) where
