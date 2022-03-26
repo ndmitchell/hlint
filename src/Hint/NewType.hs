@@ -17,7 +17,7 @@ data Color a = Red a | Green a | Blue a
 data Pair a b = Pair a b
 data Foo = Bar
 data Foo a = Eq a => MkFoo a
-data Foo a = () => Foo a -- newtype Foo a = Foo a
+data Foo a = () => Foo a -- newtype Foo a = () => Foo a
 data X = Y {-# UNPACK #-} !Int -- newtype X = Y Int
 data A = A {b :: !C} -- newtype A = A {b :: C}
 data A = A Int#

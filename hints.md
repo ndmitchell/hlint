@@ -1420,13 +1420,13 @@ Example:
 </pre>
 Found:
 <pre>
-{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE EmptyCase, RebindableSyntax #-}
+{-# LANGUAGE RebindableSyntax #-}
 
 </pre>
 Suggestion:
 <code>
-{-# LANGUAGE RebindableSyntax, EmptyCase #-}
+{-# LANGUAGE EmptyCase, RebindableSyntax #-}
 </code>
 <br>
 </td>

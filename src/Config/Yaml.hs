@@ -22,7 +22,9 @@ module Config.Yaml(
 #endif
 
 import GHC.Driver.Ppr
-import GHC.Parser.Errors.Ppr
+import GHC.Driver.Errors.Types
+import GHC.Types.Error hiding (Severity)
+
 import Config.Type
 import Data.Either.Extra
 import Data.Maybe
@@ -232,7 +234,7 @@ parseGHC parser v = do
     case parser defaultParseFlags{enabledExtensions=configExtensions, disabledExtensions=[]} x of
         POk _ x -> pure x
         PFailed ps ->
-          let errMsg = pprError . head . bagToList . snd $ getMessages ps
+          let errMsg = head . bagToList . getMessages $ GhcPsMessage <$> snd (getPsMessages ps)
               msg = showSDoc baseDynFlags $ pprLocMsgEnvelope errMsg
           in parseFail v $ "Failed to parse " ++ msg ++ ", when parsing:\n " ++ x
 

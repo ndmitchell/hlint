@@ -63,10 +63,10 @@ unsafeHint _ (ModuleEx (L _ m)) = \ld@(L loc d) ->
     gen :: OccName -> LHsDecl GhcPs
     gen x = noLocA $
       SigD noExtField (InlineSig EpAnnNotUsed (noLocA (mkRdrUnqual x))
-                      (InlinePragma (SourceText "{-# NOINLINE") NoInline Nothing NeverActive FunLike))
+                      (InlinePragma (SourceText "{-# NOINLINE") (NoInline (SourceText "{-# NOINLINE")) Nothing NeverActive FunLike))
     noinline :: [OccName]
     noinline = [q | L _(SigD _ (InlineSig _ (L _ (Unqual q))
-                                                (InlinePragma _ NoInline Nothing NeverActive FunLike))
+                                                (InlinePragma _ (NoInline (SourceText "{-# NOINLINE")) Nothing NeverActive FunLike))
         ) <- hsmodDecls m]
 
 isUnsafeDecl :: HsDecl GhcPs -> Bool

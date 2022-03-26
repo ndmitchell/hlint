@@ -40,13 +40,13 @@ numLiteralHint _ modu =
      const []
 
 suggestUnderscore :: LHsExpr GhcPs -> [Idea]
-suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsIntegral intLit@(IL (SourceText srcTxt) _ _)) _))) =
+suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsIntegral intLit@(IL (SourceText srcTxt) _ _))))) =
   [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` srcTxt, srcTxt /= underscoredSrcTxt ]
   where
     underscoredSrcTxt = addUnderscore srcTxt
     y = noLocA $ HsOverLit EpAnnNotUsed $ ol{ol_val = HsIntegral intLit{il_text = SourceText underscoredSrcTxt}}
     r = Replace Expr (toSSA x) [("a", toSSA y)] "a"
-suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsFractional fracLit@(FL (SourceText srcTxt) _ _ _ _)) _))) =
+suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsFractional fracLit@(FL (SourceText srcTxt) _ _ _ _))))) =
   [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` srcTxt, srcTxt /= underscoredSrcTxt ]
   where
     underscoredSrcTxt = addUnderscore srcTxt

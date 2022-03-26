@@ -37,7 +37,8 @@ FILE tests/serialise-four.hs
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE CPP #-}
 OUTPUT
-[("tests/serialise-four.hs:1:1-20: Warning: Use fewer LANGUAGE pragmas\nFound:\n  {-# LANGUAGE CPP #-}\n  {-# LANGUAGE CPP #-}\nPerhaps:\n  {-# LANGUAGE CPP #-}\n",[ModifyComment {pos = SrcSpan {startLine = 1, startCol = 1, endLine = 1, endCol = 21}, newComment = "{-# LANGUAGE CPP #-}"},ModifyComment {pos = SrcSpan {startLine = 2, startCol = 1, endLine = 2, endCol = 21}, newComment = ""}])]
+[("tests/serialise-four.hs:2:1-20: Warning: Use fewer LANGUAGE pragmas\nFound:\n  {-# LANGUAGE CPP #-}\n  {-# LANGUAGE CPP #-}\nPerhaps:\n  {-# LANGUAGE CPP #-}\n",[ModifyComment {pos = SrcSpan {startLine = 2, startCol = 1, endLine = 2, endCol = 21}, newComment = "{-# LANGUAGE CPP #-}"},ModifyComment {pos = SrcSpan {startLine = 1, startCol = 1, endLine = 1, endCol = 21}, newComment = ""}])]
+
 
 
 ---------------------------------------------------------------------

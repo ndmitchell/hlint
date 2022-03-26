@@ -54,7 +54,7 @@ import qualified Refact.Types as R
 
 import GHC.Hs
 import GHC.Types.SrcLoc
-import GHC.Types.Basic
+import GHC.Types.Basic hiding (Pattern)
 import GHC.Types.SourceText
 import GHC.Types.Name.Reader
 import GHC.Data.FastString
@@ -97,7 +97,7 @@ listComp o@(view -> App2 mp f (L _ (HsDo _ MonadComp (L _ stmts)))) =
   listCompCheckMap o mp f MonadComp stmts
 listComp _ = []
 
-listCompCheckGuards :: LHsExpr GhcPs -> HsStmtContext GhcRn -> [ExprLStmt GhcPs] -> [Idea]
+listCompCheckGuards :: LHsExpr GhcPs -> HsDoFlavour -> [ExprLStmt GhcPs] -> [Idea]
 listCompCheckGuards o ctx stmts =
   let revs = reverse stmts
       e@(L _ LastStmt{}) = head revs -- In a ListComp, this is always last.
@@ -120,7 +120,7 @@ listCompCheckGuards o ctx stmts =
         qualCon _ = Nothing
 
 listCompCheckMap ::
-  LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs -> HsStmtContext GhcRn -> [ExprLStmt GhcPs] -> [Idea]
+  LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs -> HsDoFlavour -> [ExprLStmt GhcPs] -> [Idea]
 listCompCheckMap o mp f ctx stmts  | varToStr mp == "map" =
     [suggest "Move map inside list comprehension" (reLoc o) (reLoc o2) (suggestExpr o o2)]
     where

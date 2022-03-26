@@ -134,13 +134,13 @@ bracketHint _ _ x =
      -- Brackets the roots of annotations are fine, so we strip them.
      annotations :: AnnDecl GhcPs -> AnnDecl GhcPs
      annotations= descendBi $ \x -> case (x :: LHsExpr GhcPs) of
-       L _ (HsPar _ x) -> x
+       L _ (HsPar _ _ x _) -> x
        x -> x
 
      -- Brackets at the root of splices used to be required, but now they aren't
      splices :: HsDecl GhcPs -> HsDecl GhcPs
      splices (SpliceD a x) = SpliceD a $ flip descendBi x $ \x -> case (x :: LHsExpr GhcPs) of
-       L _ (HsPar _ x) -> x
+       L _ (HsPar _ _ x _) -> x
        x -> x
      splices x = x
 
@@ -151,8 +151,8 @@ bracketHint _ _ x =
 -- latter (in contrast to the HSE pretty printer). This patches things
 -- up.
 prettyExpr :: LHsExpr GhcPs -> String
-prettyExpr s@(L _ SectionL{}) = unsafePrettyPrint (noLocA (HsPar EpAnnNotUsed s) :: LHsExpr GhcPs)
-prettyExpr s@(L _ SectionR{}) = unsafePrettyPrint (noLocA (HsPar EpAnnNotUsed s) :: LHsExpr GhcPs)
+prettyExpr s@(L _ SectionL{}) = unsafePrettyPrint (nlHsPar s :: LHsExpr GhcPs)
+prettyExpr s@(L _ SectionR{}) = unsafePrettyPrint (nlHsPar s :: LHsExpr GhcPs)
 prettyExpr x = unsafePrettyPrint x
 
 -- 'Just _' if at least one set of parens were removed. 'Nothing' if
@@ -227,10 +227,9 @@ fieldDecl o@(L loc f@ConDeclField{cd_fld_type=v@(L l (HsParTy _ c))}) =
    where
      -- If we call 'unsafePrettyPrint' on a field decl, we won't like
      -- the output (e.g. "[foo, bar] :: T"). Here we use a custom
-     -- printer to work around (snarfed from
-     -- https://hackage.haskell.org/package/ghc-lib-parser-8.8.1/docs/src/HsTypes.html#pprConDeclFields).
+     -- printer to work around (snarfed from Hs.Types.pprConDeclFields)
      ppr_fld (L _ ConDeclField { cd_fld_names = ns, cd_fld_type = ty, cd_fld_doc = doc })
-       = ppr_names ns <+> dcolon <+> ppr ty <+> ppr_mbDoc doc
+       = pprMaybeWithDoc doc (ppr_names ns <+> dcolon <+> ppr ty)
      ppr_fld (L _ (XConDeclField x)) = ppr x
 
      ppr_names [n] = ppr n
@@ -250,20 +249,20 @@ dollar = concatMap f . universe
             , let r = Replace Expr (toSSA x) [("a", toSSA a), ("b", toSSA b)] "a b"]
           ++
           [ suggest "Move brackets to avoid $" (reLoc x) (reLoc (t y)) [r]
-            |(t, e@(L _ (HsPar _ (L _ (OpApp _ a1 op1 a2))))) <- splitInfix x
+            |(t, e@(L _ (HsPar _ _ (L _ (OpApp _ a1 op1 a2)) _))) <- splitInfix x
             , isDol op1
             , isVar a1 || isApp a1 || isPar a1, not $ isAtom a2
             , varToStr a1 /= "select" -- special case for esqueleto, see #224
-            , let y = noLocA $ HsApp EpAnnNotUsed a1 (noLocA (HsPar EpAnnNotUsed a2))
+            , let y = noLocA $ HsApp EpAnnNotUsed a1 (nlHsPar a2)
             , let r = Replace Expr (toSSA e) [("a", toSSA a1), ("b", toSSA a2)] "a (b)" ]
           ++  -- Special case of (v1 . v2) <$> v3
           [ (suggest "Redundant bracket" (reLoc x) (reLoc y) [r]){ideaSpan = locA locPar}
-          | L _ (OpApp _ (L locPar (HsPar _ o1@(L locNoPar (OpApp _ _ (isDot -> True) _)))) o2 v3) <- [x], varToStr o2 == "<$>"
+          | L _ (OpApp _ (L locPar (HsPar _ _ o1@(L locNoPar (OpApp _ _ (isDot -> True) _)) _)) o2 v3) <- [x], varToStr o2 == "<$>"
           , let y = noLocA (OpApp EpAnnNotUsed o1 o2 v3) :: LHsExpr GhcPs
           , let r = Replace Expr (toRefactSrcSpan (locA locPar)) [("a", toRefactSrcSpan (locA locNoPar))] "a"]
           ++
           [ suggest "Redundant section" (reLoc x) (reLoc y) [r]
-          | L _ (HsApp _ (L _ (HsPar _ (L _ (SectionL _ a b)))) c) <- [x]
+          | L _ (HsApp _ (L _ (HsPar _ _ (L _ (SectionL _ a b)) _)) c) <- [x]
           -- , error $ show (unsafePrettyPrint a, gshow b, unsafePrettyPrint c)
           , let y = noLocA $ OpApp EpAnnNotUsed a b c :: LHsExpr GhcPs
           , let r = Replace Expr (toSSA x) [("x", toSSA a), ("op", toSSA b), ("y", toSSA c)] "x op y"]

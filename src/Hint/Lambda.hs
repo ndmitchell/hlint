@@ -120,7 +120,7 @@ import GHC.Hs
 import GHC.Types.Name.Occurrence
 import GHC.Types.Name.Reader
 import GHC.Types.SrcLoc
-import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuote, isVar, isDol, strToVar)
+import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuoteExpr, isVar, isDol, strToVar)
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util.Brackets (isAtom)
@@ -169,7 +169,7 @@ lambdaBind
     where
           reform :: [LPat GhcPs] -> LHsExpr GhcPs -> Located (HsDecl GhcPs)
           reform ps b = L (combineSrcSpans (locA loc1) (locA loc2)) $ ValD noExtField $
-             origBind {fun_matches = MG noExtField (noLocA [noLocA $ Match EpAnnNotUsed ctxt ps $ GRHSs emptyComments [noLoc $ GRHS EpAnnNotUsed [] b] $ EmptyLocalBinds noExtField]) Generated}
+             origBind {fun_matches = MG noExtField (noLocA [noLocA $ Match EpAnnNotUsed ctxt ps $ GRHSs emptyComments [noLocA $ GRHS EpAnnNotUsed [] b] $ EmptyLocalBinds noExtField]) Generated}
 
           mkSubtsAndTpl newPats newBody = (sub, tpl)
             where
@@ -183,13 +183,13 @@ etaReduce :: [LPat GhcPs] -> LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
 etaReduce (unsnoc -> Just (ps, view -> PVar_ p)) (L _ (HsApp _ x (view -> Var_ y)))
     | p == y
     , y `notElem` vars x
-    , not $ any isQuasiQuote $ universe x
+    , not $ any isQuasiQuoteExpr $ universe x
     = etaReduce ps x
 etaReduce ps (L loc (OpApp _ x (isDol -> True) y)) = etaReduce ps (L loc (HsApp EpAnnNotUsed x y))
 etaReduce ps x = (ps, x)
 
 lambdaExp :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
-lambdaExp _ o@(L _ (HsPar _ (L _ (HsApp _ oper@(L _ (HsVar _ origf@(L _ (rdrNameOcc -> f)))) y))))
+lambdaExp _ o@(L _ (HsPar _ _ (L _ (HsApp _ oper@(L _ (HsVar _ origf@(L _ (rdrNameOcc -> f)))) y)) _))
     | isSymOcc f -- is this an operator?
     , isAtom y
     , allowLeftSection $ occNameString f
@@ -197,15 +197,15 @@ lambdaExp _ o@(L _ (HsPar _ (L _ (HsApp _ oper@(L _ (HsVar _ origf@(L _ (rdrName
     = [suggest "Use section" (reLoc o) (reLoc to) [r]]
     where
         to :: LHsExpr GhcPs
-        to = noLocA $ HsPar EpAnnNotUsed $ noLocA $ SectionL EpAnnNotUsed y oper
+        to = nlHsPar $ noLocA $ SectionL EpAnnNotUsed y oper
         r = Replace Expr (toSSA o) [("x", toSSA y)] ("(x " ++ unsafePrettyPrint origf ++ ")")
 
-lambdaExp _ o@(L _ (HsPar _ (view -> App2 (view -> Var_ "flip") origf@(view -> RdrName_ f) y)))
+lambdaExp _ o@(L _ (HsPar _ _ (view -> App2 (view -> Var_ "flip") origf@(view -> RdrName_ f) y) _))
     | allowRightSection (rdrNameStr f), not $ "(" `isPrefixOf` rdrNameStr f
     = [suggest "Use section" (reLoc o) (reLoc to) [r]]
     where
         to :: LHsExpr GhcPs
-        to = noLocA $ HsPar EpAnnNotUsed $ noLocA $ SectionR EpAnnNotUsed origf y
+        to = nlHsPar $ noLocA $ SectionR EpAnnNotUsed origf y
         op = if isSymbolRdrName (unLoc f)
                then unsafePrettyPrint f
                else "`" ++ unsafePrettyPrint f ++ "`"
@@ -216,13 +216,13 @@ lambdaExp p o@(L _ HsLam{})
     | not $ any isOpApp p
     , (res, refact) <- niceLambdaR [] o
     , not $ isLambda res
-    , not $ any isQuasiQuote $ universe res
+    , not $ any isQuasiQuoteExpr $ universe res
     , not $ "runST" `Set.member` Set.map occNameString (freeVars o)
     , let name = "Avoid lambda" ++ (if countRightSections res > countRightSections o then " using `infix`" else "")
     -- If the lambda's parent is an HsPar, and the result is also an HsPar, the span should include the parentheses.
     , let from = case p of
               -- Avoid creating redundant bracket.
-              Just p@(L _ (HsPar _ (L _ HsLam{})))
+              Just p@(L _ (HsPar _ _ (L _ HsLam{}) _))
                 | L _ HsPar{} <- res -> p
                 | L _ (HsVar _ (L _ name)) <- res, not (isSymbolRdrName name) -> p
               _ -> o
@@ -294,7 +294,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
 
                  -- otherwise we should use @LambdaCase@
                  MG _ (L _ _) _ ->
-                     [(suggestN "Use lambda-case" (reLoc o) $ noLoc $ HsLamCase EpAnnNotUsed matchGroup)
+                     [(suggestN "Use lambda-case" (reLoc o) $ noLoc $ HsLamCase EpAnnNotUsed LamCase matchGroup)
                          {ideaNote=[RequiresExtension "LambdaCase"]}]
         _ -> []
     where

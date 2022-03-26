@@ -77,6 +77,8 @@ import GHC.Types.Basic
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
 import GHC.Data.Bag
+import qualified GHC.Data.Strict
+
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -133,7 +135,7 @@ monadExp decl parentDo parentExpr x =
     _ -> []
   where
     f = monadNoResult (fromMaybe "" decl) id
-    seenVoid wrap (L l (HsPar x y)) = seenVoid (wrap . L l . HsPar x) y
+    seenVoid wrap (L l (HsPar x p y q)) = seenVoid (wrap . L l . \y -> HsPar x p y q) y
     seenVoid wrap x =
       -- Suggest `traverse_ f x` given `void $ traverse_ f x`
       [warn "Redundant void" (reLoc (wrap x)) (reLoc x) [Replace Expr (toSSA (wrap x)) [("a", toSSA x)] "a"] | returnsUnit x]
@@ -159,7 +161,7 @@ monadExp decl parentDo parentExpr x =
       RealSrcSpan s _ ->
         let start = realSrcSpanStart s
             end = mkRealSrcLoc (srcSpanFile s) (srcLocLine start) (srcLocCol start + length doOrMDo)
-         in RealSrcSpan (mkRealSrcSpan start end) Nothing
+         in RealSrcSpan (mkRealSrcSpan start end) GHC.Data.Strict.Nothing
 
 -- Sometimes people write 'a * do a + b', to avoid brackets,
 -- or using BlockArguments they can write 'a do a b',
@@ -187,7 +189,7 @@ modifyAppHead :: forall a. (LIdP GhcPs -> (LIdP GhcPs, a)) -> LHsExpr GhcPs -> (
 modifyAppHead f = go id
   where
     go :: (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, Maybe a)
-    go wrap (L l (HsPar _ x)) = go (wrap . L l . HsPar EpAnnNotUsed) x
+    go wrap (L l (HsPar _ p x q )) = go (wrap . L l . \x -> HsPar EpAnnNotUsed p x q) x
     go wrap (L l (HsApp _ x y)) = go (\x -> wrap $ L l (HsApp EpAnnNotUsed x y)) x
     go wrap (L l (OpApp _ x op y)) | isDol op = go (\x -> wrap $ L l (OpApp EpAnnNotUsed x op y)) x
     go wrap (L l (HsVar _ x)) = (wrap (L l (HsVar NoExtField x')), Just a)
@@ -202,7 +204,7 @@ returnsUnit = fromMaybe False
 -- See through HsPar, and down HsIf/HsCase, return the name to use in
 -- the hint, and the revised expression.
 monadNoResult :: String -> (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
-monadNoResult inside wrap (L l (HsPar _ x)) = monadNoResult inside (wrap . L l . HsPar EpAnnNotUsed) x
+monadNoResult inside wrap (L l (HsPar _ _ x _)) = monadNoResult inside (wrap . nlHsPar) x
 monadNoResult inside wrap (L l (HsApp _ x y)) = monadNoResult inside (\x -> wrap $ L l (HsApp EpAnnNotUsed x y)) x
 monadNoResult inside wrap (L l (OpApp _ x tag@(L _ (HsVar _ (L _ op))) y))
     | isDol tag = monadNoResult inside (\x -> wrap $ L l (OpApp EpAnnNotUsed x tag y)) x
@@ -292,7 +294,7 @@ monadLet xs = mapMaybe mkLet xs
     template :: String -> LHsExpr GhcPs -> ExprLStmt GhcPs
     template lhs rhs =
         let p = noLocA $ mkRdrUnqual (mkVarOcc lhs)
-            grhs = noLoc (GRHS EpAnnNotUsed [] rhs)
+            grhs = noLocA (GRHS EpAnnNotUsed [] rhs)
             grhss = GRHSs emptyComments [grhs] (EmptyLocalBinds noExtField)
             match = noLocA $ Match EpAnnNotUsed (FunRhs p Prefix NoSrcStrict) [] grhss
             fb = noLocA $ FunBind noExtField p (MG noExtField (noLocA [match]) Generated) []
@@ -307,7 +309,7 @@ fromApplies (L _ (OpApp _ f (isDol -> True) x)) = first (f:) $ fromApplies x
 fromApplies x = ([], x)
 
 fromRet :: LHsExpr GhcPs -> Maybe (String, LHsExpr GhcPs)
-fromRet (L _ (HsPar _ x)) = fromRet x
+fromRet (L _ (HsPar _ _ x _)) = fromRet x
 fromRet (L _ (OpApp _ x (L _ (HsVar _ (L _ y))) z)) | occNameStr y == "$" = fromRet $ noLocA (HsApp EpAnnNotUsed x z)
 fromRet (L _ (HsApp _ x y)) | isReturn x = Just (unsafePrettyPrint x, y)
 fromRet _ = Nothing
