@@ -98,7 +98,7 @@ deriving instance Show Bar -- {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-} \
 newtype Micro = Micro Int deriving Generic -- {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveGeneric, TypeFamilies #-} \
-data family Bar a; data instance Bar Foo = Foo deriving (Generic)
+data family Bar a; data instance Bar Foo = Foo deriving Generic
 {-# LANGUAGE GeneralizedNewtypeDeriving #-} \
 instance Class Int where {newtype MyIO a = MyIO a deriving NewClass}
 {-# LANGUAGE UnboxedTuples #-} \
@@ -248,13 +248,18 @@ f = (. foo) -- @NoRefactor: refactor requires GHC >= 9.2.1
 foo = [|| x ||]
 {-# LANGUAGE TemplateHaskell #-} \
 foo = $bar
+{-# LANGUAGE TypeData # -} \
+type data Nat = Zero | Succ Nat  -- @NoRefactor: refactor requires GHC >= 9.6.1
+{-# LANGUAGE TypeData #-} \
+data T = MkT -- @NoRefactor: refactor requires GHC >= 9.6.1
 </TEST>
 -}
 
 
+
 module Hint.Extensions(extensionsHint) where
 
-import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSSAnc,ghcModule,modComments)
+import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSSAnc,ghcModule,modComments,firstDeclComments)
 import Extension
 
 import Data.Generics.Uniplate.DataOnly
@@ -299,7 +304,13 @@ extensionsHint _ x =
             [ Note $ "Extension " ++ s ++ " is " ++ reason x
             | (s, Just x) <- explainedRemovals])
         [ModifyComment (toSSAnc (mkLanguagePragmas sl exts)) newPragma]
-    | (L sl _,  exts) <- languagePragmas $ pragmas (modComments x)
+    | (L sl _,  exts) <-
+      -- Comments appearing without an empty line before the first
+      -- declaration in a module are now associated with the
+      -- declaration not the module so to be safe, look also at
+      -- `firstDeclComments x`
+      -- (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+      languagePragmas $ pragmas (modComments x) ++ pragmas (firstDeclComments x)
     , let before = [(x, readExtension x) | x <- exts]
     , let after = filter (maybe True (`Set.member` keep) . snd) before
     , before /= after
@@ -320,7 +331,12 @@ extensionsHint _ x =
     -- All the extensions defined to be used.
     extensions :: Set.Set Extension
     extensions = Set.fromList $ mapMaybe readExtension $
-        concatMap snd $ languagePragmas (pragmas (modComments x))
+      -- Comments appearing without an empty line before the first
+      -- declaration in a module are now associated with the
+      -- declaration not the module so to be safe, look also at
+      -- `firstDeclComments x`
+      -- (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+        concatMap snd $ languagePragmas (pragmas (modComments x) ++ pragmas (firstDeclComments x))
 
     -- Those extensions we detect to be useful.
     useful :: Set.Set Extension
@@ -370,7 +386,7 @@ noDeriveNewtype =
 deriveStock :: [String]
 deriveStock = deriveHaskell ++ deriveGenerics ++ deriveCategory
 
-usedExt :: Extension -> Located HsModule -> Bool
+usedExt :: Extension -> Located (HsModule GhcPs) -> Bool
 usedExt NumDecimals = hasS isWholeFrac
   -- Only whole number fractions are permitted by NumDecimals
   -- extension.  Anything not-whole raises an error.
@@ -378,23 +394,30 @@ usedExt DeriveLift = hasDerive ["Lift"]
 usedExt DeriveAnyClass = not . null . derivesAnyclass . derives
 usedExt x = used x
 
-used :: Extension -> Located HsModule -> Bool
+used :: Extension -> Located (HsModule GhcPs) -> Bool
 
 used RecursiveDo = hasS isMDo ||^ hasS isRecStmt
 used ParallelListComp = hasS isParComp
 used FunctionalDependencies = hasT (un :: FunDep GhcPs)
 used ImplicitParams = hasT (un :: HsIPName)
+
 used TypeApplications = hasS isTypeApp ||^ hasS isKindTyApp
+
 used EmptyDataDecls = hasS f
   where
     f :: HsDataDefn GhcPs -> Bool
-    f (HsDataDefn _ _ _ _ _ [] _) = True
+    f (HsDataDefn _ _ _ _ (DataTypeCons _ []) _) = True
+    f _ = False
+used TypeData  = hasS f
+  where
+    f :: HsDataDefn GhcPs -> Bool
+    f (HsDataDefn _ _ _ _ (DataTypeCons True _) _) = True
     f _ = False
 used EmptyCase = hasS f
   where
     f :: HsExpr GhcPs -> Bool
-    f (HsCase _ _ (MG _ (L _ []) _)) = True
-    f (HsLamCase _ _ (MG _ (L _ []) _)) = True
+    f (HsCase _ _ (MG _ (L _ []))) = True
+    f (HsLamCase _ _ (MG _ (L _ []))) = True
     f _ = False
 used KindSignatures = hasT (un :: HsKind GhcPs)
 used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
@@ -497,7 +520,7 @@ used OverloadedRecordDot = hasT (un :: DotFieldOcc GhcPs)
 
 used _= const True
 
-hasDerive :: [String] -> Located HsModule -> Bool
+hasDerive :: [String] -> Located (HsModule GhcPs) -> Bool
 hasDerive want = any (`elem` want) . derivesStock' . derives
 
 -- Derivations can be implemented using any one of 3 strategies, so for each derivation
@@ -526,14 +549,14 @@ addDerives nt _ xs = mempty
     ,derivesNewtype' = if maybe True isNewType nt then filter (`notElem` noDeriveNewtype) xs else []}
     where (stock, other) = partition (`elem` deriveStock) xs
 
-derives :: Located HsModule -> Derives
+derives :: Located (HsModule GhcPs) -> Derives
 derives (L _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
   where
     idecl :: DataFamInstDecl GhcPs -> Derives
-    idecl (DataFamInstDecl FamEqn {feqn_rhs=HsDataDefn {dd_ND=dn, dd_derivs=ds}}) = g dn ds
+    idecl (DataFamInstDecl FamEqn {feqn_rhs=HsDataDefn {dd_cons=data_defn_cons, dd_derivs=ds}}) = g (dataDefnConsNewOrData data_defn_cons) ds
 
     decl :: LHsDecl GhcPs -> Derives
-    decl (L _ (TyClD _ (DataDecl _ _ _ _ HsDataDefn {dd_ND=dn, dd_derivs=ds}))) = g dn ds -- Data declaration.
+    decl (L _ (TyClD _ (DataDecl _ _ _ _ HsDataDefn {dd_cons=data_defn_cons, dd_derivs=ds}))) = g (dataDefnConsNewOrData data_defn_cons) ds -- Data declaration.
     decl (L _ (DerivD _ (DerivDecl _ (HsWC _ sig) strategy _))) = addDerives Nothing (fmap unLoc strategy) [derivedToStr sig] -- A deriving declaration.
     decl _ = mempty
 

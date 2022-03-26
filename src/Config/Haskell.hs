@@ -31,7 +31,7 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 -- | Read an {-# ANN #-} pragma and determine if it is intended for HLint.
 --   Return Nothing if it is not an HLint pragma, otherwise what it means.
 readPragma :: AnnDecl GhcPs -> Maybe Classify
-readPragma (HsAnnotation _ _ provenance expr) = f expr
+readPragma (HsAnnotation _ provenance expr) = f expr
     where
         name = case provenance of
             ValueAnnProvenance (L _ x) -> occNameStr x
