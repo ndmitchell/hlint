@@ -1,0 +1,17 @@
+---------------------------------------------------------------------
+RUN tests/NoExplicitCpp.hs -XHaskell2010
+FILE tests/NoExplicitCpp.hs
+-- We expect C-preprocessing despite `CPP` not being in the
+-- enabled extensions implied by the command line. See issue
+-- https://github.com/ndmitchell/hlint/issues/1360.
+{-# LANGUAGE CPP #-}
+#if 1
+hlint = __HLINT__
+#endif
+OUTPUT
+tests/NoExplicitCpp.hs:4:1-20: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE CPP #-}
+Note: may break the code
+
+1 hint
