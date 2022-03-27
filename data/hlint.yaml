@@ -1245,6 +1245,8 @@
 # foo = last (sortBy (compare `on` fst) xs) -- maximumBy (compare `on` fst) xs
 # g = \ f -> parseFile f >>= (\ cu -> return (f, cu))
 # foo = bar $ \(x,y) -> x x y
+# f = const [] . (>>= const Nothing) . const Nothing -- (const Nothing Control.Monad.<=< const Nothing)
+# f = g . either Left h x -- (h =<< x)
 # foo = (\x -> f x >>= g) -- f Control.Monad.>=> g
 # foo = (\f -> h f >>= g) -- h Control.Monad.>=> g
 # foo = (\f -> h f >>= f)
