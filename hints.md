@@ -12353,22 +12353,6 @@ Data.Map.Strict.empty
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use TH quotation brackets</td>
-<td>
-LHS:
-<code>
-TH.varE 'a
-</code>
-<br>
-RHS:
-<code>
-[| a |]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
 <td>Redundant ^.</td>
 <td>
 LHS:
