@@ -390,7 +390,7 @@ Other options are available:
   `qualified` and `unqualified` do not care about the import list at all.
 - `qualifiedStyle`: either `'pre'`, `'post'` or `'unrestricted'`; how should the module be qualified? This option also affects how suggestions are formatted.
 
-For examlple:
+For example:
 
 ```yaml
 - modules:
