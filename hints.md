@@ -12608,4 +12608,20 @@ optional p
 </td>
 <td>Warning</td>
 </tr>
+<tr>
+<td>Avoid decodeUtf8</td>
+<td>
+LHS:
+<code>
+Data.Text.Encoding.decodeUtf8
+</code>
+<br>
+RHS:
+<code>
+Data.Text.Encoding.decodeUtf8'
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
 </table>

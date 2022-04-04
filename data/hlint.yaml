@@ -52,6 +52,12 @@
     - import Data.Attoparsec.ByteString
 
 - package:
+    name: text
+    modules:
+    - import Data.Text
+    - import Data.Text.Encoding
+
+- package:
     name: codeworld-api
     modules:
     - import CodeWorld
@@ -911,6 +917,14 @@
     - warn: {lhs: Data.Attoparsec.ByteString.option Nothing (Just <$> p), rhs: optional p}
 
 - group:
+    name: text
+    enabled: true
+    imports:
+    - package text
+    rules:
+    - warn: {lhs: decodeUtf8, rhs: decodeUtf8', name: Avoid decodeUtf8}
+
+- group:
     name: generalise
     enabled: false
     imports:
@@ -1283,6 +1297,10 @@
 # issue1183 = (a >= 'a') && a <= 'z' -- isAsciiLower a
 # issue1183 = (a >= 'a') && (a <= 'z') -- isAsciiLower a
 # issue1218 = uncurry (zipWith g) $ (a, b) -- zipWith g a b
+
+# import Data.Text
+# import Data.Text.Encoding
+# yes = decodeUtf8 -- decodeUtf8'
 
 # import Language.Haskell.TH\
 # yes = varE 'foo -- [|foo|]
