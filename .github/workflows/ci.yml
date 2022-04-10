@@ -12,7 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        ghc: ['9.2', '9.0', '8.10']
+        # GHC 9.2.1 had a bug, so we treat it differently to 9.2.2
+        ghc: ['9.2.2', '9.2.1', '9.0', '8.10']
         include:
         - os: windows-latest
           ghc: '9.2'
