@@ -862,10 +862,6 @@
     - warn: {lhs: "Data.Map.Lazy.fromList []", rhs: Data.Map.Lazy.empty}
     - warn: {lhs: "Data.Map.Strict.fromList []", rhs: Data.Map.Strict.empty}
 
-    # TEMPLATE HASKELL
-
-    - hint: {lhs: "TH.varE 'a", rhs: "[|a|]", name: Use TH quotation brackets}
-
 - group:
     name: lens
     enabled: true
@@ -899,6 +895,14 @@
     rules:
     - warn: {lhs: "either Just (const Nothing)", rhs: preview _Left}
     - warn: {lhs: "either (const Nothing) Just", rhs: preview _Right}
+
+- group:
+    name: use-th-quotes
+    enabled: false
+    imports:
+    - package base
+    rules:
+    - hint: {lhs: "TH.varE 'a", rhs: "[|a|]", name: Use TH quotation brackets}
 
 - group:
     name: attoparsec
@@ -1284,8 +1288,6 @@
 # issue1183 = (a >= 'a') && (a <= 'z') -- isAsciiLower a
 # issue1218 = uncurry (zipWith g) $ (a, b) -- zipWith g a b
 
-# import Language.Haskell.TH\
-# yes = varE 'foo -- [|foo|]
 # import Prelude \
 # yes = flip mapM -- Control.Monad.forM
 # import Control.Monad \
