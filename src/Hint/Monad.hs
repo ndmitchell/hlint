@@ -1,4 +1,10 @@
-{-# LANGUAGE LambdaCase, ViewPatterns, PatternGuards, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns #-}
+
 {-
     Find and match:
 
@@ -45,7 +51,9 @@ main = f $ do g a $ sleep 10 --
 main = do f a $ sleep 10 -- @Ignore
 main = do foo x; return 3; bar z --
 main = void $ forM_ f xs -- forM_ f xs
-main = void $ forM f xs -- void $ forM_ f xs
+main = void (forM_ f xs) -- (forM_ f xs)
+main = void $ forM f xs -- forM_ f xs
+main = void (forM f xs) -- (forM_ f xs)
 main = do _ <- forM_ f xs; bar -- forM_ f xs
 main = do bar; forM_ f xs; return () -- do bar; forM_ f xs
 main = do a; when b c; return () -- do a; when b c
@@ -125,8 +133,26 @@ monadExp decl parentDo parentExpr x =
     _ -> []
   where
     f = monadNoResult (fromMaybe "" decl) id
-    seenVoid wrap x = monadNoResult (fromMaybe "" decl) wrap x
-      ++ [warn "Redundant void" (reLoc (wrap x)) (reLoc x) [Replace Expr (toSSA (wrap x)) [("a", toSSA x)] "a"] | returnsUnit x]
+    seenVoid wrap x =
+      -- Suggest `traverse_ f x` given `void $ traverse_ f x`
+      [warn "Redundant void" (reLoc (wrap x)) (reLoc x) [Replace Expr (toSSA (wrap x)) [("a", toSSA x)] "a"] | returnsUnit x]
+        -- Suggest `traverse_ f x` given `void $ traverse f x`
+        ++ ( case modifyAppHead
+               ( \fun@(L l name) ->
+                   ( if occNameStr name `elem` badFuncs
+                       then L l (mkRdrUnqual (mkVarOcc (occNameStr name ++ "_")))
+                       else fun,
+                     fun
+                   )
+               )
+               x of
+               (x', Just fun@(L l name)) | occNameStr name `elem` badFuncs ->
+                  let fun_ = occNameStr name ++ "_"
+                   in [warn ("Use " ++ fun_) (reLoc (wrap x)) (reLoc x')
+                        [Replace Expr (toSSA (wrap x)) [("a", toSSA x)] "a",
+                         Replace Expr (toSSA fun) [] fun_]]
+               _ -> []
+           )
     doSpan doOrMDo = \case
       UnhelpfulSpan s -> UnhelpfulSpan s
       RealSrcSpan s _ ->
@@ -154,13 +180,23 @@ doAsAvoidingIndentation (Just (L _ (HsDo _ _ (L anna _)))) (L _ (HsDo _ _ (L ann
     = srcSpanStartCol a == srcSpanStartCol b
 doAsAvoidingIndentation parent self = False
 
+-- Apply a function to the application head, including `head arg` and `head $ arg`, which modifies
+-- the head and returns a value. Sees through parentheses.
+modifyAppHead :: forall a. (LIdP GhcPs -> (LIdP GhcPs, a)) -> LHsExpr GhcPs -> (LHsExpr GhcPs, Maybe a)
+modifyAppHead f = go id
+  where
+    go :: (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, Maybe a)
+    go wrap (L l (HsPar _ x)) = go (wrap . L l . HsPar EpAnnNotUsed) x
+    go wrap (L l (HsApp _ x y)) = go (\x -> wrap $ L l (HsApp EpAnnNotUsed x y)) x
+    go wrap (L l (OpApp _ x op y)) | isDol op = go (\x -> wrap $ L l (OpApp EpAnnNotUsed x op y)) x
+    go wrap (L l (HsVar _ x)) = (wrap (L l (HsVar NoExtField x')), Just a)
+      where (x', a) = f x
+    go _ expr = (expr, Nothing)
 
 returnsUnit :: LHsExpr GhcPs -> Bool
-returnsUnit (L _ (HsPar _ x)) = returnsUnit x
-returnsUnit (L _ (HsApp _ x _)) = returnsUnit x
-returnsUnit (L _ (OpApp _ x op _)) | isDol op = returnsUnit x
-returnsUnit (L _ (HsVar _ (L _ x))) = occNameStr x `elem` map (++ "_") badFuncs ++ unitFuncs
-returnsUnit _ = False
+returnsUnit = fromMaybe False
+            . snd
+            . modifyAppHead (\x -> (x, occNameStr (unLoc x) `elem` map (++ "_") badFuncs ++ unitFuncs))
 
 -- See through HsPar, and down HsIf/HsCase, return the name to use in
 -- the hint, and the revised expression.
