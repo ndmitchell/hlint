@@ -88,6 +88,20 @@ hlintMain args cmd@CmdMain{..}
                          ["- ignore: {name: " ++ show x ++ "}" | x <- bad]
             putStr $ unlines $ intercalate ["",""] $ group1:group2:groups
         pure []
+    | cmdIgnoreFound = do
+        ideas <- if null cmdFiles then pure [] else withVerbosity Quiet $
+            runHlintMain args cmd{cmdJson=False,cmdSerialise=False,cmdRefactor=False} Nothing
+        let bad = group . sort $ ideaHint <$> ideas
+        if null bad then putStr "No hints" else do
+            let found = "# Warnings currently triggered by your code" :
+                        ["- ignore: {name: " ++ show hd ++ "} # " ++
+                            if null tl
+                                then "1 hint"
+                                else show (length xs) ++ " hints"
+                        | xs@(hd : tl) <- bad
+                        ]
+            putStr $ unlines found
+        pure []
     | cmdGenerateSummary /= [] = do
         forM_ cmdGenerateSummary $ \file -> timedIO "Summary" file $ do
             whenNormal $ putStrLn $ "Writing summary to " ++ file ++ " ..."

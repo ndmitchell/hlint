@@ -108,6 +108,7 @@ data Cmd
         ,cmdFindHints :: [FilePath]      -- ^ source files to look for hints in
         ,cmdDataDir :: FilePath          -- ^ the data directory
         ,cmdDefault :: Bool              -- ^ Print a default file to stdout
+        ,cmdIgnoreFound :: Bool          -- ^ Suppress outstanding hints
         ,cmdPath :: [String]
         ,cmdCppDefine :: [String]
         ,cmdCppInclude :: [FilePath]
@@ -147,6 +148,7 @@ mode = cmdArgsMode $ modes
         ,cmdFindHints = nam "find" &= typFile &= help "Find hints in a Haskell file"
         ,cmdDataDir = nam_ "datadir" &= typDir &= help "Override the data directory"
         ,cmdDefault = nam "default" &= help "Print a default file to stdout"
+        ,cmdIgnoreFound = nam_ "willful-ignorance" &= help "Suppress outstanding hints"
         ,cmdPath = nam "path" &= help "Directory in which to search for files"
         ,cmdCppDefine = nam_ "cpp-define" &= typ "NAME[=VALUE]" &= help "CPP #define"
         ,cmdCppInclude = nam_ "cpp-include" &= typDir &= help "CPP include path"
