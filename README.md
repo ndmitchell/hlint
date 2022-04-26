@@ -241,18 +241,20 @@ See discussion in [issue #372](https://github.com/ndmitchell/hlint/issues/372).
 
 ## Customizing the hints
 
-To customize the hints given by HLint, create a file `.hlint.yaml` in the root of your project. For a suitable default run:
+To customize the hints given by HLint, create a file `.hlint.yaml` in the root of your project. For a suitable configuration use either `hlint --suppress > .hlint.yaml` or `hlint --default > .hlint.yaml`.
 
-```console
-hlint --default > .hlint.yaml
-```
+* `--suppress` prints settings for ignoring all the hints currently outstanding.
+  ```yaml
+  # Warnings currently triggered by your code
+  - ignore: {name: "Redundant $"} # 20 hints
+  - ignore: {name: "Unused LANGUAGE pragma"} # 29 hints
+  ```
+* `--default` implies `--suppress` and shows examples (as comments) of how to:
 
-This default configuration contains lots of examples, including:
-
-* Adding command line arguments to all runs, e.g. `--color` or `-XNoMagicHash`.
-* Ignoring certain hints, perhaps within certain modules/functions.
-* Restricting use of GHC flags/extensions/functions, e.g. banning `Arrows` and `unsafePerformIO`.
-* Adding additional project-specific hints.
+  * Add command line arguments to all runs, e.g. `--color` or `-XNoMagicHash`.
+  * Ignore certain hints, perhaps within certain modules/functions.
+  * Restrict the use of GHC flags/extensions/functions, e.g. banning `Arrows` and `unsafePerformIO`.
+  * Add additional project-specific hints.
 
 You can see the output of `--default` [here](https://github.com/ndmitchell/hlint/blob/master/data/default.yaml).
 

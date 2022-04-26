@@ -1,5 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module HLint(hlint, readAllSettings) where
@@ -78,29 +79,27 @@ withVerbosity new act = do
 
 hlintMain :: [String] -> Cmd -> IO [Idea]
 hlintMain args cmd@CmdMain{..}
-    | cmdDefault = do
-        ideas <- if null cmdFiles then pure [] else withVerbosity Quiet $
-            runHlintMain args cmd{cmdJson=False,cmdSerialise=False,cmdRefactor=False} Nothing
-        let bad = nubOrd $ map ideaHint ideas
-        if null bad then putStr defaultYaml else do
-            let group1:groups = splitOn ["",""] $ lines defaultYaml
-            let group2 = "# Warnings currently triggered by your code" :
-                         ["- ignore: {name: " ++ show x ++ "}" | x <- bad]
-            putStr $ unlines $ intercalate ["",""] $ group1:group2:groups
-        pure []
-    | cmdIgnoreFound = do
+    | cmdDefault || cmdSuppress = do
         ideas <- if null cmdFiles then pure [] else withVerbosity Quiet $
             runHlintMain args cmd{cmdJson=False,cmdSerialise=False,cmdRefactor=False} Nothing
         let bad = group . sort $ ideaHint <$> ideas
-        if null bad then putStr "No hints" else do
-            let found = "# Warnings currently triggered by your code" :
-                        ["- ignore: {name: " ++ show hd ++ "} # " ++
-                            if null tl
-                                then "1 hint"
-                                else show (length xs) ++ " hints"
-                        | xs@(hd : tl) <- bad
-                        ]
-            putStr $ unlines found
+
+        let found =
+                if null bad then [] else
+                    "# Warnings currently triggered by your code" :
+                    ["- ignore: {name: " ++ show hd ++ "} # " ++
+                        if null tl
+                            then "1 hint"
+                            else show (length xs) ++ " hints"
+                    | xs@(hd : tl) <- bad
+                    ]
+
+        putStr
+            if | not cmdDefault -> unlines found
+               | null found -> defaultYaml
+               | otherwise -> do
+                    let group1:groups = splitOn ["",""] $ lines defaultYaml
+                    unlines $ intercalate ["",""] $ group1:found:groups
         pure []
     | cmdGenerateSummary /= [] = do
         forM_ cmdGenerateSummary $ \file -> timedIO "Summary" file $ do
