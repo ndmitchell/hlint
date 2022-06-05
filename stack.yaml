@@ -4,20 +4,21 @@ packages:
   - .
 
 extra-deps:
-  - ghc-lib-parser-9.2.3.20220507
-  - ghc-lib-parser-ex-9.2.0.4
+  - ghc-lib-parser-9.2.3.20220527
+  - ghc-lib-parser-ex-9.2.1.0
 # To test hlint against experimental builds of ghc-lib-parser-ex,
 # modify extra-deps like this:
 #  - archive: /users/shayne/project/ghc-lib-parser-ex/ghc-lib-parser-ex-8.10.0.18.tar.gz
 #    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
 
-ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-local-binds -Werror=unused-top-binds -Werror=orphans}
-
-# Enabling this stanza forces both hlint and ghc-lib-parser-ex to
-# depend on ghc-lib-parser.
+# Enabling this stanza allows hlint and ghc-lib-parser-ex to link to
+# the native ghc compiler libs rather than ghc-lib-parser when the
+# compiler version is suitable.
 # flags:
-#   hlint:
-#     ghc-lib: true
-#   ghc-lib-parser-ex:
-#     auto: false
-#     no-ghc-lib: false
+#    hlint:
+#     ghc-lib: false
+#    ghc-lib-parser-ex:
+#      auto: true
+#      no-ghc-lib: false
+
+ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-local-binds -Werror=unused-top-binds -Werror=orphans}

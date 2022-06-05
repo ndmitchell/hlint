@@ -53,7 +53,7 @@ flag gpl
     description: Use GPL libraries, specifically hscolour
 
 flag ghc-lib
-  default: False
+  default: True
   manual: True
   description: Force dependency on ghc-lib-parser even if GHC API in the ghc package is supported
 
@@ -89,7 +89,7 @@ library
       build-depends:
           ghc-lib-parser == 9.2.*
     build-depends:
-        ghc-lib-parser-ex >= 9.2.0.3 && < 9.2.1
+        ghc-lib-parser-ex >= 9.2.1.0 && < 9.2.2
 
     if flag(gpl)
         build-depends: hscolour >= 1.21
