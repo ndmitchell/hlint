@@ -122,7 +122,7 @@ isSym _ = False
 suggestName :: String -> Maybe String
 suggestName original
     | isSym original || good || not (any isLower original) || any isDigit original ||
-        any (`isPrefixOf` original) ["prop_","case_","unit_","test_","spec_","scprop_","hprop_"] = Nothing
+        any (`isPrefixOf` original) ["prop_","case_","unit_","test_","spec_","scprop_","hprop_","tasty_"] = Nothing
     | otherwise = Just $ f original
     where
         good = all isAlphaNum $ drp '_' $ drp '#' $ reverse $ filter (/= '\'') $ drp '_' original
