@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1387, bypass camelCase hint for new tasty_... custom test prefix
 3.4, released 2022-04-24
     #1360, make -XHaskell2010 still obey CPP pragmas
     #1368, make TH quotation bracket rule off by default
