@@ -18,10 +18,10 @@ RUN tests/json-two.hs --json
 FILE tests/json-two.hs
 foo = (+1)
 bar x = foo x
-baz = getLine >>= return . map toUpper
+baz = getLine >>= pure . upper
 OUTPUT
 [{"module":["Main"],"decl":["bar"],"severity":"Warning","hint":"Eta reduce","file":"tests/json-two.hs","startLine":2,"startColumn":1,"endLine":2,"endColumn":14,"from":"bar x = foo x","to":"bar = foo","note":[],"refactorings":"[Replace {rtype = Decl, pos = SrcSpan {startLine = 2, startCol = 1, endLine = 2, endCol = 14}, subts = [(\"body\",SrcSpan {startLine = 2, startCol = 9, endLine = 2, endCol = 12})], orig = \"bar = body\"}]"}
-,{"module":["Main"],"decl":["baz"],"severity":"Suggestion","hint":"Use <&>","file":"tests/json-two.hs","startLine":3,"startColumn":7,"endLine":3,"endColumn":39,"from":"getLine >>= return . map toUpper","to":"getLine Data.Functor.<&> map toUpper","note":[],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 39}, subts = [(\"f\",SrcSpan {startLine = 3, startCol = 28, endLine = 3, endCol = 39}),(\"m\",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = \"m Data.Functor.<&> f\"}]"}]
+,{"module":["Main"],"decl":["baz"],"severity":"Suggestion","hint":"Use <&>","file":"tests/json-two.hs","startLine":3,"startColumn":7,"endLine":3,"endColumn":31,"from":"getLine >>= pure . upper","to":"getLine Data.Functor.<&> upper","note":[],"refactorings":"[Replace {rtype = Expr, pos = SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 31}, subts = [(\"f\",SrcSpan {startLine = 3, startCol = 26, endLine = 3, endCol = 31}),(\"m\",SrcSpan {startLine = 3, startCol = 7, endLine = 3, endCol = 14})], orig = \"m Data.Functor.<&> f\"}]"}]
 
 ---------------------------------------------------------------------
 RUN tests/json-parse-error.hs --json
