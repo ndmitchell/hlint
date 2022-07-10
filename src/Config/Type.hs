@@ -54,16 +54,8 @@ data Severity
     | Suggestion -- ^ Suggestions are things that some people may consider improvements, but some may not.
     | Warning -- ^ Warnings are suggestions that are nearly always a good idea to apply.
     | Error -- ^ Available as a setting for the user. Only parse errors have this setting by default.
-      deriving (Eq,Ord,Read,Bounded,Enum,Generic,Data)
+      deriving (Eq,Ord,Show,Read,Bounded,Enum,Generic,Data)
       deriving (ToJSON) via CustomJSON '[FieldLabelModifier CamelToSnake] Severity
-
-instance Show Severity where
-  show = \case
-    Ignore -> "ignore"
-    Suggestion -> "suggest"
-    Warning -> "warn"
-    Error -> "error"
-
 
 
 -- Any 1-letter variable names are assumed to be unification variables
