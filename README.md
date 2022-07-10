@@ -355,7 +355,9 @@ The above block declares that GHC extensions are not allowed by default, apart f
   - {name: unsafePerformIO, within: CompatLayer}
 ```
 
-This declares that the `nub` function can't be used in any modules, and thus is banned from the code. That's probably a good idea, as most people should use an alternative that isn't _O(n^2)_ (e.g. [`nubOrd`](https://hackage.haskell.org/package/extra/docs/Data-List-Extra.html#v:nubOrd)). We also whitelist where `unsafePerformIO` can occur, ensuring that there can be a centrally reviewed location to declare all such instances. Finally, we can restrict the use of modules with:
+This declares that the `nub` function can't be used in any modules, and thus is banned from the code. That's probably a good idea, as most people should use an alternative that isn't _O(n^2)_ (e.g. [`nubOrd`](https://hackage.haskell.org/package/extra/docs/Data-List-Extra.html#v:nubOrd)). We also whitelist where `unsafePerformIO` can occur, ensuring that there can be a centrally reviewed location to declare all such instances. Function names can be given qualified, e.g. `Data.List.head`, but note that functions available through multiple exports (e.g. `head` is also available from `Prelude`) should be listed through all paths they are likely to be obtained, as the HLint qualified matching is unaware of re-exports.
+
+Finally, we can restrict the use of modules with:
 
 ```yaml
 - modules:
