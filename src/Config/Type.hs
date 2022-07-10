@@ -1,3 +1,10 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Config.Type(
     Severity(..), Classify(..), HintRule(..), Note(..), Setting(..),
@@ -16,6 +23,9 @@ import qualified GHC.Hs
 import Fixity
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
+import Deriving.Aeson
+import System.Console.CmdArgs.Implicit
+import Data.Aeson hiding (Error)
 
 getSeverity :: String -> Maybe Severity
 getSeverity "ignore" = Just Ignore
@@ -44,7 +54,16 @@ data Severity
     | Suggestion -- ^ Suggestions are things that some people may consider improvements, but some may not.
     | Warning -- ^ Warnings are suggestions that are nearly always a good idea to apply.
     | Error -- ^ Available as a setting for the user. Only parse errors have this setting by default.
-      deriving (Eq,Ord,Show,Read,Bounded,Enum)
+      deriving (Eq,Ord,Read,Bounded,Enum,Generic,Data)
+      deriving (ToJSON) via CustomJSON '[FieldLabelModifier CamelToSnake] Severity
+
+instance Show Severity where
+  show = \case
+    Ignore -> "ignore"
+    Suggestion -> "suggest"
+    Warning -> "warn"
+    Error -> "error"
+
 
 
 -- Any 1-letter variable names are assumed to be unification variables
@@ -105,6 +124,13 @@ data HintRule = HintRule
     ,hintRuleSide :: Maybe (HsExtendInstances (GHC.Hs.LHsExpr GHC.Hs.GhcPs))  -- ^ Side condition (GHC parse tree).
     }
     deriving Show
+
+instance ToJSON HintRule where
+    toJSON HintRule{..} = object
+        [ "name" .= hintRuleName
+        , "lhs" .= show hintRuleLHS
+        , "rhs" .= show hintRuleRHS
+        ]
 
 data RestrictType = RestrictModule | RestrictExtension | RestrictFlag | RestrictFunction deriving (Show,Eq,Ord)
 

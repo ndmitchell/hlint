@@ -92,11 +92,25 @@ hlintMain args cmd@CmdMain{..}
 
             putStr $ unlines $ intercalate ["",""] $ group1:group2:groups
         pure []
-    | cmdGenerateSummary /= [] = do
-        forM_ cmdGenerateSummary $ \file -> timedIO "Summary" file $ do
-            whenNormal $ putStrLn $ "Writing summary to " ++ file ++ " ..."
-            summary <- generateSummary . snd =<< readAllSettings args cmd
+    | cmdGenerateMdSummary /= [] = do
+        forM_ cmdGenerateMdSummary $ \file -> timedIO "Summary" file $ do
+            whenNormal $ putStrLn $ "Writing Markdown summary to " ++ file ++ " ..."
+            summary <- generateMdSummary . snd =<< readAllSettings args cmd
             writeFileBinary file summary
+        pure []
+    | cmdGenerateJsonSummary /= [] = do
+        forM_ cmdGenerateJsonSummary $ \file -> timedIO "Summary" file $ do
+            whenNormal $ putStrLn $ "Writing JSON summary to " ++ file ++ " ..."
+            summary <- generateJsonSummary . snd =<< readAllSettings args cmd
+            writeFileBinary file summary
+        pure []
+    | cmdGenerateExhaustiveConf /= [] = do
+        forM_ cmdGenerateExhaustiveConf $ \severity ->
+            let file = show severity ++ "-all.yaml"
+             in timedIO "Exhaustive config file" file $ do
+                whenNormal $ putStrLn $ "Writing " ++ show severity ++ "-all list to " ++ file ++ " ..."
+                exhaustiveConfig <- generateExhaustiveConfig severity . snd =<< readAllSettings args cmd
+                writeFileBinary file exhaustiveConfig
         pure []
     | null cmdFiles && not (null cmdFindHints) = do
         hints <- concatMapM (resolveFile cmd Nothing) cmdFindHints

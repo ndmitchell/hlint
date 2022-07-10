@@ -39,6 +39,7 @@ import Extension
 import Paths_hlint
 import Data.Version
 import Prelude
+import Config.Type (Severity (Warning))
 
 
 getCmd :: [String] -> IO Cmd
@@ -125,7 +126,9 @@ data Cmd
         ,cmdRefactorOptions :: String   -- ^ Options to pass to the `refactor` executable.
         ,cmdWithRefactor :: FilePath    -- ^ Path to refactor tool
         ,cmdIgnoreGlob :: [FilePattern]
-        ,cmdGenerateSummary :: [FilePath]  -- ^ Generate a summary of available hints
+        ,cmdGenerateMdSummary :: [FilePath]  -- ^ Generate a summary of available hints, in Markdown format
+        ,cmdGenerateJsonSummary :: [FilePath]  -- ^ Generate a summary of built-in hints, in JSON format
+        ,cmdGenerateExhaustiveConf :: [Severity]  -- ^ Generate a hlint config file with all built-in hints set to the specified level
         ,cmdTest :: Bool
         }
     deriving (Data,Typeable,Show)
@@ -164,7 +167,9 @@ mode = cmdArgsMode $ modes
         ,cmdRefactorOptions = nam_ "refactor-options" &= typ "OPTIONS" &= help "Options to pass to the `refactor` executable"
         ,cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
         ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern (e.g. foo/bar/*.hs)"
-        ,cmdGenerateSummary = nam_ "generate-summary" &= opt "hints.md" &= help "Generate a summary of built-in hints"
+        ,cmdGenerateMdSummary = nam_ "generate-summary" &= opt "hints.md" &= help "Generate a summary of available hints, in Mardown format"
+        ,cmdGenerateJsonSummary = nam_ "generate-summary-json" &= opt "hints.json" &= help "Generate a summary of available hints, in JSON format"
+        ,cmdGenerateExhaustiveConf = nam_ "generate-exhaustive-config" &= opt Warning &= typ "ignore/suggest/warn/error" &= help "Generate a .hlint.yaml config file with all hints set to the specified severity level (default level: warning)"
         ,cmdTest = nam_ "test" &= help "Run the test suite"
         } &= auto &= explicit &= name "lint"
         &= details ["HLint gives hints on how to improve Haskell code."
@@ -188,7 +193,10 @@ cmdHintFiles cmd = do
         fail $ unlines $ "Failed to find requested hint files:" : map ("  "++) bad
 
     -- if the user has given any explicit hints, ignore the local ones
-    implicit <- if explicit /= [] || cmdGenerateSummary cmd /= [] then pure Nothing else do
+    implicit <- if explicit /= []
+                  || cmdGenerateMdSummary cmd /= []
+                  || cmdGenerateJsonSummary cmd /= []
+                  || cmdGenerateExhaustiveConf cmd /= [] then pure Nothing else do
         -- we follow the stylish-haskell config file search policy
         -- 1) current directory or its ancestors; 2) home directory
         curdir <- getCurrentDirectory

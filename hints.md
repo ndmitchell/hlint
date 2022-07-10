@@ -2,755 +2,6 @@
 
 This page is auto-generated from `hlint --generate-summary`.
 
-## Builtin List
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
-</tr>
-<tr>
-<td>Move guards forward</td>
-<td>
-Example:
-<code>
-foo = [x + 1 | x <- [1..10], feature]
-</code>
-<br>
-Found:
-<code>
-[x + 1 | x <- [1 .. 10], feature]
-</code>
-<br>
-Suggestion:
-<code>
-[x + 1 | feature, x <- [1 .. 10]]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Move map inside list comprehension</td>
-<td>
-Example:
-<code>
-foo = map f [x + 1 | x <- [1..10]]
-</code>
-<br>
-Found:
-<code>
-map f [x + 1 | x <- [1 .. 10]]
-</code>
-<br>
-Suggestion:
-<code>
-[f (x + 1) | x <- [1 .. 10]]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant True guards</td>
-<td>
-Example:
-<code>
-foo = [myexpr | True, a]
-</code>
-<br>
-Found:
-<code>
-[myexpr | True, a]
-</code>
-<br>
-Suggestion:
-<code>
-[myexpr | a]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Short-circuited list comprehension</td>
-<td>
-Example:
-<code>
-foo = [myexpr | False]
-</code>
-<br>
-Found:
-<code>
-[myexpr | False]
-</code>
-<br>
-Suggestion:
-<code>
-[]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use :</td>
-<td>
-Example:
-<code>
-yes = [x] ++ xs
-</code>
-<br>
-Found:
-<code>
-[x] ++ xs
-</code>
-<br>
-Suggestion:
-<code>
-x : xs
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use String</td>
-<td>
-Example:
-<code>
-data Yes = Yes (Maybe [Char])
-</code>
-<br>
-Found:
-<code>
-Maybe [Char]
-</code>
-<br>
-Suggestion:
-<code>
-Maybe String
-</code>
-<br>
-</td>
-<td>Ignore</td>
-</tr>
-<tr>
-<td>Use list literal</td>
-<td>
-Example:
-<code>
-yes = 1:2:[]
-</code>
-<br>
-Found:
-<code>
-1 : 2 : []
-</code>
-<br>
-Suggestion:
-<code>
-[1, 2]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use list literal pattern</td>
-<td>
-Example:
-<code>
-yes (1:2:[]) = 1
-</code>
-<br>
-Found:
-<code>
-(1 : 2 : [])
-</code>
-<br>
-Suggestion:
-<code>
-[1, 2]
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-</table>
-
-## Builtin ListRec
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
-</tr>
-<tr>
-<td>Use foldM</td>
-<td>
-Example:
-<code>
-f [] a = return a ; f (x:xs) a = a + x >>= \fax -> f xs fax
-</code>
-<br>
-Found:
-<pre>
-f [] a = return a
-f (x : xs) a = a + x >>= \ fax -> f xs fax
-</pre>
-Suggestion:
-<code>
-f xs a = foldM (+) a xs
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use foldl</td>
-<td>
-Example:
-<code>
-f z (x:xs) = f (z*x) xs ; f z [] = z
-</code>
-<br>
-Found:
-<pre>
-f z (x : xs) = f (z * x) xs
-f z [] = z
-</pre>
-Suggestion:
-<code>
-f z xs = foldl (*) z xs
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use foldr</td>
-<td>
-Example:
-<code>
-f (x:xs) = negate x + f xs ; f [] = 0
-</code>
-<br>
-Found:
-<pre>
-f (x : xs) = negate x + f xs
-f [] = 0
-</pre>
-Suggestion:
-<code>
-f xs = foldr ((+) . negate) 0 xs
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use map</td>
-<td>
-Example:
-<code>
-f (x:xs) = x + 1 : f xs ; f [] = []
-</code>
-<br>
-Found:
-<pre>
-f (x : xs) = x + 1 : f xs
-f [] = []
-</pre>
-Suggestion:
-<code>
-f xs = map (+ 1) xs
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-</table>
-
-## Builtin Monad
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
-</tr>
-<tr>
-<td>Redundant do</td>
-<td>
-Example:
-<code>
-yes = do (bar+foo)
-</code>
-<br>
-Found:
-<code>
-do
-</code>
-<br>
-Suggestion:
-<code>
-Perhaps you should remove it.
-</code>
-<br>
-</td>
-<td>Ignore</td>
-</tr>
-<tr>
-<td>Redundant return</td>
-<td>
-Example:
-<code>
-yes = do bar; a <- foo; return a
-</code>
-<br>
-Found:
-<pre>
-do bar
-   a <- foo
-   return a
-</pre>
-Suggestion:
-<pre>
-do bar
-   foo
-</pre>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant variable capture</td>
-<td>
-Example:
-<code>
-main = do _ <- forM_ f xs; bar
-</code>
-<br>
-Found:
-<code>
-_ <- forM_ f xs
-</code>
-<br>
-Suggestion:
-<code>
-forM_ f xs
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant void</td>
-<td>
-Example:
-<code>
-main = void $ forM_ f xs
-</code>
-<br>
-Found:
-<code>
-void $ forM_ f xs
-</code>
-<br>
-Suggestion:
-<code>
-forM_ f xs
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use <$></td>
-<td>
-Example:
-<code>
-yes = do x <- bar; return (f x)
-</code>
-<br>
-Found:
-<pre>
-do x <- bar
-   return (f x)
-</pre>
-Suggestion:
-<code>
-do f <$> bar
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use foldM_</td>
-<td>
-Example:
-<code>
-folder f a xs = foldM f a xs >> return ()
-</code>
-<br>
-Found:
-<code>
-foldM f a xs
-</code>
-<br>
-Suggestion:
-<code>
-foldM_ f a xs
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use forM_</td>
-<td>
-Example:
-<code>
-yes = do forM files $ \x -> return (); return ()
-</code>
-<br>
-Found:
-<code>
-forM files $ \ x -> return ()
-</code>
-<br>
-Suggestion:
-<code>
-forM_ files $ \ x -> return ()
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use join</td>
-<td>
-Example:
-<code>
-yes = do x <- bar; x
-</code>
-<br>
-Found:
-<pre>
-do x <- bar
-   x
-</pre>
-Suggestion:
-<code>
-do join bar
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use let</td>
-<td>
-Example:
-<code>
-yes = do x <- return y; foo x
-</code>
-<br>
-Found:
-<code>
-x <- return y
-</code>
-<br>
-Suggestion:
-<code>
-let x = y
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use mapM_</td>
-<td>
-Example:
-<code>
-yes = do mapM print a; return b
-</code>
-<br>
-Found:
-<code>
-mapM print a
-</code>
-<br>
-Suggestion:
-<code>
-mapM_ print a
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-</table>
-
-## Builtin Lambda
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
-</tr>
-<tr>
-<td>Avoid lambda</td>
-<td>
-Example:
-<code>
-f = foo (\y -> g x . h $ y)
-</code>
-<br>
-Found:
-<code>
-\ y -> g x . h $ y
-</code>
-<br>
-Suggestion:
-<code>
-g x . h
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Avoid lambda</td>
-<td>
-Example:
-<code>
-f = foo (\x y -> fun x y)
-</code>
-<br>
-Found:
-<code>
-(\ x y -> fun x y)
-</code>
-<br>
-Suggestion:
-<code>
-fun
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Avoid lambda using `infix`</td>
-<td>
-Example:
-<code>
-foo x = bar (\ d -> search d table)
-</code>
-<br>
-Found:
-<code>
-(\ d -> search d table)
-</code>
-<br>
-Suggestion:
-<code>
-(`search` table)
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Collapse lambdas</td>
-<td>
-Example:
-<code>
-f = foo (\x -> \y -> x x y y)
-</code>
-<br>
-Found:
-<code>
-\ x -> \ y -> x x y y
-</code>
-<br>
-Suggestion:
-<code>
-\ x y -> x x y y
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Eta reduce</td>
-<td>
-Example:
-<code>
-fun x y z = f x y z
-</code>
-<br>
-Found:
-<code>
-fun x y z = f x y z
-</code>
-<br>
-Suggestion:
-<code>
-fun = f
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant lambda</td>
-<td>
-Example:
-<code>
-f a = \x -> x + x
-</code>
-<br>
-Found:
-<code>
-f a = \ x -> x + x
-</code>
-<br>
-Suggestion:
-<code>
-f a x = x + x
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use lambda</td>
-<td>
-Example:
-<code>
-foo = bar (\x -> case x of Y z -> z)
-</code>
-<br>
-Found:
-<code>
-\ x -> case x of Y z -> z
-</code>
-<br>
-Suggestion:
-<code>
-\ (Y z) -> z
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use lambda-case</td>
-<td>
-Example:
-<code>
-yes = blah (\ x -> case x of A -> a; B -> b)
-</code>
-<br>
-Found:
-<pre>
-\ x
-  -> case x of
-       A -> a
-       B -> b
-</pre>
-Suggestion:
-<pre>
-\case
-  A -> a
-  B -> b
-</pre>
-Does not support refactoring.
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use section</td>
-<td>
-Example:
-<code>
-f = foo ((*) x)
-</code>
-<br>
-Found:
-<code>
-((*) x)
-</code>
-<br>
-Suggestion:
-<code>
-(x *)
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use tuple-section</td>
-<td>
-Example:
-<code>
-yes = blah (\ x -> (y, x))
-</code>
-<br>
-Found:
-<code>
-\ x -> (y, x)
-</code>
-<br>
-Suggestion:
-<code>
-(y,)
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Suggestion</td>
-</tr>
-</table>
-
-## Builtin Fixities
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
-</tr>
-<tr>
-<td>Redundant bracket due to operator fixities</td>
-<td>
-Example:
-<code>
-yes = 1 + (2 * 3)
-</code>
-<br>
-Found:
-<code>
-1 + (2 * 3)
-</code>
-<br>
-Suggestion:
-<code>
-1 + 2 * 3
-</code>
-<br>
-</td>
-<td>Ignore</td>
-</tr>
-</table>
-
 ## Builtin Bracket
 
 <table>
@@ -760,93 +11,9 @@ Suggestion:
 <th>Severity</th>
 </tr>
 <tr>
-<td>Move brackets to avoid $</td>
-<td>
-Example:
-<code>
-yes = (b $ c d) ++ e
-</code>
-<br>
-Found:
-<code>
-(b $ c d) ++ e
-</code>
-<br>
-Suggestion:
-<code>
-b (c d) ++ e
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant $</td>
-<td>
-Example:
-<code>
-yes = split "to" $ names
-</code>
-<br>
-Found:
-<code>
-split "to" $ names
-</code>
-<br>
-Suggestion:
-<code>
-split "to" names
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant bracket</td>
-<td>
-Example:
-<code>
-yes = (f x) x
-</code>
-<br>
-Found:
-<code>
-(f x) x
-</code>
-<br>
-Suggestion:
-<code>
-f x x
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant bracket</td>
-<td>
-Example:
-<code>
-yes = (foo)
-</code>
-<br>
-Found:
-<code>
-(foo)
-</code>
-<br>
-Suggestion:
-<code>
-foo
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
 <td>Redundant section</td>
 <td>
-Example:
+Example: 
 <code>
 issue970 = (f x +) (g x)
 </code>
@@ -862,11 +29,95 @@ f x + (g x)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Redundant bracket</td>
+<td>
+Example: 
+<code>
+main = 1; {-# ANN module (1 + (2)) #-}
+</code>
+<br>
+Found:
+<code>
+(2)
+</code>
+<br>
+Suggestion:
+<code>
+2
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Redundant bracket</td>
+<td>
+Example: 
+<code>
+yes = (foo . bar x) <$> baz q
+</code>
+<br>
+Found:
+<code>
+(foo . bar x) <$> baz q
+</code>
+<br>
+Suggestion:
+<code>
+foo . bar x <$> baz q
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Redundant $</td>
+<td>
+Example: 
+<code>
+no = f $ [1,2..5]
+</code>
+<br>
+Found:
+<code>
+f $ [1, 2 .. 5]
+</code>
+<br>
+Suggestion:
+<code>
+f [1, 2 .. 5]
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Move brackets to avoid $</td>
+<td>
+Example: 
+<code>
+yes = (a b $ c d) ++ e
+</code>
+<br>
+Found:
+<code>
+(a b $ c d) ++ e
+</code>
+<br>
+Suggestion:
+<code>
+a b (c d) ++ e
+</code>
+<br>
+</td>
+<td>suggest</td>
 </tr>
 </table>
 
-## Builtin Naming
+## Builtin Comment
 
 <table>
 <tr>
@@ -875,305 +126,46 @@ f x + (g x)
 <th>Severity</th>
 </tr>
 <tr>
-<td>Use camelCase</td>
+<td>Use pragma syntax</td>
 <td>
-Example:
+Example: 
 <code>
-data Yes = Bar | Test_Bar
+{- NOINLINE Y -}
 </code>
 <br>
 Found:
 <code>
-data Yes = Bar | Test_Bar
+{- NOINLINE Y -}
 </code>
 <br>
 Suggestion:
 <code>
-data Yes = Bar | TestBar
+{-# NOINLINE Y #-}
 </code>
 <br>
-Does not support refactoring.
 </td>
-<td>Suggestion</td>
-</tr>
-</table>
-
-## Builtin Pattern
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
+<td>suggest</td>
 </tr>
 <tr>
-<td>Redundant as-pattern</td>
+<td>Fix pragma markup</td>
 <td>
-Example:
+Example: 
 <code>
-foo x@_ = x
+{- MISSING HASH #-}
 </code>
 <br>
 Found:
 <code>
-x@_
+{- MISSING HASH #-}
 </code>
 <br>
 Suggestion:
 <code>
-x
+{-# MISSING HASH #-}
 </code>
 <br>
 </td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant bang pattern</td>
-<td>
-Example:
-<code>
-foo = case v of !True -> x
-</code>
-<br>
-Found:
-<code>
-!True
-</code>
-<br>
-Suggestion:
-<code>
-True
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant case</td>
-<td>
-Example:
-<code>
-foo = case f v of _ -> x
-</code>
-<br>
-Found:
-<code>
-case f v of _ -> x
-</code>
-<br>
-Suggestion:
-<code>
-x
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant guard</td>
-<td>
-Example:
-<code>
-foo x | otherwise = y
-</code>
-<br>
-Found:
-<code>
-foo x | otherwise = y
-</code>
-<br>
-Suggestion:
-<code>
-foo x = y
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Redundant irrefutable pattern</td>
-<td>
-Example:
-<code>
-foo = let ~x = 1 in y
-</code>
-<br>
-Found:
-<code>
-~x
-</code>
-<br>
-Suggestion:
-<code>
-x
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Redundant where</td>
-<td>
-Example:
-<code>
-foo x = x + x where
-</code>
-<br>
-Found:
-<code>
-where
-</code>
-<br>
-Suggestion:
-<code>
-Perhaps you should remove it.
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use guards</td>
-<td>
-Example:
-<code>
-yes x y = if a then b else if c then d else e
-</code>
-<br>
-Found:
-<code>
-yes x y = if a then b else if c then d else e
-</code>
-<br>
-Suggestion:
-<pre>
-yes x y
-  | a = b
-  | c = d
-  | otherwise = e
-</pre>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use otherwise</td>
-<td>
-Example:
-<code>
-foo x | a = b | True = d
-</code>
-<br>
-Found:
-<pre>
-foo x
-  | a = b
-  | True = d
-</pre>
-Suggestion:
-<pre>
-foo x
-  | a = b
-  | otherwise = d
-</pre>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use record patterns</td>
-<td>
-Example:
-<code>
-foo (Bar _ _ _ _) = x
-</code>
-<br>
-Found:
-<code>
-Bar _ _ _ _
-</code>
-<br>
-Suggestion:
-<code>
-Bar {}
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Used otherwise as a pattern</td>
-<td>
-Example:
-<code>
-foo otherwise = 1
-</code>
-<br>
-Found:
-<code>
-otherwise
-</code>
-<br>
-Suggestion:
-<code>
-_
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Warning</td>
-</tr>
-</table>
-
-## Builtin Import
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
-</tr>
-<tr>
-<td>Redundant as</td>
-<td>
-Example:
-<code>
-import A as A
-</code>
-<br>
-Found:
-<code>
-import A as A
-</code>
-<br>
-Suggestion:
-<code>
-import A
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use fewer imports</td>
-<td>
-Example:
-<code>
-import A; import A
-</code>
-<br>
-Found:
-<pre>
-import A
-import A
-
-</pre>
-Suggestion:
-<pre>
-import A
-
-</pre>
-</td>
-<td>Warning</td>
+<td>suggest</td>
 </tr>
 </table>
 
@@ -1186,33 +178,9 @@ import A
 <th>Severity</th>
 </tr>
 <tr>
-<td>Use explicit module export list</td>
-<td>
-Example:
-<code>
-module Foo(module Foo) where foo = 1
-</code>
-<br>
-Found:
-<pre>
-module Foo (
-        module Foo
-    ) where
-</pre>
-Suggestion:
-<pre>
-module Foo (
-         ... 
-    ) where
-</pre>
-Does not support refactoring.
-</td>
-<td>Ignore</td>
-</tr>
-<tr>
 <td>Use module export list</td>
 <td>
-Example:
+Example: 
 <code>
 module Foo where foo = 1
 </code>
@@ -1230,59 +198,31 @@ module Foo (
 </pre>
 Does not support refactoring.
 </td>
-<td>Ignore</td>
-</tr>
-</table>
-
-## Builtin Pragma
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
+<td>ignore</td>
 </tr>
 <tr>
-<td>Use LANGUAGE pragmas</td>
+<td>Use explicit module export list</td>
 <td>
-Example:
+Example: 
 <code>
-{-# OPTIONS_GHC -cpp #-}
+module Foo(module Foo, foo) where foo = 1
 </code>
 <br>
 Found:
 <pre>
-{-# OPTIONS_GHC -cpp #-}
-
+module Foo (
+        module Foo, foo
+    ) where
 </pre>
 Suggestion:
 <pre>
-{-# LANGUAGE CPP #-}
-
+module Foo (
+         ... , foo
+    ) where
 </pre>
+Does not support refactoring.
 </td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use fewer LANGUAGE pragmas</td>
-<td>
-Example:
-<code>
-{-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-}
-</code>
-<br>
-Found:
-<code>
-{-# LANGUAGE RebindableSyntax, EmptyCase, RebindableSyntax #-}
-</code>
-<br>
-Suggestion:
-<code>
-{-# LANGUAGE RebindableSyntax, EmptyCase #-}
-</code>
-<br>
-</td>
-<td>Warning</td>
+<td>ignore</td>
 </tr>
 </table>
 
@@ -1297,14 +237,14 @@ Suggestion:
 <tr>
 <td>Unused LANGUAGE pragma</td>
 <td>
-Example:
+Example: 
 <pre>
-{-# LANGUAGE Arrows #-} 
-f = id
+{-# LANGUAGE OverloadedRecordDot #-} 
+f = (. foo)
 </pre>
 Found:
 <code>
-{-# LANGUAGE Arrows #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 </code>
 <br>
 Suggestion:
@@ -1313,11 +253,11 @@ Perhaps you should remove it.
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 </table>
 
-## Builtin Unsafe
+## Builtin Fixities
 
 <table>
 <tr>
@@ -1326,97 +266,827 @@ Perhaps you should remove it.
 <th>Severity</th>
 </tr>
 <tr>
-<td>Missing NOINLINE pragma</td>
+<td>Redundant bracket due to operator fixities</td>
 <td>
-Example:
+Example: 
 <code>
-entries = unsafePerformIO Multimap.newIO
+yes = (a >>= f) >>= g
 </code>
 <br>
 Found:
 <code>
-entries = unsafePerformIO Multimap.newIO
+(a >>= f) >>= g
 </code>
 <br>
+Suggestion:
+<code>
+a >>= f >>= g
+</code>
+<br>
+</td>
+<td>ignore</td>
+</tr>
+</table>
+
+## Builtin Import
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Use fewer imports</td>
+<td>
+Example: 
+<pre>
+import A (foo) 
+import A (bar) 
+import A (baz)
+</pre>
+Found:
+<pre>
+import A ( foo )
+import A ( bar )
+import A ( baz )
+
+</pre>
 Suggestion:
 <pre>
-{-# NOINLINE entries #-}
-entries = unsafePerformIO Multimap.newIO
+import A ( foo, bar, baz )
+
 </pre>
 </td>
-<td>Warning</td>
-</tr>
-</table>
-
-## Builtin Duplicate
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
-</tr>
-</table>
-
-## Builtin Restrict
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
-</tr>
-</table>
-
-## Builtin Comment
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
+<td>warn</td>
 </tr>
 <tr>
-<td>Fix pragma markup</td>
+<td>Redundant as</td>
 <td>
-Example:
+Example: 
 <code>
-{- MISSING HASH #-}
+import qualified A as A
 </code>
 <br>
 Found:
 <code>
-{- MISSING HASH #-}
+import qualified A as A
 </code>
 <br>
 Suggestion:
 <code>
-{-# MISSING HASH #-}
+import qualified A
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
+</tr>
+</table>
+
+## Builtin Lambda
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
 </tr>
 <tr>
-<td>Use pragma syntax</td>
+<td>Use tuple-section</td>
 <td>
-Example:
+Example: 
 <code>
-{- INLINE Y -}
+yes = blah (\ x -> (y, x, z+q))
 </code>
 <br>
 Found:
 <code>
-{- INLINE Y -}
+\ x -> (y, x, z + q)
 </code>
 <br>
 Suggestion:
 <code>
-{-# INLINE Y #-}
+(y,, z + q)
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Use section</td>
+<td>
+Example: 
+<code>
+f = bar (flip Foo.bar x)
+</code>
+<br>
+Found:
+<code>
+(flip Foo.bar x)
+</code>
+<br>
+Suggestion:
+<code>
+(`Foo.bar` x)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Use lambda-case</td>
+<td>
+Example: 
+<code>
+foo = bar (\x -> case x of Y z | z > 0 -> z)
+</code>
+<br>
+Found:
+<code>
+\ x -> case x of Y z | z > 0 -> z
+</code>
+<br>
+Suggestion:
+<code>
+\case Y z | z > 0 -> z
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Use lambda</td>
+<td>
+Example: 
+<code>
+foo = bar (\x -> case x of [y, z] -> z)
+</code>
+<br>
+Found:
+<code>
+\ x -> case x of [y, z] -> z
+</code>
+<br>
+Suggestion:
+<code>
+\ [y, z] -> z
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Redundant lambda</td>
+<td>
+Example: 
+<code>
+f = \x -> x + x
+</code>
+<br>
+Found:
+<code>
+f = \ x -> x + x
+</code>
+<br>
+Suggestion:
+<code>
+f x = x + x
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Eta reduce</td>
+<td>
+Example: 
+<code>
+foo a b c = bar (flux ++ quux) c where flux = a
+</code>
+<br>
+Found:
+<code>
+foo a b c = bar (flux ++ quux) c
+</code>
+<br>
+Suggestion:
+<code>
+foo a b = bar (flux ++ quux)
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Collapse lambdas</td>
+<td>
+Example: 
+<code>
+f = foo (\x -> \y -> \z -> x x y y z z)
+</code>
+<br>
+Found:
+<code>
+\ x -> \ y -> \ z -> x x y y z z
+</code>
+<br>
+Suggestion:
+<code>
+\ x y z -> x x y y z z
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Avoid lambda using `infix`</td>
+<td>
+Example: 
+<code>
+f = a b (\x -> c x d) 
+</code>
+<br>
+Found:
+<code>
+(\ x -> c x d)
+</code>
+<br>
+Suggestion:
+<code>
+(`c` d)
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Avoid lambda</td>
+<td>
+Example: 
+<code>
+baz = bar (\x -> (x +))
+</code>
+<br>
+Found:
+<code>
+\ x -> (x +)
+</code>
+<br>
+Suggestion:
+<code>
+(+)
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Avoid lambda</td>
+<td>
+Example: 
+<code>
+yes = map (\f -> dataDir </> f) dataFiles
+</code>
+<br>
+Found:
+<code>
+(\ f -> dataDir </> f)
+</code>
+<br>
+Suggestion:
+<code>
+(dataDir </>)
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+</table>
+
+## Builtin List
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Use list literal pattern</td>
+<td>
+Example: 
+<code>
+yes (1:2:[]) = 1
+</code>
+<br>
+Found:
+<code>
+(1 : 2 : [])
+</code>
+<br>
+Suggestion:
+<code>
+[1, 2]
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Use list literal</td>
+<td>
+Example: 
+<code>
+yes = [1] : [2] : [3] : [4] : [5] : []
+</code>
+<br>
+Found:
+<code>
+[1] : [2] : [3] : [4] : [5] : []
+</code>
+<br>
+Suggestion:
+<code>
+[[1], [2], [3], [4], [5]]
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Use String</td>
+<td>
+Example: 
+<code>
+yes = y :: [Char] -> a
+</code>
+<br>
+Found:
+<code>
+[Char] -> a
+</code>
+<br>
+Suggestion:
+<code>
+String -> a
+</code>
+<br>
+</td>
+<td>ignore</td>
+</tr>
+<tr>
+<td>Use :</td>
+<td>
+Example: 
+<code>
+foo = [a b] ++ xs
+</code>
+<br>
+Found:
+<code>
+[a b] ++ xs
+</code>
+<br>
+Suggestion:
+<code>
+a b : xs
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Short-circuited list comprehension</td>
+<td>
+Example: 
+<pre>
+{-# LANGUAGE MonadComprehensions #-}
+foo = [x | False, x <- [1 .. 10]]
+</pre>
+Found:
+<code>
+[x | False, x <- [1 .. 10]]
+</code>
+<br>
+Suggestion:
+<code>
+[]
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Redundant True guards</td>
+<td>
+Example: 
+<code>
+foo = [myexpr | True, a]
+</code>
+<br>
+Found:
+<code>
+[myexpr | True, a]
+</code>
+<br>
+Suggestion:
+<code>
+[myexpr | a]
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Move map inside list comprehension</td>
+<td>
+Example: 
+<code>
+issue1039 = foo (map f [1 | _ <- []])
+</code>
+<br>
+Found:
+<code>
+map f [1 | _ <- []]
+</code>
+<br>
+Suggestion:
+<code>
+[f 1 | _ <- []]
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Move guards forward</td>
+<td>
+Example: 
+<code>
+foo = [x + 1 | x <- [1..10], let q = even 1, q]
+</code>
+<br>
+Found:
+<code>
+[x + 1 | x <- [1 .. 10], let q = even 1, q]
+</code>
+<br>
+Suggestion:
+<code>
+[x + 1 | let q = even 1, q, x <- [1 .. 10]]
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+</table>
+
+## Builtin ListRec
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Use map</td>
+<td>
+Example: 
+<code>
+f a (x:xs) b = x + a + b : f a xs b ; f a [] b = []
+</code>
+<br>
+Found:
+<pre>
+f a (x : xs) b = x + a + b : f a xs b
+f a [] b = []
+</pre>
+Suggestion:
+<code>
+f a xs b = map (\ x -> x + a + b) xs
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Use foldr</td>
+<td>
+Example: 
+<code>
+foos [] x = x; foos (y:ys) x = foo y $ foos ys x
+</code>
+<br>
+Found:
+<pre>
+foos [] x = x
+foos (y : ys) x = foo y $ foos ys x
+</pre>
+Suggestion:
+<code>
+foos ys x = foldr foo x ys
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Use foldl</td>
+<td>
+Example: 
+<code>
+f [] y = y; f (x : xs) y = let z = g x y in f xs z
+</code>
+<br>
+Found:
+<pre>
+f [] y = y
+f (x : xs) y = let z = g x y in f xs z
+</pre>
+Suggestion:
+<code>
+f xs y = foldl (flip g) y xs
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Use foldM</td>
+<td>
+Example: 
+<code>
+f (x:xs) a = a + x >>= \fax -> f xs fax ; f [] a = pure a
+</code>
+<br>
+Found:
+<pre>
+f (x : xs) a = a + x >>= \ fax -> f xs fax
+f [] a = pure a
+</pre>
+Suggestion:
+<code>
+f xs a = foldM (+) a xs
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+</table>
+
+## Builtin Monad
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Use mapM_</td>
+<td>
+Example: 
+<code>
+yes = mapM async ds >>= mapM wait >> return ()
+</code>
+<br>
+Found:
+<code>
+mapM async ds >>= mapM wait
+</code>
+<br>
+Suggestion:
+<code>
+mapM async ds >>= mapM_ wait
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Use let</td>
+<td>
+Example: 
+<code>
+yes = do x <- return $ y + z; foo x
+</code>
+<br>
+Found:
+<code>
+x <- return $ y + z
+</code>
+<br>
+Suggestion:
+<code>
+let x = y + z
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Use join</td>
+<td>
+Example: 
+<code>
+yes = do x <- bar; x
+</code>
+<br>
+Found:
+<pre>
+do x <- bar
+   x
+</pre>
+Suggestion:
+<code>
+do join bar
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Use forM_</td>
+<td>
+Example: 
+<code>
+main = void $ forM f xs
+</code>
+<br>
+Found:
+<code>
+void $ forM f xs
+</code>
+<br>
+Suggestion:
+<code>
+void $ forM_ f xs
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Use foldM_</td>
+<td>
+Example: 
+<code>
+folder f a xs = foldM f a xs >>= \_ -> return ()
+</code>
+<br>
+Found:
+<code>
+foldM f a xs
+</code>
+<br>
+Suggestion:
+<code>
+foldM_ f a xs
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Use <$></td>
+<td>
+Example: 
+<code>
+yes = do x <- bar; return (f $ g x)
+</code>
+<br>
+Found:
+<pre>
+do x <- bar
+   return (f $ g x)
+</pre>
+Suggestion:
+<code>
+do f . g <$> bar
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Redundant void</td>
+<td>
+Example: 
+<code>
+main = void $ forM_ f xs
+</code>
+<br>
+Found:
+<code>
+void $ forM_ f xs
+</code>
+<br>
+Suggestion:
+<code>
+forM_ f xs
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Redundant variable capture</td>
+<td>
+Example: 
+<code>
+main = do _ <- forM_ f xs; bar
+</code>
+<br>
+Found:
+<code>
+_ <- forM_ f xs
+</code>
+<br>
+Suggestion:
+<code>
+forM_ f xs
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Redundant return</td>
+<td>
+Example: 
+<code>
+main = do a; when b c; return ()
+</code>
+<br>
+Found:
+<pre>
+do a
+   when b c
+   return ()
+</pre>
+Suggestion:
+<pre>
+do a
+   when b c
+</pre>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Redundant do</td>
+<td>
+Example: 
+<code>
+main = do f a $ sleep 10
+</code>
+<br>
+Found:
+<code>
+do
+</code>
+<br>
+Suggestion:
+<code>
+Perhaps you should remove it.
+</code>
+<br>
+</td>
+<td>ignore</td>
+</tr>
+</table>
+
+## Builtin Naming
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Use camelCase</td>
+<td>
+Example: 
+<code>
+cast_foo = 1
+</code>
+<br>
+Found:
+<code>
+cast_foo = ...
+</code>
+<br>
+Suggestion:
+<code>
+castFoo = ...
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>suggest</td>
 </tr>
 </table>
 
@@ -1429,18 +1099,40 @@ Suggestion:
 <th>Severity</th>
 </tr>
 <tr>
+<td>Use newtype instead of data</td>
+<td>
+Example: 
+<code>
+data instance Foo Int = Bar {field :: Bool}
+</code>
+<br>
+Found:
+<code>
+data instance Foo Int = Bar {field :: Bool}
+</code>
+<br>
+Suggestion:
+<code>
+newtype instance Foo Int = Bar {field :: Bool}
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>suggest</td>
+</tr>
+<tr>
 <td>Use DerivingStrategies</td>
 <td>
-Example:
+Example: 
 <code>
-newtype Foo = Foo Int deriving (Show, Eq)
+newtype instance Foo Int = Bar {field :: Bool} deriving Show
 </code>
 <br>
 Found:
 <pre>
-newtype Foo
-  = Foo Int
-  deriving (Show, Eq)
+newtype instance Foo Int
+  = Bar {field :: Bool}
+  deriving Show
 </pre>
 Suggestion:
 <code>
@@ -1449,39 +1141,7 @@ Suggestion:
 <br>
 Does not support refactoring.
 </td>
-<td>Ignore</td>
-</tr>
-<tr>
-<td>Use newtype instead of data</td>
-<td>
-Example:
-<code>
-data Foo = Foo Int
-</code>
-<br>
-Found:
-<code>
-data Foo = Foo Int
-</code>
-<br>
-Suggestion:
-<code>
-newtype Foo = Foo Int
-</code>
-<br>
-Does not support refactoring.
-</td>
-<td>Suggestion</td>
-</tr>
-</table>
-
-## Builtin Smell
-
-<table>
-<tr>
-<th>Hint Name</th>
-<th>Hint</th>
-<th>Severity</th>
+<td>ignore</td>
 </tr>
 </table>
 
@@ -1496,23 +1156,334 @@ Does not support refactoring.
 <tr>
 <td>Use underscore</td>
 <td>
-Example:
+Example: 
 <pre>
 {-# LANGUAGE NumericUnderscores #-} 
-12345
+3.14159265359
 </pre>
 Found:
 <code>
-12345
+3.14159265359
 </code>
 <br>
 Suggestion:
 <code>
-12_345
+3.141_592_653_59
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
+</tr>
+</table>
+
+## Builtin Pattern
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Used otherwise as a pattern</td>
+<td>
+Example: 
+<code>
+foo otherwise = 1
+</code>
+<br>
+Found:
+<code>
+otherwise
+</code>
+<br>
+Suggestion:
+<code>
+_
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Use record patterns</td>
+<td>
+Example: 
+<code>
+foo (Bar _ _ _ _) = x
+</code>
+<br>
+Found:
+<code>
+Bar _ _ _ _
+</code>
+<br>
+Suggestion:
+<code>
+Bar {}
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Use otherwise</td>
+<td>
+Example: 
+<code>
+foo x | a = b | True = d
+</code>
+<br>
+Found:
+<pre>
+foo x
+  | a = b
+  | True = d
+</pre>
+Suggestion:
+<pre>
+foo x
+  | a = b
+  | otherwise = d
+</pre>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Use guards</td>
+<td>
+Example: 
+<code>
+foo x = yes x x where yes x y = if a then b else if c then d else e
+</code>
+<br>
+Found:
+<code>
+yes x y = if a then b else if c then d else e
+</code>
+<br>
+Suggestion:
+<pre>
+yes x y
+  | a = b
+  | c = d
+  | otherwise = e
+</pre>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Redundant where</td>
+<td>
+Example: 
+<code>
+foo x = x + x where
+</code>
+<br>
+Found:
+<code>
+where
+</code>
+<br>
+Suggestion:
+<code>
+Perhaps you should remove it.
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Redundant irrefutable pattern</td>
+<td>
+Example: 
+<code>
+foo ~x = y
+</code>
+<br>
+Found:
+<code>
+~x
+</code>
+<br>
+Suggestion:
+<code>
+x
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Redundant guard</td>
+<td>
+Example: 
+<code>
+foo x | otherwise = y
+</code>
+<br>
+Found:
+<code>
+foo x | otherwise = y
+</code>
+<br>
+Suggestion:
+<code>
+foo x = y
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Redundant case</td>
+<td>
+Example: 
+<code>
+foo = case v of v -> x
+</code>
+<br>
+Found:
+<code>
+case v of v -> x
+</code>
+<br>
+Suggestion:
+<code>
+x
+</code>
+<br>
+</td>
+<td>suggest</td>
+</tr>
+<tr>
+<td>Redundant bang pattern</td>
+<td>
+Example: 
+<code>
+{-# LANGUAGE BangPatterns #-}; l !(() :: ()) = x
+</code>
+<br>
+Found:
+<code>
+!(() :: ())
+</code>
+<br>
+Suggestion:
+<code>
+(() :: ())
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Redundant as-pattern</td>
+<td>
+Example: 
+<code>
+foo x@_ = x
+</code>
+<br>
+Found:
+<code>
+x@_
+</code>
+<br>
+Suggestion:
+<code>
+x
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+</table>
+
+## Builtin Pragma
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Use fewer LANGUAGE pragmas</td>
+<td>
+Example: 
+<pre>
+{-# LANGUAGE RebindableSyntax #-} 
+{-# LANGUAGE EmptyCase, RebindableSyntax #-}
+</pre>
+Found:
+<pre>
+{-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE EmptyCase, RebindableSyntax #-}
+
+</pre>
+Suggestion:
+<code>
+{-# LANGUAGE RebindableSyntax, EmptyCase #-}
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
+<td>Use LANGUAGE pragmas</td>
+<td>
+Example: 
+<code>
+{-# OPTIONS_GHC -cpp -w #-}
+</code>
+<br>
+Found:
+<pre>
+{-# OPTIONS_GHC -cpp -w #-}
+
+</pre>
+Suggestion:
+<pre>
+{-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -w #-}
+
+</pre>
+</td>
+<td>warn</td>
+</tr>
+</table>
+
+## Builtin Unsafe
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Missing NOINLINE pragma</td>
+<td>
+Example: 
+<code>
+entries = unsafePerformIO . baz $ x
+</code>
+<br>
+Found:
+<code>
+entries = unsafePerformIO . baz $ x
+</code>
+<br>
+Suggestion:
+<pre>
+{-# NOINLINE entries #-}
+entries = unsafePerformIO . baz $ x
+</pre>
+</td>
+<td>warn</td>
 </tr>
 </table>
 
@@ -1538,7 +1509,7 @@ print x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use putStrLn</td>
@@ -1554,7 +1525,7 @@ putStrLn x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use putStrLn</td>
@@ -1570,7 +1541,7 @@ putStrLn (x ++ y)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use putStr</td>
@@ -1586,7 +1557,7 @@ putStr
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use getChar</td>
@@ -1602,7 +1573,7 @@ getChar
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use getLine</td>
@@ -1618,7 +1589,7 @@ getLine
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use getContents</td>
@@ -1634,7 +1605,7 @@ getContents
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use putChar</td>
@@ -1650,7 +1621,7 @@ putChar
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use putStr</td>
@@ -1666,7 +1637,7 @@ putStr
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use putStrLn</td>
@@ -1682,7 +1653,7 @@ putStrLn
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use print</td>
@@ -1698,7 +1669,7 @@ print
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use hReady</td>
@@ -1714,7 +1685,7 @@ hReady a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use hPrint</td>
@@ -1730,7 +1701,7 @@ hPrint a b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isEOF</td>
@@ -1746,7 +1717,7 @@ isEOF
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use writeFile</td>
@@ -1762,7 +1733,7 @@ writeFile f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use writeFile</td>
@@ -1778,7 +1749,7 @@ writeFile f (x ++ "\n")
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use appendFile</td>
@@ -1794,7 +1765,7 @@ appendFile f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use appendFile</td>
@@ -1810,7 +1781,7 @@ appendFile f (x ++ "\n")
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use exitSuccess</td>
@@ -1826,7 +1797,7 @@ exitSuccess
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use /=</td>
@@ -1842,7 +1813,7 @@ a /= b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use ==</td>
@@ -1858,7 +1829,7 @@ a == b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <=</td>
@@ -1874,7 +1845,7 @@ a <= b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <</td>
@@ -1890,7 +1861,7 @@ a < b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use >=</td>
@@ -1906,7 +1877,7 @@ a >= b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use ></td>
@@ -1922,7 +1893,7 @@ a > b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <=</td>
@@ -1938,7 +1909,7 @@ x <= y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <</td>
@@ -1954,7 +1925,7 @@ x < y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use >=</td>
@@ -1970,7 +1941,7 @@ x >= y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use ></td>
@@ -1986,7 +1957,7 @@ x > y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant compare</td>
@@ -2002,7 +1973,7 @@ x == y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant compare</td>
@@ -2018,7 +1989,7 @@ x /= y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use minimum</td>
@@ -2034,7 +2005,7 @@ minimum x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use maximum</td>
@@ -2050,7 +2021,7 @@ maximum x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use minimumBy</td>
@@ -2066,7 +2037,7 @@ minimumBy f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use maximumBy</td>
@@ -2082,7 +2053,7 @@ maximumBy f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Avoid reverse</td>
@@ -2098,7 +2069,7 @@ sortBy (flip f) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sortOn</td>
@@ -2114,7 +2085,7 @@ sortOn (Down . f)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sortOn</td>
@@ -2130,7 +2101,7 @@ sortOn f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Avoid reverse</td>
@@ -2146,7 +2117,7 @@ sortOn (Data.Ord.Down . f) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move flip</td>
@@ -2162,7 +2133,7 @@ flip g `on` h
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Fuse on/on</td>
@@ -2178,7 +2149,7 @@ f `on` (g . h)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use max</td>
@@ -2194,7 +2165,7 @@ max a b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use max</td>
@@ -2210,7 +2181,7 @@ max a b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use min</td>
@@ -2226,7 +2197,7 @@ min a b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use min</td>
@@ -2242,7 +2213,7 @@ min a b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use max</td>
@@ -2290,7 +2261,7 @@ show x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use reads</td>
@@ -2306,7 +2277,7 @@ reads
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use shows</td>
@@ -2322,7 +2293,7 @@ shows
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use showHex</td>
@@ -2338,7 +2309,7 @@ showHex
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use showOct</td>
@@ -2354,7 +2325,7 @@ showOct
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use concatMap</td>
@@ -2370,7 +2341,7 @@ concatMap f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use concatMap</td>
@@ -2386,7 +2357,7 @@ concatMap f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use concatMap</td>
@@ -2402,7 +2373,7 @@ concatMap f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use ++</td>
@@ -2418,7 +2389,7 @@ a ++ b
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use map once</td>
@@ -2434,7 +2405,7 @@ map (f . g) x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Fuse concatMap/map</td>
@@ -2450,7 +2421,7 @@ concatMap (f . g) x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use head</td>
@@ -2466,7 +2437,7 @@ head x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use replicate</td>
@@ -2482,7 +2453,7 @@ replicate n x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant map</td>
@@ -2498,7 +2469,7 @@ replicate n (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant map</td>
@@ -2514,7 +2485,7 @@ repeat (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use repeat</td>
@@ -2530,7 +2501,7 @@ repeat x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use last</td>
@@ -2546,7 +2517,7 @@ last x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use !!</td>
@@ -2562,7 +2533,7 @@ x !! n
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use !!</td>
@@ -2578,7 +2549,7 @@ x !! max 0 n
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use tail</td>
@@ -2594,7 +2565,7 @@ tail (reverse x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use init</td>
@@ -2610,7 +2581,7 @@ init x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Avoid reverse</td>
@@ -2626,7 +2597,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isSuffixOf</td>
@@ -2642,7 +2613,7 @@ isSuffixOf x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use concat</td>
@@ -2658,7 +2629,7 @@ concat
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use concat</td>
@@ -2674,7 +2645,7 @@ concat
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use concatMap</td>
@@ -2690,7 +2661,7 @@ concatMap f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use concatMap</td>
@@ -2706,7 +2677,7 @@ concatMap f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use concat</td>
@@ -2722,7 +2693,7 @@ concat
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use concat</td>
@@ -2738,7 +2709,7 @@ concat
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use foldl1</td>
@@ -2754,7 +2725,7 @@ foldl1 f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use foldr1</td>
@@ -2770,7 +2741,7 @@ foldr1 f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use map</td>
@@ -2786,7 +2757,7 @@ map (\ c -> x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use $</td>
@@ -2802,7 +2773,7 @@ foldr ($) z l
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use break</td>
@@ -2818,7 +2789,7 @@ break p
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use span</td>
@@ -2834,7 +2805,7 @@ span p
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use span</td>
@@ -2850,7 +2821,7 @@ span p x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use takeWhile</td>
@@ -2866,7 +2837,7 @@ takeWhile p x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use dropWhile</td>
@@ -2882,7 +2853,7 @@ dropWhile p x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use takeWhile</td>
@@ -2898,7 +2869,7 @@ takeWhile (not . p) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use dropWhile</td>
@@ -2914,7 +2885,7 @@ dropWhile (not . p) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use splitAt</td>
@@ -2930,7 +2901,7 @@ splitAt n x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use take</td>
@@ -2946,7 +2917,7 @@ take p x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use drop</td>
@@ -2962,7 +2933,7 @@ drop p x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use unlines</td>
@@ -2978,7 +2949,7 @@ unlines
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant map</td>
@@ -2994,7 +2965,7 @@ id
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use concat</td>
@@ -3010,7 +2981,7 @@ concat
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use any</td>
@@ -3026,7 +2997,7 @@ any p x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use all</td>
@@ -3042,7 +3013,7 @@ all p x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant map</td>
@@ -3058,7 +3029,7 @@ any (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant map</td>
@@ -3074,7 +3045,7 @@ all (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use zip</td>
@@ -3090,7 +3061,7 @@ zip
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use zip3</td>
@@ -3106,7 +3077,7 @@ zip3
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use unzip</td>
@@ -3122,7 +3093,7 @@ unzip
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3138,7 +3109,7 @@ null x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3154,7 +3125,7 @@ null x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3170,7 +3141,7 @@ null x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3186,7 +3157,7 @@ null x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3202,7 +3173,7 @@ null x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3218,7 +3189,7 @@ null x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3234,7 +3205,7 @@ null x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3250,7 +3221,7 @@ null x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3266,7 +3237,7 @@ null
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3282,7 +3253,7 @@ not (null x)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3298,7 +3269,7 @@ not (null x)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3314,7 +3285,7 @@ not (null x)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use :</td>
@@ -3330,7 +3301,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use zipWith</td>
@@ -3346,7 +3317,7 @@ zipWith (curry f) x y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use maybe</td>
@@ -3362,7 +3333,7 @@ maybe [] (map f) x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use notElem</td>
@@ -3378,7 +3349,7 @@ notElem x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Fuse foldr/map</td>
@@ -3394,7 +3365,7 @@ foldr (f . g) z x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use unwords</td>
@@ -3410,7 +3381,7 @@ unwords (x : y)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use unwords</td>
@@ -3426,7 +3397,7 @@ unwords
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use intercalate</td>
@@ -3442,7 +3413,7 @@ intercalate x y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use unwords</td>
@@ -3458,7 +3429,7 @@ unwords x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use all</td>
@@ -3474,7 +3445,7 @@ all null x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use any</td>
@@ -3490,7 +3461,7 @@ not (any f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use any</td>
@@ -3506,7 +3477,7 @@ not (any f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use any</td>
@@ -3522,7 +3493,7 @@ any f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use or</td>
@@ -3538,7 +3509,7 @@ or
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use and</td>
@@ -3554,7 +3525,7 @@ and
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Hoist not</td>
@@ -3570,7 +3541,7 @@ not (all f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Hoist not</td>
@@ -3586,7 +3557,7 @@ not (any f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use elem</td>
@@ -3602,7 +3573,7 @@ elem a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use elem</td>
@@ -3618,7 +3589,7 @@ elem a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use elem</td>
@@ -3634,7 +3605,7 @@ elem a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use notElem</td>
@@ -3650,7 +3621,7 @@ notElem a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use notElem</td>
@@ -3666,7 +3637,7 @@ notElem a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use notElem</td>
@@ -3682,7 +3653,7 @@ notElem a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use or</td>
@@ -3698,7 +3669,7 @@ or
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use and</td>
@@ -3714,7 +3685,7 @@ and
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use or</td>
@@ -3730,7 +3701,7 @@ or l
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use and</td>
@@ -3746,7 +3717,7 @@ and l
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use elemIndex</td>
@@ -3762,7 +3733,7 @@ elemIndex a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use elemIndex</td>
@@ -3778,7 +3749,7 @@ elemIndex a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use elemIndex</td>
@@ -3794,7 +3765,7 @@ elemIndex a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use elemIndices</td>
@@ -3810,7 +3781,7 @@ elemIndices a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use elemIndices</td>
@@ -3826,7 +3797,7 @@ elemIndices a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use elemIndices</td>
@@ -3842,7 +3813,7 @@ elemIndices a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use elemIndex</td>
@@ -3858,7 +3829,7 @@ elemIndex b l
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use ==</td>
@@ -3874,7 +3845,7 @@ x == y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use /=</td>
@@ -3890,7 +3861,7 @@ x /= y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use max</td>
@@ -3906,7 +3877,7 @@ max 0 n
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Length always non-negative</td>
@@ -3922,7 +3893,7 @@ True
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Length always non-negative</td>
@@ -3938,7 +3909,7 @@ True
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3954,7 +3925,7 @@ not (null x)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3970,7 +3941,7 @@ not (null x)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -3986,7 +3957,7 @@ not (null x)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use null</td>
@@ -4002,7 +3973,7 @@ not (null x)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Take on a non-positive</td>
@@ -4018,7 +3989,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Drop on a non-positive</td>
@@ -4034,7 +4005,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use foldl</td>
@@ -4050,7 +4021,7 @@ foldl f z x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use foldr</td>
@@ -4066,7 +4037,7 @@ foldr f z x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use take</td>
@@ -4082,7 +4053,7 @@ take c (iterate (\ x -> a) b)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use iterate</td>
@@ -4098,7 +4069,7 @@ iterate (\ x -> a) b !! c
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use repeat</td>
@@ -4114,7 +4085,7 @@ repeat
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use map</td>
@@ -4130,7 +4101,7 @@ map (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use map</td>
@@ -4146,7 +4117,7 @@ map (`f` z) y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use find</td>
@@ -4162,7 +4133,7 @@ find p x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant take</td>
@@ -4178,7 +4149,7 @@ take n (zip x y)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant take</td>
@@ -4194,7 +4165,7 @@ take (min n m) (zip x y)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monoid law, left identity</td>
@@ -4210,7 +4181,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monoid law, left identity</td>
@@ -4226,7 +4197,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monoid law, right identity</td>
@@ -4242,7 +4213,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monoid law, right identity</td>
@@ -4258,7 +4229,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fold</td>
@@ -4274,7 +4245,7 @@ Data.Foldable.fold
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fold</td>
@@ -4290,7 +4261,7 @@ Data.Foldable.fold
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -4306,7 +4277,7 @@ mempty
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -4322,7 +4293,7 @@ mempty
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Traversable law</td>
@@ -4338,7 +4309,7 @@ pure
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Traversable law</td>
@@ -4354,7 +4325,7 @@ pure (fmap f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use traverse</td>
@@ -4370,7 +4341,7 @@ traverse f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use traverse</td>
@@ -4386,7 +4357,7 @@ traverse f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use traverse</td>
@@ -4402,7 +4373,7 @@ traverse f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use traverse_</td>
@@ -4418,7 +4389,7 @@ traverse_ f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use traverse_</td>
@@ -4434,7 +4405,7 @@ traverse_ f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use traverse_</td>
@@ -4450,7 +4421,7 @@ traverse_ f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fold</td>
@@ -4466,7 +4437,7 @@ fold
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use foldMap</td>
@@ -4482,7 +4453,7 @@ foldMap f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use foldMap</td>
@@ -4498,7 +4469,7 @@ foldMap f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use foldMap</td>
@@ -4514,7 +4485,7 @@ foldMap f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Fuse foldMap/fmap</td>
@@ -4530,7 +4501,7 @@ foldMap (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Fuse foldMap/fmap</td>
@@ -4546,7 +4517,7 @@ foldMap (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Fuse foldMap/map</td>
@@ -4562,7 +4533,7 @@ foldMap (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use delete</td>
@@ -4578,7 +4549,7 @@ delete
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use group</td>
@@ -4594,7 +4565,7 @@ group
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use insert</td>
@@ -4610,7 +4581,7 @@ insert
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use intersect</td>
@@ -4626,7 +4597,7 @@ intersect
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use maximum</td>
@@ -4642,7 +4613,7 @@ maximum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use minimum</td>
@@ -4658,7 +4629,7 @@ minimum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use nub</td>
@@ -4674,7 +4645,7 @@ nub
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sort</td>
@@ -4690,7 +4661,7 @@ sort
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use union</td>
@@ -4706,7 +4677,7 @@ union
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sequence_</td>
@@ -4738,7 +4709,7 @@ sequence_
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use and</td>
@@ -4754,7 +4725,7 @@ and
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use and</td>
@@ -4770,7 +4741,7 @@ and
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use and</td>
@@ -4786,7 +4757,7 @@ and
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use and</td>
@@ -4802,7 +4773,7 @@ and
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use or</td>
@@ -4818,7 +4789,7 @@ or
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use or</td>
@@ -4834,7 +4805,7 @@ or
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use or</td>
@@ -4850,7 +4821,7 @@ or
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use or</td>
@@ -4866,7 +4837,7 @@ or
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sum</td>
@@ -4882,7 +4853,7 @@ sum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sum</td>
@@ -4898,7 +4869,7 @@ sum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sum</td>
@@ -4914,7 +4885,7 @@ sum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sum</td>
@@ -4930,7 +4901,7 @@ sum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use product</td>
@@ -4946,7 +4917,7 @@ product
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use product</td>
@@ -4962,7 +4933,7 @@ product
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use product</td>
@@ -4978,7 +4949,7 @@ product
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use product</td>
@@ -4994,7 +4965,7 @@ product
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use maximum</td>
@@ -5010,7 +4981,7 @@ maximum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use maximum</td>
@@ -5026,7 +4997,7 @@ maximum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use minimum</td>
@@ -5042,7 +5013,7 @@ minimum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use minimum</td>
@@ -5058,7 +5029,7 @@ minimum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use msum</td>
@@ -5074,7 +5045,7 @@ msum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use id</td>
@@ -5090,7 +5061,7 @@ id
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use const</td>
@@ -5106,7 +5077,7 @@ const
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use const</td>
@@ -5122,7 +5093,7 @@ const
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant curry</td>
@@ -5138,7 +5109,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant flip</td>
@@ -5154,7 +5125,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use snd</td>
@@ -5170,7 +5141,7 @@ snd
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fst</td>
@@ -5186,7 +5157,7 @@ fst
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use curry</td>
@@ -5202,7 +5173,7 @@ curry f
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use uncurry</td>
@@ -5218,7 +5189,7 @@ uncurry f
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use uncurry</td>
@@ -5234,7 +5205,7 @@ uncurry f p
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant uncurry</td>
@@ -5250,7 +5221,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant curry</td>
@@ -5266,7 +5237,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant uncurry</td>
@@ -5282,7 +5253,7 @@ f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant curry</td>
@@ -5298,7 +5269,7 @@ f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant uncurry</td>
@@ -5314,7 +5285,7 @@ f a b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant $</td>
@@ -5330,7 +5301,7 @@ f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant $</td>
@@ -5346,7 +5317,7 @@ f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant &</td>
@@ -5362,7 +5333,7 @@ f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use const</td>
@@ -5378,7 +5349,7 @@ const y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant flip</td>
@@ -5394,7 +5365,7 @@ f y x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant id</td>
@@ -5410,7 +5381,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant id</td>
@@ -5426,7 +5397,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant id</td>
@@ -5442,7 +5413,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use tuple-section</td>
@@ -5458,7 +5429,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use tuple-section</td>
@@ -5474,7 +5445,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant flip</td>
@@ -5490,7 +5461,7 @@ f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant flip</td>
@@ -5506,7 +5477,7 @@ f =<< g
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant flip</td>
@@ -5522,7 +5493,7 @@ g >>= f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant flip</td>
@@ -5538,7 +5509,7 @@ f <*> g
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant flip</td>
@@ -5554,7 +5525,7 @@ g Control.Applicative.<**> f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isAsciiLower</td>
@@ -5570,7 +5541,7 @@ isAsciiLower a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isAsciiUpper</td>
@@ -5586,7 +5557,7 @@ isAsciiUpper a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isDigit</td>
@@ -5602,7 +5573,7 @@ isDigit a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isOctDigit</td>
@@ -5618,7 +5589,7 @@ isOctDigit a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isAlpha</td>
@@ -5634,7 +5605,7 @@ isAlpha a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isAlpha</td>
@@ -5650,7 +5621,7 @@ isAlpha a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant ==</td>
@@ -5666,7 +5637,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant ==</td>
@@ -5682,7 +5653,7 @@ not x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant ==</td>
@@ -5698,7 +5669,7 @@ a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant ==</td>
@@ -5714,7 +5685,7 @@ not a
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant /=</td>
@@ -5730,7 +5701,7 @@ not a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant /=</td>
@@ -5746,7 +5717,7 @@ a
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant /=</td>
@@ -5762,7 +5733,7 @@ not a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant /=</td>
@@ -5778,7 +5749,7 @@ a
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -5794,7 +5765,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -5810,7 +5781,7 @@ a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -5826,7 +5797,7 @@ not a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -5842,7 +5813,7 @@ if a || b then t else f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -5858,7 +5829,7 @@ if a && b then t else f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -5874,7 +5845,7 @@ x || y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -5890,7 +5861,7 @@ x && y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant multi-way if</td>
@@ -5906,7 +5877,7 @@ if b then t else f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use if</td>
@@ -5923,7 +5894,7 @@ if a then t else f
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use if</td>
@@ -5940,7 +5911,7 @@ if a then t else f
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use if</td>
@@ -5957,7 +5928,7 @@ if a then t else f
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use if</td>
@@ -5974,7 +5945,7 @@ if a then t else f
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -5990,7 +5961,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -6006,7 +5977,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use ||</td>
@@ -6022,7 +5993,7 @@ x || y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use ||</td>
@@ -6038,7 +6009,7 @@ x || y || z
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use &&</td>
@@ -6054,7 +6025,7 @@ x && y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use &&</td>
@@ -6070,7 +6041,7 @@ x && y && z
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -6086,7 +6057,7 @@ not x && y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant if</td>
@@ -6102,7 +6073,7 @@ not x || y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant not</td>
@@ -6118,7 +6089,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use second</td>
@@ -6134,7 +6105,7 @@ second g
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use first</td>
@@ -6150,7 +6121,7 @@ first f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use &&&</td>
@@ -6166,7 +6137,7 @@ map (f Control.Arrow.&&& g) x
 </code>
 <br>
 </td>
-<td>Ignore</td>
+<td>ignore</td>
 </tr>
 <tr>
 <td>Use &&&</td>
@@ -6182,7 +6153,7 @@ f Control.Arrow.&&& g
 </code>
 <br>
 </td>
-<td>Ignore</td>
+<td>ignore</td>
 </tr>
 <tr>
 <td>Redundant pair</td>
@@ -6198,7 +6169,7 @@ x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use second</td>
@@ -6214,7 +6185,7 @@ second g
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use first</td>
@@ -6230,7 +6201,7 @@ first f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant first</td>
@@ -6246,7 +6217,7 @@ id
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant second</td>
@@ -6262,7 +6233,7 @@ id
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant bimap</td>
@@ -6278,7 +6249,7 @@ id
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use bimap</td>
@@ -6294,7 +6265,7 @@ bimap f g x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use bimap</td>
@@ -6310,7 +6281,7 @@ bimap f g x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant first</td>
@@ -6326,7 +6297,7 @@ first (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant second</td>
@@ -6342,7 +6313,7 @@ second (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant bimap</td>
@@ -6358,7 +6329,7 @@ bimap (f . g) (h . i) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant first</td>
@@ -6374,7 +6345,7 @@ bimap (f . g) h x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant second</td>
@@ -6390,7 +6361,7 @@ bimap f (g . h) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant first</td>
@@ -6406,7 +6377,7 @@ bimap (f . g) h x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant second</td>
@@ -6422,7 +6393,7 @@ bimap f (g . h) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use bimap</td>
@@ -6438,7 +6409,7 @@ Data.Bifunctor.bimap f g
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use first</td>
@@ -6454,7 +6425,7 @@ Data.Bifunctor.first f
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use second</td>
@@ -6470,7 +6441,7 @@ Data.Bifunctor.second f
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use bimap</td>
@@ -6486,7 +6457,7 @@ Data.Bifunctor.bimap f g x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use first</td>
@@ -6502,7 +6473,7 @@ Data.Bifunctor.first f x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use second</td>
@@ -6518,7 +6489,7 @@ Data.Bifunctor.second g x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Functor law</td>
@@ -6534,7 +6505,7 @@ fmap (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Functor law</td>
@@ -6550,7 +6521,7 @@ f . g <$> x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Functor law</td>
@@ -6566,7 +6537,7 @@ id
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Functor law</td>
@@ -6582,7 +6553,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <$></td>
@@ -6598,7 +6569,7 @@ f <$> x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -6614,7 +6585,7 @@ fmap a . b
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use $></td>
@@ -6630,7 +6601,7 @@ x Data.Functor.$> y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use $></td>
@@ -6646,7 +6617,7 @@ x Data.Functor.$> y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <$</td>
@@ -6662,7 +6633,7 @@ x Data.Functor.<$ y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <$</td>
@@ -6678,7 +6649,7 @@ x Data.Functor.<$ y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <$</td>
@@ -6694,7 +6665,7 @@ x <$ y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <$</td>
@@ -6710,7 +6681,7 @@ x <$ y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <$</td>
@@ -6726,7 +6697,7 @@ x <$ y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use $></td>
@@ -6742,7 +6713,7 @@ x Data.Functor.$> y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use $></td>
@@ -6758,7 +6729,7 @@ x Data.Functor.$> y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use $></td>
@@ -6774,7 +6745,7 @@ x Data.Functor.$> y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <$></td>
@@ -6790,7 +6761,7 @@ x <$> y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <$></td>
@@ -6806,7 +6777,7 @@ x <$> y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant <*</td>
@@ -6822,7 +6793,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <*</td>
@@ -6854,7 +6825,7 @@ y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant return</td>
@@ -6902,7 +6873,7 @@ f a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monad law, left identity</td>
@@ -6934,7 +6905,7 @@ f a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monad law, right identity</td>
@@ -6966,7 +6937,7 @@ m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monad law, right identity</td>
@@ -6998,7 +6969,7 @@ m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -7014,7 +6985,7 @@ fmap
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -7030,7 +7001,7 @@ fmap
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <&></td>
@@ -7062,7 +7033,7 @@ m Data.Functor.<&> f
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <$></td>
@@ -7094,7 +7065,7 @@ f <$> m
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -7110,7 +7081,7 @@ x >>= g . f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <$></td>
@@ -7126,7 +7097,7 @@ x >>= g . f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <&></td>
@@ -7142,7 +7113,7 @@ x >>= g . f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -7158,7 +7129,7 @@ g . f =<< x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <$></td>
@@ -7174,7 +7145,7 @@ g . f =<< x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <&></td>
@@ -7190,7 +7161,7 @@ g . f =<< x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use when</td>
@@ -7222,7 +7193,7 @@ Control.Monad.when x $ _noParen_ y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use when</td>
@@ -7254,7 +7225,7 @@ Control.Monad.when x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use unless</td>
@@ -7286,7 +7257,7 @@ Control.Monad.unless x $ _noParen_ y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use unless</td>
@@ -7318,7 +7289,7 @@ Control.Monad.unless x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapM</td>
@@ -7334,7 +7305,7 @@ mapM f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapM_</td>
@@ -7350,7 +7321,7 @@ mapM_ f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapM</td>
@@ -7366,7 +7337,7 @@ mapM f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapM</td>
@@ -7382,7 +7353,7 @@ mapM f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapM_</td>
@@ -7398,7 +7369,7 @@ mapM_ f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapM_</td>
@@ -7414,7 +7385,7 @@ mapM_ f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use forM</td>
@@ -7430,7 +7401,7 @@ Control.Monad.forM
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use forM_</td>
@@ -7446,7 +7417,7 @@ Control.Monad.forM_
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use mapM</td>
@@ -7462,7 +7433,7 @@ mapM
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use mapM_</td>
@@ -7478,7 +7449,7 @@ mapM_
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use unless</td>
@@ -7494,7 +7465,7 @@ unless x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use when</td>
@@ -7510,7 +7481,7 @@ when x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use join</td>
@@ -7526,7 +7497,7 @@ Control.Monad.join x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use join</td>
@@ -7542,7 +7513,7 @@ Control.Monad.join x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use join</td>
@@ -7558,7 +7529,7 @@ Control.Monad.join x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use join</td>
@@ -7574,7 +7545,7 @@ Control.Monad.join x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use =<<</td>
@@ -7590,7 +7561,7 @@ f =<< x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use =<<</td>
@@ -7606,7 +7577,7 @@ f =<< x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use void</td>
@@ -7638,7 +7609,7 @@ Control.Monad.void a
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use void</td>
@@ -7654,7 +7625,7 @@ Control.Monad.void
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use void</td>
@@ -7670,7 +7641,7 @@ Control.Monad.void x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use void</td>
@@ -7686,7 +7657,7 @@ Control.Monad.void x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <=<</td>
@@ -7702,7 +7673,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use >=></td>
@@ -7718,7 +7689,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use =<<</td>
@@ -7734,7 +7705,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use >>=</td>
@@ -7750,7 +7721,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use >=></td>
@@ -7766,7 +7737,7 @@ f Control.Monad.>=> g
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <=<</td>
@@ -7782,7 +7753,7 @@ f Control.Monad.<=< g
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <=<</td>
@@ -7798,7 +7769,7 @@ f Control.Monad.<=< g
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <=<</td>
@@ -7814,7 +7785,7 @@ f Control.Monad.<=< g
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant >></td>
@@ -7830,7 +7801,7 @@ forever a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use ap</td>
@@ -7846,7 +7817,7 @@ ap
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -7878,7 +7849,7 @@ fmap (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -7894,7 +7865,7 @@ fmap (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -7910,7 +7881,7 @@ fmap (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -7942,7 +7913,7 @@ return (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <$></td>
@@ -7974,7 +7945,7 @@ return (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use zipWithM</td>
@@ -7990,7 +7961,7 @@ zipWithM f l m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant void</td>
@@ -8006,7 +7977,7 @@ mapM_ f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant void</td>
@@ -8022,7 +7993,7 @@ forM_ x f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use >></td>
@@ -8038,7 +8009,7 @@ a >> b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <*</td>
@@ -8070,7 +8041,7 @@ m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant pure</td>
@@ -8102,7 +8073,7 @@ m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant pure</td>
@@ -8118,7 +8089,7 @@ m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant return</td>
@@ -8134,7 +8105,7 @@ m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use evalState</td>
@@ -8150,7 +8121,7 @@ evalState x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use execState</td>
@@ -8166,7 +8137,7 @@ execState x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapAndUnzipM</td>
@@ -8182,7 +8153,7 @@ Control.Monad.mapAndUnzipM f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapAndUnzipM</td>
@@ -8198,7 +8169,7 @@ Control.Monad.mapAndUnzipM f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use zipWithM</td>
@@ -8214,7 +8185,7 @@ Control.Monad.zipWithM f x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use zipWithM_</td>
@@ -8230,7 +8201,7 @@ Control.Monad.zipWithM_ f x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use replicateM</td>
@@ -8246,7 +8217,7 @@ Control.Monad.replicateM n x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use replicateM_</td>
@@ -8262,7 +8233,7 @@ Control.Monad.replicateM_ n x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use zipWithM</td>
@@ -8278,7 +8249,7 @@ Control.Monad.zipWithM f x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use zipWithM_</td>
@@ -8294,7 +8265,7 @@ Control.Monad.zipWithM_ f x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use replicateM</td>
@@ -8310,7 +8281,7 @@ Control.Monad.replicateM n x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use replicateM_</td>
@@ -8326,7 +8297,7 @@ Control.Monad.replicateM_ n x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use replicateM</td>
@@ -8342,7 +8313,7 @@ Control.Monad.replicateM n (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use replicateM_</td>
@@ -8358,7 +8329,7 @@ Control.Monad.replicateM_ n (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Fuse mapM/map</td>
@@ -8374,7 +8345,7 @@ mapM (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Fuse mapM_/map</td>
@@ -8390,7 +8361,7 @@ mapM_ (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Fuse traverse/map</td>
@@ -8406,7 +8377,7 @@ traverse (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Fuse traverse_/map</td>
@@ -8422,7 +8393,7 @@ traverse_ (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sequence</td>
@@ -8438,7 +8409,7 @@ sequence
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sequence_</td>
@@ -8454,7 +8425,7 @@ sequence_
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use for</td>
@@ -8470,7 +8441,7 @@ for
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use traverse</td>
@@ -8486,7 +8457,7 @@ traverse
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use for_</td>
@@ -8502,7 +8473,7 @@ for_
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use traverse_</td>
@@ -8518,7 +8489,7 @@ traverse_
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sequenceA_</td>
@@ -8534,7 +8505,7 @@ sequenceA_
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sequenceA_</td>
@@ -8550,7 +8521,7 @@ sequenceA_
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use asum</td>
@@ -8566,7 +8537,7 @@ asum
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <**></td>
@@ -8582,7 +8553,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -8598,7 +8569,7 @@ fmap (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -8614,7 +8585,7 @@ fmap (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use optional</td>
@@ -8630,10 +8601,9 @@ optional a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
-<td>Use optional</td>
 <td>
 LHS:
 <code>
@@ -8646,7 +8616,6 @@ optional a
 </code>
 <br>
 </td>
-<td>Warning</td>
 </tr>
 <tr>
 <td>Alternative law, left identity</td>
@@ -8662,7 +8631,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Alternative law, right identity</td>
@@ -8678,7 +8647,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sequenceA</td>
@@ -8694,7 +8663,7 @@ sequenceA
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sequenceA_</td>
@@ -8710,7 +8679,7 @@ sequenceA_
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use list comprehension</td>
@@ -8726,7 +8695,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use list comprehension</td>
@@ -8742,7 +8711,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant list comprehension</td>
@@ -8758,7 +8727,7 @@ y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant seq</td>
@@ -8774,7 +8743,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant seq</td>
@@ -8790,7 +8759,7 @@ id
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant $!</td>
@@ -8806,7 +8775,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant seq</td>
@@ -8822,7 +8791,7 @@ y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant $!</td>
@@ -8838,7 +8807,7 @@ f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant evaluate</td>
@@ -8854,7 +8823,7 @@ return x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant seq</td>
@@ -8870,7 +8839,7 @@ rnf x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use map</td>
@@ -8886,7 +8855,7 @@ map fst x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use map</td>
@@ -8902,7 +8871,7 @@ map snd x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use (,)</td>
@@ -8918,7 +8887,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use (,,)</td>
@@ -8934,7 +8903,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -8950,7 +8919,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -8966,7 +8935,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use fromMaybe</td>
@@ -8982,7 +8951,7 @@ Data.Maybe.fromMaybe x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant maybe</td>
@@ -8998,7 +8967,7 @@ id
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isJust</td>
@@ -9014,7 +8983,7 @@ Data.Maybe.isJust
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isNothing</td>
@@ -9030,7 +8999,7 @@ Data.Maybe.isNothing
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use Just</td>
@@ -9046,7 +9015,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use Just</td>
@@ -9062,7 +9031,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use Just</td>
@@ -9078,7 +9047,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use Just</td>
@@ -9094,7 +9063,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use Just</td>
@@ -9110,7 +9079,7 @@ Just True == x
 </code>
 <br>
 </td>
-<td>Ignore</td>
+<td>ignore</td>
 </tr>
 <tr>
 <td>Use Just</td>
@@ -9126,7 +9095,7 @@ Just False /= x
 </code>
 <br>
 </td>
-<td>Ignore</td>
+<td>ignore</td>
 </tr>
 <tr>
 <td>Use isJust</td>
@@ -9142,7 +9111,7 @@ isJust x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isNothing</td>
@@ -9158,7 +9127,7 @@ isNothing x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use maybeToList</td>
@@ -9174,7 +9143,7 @@ maybeToList
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapMaybe</td>
@@ -9190,7 +9159,7 @@ mapMaybe f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapMaybe</td>
@@ -9206,7 +9175,7 @@ mapMaybe f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapMaybe</td>
@@ -9222,7 +9191,7 @@ mapMaybe f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Replace case with fromMaybe</td>
@@ -9239,7 +9208,7 @@ Data.Maybe.fromMaybe y x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Replace case with fromMaybe</td>
@@ -9256,7 +9225,7 @@ Data.Maybe.fromMaybe y x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Replace case with maybe</td>
@@ -9273,7 +9242,7 @@ maybe y f x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Replace case with maybe</td>
@@ -9290,7 +9259,7 @@ maybe y f x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use maybe</td>
@@ -9306,7 +9275,7 @@ maybe y f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use maybe</td>
@@ -9322,7 +9291,7 @@ maybe y f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -9338,7 +9307,7 @@ fmap f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use catMaybes</td>
@@ -9354,7 +9323,7 @@ Data.Maybe.catMaybes x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use isNothing</td>
@@ -9370,7 +9339,7 @@ isNothing x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isNothing</td>
@@ -9386,7 +9355,7 @@ isNothing x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isJust</td>
@@ -9402,7 +9371,7 @@ Data.Maybe.isJust x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use isJust</td>
@@ -9418,7 +9387,7 @@ Data.Maybe.isJust x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mapMaybe</td>
@@ -9434,7 +9403,7 @@ Data.Maybe.mapMaybe f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use catMaybes</td>
@@ -9450,7 +9419,7 @@ catMaybes
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <|></td>
@@ -9466,7 +9435,7 @@ x Control.Applicative.<|> n
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fromMaybe</td>
@@ -9482,7 +9451,7 @@ fromMaybe y x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fromMaybe</td>
@@ -9498,7 +9467,7 @@ fromMaybe y x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use Just</td>
@@ -9514,7 +9483,7 @@ x == Just y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Fuse mapMaybe/map</td>
@@ -9530,7 +9499,7 @@ mapMaybe (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use maybe</td>
@@ -9546,7 +9515,7 @@ maybe a f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use maybe</td>
@@ -9562,7 +9531,7 @@ maybe a f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use catMaybes</td>
@@ -9578,7 +9547,7 @@ catMaybes
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use catMaybes</td>
@@ -9594,7 +9563,7 @@ Data.Maybe.catMaybes a
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use join</td>
@@ -9611,7 +9580,7 @@ Control.Monad.join m
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use join</td>
@@ -9627,7 +9596,7 @@ join
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use =<<</td>
@@ -9643,7 +9612,7 @@ f =<< x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -9659,7 +9628,7 @@ maybe x (f . g) y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -9675,7 +9644,7 @@ maybe x (f . g) y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <$></td>
@@ -9691,7 +9660,7 @@ isJust x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -9707,7 +9676,7 @@ isJust x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <$></td>
@@ -9723,7 +9692,7 @@ isNothing x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -9739,7 +9708,7 @@ isNothing x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <$></td>
@@ -9755,7 +9724,7 @@ f (fromJust x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -9771,7 +9740,7 @@ f (fromJust x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -9787,7 +9756,7 @@ mapMaybe (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -9803,7 +9772,7 @@ mapMaybe (f . g) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move nub out</td>
@@ -9819,7 +9788,7 @@ nub (catMaybes x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move nub out</td>
@@ -9835,7 +9804,7 @@ nub (lefts x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move nub out</td>
@@ -9851,7 +9820,7 @@ nub (rights x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move reverse out</td>
@@ -9867,7 +9836,7 @@ reverse (catMaybes x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move reverse out</td>
@@ -9883,7 +9852,7 @@ reverse (lefts x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move reverse out</td>
@@ -9899,7 +9868,7 @@ reverse (rights x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move sort out</td>
@@ -9915,7 +9884,7 @@ sort (catMaybes x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move sort out</td>
@@ -9931,7 +9900,7 @@ sort (lefts x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move sort out</td>
@@ -9947,7 +9916,7 @@ sort (rights x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move nubOrd out</td>
@@ -9963,7 +9932,7 @@ nubOrd (catMaybes x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move nubOrd out</td>
@@ -9979,7 +9948,7 @@ nubOrd (lefts x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move nubOrd out</td>
@@ -9995,7 +9964,7 @@ nubOrd (rights x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Move reverse out</td>
@@ -10011,7 +9980,7 @@ reverse (filter f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use lefts</td>
@@ -10027,7 +9996,7 @@ lefts a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use rights</td>
@@ -10043,7 +10012,7 @@ rights a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -10059,7 +10028,7 @@ fmap f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -10075,7 +10044,7 @@ either f (g . h) x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -10091,7 +10060,7 @@ isLeft x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -10107,7 +10076,7 @@ isRight x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -10123,7 +10092,7 @@ fromLeft x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use either</td>
@@ -10139,7 +10108,7 @@ either (const x) f y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fromRight</td>
@@ -10155,7 +10124,7 @@ fromRight x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fromLeft</td>
@@ -10171,7 +10140,7 @@ fromLeft x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use =<<</td>
@@ -10187,7 +10156,7 @@ f =<< x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use infix</td>
@@ -10203,7 +10172,7 @@ x `elem` y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use infix</td>
@@ -10219,7 +10188,7 @@ x `notElem` y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use infix</td>
@@ -10235,7 +10204,7 @@ x `isInfixOf` y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use infix</td>
@@ -10251,7 +10220,7 @@ x `isSuffixOf` y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use infix</td>
@@ -10267,7 +10236,7 @@ x `isPrefixOf` y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use infix</td>
@@ -10283,7 +10252,7 @@ x `union` y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use infix</td>
@@ -10299,7 +10268,7 @@ x `intersect` y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant fromIntegral</td>
@@ -10315,7 +10284,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fromInteger</td>
@@ -10331,7 +10300,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use -</td>
@@ -10347,7 +10316,7 @@ x - y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use negate</td>
@@ -10363,7 +10332,7 @@ negate x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant negate</td>
@@ -10379,7 +10348,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use logBase</td>
@@ -10395,7 +10364,7 @@ logBase x y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use tan</td>
@@ -10411,7 +10380,7 @@ tan x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use even</td>
@@ -10427,7 +10396,7 @@ even n
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use even</td>
@@ -10443,7 +10412,7 @@ even n
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use odd</td>
@@ -10459,7 +10428,7 @@ odd n
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use odd</td>
@@ -10475,7 +10444,7 @@ odd n
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use even</td>
@@ -10491,7 +10460,7 @@ even n
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use even</td>
@@ -10507,7 +10476,7 @@ even n
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use odd</td>
@@ -10523,7 +10492,7 @@ odd n
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use odd</td>
@@ -10539,7 +10508,7 @@ odd n
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use odd</td>
@@ -10555,7 +10524,7 @@ odd x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use even</td>
@@ -10571,7 +10540,7 @@ even x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use sqrt</td>
@@ -10587,7 +10556,7 @@ sqrt x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use 1</td>
@@ -10603,7 +10572,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use floor</td>
@@ -10619,7 +10588,7 @@ floor x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use writeList2Chan</td>
@@ -10635,7 +10604,7 @@ writeList2Chan a
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use readTVarIO</td>
@@ -10651,7 +10620,7 @@ readTVarIO x
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>error</td>
 </tr>
 <tr>
 <td>Use newTVarIO</td>
@@ -10667,7 +10636,7 @@ newTVarIO x
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>error</td>
 </tr>
 <tr>
 <td>Use newTMVarIO</td>
@@ -10683,7 +10652,7 @@ newTMVarIO x
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>error</td>
 </tr>
 <tr>
 <td>Use newEmptyTMVarIO</td>
@@ -10699,7 +10668,7 @@ newEmptyTMVarIO
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>error</td>
 </tr>
 <tr>
 <td>Use typeRep</td>
@@ -10715,7 +10684,7 @@ typeRep (Proxy :: Proxy b)
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use handle</td>
@@ -10731,7 +10700,7 @@ handle
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use catch</td>
@@ -10747,7 +10716,7 @@ Control.Exception.catch
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use handleJust</td>
@@ -10763,7 +10732,7 @@ handleJust p
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use catchJust</td>
@@ -10779,7 +10748,7 @@ catchJust p
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use bracket_</td>
@@ -10795,7 +10764,7 @@ Control.Exception.bracket_ b a t
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use withFile</td>
@@ -10811,7 +10780,7 @@ withFile x y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use withBinaryFile</td>
@@ -10827,7 +10796,7 @@ withBinaryFile x y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use error</td>
@@ -10843,7 +10812,7 @@ error a
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use nonTermination</td>
@@ -10859,7 +10828,7 @@ nonTermination
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use nestedAtomically</td>
@@ -10875,7 +10844,7 @@ nestedAtomically
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use writeIORef</td>
@@ -10891,7 +10860,7 @@ writeIORef r x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use writeIORef</td>
@@ -10907,7 +10876,7 @@ writeIORef r x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant castPtr</td>
@@ -10923,7 +10892,7 @@ nullPtr
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant castPtr</td>
@@ -10939,7 +10908,7 @@ castPtr x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant castPtr</td>
@@ -10955,7 +10924,7 @@ plusPtr x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant castPtr</td>
@@ -10971,7 +10940,7 @@ minusPtr x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant castPtr</td>
@@ -10987,7 +10956,7 @@ minusPtr x y
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant castPtr</td>
@@ -11003,7 +10972,7 @@ peekByteOff x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Redundant castPtr</td>
@@ -11019,7 +10988,7 @@ pokeByteOff x
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use mkWeakPtr</td>
@@ -11035,7 +11004,7 @@ mkWeakPtr a b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use mkWeakPair</td>
@@ -11051,7 +11020,7 @@ mkWeakPair a b c
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use forM_</td>
@@ -11085,7 +11054,7 @@ Data.Foldable.forM_ m f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use forM_</td>
@@ -11119,7 +11088,7 @@ Data.Foldable.forM_ m f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use forM_</td>
@@ -11153,7 +11122,7 @@ Data.Foldable.forM_ m f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use forM_</td>
@@ -11169,7 +11138,7 @@ Data.Foldable.forM_ m f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use gets</td>
@@ -11185,7 +11154,7 @@ gets f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use gets</td>
@@ -11201,7 +11170,7 @@ gets f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <$></td>
@@ -11217,7 +11186,7 @@ gets (f . g)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -11233,7 +11202,7 @@ gets (f . g)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use asks</td>
@@ -11249,7 +11218,7 @@ asks f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use asks</td>
@@ -11265,7 +11234,7 @@ asks f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <$></td>
@@ -11281,7 +11250,7 @@ asks (f . g)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -11297,7 +11266,7 @@ asks (f . g)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use evalState</td>
@@ -11313,7 +11282,7 @@ evalState m s
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use execState</td>
@@ -11329,7 +11298,7 @@ execState m s
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11345,7 +11314,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11361,7 +11330,7 @@ False
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11377,7 +11346,7 @@ True
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11393,7 +11362,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11409,7 +11378,7 @@ False
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11425,7 +11394,7 @@ True
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11441,7 +11410,7 @@ Nothing
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11457,7 +11426,7 @@ Nothing
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11473,7 +11442,7 @@ f x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11489,7 +11458,7 @@ g y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11505,7 +11474,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11521,7 +11490,7 @@ y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11537,7 +11506,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11553,7 +11522,7 @@ False
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11569,7 +11538,7 @@ True
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11585,7 +11554,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11601,7 +11570,7 @@ z
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11617,7 +11586,7 @@ z
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11633,7 +11602,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11649,7 +11618,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11665,7 +11634,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11681,7 +11650,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11697,7 +11666,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11713,7 +11682,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11729,7 +11698,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11745,7 +11714,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11761,7 +11730,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11777,7 +11746,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11793,7 +11762,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11809,7 +11778,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11825,7 +11794,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11841,7 +11810,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11857,7 +11826,7 @@ a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11873,7 +11842,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11889,7 +11858,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11905,7 +11874,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11921,7 +11890,7 @@ const False
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11937,7 +11906,7 @@ const True
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11953,7 +11922,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11969,7 +11938,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -11985,7 +11954,7 @@ f a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -12001,7 +11970,7 @@ True
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -12017,7 +11986,7 @@ f a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Evaluate</td>
@@ -12033,7 +12002,7 @@ False
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldr on tuple</td>
@@ -12049,7 +12018,7 @@ f b z
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldr' on tuple</td>
@@ -12065,7 +12034,7 @@ f b z
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldl on tuple</td>
@@ -12081,7 +12050,7 @@ f z b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldl' on tuple</td>
@@ -12097,7 +12066,7 @@ f z b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldMap on tuple</td>
@@ -12113,7 +12082,7 @@ f b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldr1 on tuple</td>
@@ -12129,7 +12098,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldl1 on tuple</td>
@@ -12145,7 +12114,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using elem on tuple</td>
@@ -12161,7 +12130,7 @@ e == b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using fold on tuple</td>
@@ -12177,7 +12146,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using toList on tuple</td>
@@ -12193,7 +12162,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using maximum on tuple</td>
@@ -12209,7 +12178,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using minimum on tuple</td>
@@ -12225,7 +12194,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using sum on tuple</td>
@@ -12241,7 +12210,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using product on tuple</td>
@@ -12257,7 +12226,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using concat on tuple</td>
@@ -12273,7 +12242,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using and on tuple</td>
@@ -12289,7 +12258,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using or on tuple</td>
@@ -12305,7 +12274,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using any on tuple</td>
@@ -12321,7 +12290,7 @@ f b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using all on tuple</td>
@@ -12337,7 +12306,7 @@ f b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldr on tuple</td>
@@ -12353,7 +12322,7 @@ f b z
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldr' on tuple</td>
@@ -12369,7 +12338,7 @@ f b z
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldl on tuple</td>
@@ -12385,7 +12354,7 @@ f z b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldl' on tuple</td>
@@ -12401,7 +12370,7 @@ f z b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldMap on tuple</td>
@@ -12417,7 +12386,7 @@ f b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldr1 on tuple</td>
@@ -12433,7 +12402,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using foldl1 on tuple</td>
@@ -12449,7 +12418,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using elem on tuple</td>
@@ -12465,7 +12434,7 @@ e == b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using fold on tuple</td>
@@ -12481,7 +12450,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using toList on tuple</td>
@@ -12497,7 +12466,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using maximum on tuple</td>
@@ -12513,7 +12482,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using minimum on tuple</td>
@@ -12529,7 +12498,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using sum on tuple</td>
@@ -12545,7 +12514,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using product on tuple</td>
@@ -12561,7 +12530,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using concat on tuple</td>
@@ -12577,7 +12546,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using and on tuple</td>
@@ -12593,7 +12562,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using or on tuple</td>
@@ -12609,7 +12578,7 @@ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using any on tuple</td>
@@ -12625,7 +12594,7 @@ f b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using all on tuple</td>
@@ -12641,7 +12610,7 @@ f b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using null on tuple</td>
@@ -12657,7 +12626,7 @@ False
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Using length on tuple</td>
@@ -12673,7 +12642,7 @@ RHS:
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use empty</td>
@@ -12689,7 +12658,7 @@ Data.Map.empty
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use empty</td>
@@ -12705,7 +12674,7 @@ Data.Map.Lazy.empty
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use empty</td>
@@ -12721,7 +12690,7 @@ Data.Map.Strict.empty
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant ^.</td>
@@ -12737,7 +12706,7 @@ a ^. (b . c)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use ^?!</td>
@@ -12753,7 +12722,7 @@ a ^?! b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use ?~</td>
@@ -12769,7 +12738,7 @@ a ?~ b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <&></td>
@@ -12785,7 +12754,7 @@ a <&> b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <&></td>
@@ -12801,7 +12770,7 @@ a <&> b %~ c
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use <$</td>
@@ -12817,7 +12786,7 @@ b <$ a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use view</td>
@@ -12833,7 +12802,7 @@ view a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <&></td>
@@ -12849,7 +12818,7 @@ view (a . b)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use ix</td>
@@ -12865,7 +12834,7 @@ Control.Lens.ix a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use True</td>
@@ -12881,7 +12850,7 @@ True
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>error</td>
 </tr>
 <tr>
 <td>Redundant at</td>
@@ -12897,7 +12866,7 @@ Control.Lens.has a
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>error</td>
 </tr>
 <tr>
 <td>Use False</td>
@@ -12913,7 +12882,7 @@ False
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>error</td>
 </tr>
 <tr>
 <td>Redundant at</td>
@@ -12929,7 +12898,7 @@ Control.Lens.nullOf a
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>error</td>
 </tr>
 <tr>
 <td>Use optional</td>
@@ -12945,7 +12914,7 @@ optional p
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use optional</td>
@@ -12961,7 +12930,7 @@ optional p
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use oneof</td>
