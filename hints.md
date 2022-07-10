@@ -2245,6 +2245,38 @@ min a b
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use max</td>
+<td>
+LHS:
+<code>
+maximum [a, b]
+</code>
+<br>
+RHS:
+<code>
+max a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use min</td>
+<td>
+LHS:
+<code>
+minimum [a, b]
+</code>
+<br>
+RHS:
+<code>
+min a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use show</td>
 <td>
 LHS:
@@ -12587,6 +12619,22 @@ Data.Attoparsec.ByteString.option Nothing (Just <$> p)
 RHS:
 <code>
 optional p
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use oneof</td>
+<td>
+LHS:
+<code>
+Control.Monad.join (Test.QuickCheck.elements l)
+</code>
+<br>
+RHS:
+<code>
+Test.QuickCheck.oneof l
 </code>
 <br>
 </td>
