@@ -123,6 +123,8 @@
     - warn: {lhs: if a > b then a else b, rhs: max a b}
     - warn: {lhs: if a <= b then a else b, rhs: min a b}
     - warn: {lhs: if a < b then a else b, rhs: min a b}
+    - warn: {lhs: maximum [a, b], rhs: max a b}
+    - warn: {lhs: minimum [a, b], rhs: min a b}
 
 
     # READ/SHOW
