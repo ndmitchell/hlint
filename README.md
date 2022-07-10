@@ -247,14 +247,20 @@ To customize the hints given by HLint, create a file `.hlint.yaml` in the root o
 hlint --default > .hlint.yaml
 ```
 
-This default configuration contains lots of examples, including:
+This default configuration shows lots of examples (as `# comments`) of how to:
 
-* Adding command line arguments to all runs, e.g. `--color` or `-XNoMagicHash`.
-* Ignoring certain hints, perhaps within certain modules/functions.
-* Restricting use of GHC flags/extensions/functions, e.g. banning `Arrows` and `unsafePerformIO`.
-* Adding additional project-specific hints.
+* Add command line arguments to all runs, e.g. `--color` or `-XNoMagicHash`.
+* Ignore certain hints, perhaps within certain modules/functions.
+* Restrict the use of GHC flags/extensions/functions, e.g. banning `Arrows` and `unsafePerformIO`.
+* Add additional project-specific hints.
 
-You can see the output of `--default` [here](https://github.com/ndmitchell/hlint/blob/master/data/default.yaml).
+You can see the output of `--default` for a clean lint [here](https://github.com/ndmitchell/hlint/blob/master/data/default.yaml) but for a dirty project `--default` output includes an extra warnings section that counts and ignores any hints it finds:
+
+  ```yaml
+  # Warnings currently triggered by your code
+  - ignore: {name: "Redundant $"} # 20 hints
+  - ignore: {name: "Unused LANGUAGE pragma"} # 29 hints
+  ```
 
 If you wish to use the [Dhall configuration language](https://github.com/dhall-lang/dhall-lang) to customize HLint, there [is an example](https://kowainik.github.io/posts/2018-09-09-dhall-to-hlint) and [type definition](https://github.com/kowainik/relude/blob/master/hlint/Rule.dhall).
 
