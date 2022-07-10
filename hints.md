@@ -913,17 +913,17 @@ do join bar
 <td>
 Example: 
 <code>
-main = void $ forM f xs
+main = void (forM f xs)
 </code>
 <br>
 Found:
 <code>
-void $ forM f xs
+void (forM f xs)
 </code>
 <br>
 Suggestion:
 <code>
-void $ forM_ f xs
+forM_ f xs
 </code>
 <br>
 </td>
@@ -976,12 +976,12 @@ do f . g <$> bar
 <td>
 Example: 
 <code>
-main = void $ forM_ f xs
+main = void (forM_ f xs)
 </code>
 <br>
 Found:
 <code>
-void $ forM_ f xs
+void (forM_ f xs)
 </code>
 <br>
 Suggestion:
@@ -2229,7 +2229,7 @@ max a b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use min</td>
@@ -2245,7 +2245,7 @@ min a b
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use show</td>
@@ -4693,7 +4693,7 @@ sequence_
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use sequence_</td>
@@ -6809,7 +6809,7 @@ x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant pure</td>
@@ -6841,7 +6841,7 @@ y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monad law, left identity</td>
@@ -6857,7 +6857,7 @@ f a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monad law, left identity</td>
@@ -6889,7 +6889,7 @@ f a
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monad law, left identity</td>
@@ -6921,7 +6921,7 @@ m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monad law, right identity</td>
@@ -6953,7 +6953,7 @@ m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Monad law, right identity</td>
@@ -7017,7 +7017,7 @@ m Data.Functor.<&> f
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <&></td>
@@ -7049,7 +7049,7 @@ f <$> m
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use <$></td>
@@ -7177,7 +7177,7 @@ Control.Monad.when x $ _noParen_ y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use when</td>
@@ -7209,7 +7209,7 @@ Control.Monad.when x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use when</td>
@@ -7241,7 +7241,7 @@ Control.Monad.unless x $ _noParen_ y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use unless</td>
@@ -7273,7 +7273,7 @@ Control.Monad.unless x y
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use unless</td>
@@ -7593,7 +7593,7 @@ Control.Monad.void a
 </code>
 <br>
 </td>
-<td>Suggestion</td>
+<td>suggest</td>
 </tr>
 <tr>
 <td>Use void</td>
@@ -7833,7 +7833,7 @@ fmap (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use fmap</td>
@@ -7897,7 +7897,7 @@ pure (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant fmap</td>
@@ -7929,7 +7929,7 @@ pure (f x)
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <$></td>
@@ -8025,7 +8025,7 @@ m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant <*</td>
@@ -8057,7 +8057,7 @@ m
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Redundant return</td>
@@ -8604,6 +8604,7 @@ optional a
 <td>warn</td>
 </tr>
 <tr>
+<td>Use optional</td>
 <td>
 LHS:
 <code>
@@ -8616,6 +8617,7 @@ optional a
 </code>
 <br>
 </td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Alternative law, left identity</td>
@@ -11037,7 +11039,7 @@ Data.Foldable.forM_ m f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use forM_</td>
@@ -11071,7 +11073,7 @@ Data.Foldable.forM_ m f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use forM_</td>
@@ -11105,7 +11107,7 @@ Data.Foldable.forM_ m f
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 <tr>
 <td>Use forM_</td>
@@ -12946,6 +12948,6 @@ Test.QuickCheck.oneof l
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>warn</td>
 </tr>
 </table>
