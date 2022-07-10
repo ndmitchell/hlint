@@ -52,6 +52,11 @@
     - import Data.Attoparsec.ByteString
 
 - package:
+    name: quickcheck
+    modules:
+    - import Test.QuickCheck
+
+- package:
     name: codeworld-api
     modules:
     - import CodeWorld
@@ -913,6 +918,15 @@
     rules:
     - warn: {lhs: Data.Attoparsec.Text.option Nothing (Just <$> p),       rhs: optional p}
     - warn: {lhs: Data.Attoparsec.ByteString.option Nothing (Just <$> p), rhs: optional p}
+
+- group:
+    name: quickcheck
+    enabled: true
+    imports:
+    - package base
+    - package quickcheck
+    rules:
+    - warn: {lhs: Control.Monad.join (Test.QuickCheck.elements l), rhs: Test.QuickCheck.oneof l}
 
 - group:
     name: generalise
