@@ -201,6 +201,25 @@ Some hints are off-by-default. Some are ignored by the configuration settings. T
 
 HLint uses the `hlint.yaml` file it ships with by default (containing things like the `concatMap` hint above), along with the first `.hlint.yaml` file it finds in the current directory or any parent thereof. To include other hints, pass `--hint=filename.yaml`.
 
+#### Are there any extra hints available?
+
+There are a few groups of hints that are shipped with HLint, but disabled by default. These are:
+
+* `future`, which suggests switching `return` for `pure`.
+* `extra`, which suggests replacements which introduce a dependency on the [`extra` library](https://hackage.haskell.org/package/extra).
+* `use-lens`, which suggests replacements which introduce a dependency on the [`lens` library](https://hackage.haskell.org/package/lens).
+* `use-th-quotes`, which suggests using `[| x |]` where possible.
+* `generalise`, which suggests more generic methods, e.g. `fmap` instead of `map`.
+* `generalise-for-conciseness`, which suggests more generic methods, but only when they are shorter, e.g. `maybe True` becomes `all`.
+* `dollar` which suggests `a $ b $ c` is replaced with `a . b $ c`.
+* `teaching` which encourages a simple beginner friendly style, learning about related functions.
+
+These can be enabled by passing `--with-group=future` or adding the following to your `.hlint.yaml` file:
+
+```yaml
+- group: {name: future, enabled: true}
+```
+
 ### Design
 
 #### Why are hints not applied recursively?
