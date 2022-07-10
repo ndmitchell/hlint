@@ -51,9 +51,9 @@ main = f $ do g a $ sleep 10 --
 main = do f a $ sleep 10 -- @Ignore
 main = do foo x; return 3; bar z --
 main = void $ forM_ f xs -- forM_ f xs
-main = void (forM_ f xs) -- (forM_ f xs)
+main = void (forM_ f xs) -- forM_ f xs
 main = void $ forM f xs -- forM_ f xs
-main = void (forM f xs) -- (forM_ f xs)
+main = void (forM f xs) -- forM_ f xs
 main = do _ <- forM_ f xs; bar -- forM_ f xs
 main = do bar; forM_ f xs; return () -- do bar; forM_ f xs
 main = do a; when b c; return () -- do a; when b c
@@ -133,6 +133,7 @@ monadExp decl parentDo parentExpr x =
     _ -> []
   where
     f = monadNoResult (fromMaybe "" decl) id
+    seenVoid wrap (L l (HsPar x y)) = seenVoid (wrap . L l . HsPar x) y
     seenVoid wrap x =
       -- Suggest `traverse_ f x` given `void $ traverse_ f x`
       [warn "Redundant void" (reLoc (wrap x)) (reLoc x) [Replace Expr (toSSA (wrap x)) [("a", toSSA x)] "a"] | returnsUnit x]
