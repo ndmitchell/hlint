@@ -169,7 +169,7 @@ mode = cmdArgsMode $ modes
         ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern (e.g. foo/bar/*.hs)"
         ,cmdGenerateMdSummary = nam_ "generate-summary" &= opt "hints.md" &= help "Generate a summary of available hints, in Mardown format"
         ,cmdGenerateJsonSummary = nam_ "generate-summary-json" &= opt "hints.json" &= help "Generate a summary of available hints, in JSON format"
-        ,cmdGenerateExhaustiveConf = nam_ "generate-exhaustive-config" &= opt Warning &= typ "ignore/suggest/warn/error" &= help "Generate a .hlint.yaml config file with all hints set to the specified severity level (default level: warning)"
+        ,cmdGenerateExhaustiveConf = nam_ "generate-config" &= opt Warning &= typ "LEVEL" &= help "Generate a .hlint.yaml config file with all hints set to the specified severity level (default level: warn, alternatives: ignore, suggest, error)"
         ,cmdTest = nam_ "test" &= help "Run the test suite"
         } &= auto &= explicit &= name "lint"
         &= details ["HLint gives hints on how to improve Haskell code."
