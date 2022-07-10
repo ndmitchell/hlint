@@ -24,6 +24,7 @@
   - name: [PackageImports]
   - name: [ConstraintKinds, RankNTypes, TypeFamilies]
   - name: [TemplateHaskell]
+  - name: [DerivingVia, DeriveGeneric, DataKinds]
   - {name: CPP, within: [HsColour, Config.Yaml, Test.Annotations]} # so it can be disabled to avoid GPL code
 
 - flags:
