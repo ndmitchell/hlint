@@ -81,7 +81,7 @@ hlintMain args cmd@CmdMain{..}
     | cmdDefault = do
         ideas <- if null cmdFiles then pure [] else withVerbosity Quiet $
             runHlintMain args cmd{cmdJson=False,cmdSerialise=False,cmdRefactor=False} Nothing
-        let bad = group . sort $ ideaHint <$> ideas
+        let bad = group $ sort $ map ideaHint ideas
         if null bad then putStr defaultYaml else do
             let group1:groups = splitOn ["",""] $ lines defaultYaml
             let group2 = "# Warnings currently triggered by your code" :
