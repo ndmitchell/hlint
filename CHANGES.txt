@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #1345, add --generate-config to generate a complete config
+    #1345, add --generate-summary-json
     #1377, make anyM/allM on [] produce pure, rather than return
     #1377, add a pure rule for every return variant
     #1380, add counts as comments for --default
