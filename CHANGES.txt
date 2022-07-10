@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1377, add a pure rule for every return variant
     #1380, add counts as comments for --default
     #1372, remove unnecessary brackets when suggesting forM_
     #1372, suggest void (forM x y) to forM_ without the void
