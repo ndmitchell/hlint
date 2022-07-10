@@ -1031,9 +1031,9 @@
     - warn: {lhs: "anyM id", rhs: "orM"}
     - warn: {lhs: "allM id", rhs: "andM"}
     - warn: {lhs: "allM f [a]", rhs: f a, name: Evaluate}
-    - warn: {lhs: "allM f []", rhs: return True, name: Evaluate}
+    - warn: {lhs: "allM f []", rhs: pure True, name: Evaluate}
     - warn: {lhs: "anyM f [a]", rhs: f a, name: Evaluate}
-    - warn: {lhs: "anyM f []", rhs: return False, name: Evaluate}
+    - warn: {lhs: "anyM f []", rhs: pure False, name: Evaluate}
     - warn: {lhs: "either id id", rhs: "fromEither"}
     - warn: {lhs: "either (const Nothing) Just", rhs: "eitherToMaybe"}
     - warn: {lhs: "either (Left . a) Right", rhs: "mapLeft a"}
