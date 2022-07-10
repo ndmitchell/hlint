@@ -1,5 +1,13 @@
 Changelog for HLint (* = breaking change)
 
+    #1377, make anyM/allM on [] produce pure, rather than return
+    #1377, add a pure rule for every return variant
+    #1380, add counts as comments for --default
+    #1372, remove unnecessary brackets when suggesting forM_
+    #1372, suggest void (forM x y) to forM_ without the void
+    #1394, replace maximum [a, b] ==> max a b (and for min)
+    #1393, for QuickCheck, join . elements ==> oneOf
+    #1387, bypass camelCase hint for new tasty_... custom test prefix
 3.4, released 2022-04-24
     #1360, make -XHaskell2010 still obey CPP pragmas
     #1368, make TH quotation bracket rule off by default

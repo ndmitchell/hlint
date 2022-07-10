@@ -81,11 +81,15 @@ hlintMain args cmd@CmdMain{..}
     | cmdDefault = do
         ideas <- if null cmdFiles then pure [] else withVerbosity Quiet $
             runHlintMain args cmd{cmdJson=False,cmdSerialise=False,cmdRefactor=False} Nothing
-        let bad = nubOrd $ map ideaHint ideas
+        let bad = group $ sort $ map ideaHint ideas
         if null bad then putStr defaultYaml else do
             let group1:groups = splitOn ["",""] $ lines defaultYaml
             let group2 = "# Warnings currently triggered by your code" :
-                         ["- ignore: {name: " ++ show x ++ "}" | x <- bad]
+                         ["- ignore: {name: " ++ show x ++ "} # "
+                         ++ if null tl then "1 hint" else show (length xs) ++ " hints"
+                         | xs@(x : tl) <- bad
+                         ]
+
             putStr $ unlines $ intercalate ["",""] $ group1:group2:groups
         pure []
     | cmdGenerateMdSummary /= [] = do

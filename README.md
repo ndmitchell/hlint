@@ -201,6 +201,25 @@ Some hints are off-by-default. Some are ignored by the configuration settings. T
 
 HLint uses the `hlint.yaml` file it ships with by default (containing things like the `concatMap` hint above), along with the first `.hlint.yaml` file it finds in the current directory or any parent thereof. To include other hints, pass `--hint=filename.yaml`.
 
+#### Are there any extra hints available?
+
+There are a few groups of hints that are shipped with HLint, but disabled by default. These are:
+
+* `future`, which suggests switching `return` for `pure`.
+* `extra`, which suggests replacements which introduce a dependency on the [`extra` library](https://hackage.haskell.org/package/extra).
+* `use-lens`, which suggests replacements which introduce a dependency on the [`lens` library](https://hackage.haskell.org/package/lens).
+* `use-th-quotes`, which suggests using `[| x |]` where possible.
+* `generalise`, which suggests more generic methods, e.g. `fmap` instead of `map`.
+* `generalise-for-conciseness`, which suggests more generic methods, but only when they are shorter, e.g. `maybe True` becomes `all`.
+* `dollar` which suggests `a $ b $ c` is replaced with `a . b $ c`.
+* `teaching` which encourages a simple beginner friendly style, learning about related functions.
+
+These can be enabled by passing `--with-group=future` or adding the following to your `.hlint.yaml` file:
+
+```yaml
+- group: {name: future, enabled: true}
+```
+
 ### Design
 
 #### Why are hints not applied recursively?
@@ -247,14 +266,20 @@ To customize the hints given by HLint, create a file `.hlint.yaml` in the root o
 hlint --default > .hlint.yaml
 ```
 
-This default configuration contains lots of examples, including:
+This default configuration shows lots of examples (as `# comments`) of how to:
 
-* Adding command line arguments to all runs, e.g. `--color` or `-XNoMagicHash`.
-* Ignoring certain hints, perhaps within certain modules/functions.
-* Restricting use of GHC flags/extensions/functions, e.g. banning `Arrows` and `unsafePerformIO`.
-* Adding additional project-specific hints.
+* Add command line arguments to all runs, e.g. `--color` or `-XNoMagicHash`.
+* Ignore certain hints, perhaps within certain modules/functions.
+* Restrict the use of GHC flags/extensions/functions, e.g. banning `Arrows` and `unsafePerformIO`.
+* Add additional project-specific hints.
 
-You can see the output of `--default` [here](https://github.com/ndmitchell/hlint/blob/master/data/default.yaml).
+You can see the output of `--default` for a clean lint [here](https://github.com/ndmitchell/hlint/blob/master/data/default.yaml) but for a dirty project `--default` output includes an extra warnings section that counts and ignores any hints it finds:
+
+  ```yaml
+  # Warnings currently triggered by your code
+  - ignore: {name: "Redundant $"} # 20 hints
+  - ignore: {name: "Unused LANGUAGE pragma"} # 29 hints
+  ```
 
 If you wish to use the [Dhall configuration language](https://github.com/dhall-lang/dhall-lang) to customize HLint, there [is an example](https://kowainik.github.io/posts/2018-09-09-dhall-to-hlint) and [type definition](https://github.com/kowainik/relude/blob/master/hlint/Rule.dhall).
 
@@ -355,7 +380,9 @@ The above block declares that GHC extensions are not allowed by default, apart f
   - {name: unsafePerformIO, within: CompatLayer}
 ```
 
-This declares that the `nub` function can't be used in any modules, and thus is banned from the code. That's probably a good idea, as most people should use an alternative that isn't _O(n^2)_ (e.g. [`nubOrd`](https://hackage.haskell.org/package/extra/docs/Data-List-Extra.html#v:nubOrd)). We also whitelist where `unsafePerformIO` can occur, ensuring that there can be a centrally reviewed location to declare all such instances. Finally, we can restrict the use of modules with:
+This declares that the `nub` function can't be used in any modules, and thus is banned from the code. That's probably a good idea, as most people should use an alternative that isn't _O(n^2)_ (e.g. [`nubOrd`](https://hackage.haskell.org/package/extra/docs/Data-List-Extra.html#v:nubOrd)). We also whitelist where `unsafePerformIO` can occur, ensuring that there can be a centrally reviewed location to declare all such instances. Function names can be given qualified, e.g. `Data.List.head`, but note that functions available through multiple exports (e.g. `head` is also available from `Prelude`) should be listed through all paths they are likely to be obtained, as the HLint qualified matching is unaware of re-exports.
+
+Finally, we can restrict the use of modules with:
 
 ```yaml
 - modules:

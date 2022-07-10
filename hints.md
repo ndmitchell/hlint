@@ -2216,6 +2216,38 @@ min a b
 <td>warn</td>
 </tr>
 <tr>
+<td>Use max</td>
+<td>
+LHS:
+<code>
+maximum [a, b]
+</code>
+<br>
+RHS:
+<code>
+max a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use min</td>
+<td>
+LHS:
+<code>
+minimum [a, b]
+</code>
+<br>
+RHS:
+<code>
+min a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use show</td>
 <td>
 LHS:
@@ -4652,6 +4684,22 @@ union
 <td>
 LHS:
 <code>
+foldr (>>) (pure ())
+</code>
+<br>
+RHS:
+<code>
+sequence_
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use sequence_</td>
+<td>
+LHS:
+<code>
 foldr (>>) (return ())
 </code>
 <br>
@@ -6704,7 +6752,7 @@ x Data.Functor.$> y
 <td>
 LHS:
 <code>
-return x <*> y
+pure x <*> y
 </code>
 <br>
 RHS:
@@ -6720,7 +6768,7 @@ x <$> y
 <td>
 LHS:
 <code>
-pure x <*> y
+return x <*> y
 </code>
 <br>
 RHS:
@@ -6748,6 +6796,22 @@ x
 <td>warn</td>
 </tr>
 <tr>
+<td>Redundant <*</td>
+<td>
+LHS:
+<code>
+x <* return y
+</code>
+<br>
+RHS:
+<code>
+x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Redundant pure</td>
 <td>
 LHS:
@@ -6762,6 +6826,38 @@ y
 <br>
 </td>
 <td>warn</td>
+</tr>
+<tr>
+<td>Redundant return</td>
+<td>
+LHS:
+<code>
+return x *> y
+</code>
+<br>
+RHS:
+<code>
+y
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Monad law, left identity</td>
+<td>
+LHS:
+<code>
+pure a >>= f
+</code>
+<br>
+RHS:
+<code>
+f a
+</code>
+<br>
+</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Monad law, left identity</td>
@@ -6784,6 +6880,22 @@ f a
 <td>
 LHS:
 <code>
+f =<< pure a
+</code>
+<br>
+RHS:
+<code>
+f a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Monad law, left identity</td>
+<td>
+LHS:
+<code>
 f =<< return a
 </code>
 <br>
@@ -6800,6 +6912,22 @@ f a
 <td>
 LHS:
 <code>
+m >>= pure
+</code>
+<br>
+RHS:
+<code>
+m
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Monad law, right identity</td>
+<td>
+LHS:
+<code>
 m >>= return
 </code>
 <br>
@@ -6810,6 +6938,22 @@ m
 <br>
 </td>
 <td>warn</td>
+</tr>
+<tr>
+<td>Monad law, right identity</td>
+<td>
+LHS:
+<code>
+pure =<< m
+</code>
+<br>
+RHS:
+<code>
+m
+</code>
+<br>
+</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Monad law, right identity</td>
@@ -6864,6 +7008,22 @@ fmap
 <td>
 LHS:
 <code>
+m >>= pure . f
+</code>
+<br>
+RHS:
+<code>
+m Data.Functor.<&> f
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use <&></td>
+<td>
+LHS:
+<code>
 m >>= return . f
 </code>
 <br>
@@ -6874,6 +7034,22 @@ m Data.Functor.<&> f
 <br>
 </td>
 <td>suggest</td>
+</tr>
+<tr>
+<td>Use <$></td>
+<td>
+LHS:
+<code>
+pure . f =<< m
+</code>
+<br>
+RHS:
+<code>
+f <$> m
+</code>
+<br>
+</td>
+<td>Suggestion</td>
 </tr>
 <tr>
 <td>Use <$></td>
@@ -6992,6 +7168,22 @@ g . f =<< x
 <td>
 LHS:
 <code>
+if x then y else pure ()
+</code>
+<br>
+RHS:
+<code>
+Control.Monad.when x $ _noParen_ y
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use when</td>
+<td>
+LHS:
+<code>
 if x then y else return ()
 </code>
 <br>
@@ -7002,6 +7194,22 @@ Control.Monad.when x $ _noParen_ y
 <br>
 </td>
 <td>warn</td>
+</tr>
+<tr>
+<td>Use when</td>
+<td>
+LHS:
+<code>
+if x then y else pure ()
+</code>
+<br>
+RHS:
+<code>
+Control.Monad.when x y
+</code>
+<br>
+</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use when</td>
@@ -7024,6 +7232,22 @@ Control.Monad.when x y
 <td>
 LHS:
 <code>
+if x then pure () else y
+</code>
+<br>
+RHS:
+<code>
+Control.Monad.unless x $ _noParen_ y
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use unless</td>
+<td>
+LHS:
+<code>
 if x then return () else y
 </code>
 <br>
@@ -7034,6 +7258,22 @@ Control.Monad.unless x $ _noParen_ y
 <br>
 </td>
 <td>warn</td>
+</tr>
+<tr>
+<td>Use unless</td>
+<td>
+LHS:
+<code>
+if x then pure () else y
+</code>
+<br>
+RHS:
+<code>
+Control.Monad.unless x y
+</code>
+<br>
+</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use unless</td>
@@ -7344,6 +7584,22 @@ f =<< x
 <td>
 LHS:
 <code>
+a >> pure ()
+</code>
+<br>
+RHS:
+<code>
+Control.Monad.void a
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use void</td>
+<td>
+LHS:
+<code>
 a >> return ()
 </code>
 <br>
@@ -7568,6 +7824,22 @@ ap
 <td>
 LHS:
 <code>
+liftM2 f (pure x)
+</code>
+<br>
+RHS:
+<code>
+fmap (f x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use fmap</td>
+<td>
+LHS:
+<code>
 liftA2 f (return x)
 </code>
 <br>
@@ -7616,6 +7888,22 @@ fmap (f x)
 <td>
 LHS:
 <code>
+fmap f (pure x)
+</code>
+<br>
+RHS:
+<code>
+pure (f x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant fmap</td>
+<td>
+LHS:
+<code>
 fmap f (return x)
 </code>
 <br>
@@ -7626,6 +7914,22 @@ return (f x)
 <br>
 </td>
 <td>warn</td>
+</tr>
+<tr>
+<td>Redundant <$></td>
+<td>
+LHS:
+<code>
+f <$> pure x
+</code>
+<br>
+RHS:
+<code>
+pure (f x)
+</code>
+<br>
+</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Redundant <$></td>
@@ -7712,6 +8016,22 @@ a >> b
 <td>
 LHS:
 <code>
+m <* pure x
+</code>
+<br>
+RHS:
+<code>
+m
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*</td>
+<td>
+LHS:
+<code>
 m <* return x
 </code>
 <br>
@@ -7722,6 +8042,22 @@ m
 <br>
 </td>
 <td>warn</td>
+</tr>
+<tr>
+<td>Redundant pure</td>
+<td>
+LHS:
+<code>
+pure x *> m
+</code>
+<br>
+RHS:
+<code>
+m
+</code>
+<br>
+</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Redundant return</td>
@@ -8172,6 +8508,22 @@ sequenceA_
 <td>warn</td>
 </tr>
 <tr>
+<td>Use sequenceA_</td>
+<td>
+LHS:
+<code>
+foldr (*>) (return ())
+</code>
+<br>
+RHS:
+<code>
+sequenceA_
+</code>
+<br>
+</td>
+<td>warn</td>
+</tr>
+<tr>
 <td>Use asum</td>
 <td>
 LHS:
@@ -8220,32 +8572,16 @@ fmap (f x)
 <td>warn</td>
 </tr>
 <tr>
-<td>Redundant fmap</td>
+<td>Use fmap</td>
 <td>
 LHS:
 <code>
-fmap f (pure x)
+liftA2 f (return x)
 </code>
 <br>
 RHS:
 <code>
-pure (f x)
-</code>
-<br>
-</td>
-<td>warn</td>
-</tr>
-<tr>
-<td>Redundant <$></td>
-<td>
-LHS:
-<code>
-f <$> pure x
-</code>
-<br>
-RHS:
-<code>
-pure (f x)
+fmap (f x)
 </code>
 <br>
 </td>
@@ -8268,36 +8604,18 @@ optional a
 <td>warn</td>
 </tr>
 <tr>
-<td>Use <&></td>
 <td>
 LHS:
 <code>
-m >>= pure . f
+Just <$> a <|> return Nothing
 </code>
 <br>
 RHS:
 <code>
-m Data.Functor.<&> f
+optional a
 </code>
 <br>
 </td>
-<td>suggest</td>
-</tr>
-<tr>
-<td>Use <$></td>
-<td>
-LHS:
-<code>
-pure . f =<< m
-</code>
-<br>
-RHS:
-<code>
-f <$> m
-</code>
-<br>
-</td>
-<td>suggest</td>
 </tr>
 <tr>
 <td>Alternative law, left identity</td>
@@ -10710,6 +11028,23 @@ mkWeakPair a b c
 LHS:
 <pre>
 case m of
+  Nothing -> pure ()
+  Just x -> f x
+</pre>
+RHS:
+<code>
+Data.Foldable.forM_ m f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use forM_</td>
+<td>
+LHS:
+<pre>
+case m of
   Nothing -> return ()
   Just x -> f x
 </pre>
@@ -10728,6 +11063,23 @@ LHS:
 <pre>
 case m of
   Just x -> f x
+  Nothing -> pure ()
+</pre>
+RHS:
+<code>
+Data.Foldable.forM_ m f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use forM_</td>
+<td>
+LHS:
+<pre>
+case m of
+  Just x -> f x
   Nothing -> return ()
 </pre>
 RHS:
@@ -10737,6 +11089,23 @@ Data.Foldable.forM_ m f
 <br>
 </td>
 <td>warn</td>
+</tr>
+<tr>
+<td>Use forM_</td>
+<td>
+LHS:
+<pre>
+case m of
+  Just x -> f x
+  _ -> pure ()
+</pre>
+RHS:
+<code>
+Data.Foldable.forM_ m f
+</code>
+<br>
+</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use forM_</td>
@@ -12562,5 +12931,21 @@ optional p
 <br>
 </td>
 <td>warn</td>
+</tr>
+<tr>
+<td>Use oneof</td>
+<td>
+LHS:
+<code>
+Control.Monad.join (Test.QuickCheck.elements l)
+</code>
+<br>
+RHS:
+<code>
+Test.QuickCheck.oneof l
+</code>
+<br>
+</td>
+<td>Warning</td>
 </tr>
 </table>

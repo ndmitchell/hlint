@@ -5,6 +5,13 @@
 # Hints that apply only to the HLint source code
 
 #####################################################################
+## GROUPS OF HINTS WE TURN ON
+
+- group: {name: future, enabled: true}
+- group: {name: extra, enabled: true}
+
+
+#####################################################################
 ## RESTRICTIONS
 
 - extensions:

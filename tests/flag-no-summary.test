@@ -13,6 +13,6 @@ EXIT 1
 ---------------------------------------------------------------------
 RUN tests/flag-no-summary2.hs --no-summary
 FILE tests/flag-no-summary2.hs
-main = return ()
+main = pure ()
 OUTPUT
 EXIT 0

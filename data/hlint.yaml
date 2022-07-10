@@ -52,6 +52,11 @@
     - import Data.Attoparsec.ByteString
 
 - package:
+    name: quickcheck
+    modules:
+    - import Test.QuickCheck
+
+- package:
     name: codeworld-api
     modules:
     - import CodeWorld
@@ -118,6 +123,8 @@
     - warn: {lhs: if a > b then a else b, rhs: max a b}
     - warn: {lhs: if a <= b then a else b, rhs: min a b}
     - warn: {lhs: if a < b then a else b, rhs: min a b}
+    - warn: {lhs: "maximum [a, b]", rhs: max a b}
+    - warn: {lhs: "minimum [a, b]", rhs: min a b}
 
 
     # READ/SHOW
@@ -289,6 +296,7 @@
 
     # FOLDS
 
+    - warn: {lhs: foldr  (>>) (pure ()), rhs: sequence_}
     - warn: {lhs: foldr  (>>) (return ()), rhs: sequence_}
     - warn: {lhs: foldr  (&&) True, rhs: and}
     - warn: {lhs: foldl  (&&) True, rhs: and, note: IncreasesLaziness}
@@ -439,20 +447,28 @@
 
     # APPLICATIVE
 
-    - hint: {lhs: return x <*> y, rhs: x <$> y}
     - hint: {lhs: pure x <*> y, rhs: x <$> y}
+    - hint: {lhs: return x <*> y, rhs: x <$> y}
     - warn: {lhs: x <* pure y, rhs: x}
+    - warn: {lhs: x <* return y, rhs: x}
     - warn: {lhs: pure x *> y, rhs: "y"}
+    - warn: {lhs: return x *> y, rhs: "y"}
 
     # MONAD
 
+    - warn: {lhs: pure a >>= f, rhs: f a, name: "Monad law, left identity"}
     - warn: {lhs: return a >>= f, rhs: f a, name: "Monad law, left identity"}
+    - warn: {lhs: f =<< pure a, rhs: f a, name: "Monad law, left identity"}
     - warn: {lhs: f =<< return a, rhs: f a, name: "Monad law, left identity"}
+    - warn: {lhs: m >>= pure, rhs: m, name: "Monad law, right identity"}
     - warn: {lhs: m >>= return, rhs: m, name: "Monad law, right identity"}
+    - warn: {lhs: pure =<< m, rhs: m, name: "Monad law, right identity"}
     - warn: {lhs: return =<< m, rhs: m, name: "Monad law, right identity"}
     - warn: {lhs: liftM, rhs: fmap}
     - warn: {lhs: liftA, rhs: fmap}
+    - hint: {lhs: m >>= pure . f, rhs: m Data.Functor.<&> f}
     - hint: {lhs: m >>= return . f, rhs: m Data.Functor.<&> f}
+    - hint: {lhs: pure . f =<< m, rhs: f <$> m}
     - hint: {lhs: return . f =<< m, rhs: f <$> m}
     - warn: {lhs: fmap f x >>= g, rhs: x >>= g . f}
     - warn: {lhs: f <$> x >>= g, rhs: x >>= g . f}
@@ -460,9 +476,13 @@
     - warn: {lhs: g =<< fmap f x, rhs: g . f =<< x}
     - warn: {lhs: g =<< f <$> x, rhs: g . f =<< x}
     - warn: {lhs: g =<< (x Data.Functor.<&> f), rhs: g . f =<< x}
+    - warn: {lhs: if x then y else pure (), rhs: Control.Monad.when x $ _noParen_ y, side: not (isAtom y)}
     - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x $ _noParen_ y, side: not (isAtom y)}
+    - warn: {lhs: if x then y else pure (), rhs: Control.Monad.when x y, side: isAtom y}
     - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x y, side: isAtom y}
+    - warn: {lhs: if x then pure () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: isAtom y}
     - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: isAtom y}
+    - warn: {lhs: if x then pure () else y, rhs: Control.Monad.unless x y, side: isAtom y}
     - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x y, side: isAtom y}
     - warn: {lhs: sequence (map f x), rhs: mapM f x}
     - warn: {lhs: sequence_ (map f x), rhs: mapM_ f x}
@@ -482,6 +502,7 @@
     - warn: {lhs: id =<< x, rhs: Control.Monad.join x}
     - hint: {lhs: join (f <$> x), rhs: f =<< x}
     - hint: {lhs: join (fmap f x), rhs: f =<< x}
+    - hint: {lhs: a >> pure (), rhs: Control.Monad.void a, side: isAtom a || isApp a}
     - hint: {lhs: a >> return (), rhs: Control.Monad.void a, side: isAtom a || isApp a}
     - warn: {lhs: fmap (const ()), rhs: Control.Monad.void}
     - warn: {lhs: const () <$> x, rhs: Control.Monad.void x}
@@ -496,16 +517,21 @@
     - hint: {lhs: (f =<<) . g, rhs: f Control.Monad.<=< g}
     - warn: {lhs: a >> forever a, rhs: forever a}
     - hint: {lhs: liftM2 id, rhs: ap}
+    - warn: {lhs: liftM2 f (pure x), rhs: fmap (f x)}
     - warn: {lhs: liftA2 f (return x), rhs: fmap (f x)}
     - warn: {lhs: liftM2 f (pure x), rhs: fmap (f x)}
     - warn: {lhs: liftM2 f (return x), rhs: fmap (f x)}
+    - warn: {lhs: fmap f (pure x), rhs: pure (f x)}
     - warn: {lhs: fmap f (return x), rhs: return (f x)}
+    - warn: {lhs: f <$> pure x, rhs: pure (f x)}
     - warn: {lhs: f <$> return x, rhs: return (f x)}
     - warn: {lhs: mapM (uncurry f) (zip l m), rhs: zipWithM f l m}
     - warn: {lhs: mapM_ (void . f), rhs: mapM_ f}
     - warn: {lhs: forM_ x (void . f), rhs: forM_ x f}
     - warn: {lhs: a >>= \_ -> b, rhs: a >> b}
+    - warn: {lhs: m <* pure x, rhs: m}
     - warn: {lhs: m <* return x, rhs: m}
+    - warn: {lhs: pure x *> m, rhs: m}
     - warn: {lhs: return x *> m, rhs: m}
     - warn: {lhs: pure x >> m, rhs: m}
     - warn: {lhs: return x >> m, rhs: m}
@@ -543,14 +569,13 @@
     - warn: {lhs: flip traverse_, rhs: for_}
     - warn: {lhs: flip for_, rhs: traverse_}
     - warn: {lhs: foldr (*>) (pure ()), rhs: sequenceA_}
+    - warn: {lhs: foldr (*>) (return ()), rhs: sequenceA_}
     - warn: {lhs: foldr (<|>) empty, rhs: asum}
     - warn: {lhs: liftA2 (flip ($)), rhs: (<**>)}
     - warn: {lhs: liftA2 f (pure x), rhs: fmap (f x)}
-    - warn: {lhs: fmap f (pure x), rhs: pure (f x)}
-    - warn: {lhs: f <$> pure x, rhs: pure (f x)}
+    - warn: {lhs: liftA2 f (return x), rhs: fmap (f x)}
     - warn: {lhs: Just <$> a <|> pure Nothing, rhs: optional a}
-    - hint: {lhs: m >>= pure . f, rhs: m Data.Functor.<&> f}
-    - hint: {lhs: pure . f =<< m, rhs: f <$> m}
+    - warn: {lhs: Just <$> a <|> return Nothing, rhs: optional a}
     - warn: {lhs: empty <|> x, rhs: x, name: "Alternative law, left identity"}
     - warn: {lhs: x <|> empty, rhs: x, name: "Alternative law, right identity"}
     - warn: {lhs: traverse id, rhs: sequenceA}
@@ -746,8 +771,11 @@
 
     # FOLDABLE
 
+    - warn: {lhs: case m of Nothing -> pure (); Just x -> f x, rhs: Data.Foldable.forM_ m f}
     - warn: {lhs: case m of Nothing -> return (); Just x -> f x, rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Just x -> f x; Nothing -> pure (), rhs: Data.Foldable.forM_ m f}
     - warn: {lhs: case m of Just x -> f x; Nothing -> return (), rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Just x -> f x; _ -> pure (), rhs: Data.Foldable.forM_ m f}
     - warn: {lhs: case m of Just x -> f x; _ -> return (), rhs: Data.Foldable.forM_ m f}
     - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.forM_ m f}
 
@@ -915,6 +943,15 @@
     - warn: {lhs: Data.Attoparsec.ByteString.option Nothing (Just <$> p), rhs: optional p}
 
 - group:
+    name: quickcheck
+    enabled: true
+    imports:
+    - package base
+    - package quickcheck
+    rules:
+    - warn: {lhs: Control.Monad.join (Test.QuickCheck.elements l), rhs: Test.QuickCheck.oneof l}
+
+- group:
     name: generalise
     enabled: false
     imports:
@@ -979,20 +1016,24 @@
     - warn: {lhs: "maybeM a pure x", rhs: "fromMaybeM a b"}
     - warn: {lhs: "maybeM a return x", rhs: "fromMaybeM a b"}
     - warn: {lhs: "either a b =<< c", rhs: "eitherM a b c"}
-    - warn: {lhs: "fold1M a b >> return ()", rhs: "fold1M_ a b"}
     - warn: {lhs: "fold1M a b >> pure ()", rhs: "fold1M_ a b"}
+    - warn: {lhs: "fold1M a b >> return ()", rhs: "fold1M_ a b"}
     - warn: {lhs: "flip concatMapM", rhs: "concatForM"}
     - warn: {lhs: "liftM mconcat (mapM a b)", rhs: "mconcatMapM a b"}
+    - warn: {lhs: "ifM a b (pure ())", rhs: "whenM a b"}
     - warn: {lhs: "ifM a b (return ())", rhs: "whenM a b"}
+    - warn: {lhs: "ifM a (pure ()) b", rhs: "unlessM a b"}
     - warn: {lhs: "ifM a (return ()) b", rhs: "unlessM a b"}
+    - warn: {lhs: "ifM a (pure True) b", rhs: "(||^) a b"}
     - warn: {lhs: "ifM a (return True) b", rhs: "(||^) a b"}
+    - warn: {lhs: "ifM a b (pure False)", rhs: "(&&^) a b"}
     - warn: {lhs: "ifM a b (return False)", rhs: "(&&^) a b"}
     - warn: {lhs: "anyM id", rhs: "orM"}
     - warn: {lhs: "allM id", rhs: "andM"}
     - warn: {lhs: "allM f [a]", rhs: f a, name: Evaluate}
-    - warn: {lhs: "allM f []", rhs: return True, name: Evaluate}
+    - warn: {lhs: "allM f []", rhs: pure True, name: Evaluate}
     - warn: {lhs: "anyM f [a]", rhs: f a, name: Evaluate}
-    - warn: {lhs: "anyM f []", rhs: return False, name: Evaluate}
+    - warn: {lhs: "anyM f []", rhs: pure False, name: Evaluate}
     - warn: {lhs: "either id id", rhs: "fromEither"}
     - warn: {lhs: "either (const Nothing) Just", rhs: "eitherToMaybe"}
     - warn: {lhs: "either (Left . a) Right", rhs: "mapLeft a"}
