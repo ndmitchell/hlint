@@ -838,6 +838,8 @@
     - warn: {lhs: "all f []", rhs: "True", name: Evaluate}
     - warn: {lhs: "any f [a]", rhs: f a, name: Evaluate}
     - warn: {lhs: "any f []", rhs: "False", name: Evaluate}
+    - warn: {lhs: "maximum [a]", rhs: a, name: Evaluate}
+    - warn: {lhs: "minimum [a]", rhs: a, name: Evaluate}
 
     # FOLDABLE + TUPLES
 
