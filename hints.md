@@ -12007,6 +12007,38 @@ False
 <td>Warning</td>
 </tr>
 <tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+maximum [a]
+</code>
+<br>
+RHS:
+<code>
+a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+minimum [a]
+</code>
+<br>
+RHS:
+<code>
+a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Using foldr on tuple</td>
 <td>
 LHS:
