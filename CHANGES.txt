@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1403, add last . reverse ==> head
     #1397, evaluation rules for minimum/maximum on singleton lists
 3.4.1, released 2022-07-10
     #1345, add --generate-config to generate a complete config

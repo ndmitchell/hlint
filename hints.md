@@ -2520,6 +2520,22 @@ last x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use head</td>
+<td>
+LHS:
+<code>
+last (reverse x)
+</code>
+<br>
+RHS:
+<code>
+head x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use !!</td>
 <td>
 LHS:
