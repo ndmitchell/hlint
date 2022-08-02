@@ -1072,6 +1072,10 @@
     - warn: {lhs: "last $ x : y", rhs: "lastDef x y"}
     - warn: {lhs: "drop 1", rhs: "drop1"}
     - warn: {lhs: "dropEnd 1", rhs: "dropEnd1"}
+    - warn: {lhs: notNull (concat x), rhs: any notNull x}
+    - warn: {lhs: notNull (filter f x), rhs: any f x}
+    - warn: {lhs: "notNull [x]", rhs: "True", name: Evaluate}
+    - warn: {lhs: "notNull []", rhs: "False", name: Evaluate}
 
 # hints that will be enabled in future
 - group:
