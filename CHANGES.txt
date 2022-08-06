@@ -1,5 +1,9 @@
 Changelog for HLint (* = breaking change)
 
+    #1408, evaluate calls of map with empty/singleton lists
+    #1409, add notNull hints, e.g. notNull . concat ==> any notNull
+    #1406, spot list comprehension that should be lefts/rights
+    #1404, add more if/then/else to min or max hints
     #1403, add last . reverse ==> head
     #1397, evaluation rules for minimum/maximum on singleton lists
 3.4.1, released 2022-07-10

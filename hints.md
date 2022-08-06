@@ -2168,6 +2168,22 @@ max a b
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use min</td>
+<td>
+LHS:
+<code>
+if a >= b then b else a
+</code>
+<br>
+RHS:
+<code>
+min a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use max</td>
 <td>
 LHS:
@@ -2178,6 +2194,22 @@ if a > b then a else b
 RHS:
 <code>
 max a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use min</td>
+<td>
+LHS:
+<code>
+if a > b then b else a
+</code>
+<br>
+RHS:
+<code>
+min a b
 </code>
 <br>
 </td>
@@ -2200,6 +2232,22 @@ min a b
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use max</td>
+<td>
+LHS:
+<code>
+if a <= b then b else a
+</code>
+<br>
+RHS:
+<code>
+max a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use min</td>
 <td>
 LHS:
@@ -2210,6 +2258,22 @@ if a < b then a else b
 RHS:
 <code>
 min a b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use max</td>
+<td>
+LHS:
+<code>
+if a < b then b else a
+</code>
+<br>
+RHS:
+<code>
+max a b
 </code>
 <br>
 </td>
@@ -7532,38 +7596,6 @@ Control.Monad.join x
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use join</td>
-<td>
-LHS:
-<code>
-id =<< x
-</code>
-<br>
-RHS:
-<code>
-Control.Monad.join x
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use join</td>
-<td>
-LHS:
-<code>
-id =<< x
-</code>
-<br>
-RHS:
-<code>
-Control.Monad.join x
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
 <td>Use =<<</td>
 <td>
 LHS:
@@ -10005,12 +10037,12 @@ reverse (filter f x)
 <td>
 LHS:
 <code>
-[a | Left a <- a]
+[a | Left a <- b]
 </code>
 <br>
 RHS:
 <code>
-lefts a
+lefts b
 </code>
 <br>
 </td>
@@ -10021,12 +10053,12 @@ lefts a
 <td>
 LHS:
 <code>
-[a | Right a <- a]
+[a | Right a <- b]
 </code>
 <br>
 RHS:
 <code>
-rights a
+rights b
 </code>
 <br>
 </td>
@@ -12049,6 +12081,38 @@ minimum [a]
 RHS:
 <code>
 a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+map f []
+</code>
+<br>
+RHS:
+<code>
+[]
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+map f [a]
+</code>
+<br>
+RHS:
+<code>
+[f a]
 </code>
 <br>
 </td>
