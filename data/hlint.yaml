@@ -120,9 +120,13 @@
     - hint: {lhs: flip (g `on` h), rhs: flip g `on` h, name: Move flip}
     - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h), name: Fuse on/on}
     - warn: {lhs: if a >= b then a else b, rhs: max a b}
+    - warn: {lhs: if a >= b then b else a, rhs: min a b}
     - warn: {lhs: if a > b then a else b, rhs: max a b}
+    - warn: {lhs: if a > b then b else a, rhs: min a b}
     - warn: {lhs: if a <= b then a else b, rhs: min a b}
+    - warn: {lhs: if a <= b then b else a, rhs: max a b}
     - warn: {lhs: if a < b then a else b, rhs: min a b}
+    - warn: {lhs: if a < b then b else a, rhs: max a b}
     - warn: {lhs: "maximum [a, b]", rhs: max a b}
     - warn: {lhs: "minimum [a, b]", rhs: min a b}
 
