@@ -543,9 +543,11 @@ derives (L _ m) =  mconcat $ map decl (childrenBi m) ++ map idecl (childrenBi m)
     decl _ = mempty
 
     g :: NewOrData -> [LHsDerivingClause GhcPs] -> Derives
-    g dn ds = mconcat
-      ([addDerives (Just dn) (fmap unLoc strategy) $ map derivedToStr tys  | L _ (HsDerivingClause _ strategy (L _ (DctMulti _ tys))) <- ds] ++
-       [addDerives (Just dn) (fmap unLoc strategy) $ map derivedToStr [ty] | L _ (HsDerivingClause _ strategy (L _ (DctSingle _ ty))) <- ds])
+    g dn ds = mconcat [addDerives (Just dn) (fmap unLoc strategy) $ map derivedToStr tys | (strategy, tys) <- stys]
+      where
+        stys =
+          [(strategy, [ty]) | L _ (HsDerivingClause _ strategy (L _ (DctSingle _ ty))) <- ds] ++
+          [(strategy, tys ) | L _ (HsDerivingClause _ strategy (L _ (DctMulti _ tys))) <- ds]
 
     derivedToStr :: LHsSigType GhcPs -> String
     derivedToStr (L _ (HsSig _ _ t)) = ih t
