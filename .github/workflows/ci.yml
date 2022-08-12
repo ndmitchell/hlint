@@ -13,16 +13,16 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         # GHC 9.2.1 had a bug, so we treat it differently to 9.2.2
-        ghc: ['9.2', '9.2.1', '9.0']
+        ghc: ['9.4.1'] #, '9.2', '9.2.1', '9.0']
         include:
-        - os: windows-latest
-          ghc: '9.2'
-        - os: macOS-latest
-          # GHC 9.2.2 afflicted with a hadrian bug that results in
-          # 'ffitarget_XXX.h' file not found errors that manifest
-          # building ghc-lib-parser (see issue
-          # https://gitlab.haskell.org/ghc/ghc/-/issues/20592)
-          ghc: '9.2.3'
+         - os: windows-latest
+           ghc: '9.4'
+        # - os: macOS-latest
+        #   # GHC 9.2.2 afflicted with a hadrian bug that results in
+        #   # 'ffitarget_XXX.h' file not found errors that manifest
+        #   # building ghc-lib-parser (see issue
+        #   # https://gitlab.haskell.org/ghc/ghc/-/issues/20592)
+        #   ghc: '9.2.3'
 
     steps:
     - run: git config --global core.autocrlf false
