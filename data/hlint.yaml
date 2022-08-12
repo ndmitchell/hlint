@@ -130,6 +130,7 @@
     # READ/SHOW
 
     - warn: {lhs: showsPrec 0 x "", rhs: show x}
+    - warn: {lhs: "showsPrec 0 x []", rhs: show x}
     - warn: {lhs: readsPrec 0, rhs: reads}
     - warn: {lhs: showsPrec 0, rhs: shows}
     - hint: {lhs: showIntAtBase 16 intToDigit, rhs: showHex}
@@ -165,6 +166,7 @@
     - warn: {lhs: foldl f (head x) (tail x), rhs: foldl1 f x}
     - warn: {lhs: foldr f (last x) (init x), rhs: foldr1 f x}
     - warn: {lhs: "foldr (\\c a -> x : a) []", rhs: "map (\\c -> x)"}
+    - warn: {lhs: "foldr (\\c a -> x : a) \"\"", rhs: "map (\\c -> x)"}
     - warn: {lhs: foldr (.) id l z, rhs: foldr ($) z l}
     - warn: {lhs: span (not . p), rhs: break p}
     - warn: {lhs: break (not . p), rhs: span p}
@@ -193,7 +195,9 @@
     - hint: {lhs: length x <= 0, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: 0 >= length x, rhs: null x, note: IncreasesLaziness}
     - hint: {lhs: "x == []", rhs: null x}
+    - hint: {lhs: x == "", rhs: null x}
     - hint: {lhs: "[] == x", rhs: null x}
+    - hint: {lhs: "" == x, rhs: null x}
     - hint: {lhs: all (const False), rhs: "null"}
     - hint: {lhs: any (const True) x, rhs: not (null x), name: Use null}
     - hint: {lhs: length x /= 0, rhs: not (null x), note: IncreasesLaziness, name: Use null}
@@ -201,6 +205,7 @@
     - hint: {lhs: "\\x -> [x]", rhs: "(:[])", name: "Use :"}
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: not (isApp f)}
     - hint: {lhs: "map f (fromMaybe [] x)", rhs: "maybe [] (map f) x"}
+    - hint: {lhs: map f (fromMaybe "" x), rhs: maybe "" (map f) x}
     - warn: {lhs: not (elem x y), rhs: notElem x y}
     - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
     - warn: {lhs: "x ++ concatMap (' ':) y", rhs: "unwords (x:y)"}
@@ -210,7 +215,9 @@
     - warn: {lhs: null (concat x), rhs: all null x}
     - warn: {lhs: null (filter f x), rhs: not (any f x), name: Use any}
     - warn: {lhs: "filter f x == []", rhs: not (any f x), name: Use any}
+    - warn: {lhs: filter f x == "", rhs: not (any f x), name: Use any}
     - warn: {lhs: "filter f x /= []", rhs: any f x}
+    - warn: {lhs: filter f x /= "", rhs: any f x}
     - warn: {lhs: any id, rhs: or}
     - warn: {lhs: all id, rhs: and}
     - warn: {lhs: any (not . f) x, rhs: not (all f x), name: Hoist not}
@@ -586,7 +593,9 @@
     # LIST COMP
 
     - hint: {lhs: "if b then [x] else []", rhs: "[x | b]", name: Use list comprehension}
+    - hint: {lhs: "if b then [x] else \"\"", rhs: "[x | b]", name: Use list comprehension}
     - hint: {lhs: "if b then [] else [x]", rhs: "[x | not b]", name: Use list comprehension}
+    - hint: {lhs: "if b then \"\" else [x]", rhs: "[x | not b]", name: Use list comprehension}
     - hint: {lhs: "[x | x <- y]", rhs: "y", side: isVar x, name: Redundant list comprehension}
 
     # SEQ
@@ -810,19 +819,31 @@
     - warn: {lhs: "init [x]", rhs: "[]", name: Evaluate}
     - warn: {lhs: "null [x]", rhs: "False", name: Evaluate}
     - warn: {lhs: "null []", rhs: "True", name: Evaluate}
+    - warn: {lhs: null "", rhs: True, name: Evaluate}
     - warn: {lhs: "length []", rhs: "0", name: Evaluate}
+    - warn: {lhs: length "", rhs: 0, name: Evaluate}
     - warn: {lhs: "foldl f z []", rhs: z, name: Evaluate}
+    - warn: {lhs: foldl f z "", rhs: z, name: Evaluate}
     - warn: {lhs: "foldr f z []", rhs: z, name: Evaluate}
+    - warn: {lhs: foldr f z "", rhs: z, name: Evaluate}
     - warn: {lhs: "foldr1 f [x]", rhs: x, name: Evaluate}
     - warn: {lhs: "scanr f z []", rhs: "[z]", name: Evaluate}
+    - warn: {lhs: scanr f z "", rhs: "[z]", name: Evaluate}
     - warn: {lhs: "scanr1 f []", rhs: "[]", name: Evaluate}
+    - warn: {lhs: scanr1 f "", rhs: "[]", name: Evaluate}
     - warn: {lhs: "scanr1 f [x]", rhs: "[x]", name: Evaluate}
     - warn: {lhs: "take n []", rhs: "[]", note: IncreasesLaziness, name: Evaluate}
+    - warn: {lhs: take n "", rhs: "", note: IncreasesLaziness, name: Evaluate}
     - warn: {lhs: "drop n []", rhs: "[]", note: IncreasesLaziness, name: Evaluate}
+    - warn: {lhs: drop n "", rhs: "", note: IncreasesLaziness, name: Evaluate}
     - warn: {lhs: "takeWhile p []", rhs: "[]", name: Evaluate}
+    - warn: {lhs: takeWhile p "", rhs: "", name: Evaluate}
     - warn: {lhs: "dropWhile p []", rhs: "[]", name: Evaluate}
+    - warn: {lhs: dropWhile p "", rhs: "", name: Evaluate}
     - warn: {lhs: "span p []", rhs: "([],[])", name: Evaluate}
+    - warn: {lhs: span p "", rhs: "(\"\",\"\")", name: Evaluate}
     - warn: {lhs: lines "", rhs: "[]", name: Evaluate}
+    - warn: {lhs: "lines []", rhs: "[]", name: Evaluate}
     - warn: {lhs: "unwords []", rhs: "\"\"", name: Evaluate}
     - warn: {lhs: x - 0, rhs: x, name: Evaluate}
     - warn: {lhs: x * 1, rhs: x, name: Evaluate}
@@ -830,15 +851,20 @@
     - warn: {lhs: "concat [a]", rhs: a, name: Evaluate}
     - warn: {lhs: "concat []", rhs: "[]", name: Evaluate}
     - warn: {lhs: "zip [] []", rhs: "[]", name: Evaluate}
+    - warn: {lhs: zip "" "", rhs: "[]", name: Evaluate}
     - warn: {lhs: const x y, rhs: x, name: Evaluate}
     - warn: {lhs: any (const False), rhs: const False, note: IncreasesLaziness, name: Evaluate}
     - warn: {lhs: all (const True), rhs: const True, note: IncreasesLaziness, name: Evaluate}
     - warn: {lhs: "[] ++ x", rhs: x, name: Evaluate}
+    - warn: {lhs: "" ++ x, rhs: x, name: Evaluate}
     - warn: {lhs: "x ++ []", rhs: x, name: Evaluate}
+    - warn: {lhs: x ++ "", rhs: x, name: Evaluate}
     - warn: {lhs: "all f [a]", rhs: f a, name: Evaluate}
     - warn: {lhs: "all f []", rhs: "True", name: Evaluate}
+    - warn: {lhs: all f "", rhs: True, name: Evaluate}
     - warn: {lhs: "any f [a]", rhs: f a, name: Evaluate}
     - warn: {lhs: "any f []", rhs: "False", name: Evaluate}
+    - warn: {lhs: any f "", rhs: False, name: Evaluate}
     - warn: {lhs: "maximum [a]", rhs: a, name: Evaluate}
     - warn: {lhs: "minimum [a]", rhs: a, name: Evaluate}
 
@@ -964,8 +990,11 @@
     - warn: {lhs: a ++ b, rhs: a <> b}
     - warn: {lhs: "sequence [a]", rhs: "pure <$> a"}
     - warn: {lhs: "x /= []", rhs: not (null x), name: Use null}
+    - warn: {lhs: x /= "", rhs: not (null x), name: Use null}
     - warn: {lhs: "[] /= x", rhs: not (null x), name: Use null}
+    - warn: {lhs: "" /= x, rhs: not (null x), name: Use null}
     - warn: {lhs: "maybe []", rhs: foldMap}
+    - warn: {lhs: maybe "", rhs: foldMap}
 
 - group:
     name: generalise-for-conciseness
@@ -1035,8 +1064,10 @@
     - warn: {lhs: "allM id", rhs: "andM"}
     - warn: {lhs: "allM f [a]", rhs: f a, name: Evaluate}
     - warn: {lhs: "allM f []", rhs: pure True, name: Evaluate}
+    - warn: {lhs: allM f "", rhs: pure True, name: Evaluate}
     - warn: {lhs: "anyM f [a]", rhs: f a, name: Evaluate}
     - warn: {lhs: "anyM f []", rhs: pure False, name: Evaluate}
+    - warn: {lhs: anyM f "", rhs: pure False, name: Evaluate}
     - warn: {lhs: "either id id", rhs: "fromEither"}
     - warn: {lhs: "either (const Nothing) Just", rhs: "eitherToMaybe"}
     - warn: {lhs: "either (Left . a) Right", rhs: "mapLeft a"}
@@ -1063,6 +1094,7 @@
     - warn: {lhs: "nubOrdBy compare", rhs: "nubOrd"}
     - warn: {lhs: "\\a -> (a, a)", rhs: "dupe"}
     - warn: {lhs: "showFFloat (Just a) b \"\"", rhs: "showDP a b"}
+    - warn: {lhs: "showFFloat (Just a) b []", rhs: "showDP a b"}
     - warn: {lhs: "readFileEncoding utf8", rhs: "readFileUTF8"}
     - warn: {lhs: "withFile a ReadMode hGetContents'", rhs: "readFile' a"}
     - warn: {lhs: "readFileEncoding' utf8", rhs: "readFileUTF8'"}
@@ -1130,7 +1162,9 @@
     - package base
     rules:
     - hint: {lhs: "x /= []", rhs: not (null x), name: Use null}
+    - hint: {lhs: x /= "", rhs: not (null x), name: Use null}
     - hint: {lhs: "[] /= x", rhs: not (null x), name: Use null}
+    - hint: {lhs: "" /= x, rhs: not (null x), name: Use null}
     - hint: {lhs: "not (x || y)", rhs: "not x && not y", name: Apply De Morgan law}
     - hint: {lhs: "not (x && y)", rhs: "not x || not y", name: Apply De Morgan law}
     - hint: {lhs: "[ f x | x <- l ]", rhs: map f l}
