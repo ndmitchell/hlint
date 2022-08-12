@@ -25,11 +25,13 @@ import GHC.Data.FastString
 import GHC.Hs
 import GHC.Types.SrcLoc
 import GHC.Types.Fixity
+import GHC.Types.Error
+import GHC.Driver.Errors.Types
+
 import GHC.Utils.Error
 import GHC.Parser.Lexer hiding (context)
 import GHC.LanguageExtensions.Type
 import GHC.Driver.Session hiding (extensions)
-import GHC.Parser.Errors.Ppr
 import GHC.Data.Bag
 import Data.Generics.Uniplate.DataOnly
 
@@ -181,14 +183,14 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
   -- Done with pragmas. Proceed to parsing.
   case fileToModule file str dynFlags of
     POk s a -> do
-      let errs = bagToList . snd $ getMessages s
+      let errs = bagToList . getMessages $ GhcPsMessage <$> snd (getPsMessages s)
       if not $ null errs then
         ExceptT $ parseFailureErr dynFlags str file str errs
       else do
         let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
         pure $ ModuleEx (applyFixities fixes a)
     PFailed s ->
-      ExceptT $ parseFailureErr dynFlags str file str $  bagToList . snd $ getMessages s
+      ExceptT $ parseFailureErr dynFlags str file str $ bagToList . getMessages  $ GhcPsMessage <$> snd (getPsMessages s)
   where
     -- If parsing pragmas fails, synthesize a parse error from the
     -- error message.
@@ -197,7 +199,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
       in ParseError (mkSrcSpan loc loc) msg src
 
     parseFailureErr dynFlags ppstr file str errs =
-      let errMsg = pprError (head errs)
+      let errMsg = head errs
           loc = errMsgSpan errMsg
           doc = pprLocMsgEnvelope errMsg
       in ghcFailOpParseModuleEx ppstr file str (loc, doc)

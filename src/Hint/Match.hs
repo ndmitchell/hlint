@@ -156,7 +156,7 @@ matchIdea sb declName HintRule{..} parent x = do
   -- we have lambdas we might be moving, and QuasiQuotes, we might
   -- inadvertantly break free vars because quasi quotes don't show
   -- what free vars they make use of.
-  guard $ not (any isLambda $ universe lhs) || not (any isQuasiQuote $ universe x)
+  guard $ not (any isLambda $ universe lhs) || not (any isQuasiQuoteExpr $ universe x)
 
   guard $ checkSide (unextendInstances <$> hintRuleSide) $ ("original", x) : ("result", res) : fromSubst u
   guard $ checkDefine declName parent rhs
@@ -182,7 +182,7 @@ checkSide x bind = maybe True bool x
         | varToStr op == "||" = bool x || bool y
         | varToStr op == "==" = expr (fromParen1 x) `astEq` expr (fromParen1 y)
       bool (L _ (HsApp _ x y)) | varToStr x == "not" = not $ bool y
-      bool (L _ (HsPar _ x)) = bool x
+      bool (L _ (HsPar _ _ x _)) = bool x
 
       bool (L _ (HsApp _ cond (sub -> y)))
         | 'i' : 's' : typ <- varToStr cond = isType typ y
@@ -206,7 +206,7 @@ checkSide x bind = maybe True bool x
       isType "Neg" (asInt -> Just x) | x <  0 = True
       isType "NegZero" (asInt -> Just x) | x <= 0 = True
       isType "LitInt" (L _ (HsLit _ HsInt{})) = True
-      isType "LitInt" (L _ (HsOverLit _ (OverLit _ HsIntegral{} _))) = True
+      isType "LitInt" (L _ (HsOverLit _ (OverLit _ HsIntegral{}))) = True
       isType "LitString" (L _ (HsLit _ HsString{})) = True
       isType "Var" (L _ HsVar{}) = True
       isType "App" (L _ HsApp{}) = True
@@ -219,10 +219,10 @@ checkSide x bind = maybe True bool x
         typ == top
 
       asInt :: LHsExpr GhcPs -> Maybe Integer
-      asInt (L _ (HsPar _ x)) = asInt x
+      asInt (L _ (HsPar _ _ x _)) = asInt x
       asInt (L _ (NegApp _ x _)) = negate <$> asInt x
       asInt (L _ (HsLit _ (HsInt _ (IL _ _ x)) )) = Just x
-      asInt (L _ (HsOverLit _ (OverLit _ (HsIntegral (IL _ _ x)) _))) = Just x
+      asInt (L _ (HsOverLit _ (OverLit _ (HsIntegral (IL _ _ x))))) = Just x
       asInt _ = Nothing
 
       list :: LHsExpr GhcPs -> [LHsExpr GhcPs]
@@ -264,7 +264,7 @@ unqualify from to = transformBi f
     f x = scopeMove (from, x) to
 
 addBracket :: Maybe (Int, LHsExpr GhcPs) -> LHsExpr GhcPs -> LHsExpr GhcPs
-addBracket (Just (i, p)) c | needBracketOld i p c = noLocA $ HsPar EpAnnNotUsed c
+addBracket (Just (i, p)) c | needBracketOld i p c = nlHsPar c
 addBracket _ x = x
 
 -- Type substitution e.g. 'Foo Int' for 'a' in 'Proxy a' can lead to a

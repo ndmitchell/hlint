@@ -25,7 +25,7 @@
 {-# LANGUAGE RebindableSyntax #-} \
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE RebindableSyntax #-} \
-{-# LANGUAGE EmptyCase, RebindableSyntax #-} -- {-# LANGUAGE RebindableSyntax, EmptyCase #-}
+{-# LANGUAGE EmptyCase, RebindableSyntax #-} -- {-# LANGUAGE EmptyCase, RebindableSyntax #-}
 </TEST>
 -}
 

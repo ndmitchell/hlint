@@ -99,9 +99,9 @@ instance FreeVars (LocatedA (HsExpr GhcPs)) where
   freeVars (L _ (HsVar _ x)) = Set.fromList $ unqualNames x -- Variable.
   freeVars (L _ (HsUnboundVar _ x)) = Set.fromList [x] -- Unbound variable; also used for "holes".
   freeVars (L _ (HsLam _ mg)) = free (allVars mg) -- Lambda abstraction. Currently always a single match.
-  freeVars (L _ (HsLamCase _ MG{mg_alts=(L _ ms)})) = free (allVars ms) -- Lambda case
+  freeVars (L _ (HsLamCase _ _ MG{mg_alts=(L _ ms)})) = free (allVars ms) -- Lambda case
   freeVars (L _ (HsCase _ of_ MG{mg_alts=(L _ ms)})) = freeVars of_ ^+ free (allVars ms) -- Case expr.
-  freeVars (L _ (HsLet _ binds e)) = inFree binds e -- Let (rec).
+  freeVars (L _ (HsLet _ _ binds _ e)) = inFree binds e -- Let (rec).
   freeVars (L _ (HsDo _ ctxt (L _ stmts))) = free (allVars stmts) -- Do block.
   freeVars (L _ (RecordCon _ _ (HsRecFields flds _))) = Set.unions $ map freeVars flds -- Record construction.
   freeVars (L _ (RecordUpd _ e flds)) =
@@ -109,17 +109,15 @@ instance FreeVars (LocatedA (HsExpr GhcPs)) where
       Left fs -> Set.unions $ freeVars e : map freeVars fs
       Right ps -> Set.unions $ freeVars e : map freeVars ps
   freeVars (L _ (HsMultiIf _ grhss)) = free (allVars grhss) -- Multi-way if.
-  freeVars (L _ (HsBracket _ (ExpBr _ e))) = freeVars e
-  freeVars (L _ (HsBracket _ (VarBr _ _ v))) = Set.fromList [occName (unLoc v)]
+  freeVars (L _ (HsTypedBracket _ e)) = freeVars e
+  freeVars (L _ (HsUntypedBracket _ (ExpBr _ e))) = freeVars e
+  freeVars (L _ (HsUntypedBracket _ (VarBr _ _ v))) = Set.fromList [occName (unLoc v)]
 
-  freeVars (L _ HsConLikeOut{}) = mempty -- After typechecker.
-  freeVars (L _ HsRecFld{}) = mempty -- Variable pointing to a record selector.
+  freeVars (L _ HsRecSel{}) = mempty -- Variable pointing to a record selector.
   freeVars (L _ HsOverLabel{}) = mempty -- Overloaded label. The id of the in-scope fromLabel.
   freeVars (L _ HsIPVar{}) = mempty -- Implicit parameter.
   freeVars (L _ HsOverLit{}) = mempty -- Overloaded literal.
   freeVars (L _ HsLit{}) = mempty -- Simple literal.
-  freeVars (L _ HsRnBracketOut{}) = mempty -- Renamer produces these.
-  freeVars (L _ HsTcBracketOut{}) = mempty -- Typechecker produces these.
 
   -- freeVars (e@(L _ HsAppType{})) = freeVars $ children e -- Visible type application e.g. f @ Int x y.
   -- freeVars (e@(L _ HsApp{})) = freeVars $ children e -- Application.
@@ -155,15 +153,15 @@ instance FreeVars (HsTupArg GhcPs) where
   freeVars (Present _ args) = freeVars args
   freeVars _ = mempty
 
-instance FreeVars (LocatedA (HsRecField GhcPs (LocatedA (HsExpr GhcPs)))) where
-   freeVars o@(L _ (HsRecField _ x _ True)) = Set.singleton $ occName $ unLoc $ rdrNameFieldOcc $ unLoc x -- a pun
-   freeVars o@(L _ (HsRecField _ _ x _)) = freeVars x
+instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldOcc GhcPs)) (LocatedA (HsExpr GhcPs)))) where
+   freeVars o@(L _ (HsFieldBind _ x _ True)) = Set.singleton $ occName $ unLoc $ foLabel $ unLoc x -- a pun
+   freeVars o@(L _ (HsFieldBind _ _ x _)) = freeVars x
 
-instance FreeVars (LocatedA (HsRecField' (AmbiguousFieldOcc GhcPs) (LocatedA (HsExpr GhcPs)))) where
-  freeVars (L _ (HsRecField _ _ x _)) = freeVars x
+instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (AmbiguousFieldOcc GhcPs)) (LocatedA (HsExpr GhcPs)))) where
+  freeVars (L _ (HsFieldBind _ _ x _)) = freeVars x
 
-instance FreeVars (LocatedA (HsRecField' (FieldLabelStrings GhcPs) (LocatedA (HsExpr GhcPs)))) where
-  freeVars (L _ (HsRecField _ _ x _)) = freeVars x
+instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldLabelStrings GhcPs)) (LocatedA (HsExpr GhcPs)))) where
+  freeVars (L _ (HsFieldBind _ _ x _)) = freeVars x
 
 instance AllVars (LocatedA (Pat GhcPs)) where
   allVars (L _ (VarPat _ (L _ x))) = Vars (Set.singleton $ rdrNameOcc x) Set.empty -- Variable pattern.
@@ -188,8 +186,8 @@ instance AllVars (LocatedA (Pat GhcPs)) where
 
   allVars p = allVars $ children p
 
-instance AllVars (LocatedA (HsRecField GhcPs (LocatedA (Pat GhcPs)))) where
-   allVars (L _ (HsRecField _ _ x _)) = allVars x
+instance AllVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldOcc GhcPs)) (LocatedA (Pat GhcPs)))) where
+   allVars (L _ (HsFieldBind _ _ x _)) = allVars x
 
 instance AllVars (LocatedA (StmtLR GhcPs GhcPs (LocatedA (HsExpr GhcPs)))) where
   allVars (L _ (LastStmt _ expr _ _)) = freeVars_ expr -- The last stmt of a ListComp, MonadComp, DoExpr,MDoExpr.
@@ -216,8 +214,6 @@ instance AllVars (LocatedA (HsBindLR GhcPs GhcPs)) where
   allVars (L _ PatBind{pat_lhs=n, pat_rhs=grhss}) = allVars n <> allVars grhss -- Ctor patterns and some other interesting cases e.g. Just x = e, (x) = e, x :: Ty = e.
 
   allVars (L _ (PatSynBind _ PSB{})) = mempty -- Come back to it.
-  allVars (L _ VarBind{}) = mempty -- Typechecker.
-  allVars (L _ AbsBinds{}) = mempty -- Not sure but I think renamer.
 
 instance AllVars (MatchGroup GhcPs (LocatedA (HsExpr GhcPs))) where
   allVars (MG _ _alts@(L _ alts) _) = inVars (foldMap (allVars . m_pats) ms) (allVars (map m_grhss ms))
@@ -237,7 +233,7 @@ instance AllVars (HsStmtContext GhcPs) where
 instance AllVars (GRHSs GhcPs (LocatedA (HsExpr GhcPs))) where
   allVars (GRHSs _ grhss binds) = inVars binds (mconcatMap allVars grhss)
 
-instance AllVars (Located (GRHS GhcPs (LocatedA (HsExpr GhcPs)))) where
+instance AllVars (LocatedAn NoEpAnns (GRHS GhcPs (LocatedA (HsExpr GhcPs)))) where
   allVars (L _ (GRHS _ guards expr)) = Vars (bound gs) (free gs ^+ (freeVars expr ^- bound gs)) where gs = allVars guards
 
 instance AllVars (LocatedA (HsDecl GhcPs)) where

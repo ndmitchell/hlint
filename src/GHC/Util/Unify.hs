@@ -128,7 +128,6 @@ unify' nm root x y
     | Just (x :: EpAnn EpAnnHsCase) <- cast x = Just mempty
     | Just (x :: EpAnn EpAnnUnboundVar) <- cast x = Just mempty
     | Just (x :: EpAnn AnnExplicitSum) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnsLet) <- cast x = Just mempty
     | Just (x :: EpAnn AnnProjection) <- cast x = Just mempty
     | Just (x :: EpAnn Anchor) <- cast x = Just mempty
     | Just (x :: EpAnn EpaLocation) <- cast x = Just mempty
@@ -138,6 +137,8 @@ unify' nm root x y
     | Just (x :: EpAnn HsRuleAnn) <- cast x = Just mempty
     | Just (x :: EpAnn EpAnnImportDecl) <- cast x = Just mempty
     | Just (x :: EpAnn (AddEpAnn, AddEpAnn)) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnsIf) <- cast x = Just mempty
+    | Just (x :: TokenLocation) <- cast y = Just mempty
     | Just (y :: SrcSpan) <- cast y = Just mempty
 
     | otherwise = unifyDef' nm x y
@@ -257,8 +258,8 @@ unifyExp' nm root x@(L _ (HsApp _ x1 x2)) y@(L _ (HsApp _ y1 y2)) =
 unifyExp' nm root x y@(L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2)) =
   noExtra $ unifyExp nm root x y
 
-unifyExp' nm root (L _ (HsBracket _ (VarBr _ b0 (occNameStr . unLoc -> v1))))
-                  (L _ (HsBracket _ (VarBr _ b1 (occNameStr . unLoc -> v2))))
+unifyExp' nm root (L _ (HsUntypedBracket _ (VarBr _ b0 (occNameStr . unLoc -> v1))))
+                  (L _ (HsUntypedBracket _ (VarBr _ b1 (occNameStr . unLoc -> v2))))
     | b0 == b1 && isUnifyVar v1 = Just (Subst [(v1, strToVar v2)])
 
 unifyExp' nm root x y | isOther x, isOther y = unifyDef' nm x y

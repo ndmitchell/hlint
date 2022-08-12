@@ -44,8 +44,7 @@ FILE tests/cpp-ext-enable.hs
 main = undefined
 EXIT 1
 OUTPUT
-tests/cpp-ext-enable.hs:1:1: Error: Parse error: Unsupported extension: Foo
-
+tests/cpp-ext-enable.hs:1:1: Error: Parse error: tests/cpp-ext-enable.hs:3:14: error: Unsupported extension: Foo
 Found:
   {-# LANGUAGE CPP #-}
 
