@@ -374,10 +374,18 @@
     - hint: {lhs: x == False, rhs: not x, name: Redundant ==}
     - warn: {lhs: True == a, rhs: a, name: Redundant ==}
     - hint: {lhs: False == a, rhs: not a, name: Redundant ==}
+    - hint: {lhs: (== True), rhs: id, name: Redundant ==}
+    - hint: {lhs: (== False), rhs: not, name: Redundant ==}
+    - hint: {lhs: (True ==), rhs: id, name: Redundant ==}
+    - hint: {lhs: (False ==), rhs: not, name: Redundant ==}
     - warn: {lhs: a /= True, rhs: not a, name: Redundant /=}
     - hint: {lhs: a /= False, rhs: a, name: Redundant /=}
     - warn: {lhs: True /= a, rhs: not a, name: Redundant /=}
     - hint: {lhs: False /= a, rhs: a, name: Redundant /=}
+    - hint: {lhs: (/= True), rhs: not, name: Redundant /=}
+    - hint: {lhs: (/= False), rhs: id, name: Redundant /=}
+    - hint: {lhs: (True /=), rhs: not, name: Redundant /=}
+    - hint: {lhs: (False /=), rhs: id, name: Redundant /=}
     - warn: {lhs: if a then x else x, rhs: x, note: IncreasesLaziness, name: Redundant if}
     - warn: {lhs: if a then True else False, rhs: a, name: Redundant if}
     - warn: {lhs: if a then False else True, rhs: not a, name: Redundant if}
