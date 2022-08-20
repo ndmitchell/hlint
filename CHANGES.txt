@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1416, add hints for (== True) and other bool/section values
     #1408, evaluate calls of map with empty/singleton lists
     #1409, add notNull hints, e.g. notNull . concat ==> any notNull
     #1406, spot list comprehension that should be lefts/rights

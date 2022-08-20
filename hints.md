@@ -5768,6 +5768,70 @@ not a
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Redundant ==</td>
+<td>
+LHS:
+<code>
+(== True)
+</code>
+<br>
+RHS:
+<code>
+id
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant ==</td>
+<td>
+LHS:
+<code>
+(== False)
+</code>
+<br>
+RHS:
+<code>
+not
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant ==</td>
+<td>
+LHS:
+<code>
+(True ==)
+</code>
+<br>
+RHS:
+<code>
+id
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant ==</td>
+<td>
+LHS:
+<code>
+(False ==)
+</code>
+<br>
+RHS:
+<code>
+not
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Redundant /=</td>
 <td>
 LHS:
@@ -5826,6 +5890,70 @@ False /= a
 RHS:
 <code>
 a
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant /=</td>
+<td>
+LHS:
+<code>
+(/= True)
+</code>
+<br>
+RHS:
+<code>
+not
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant /=</td>
+<td>
+LHS:
+<code>
+(/= False)
+</code>
+<br>
+RHS:
+<code>
+id
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant /=</td>
+<td>
+LHS:
+<code>
+(True /=)
+</code>
+<br>
+RHS:
+<code>
+not
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant /=</td>
+<td>
+LHS:
+<code>
+(False /=)
+</code>
+<br>
+RHS:
+<code>
+id
 </code>
 <br>
 </td>
