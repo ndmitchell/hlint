@@ -244,6 +244,10 @@ f x = x . foo -- @NoRefactor: refactor requires GHC >= 9.2.1
 f = (.foo)
 {-# LANGUAGE OverloadedRecordDot #-} \
 f = (. foo) -- @NoRefactor: refactor requires GHC >= 9.2.1
+{-# LANGUAGE TemplateHaskellQuotes #-} \
+foo = [|| x ||]
+{-# LANGUAGE TemplateHaskell #-} \
+foo = $bar
 </TEST>
 -}
 
@@ -395,7 +399,12 @@ used EmptyCase = hasS f
 used KindSignatures = hasT (un :: HsKind GhcPs)
 used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
 used TemplateHaskell = hasS $ not . isQuasiQuoteSplice
-used TemplateHaskellQuotes = hasT (un :: HsQuote GhcPs)
+used TemplateHaskellQuotes = hasS f
+  where
+    f :: HsExpr GhcPs -> Bool
+    f HsTypedBracket{} = True
+    f HsUntypedBracket{} = True
+    f _ = False
 used ForeignFunctionInterface = hasT (un :: CCallConv)
 used PatternGuards = hasS f
   where
