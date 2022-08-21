@@ -2328,6 +2328,22 @@ show x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use show</td>
+<td>
+LHS:
+<code>
+showsPrec 0 x []
+</code>
+<br>
+RHS:
+<code>
+show x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use reads</td>
 <td>
 LHS:
@@ -11723,7 +11739,39 @@ True
 <td>
 LHS:
 <code>
+null ""
+</code>
+<br>
+RHS:
+<code>
+True
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
 length []
+</code>
+<br>
+RHS:
+<code>
+0
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+length ""
 </code>
 <br>
 RHS:
@@ -11851,12 +11899,44 @@ RHS:
 <td>
 LHS:
 <code>
+take n ""
+</code>
+<br>
+RHS:
+<code>
+""
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
 drop n []
 </code>
 <br>
 RHS:
 <code>
 []
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+drop n ""
+</code>
+<br>
+RHS:
+<code>
+""
 </code>
 <br>
 </td>
@@ -11883,12 +11963,44 @@ RHS:
 <td>
 LHS:
 <code>
+takeWhile p ""
+</code>
+<br>
+RHS:
+<code>
+""
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
 dropWhile p []
 </code>
 <br>
 RHS:
 <code>
 []
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+dropWhile p ""
+</code>
+<br>
+RHS:
+<code>
+""
 </code>
 <br>
 </td>
@@ -11915,7 +12027,39 @@ RHS:
 <td>
 LHS:
 <code>
+span p ""
+</code>
+<br>
+RHS:
+<code>
+("", "")
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
 lines ""
+</code>
+<br>
+RHS:
+<code>
+[]
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+lines []
 </code>
 <br>
 RHS:
@@ -12107,7 +12251,39 @@ x
 <td>
 LHS:
 <code>
+"" ++ x
+</code>
+<br>
+RHS:
+<code>
+x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
 x ++ []
+</code>
+<br>
+RHS:
+<code>
+x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+x ++ ""
 </code>
 <br>
 RHS:
