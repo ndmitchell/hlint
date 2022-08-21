@@ -21,6 +21,7 @@ Bugs can be reported [on the bug tracker](https://github.com/ndmitchell/hlint/is
 * HLint turns on many language extensions so it can parse more documents, occasionally some break otherwise legal syntax - e.g. `{-#INLINE foo#-}` doesn't work with `MagicHash`, `foo $bar` means something different with `TemplateHaskell`. These extensions can be disabled with `-XNoMagicHash` or `-XNoTemplateHaskell` etc.
 * HLint doesn't run any custom preprocessors, e.g. [markdown-unlit](https://hackage.haskell.org/package/markdown-unlit) or [record-dot-preprocessor](https://hackage.haskell.org/package/record-dot-preprocessor), so code making use of them will usually fail to parse.
 * Some hints, like `Use const`, don't work for non-lifted (i.e. unlifted and unboxed) types.
+* Some language extensions like `Strict` can cause certain hints (e.g. eta reduction) to be incorrect.
 
 ## Installing and running HLint
 
