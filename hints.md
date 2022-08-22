@@ -5640,11 +5640,43 @@ isAsciiLower a
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use isAsciiLower</td>
+<td>
+LHS:
+<code>
+'a' <= a && a <= 'z'
+</code>
+<br>
+RHS:
+<code>
+isAsciiLower a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use isAsciiUpper</td>
 <td>
 LHS:
 <code>
 a >= 'A' && a <= 'Z'
+</code>
+<br>
+RHS:
+<code>
+isAsciiUpper a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use isAsciiUpper</td>
+<td>
+LHS:
+<code>
+'A' <= a && a <= 'Z'
 </code>
 <br>
 RHS:
@@ -5672,11 +5704,43 @@ isDigit a
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use isDigit</td>
+<td>
+LHS:
+<code>
+'0' <= a && a <= '9'
+</code>
+<br>
+RHS:
+<code>
+isDigit a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use isOctDigit</td>
 <td>
 LHS:
 <code>
 a >= '0' && a <= '7'
+</code>
+<br>
+RHS:
+<code>
+isOctDigit a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use isOctDigit</td>
+<td>
+LHS:
+<code>
+'0' <= a && a <= '7'
 </code>
 <br>
 RHS:

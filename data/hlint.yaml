@@ -362,14 +362,14 @@
 
     # CHAR
 
-    - warn: {lhs: a >= 'a' && a <= 'z', rhs: isAsciiLower a}
-    - warn: {lhs: 'a' <= a && a <= 'z', rhs: isAsciiLower a}
-    - warn: {lhs: a >= 'A' && a <= 'Z', rhs: isAsciiUpper a}
-    - warn: {lhs: 'A' <= a && a <= 'Z', rhs: isAsciiUpper a}
-    - warn: {lhs: a >= '0' && a <= '9', rhs: isDigit a}
-    - warn: {lhs: '0' <= a && a <= '9', rhs: isDigit a}
-    - warn: {lhs: a >= '0' && a <= '7', rhs: isOctDigit a}
-    - warn: {lhs: '0' <= a && a <= '7', rhs: isOctDigit a}
+    - warn: {lhs: "a >= 'a' && a <= 'z'", rhs: isAsciiLower a}
+    - warn: {lhs: "'a' <= a && a <= 'z'", rhs: isAsciiLower a}
+    - warn: {lhs: "a >= 'A' && a <= 'Z'", rhs: isAsciiUpper a}
+    - warn: {lhs: "'A' <= a && a <= 'Z'", rhs: isAsciiUpper a}
+    - warn: {lhs: "a >= '0' && a <= '9'", rhs: isDigit a}
+    - warn: {lhs: "'0' <= a && a <= '9'", rhs: isDigit a}
+    - warn: {lhs: "a >= '0' && a <= '7'", rhs: isOctDigit a}
+    - warn: {lhs: "'0' <= a && a <= '7'", rhs: isOctDigit a}
     - warn: {lhs: isLower a || isUpper a, rhs: isAlpha a}
     - warn: {lhs: isUpper a || isLower a, rhs: isAlpha a}
 
