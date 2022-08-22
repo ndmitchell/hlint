@@ -8988,6 +8988,22 @@ y
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Redundant list comprehension</td>
+<td>
+LHS:
+<code>
+[f x | x <- [y]]
+</code>
+<br>
+RHS:
+<code>
+[f y]
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Redundant seq</td>
 <td>
 LHS:
