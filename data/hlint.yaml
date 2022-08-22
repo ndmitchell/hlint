@@ -666,7 +666,7 @@
     - warn: {lhs: fromMaybe a (fmap f x), rhs: maybe a f x}
     - warn: {lhs: fromMaybe a (f <$> x), rhs: maybe a f x}
     - warn: {lhs: mapMaybe id, rhs: catMaybes}
-    - hint: {lhs: "[x | Just x <- a]", rhs: Data.Maybe.catMaybes a}
+    - hint: {lhs: "[x | Just x <- a]", rhs: Data.Maybe.catMaybes a, side: isVar x}
     - hint: {lhs: case m of Nothing -> Nothing; Just x -> x, rhs: Control.Monad.join m}
     - hint: {lhs: maybe Nothing id, rhs: join}
     - hint: {lhs: maybe Nothing f x, rhs: f =<< x}
@@ -696,8 +696,8 @@
 
     # EITHER
 
-    - warn: {lhs: "[a | Left a <- b]", rhs: lefts b}
-    - warn: {lhs: "[a | Right a <- b]", rhs: rights b}
+    - warn: {lhs: "[a | Left a <- b]", rhs: lefts b, side: isVar a}
+    - warn: {lhs: "[a | Right a <- b]", rhs: rights b, side: isVar a}
     - warn: {lhs: either Left (Right . f), rhs: fmap f}
     - warn: {lhs: either f g (fmap h x), rhs: either f (g . h) x, name: Redundant fmap}
     - warn: {lhs: isLeft (fmap f x), rhs: isLeft x}
@@ -1168,8 +1168,8 @@
     - hint: {lhs: "[] /= x", rhs: not (null x), name: Use null}
     - hint: {lhs: "not (x || y)", rhs: "not x && not y", name: Apply De Morgan law}
     - hint: {lhs: "not (x && y)", rhs: "not x || not y", name: Apply De Morgan law}
-    - hint: {lhs: "[ f x | x <- l ]", rhs: map f l}
-    - hint: {lhs: "[ x | x <- l, p x ]", rhs: filter p l}
+    - hint: {lhs: "[ f x | x <- l ]", rhs: map f l, side: isVar x}
+    - hint: {lhs: "[ x | x <- l, p x ]", rhs: filter p l, side: isVar x}
     - warn: {lhs: foldr f c (reverse x), rhs: foldl (flip f) c x, name: Use left fold instead of right fold}
     - warn: {lhs: foldr1 f (reverse x), rhs: foldl1 (flip f) x, name: Use left fold instead of right fold}
     - warn: {lhs: foldl f c (reverse x), rhs: foldr (flip f) c x, note: IncreasesLaziness, name: Use right fold instead of left fold}
