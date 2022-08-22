@@ -603,6 +603,7 @@
     - hint: {lhs: "if b then [x] else []", rhs: "[x | b]", name: Use list comprehension}
     - hint: {lhs: "if b then [] else [x]", rhs: "[x | not b]", name: Use list comprehension}
     - hint: {lhs: "[x | x <- y]", rhs: "y", side: isVar x, name: Redundant list comprehension}
+    - hint: {lhs: "[ f x | x <- [y] ]", rhs: "[f y]", side: isVar x, name: Redundant list comprehension}
 
     # SEQ
 
