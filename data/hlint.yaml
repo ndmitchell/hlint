@@ -980,6 +980,11 @@
     - package base
     - package quickcheck
     rules:
+    - warn: {lhs: Test.QuickCheck.choose (x,x), rhs: return x, name: Evaluate}
+    - warn: {lhs: Test.QuickCheck.chooseInt (x,x), rhs: return x, name: Evaluate}
+    - warn: {lhs: Test.QuickCheck.chooseInteger (x,x), rhs: return x, name: Evaluate}
+    - warn: {lhs: Test.QuickCheck.chooseBoundedIntegral (x,x), rhs: return x, name: Evaluate}
+    - warn: {lhs: Test.QuickCheck.chooseEnum (x,x), rhs: return x, name: Evaluate}
     - warn: {lhs: Control.Monad.join (Test.QuickCheck.elements l), rhs: Test.QuickCheck.oneof l}
 
 - group:
