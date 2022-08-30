@@ -981,8 +981,8 @@
     - package quickcheck
     rules:
     - warn: {lhs: Control.Monad.join (Test.QuickCheck.elements l), rhs: Test.QuickCheck.oneof l}
-    - warn: {lhs: "Test.QuickCheck.elements [x]", rhs: "return x", name: Evaluate}
-    - warn: {lhs: "Test.QuickCheck.growingElements [x]", rhs: "return x", name: Evaluate}
+    - warn: {lhs: "Test.QuickCheck.elements [x]", rhs: "return x"}
+    - warn: {lhs: "Test.QuickCheck.growingElements [x]", rhs: "return x"}
     - warn: {lhs: "Test.QuickCheck.oneof [x]", rhs: "x", name: Evaluate}
     - warn: {lhs: "Test.QuickCheck.frequency [(a,x)]", rhs: "x", name: Evaluate}
 
