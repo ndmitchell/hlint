@@ -1107,6 +1107,7 @@
     - warn: {lhs: notNull (filter f x), rhs: any f x}
     - warn: {lhs: "notNull [x]", rhs: "True", name: Evaluate}
     - warn: {lhs: "notNull []", rhs: "False", name: Evaluate}
+    - hint: {lhs: "\\(x,y) -> (f x, f y)", rhs: both f}
 
 # hints that will be enabled in future
 - group:
