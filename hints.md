@@ -13431,6 +13431,86 @@ optional p
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use return</td>
+<td>
+LHS:
+<code>
+Test.QuickCheck.choose (x, x)
+</code>
+<br>
+RHS:
+<code>
+return x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use return</td>
+<td>
+LHS:
+<code>
+Test.QuickCheck.chooseInt (x, x)
+</code>
+<br>
+RHS:
+<code>
+return x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use return</td>
+<td>
+LHS:
+<code>
+Test.QuickCheck.chooseInteger (x, x)
+</code>
+<br>
+RHS:
+<code>
+return x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use return</td>
+<td>
+LHS:
+<code>
+Test.QuickCheck.chooseBoundedIntegral (x, x)
+</code>
+<br>
+RHS:
+<code>
+return x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use return</td>
+<td>
+LHS:
+<code>
+Test.QuickCheck.chooseEnum (x, x)
+</code>
+<br>
+RHS:
+<code>
+return x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use oneof</td>
 <td>
 LHS:
@@ -13441,6 +13521,70 @@ Control.Monad.join (Test.QuickCheck.elements l)
 RHS:
 <code>
 Test.QuickCheck.oneof l
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use return</td>
+<td>
+LHS:
+<code>
+Test.QuickCheck.elements [x]
+</code>
+<br>
+RHS:
+<code>
+return x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use return</td>
+<td>
+LHS:
+<code>
+Test.QuickCheck.growingElements [x]
+</code>
+<br>
+RHS:
+<code>
+return x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+Test.QuickCheck.oneof [x]
+</code>
+<br>
+RHS:
+<code>
+x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+Test.QuickCheck.frequency [(a, x)]
+</code>
+<br>
+RHS:
+<code>
+x
 </code>
 <br>
 </td>
