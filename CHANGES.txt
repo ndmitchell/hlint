@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1420, suggest use of Data.Tuple.Extra.both in the extra hints
     #1407, fix some list-comp hints that applied too broadly
     #1407, suggest [ f x | x <- [y] ] to [f y]
     #1417, add some more isAlpha/isDigit suggestions
