@@ -254,7 +254,9 @@
     - warn: {lhs: "foldl (\\x _ -> a) b [1..c]", rhs: "iterate (\\x -> a) b !! c"}
     - warn: {lhs: iterate id, rhs: repeat}
     - warn: {lhs: zipWith f (repeat x), rhs: map (f x)}
+    - warn: {lhs: zip (repeat x), rhs: "map (_noParen_ x,)", note: RequiresExtension TupleSections}
     - warn: {lhs: zipWith f y (repeat z), rhs: map (`f` z) y}
+    - warn: {lhs: zip y (repeat z), rhs: "map (,_noParen_ z) y", note: RequiresExtension TupleSections}
     - warn: {lhs: listToMaybe (filter p x), rhs: find p x}
     - warn: {lhs: zip (take n x) (take n y), rhs: take n (zip x y)}
     - warn: {lhs: zip (take n x) (take m y), rhs: take (min n m) (zip x y), side: notEq n m, note: [IncreasesLaziness, DecreasesLaziness], name: Redundant take}
