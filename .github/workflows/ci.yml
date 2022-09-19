@@ -17,11 +17,7 @@ jobs:
         - os: windows-latest
           ghc: '9.2'
         - os: macOS-latest
-          # GHC 9.2.2 afflicted with a hadrian bug that results in
-          # 'ffitarget_XXX.h' file not found errors that manifest
-          # building ghc-lib-parser (see issue
-          # https://gitlab.haskell.org/ghc/ghc/-/issues/20592)
-          ghc: '9.2.3'
+          ghc: '9.2'
 
     steps:
     - run: git config --global core.autocrlf false
