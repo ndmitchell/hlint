@@ -4204,12 +4204,44 @@ map (f x)
 <td>
 LHS:
 <code>
+zip (repeat x)
+</code>
+<br>
+RHS:
+<code>
+map (_noParen_ x,)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use map</td>
+<td>
+LHS:
+<code>
 zipWith f y (repeat z)
 </code>
 <br>
 RHS:
 <code>
 map (`f` z) y
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use map</td>
+<td>
+LHS:
+<code>
+zip y (repeat z)
+</code>
+<br>
+RHS:
+<code>
+map (, _noParen_ z) y
 </code>
 <br>
 </td>

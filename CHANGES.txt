@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1421, change zip/repeat to map with tuple section
     #1418, add more QuickCheck hints
     #1420, suggest use of Data.Tuple.Extra.both in the extra hints
     #1407, fix some list-comp hints that applied too broadly
