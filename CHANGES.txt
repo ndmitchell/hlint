@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.5, released 2022-09-20
     #1421, change zip/repeat to map with tuple section
     #1418, add more QuickCheck hints
     #1420, suggest use of Data.Tuple.Extra.both in the extra hints
