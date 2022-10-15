@@ -2120,6 +2120,22 @@ sortOn (Data.Ord.Down . f) x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Avoid reverse</td>
+<td>
+LHS:
+<code>
+reverse (sort x)
+</code>
+<br>
+RHS:
+<code>
+sortBy (comparing Data.Ord.Down) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Move flip</td>
 <td>
 LHS:
