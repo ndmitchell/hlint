@@ -239,35 +239,3 @@ Found:
 Note: Custom message
 
 4 hints
-
----------------------------------------------------------------------
-RUN tests/no-sortOn-Down.lhs --hint=data/hlint.yaml
-FILE tests/no-sortOn-Down.lhs
-import Data.List (sortBy)
-import Data.Ord (Down (Down), comparing)
-
-testSortBy :: (Ord a) => [a] -> [a]
-testSortBy = sortBy (comparing Down)
-OUTPUT
-No hints
-
----------------------------------------------------------------------
-RUN tests/sortOn-Others.lhs --hint=data/hlint.yaml
-FILE tests/sortOn-Others.lhs
-import Data.List (sortBy)
-import Data.Ord (comparing)
-
-testSortBy :: (a -> Ordering) -> [a] -> [a]
-testSortBy f = sortBy (comparing f)
-OUTPUT
-1 hint
-
----------------------------------------------------------------------
-RUN tests/reverse-sort.lhs --hint=data/hlint.yaml
-FILE tests/reverse-sort.lhs
-import Data.List (sort)
-
-testSortReverse :: (Ord a) => [a] -> [a]
-testSortReverse x = reverse (sort x)
-OUTPUT
-1 hint

@@ -1420,6 +1420,9 @@
 # foo = liftIO $ window `on` deleteEvent $ do a; b
 # no = sort <$> f input `shouldBe` sort <$> x
 # sortBy (comparing length) -- sortOn length
+# no = sortBy (comparing Down)
+# yes = sortBy (comparing f) -- sortOn f
+# yes = reverse (sort x) -- sortBy (comparing Data.Ord.Down) x
 # myJoin = on $ child ^. ChildParentId ==. parent ^. ParentId
 # foo = typeOf (undefined :: Foo Int) -- typeRep (Proxy :: Proxy (Foo Int))
 # foo = typeOf (undefined :: a) -- typeRep (Proxy :: Proxy a)
