@@ -1,0 +1,17 @@
+---------------------------------------------------------------------
+RUN tests/do-block.hs --hint=data/do-block.yaml
+FILE tests/do-block.hs
+h x = case f x of
+  Just n -> g n
+  Nothing -> Nothing
+OUTPUT
+tests/do-block.hs:(1,7)-(3,20): Warning: Redundant Nothing
+Found:
+  case f x of
+    Just n -> g n
+    Nothing -> Nothing
+Perhaps:
+  do n <- f x
+     g n
+
+1 hint
