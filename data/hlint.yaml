@@ -112,7 +112,7 @@
     - warn: {lhs: head (sortBy f x), rhs: minimumBy f x, side: isCompare f}
     - warn: {lhs: last (sortBy f x), rhs: maximumBy f x, side: isCompare f}
     - warn: {lhs: reverse (sortBy f x), rhs: sortBy (flip f) x, name: Avoid reverse, side: isCompare f, note: Stabilizes sort order}
-    - warn: {lhs: sortBy (flip (comparing f)), rhs: sortBy (comparing (Down . f))}
+    - warn: {lhs: sortBy (flip (comparing f)), rhs: sortBy (comparing (Data.Ord.Down . f))}
     - warn: {lhs: reverse (sortOn f x), rhs: sortOn (Data.Ord.Down . f) x, name: Avoid reverse, note: Stabilizes sort order}
     - warn: {lhs: reverse (sort x), rhs: sortBy (comparing Data.Ord.Down) x, name: Avoid reverse, note: Stabilizes sort order}
     - hint: {lhs: flip (g `on` h), rhs: flip g `on` h, name: Move flip}
@@ -1419,7 +1419,7 @@
 # foo = liftIO $ window `on` deleteEvent $ do a; b
 # no = sort <$> f input `shouldBe` sort <$> x
 # no = sortBy (comparing Down)
-# yes = sortBy (flip (comparing f)) -- sortBy (comparing (Down . f))
+# yes = sortBy (flip (comparing f)) -- sortBy (comparing (Data.Ord.Down . f))
 # yes = reverse (sort x) -- sortBy (comparing Data.Ord.Down) x
 # myJoin = on $ child ^. ChildParentId ==. parent ^. ParentId
 # foo = typeOf (undefined :: Foo Int) -- typeRep (Proxy :: Proxy (Foo Int))
