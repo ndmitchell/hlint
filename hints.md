@@ -2072,7 +2072,7 @@ sortBy (flip f) x
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use sortOn</td>
+<td>Use Down</td>
 <td>
 LHS:
 <code>
@@ -2081,23 +2081,7 @@ sortBy (flip (comparing f))
 <br>
 RHS:
 <code>
-sortOn (Down . f)
-</code>
-<br>
-</td>
-<td>Warning</td>
-</tr>
-<tr>
-<td>Use sortOn</td>
-<td>
-LHS:
-<code>
-sortBy (comparing f)
-</code>
-<br>
-RHS:
-<code>
-sortOn f
+sortBy (comparing (Data.Ord.Down . f))
 </code>
 <br>
 </td>
@@ -2114,6 +2098,22 @@ reverse (sortOn f x)
 RHS:
 <code>
 sortOn (Data.Ord.Down . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Avoid reverse</td>
+<td>
+LHS:
+<code>
+reverse (sort x)
+</code>
+<br>
+RHS:
+<code>
+sortBy (comparing Data.Ord.Down) x
 </code>
 <br>
 </td>
