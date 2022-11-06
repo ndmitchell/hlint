@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1428, rename "Use map" hints that introduce tuple sections
     #1424, don't suggest sortOn; suggest avoiding `reverse . sort`
 3.5, released 2022-09-20
     #1421, change zip/repeat to map with tuple section

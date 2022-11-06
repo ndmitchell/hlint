@@ -4200,7 +4200,7 @@ map (f x)
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use map</td>
+<td>Use map with tuple-section</td>
 <td>
 LHS:
 <code>
@@ -4232,7 +4232,7 @@ map (`f` z) y
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use map</td>
+<td>Use map with tuple-section</td>
 <td>
 LHS:
 <code>
