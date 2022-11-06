@@ -1,0 +1,2 @@
+- ignore: { }
+- warn: {lhs: "case m of Just x -> y; Nothing -> Nothing", rhs: "do x <- m; y"}

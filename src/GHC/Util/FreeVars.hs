@@ -102,7 +102,22 @@ instance FreeVars (LocatedA (HsExpr GhcPs)) where
   freeVars (L _ (HsLamCase _ _ MG{mg_alts=(L _ ms)})) = free (allVars ms) -- Lambda case
   freeVars (L _ (HsCase _ of_ MG{mg_alts=(L _ ms)})) = freeVars of_ ^+ free (allVars ms) -- Case expr.
   freeVars (L _ (HsLet _ _ binds _ e)) = inFree binds e -- Let (rec).
-  freeVars (L _ (HsDo _ ctxt (L _ stmts))) = free (allVars stmts) -- Do block.
+  freeVars (L _ (HsDo _ ctxt (L _ stmts))) = snd $ foldl' alg mempty stmts -- Do block.
+    where
+      alg ::
+        (Set OccName, Set OccName) ->
+        LocatedA (StmtLR GhcPs GhcPs (LocatedA (HsExpr GhcPs))) ->
+        (Set OccName, Set OccName)
+      alg (accBound0, accFree0) stmt = (accBound, accFree)
+        where
+          accBound =
+            accBound0
+              ^+ ( case stmt of
+                     L _ (BindStmt _ pat _) -> bound (allVars pat)
+                     L _ (LetStmt _ binds) -> bound (allVars binds)
+                     _ -> mempty
+                 )
+          accFree = accFree0 ^+ (free (allVars stmt) ^- accBound0)
   freeVars (L _ (RecordCon _ _ (HsRecFields flds _))) = Set.unions $ map freeVars flds -- Record construction.
   freeVars (L _ (RecordUpd _ e flds)) =
     case flds of
