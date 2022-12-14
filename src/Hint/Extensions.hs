@@ -254,7 +254,7 @@ foo = $bar
 
 module Hint.Extensions(extensionsHint) where
 
-import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSSAnc,ghcModule,modComments)
+import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSSAnc,ghcModule,modComments,firstDeclComments)
 import Extension
 
 import Data.Generics.Uniplate.DataOnly
@@ -299,7 +299,13 @@ extensionsHint _ x =
             [ Note $ "Extension " ++ s ++ " is " ++ reason x
             | (s, Just x) <- explainedRemovals])
         [ModifyComment (toSSAnc (mkLanguagePragmas sl exts)) newPragma]
-    | (L sl _,  exts) <- languagePragmas $ pragmas (modComments x)
+    | (L sl _,  exts) <-
+      -- Comments appearing without a line-break before the first
+      -- declaration in a module are now associated with the
+      -- declaration not the module so to be safe, look also at
+      -- `firstDeclComments x`
+      -- (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+      languagePragmas $ pragmas (modComments x) ++ pragmas (firstDeclComments x)
     , let before = [(x, readExtension x) | x <- exts]
     , let after = filter (maybe True (`Set.member` keep) . snd) before
     , before /= after
@@ -320,7 +326,11 @@ extensionsHint _ x =
     -- All the extensions defined to be used.
     extensions :: Set.Set Extension
     extensions = Set.fromList $ mapMaybe readExtension $
-        concatMap snd $ languagePragmas (pragmas (modComments x))
+      -- Comments appearing without a line-break before the first
+      -- declaration in a module are now associated with the declaration
+      -- not the module so to be safe, look also at `firstDeclComments
+      -- x` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+        concatMap snd $ languagePragmas (pragmas (modComments x) ++ pragmas (firstDeclComments x))
 
     -- Those extensions we detect to be useful.
     useful :: Set.Set Extension

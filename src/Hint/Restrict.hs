@@ -20,7 +20,7 @@ foo = nub s
 </TEST>
 -}
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea,modComments)
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea,modComments,firstDeclComments)
 import Config.Type
 import Util
 
@@ -50,8 +50,13 @@ import GHC.Util
 -- FIXME: The settings should be partially applied, but that's hard to orchestrate right now
 restrictHint :: [Setting] -> ModuHint
 restrictHint settings scope m =
-    let anns = modComments m
-        ps   = pragmas anns
+    -- Comments appearing without a line-break before the first
+    -- declaration in a module are now associated with the declaration
+    -- not the module so to be safe, look also at `firstDeclComments
+    -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+    let annsMod = modComments m
+        annsFirstDecl = firstDeclComments m
+        ps   = pragmas annsMod ++ pragmas annsFirstDecl
         opts = flags ps
         exts = languagePragmas ps in
     checkPragmas modu opts exts rOthers ++

@@ -58,7 +58,7 @@ otherwise = True
 
 module Hint.Pattern(patternHint) where
 
-import Hint.Type(DeclHint,Idea,modComments,ideaTo,toSSA,toRefactSrcSpan,suggest,suggestRemove,warn)
+import Hint.Type(DeclHint,Idea,modComments,firstDeclComments,ideaTo,toSSA,toRefactSrcSpan,suggest,suggestRemove,warn)
 import Data.Generics.Uniplate.DataOnly
 import Data.Function
 import Data.List.Extra
@@ -91,7 +91,11 @@ patternHint _scope modu x =
     concatMap (patHint strict True) (universeBi $ transformBi noPatBind x) ++
     concatMap expHint (universeBi x)
   where
-    exts = nubOrd $ concatMap snd (languagePragmas (pragmas (modComments modu))) -- language extensions enabled at source
+    -- Comments appearing without a line-break before the first
+    -- declaration in a module are now associated with the declaration
+    -- not the module so to be safe, look also at `firstDeclComments
+    -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+    exts = nubOrd $ concatMap snd (languagePragmas (pragmas (modComments modu) ++ pragmas (firstDeclComments modu))) -- language extensions enabled at source
     strict = "Strict" `elem` exts
 
     noPatBind :: LHsBind GhcPs -> LHsBind GhcPs

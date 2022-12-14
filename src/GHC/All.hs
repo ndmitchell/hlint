@@ -5,7 +5,7 @@ module GHC.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
-    parseModuleEx, createModuleEx, createModuleExWithFixities, ghcComments, modComments,
+    parseModuleEx, createModuleEx, createModuleExWithFixities, ghcComments, modComments, firstDeclComments,
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
     ) where
 
@@ -95,6 +95,13 @@ ghcComments = universeBi . ghcModule
 -- | Extract just the list of a modules' leading comments (pragmas).
 modComments :: ModuleEx -> EpAnnComments
 modComments = comments . hsmodAnn . hsmodExt . unLoc . ghcModule
+
+-- | Extract comments associated with the first declaration of a module.
+firstDeclComments :: ModuleEx -> EpAnnComments
+firstDeclComments m =
+  case hsmodDecls . unLoc . ghcModule $ m of
+        [] -> EpaCommentsBalanced [] []
+        L (SrcSpanAnn ann _) _ : _ -> comments ann
 
 -- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String
