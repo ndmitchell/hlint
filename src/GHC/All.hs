@@ -5,7 +5,7 @@ module GHC.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
-    parseModuleEx, createModuleEx, createModuleExWithFixities, ghcComments, modComments,
+    parseModuleEx, createModuleEx, createModuleExWithFixities, createModuleExWithFixitiesAndExtensions, ghcComments, modComments,
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
     ) where
 
@@ -84,8 +84,9 @@ data ParseError = ParseError
     }
 
 -- | Result of 'parseModuleEx', representing a parsed module.
-newtype ModuleEx = ModuleEx {
-    ghcModule :: Located HsModule
+data ModuleEx = ModuleEx {
+    ghcModule :: Located HsModule,
+    hlintExtensions :: [Extension]
 }
 
 -- | Extract a complete list of all the comments in a module.
@@ -151,8 +152,14 @@ createModuleEx :: Located HsModule -> ModuleEx
 createModuleEx = createModuleExWithFixities (map toFixity defaultFixities)
 
 createModuleExWithFixities :: [(String, Fixity)] -> Located HsModule -> ModuleEx
-createModuleExWithFixities fixities ast =
-  ModuleEx (applyFixities (fixitiesFromModule ast ++ fixities) ast)
+createModuleExWithFixities = createModuleExWithFixitiesAndExtensions []
+
+-- | Create a 'ModuleEx' from a GHC module. Provide a list of custom operator
+-- fixities and a list of GHC extensions that should be used when parsing the module
+-- (if there are any extensions required other than those explicitly enabled in the module).
+createModuleExWithFixitiesAndExtensions :: [Extension] -> [(String, Fixity)] -> Located HsModule -> ModuleEx
+createModuleExWithFixitiesAndExtensions extensions fixities ast =
+  ModuleEx (applyFixities (fixitiesFromModule ast ++ fixities) ast) extensions
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
@@ -188,7 +195,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
         ExceptT $ parseFailureErr dynFlags str file str errs
       else do
         let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
-        pure $ ModuleEx (applyFixities fixes a)
+        pure $ ModuleEx (applyFixities fixes a) (enabledExtensions flags)
     PFailed s ->
       ExceptT $ parseFailureErr dynFlags str file str $ bagToList . getMessages  $ GhcPsMessage <$> snd (getPsMessages s)
   where

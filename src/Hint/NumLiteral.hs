@@ -19,12 +19,14 @@
 
 module Hint.NumLiteral (numLiteralHint) where
 
+import GHC.All (hlintExtensions)
 import GHC.Hs
 import GHC.LanguageExtensions.Type (Extension (..))
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
 import GHC.Util.ApiAnnotation (extensions)
 import Data.Char (isDigit, isOctDigit, isHexDigit)
+import Data.Foldable (toList)
 import Data.List (intercalate)
 import Data.Generics.Uniplate.DataOnly (universeBi)
 import Refact.Types
@@ -34,10 +36,16 @@ import Idea (Idea, suggest)
 
 numLiteralHint :: DeclHint
 numLiteralHint _ modu =
-  if NumericUnderscores `elem` extensions (modComments modu) then
+  -- TODO: there's a subtle bug when the module disables `NumericUnderscores`.
+  -- This seems pathological, though, because who would enable it for their
+  -- project but disable it in specific files?
+  if NumericUnderscores `elem` activeExtensions then
      concatMap suggestUnderscore . universeBi
   else
      const []
+  where
+    moduleExtensions = toList (extensions $ modComments modu)
+    activeExtensions = hlintExtensions modu <> toList moduleExtensions
 
 suggestUnderscore :: LHsExpr GhcPs -> [Idea]
 suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsIntegral intLit@(IL (SourceText srcTxt) _ _))))) =
