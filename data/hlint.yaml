@@ -585,7 +585,7 @@
     - warn: {lhs: flip traverse_, rhs: for_}
     - warn: {lhs: flip for_, rhs: traverse_}
     - warn: {lhs: foldr (*>) (pure ()), rhs: sequenceA_}
-    - warn: {lhs: foldr (*>) (return ()), rhs: sequenceA_}
+    - warn: {lhs: foldr (*>) (return ()), rhs: sequence_}
     - warn: {lhs: foldr (<|>) empty, rhs: asum}
     - warn: {lhs: liftA2 (flip ($)), rhs: (<**>)}
     - warn: {lhs: liftA2 f (pure x), rhs: fmap (f x)}
@@ -788,13 +788,13 @@
 
     # FOLDABLE
 
-    - warn: {lhs: case m of Nothing -> pure (); Just x -> f x, rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Nothing -> pure (); Just x -> f x, rhs: Data.Foldable.for_ m f}
     - warn: {lhs: case m of Nothing -> return (); Just x -> f x, rhs: Data.Foldable.forM_ m f}
-    - warn: {lhs: case m of Just x -> f x; Nothing -> pure (), rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Just x -> f x; Nothing -> pure (), rhs: Data.Foldable.for_ m f}
     - warn: {lhs: case m of Just x -> f x; Nothing -> return (), rhs: Data.Foldable.forM_ m f}
-    - warn: {lhs: case m of Just x -> f x; _ -> pure (), rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Just x -> f x; _ -> pure (), rhs: Data.Foldable.for_ m f}
     - warn: {lhs: case m of Just x -> f x; _ -> return (), rhs: Data.Foldable.forM_ m f}
-    - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.for_ m f}
 
     # STATE MONAD
 
