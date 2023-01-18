@@ -4,6 +4,8 @@
 <TEST>
 123456
 {-# LANGUAGE NumericUnderscores #-} \
+1234
+{-# LANGUAGE NumericUnderscores #-} \
 12345 -- @Suggestion 12_345 @NoRefactor
 {-# LANGUAGE NumericUnderscores #-} \
 123456789.0441234e-123456 -- @Suggestion 123_456_789.044_123_4e-123_456 @NoRefactor
@@ -65,7 +67,9 @@ addUnderscore intStr = numLitToStr underscoredNumLit
    chunkSize = if null (nl_prefix numLit) then 3 else 4
 
    underscore chunkSize = intercalate "_" . chunk chunkSize
-   underscoreFromRight chunkSize = reverse . underscore chunkSize . reverse
+   underscoreFromRight chunkSize str
+     | length str < 5 = str
+     | otherwise = reverse . underscore chunkSize . reverse $ str
    chunk chunkSize [] = []
    chunk chunkSize xs = a:chunk chunkSize b where (a, b) = splitAt chunkSize xs
 
