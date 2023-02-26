@@ -723,10 +723,20 @@
     - warn: {lhs: "[a | Right a <- b]", rhs: rights b, side: isVar a}
     - warn: {lhs: either Left (Right . f), rhs: fmap f}
     - warn: {lhs: either f g (fmap h x), rhs: either f (g . h) x, name: Redundant fmap}
+    - warn: {lhs: either f g (h <$> x), rhs: either f (g . h) x, name: Redundant fmap}
+    - warn: {lhs: either f g (x <&> h), rhs: either f (g . h) x, name: Redundant fmap}
     - warn: {lhs: isLeft (fmap f x), rhs: isLeft x}
+    - warn: {lhs: isLeft (f <$> x), rhs: isLeft x}
+    - warn: {lhs: isLeft (x <&> f), rhs: isLeft x}
     - warn: {lhs: isRight (fmap f x), rhs: isRight x}
+    - warn: {lhs: isRight (f <$> x), rhs: isRight x}
+    - warn: {lhs: isRight (x <&> f), rhs: isRight x}
     - warn: {lhs: fromLeft x (fmap f y), rhs: fromLeft x y}
+    - warn: {lhs: fromLeft x (f <$> y), rhs: fromLeft x y}
+    - warn: {lhs: fromLeft x (y <&> f), rhs: fromLeft x y}
     - warn: {lhs: fromRight x (fmap f y), rhs: either (const x) f y}
+    - warn: {lhs: fromRight x (f <$> y), rhs: either (const x) f y}
+    - warn: {lhs: fromRight x (y <&> f), rhs: either (const x) f y}
     - warn: {lhs: either (const x) id, rhs: fromRight x}
     - warn: {lhs: either id (const x), rhs: fromLeft x}
     - warn: {lhs: either Left f x, rhs: f =<< x}
