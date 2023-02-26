@@ -662,6 +662,7 @@
     - warn: {lhs: if isNothing x then y else fromJust x, rhs: fromMaybe y x}
     - warn: {lhs: if isJust x then fromJust x else y, rhs: fromMaybe y x}
     - warn: {lhs: isJust x && (fromJust x == y), rhs: x == Just y}
+    - warn: {lhs: isJust y && (x == fromJust y), rhs: Just x == y}
     - warn: {lhs: mapMaybe f (map g x), rhs: mapMaybe (f . g) x, name: Fuse mapMaybe/map}
     - warn: {lhs: fromMaybe a (fmap f x), rhs: maybe a f x}
     - warn: {lhs: fromMaybe a (f <$> x), rhs: maybe a f x}
