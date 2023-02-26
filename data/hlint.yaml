@@ -862,9 +862,9 @@
     - warn: {lhs: "snd (x,y)", rhs: "y", name: Evaluate}
     - warn: {lhs: fromJust (Just x), rhs: x, name: Evaluate}
     - warn: {lhs: fromLeft y (Left x), rhs: x, name: Evaluate}
-    - warn: {lhs: fromLeft y (Right x), rhs: y, name: Evaluate}
+    - warn: {lhs: fromLeft y (Right x), rhs: "y", name: Evaluate}
     - warn: {lhs: fromRight y (Right x), rhs: x, name: Evaluate}
-    - warn: {lhs: fromRight y (Left x), rhs: y, name: Evaluate}
+    - warn: {lhs: fromRight y (Left x), rhs: "y", name: Evaluate}
     - warn: {lhs: "head [x]", rhs: "x", name: Evaluate}
     - warn: {lhs: "last [x]", rhs: "x", name: Evaluate}
     - warn: {lhs: "tail [x]", rhs: "[]", name: Evaluate}
