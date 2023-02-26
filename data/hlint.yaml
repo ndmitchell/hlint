@@ -1147,8 +1147,8 @@
     - warn: {lhs: "readFileEncoding' utf8", rhs: "readFileUTF8'"}
     - warn: {lhs: "withBinaryFile a ReadMode hGetContents'", rhs: "readFileBinary' a"}
     - warn: {lhs: "writeFileEncoding utf8", rhs: "writeFileUTF8"}
-    - warn: {lhs: "head $ x ++ [y]", rhs: "headDef y x"}
-    - warn: {lhs: "last $ x : y", rhs: "lastDef x y"}
+    - warn: {lhs: "head (x ++ [y])", rhs: "headDef y x"}
+    - warn: {lhs: "last (x : y)", rhs: "lastDef x y"}
     - warn: {lhs: "drop 1", rhs: "drop1"}
     - warn: {lhs: "dropEnd 1", rhs: "dropEnd1"}
     - warn: {lhs: notNull (concat x), rhs: any notNull x}
