@@ -1118,6 +1118,8 @@
     - warn: {lhs: "notNull [x]", rhs: "True", name: Evaluate}
     - warn: {lhs: "notNull []", rhs: "False", name: Evaluate}
     - hint: {lhs: "\\(x,y) -> (f x, f y)", rhs: both f}
+    - hint: {lhs: nub (sort x), rhs: nubSort x}
+    - warn: {lhs: sort (nub x), rhs: nubSort x}
 
 # hints that will be enabled in future
 - group:
