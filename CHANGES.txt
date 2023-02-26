@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1452, add more evaluate rules, e.g. fromJust (Just x) ==> x
     #1488, add <$>/<&> hints for Either
     #1447, make <$> hints also work on <&> (dualized)
     #1450, suggest nub/sort ==> nubSort with the extra hints
