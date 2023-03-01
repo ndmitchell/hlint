@@ -668,6 +668,10 @@
     - warn: {lhs: if isJust x then f (fromJust x) else y, rhs: maybe y f x}
     - warn: {lhs: maybe Nothing (Just . f), rhs: fmap f}
     - hint: {lhs: map fromJust (filter isJust x), rhs:  Data.Maybe.catMaybes x}
+    - hint: {lhs: filter isJust (map f x), rhs: map Just (mapMaybe f x), name: Use mapMaybe}
+    - hint: {lhs: filter isJust (f <*> x), rhs: map Just (mapMaybe f x), name: Use mapMaybe}
+    - hint: {lhs: filter isJust (x <&> f), rhs: map Just (mapMaybe f x), name: Use mapMaybe}
+    - hint: {lhs: filter isJust (fmap f x), rhs: map Just (mapMaybe f x), name: Use mapMaybe}
     - warn: {lhs: x == Nothing , rhs:  isNothing x}
     - warn: {lhs: Nothing == x , rhs:  isNothing x}
     - warn: {lhs: x /= Nothing , rhs:  Data.Maybe.isJust x}
