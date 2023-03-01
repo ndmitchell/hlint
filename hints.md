@@ -9888,6 +9888,70 @@ Data.Maybe.catMaybes x
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Use mapMaybe</td>
+<td>
+LHS:
+<code>
+filter isJust (map f x)
+</code>
+<br>
+RHS:
+<code>
+map Just (mapMaybe f x)
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use mapMaybe</td>
+<td>
+LHS:
+<code>
+filter isJust (f <*> x)
+</code>
+<br>
+RHS:
+<code>
+map Just (mapMaybe f x)
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use mapMaybe</td>
+<td>
+LHS:
+<code>
+filter isJust (x <&> f)
+</code>
+<br>
+RHS:
+<code>
+map Just (mapMaybe f x)
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use mapMaybe</td>
+<td>
+LHS:
+<code>
+filter isJust (fmap f x)
+</code>
+<br>
+RHS:
+<code>
+map Just (mapMaybe f x)
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Use isNothing</td>
 <td>
 LHS:
