@@ -1053,7 +1053,6 @@
     - warn: {lhs: map concat (forM a b), rhs: concatForM a b}
     - warn: {lhs: concat <$> forM a b, rhs: concatForM a b}
     - warn: {lhs: fmap concat (forM_ a b), rhs: concatForM_ a b}
-    - warn: {lhs: map concat (forM_ a b), rhs: concatForM_ a b}
     - warn: {lhs: concat <$> forM_ a b, rhs: concatForM_ a b}
     - warn: {lhs: "maybe (pure ()) b a", rhs: "whenJust a b"}
     - warn: {lhs: "maybe (return ()) b a", rhs: "whenJust a b"}
