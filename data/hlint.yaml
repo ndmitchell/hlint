@@ -6,30 +6,34 @@
 - package:
     name: base
     modules:
-    - import Prelude
+    - import Control.Applicative
     - import Control.Arrow
+    - import Control.Concurrent.Chan
     - import Control.Exception
+    - import Control.Exception.Base
     - import Control.Monad
     - import Control.Monad.Trans.State
-    - import qualified Data.Foldable
-    - import Data.Foldable(asum, sequenceA_, traverse_, for_)
-    - import Data.Traversable(traverse, for)
-    - import Control.Applicative
     - import Data.Bifunctor
+    - import Data.Char
+    - import Data.Either
+    - import Data.Fixed
+    - import Data.Foldable(asum, sequenceA_, traverse_, for_)
     - import Data.Function
     - import Data.Int
-    - import Data.Char
     - import Data.List as Data.List
     - import Data.List as X
+    - import Data.List.NonEmpty
     - import Data.Maybe
     - import Data.Monoid
-    - import System.IO
-    - import Control.Concurrent.Chan
-    - import System.Mem.Weak
-    - import Control.Exception.Base
-    - import System.Exit
-    - import Data.Either
+    - import Data.Ratio
+    - import Data.Traversable(traverse, for)
     - import Numeric
+    - import Prelude
+    - import System.Exit
+    - import System.IO
+    - import System.Mem.Weak
+    - import Text.Read
+    - import qualified Data.Foldable
 
     - import IO as System.IO
     - import List as Data.List
@@ -1088,6 +1092,100 @@
     - hint: {lhs: "\\(x, y) -> [x, y]", rhs: Data.Bifoldable.biList, note: IncreasesLaziness}
     - hint: {lhs: const mempty, rhs: mempty}
     - hint: {lhs: \x -> mempty, rhs: mempty, name: Redundant lambda}
+
+# Warn on partial functions whose use can be avoided relatively easily.
+# These functions are in the base package, excluding IO and GHC modules.
+- group:
+    name: partial
+    enabled: false
+    imports:
+    - package base
+    rules:
+
+    # Data.Bifoldable
+
+    - warn: {lhs: bifoldr1, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: bifoldl1, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: bimaximum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: biminimum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: bimaximumBy, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: biminimumBy, rhs: undefined, name: Avoid partial function}
+
+    # Data.Bits
+
+    - warn: {lhs: bitSize x, rhs: "case bitSizeMaybe x of Just n -> n; Nothing -> error _", name: Avoid partial function}
+    - warn: {lhs: shiftL x b, rhs: shift x b, name: Avoid partial function}
+    - warn: {lhs: shiftR x b, rhs: shift x (-b), name: Avoid partial function}
+    - warn: {lhs: unsafeShiftL x b, rhs: shift x b, name: Avoid partial function}
+    - warn: {lhs: unsafeShiftR x b, rhs: shift x (-b), name: Avoid partial function}
+    - warn: {lhs: rotateL x b, rhs: rotate x b, name: Avoid partial function}
+    - warn: {lhs: rotateR x b, rhs: rotate x (-b), name: Avoid partial function}
+
+    # Data.Foldable
+
+    - warn: {lhs: foldr1, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: foldl1, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: maximum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: minimum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: maximumBy, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: minimumBy, rhs: undefined, name: Avoid partial function}
+
+    # Data.List
+
+    - warn: {lhs: head l, rhs: "case l of x:_ -> x; [] -> error _", side: not (isNonEmpty l), name: Avoid partial function}
+    - warn: {lhs: last l, rhs: "case reverse l of x:_ -> x; [] -> error _", side: not (isNonEmpty l), name: Avoid partial function}
+    - warn: {lhs: tail l, rhs: "case l of _:xs -> xs; [] -> error _", side: not (isNonEmpty x), name: Avoid partial function}
+    - warn: {lhs: init l, rhs: "case reverse l of _:xs -> reverse xs; [] -> error _", side: not (isNonEmpty x), name: Avoid partial function}
+    - warn: {lhs: l !! n, rhs: "case drop n l of x:_ -> x; [] -> error _", name: Avoid partial function}
+
+    # Data.List.NonEmpty
+
+    - warn: {lhs: Data.List.NonEmpty.fromList l, rhs: "case nonEmpty l of Just xs -> xs; Nothing -> error _", name: Avoid partial function}
+
+    # Data.Maybe
+
+    - warn: {lhs: fromJust v, rhs: "case v of Just x -> x; Nothing -> error _", name: Avoid partial function}
+
+# Strictly warn even on partial functions in the base package whose use
+# are almost unavoidable for their functionality.
+- group:
+    name: partial-strict
+    enabled: false
+    imports:
+    - package base
+    rules:
+
+    # Data.Char
+
+    - warn: {lhs: digitToInt, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: intToDigit, rhs: undefined, name: Avoid partial function}
+
+    # Data.Fixed
+
+    - warn: {lhs: div', rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: mod', rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: divMod', rhs: undefined, name: Avoid partial function}
+
+    # Data.List
+
+    - warn: {lhs: cycle, rhs: undefined, name: Avoid partial function}
+
+    # Data.Ratio
+
+    - warn: {lhs: x % y, rhs: undefined, name: Avoid partial function}
+
+    # Prelude
+
+    - warn: {lhs: succ, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: pred, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: toEnum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: fromEnum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: quot, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: rem, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: div, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: mod, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: quotRem, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: divMod, rhs: undefined, name: Avoid partial function}
 
 # hints that use the 'extra' library
 - group:
