@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1465, improve the timing information with -v flag
     #1454, filter Just . map f ==> map Just . mapMaybe f
     #1452, add more evaluate rules, e.g. fromJust (Just x) ==> x
     #1488, add <$>/<&> hints for Either
