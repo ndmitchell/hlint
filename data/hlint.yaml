@@ -489,11 +489,9 @@
     - hint: {lhs: pure . f =<< m, rhs: f <$> m}
     - hint: {lhs: return . f =<< m, rhs: f <$> m}
     - warn: {lhs: fmap f x >>= g, rhs: x >>= g . f}
-    - warn: {lhs: map f x >>= g, rhs: x >>= g . f}
     - warn: {lhs: f <$> x >>= g, rhs: x >>= g . f}
     - warn: {lhs: x Data.Functor.<&> f >>= g, rhs: x >>= g . f}
     - warn: {lhs: g =<< fmap f x, rhs: g . f =<< x}
-    - warn: {lhs: g =<< map f x, rhs: g . f =<< x}
     - warn: {lhs: g =<< f <$> x, rhs: g . f =<< x}
     - warn: {lhs: g =<< (x Data.Functor.<&> f), rhs: g . f =<< x}
     - warn: {lhs: if x then y else pure (), rhs: Control.Monad.when x $ _noParen_ y, side: not (isAtom y)}
@@ -520,7 +518,6 @@
     - warn: {lhs: id =<< x, rhs: Control.Monad.join x}
     - hint: {lhs: join (f <$> x), rhs: f =<< x}
     - hint: {lhs: join (fmap f x), rhs: f =<< x}
-    - hint: {lhs: join (map f x), rhs: f =<< x}
     - hint: {lhs: a >> pure (), rhs: Control.Monad.void a, side: isAtom a || isApp a}
     - hint: {lhs: a >> return (), rhs: Control.Monad.void a, side: isAtom a || isApp a}
     - warn: {lhs: fmap (const ()), rhs: Control.Monad.void}
@@ -564,7 +561,6 @@
 
     - warn: {lhs: unzip <$> mapM f x, rhs: Control.Monad.mapAndUnzipM f x}
     - warn: {lhs: fmap unzip (mapM f x), rhs: Control.Monad.mapAndUnzipM f x}
-    - warn: {lhs: map unzip (mapM f x), rhs: Control.Monad.mapAndUnzipM f x}
     - warn: {lhs: sequence (zipWith f x y), rhs: Control.Monad.zipWithM f x y}
     - warn: {lhs: sequence_ (zipWith f x y), rhs: Control.Monad.zipWithM_ f x y}
     - warn: {lhs: sequence (replicate n x), rhs: Control.Monad.replicateM n x}
@@ -1043,6 +1039,10 @@
     - hint: {lhs: "\\(x, y) -> [x, y]", rhs: Data.Bifoldable.biList, note: IncreasesLaziness}
     - hint: {lhs: const mempty, rhs: mempty}
     - hint: {lhs: \x -> mempty, rhs: mempty, name: Redundant lambda}
+    - warn: {lhs: map f x >>= g, rhs: x >>= g . f}
+    - warn: {lhs: g =<< map f x, rhs: g . f =<< x}
+    - hint: {lhs: join (map f x), rhs: f =<< x}
+    - warn: {lhs: map unzip (mapM f x), rhs: Control.Monad.mapAndUnzipM f x}
 
 # hints that use the 'extra' library
 - group:
