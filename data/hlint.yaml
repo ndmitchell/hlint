@@ -1092,6 +1092,10 @@
     - hint: {lhs: "\\(x, y) -> [x, y]", rhs: Data.Bifoldable.biList, note: IncreasesLaziness}
     - hint: {lhs: const mempty, rhs: mempty}
     - hint: {lhs: \x -> mempty, rhs: mempty, name: Redundant lambda}
+    - warn: {lhs: map f x >>= g, rhs: x >>= g . f}
+    - warn: {lhs: g =<< map f x, rhs: g . f =<< x}
+    - hint: {lhs: join (map f x), rhs: f =<< x}
+    - warn: {lhs: map unzip (mapM f x), rhs: Control.Monad.mapAndUnzipM f x}
 
 # Warn on partial functions whose use can be avoided relatively easily.
 # These functions are in the base package, excluding IO and GHC modules.
@@ -1193,6 +1197,7 @@
     enabled: false
     rules:
     - warn: {lhs: fmap concat (forM a b), rhs: concatForM a b}
+    - warn: {lhs: map concat (forM a b), rhs: concatForM a b}
     - warn: {lhs: concat <$> forM a b, rhs: concatForM a b}
     - warn: {lhs: forM a b <&> concat, rhs: concatForM a b}
     - warn: {lhs: "maybe (pure ()) b a", rhs: "whenJust a b"}
