@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1449, add some more generalize hints that suggest fmap instead of map
     Never suggest concatForM_, because it doesn't exist
     #1467, and groups for warning on partial functions
     #1465, improve the timing information with -v flag
