@@ -33,6 +33,7 @@ import Hint.Unsafe
 import Hint.NewType
 import Hint.Smell
 import Hint.NumLiteral
+import Hint.PatternWildCard
 
 -- | A list of the builtin hints wired into HLint.
 --   This list is likely to grow over time.
@@ -40,7 +41,7 @@ data HintBuiltin =
     HintList | HintListRec | HintMonad | HintLambda | HintFixities |
     HintBracket | HintNaming | HintPattern | HintImport | HintExport |
     HintPragma | HintExtensions | HintUnsafe | HintDuplicate | HintRestrict |
-    HintComment | HintNewType | HintSmell | HintNumLiteral
+    HintComment | HintNewType | HintSmell | HintNumLiteral | HintPatternWildCard
     deriving (Show,Eq,Ord,Bounded,Enum)
 
 -- See https://github.com/ndmitchell/hlint/issues/1150 - Duplicate is too slow
@@ -68,6 +69,7 @@ builtin x = case x of
     HintMonad      -> decl monadHint
     HintExtensions -> modu extensionsHint
     HintNumLiteral -> decl numLiteralHint
+    HintPatternWildCard -> decl patternWildCardHint
     where
         wrap = timed "Hint" (drop 4 $ show x) . forceList
         decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}

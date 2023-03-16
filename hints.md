@@ -1402,6 +1402,38 @@ x
 </tr>
 </table>
 
+## Builtin PatternWildCard
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Don't use wildcard in pattern match</td>
+<td>
+Example: 
+<code>
+case x of { Foo _ -> spam }
+</code>
+<br>
+Found:
+<code>
+_
+</code>
+<br>
+Suggestion:
+<code>
+
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Ignore</td>
+</tr>
+</table>
+
 ## Builtin Pragma
 
 <table>
