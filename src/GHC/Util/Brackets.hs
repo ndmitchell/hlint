@@ -38,6 +38,8 @@ instance Brackets (LocatedA (HsExpr GhcPs)) where
       HsUnboundVar{} -> True
       -- Technically atomic, but lots of people think it shouldn't be
       HsRecSel{} -> False
+      -- Only relevant for OverloadedRecordDot extension
+      HsGetField{} -> True
       HsOverLabel{} -> True
       HsIPVar{} -> True
       -- Note that sections aren't atoms (but parenthesized sections are).
