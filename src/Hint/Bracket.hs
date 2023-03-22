@@ -44,7 +44,13 @@ issue970 = (f x +) (g x) -- f x + (g x)
 issue969 = (Just \x -> x || x) *> Just True
 issue1179 = do(this is a test) -- do this is a test
 issue1212 = $(Git.hash)
-issue1471 = (x.y) -- @Suggestion x.y
+
+-- no record dot syntax
+referenceDesignator = ReferenceDesignator (p.placementReferenceDesignator)
+
+-- record dot syntax
+{-# LANGUAGE OverloadedRecordDot #-} \
+referenceDesignator = ReferenceDesignator (p.placementReferenceDesignator) -- p.placementReferenceDesignator
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
