@@ -45,6 +45,13 @@ issue969 = (Just \x -> x || x) *> Just True
 issue1179 = do(this is a test) -- do this is a test
 issue1212 = $(Git.hash)
 
+-- no record dot syntax
+referenceDesignator = ReferenceDesignator (p.placementReferenceDesignator)
+
+-- record dot syntax
+{-# LANGUAGE OverloadedRecordDot #-} \
+referenceDesignator = ReferenceDesignator (p.placementReferenceDesignator) -- p.placementReferenceDesignator @NoRefactor: refactor requires GHC >= 9.2.1
+
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
 foo :: (Maybe Int) -> a -- @Suggestion Maybe Int -> a
