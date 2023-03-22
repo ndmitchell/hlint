@@ -50,7 +50,7 @@ referenceDesignator = ReferenceDesignator (p.placementReferenceDesignator)
 
 -- record dot syntax
 {-# LANGUAGE OverloadedRecordDot #-} \
-referenceDesignator = ReferenceDesignator (p.placementReferenceDesignator) -- p.placementReferenceDesignator
+referenceDesignator = ReferenceDesignator (p.placementReferenceDesignator) -- p.placementReferenceDesignator @NoRefactor: refactor requires GHC >= 9.2.1
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
