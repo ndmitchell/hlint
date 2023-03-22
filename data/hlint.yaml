@@ -210,6 +210,7 @@
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: not (isApp f)}
     - hint: {lhs: "map f (fromMaybe [] x)", rhs: "maybe [] (map f) x"}
     - warn: {lhs: not (elem x y), rhs: notElem x y}
+    - warn: {lhs: not (notElem x y), rhs: elem x y}
     - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
     - warn: {lhs: "x ++ concatMap (' ':) y", rhs: "unwords (x:y)"}
     - warn: {lhs: intercalate " ", rhs: unwords}
@@ -937,6 +938,7 @@
     - warn: {lhs: "toList      (x,b)", rhs: b, name: Using toList on tuple}
     - warn: {lhs: "maximum     (x,b)", rhs: b, name: Using maximum on tuple}
     - warn: {lhs: "minimum     (x,b)", rhs: b, name: Using minimum on tuple}
+    - warn: {lhs: "notElem e   (x,b)", rhs: e /= b, name: Using notElem on tuple}
     - warn: {lhs: "sum         (x,b)", rhs: b, name: Using sum on tuple}
     - warn: {lhs: "product     (x,b)", rhs: b, name: Using product on tuple}
     - warn: {lhs: "concat      (x,b)", rhs: b, name: Using concat on tuple}
@@ -957,6 +959,7 @@
     - warn: {lhs: "toList      (x,y,b)", rhs: b, name: Using toList on tuple}
     - warn: {lhs: "maximum     (x,y,b)", rhs: b, name: Using maximum on tuple}
     - warn: {lhs: "minimum     (x,y,b)", rhs: b, name: Using minimum on tuple}
+    - warn: {lhs: "notElem e   (x,y,b)", rhs: e /= b, name: Using notElem on tuple}
     - warn: {lhs: "sum         (x,y,b)", rhs: b, name: Using sum on tuple}
     - warn: {lhs: "product     (x,y,b)", rhs: b, name: Using product on tuple}
     - warn: {lhs: "concat      (x,y,b)", rhs: b, name: Using concat on tuple}
@@ -1263,10 +1266,12 @@
     - warn: {lhs: "last (x : y)", rhs: "lastDef x y"}
     - warn: {lhs: "drop 1", rhs: "drop1"}
     - warn: {lhs: "dropEnd 1", rhs: "dropEnd1"}
+    - warn: {lhs: not (notNull x), rhs: null x}
     - warn: {lhs: notNull (concat x), rhs: any notNull x}
     - warn: {lhs: notNull (filter f x), rhs: any f x}
     - warn: {lhs: "notNull [x]", rhs: "True", name: Evaluate}
     - warn: {lhs: "notNull []", rhs: "False", name: Evaluate}
+    - warn: {lhs: "notNull \"\"", rhs: "False", name: Evaluate}
     - hint: {lhs: "\\(x,y) -> (f x, f y)", rhs: both f}
     - warn: {lhs: fromLeft' (Left x), rhs: x, name: Evaluate}
     - warn: {lhs: fromRight' (Right x), rhs: x, name: Evaluate}
@@ -1274,6 +1279,7 @@
     - warn: {lhs: fromEither (Right x), rhs: x, name: Evaluate}
     - hint: {lhs: nub (sort x), rhs: nubSort x}
     - warn: {lhs: sort (nub x), rhs: nubSort x}
+    - warn: {lhs: notNull x, rhs: "True", side: isTuple x, name: Using notNull on tuple}
 
 # hints that will be enabled in future
 - group:
