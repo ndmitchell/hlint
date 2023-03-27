@@ -46,7 +46,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 -- @
 -- is. We advise that such constants should have a @NOINLINE@ pragma.
 unsafeHint :: DeclHint
-unsafeHint _ (ModuleEx (L _ m)) = \ld@(L loc d) ->
+unsafeHint _ ModuleEx {ghcModule = L _ m} = \ld@(L loc d) ->
   [rawIdea Hint.Type.Warning "Missing NOINLINE pragma" (locA loc)
          (unsafePrettyPrint d)
          (Just $ trimStart (unsafePrettyPrint $ gen x) ++ "\n" ++ unsafePrettyPrint d)

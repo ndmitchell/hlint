@@ -22,7 +22,7 @@ import GHC.Types.Name.Occurrence
 import GHC.Types.Name.Reader
 
 exportHint :: ModuHint
-exportHint _ (ModuleEx (L s m@HsModule {hsmodName = Just name, hsmodExports = exports}) )
+exportHint _ ModuleEx {ghcModule = L s m@HsModule {hsmodName = Just name, hsmodExports = exports}}
   | Nothing <- exports =
       let r = o{ hsmodExports = Just (noLocA [noLocA (IEModuleContents EpAnnNotUsed name)] )} in
       [(ignore "Use module export list" (L s o) (noLoc r) []){ideaNote = [Note "an explicit list is usually better"]}]
