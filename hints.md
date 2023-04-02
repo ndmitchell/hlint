@@ -2920,6 +2920,38 @@ span p
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use break</td>
+<td>
+LHS:
+<code>
+span (notElem x)
+</code>
+<br>
+RHS:
+<code>
+break (elem x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use span</td>
+<td>
+LHS:
+<code>
+break (notElem x)
+</code>
+<br>
+RHS:
+<code>
+span (elem x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use span</td>
 <td>
 LHS:
@@ -8124,6 +8156,22 @@ unless x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use unless</td>
+<td>
+LHS:
+<code>
+when (notElem x y)
+</code>
+<br>
+RHS:
+<code>
+unless (elem x y)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use when</td>
 <td>
 LHS:
@@ -8134,6 +8182,22 @@ unless (not x)
 RHS:
 <code>
 when x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use when</td>
+<td>
+LHS:
+<code>
+unless (notElem x y)
+</code>
+<br>
+RHS:
+<code>
+when (elem x y)
 </code>
 <br>
 </td>
