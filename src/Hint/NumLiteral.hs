@@ -28,15 +28,21 @@ import GHC.Types.SourceText
 import GHC.Util.ApiAnnotation (extensions)
 import Data.Char (isDigit, isOctDigit, isHexDigit)
 import Data.List (intercalate)
+import Data.Set (union)
 import Data.Generics.Uniplate.DataOnly (universeBi)
 import Refact.Types
 
-import Hint.Type (DeclHint, toSSA, modComments)
+import Hint.Type (DeclHint, toSSA, modComments, firstDeclComments)
 import Idea (Idea, suggest)
 
 numLiteralHint :: DeclHint
 numLiteralHint _ modu =
-  if NumericUnderscores `elem` extensions (modComments modu) then
+  -- Comments appearing without an empty line before the first
+  -- declaration in a module are now associated with the declaration
+  -- not the module so to be safe, look also at `firstDeclComments
+  -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+  let exts = union (extensions (modComments modu)) (extensions (firstDeclComments modu)) in
+  if NumericUnderscores `elem` exts then
      concatMap suggestUnderscore . universeBi
   else
      const []
@@ -46,12 +52,14 @@ suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsIntegral intLit@(IL (Sour
   [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` srcTxt, srcTxt /= underscoredSrcTxt ]
   where
     underscoredSrcTxt = addUnderscore srcTxt
+    y :: LocatedAn an (HsExpr GhcPs)
     y = noLocA $ HsOverLit EpAnnNotUsed $ ol{ol_val = HsIntegral intLit{il_text = SourceText underscoredSrcTxt}}
     r = Replace Expr (toSSA x) [("a", toSSA y)] "a"
 suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsFractional fracLit@(FL (SourceText srcTxt) _ _ _ _))))) =
   [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` srcTxt, srcTxt /= underscoredSrcTxt ]
   where
     underscoredSrcTxt = addUnderscore srcTxt
+    y :: LocatedAn an (HsExpr GhcPs)
     y = noLocA $ HsOverLit EpAnnNotUsed $ ol{ol_val = HsFractional fracLit{fl_text = SourceText underscoredSrcTxt}}
     r = Replace Expr (toSSA x) [("a", toSSA y)] "a"
 suggestUnderscore _ = mempty

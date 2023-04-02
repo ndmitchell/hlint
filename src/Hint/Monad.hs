@@ -189,7 +189,7 @@ modifyAppHead :: forall a. (LIdP GhcPs -> (LIdP GhcPs, a)) -> LHsExpr GhcPs -> (
 modifyAppHead f = go id
   where
     go :: (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, Maybe a)
-    go wrap (L l (HsPar _ p x q )) = go (wrap . L l . \x -> HsPar EpAnnNotUsed p x q) x
+    go wrap (L l (HsPar _ p x q)) = go (wrap . L l . \y -> HsPar EpAnnNotUsed p y q) x
     go wrap (L l (HsApp _ x y)) = go (\x -> wrap $ L l (HsApp EpAnnNotUsed x y)) x
     go wrap (L l (OpApp _ x op y)) | isDol op = go (\x -> wrap $ L l (OpApp EpAnnNotUsed x op y)) x
     go wrap (L l (HsVar _ x)) = (wrap (L l (HsVar NoExtField x')), Just a)
@@ -297,7 +297,7 @@ monadLet xs = mapMaybe mkLet xs
             grhs = noLocA (GRHS EpAnnNotUsed [] rhs)
             grhss = GRHSs emptyComments [grhs] (EmptyLocalBinds noExtField)
             match = noLocA $ Match EpAnnNotUsed (FunRhs p Prefix NoSrcStrict) [] grhss
-            fb = noLocA $ FunBind noExtField p (MG noExtField (noLocA [match]) Generated) []
+            fb = noLocA $ FunBind noExtField p (MG Generated (noLocA [match]))
             binds = unitBag fb
             valBinds = ValBinds NoAnnSortKey binds []
             localBinds = HsValBinds EpAnnNotUsed valBinds

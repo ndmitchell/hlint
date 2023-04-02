@@ -239,12 +239,12 @@ Does not support refactoring.
 <td>
 Example: 
 <pre>
-{-# LANGUAGE OverloadedRecordDot #-} 
-f = (. foo)
+{-# LANGUAGE TypeData #-} 
+data T = MkT
 </pre>
 Found:
 <code>
-{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE TypeData #-}
 </code>
 <br>
 Suggestion:

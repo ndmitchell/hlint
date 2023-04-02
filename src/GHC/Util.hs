@@ -41,7 +41,7 @@ import GHC.Data.FastString
 import System.FilePath
 import Language.Preprocessor.Unlit
 
-fileToModule :: FilePath -> String -> DynFlags -> ParseResult (Located HsModule)
+fileToModule :: FilePath -> String -> DynFlags -> ParseResult (Located (HsModule GhcPs))
 fileToModule filename str flags =
   parseFile filename flags
     (if takeExtension filename /= ".lhs" then str else unlit filename str)

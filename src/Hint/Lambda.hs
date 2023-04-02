@@ -169,7 +169,7 @@ lambdaBind
     where
           reform :: [LPat GhcPs] -> LHsExpr GhcPs -> Located (HsDecl GhcPs)
           reform ps b = L (combineSrcSpans (locA loc1) (locA loc2)) $ ValD noExtField $
-             origBind {fun_matches = MG noExtField (noLocA [noLocA $ Match EpAnnNotUsed ctxt ps $ GRHSs emptyComments [noLocA $ GRHS EpAnnNotUsed [] b] $ EmptyLocalBinds noExtField]) Generated}
+             origBind {fun_matches = MG Generated (noLocA [noLocA $ Match EpAnnNotUsed ctxt ps $ GRHSs emptyComments [noLocA $ GRHS EpAnnNotUsed [] b] $ EmptyLocalBinds noExtField])}
 
           mkSubtsAndTpl newPats newBody = (sub, tpl)
             where
@@ -265,7 +265,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                  -- we need to
                  --     * add brackets to the match, because matches in lambdas require them
                  --     * mark match as being in a lambda context so that it's printed properly
-                 oldMG@(MG _ (L _ [L _ oldmatch]) _)
+                 oldMG@(MG _ (L _ [L _ oldmatch]))
                    | all (\(L _ (GRHS _ stmts _)) -> null stmts) (grhssGRHSs (m_grhss oldmatch)) ->
                      let patLocs = fmap (locA . getLoc) (m_pats oldmatch)
                          bodyLocs = concatMap (\case L _ (GRHS _ _ body) -> [locA (getLoc body)])
@@ -293,7 +293,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                          ]
 
                  -- otherwise we should use @LambdaCase@
-                 MG _ (L _ _) _ ->
+                 MG _ (L _ _) ->
                      [(suggestN "Use lambda-case" (reLoc o) $ noLoc $ HsLamCase EpAnnNotUsed LamCase matchGroup)
                          {ideaNote=[RequiresExtension "LambdaCase"]}]
         _ -> []
