@@ -176,6 +176,8 @@
     - warn: {lhs: foldr (.) id l z, rhs: foldr ($) z l}
     - warn: {lhs: span (not . p), rhs: break p}
     - warn: {lhs: break (not . p), rhs: span p}
+    - warn: {lhs: span (notElem x), rhs: break (elem x), name: Use break}
+    - warn: {lhs: break (notElem x), rhs: span (elem x), name: Use span}
     - warn: {lhs: "(takeWhile p x, dropWhile p x)", rhs: span p x, note: DecreasesLaziness}
     - warn: {lhs: fst (span p x), rhs: takeWhile p x}
     - warn: {lhs: snd (span p x), rhs: dropWhile p x}
@@ -538,7 +540,9 @@
     - hint: {lhs: flip forM, rhs: mapM}
     - hint: {lhs: flip forM_, rhs: mapM_}
     - warn: {lhs: when (not x), rhs: unless x}
+    - warn: {lhs: when (notElem x y), rhs: unless (elem x y), name: Use unless}
     - warn: {lhs: unless (not x), rhs: when x}
+    - warn: {lhs: unless (notElem x y), rhs: when (elem x y), name: Use when}
     - warn: {lhs: x >>= id, rhs: Control.Monad.join x}
     - warn: {lhs: id =<< x, rhs: Control.Monad.join x}
     - hint: {lhs: join (f <$> x), rhs: f =<< x}
@@ -1272,7 +1276,11 @@
     - warn: {lhs: "map toUpper", rhs: "upper"}
     - warn: {lhs: "mergeBy compare", rhs: "merge"}
     - warn: {lhs: "breakEnd (not . a)", rhs: "spanEnd a"}
+    - warn: {lhs: "breakEnd notNull", rhs: "spanEnd null", name: Use spanEnd}
+    - warn: {lhs: "breakEnd (notElem x)", rhs: "spanEnd (elem x)", name: Use spanEnd}
     - warn: {lhs: "spanEnd (not . a)", rhs: "breakEnd a"}
+    - warn: {lhs: "spanEnd notNull", rhs: "breakEnd null", name: Use breakEnd}
+    - warn: {lhs: "spanEnd (notElem x)", rhs: "breakEnd (elem x)", name: Use breakEnd}
     - warn: {lhs: "mconcat (map a b)", rhs: "mconcatMap a b"}
     - warn: {lhs: "fromMaybe b (stripPrefix a b)", rhs: "dropPrefix a b"}
     - warn: {lhs: "fromMaybe b (stripSuffix a b)", rhs: "dropSuffix a b"}
@@ -1291,6 +1299,10 @@
     - warn: {lhs: "last (x : y)", rhs: "lastDef x y"}
     - warn: {lhs: "drop 1", rhs: "drop1"}
     - warn: {lhs: "dropEnd 1", rhs: "dropEnd1"}
+    - warn: {lhs: span notNull, rhs: break null, name: Use break}
+    - warn: {lhs: break notNull, rhs: span null, name: Use span}
+    - warn: {lhs: when (notNull x), rhs: unless (null x), name: Use unless}
+    - warn: {lhs: unless (notNull x), rhs: when (null x), name: Use when}
     - warn: {lhs: not (notNull x), rhs: null x}
     - warn: {lhs: notNull (concat x), rhs: any notNull x}
     - warn: {lhs: notNull (filter f x), rhs: any f x}
