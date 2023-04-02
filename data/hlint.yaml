@@ -876,9 +876,9 @@
     - hint: {lhs: foldr f z (concatMap g x), rhs: foldr (foldr f . g) z x}
     - warn: {lhs: fold (concatMap f x), rhs: foldMap (fold . f) x}
     - warn: {lhs: foldMap f (concatMap g x), rhs: foldMap (foldMap f . g) x}
-    - warn: {lhs: catMaybes (concatMap f x), rhs: concatMap (catMaybes . f) x, name: Move concatMap out}
-    - hint: {lhs: filter f (concatMap g x), rhs: concatMap (filter f . g) x, name: Move concatMap out}
-    - warn: {lhs: mapMaybe f (concatMap g x), rhs: concatMap (mapMaybe f . g) x, name: Move concatMap out}
+    - warn: {lhs: catMaybes (concatMap f x), rhs: concatMap (catMaybes . f) x, name: Move catMaybes}
+    - hint: {lhs: filter f (concatMap g x), rhs: concatMap (filter f . g) x, name: Move filter}
+    - warn: {lhs: mapMaybe f (concatMap g x), rhs: concatMap (mapMaybe f . g) x, name: Move mapMaybe}
     - warn: {lhs: or (fmap p x), rhs: any p x}
     - warn: {lhs: or (p <$> x), rhs: any p x}
     - warn: {lhs: or (x <&> p), rhs: any p x}
