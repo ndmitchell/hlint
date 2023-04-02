@@ -25,7 +25,7 @@ RUN tests/ignore-parse-error3.hs
 FILE tests/ignore-parse-error3.hs
 {-# LANGUAGE InvalidExtension #-}
 OUTPUT
-tests/ignore-parse-error3.hs:1:1: Error: Parse error: tests/ignore-parse-error3.hs:1:14: error:
+tests/ignore-parse-error3.hs:1:1: Error: Parse error: tests/ignore-parse-error3.hs:1:14: error: [GHC-46537]
     Unsupported extension: InvalidExtension
 Found:
   {-# LANGUAGE InvalidExtension #-}

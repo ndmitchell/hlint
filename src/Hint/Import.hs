@@ -51,7 +51,6 @@ import GHC.Data.FastString
 import GHC.Types.SourceText
 import GHC.Hs
 import GHC.Types.SrcLoc
-import GHC.Unit.Types -- for 'NotBoot'
 import GHC.Types.PkgQual
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -107,15 +106,15 @@ combine x@(L loc x') y@(L _ y')
     -- Both (un/)qualified, common 'as', different names : Merge the
     -- second into the first and delete it.
   | qual, as
-  , Just (False, xs) <- ideclHiding x'
-  , Just (False, ys) <- ideclHiding y' =
-      let newImp = L loc x'{ideclHiding = Just (False, noLocA (unLoc xs ++ unLoc ys))}
+  , Just (False, xs) <- first (== EverythingBut) <$> ideclImportList x'
+  , Just (False, ys) <- first (== EverythingBut) <$> ideclImportList y' =
+      let newImp = L loc x'{ideclImportList = Just (Exactly, noLocA (unLoc xs ++ unLoc ys))}
       in Just (newImp, [Replace Import (toSSA x) [] (unsafePrettyPrint (unLoc newImp))
                        , Delete Import (toSSA y)])
   -- Both (un/qualified), common 'as', one has names the other doesn't
   -- : Delete the one with names.
-  | qual, as, isNothing (ideclHiding x') || isNothing (ideclHiding y') =
-       let (newImp, toDelete) = if isNothing (ideclHiding x') then (x, y) else (y, x)
+  | qual, as, isNothing (ideclImportList x') || isNothing (ideclImportList y') =
+       let (newImp, toDelete) = if isNothing (ideclImportList x') then (x, y) else (y, x)
        in Just (newImp, [Delete Import (toSSA toDelete)])
   -- Both unqualified, same names, one (and only one) has an 'as'
   -- clause : Delete the one without an 'as'.
@@ -133,8 +132,8 @@ combine x@(L loc x') y@(L _ y')
         qual = ideclQualified x' == ideclQualified y'
         as = ideclAs x' `eqMaybe` ideclAs y'
         ass = mapMaybe ideclAs [x', y']
-        specs = transformBi (const noSrcSpan) (ideclHiding x') ==
-                    transformBi (const noSrcSpan) (ideclHiding y')
+        specs = transformBi (const noSrcSpan) (ideclImportList x') ==
+                    transformBi (const noSrcSpan) (ideclImportList y')
 
 stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
 stripRedundantAlias x@(L _ i@ImportDecl {..})

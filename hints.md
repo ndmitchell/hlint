@@ -239,12 +239,12 @@ Does not support refactoring.
 <td>
 Example: 
 <pre>
-{-# LANGUAGE OverloadedRecordDot #-} 
-f = (. foo)
+{-# LANGUAGE TypeData #-} 
+data T = MkT
 </pre>
 Found:
 <code>
-{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE TypeData #-}
 </code>
 <br>
 Suggestion:
@@ -3464,6 +3464,22 @@ notElem x y
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use elem</td>
+<td>
+LHS:
+<code>
+not (notElem x y)
+</code>
+<br>
+RHS:
+<code>
+elem x y
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Fuse foldr/map</td>
 <td>
 LHS:
@@ -3826,6 +3842,70 @@ False `notElem` l
 RHS:
 <code>
 and l
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+elem False
+</code>
+<br>
+RHS:
+<code>
+any not
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+notElem True
+</code>
+<br>
+RHS:
+<code>
+all not
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+False `elem` l
+</code>
+<br>
+RHS:
+<code>
+any not l
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+True `notElem` l
+</code>
+<br>
+RHS:
+<code>
+all not l
 </code>
 <br>
 </td>
@@ -4738,6 +4818,102 @@ foldMap f (map g x)
 RHS:
 <code>
 foldMap (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse/fmap</td>
+<td>
+LHS:
+<code>
+traverse f (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+traverse (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse/<$></td>
+<td>
+LHS:
+<code>
+traverse f (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+traverse (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse/<&></td>
+<td>
+LHS:
+<code>
+traverse f (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+traverse (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse_/fmap</td>
+<td>
+LHS:
+<code>
+traverse_ f (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+traverse_ (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse_/<$></td>
+<td>
+LHS:
+<code>
+traverse_ f (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+traverse_ (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse_/<&></td>
+<td>
+LHS:
+<code>
+traverse_ f (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+traverse_ (f . g) x
 </code>
 <br>
 </td>
@@ -9036,7 +9212,7 @@ sequenceA_
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use sequenceA_</td>
+<td>Use sequence_</td>
 <td>
 LHS:
 <code>
@@ -9045,7 +9221,7 @@ foldr (*>) (return ())
 <br>
 RHS:
 <code>
-sequenceA_
+sequence_
 </code>
 <br>
 </td>
@@ -11921,7 +12097,7 @@ mkWeakPair a b c
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <pre>
@@ -11931,7 +12107,7 @@ case m of
 </pre>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>
@@ -11955,7 +12131,7 @@ Data.Foldable.forM_ m f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <pre>
@@ -11965,7 +12141,7 @@ case m of
 </pre>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>
@@ -11989,7 +12165,7 @@ Data.Foldable.forM_ m f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <pre>
@@ -11999,7 +12175,7 @@ case m of
 </pre>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>
@@ -12023,7 +12199,7 @@ Data.Foldable.forM_ m f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <code>
@@ -12032,11 +12208,251 @@ when (isJust m) (f (fromJust m))
 <br>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>
 <td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+or (fmap p x)
+</code>
+<br>
+RHS:
+<code>
+any p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+or (p <$> x)
+</code>
+<br>
+RHS:
+<code>
+any p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+or (x <&> p)
+</code>
+<br>
+RHS:
+<code>
+any p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+and (fmap p x)
+</code>
+<br>
+RHS:
+<code>
+all p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+and (p <$> x)
+</code>
+<br>
+RHS:
+<code>
+all p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+and (x <&> p)
+</code>
+<br>
+RHS:
+<code>
+all p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant fmap</td>
+<td>
+LHS:
+<code>
+any f (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+any (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <$></td>
+<td>
+LHS:
+<code>
+any f (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+any (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <&></td>
+<td>
+LHS:
+<code>
+any f (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+any (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant fmap</td>
+<td>
+LHS:
+<code>
+all f (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+all (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <$></td>
+<td>
+LHS:
+<code>
+all f (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+all (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <&></td>
+<td>
+LHS:
+<code>
+all f (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+all (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse foldr/fmap</td>
+<td>
+LHS:
+<code>
+foldr f z (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+foldr (f . g) z x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Fuse foldr/<$></td>
+<td>
+LHS:
+<code>
+foldr f z (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+foldr (f . g) z x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Fuse foldr/<&></td>
+<td>
+LHS:
+<code>
+foldr f z (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+foldr (f . g) z x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
 </tr>
 <tr>
 <td>Use gets</td>
@@ -13511,6 +13927,22 @@ b
 <td>Warning</td>
 </tr>
 <tr>
+<td>Using notElem on tuple</td>
+<td>
+LHS:
+<code>
+notElem e (x, b)
+</code>
+<br>
+RHS:
+<code>
+e /= b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Using sum on tuple</td>
 <td>
 LHS:
@@ -13809,6 +14241,22 @@ minimum (x, y, b)
 RHS:
 <code>
 b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using notElem on tuple</td>
+<td>
+LHS:
+<code>
+notElem e (x, y, b)
+</code>
+<br>
+RHS:
+<code>
+e /= b
 </code>
 <br>
 </td>

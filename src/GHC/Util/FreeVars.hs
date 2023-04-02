@@ -97,7 +97,7 @@ unqualNames _ = []
 
 instance FreeVars (LocatedA (HsExpr GhcPs)) where
   freeVars (L _ (HsVar _ x)) = Set.fromList $ unqualNames x -- Variable.
-  freeVars (L _ (HsUnboundVar _ x)) = Set.fromList [x] -- Unbound variable; also used for "holes".
+  freeVars (L _ (HsUnboundVar _ x)) = Set.fromList [rdrNameOcc x] -- Unbound variable; also used for "holes".
   freeVars (L _ (HsLam _ mg)) = free (allVars mg) -- Lambda abstraction. Currently always a single match.
   freeVars (L _ (HsLamCase _ _ MG{mg_alts=(L _ ms)})) = free (allVars ms) -- Lambda case
   freeVars (L _ (HsCase _ of_ MG{mg_alts=(L _ ms)})) = freeVars of_ ^+ free (allVars ms) -- Case expr.
@@ -180,7 +180,7 @@ instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldLabelStrings 
 
 instance AllVars (LocatedA (Pat GhcPs)) where
   allVars (L _ (VarPat _ (L _ x))) = Vars (Set.singleton $ rdrNameOcc x) Set.empty -- Variable pattern.
-  allVars (L _ (AsPat _  n x)) = allVars (noLocA $ VarPat noExtField n :: LocatedA (Pat GhcPs)) <> allVars x -- As pattern.
+  allVars (L _ (AsPat _  n _ x)) = allVars (noLocA $ VarPat noExtField n :: LocatedA (Pat GhcPs)) <> allVars x -- As pattern.
   allVars (L _ (ConPat _ _ (RecCon (HsRecFields flds _)))) = allVars flds
   allVars (L _ (NPlusKPat _ n _ _ _ _)) = allVars (noLocA $ VarPat noExtField n :: LocatedA (Pat GhcPs)) -- n+k pattern.
   allVars (L _ (ViewPat _ e p)) = freeVars_ e <> allVars p -- View pattern.
@@ -231,7 +231,7 @@ instance AllVars (LocatedA (HsBindLR GhcPs GhcPs)) where
   allVars (L _ (PatSynBind _ PSB{})) = mempty -- Come back to it.
 
 instance AllVars (MatchGroup GhcPs (LocatedA (HsExpr GhcPs))) where
-  allVars (MG _ _alts@(L _ alts) _) = inVars (foldMap (allVars . m_pats) ms) (allVars (map m_grhss ms))
+  allVars (MG _ _alts@(L _ alts)) = inVars (foldMap (allVars . m_pats) ms) (allVars (map m_grhss ms))
     where ms = map unLoc alts
 
 instance AllVars (LocatedA (Match GhcPs (LocatedA (HsExpr GhcPs)))) where
