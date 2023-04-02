@@ -20,7 +20,7 @@ foo = nub s
 </TEST>
 -}
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea,modComments)
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea,modComments,firstDeclComments)
 import Config.Type
 import Util
 
@@ -41,7 +41,6 @@ import Prelude
 
 import GHC.Hs
 import GHC.Types.Name.Reader
-import GHC.Unit.Module
 import GHC.Types.SrcLoc
 import GHC.Types.Name.Occurrence
 import Language.Haskell.GhclibParserEx.GHC.Hs
@@ -51,8 +50,14 @@ import GHC.Util
 -- FIXME: The settings should be partially applied, but that's hard to orchestrate right now
 restrictHint :: [Setting] -> ModuHint
 restrictHint settings scope m =
-    let anns = modComments m
-        ps   = pragmas anns
+    -- Comments appearing without an empty line before the first
+    -- declaration in a module are now associated with the declaration
+    -- not the module so to be safe, look also at `firstDeclComments
+    -- modu`
+    -- (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+    let annsMod = modComments m
+        annsFirstDecl = firstDeclComments m
+        ps   = pragmas annsMod ++ pragmas annsFirstDecl
         opts = flags ps
         exts = languagePragmas ps in
     checkPragmas modu opts exts rOthers ++
@@ -162,7 +167,7 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
           Left $ ideaNoTo $ warn "Avoid restricted module" (reLoc i) (reLoc i) []
 
         let importedIdents = Set.fromList $
-              case ideclHiding of
+              case first (== EverythingBut) <$> ideclImportList of
                 Just (False, lxs) -> concatMap (importListToIdents . unLoc) (unLoc lxs)
                 _ -> []
             invalidIdents = case riRestrictIdents of
@@ -187,15 +192,15 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
                   | otherwise -> (second (<> " or unqualified") <$> expectedQualStyle, Nothing)
                 ImportStyleQualified -> (expectedQualStyleDef, Nothing)
                 ImportStyleExplicitOrQualified
-                  | Just (False, _) <- ideclHiding -> (Nothing, Nothing)
+                  | Just (False, _) <- first (== EverythingBut) <$> ideclImportList -> (Nothing, Nothing)
                   | otherwise ->
                       ( second (<> " or with an explicit import list") <$> expectedQualStyleDef
                       , Nothing )
                 ImportStyleExplicit
-                  | Just (False, _) <- ideclHiding -> (Nothing, Nothing)
+                  | Just (False, _) <- first (== EverythingBut) <$> ideclImportList -> (Nothing, Nothing)
                   | otherwise ->
                       ( Just (NotQualified, "unqualified")
-                      , Just $ Just (False, noLocA []) )
+                      , Just $ Just (Exactly, noLocA []) )
                 ImportStyleUnqualified -> (Just (NotQualified, "unqualified"), Nothing)
             expectedQualStyleDef = expectedQualStyle <|> Just (QualifiedPre, "qualified")
             expectedQualStyle =
@@ -208,7 +213,7 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
               | otherwise = expectedQual
         whenJust qualIdea $ \(qual, hint) -> do
           let i' = noLoc $ (unLoc i){ ideclQualified = qual
-                                    , ideclHiding = fromMaybe ideclHiding expectedHiding }
+                                    , ideclImportList = fromMaybe ideclImportList expectedHiding }
               msg = moduleNameString (unLoc ideclName) <> " should be imported " <> hint
           Left $ warn msg (reLoc i) i' []
 
@@ -237,10 +242,10 @@ importListToIdents =
         (IEThingWith _ n _ ns)   -> fromName n : map fromName ns
         _                        -> []
   where
-    fromName :: LIEWrappedName (IdP GhcPs) -> Maybe String
+    fromName :: LIEWrappedName GhcPs -> Maybe String
     fromName wrapped =
       case unLoc wrapped of
-        IEName      n -> fromId (unLoc n)
+        IEName    _ n -> fromId (unLoc n)
         IEPattern _ n -> ("pattern " ++) <$> fromId (unLoc n)
         IEType    _ n -> ("type " ++) <$> fromId (unLoc n)
 

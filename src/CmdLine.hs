@@ -117,6 +117,7 @@ data Cmd
         ,cmdCppAnsi :: Bool
         ,cmdJson :: Bool                -- ^ display hint data as JSON
         ,cmdCC :: Bool                  -- ^ display hint data as Code Climate Issues
+        ,cmdSARIF :: Bool               -- ^ display hint data as SARIF
         ,cmdNoSummary :: Bool           -- ^ do not show the summary info
         ,cmdOnly :: [String]            -- ^ specify which hints explicitly
         ,cmdNoExitCode :: Bool
@@ -158,6 +159,7 @@ mode = cmdArgsMode $ modes
         ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
         ,cmdJson = nam_ "json" &= help "Display hint data as JSON"
         ,cmdCC = nam_ "cc" &= help "Display hint data as Code Climate Issues"
+        ,cmdSARIF = nam_ "sarif" &= help "Display hint data as SARIF"
         ,cmdNoSummary = nam_ "no-summary" &= help "Do not show summary information"
         ,cmdOnly = nam "only" &= typ "HINT" &= help "Specify which hints explicitly"
         ,cmdNoExitCode = nam_ "no-exit-code" &= help "Do not give a negative exit if hints"
@@ -167,7 +169,7 @@ mode = cmdArgsMode $ modes
         ,cmdRefactorOptions = nam_ "refactor-options" &= typ "OPTIONS" &= help "Options to pass to the `refactor` executable"
         ,cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
         ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern (e.g. foo/bar/*.hs)"
-        ,cmdGenerateMdSummary = nam_ "generate-summary" &= opt "hints.md" &= help "Generate a summary of available hints, in Mardown format"
+        ,cmdGenerateMdSummary = nam_ "generate-summary" &= opt "hints.md" &= help "Generate a summary of available hints, in Markdown format"
         ,cmdGenerateJsonSummary = nam_ "generate-summary-json" &= opt "hints.json" &= help "Generate a summary of available hints, in JSON format"
         ,cmdGenerateExhaustiveConf = nam_ "generate-config" &= opt Warning &= typ "LEVEL" &= help "Generate a .hlint.yaml config file with all hints set to the specified severity level (default level: warn, alternatives: ignore, suggest, error)"
         ,cmdTest = nam_ "test" &= help "Run the test suite"
@@ -177,7 +179,7 @@ mode = cmdArgsMode $ modes
                    ,"To check all Haskell files in 'src' and generate a report type:"
                    ,"  hlint src --report"]
     ] &= program "hlint" &= verbosity
-    &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2022")
+    &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2023")
     where
         nam xs = nam_ xs &= name [head xs]
         nam_ xs = def &= explicit &= name xs

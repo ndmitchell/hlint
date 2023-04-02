@@ -4,6 +4,8 @@
 <TEST>
 123456
 {-# LANGUAGE NumericUnderscores #-} \
+1234
+{-# LANGUAGE NumericUnderscores #-} \
 12345 -- @Suggestion 12_345 @NoRefactor
 {-# LANGUAGE NumericUnderscores #-} \
 123456789.0441234e-123456 -- @Suggestion 123_456_789.044_123_4e-123_456 @NoRefactor
@@ -28,10 +30,11 @@ import GHC.Util.ApiAnnotation (extensions)
 import Data.Char (isDigit, isOctDigit, isHexDigit)
 import Data.Foldable (toList)
 import Data.List (intercalate)
+import Data.Set (union)
 import Data.Generics.Uniplate.DataOnly (universeBi)
 import Refact.Types
 
-import Hint.Type (DeclHint, toSSA, modComments)
+import Hint.Type (DeclHint, toSSA, modComments, firstDeclComments)
 import Idea (Idea, suggest)
 
 numLiteralHint :: DeclHint
@@ -39,12 +42,18 @@ numLiteralHint _ modu =
   -- TODO: there's a subtle bug when the module disables `NumericUnderscores`.
   -- This seems pathological, though, because who would enable it for their
   -- project but disable it in specific files?
+  --
+  -- Comments appearing without an empty line before the first
+  -- declaration in a module are now associated with the declaration
+  -- not the module so to be safe, look also at `firstDeclComments
+  -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+  let exts = union (extensions (modComments modu)) (extensions (firstDeclComments modu)) in
   if NumericUnderscores `elem` activeExtensions then
      concatMap suggestUnderscore . universeBi
   else
      const []
   where
-    moduleExtensions = toList (extensions $ modComments modu)
+    moduleExtensions = union (extensions (modComments modu)) (extensions (firstDeclComments modu))
     activeExtensions = hlintExtensions modu <> toList moduleExtensions
 
 suggestUnderscore :: LHsExpr GhcPs -> [Idea]
@@ -52,12 +61,14 @@ suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsIntegral intLit@(IL (Sour
   [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` srcTxt, srcTxt /= underscoredSrcTxt ]
   where
     underscoredSrcTxt = addUnderscore srcTxt
+    y :: LocatedAn an (HsExpr GhcPs)
     y = noLocA $ HsOverLit EpAnnNotUsed $ ol{ol_val = HsIntegral intLit{il_text = SourceText underscoredSrcTxt}}
     r = Replace Expr (toSSA x) [("a", toSSA y)] "a"
 suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsFractional fracLit@(FL (SourceText srcTxt) _ _ _ _))))) =
   [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` srcTxt, srcTxt /= underscoredSrcTxt ]
   where
     underscoredSrcTxt = addUnderscore srcTxt
+    y :: LocatedAn an (HsExpr GhcPs)
     y = noLocA $ HsOverLit EpAnnNotUsed $ ol{ol_val = HsFractional fracLit{fl_text = SourceText underscoredSrcTxt}}
     r = Replace Expr (toSSA x) [("a", toSSA y)] "a"
 suggestUnderscore _ = mempty
@@ -73,7 +84,9 @@ addUnderscore intStr = numLitToStr underscoredNumLit
    chunkSize = if null (nl_prefix numLit) then 3 else 4
 
    underscore chunkSize = intercalate "_" . chunk chunkSize
-   underscoreFromRight chunkSize = reverse . underscore chunkSize . reverse
+   underscoreFromRight chunkSize str
+     | length str < 5 = str
+     | otherwise = reverse . underscore chunkSize . reverse $ str
    chunk chunkSize [] = []
    chunk chunkSize xs = a:chunk chunkSize b where (a, b) = splitAt chunkSize xs
 

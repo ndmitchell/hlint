@@ -16,7 +16,6 @@ module Hint.Export(exportHint) where
 import Hint.Type(ModuHint, ModuleEx(..),ideaNote,ignore,Note(..))
 
 import GHC.Hs
-import GHC.Unit.Module
 import GHC.Types.SrcLoc
 import GHC.Types.Name.Occurrence
 import GHC.Types.Name.Reader
@@ -33,11 +32,11 @@ exportHint _ (ModuleEx (L s m@HsModule {hsmodName = Just name, hsmodExports = ex
   , exports' <- [x | x <- xs, not (matchesModName modName x)]
   , modName `elem` names =
       let dots = mkRdrUnqual (mkVarOcc " ... ")
-          r = o{ hsmodExports = Just (noLocA (noLocA (IEVar noExtField (noLocA (IEName (noLocA dots)))) : exports') )}
+          r = o{ hsmodExports = Just (noLocA (noLocA (IEVar noExtField (noLocA (IEName noExtField (noLocA dots)))) : exports') )}
       in
         [ignore "Use explicit module export list" (L s o) (noLoc r) []]
       where
-          o = m{hsmodImports=[], hsmodDecls=[], hsmodDeprecMessage=Nothing, hsmodHaddockModHeader=Nothing }
+          o = m{hsmodImports=[], hsmodDecls=[] }
           isMod (L _ (IEModuleContents _ _)) = True
           isMod _ = False
 

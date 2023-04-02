@@ -144,7 +144,7 @@ _docs = do
 --
 -- > (filename, (startLine, startCol), (endLine, endCol))
 --
---   Following the GHC API, he end column is the column /after/ the end of the error.
+--   Following the GHC API, end column is the column /after/ the end of the error.
 --   Lines and columns are 1-based. Returns 'Nothing' if there is no helpful location information.
 unpackSrcSpan :: SrcSpan -> Maybe (FilePath, (Int, Int), (Int, Int))
 unpackSrcSpan (RealSrcSpan x _) = Just

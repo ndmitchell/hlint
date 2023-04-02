@@ -5,7 +5,7 @@ module GHC.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
-    parseModuleEx, createModuleEx, createModuleExWithFixities, createModuleExWithFixitiesAndExtensions, ghcComments, modComments,
+    parseModuleEx, createModuleEx, createModuleExWithFixities, createModuleExWithFixitiesAndExtensions, ghcComments, modComments, firstDeclComments,
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
     ) where
 
@@ -85,7 +85,7 @@ data ParseError = ParseError
 
 -- | Result of 'parseModuleEx', representing a parsed module.
 data ModuleEx = ModuleEx {
-    ghcModule :: Located HsModule,
+    ghcModule :: Located (HsModule GhcPs),
     hlintExtensions :: [Extension]
 }
 
@@ -95,7 +95,14 @@ ghcComments = universeBi . ghcModule
 
 -- | Extract just the list of a modules' leading comments (pragmas).
 modComments :: ModuleEx -> EpAnnComments
-modComments = comments . hsmodAnn . unLoc . ghcModule
+modComments = comments . hsmodAnn . hsmodExt . unLoc . ghcModule
+
+-- | Extract comments associated with the first declaration of a module.
+firstDeclComments :: ModuleEx -> EpAnnComments
+firstDeclComments m =
+  case hsmodDecls . unLoc . ghcModule $ m of
+        [] -> EpaCommentsBalanced [] []
+        L (SrcSpanAnn ann _) _ : _ -> comments ann
 
 -- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String
@@ -148,16 +155,16 @@ parseDeclGhcWithMode parseMode s =
 -- | Create a 'ModuleEx' from a GHC module. It is assumed the incoming
 -- parsed module has not been adjusted to account for operator
 -- fixities (it uses the HLint default fixities).
-createModuleEx :: Located HsModule -> ModuleEx
+createModuleEx :: Located (HsModule GhcPs) -> ModuleEx
 createModuleEx = createModuleExWithFixities (map toFixity defaultFixities)
 
-createModuleExWithFixities :: [(String, Fixity)] -> Located HsModule -> ModuleEx
+createModuleExWithFixities :: [(String, Fixity)] -> Located (HsModule GhcPs) -> ModuleEx
 createModuleExWithFixities = createModuleExWithFixitiesAndExtensions []
 
 -- | Create a 'ModuleEx' from a GHC module. Provide a list of custom operator
 -- fixities and a list of GHC extensions that should be used when parsing the module
 -- (if there are any extensions required other than those explicitly enabled in the module).
-createModuleExWithFixitiesAndExtensions :: [Extension] -> [(String, Fixity)] -> Located HsModule -> ModuleEx
+createModuleExWithFixitiesAndExtensions :: [Extension] -> [(String, Fixity)] -> Located (HsModule GhcPs) -> ModuleEx
 createModuleExWithFixitiesAndExtensions extensions fixities ast =
   ModuleEx (applyFixities (fixitiesFromModule ast ++ fixities) ast) extensions
 
@@ -208,7 +215,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
     parseFailureErr dynFlags ppstr file str errs =
       let errMsg = head errs
           loc = errMsgSpan errMsg
-          doc = pprLocMsgEnvelope errMsg
+          doc = pprLocMsgEnvelopeDefault errMsg
       in ghcFailOpParseModuleEx ppstr file str (loc, doc)
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.

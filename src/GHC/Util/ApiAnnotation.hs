@@ -87,7 +87,7 @@ flags ps =
 
 -- Language pragmas. The first element of the
 -- pair is the (located) annotation comment that enables the
--- pragmas enumerated by he second element of the pair.
+-- pragmas enumerated by the second element of the pair.
 languagePragmas :: [(LEpaComment, String)] -> [(LEpaComment, [String])]
 languagePragmas ps =
   [(c, exts) | (c, s) <- ps

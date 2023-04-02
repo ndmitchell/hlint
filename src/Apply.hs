@@ -21,6 +21,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs
 import qualified Data.HashSet as Set
 import Prelude
 import Util
+import Timing
 
 
 -- | Apply hints to a single file, you may have the contents of the file.
@@ -29,14 +30,14 @@ applyHintFile flags s file src = do
     res <- parseModuleApply flags s file src
     pure $ case res of
         Left err -> [err]
-        Right m -> executeHints s [m]
+        Right m -> timed "Execute hints" file (forceList $ executeHints s [m])
 
 
 -- | Apply hints to multiple files, allowing cross-file hints to fire.
 applyHintFiles :: ParseFlags -> [Setting] -> [FilePath] -> IO [Idea]
 applyHintFiles flags s files = do
     (err, ms) <- partitionEithers <$> mapM (\file -> parseModuleApply flags s file Nothing) files
-    pure $ err ++ executeHints s ms
+    pure $ err ++ timed "Execute hints" "all modules" (forceList $ executeHints s ms)
 
 
 -- | Given a way of classifying results, and a 'Hint', apply to a set of modules generating a list of 'Idea's.
@@ -72,7 +73,7 @@ applyHintsReal settings hints_ ms = concat $
 removeRequiresExtensionNotes :: ModuleEx -> Idea -> Idea
 removeRequiresExtensionNotes m = \x -> x{ideaNote = filter keep $ ideaNote x}
     where
-        exts = Set.fromList $ concatMap snd $ languagePragmas $ pragmas (comments (hsmodAnn (unLoc . ghcModule $ m)))
+        exts = Set.fromList $ concatMap snd $ languagePragmas $ pragmas (comments (hsmodAnn (hsmodExt . unLoc . ghcModule $ m)))
         keep (RequiresExtension x) = not $ x `Set.member` exts
         keep _ = True
 
