@@ -124,6 +124,7 @@ library
         Timing
         CC
         EmbedData
+        SARIF
         Summary
         Config.Compute
         Config.Haskell

@@ -36,6 +36,7 @@ import GHC.All
 import CC
 import EmbedData
 
+import qualified SARIF
 
 -- | This function takes a list of command line arguments, and returns the given hints.
 --   To see a list of arguments type @hlint --help@ at the console.
@@ -173,6 +174,8 @@ runHints args settings cmd@CmdMain{..} =
             putStrLn $ showIdeasJson ideas
          else if cmdCC then
             mapM_ (printIssue . fromIdea) ideas
+         else if cmdSARIF then
+            SARIF.printIdeas ideas
          else if cmdSerialise then do
             hSetBuffering stdout NoBuffering
             print $ map (show &&& ideaRefactoring) ideas
