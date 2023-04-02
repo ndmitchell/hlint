@@ -1,5 +1,7 @@
 Changelog for HLint (* = breaking change)
 
+    #1470, drop support for GHC 9.0
+*   #1470, move to GHC 9.6 parser
     #1449, add some more generalize hints that suggest fmap instead of map
     Never suggest concatForM_, because it doesn't exist
     #1467, and groups for warning on partial functions
