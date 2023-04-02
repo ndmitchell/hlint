@@ -9212,7 +9212,7 @@ sequenceA_
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use sequenceA_</td>
+<td>Use sequence_</td>
 <td>
 LHS:
 <code>
@@ -9221,7 +9221,7 @@ foldr (*>) (return ())
 <br>
 RHS:
 <code>
-sequenceA_
+sequence_
 </code>
 <br>
 </td>
@@ -12097,7 +12097,7 @@ mkWeakPair a b c
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <pre>
@@ -12107,7 +12107,7 @@ case m of
 </pre>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>
@@ -12131,7 +12131,7 @@ Data.Foldable.forM_ m f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <pre>
@@ -12141,7 +12141,7 @@ case m of
 </pre>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>
@@ -12165,7 +12165,7 @@ Data.Foldable.forM_ m f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <pre>
@@ -12175,7 +12175,7 @@ case m of
 </pre>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>
@@ -12199,7 +12199,7 @@ Data.Foldable.forM_ m f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <code>
@@ -12208,7 +12208,7 @@ when (isJust m) (f (fromJust m))
 <br>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>

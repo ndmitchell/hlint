@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1437, don't add/remove Monad constraints in replacements
     #1475, rules for (elem False) and (notElem True) 
     #1476, generalise map-consuming rules from lists to Foldables/Traversables
     #1480, add hints about notElem and notNull
