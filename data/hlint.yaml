@@ -234,6 +234,10 @@
     - warn: {lhs: notElem False, rhs: and}
     - warn: {lhs: True `elem` l, rhs: or l}
     - warn: {lhs: False `notElem` l, rhs: and l}
+    - warn: {lhs: elem False, rhs: any not, name: Use any}
+    - warn: {lhs: notElem True, rhs: all not, name: Use all}
+    - warn: {lhs: False `elem` l, rhs: any not l, name: Use any}
+    - warn: {lhs: True `notElem` l, rhs: all not l, name: Use all}
     - warn: {lhs: findIndex ((==) a), rhs: elemIndex a}
     - warn: {lhs: findIndex (a ==), rhs: elemIndex a}
     - warn: {lhs: findIndex (== a), rhs: elemIndex a}
