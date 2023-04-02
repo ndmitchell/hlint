@@ -36,7 +36,7 @@ extra-source-files:
 extra-doc-files:
     README.md
     CHANGES.txt
-tested-with:        GHC==9.2, GHC==9.0
+tested-with:        GHC==9.4, GHC==9.2
 
 source-repository head
     type:     git
