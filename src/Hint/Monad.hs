@@ -173,9 +173,9 @@ doAsBrackets (Just (i, o)) x = needBracket i o x
 doAsBrackets Nothing x = False
 
 
--- Sometimes people write do, to avoid identation, see
+-- Sometimes people write do, to avoid indentation, see
 -- https://github.com/ndmitchell/hlint/issues/978
--- Return True if they are using do as avoiding identation
+-- Return True if they are using do as avoiding indentation
 doAsAvoidingIndentation :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
 doAsAvoidingIndentation (Just (L _ (HsDo _ _ (L anna _)))) (L _ (HsDo _ _ (L annb _)))
   | SrcSpanAnn _ (RealSrcSpan a _) <- anna

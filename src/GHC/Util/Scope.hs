@@ -40,13 +40,13 @@ scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
         RawPkgQual s -> Just s
         NoRawPkgQual -> Nothing
 
-    -- The import declaraions contained by the module 'xs'.
+    -- The import declarations contained by the module 'xs'.
     res :: [LImportDecl GhcPs]
     res = [x | x <- hsmodImports xs
              , pkg x /= Just (StringLiteral NoSourceText (fsLit "hint") Nothing)
           ]
 
-    -- Mock up an import declaraion corresponding to 'import Prelude'.
+    -- Mock up an import declaration corresponding to 'import Prelude'.
     prelude :: LImportDecl GhcPs
     prelude = noLocA $ simpleImportDecl (mkModuleName "Prelude")
 

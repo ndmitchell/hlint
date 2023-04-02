@@ -274,7 +274,7 @@ stringType (L _ x) = case x of
   InstD _ ClsInstD{
     cid_inst=
         ClsInstDecl{cid_binds=x, cid_tyfam_insts=y, cid_datafam_insts=z}} ->
-    f x ++ f y ++ f z -- Pretty much everthing but the instance type.
+    f x ++ f y ++ f z -- Pretty much everything but the instance type.
   _ -> f x
   where
     f x = concatMap g $ childrenBi x

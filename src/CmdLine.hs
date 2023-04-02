@@ -96,11 +96,11 @@ data Cmd
     = CmdMain
         {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
-        ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
+        ,cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
         ,cmdWithGroups :: [String]       -- ^ groups that are given on the command line
         ,cmdGit :: Bool                  -- ^ use git ls-files to find files
         ,cmdColor :: ColorMode           -- ^ color the result
-        ,cmdThreads :: Int              -- ^ Numbmer of threads to use, 0 = whatever GHC has
+        ,cmdThreads :: Int              -- ^ Number of threads to use, 0 = whatever GHC has
         ,cmdIgnore :: [String]           -- ^ the hints to ignore
         ,cmdShowAll :: Bool              -- ^ display all skipped items
         ,cmdExtension :: [String]        -- ^ extensions

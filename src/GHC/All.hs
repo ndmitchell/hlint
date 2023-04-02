@@ -124,7 +124,7 @@ ghcExtensionsFromParseFlags ParseFlags{enabledExtensions=es, disabledExtensions=
 ghcFixitiesFromParseFlags :: ParseFlags -> [(String, GHC.Types.Fixity.Fixity)]
 ghcFixitiesFromParseFlags = map toFixity . fixities
 
--- These next two functions get called frorm 'Config/Yaml.hs' for user
+-- These next two functions get called from 'Config/Yaml.hs' for user
 -- defined hint rules.
 
 parseModeToFlags :: ParseFlags -> DynFlags
