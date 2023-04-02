@@ -8,7 +8,7 @@ import Language.Haskell.GhclibParserEx.GHC.Settings.Config
 -- 'parsePragmasIntoDynFlags' based solely on the parse flags
 -- (and source level annotations).
 baseDynFlags :: DynFlags
-baseDynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
+baseDynFlags = defaultDynFlags fakeSettings
 
 initGlobalDynFlags :: IO ()
 initGlobalDynFlags = setUnsafeGlobalDynFlags baseDynFlags

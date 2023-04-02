@@ -235,7 +235,7 @@ parseGHC parser v = do
         POk _ x -> pure x
         PFailed ps ->
           let errMsg = head . bagToList . getMessages $ GhcPsMessage <$> snd (getPsMessages ps)
-              msg = showSDoc baseDynFlags $ pprLocMsgEnvelope errMsg
+              msg = showSDoc baseDynFlags $ pprLocMsgEnvelopeDefault errMsg
           in parseFail v $ "Failed to parse " ++ msg ++ ", when parsing:\n " ++ x
 
 ---------------------------------------------------------------------
@@ -440,7 +440,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
               scope'= asScope' packageMap' (map (fmap unextendInstances) groupImports)
 
 asScope' :: Map.HashMap String [LocatedA (ImportDecl GhcPs)] -> [Either String (LocatedA (ImportDecl GhcPs))] -> Scope
-asScope' packages xs = scopeCreate (HsModule EpAnnNotUsed NoLayoutInfo Nothing Nothing (concatMap f xs) [] Nothing Nothing)
+asScope' packages xs = scopeCreate (HsModule (XModulePs EpAnnNotUsed NoLayoutInfo Nothing Nothing) Nothing Nothing (concatMap f xs) [])
     where
         f (Right x) = [x]
         f (Left x) | Just pkg <- Map.lookup x packages = pkg

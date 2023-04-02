@@ -117,6 +117,7 @@ data Cmd
         ,cmdCppAnsi :: Bool
         ,cmdJson :: Bool                -- ^ display hint data as JSON
         ,cmdCC :: Bool                  -- ^ display hint data as Code Climate Issues
+        ,cmdSARIF :: Bool               -- ^ display hint data as SARIF
         ,cmdNoSummary :: Bool           -- ^ do not show the summary info
         ,cmdOnly :: [String]            -- ^ specify which hints explicitly
         ,cmdNoExitCode :: Bool
@@ -158,6 +159,7 @@ mode = cmdArgsMode $ modes
         ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
         ,cmdJson = nam_ "json" &= help "Display hint data as JSON"
         ,cmdCC = nam_ "cc" &= help "Display hint data as Code Climate Issues"
+        ,cmdSARIF = nam_ "sarif" &= help "Display hint data as SARIF"
         ,cmdNoSummary = nam_ "no-summary" &= help "Do not show summary information"
         ,cmdOnly = nam "only" &= typ "HINT" &= help "Specify which hints explicitly"
         ,cmdNoExitCode = nam_ "no-exit-code" &= help "Do not give a negative exit if hints"
