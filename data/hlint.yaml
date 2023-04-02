@@ -6,30 +6,34 @@
 - package:
     name: base
     modules:
-    - import Prelude
+    - import Control.Applicative
     - import Control.Arrow
+    - import Control.Concurrent.Chan
     - import Control.Exception
+    - import Control.Exception.Base
     - import Control.Monad
     - import Control.Monad.Trans.State
-    - import qualified Data.Foldable
-    - import Data.Foldable(asum, sequenceA_, traverse_, for_)
-    - import Data.Traversable(traverse, for)
-    - import Control.Applicative
     - import Data.Bifunctor
+    - import Data.Char
+    - import Data.Either
+    - import Data.Fixed
+    - import Data.Foldable(asum, sequenceA_, traverse_, for_)
     - import Data.Function
     - import Data.Int
-    - import Data.Char
     - import Data.List as Data.List
     - import Data.List as X
+    - import Data.List.NonEmpty
     - import Data.Maybe
     - import Data.Monoid
-    - import System.IO
-    - import Control.Concurrent.Chan
-    - import System.Mem.Weak
-    - import Control.Exception.Base
-    - import System.Exit
-    - import Data.Either
+    - import Data.Ratio
+    - import Data.Traversable(traverse, for)
     - import Numeric
+    - import Prelude
+    - import System.Exit
+    - import System.IO
+    - import System.Mem.Weak
+    - import Text.Read
+    - import qualified Data.Foldable
 
     - import IO as System.IO
     - import List as Data.List
@@ -142,6 +146,7 @@
 
     - warn: {lhs: concat (map f x), rhs: concatMap f x}
     - warn: {lhs: concat (f <$> x), rhs: concatMap f x}
+    - warn: {lhs: concat (x <&> f), rhs: concatMap f x}
     - warn: {lhs: concat (fmap f x), rhs: concatMap f x}
     - hint: {lhs: "concat [a, b]", rhs: a ++ b}
     - hint: {lhs: map f (map g x), rhs: map (f . g) x, name: Use map once}
@@ -205,6 +210,7 @@
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: not (isApp f)}
     - hint: {lhs: "map f (fromMaybe [] x)", rhs: "maybe [] (map f) x"}
     - warn: {lhs: not (elem x y), rhs: notElem x y}
+    - warn: {lhs: not (notElem x y), rhs: elem x y}
     - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
     - warn: {lhs: "x ++ concatMap (' ':) y", rhs: "unwords (x:y)"}
     - warn: {lhs: intercalate " ", rhs: unwords}
@@ -228,6 +234,10 @@
     - warn: {lhs: notElem False, rhs: and}
     - warn: {lhs: True `elem` l, rhs: or l}
     - warn: {lhs: False `notElem` l, rhs: and l}
+    - warn: {lhs: elem False, rhs: any not, name: Use any}
+    - warn: {lhs: notElem True, rhs: all not, name: Use all}
+    - warn: {lhs: False `elem` l, rhs: any not l, name: Use any}
+    - warn: {lhs: True `notElem` l, rhs: all not l, name: Use all}
     - warn: {lhs: findIndex ((==) a), rhs: elemIndex a}
     - warn: {lhs: findIndex (a ==), rhs: elemIndex a}
     - warn: {lhs: findIndex (== a), rhs: elemIndex a}
@@ -276,17 +286,27 @@
     - warn: {lhs: traverse (pure . f) x, rhs: pure (fmap f x), name: "Traversable law"}
     - warn: {lhs: sequenceA (map f x), rhs: traverse f x}
     - warn: {lhs: sequenceA (f <$> x), rhs: traverse f x}
+    - warn: {lhs: sequenceA (x <&> f), rhs: traverse f x}
     - warn: {lhs: sequenceA (fmap f x), rhs: traverse f x}
     - warn: {lhs: sequenceA_ (map f x), rhs: traverse_ f x}
     - warn: {lhs: sequenceA_ (f <$> x), rhs: traverse_ f x}
+    - warn: {lhs: sequenceA_ (x <&> f), rhs: traverse_ f x}
     - warn: {lhs: sequenceA_ (fmap f x), rhs: traverse_ f x}
     - warn: {lhs: foldMap id, rhs: fold}
     - warn: {lhs: fold (f <$> x), rhs: foldMap f x}
+    - warn: {lhs: fold (x <&> f), rhs: foldMap f x}
     - warn: {lhs: fold (fmap f x), rhs: foldMap f x}
     - warn: {lhs: fold (map f x), rhs: foldMap f x}
-    - warn: {lhs: foldMap f (g <$> x), rhs: foldMap (f . g) x, name: Fuse foldMap/fmap}
+    - warn: {lhs: foldMap f (g <$> x), rhs: foldMap (f . g) x, name: Fuse foldMap/<$>}
+    - warn: {lhs: foldMap f (x <&> g), rhs: foldMap (f . g) x, name: Fuse foldMap/<&>}
     - warn: {lhs: foldMap f (fmap g x), rhs: foldMap (f . g) x, name: Fuse foldMap/fmap}
     - warn: {lhs: foldMap f (map g x), rhs: foldMap (f . g) x, name: Fuse foldMap/map}
+    - warn: {lhs: traverse f (fmap g x), rhs: traverse (f . g) x, name: Fuse traverse/fmap}
+    - warn: {lhs: traverse f (g <$> x), rhs: traverse (f . g) x, name: Fuse traverse/<$>}
+    - warn: {lhs: traverse f (x <&> g), rhs: traverse (f . g) x, name: Fuse traverse/<&>}
+    - warn: {lhs: traverse_ f (fmap g x), rhs: traverse_ (f . g) x, name: Fuse traverse_/fmap}
+    - warn: {lhs: traverse_ f (g <$> x), rhs: traverse_ (f . g) x, name: Fuse traverse_/<$>}
+    - warn: {lhs: traverse_ f (x <&> g), rhs: traverse_ (f . g) x, name: Fuse traverse_/<&>}
 
     # BY
 
@@ -448,10 +468,13 @@
 
     - warn: {lhs: fmap f (fmap g x), rhs: fmap (f . g) x, name: Functor law}
     - warn: {lhs: f <$> g <$> x, rhs: f . g <$> x, name: Functor law}
+    - warn: {lhs: x <&> g <&> f, rhs: x <&> f . g, name: Functor law}
     - warn: {lhs: fmap id, rhs: id, name: Functor law}
     - warn: {lhs: id <$> x, rhs: x, name: Functor law}
+    - warn: {lhs: x <&> id, rhs: x, name: Functor law}
     - hint: {lhs: fmap f $ x, rhs: f <$> x, side: isApp x || isAtom x}
     - hint: {lhs: \x -> a <$> b x, rhs: fmap a . b}
+    - hint: {lhs: \x -> b x <&> a, rhs: fmap a . b}
     - hint: {lhs: x *> pure y, rhs: x Data.Functor.$> y}
     - hint: {lhs: x *> return y, rhs: x Data.Functor.$> y}
     - hint: {lhs: pure x <* y, rhs: x Data.Functor.<$ y}
@@ -505,8 +528,10 @@
     - warn: {lhs: sequence (map f x), rhs: mapM f x}
     - warn: {lhs: sequence_ (map f x), rhs: mapM_ f x}
     - warn: {lhs: sequence (f <$> x), rhs: mapM f x}
+    - warn: {lhs: sequence (x <&> f), rhs: mapM f x}
     - warn: {lhs: sequence (fmap f x), rhs: mapM f x}
     - warn: {lhs: sequence_ (f <$> x), rhs: mapM_ f x}
+    - warn: {lhs: sequence_ (x <&> f), rhs: mapM_ f x}
     - warn: {lhs: sequence_ (fmap f x), rhs: mapM_ f x}
     - hint: {lhs: flip mapM, rhs: Control.Monad.forM}
     - hint: {lhs: flip mapM_, rhs: Control.Monad.forM_}
@@ -517,11 +542,13 @@
     - warn: {lhs: x >>= id, rhs: Control.Monad.join x}
     - warn: {lhs: id =<< x, rhs: Control.Monad.join x}
     - hint: {lhs: join (f <$> x), rhs: f =<< x}
+    - hint: {lhs: join (x <&> f), rhs: f =<< x}
     - hint: {lhs: join (fmap f x), rhs: f =<< x}
     - hint: {lhs: a >> pure (), rhs: Control.Monad.void a, side: isAtom a || isApp a}
     - hint: {lhs: a >> return (), rhs: Control.Monad.void a, side: isAtom a || isApp a}
     - warn: {lhs: fmap (const ()), rhs: Control.Monad.void}
     - warn: {lhs: const () <$> x, rhs: Control.Monad.void x}
+    - warn: {lhs: x <&> const (), rhs: Control.Monad.void x}
     - warn: {lhs: () <$ x, rhs: Control.Monad.void x}
     - warn: {lhs: flip (>=>), rhs: (<=<)}
     - warn: {lhs: flip (<=<), rhs: (>=>)}
@@ -540,7 +567,9 @@
     - warn: {lhs: fmap f (pure x), rhs: pure (f x)}
     - warn: {lhs: fmap f (return x), rhs: return (f x)}
     - warn: {lhs: f <$> pure x, rhs: pure (f x)}
+    - warn: {lhs: pure x <&> f, rhs: pure (f x)}
     - warn: {lhs: f <$> return x, rhs: return (f x)}
+    - warn: {lhs: return x <&> f, rhs: return (f x)}
     - warn: {lhs: mapM (uncurry f) (zip l m), rhs: zipWithM f l m}
     - warn: {lhs: mapM_ (void . f), rhs: mapM_ f}
     - warn: {lhs: forM_ x (void . f), rhs: forM_ x f}
@@ -560,6 +589,7 @@
     # MONAD LIST
 
     - warn: {lhs: unzip <$> mapM f x, rhs: Control.Monad.mapAndUnzipM f x}
+    - warn: {lhs: mapM f x <&> unzip, rhs: Control.Monad.mapAndUnzipM f x}
     - warn: {lhs: fmap unzip (mapM f x), rhs: Control.Monad.mapAndUnzipM f x}
     - warn: {lhs: sequence (zipWith f x y), rhs: Control.Monad.zipWithM f x y}
     - warn: {lhs: sequence_ (zipWith f x y), rhs: Control.Monad.zipWithM_ f x y}
@@ -643,6 +673,7 @@
     - warn: {lhs: "maybe [] (:[])", rhs: maybeToList}
     - warn: {lhs: catMaybes (map f x), rhs: mapMaybe f x}
     - warn: {lhs: catMaybes (f <$> x), rhs: mapMaybe f x}
+    - warn: {lhs: catMaybes (x <&> f), rhs: mapMaybe f x}
     - warn: {lhs: catMaybes (fmap f x), rhs: mapMaybe f x}
     - hint: {lhs: case x of Nothing -> y; Just a -> a , rhs: Data.Maybe.fromMaybe y x, side: isAtom y, name: Replace case with fromMaybe}
     - hint: {lhs: case x of Just a -> a; Nothing -> y, rhs: Data.Maybe.fromMaybe y x, side: isAtom y, name: Replace case with fromMaybe}
@@ -652,6 +683,10 @@
     - warn: {lhs: if isJust x then f (fromJust x) else y, rhs: maybe y f x}
     - warn: {lhs: maybe Nothing (Just . f), rhs: fmap f}
     - hint: {lhs: map fromJust (filter isJust x), rhs:  Data.Maybe.catMaybes x}
+    - hint: {lhs: filter isJust (map f x), rhs: map Just (mapMaybe f x), name: Use mapMaybe}
+    - hint: {lhs: filter isJust (f <*> x), rhs: map Just (mapMaybe f x), name: Use mapMaybe}
+    - hint: {lhs: filter isJust (x <&> f), rhs: map Just (mapMaybe f x), name: Use mapMaybe}
+    - hint: {lhs: filter isJust (fmap f x), rhs: map Just (mapMaybe f x), name: Use mapMaybe}
     - warn: {lhs: x == Nothing , rhs:  isNothing x}
     - warn: {lhs: Nothing == x , rhs:  isNothing x}
     - warn: {lhs: x /= Nothing , rhs:  Data.Maybe.isJust x}
@@ -662,23 +697,30 @@
     - warn: {lhs: if isNothing x then y else fromJust x, rhs: fromMaybe y x}
     - warn: {lhs: if isJust x then fromJust x else y, rhs: fromMaybe y x}
     - warn: {lhs: isJust x && (fromJust x == y), rhs: x == Just y}
+    - warn: {lhs: isJust y && (x == fromJust y), rhs: Just x == y}
     - warn: {lhs: mapMaybe f (map g x), rhs: mapMaybe (f . g) x, name: Fuse mapMaybe/map}
     - warn: {lhs: fromMaybe a (fmap f x), rhs: maybe a f x}
     - warn: {lhs: fromMaybe a (f <$> x), rhs: maybe a f x}
+    - warn: {lhs: fromMaybe a (x <&> f), rhs: maybe a f x}
     - warn: {lhs: mapMaybe id, rhs: catMaybes}
     - hint: {lhs: "[x | Just x <- a]", rhs: Data.Maybe.catMaybes a, side: isVar x}
     - hint: {lhs: case m of Nothing -> Nothing; Just x -> x, rhs: Control.Monad.join m}
     - hint: {lhs: maybe Nothing id, rhs: join}
     - hint: {lhs: maybe Nothing f x, rhs: f =<< x}
-    - warn: {lhs: maybe x f (g <$> y), rhs: maybe x (f . g) y, name: Redundant fmap}
+    - warn: {lhs: maybe x f (g <$> y), rhs: maybe x (f . g) y, name: Redundant <$>}
+    - warn: {lhs: maybe x f (y <&> g), rhs: maybe x (f . g) y, name: Redundant <&>}
     - warn: {lhs: maybe x f (fmap g y), rhs: maybe x (f . g) y, name: Redundant fmap}
     - warn: {lhs: isJust (f <$> x), rhs: isJust x}
+    - warn: {lhs: isJust (x <&> f), rhs: isJust x}
     - warn: {lhs: isJust (fmap f x), rhs: isJust x}
     - warn: {lhs: isNothing (f <$> x), rhs: isNothing x}
+    - warn: {lhs: isNothing (x <&> f), rhs: isNothing x}
     - warn: {lhs: isNothing (fmap f x), rhs: isNothing x}
     - warn: {lhs: fromJust (f <$> x), rhs: f (fromJust x), note: IncreasesLaziness}
+    - warn: {lhs: fromJust (x <&> f), rhs: f (fromJust x), note: IncreasesLaziness}
     - warn: {lhs: fromJust (fmap f x), rhs: f (fromJust x), note: IncreasesLaziness}
-    - warn: {lhs: mapMaybe f (g <$> x), rhs: mapMaybe (f . g) x, name: Redundant fmap}
+    - warn: {lhs: mapMaybe f (g <$> x), rhs: mapMaybe (f . g) x, name: Redundant <$>}
+    - warn: {lhs: mapMaybe f (x <&> g), rhs: mapMaybe (f . g) x, name: Redundant <&>}
     - warn: {lhs: mapMaybe f (fmap g x), rhs: mapMaybe (f . g) x, name: Redundant fmap}
     - warn: {lhs: catMaybes (nub x), rhs: nub (catMaybes x), name: Move nub out}
     - warn: {lhs: lefts (nub x), rhs: nub (lefts x), name: Move nub out}
@@ -700,10 +742,20 @@
     - warn: {lhs: "[a | Right a <- b]", rhs: rights b, side: isVar a}
     - warn: {lhs: either Left (Right . f), rhs: fmap f}
     - warn: {lhs: either f g (fmap h x), rhs: either f (g . h) x, name: Redundant fmap}
+    - warn: {lhs: either f g (h <$> x), rhs: either f (g . h) x, name: Redundant <$>}
+    - warn: {lhs: either f g (x <&> h), rhs: either f (g . h) x, name: Redundant <&>}
     - warn: {lhs: isLeft (fmap f x), rhs: isLeft x}
+    - warn: {lhs: isLeft (f <$> x), rhs: isLeft x}
+    - warn: {lhs: isLeft (x <&> f), rhs: isLeft x}
     - warn: {lhs: isRight (fmap f x), rhs: isRight x}
+    - warn: {lhs: isRight (f <$> x), rhs: isRight x}
+    - warn: {lhs: isRight (x <&> f), rhs: isRight x}
     - warn: {lhs: fromLeft x (fmap f y), rhs: fromLeft x y}
+    - warn: {lhs: fromLeft x (f <$> y), rhs: fromLeft x y}
+    - warn: {lhs: fromLeft x (y <&> f), rhs: fromLeft x y}
     - warn: {lhs: fromRight x (fmap f y), rhs: either (const x) f y}
+    - warn: {lhs: fromRight x (f <$> y), rhs: either (const x) f y}
+    - warn: {lhs: fromRight x (y <&> f), rhs: either (const x) f y}
     - warn: {lhs: either (const x) id, rhs: fromRight x}
     - warn: {lhs: either id (const x), rhs: fromLeft x}
     - warn: {lhs: either Left f x, rhs: f =<< x}
@@ -795,16 +847,35 @@
     - warn: {lhs: case m of Just x -> f x; _ -> pure (), rhs: Data.Foldable.for_ m f}
     - warn: {lhs: case m of Just x -> f x; _ -> return (), rhs: Data.Foldable.forM_ m f}
     - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.for_ m f}
+    - warn: {lhs: or (fmap p x), rhs: any p x}
+    - warn: {lhs: or (p <$> x), rhs: any p x}
+    - warn: {lhs: or (x <&> p), rhs: any p x}
+    - warn: {lhs: and (fmap p x), rhs: all p x}
+    - warn: {lhs: and (p <$> x), rhs: all p x}
+    - warn: {lhs: and (x <&> p), rhs: all p x}
+    - warn: {lhs: any f (fmap g x), rhs: any (f . g) x}
+    - warn: {lhs: any f (g <$> x), rhs: any (f . g) x}
+    - warn: {lhs: any f (x <&> g), rhs: any (f . g) x}
+    - warn: {lhs: all f (fmap g x), rhs: all (f . g) x}
+    - warn: {lhs: all f (g <$> x), rhs: all (f . g) x}
+    - warn: {lhs: all f (x <&> g), rhs: all (f . g) x}
+    - hint: {lhs: foldr f z (fmap g x), rhs: foldr (f . g) z x, name: Fuse foldr/fmap}
+    - hint: {lhs: foldr f z (g <$> x), rhs: foldr (f . g) z x, name: Fuse foldr/<$>}
+    - hint: {lhs: foldr f z (x <&> g), rhs: foldr (f . g) z x, name: Fuse foldr/<&>}
 
     # STATE MONAD
 
     - warn: {lhs: f <$> Control.Monad.State.get, rhs: gets f}
+    - warn: {lhs: Control.Monad.State.get <&> f, rhs: gets f}
     - warn: {lhs: fmap f  Control.Monad.State.get, rhs: gets f}
     - warn: {lhs: f <$> Control.Monad.State.gets g, rhs: gets (f . g)}
+    - warn: {lhs: Control.Monad.State.gets g <&> f, rhs: gets (f . g)}
     - warn: {lhs: fmap f (Control.Monad.State.gets g), rhs: gets (f . g)}
     - warn: {lhs: f <$> Control.Monad.Reader.ask, rhs: asks f}
+    - warn: {lhs: Control.Monad.Reader.ask <&> f, rhs: asks f}
     - warn: {lhs: fmap f Control.Monad.Reader.ask, rhs: asks f}
     - warn: {lhs: f <$> Control.Monad.Reader.asks g, rhs: asks (f . g)}
+    - warn: {lhs: Control.Monad.Reader.asks g <&> f, rhs: asks (f . g)}
     - warn: {lhs: fmap f (Control.Monad.Reader.asks g), rhs: asks (f . g)}
     - warn: {lhs: fst (runState m s), rhs: evalState m s}
     - warn: {lhs: snd (runState m s), rhs: execState m s}
@@ -823,6 +894,14 @@
     - warn: {lhs: either f g (Right y), rhs: g y, name: Evaluate}
     - warn: {lhs: "fst (x,y)", rhs: x, name: Evaluate}
     - warn: {lhs: "snd (x,y)", rhs: "y", name: Evaluate}
+    - warn: {lhs: fromJust (Just x), rhs: x, name: Evaluate}
+    - warn: {lhs: fromLeft y (Left x), rhs: x, name: Evaluate}
+    - warn: {lhs: fromLeft y (Right x), rhs: "y", name: Evaluate}
+    - warn: {lhs: fromRight y (Right x), rhs: x, name: Evaluate}
+    - warn: {lhs: fromRight y (Left x), rhs: "y", name: Evaluate}
+    - warn: {lhs: "head [x]", rhs: "x", name: Evaluate}
+    - warn: {lhs: "last [x]", rhs: "x", name: Evaluate}
+    - warn: {lhs: "tail [x]", rhs: "[]", name: Evaluate}
     - warn: {lhs: "init [x]", rhs: "[]", name: Evaluate}
     - warn: {lhs: "null [x]", rhs: "False", name: Evaluate}
     - warn: {lhs: "null []", rhs: "True", name: Evaluate}
@@ -884,6 +963,7 @@
     - warn: {lhs: "toList      (x,b)", rhs: b, name: Using toList on tuple}
     - warn: {lhs: "maximum     (x,b)", rhs: b, name: Using maximum on tuple}
     - warn: {lhs: "minimum     (x,b)", rhs: b, name: Using minimum on tuple}
+    - warn: {lhs: "notElem e   (x,b)", rhs: e /= b, name: Using notElem on tuple}
     - warn: {lhs: "sum         (x,b)", rhs: b, name: Using sum on tuple}
     - warn: {lhs: "product     (x,b)", rhs: b, name: Using product on tuple}
     - warn: {lhs: "concat      (x,b)", rhs: b, name: Using concat on tuple}
@@ -904,6 +984,7 @@
     - warn: {lhs: "toList      (x,y,b)", rhs: b, name: Using toList on tuple}
     - warn: {lhs: "maximum     (x,y,b)", rhs: b, name: Using maximum on tuple}
     - warn: {lhs: "minimum     (x,y,b)", rhs: b, name: Using minimum on tuple}
+    - warn: {lhs: "notElem e   (x,y,b)", rhs: e /= b, name: Using notElem on tuple}
     - warn: {lhs: "sum         (x,y,b)", rhs: b, name: Using sum on tuple}
     - warn: {lhs: "product     (x,y,b)", rhs: b, name: Using product on tuple}
     - warn: {lhs: "concat      (x,y,b)", rhs: b, name: Using concat on tuple}
@@ -1039,6 +1120,104 @@
     - hint: {lhs: "\\(x, y) -> [x, y]", rhs: Data.Bifoldable.biList, note: IncreasesLaziness}
     - hint: {lhs: const mempty, rhs: mempty}
     - hint: {lhs: \x -> mempty, rhs: mempty, name: Redundant lambda}
+    - warn: {lhs: map f x >>= g, rhs: x >>= g . f}
+    - warn: {lhs: g =<< map f x, rhs: g . f =<< x}
+    - hint: {lhs: join (map f x), rhs: f =<< x}
+    - warn: {lhs: map unzip (mapM f x), rhs: Control.Monad.mapAndUnzipM f x}
+
+# Warn on partial functions whose use can be avoided relatively easily.
+# These functions are in the base package, excluding IO and GHC modules.
+- group:
+    name: partial
+    enabled: false
+    imports:
+    - package base
+    rules:
+
+    # Data.Bifoldable
+
+    - warn: {lhs: bifoldr1, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: bifoldl1, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: bimaximum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: biminimum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: bimaximumBy, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: biminimumBy, rhs: undefined, name: Avoid partial function}
+
+    # Data.Bits
+
+    - warn: {lhs: bitSize x, rhs: "case bitSizeMaybe x of Just n -> n; Nothing -> error _", name: Avoid partial function}
+    - warn: {lhs: shiftL x b, rhs: shift x b, name: Avoid partial function}
+    - warn: {lhs: shiftR x b, rhs: shift x (-b), name: Avoid partial function}
+    - warn: {lhs: unsafeShiftL x b, rhs: shift x b, name: Avoid partial function}
+    - warn: {lhs: unsafeShiftR x b, rhs: shift x (-b), name: Avoid partial function}
+    - warn: {lhs: rotateL x b, rhs: rotate x b, name: Avoid partial function}
+    - warn: {lhs: rotateR x b, rhs: rotate x (-b), name: Avoid partial function}
+
+    # Data.Foldable
+
+    - warn: {lhs: foldr1, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: foldl1, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: maximum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: minimum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: maximumBy, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: minimumBy, rhs: undefined, name: Avoid partial function}
+
+    # Data.List
+
+    - warn: {lhs: head l, rhs: "case l of x:_ -> x; [] -> error _", side: not (isNonEmpty l), name: Avoid partial function}
+    - warn: {lhs: last l, rhs: "case reverse l of x:_ -> x; [] -> error _", side: not (isNonEmpty l), name: Avoid partial function}
+    - warn: {lhs: tail l, rhs: "case l of _:xs -> xs; [] -> error _", side: not (isNonEmpty x), name: Avoid partial function}
+    - warn: {lhs: init l, rhs: "case reverse l of _:xs -> reverse xs; [] -> error _", side: not (isNonEmpty x), name: Avoid partial function}
+    - warn: {lhs: l !! n, rhs: "case drop n l of x:_ -> x; [] -> error _", name: Avoid partial function}
+
+    # Data.List.NonEmpty
+
+    - warn: {lhs: Data.List.NonEmpty.fromList l, rhs: "case nonEmpty l of Just xs -> xs; Nothing -> error _", name: Avoid partial function}
+
+    # Data.Maybe
+
+    - warn: {lhs: fromJust v, rhs: "case v of Just x -> x; Nothing -> error _", name: Avoid partial function}
+
+# Strictly warn even on partial functions in the base package whose use
+# are almost unavoidable for their functionality.
+- group:
+    name: partial-strict
+    enabled: false
+    imports:
+    - package base
+    rules:
+
+    # Data.Char
+
+    - warn: {lhs: digitToInt, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: intToDigit, rhs: undefined, name: Avoid partial function}
+
+    # Data.Fixed
+
+    - warn: {lhs: div', rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: mod', rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: divMod', rhs: undefined, name: Avoid partial function}
+
+    # Data.List
+
+    - warn: {lhs: cycle, rhs: undefined, name: Avoid partial function}
+
+    # Data.Ratio
+
+    - warn: {lhs: x % y, rhs: undefined, name: Avoid partial function}
+
+    # Prelude
+
+    - warn: {lhs: succ, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: pred, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: toEnum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: fromEnum, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: quot, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: rem, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: div, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: mod, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: quotRem, rhs: undefined, name: Avoid partial function}
+    - warn: {lhs: divMod, rhs: undefined, name: Avoid partial function}
 
 # hints that use the 'extra' library
 - group:
@@ -1046,9 +1225,9 @@
     enabled: false
     rules:
     - warn: {lhs: fmap concat (forM a b), rhs: concatForM a b}
+    - warn: {lhs: map concat (forM a b), rhs: concatForM a b}
     - warn: {lhs: concat <$> forM a b, rhs: concatForM a b}
-    - warn: {lhs: fmap concat (forM_ a b), rhs: concatForM_ a b}
-    - warn: {lhs: concat <$> forM_ a b, rhs: concatForM_ a b}
+    - warn: {lhs: forM a b <&> concat, rhs: concatForM a b}
     - warn: {lhs: "maybe (pure ()) b a", rhs: "whenJust a b"}
     - warn: {lhs: "maybe (return ()) b a", rhs: "whenJust a b"}
     - warn: {lhs: "maybeM (pure ()) b a", rhs: "whenJustM a b"}
@@ -1108,15 +1287,24 @@
     - warn: {lhs: "readFileEncoding' utf8", rhs: "readFileUTF8'"}
     - warn: {lhs: "withBinaryFile a ReadMode hGetContents'", rhs: "readFileBinary' a"}
     - warn: {lhs: "writeFileEncoding utf8", rhs: "writeFileUTF8"}
-    - warn: {lhs: "head $ x ++ [y]", rhs: "headDef y x"}
-    - warn: {lhs: "last $ x : y", rhs: "lastDef x y"}
+    - warn: {lhs: "head (x ++ [y])", rhs: "headDef y x"}
+    - warn: {lhs: "last (x : y)", rhs: "lastDef x y"}
     - warn: {lhs: "drop 1", rhs: "drop1"}
     - warn: {lhs: "dropEnd 1", rhs: "dropEnd1"}
+    - warn: {lhs: not (notNull x), rhs: null x}
     - warn: {lhs: notNull (concat x), rhs: any notNull x}
     - warn: {lhs: notNull (filter f x), rhs: any f x}
     - warn: {lhs: "notNull [x]", rhs: "True", name: Evaluate}
     - warn: {lhs: "notNull []", rhs: "False", name: Evaluate}
+    - warn: {lhs: "notNull \"\"", rhs: "False", name: Evaluate}
     - hint: {lhs: "\\(x,y) -> (f x, f y)", rhs: both f}
+    - warn: {lhs: fromLeft' (Left x), rhs: x, name: Evaluate}
+    - warn: {lhs: fromRight' (Right x), rhs: x, name: Evaluate}
+    - warn: {lhs: fromEither (Left x), rhs: x, name: Evaluate}
+    - warn: {lhs: fromEither (Right x), rhs: x, name: Evaluate}
+    - hint: {lhs: nub (sort x), rhs: nubSort x}
+    - warn: {lhs: sort (nub x), rhs: nubSort x}
+    - warn: {lhs: notNull x, rhs: "True", side: isTuple x, name: Using notNull on tuple}
 
 # hints that will be enabled in future
 - group:

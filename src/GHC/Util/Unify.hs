@@ -95,7 +95,7 @@ substitute (Subst bind) = transformBracketOld exp . transformBi pat . transformB
     typ :: LHsType GhcPs -> LHsType GhcPs
     -- Type variables.
     typ (L _ (HsTyVar _ _ x))
-      | Just (L _ (HsAppType _ _ (HsWC _ y))) <- lookup (rdrNameStr x) bind = y
+      | Just (L _ (HsAppType _ _ _ (HsWC _ y))) <- lookup (rdrNameStr x) bind = y
     typ x = x :: LHsType GhcPs
 
 
@@ -288,7 +288,7 @@ unifyPat' nm x y =
 unifyType' :: NameMatch -> LHsType GhcPs -> LHsType GhcPs -> Maybe (Subst (LHsExpr GhcPs))
 unifyType' nm (L loc (HsTyVar _ _ x)) y =
   let wc = HsWC noExtField y :: LHsWcType (NoGhcTc GhcPs)
-      unused = strToVar "__unused__" :: LHsExpr GhcPs
-      appType = L loc (HsAppType noSrcSpan unused wc) :: LHsExpr GhcPs
+      unused = strToVar "__unused__"
+      appType = L loc (HsAppType noExtField unused noHsTok wc)
  in Just $ Subst [(rdrNameStr x, appType)]
 unifyType' nm x y = unifyDef' nm x y

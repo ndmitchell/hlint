@@ -1,5 +1,22 @@
 Changelog for HLint (* = breaking change)
 
+    #1475, rules for (elem False) and (notElem True) 
+    #1476, generalise map-consuming rules from lists to Foldables/Traversables
+    #1480, add hints about notElem and notNull
+    #1482, support SARIF output
+    #1470, drop support for GHC 9.0
+*   #1470, move to GHC 9.6 parser
+    #1449, add some more generalize hints that suggest fmap instead of map
+    Never suggest concatForM_, because it doesn't exist
+    #1467, and groups for warning on partial functions
+    #1465, improve the timing information with -v flag
+    #1454, filter Just . map f ==> map Just . mapMaybe f
+    #1452, add more evaluate rules, e.g. fromJust (Just x) ==> x
+    #1488, add <$>/<&> hints for Either
+    #1447, make <$> hints also work on <&> (dualized)
+    #1450, suggest nub/sort ==> nubSort with the extra hints
+    #1451, isJust y && (x == fromJust y) ==> Just x == y
+    #578, don't suggest numeric underscores for < 5 digits
     #1428, rename "Use map" hints that introduce tuple sections
     #1424, don't suggest sortOn; suggest avoiding `reverse . sort`
 3.5, released 2022-09-20

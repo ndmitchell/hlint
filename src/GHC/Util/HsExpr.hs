@@ -58,7 +58,7 @@ dotApps (x : xs) = dotApp x (dotApps xs)
 
 -- | @lambda [p0, p1..pn] body@ makes @\p1 p1 .. pn -> body@
 lambda :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
-lambda vs body = noLocA $ HsLam noExtField (MG noExtField (noLocA [noLocA $ Match EpAnnNotUsed LambdaExpr vs (GRHSs emptyComments [noLocA $ GRHS EpAnnNotUsed [] body] (EmptyLocalBinds noExtField))]) Generated)
+lambda vs body = noLocA $ HsLam noExtField (MG Generated (noLocA [noLocA $ Match EpAnnNotUsed LambdaExpr vs (GRHSs emptyComments [noLocA $ GRHS EpAnnNotUsed [] body] (EmptyLocalBinds noExtField))]))
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -125,7 +125,7 @@ simplifyExp (L l (OpApp _ x op y)) | isDol op = L l (HsApp EpAnnNotUsed x (nlHsP
 simplifyExp e@(L _ (HsLet _ _ ((HsValBinds _ (ValBinds _ binds []))) _ z)) =
   -- An expression of the form, 'let x = y in z'.
   case bagToList binds of
-    [L _ (FunBind _ _ (MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] ((EmptyLocalBinds _))))]) _) _)]
+    [L _ (FunBind _ _ (MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] ((EmptyLocalBinds _))))])))]
          -- If 'x' is not in the free variables of 'y', beta-reduce to
          -- 'z[(y)/x]'.
       | occNameStr x `notElem` vars y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
@@ -242,7 +242,7 @@ niceLambdaR ss e =
   let grhs = noLocA $ GRHS EpAnnNotUsed [] e :: LGRHS GhcPs (LHsExpr GhcPs)
       grhss = GRHSs {grhssExt = emptyComments, grhssGRHSs=[grhs], grhssLocalBinds=EmptyLocalBinds noExtField}
       match = noLocA $ Match {m_ext=EpAnnNotUsed, m_ctxt=LambdaExpr, m_pats=map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
-      matchGroup = MG {mg_ext=noExtField, mg_origin=Generated, mg_alts=noLocA [match]}
+      matchGroup = MG {mg_ext=Generated, mg_alts=noLocA [match]}
   in (noLocA $ HsLam noExtField matchGroup, const [])
 
 
@@ -251,8 +251,8 @@ niceLambdaR ss e =
 replaceBranches :: LHsExpr GhcPs -> ([LHsExpr GhcPs], [LHsExpr GhcPs] -> LHsExpr GhcPs)
 replaceBranches (L l (HsIf _ a b c)) = ([b, c], \[b, c] -> L l (HsIf EpAnnNotUsed a b c))
 
-replaceBranches (L s (HsCase _ a (MG _ (L l bs) FromSource))) =
-  (concatMap f bs, \xs -> L s (HsCase EpAnnNotUsed a (MG noExtField (L l (g bs xs)) Generated)))
+replaceBranches (L s (HsCase _ a (MG FromSource (L l bs)))) =
+  (concatMap f bs, L s . HsCase EpAnnNotUsed a . MG Generated . L l . g bs)
   where
     f :: LMatch GhcPs (LHsExpr GhcPs) -> [LHsExpr GhcPs]
     f (L _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (L _ (GRHS _ _ x)) <- xs]

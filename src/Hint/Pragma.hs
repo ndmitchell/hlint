@@ -32,7 +32,7 @@
 
 module Hint.Pragma(pragmaHint) where
 
-import Hint.Type(ModuHint,Idea(..),Severity(..),toSSAnc,rawIdea,modComments)
+import Hint.Type(ModuHint,Idea(..),Severity(..),toSSAnc,rawIdea,modComments,firstDeclComments)
 import Data.List.Extra
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
@@ -48,7 +48,11 @@ import GHC.Driver.Session
 
 pragmaHint :: ModuHint
 pragmaHint _ modu =
-  let ps = pragmas (modComments modu)
+  -- Comments appearing without a line-break before the first
+  -- declaration in a module are now associated with the declaration
+  -- not the module so to be safe, look also at `firstDeclComments
+  -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+  let ps = pragmas (modComments modu) ++ pragmas (firstDeclComments modu)
       opts = flags ps
       lang = languagePragmas ps in
     languageDupes lang ++ optToPragma opts lang

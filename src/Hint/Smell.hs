@@ -128,7 +128,7 @@ declSpans :: LHsDecl GhcPs -> [(SrcSpan, Idea)]
 declSpans
    (L _ (ValD _
      FunBind {fun_matches=MG {
-                   mg_origin=FromSource
+                   mg_ext=FromSource
                  , mg_alts=(L _ [L _ Match {
                        m_ctxt=ctx
                      , m_grhss=GRHSs{grhssGRHSs=[locGrhs]

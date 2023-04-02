@@ -72,12 +72,11 @@ shouldSuggestStrategies :: HsDataDefn GhcPs -> Bool
 shouldSuggestStrategies dataDef = not (isData dataDef) && not (hasAllStrategies dataDef)
 
 hasAllStrategies :: HsDataDefn GhcPs -> Bool
-hasAllStrategies (HsDataDefn _ NewType _ _ _ _  xs) = all hasStrategyClause xs
-hasAllStrategies _ = False
+hasAllStrategies (HsDataDefn _ _ _ _ _  xs) = all hasStrategyClause xs
 
 isData :: HsDataDefn GhcPs -> Bool
-isData (HsDataDefn _ NewType _ _ _ _ _) = False
-isData (HsDataDefn _ DataType _ _ _ _ _) = True
+isData (HsDataDefn _ _ _ _ (NewTypeCon _) _) = False
+isData (HsDataDefn _ _ _ _ (DataTypeCons _ _) _) = True
 
 hasStrategyClause :: LHsDerivingClause GhcPs -> Bool
 hasStrategyClause (L _ (HsDerivingClause _ (Just _) _)) = True
@@ -98,31 +97,39 @@ data WarnNewtype = WarnNewtype
 singleSimpleField :: LHsDecl GhcPs -> Maybe WarnNewtype
 singleSimpleField (L loc (TyClD ext decl@(DataDecl _ _ _ _ dataDef)))
     | Just inType <- simpleHsDataDefn dataDef =
-        Just WarnNewtype
+        case dropBangs dataDef of
+          DataTypeCons False [con] ->
+            Just WarnNewtype
               { newDecl = L loc $ TyClD ext decl {tcdDataDefn = dataDef
-                  { dd_ND = NewType
-                  , dd_cons = dropBangs dataDef
-                  }}
+                  { dd_cons = NewTypeCon con }}
               , insideType = inType
               }
+          DataTypeCons True [_] -> Nothing -- Extension "TypeData": `type data T x = ...`
+          _ -> Nothing
 singleSimpleField (L loc (InstD ext (DataFamInstD instExt (DataFamInstDecl famEqn@(FamEqn _ _ _ _ _ dataDef)))))
     | Just inType <- simpleHsDataDefn dataDef =
-        Just WarnNewtype
-          { newDecl = L loc $ InstD ext $ DataFamInstD instExt $ DataFamInstDecl $ famEqn {feqn_rhs = dataDef
-                  { dd_ND = NewType
-                  , dd_cons = dropBangs dataDef
-                  }}
+        case dropBangs dataDef of
+          DataTypeCons False [con] ->
+            Just WarnNewtype
+              { newDecl = L loc $ InstD ext $ DataFamInstD instExt $ DataFamInstDecl $ famEqn {feqn_rhs = dataDef
+                      { dd_cons = NewTypeCon con }}
               , insideType = inType
               }
+          DataTypeCons True [_] -> Nothing --  -- Extension "TypeData": `type data T x = ...`
+          _ -> Nothing
 singleSimpleField _ = Nothing
 
-dropBangs :: HsDataDefn GhcPs -> [LConDecl GhcPs]
-dropBangs = map (fmap dropConsBang) . dd_cons
+dropBangs :: HsDataDefn GhcPs -> DataDefnCons (LConDecl GhcPs)
+dropBangs def =
+  case dd_cons def of
+    NewTypeCon a -> NewTypeCon (dropConsBang <$> a)
+    DataTypeCons isTypeData as -> DataTypeCons isTypeData (map (dropConsBang <$>) as)
 
--- | Checks whether its argument is a \"simple\" data definition (see 'singleSimpleField')
--- returning the type inside its constructor if it is.
+-- | Checks whether its argument is a \"simple\" data definition (see
+-- 'singleSimpleField') returning the single thing under its
+-- constructor if it is.
 simpleHsDataDefn :: HsDataDefn GhcPs -> Maybe (HsType GhcPs)
-simpleHsDataDefn (HsDataDefn _ DataType _ _ _ [L _ constructor] _) = simpleCons constructor
+simpleHsDataDefn (HsDataDefn _ _ _ _ (DataTypeCons _ [L _ constructor]) _) = simpleCons constructor
 simpleHsDataDefn _ = Nothing
 
 -- | Checks whether its argument is a \"simple\" constructor (see criteria in 'singleSimpleField')
