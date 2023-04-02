@@ -487,6 +487,12 @@
     - hint: {lhs: x <&> const y, rhs: x Data.Functor.$> y}
     - hint: {lhs: x <&> pure y, rhs: x Data.Functor.$> y}
     - hint: {lhs: x <&> return y, rhs: x Data.Functor.$> y}
+    - warn: {lhs: "fmap f (x,b)", rhs: "(x,f b)", name: Using fmap on tuple}
+    - warn: {lhs: "f <$> (x,b)", rhs: "(x,f b)", name: Using <$> on tuple}
+    - warn: {lhs: "(x,b) <&> f", rhs: "(x,f b)", name: Using <&> on tuple}
+    - warn: {lhs: "fmap f (x,y,b)", rhs: "(x,y,f b)", name: Using fmap on tuple}
+    - warn: {lhs: "f <$> (x,y,b)", rhs: "(x,y,f b)", name: Using <$> on tuple}
+    - warn: {lhs: "(x,y,b) <&> f", rhs: "(x,y,f b)", name: Using <&> on tuple}
 
     # APPLICATIVE
 
