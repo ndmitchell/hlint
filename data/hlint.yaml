@@ -297,6 +297,12 @@
     - warn: {lhs: foldMap f (x <&> g), rhs: foldMap (f . g) x, name: Fuse foldMap/<&>}
     - warn: {lhs: foldMap f (fmap g x), rhs: foldMap (f . g) x, name: Fuse foldMap/fmap}
     - warn: {lhs: foldMap f (map g x), rhs: foldMap (f . g) x, name: Fuse foldMap/map}
+    - warn: {lhs: traverse f (fmap g x), rhs: traverse (f . g) x, name: Fuse traverse/fmap}
+    - warn: {lhs: traverse f (g <$> x), rhs: traverse (f . g) x, name: Fuse traverse/<$>}
+    - warn: {lhs: traverse f (x <&> g), rhs: traverse (f . g) x, name: Fuse traverse/<&>}
+    - warn: {lhs: traverse_ f (fmap g x), rhs: traverse_ (f . g) x, name: Fuse traverse_/fmap}
+    - warn: {lhs: traverse_ f (g <$> x), rhs: traverse_ (f . g) x, name: Fuse traverse_/<$>}
+    - warn: {lhs: traverse_ f (x <&> g), rhs: traverse_ (f . g) x, name: Fuse traverse_/<&>}
 
     # BY
 
@@ -837,6 +843,21 @@
     - warn: {lhs: case m of Just x -> f x; _ -> pure (), rhs: Data.Foldable.forM_ m f}
     - warn: {lhs: case m of Just x -> f x; _ -> return (), rhs: Data.Foldable.forM_ m f}
     - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: or (fmap p x), rhs: any p x}
+    - warn: {lhs: or (p <$> x), rhs: any p x}
+    - warn: {lhs: or (x <&> p), rhs: any p x}
+    - warn: {lhs: and (fmap p x), rhs: all p x}
+    - warn: {lhs: and (p <$> x), rhs: all p x}
+    - warn: {lhs: and (x <&> p), rhs: all p x}
+    - warn: {lhs: any f (fmap g x), rhs: any (f . g) x}
+    - warn: {lhs: any f (g <$> x), rhs: any (f . g) x}
+    - warn: {lhs: any f (x <&> g), rhs: any (f . g) x}
+    - warn: {lhs: all f (fmap g x), rhs: all (f . g) x}
+    - warn: {lhs: all f (g <$> x), rhs: all (f . g) x}
+    - warn: {lhs: all f (x <&> g), rhs: all (f . g) x}
+    - hint: {lhs: foldr f z (fmap g x), rhs: foldr (f . g) z x, name: Fuse foldr/fmap}
+    - hint: {lhs: foldr f z (g <$> x), rhs: foldr (f . g) z x, name: Fuse foldr/<$>}
+    - hint: {lhs: foldr f z (x <&> g), rhs: foldr (f . g) z x, name: Fuse foldr/<&>}
 
     # STATE MONAD
 
