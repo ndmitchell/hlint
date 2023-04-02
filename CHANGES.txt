@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1485, add more hints about using a Functor on a literal tuple
     #1479, add specialised not hints for notElem/notNull
     #1437, don't add/remove Monad constraints in replacements
     #1475, rules for (elem False) and (notElem True) 

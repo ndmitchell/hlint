@@ -7404,6 +7404,102 @@ x Data.Functor.$> y
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Using fmap on tuple</td>
+<td>
+LHS:
+<code>
+fmap f (x, b)
+</code>
+<br>
+RHS:
+<code>
+(x, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <$> on tuple</td>
+<td>
+LHS:
+<code>
+f <$> (x, b)
+</code>
+<br>
+RHS:
+<code>
+(x, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <&> on tuple</td>
+<td>
+LHS:
+<code>
+(x, b) <&> f
+</code>
+<br>
+RHS:
+<code>
+(x, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using fmap on tuple</td>
+<td>
+LHS:
+<code>
+fmap f (x, y, b)
+</code>
+<br>
+RHS:
+<code>
+(x, y, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <$> on tuple</td>
+<td>
+LHS:
+<code>
+f <$> (x, y, b)
+</code>
+<br>
+RHS:
+<code>
+(x, y, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <&> on tuple</td>
+<td>
+LHS:
+<code>
+(x, y, b) <&> f
+</code>
+<br>
+RHS:
+<code>
+(x, y, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use <$></td>
 <td>
 LHS:
