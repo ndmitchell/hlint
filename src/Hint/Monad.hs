@@ -63,6 +63,10 @@ issue978 = do \
    print "x" \
    if False then main else do \
    return ()
+
+foo x y z = return 7 -- Make foo into a pure function
+foo x y z = pure 7 -- Make foo into a pure function
+foo x y z = negate 7
 </TEST>
 -}
 
@@ -79,6 +83,7 @@ import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
 import GHC.Data.Bag
 import GHC.Data.Strict qualified
+import Control.Monad ( guard )
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -100,8 +105,11 @@ unitFuncs :: [String]
 unitFuncs = ["when","unless","void"]
 
 monadHint :: DeclHint
-monadHint _ _ d = concatMap (f Nothing Nothing) $ childrenBi d
+monadHint _ _ d =
+  baseHints <> gratuitousHints
     where
+        baseHints = concatMap (f Nothing Nothing) $ childrenBi d
+        gratuitousHints = concatMap gratuitouslyMonadic $ universeBi d
         decl = declName d
         f parentDo parentExpr x =
             monadExp decl parentDo parentExpr x ++
@@ -110,6 +118,23 @@ monadHint _ _ d = concatMap (f Nothing Nothing) $ childrenBi d
         isHsDo (L _ HsDo{}) = True
         isHsDo _ = False
 
+gratuitouslyMonadic :: LHsDecl GhcPs -> [Idea]
+gratuitouslyMonadic e@(L _ x) = case x of
+  ValD _ func@(FunBind _ (L _ n) (MG _ (L _ ms))) ->
+    let fname = occNameString $ rdrNameOcc n in do
+    guard $ fname /= "main"
+    L _ (Match _ _ _ (GRHSs _ xs _)) <- ms
+    L _ (GRHS _ _ (L _ (HsApp _ (L _ (HsVar _ (L _ myFunc))) _))) <- xs
+    guard (occNameString (rdrNameOcc myFunc) `elem` ["pure", "return"])
+    pure $ rawIdea
+      Suggestion
+      "Unnecessarily monadic"
+      (locA $ getLoc e)
+      (unsafePrettyPrint e)
+      (Just $ unwords ["Make", fname, "into a pure function"])
+      []
+      []
+  _ -> []
 
 -- | Call with the name of the declaration,
 --   the nearest enclosing `do` expression
