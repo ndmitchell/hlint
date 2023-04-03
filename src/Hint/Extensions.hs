@@ -330,13 +330,16 @@ extensionsHint _ x =
 
     -- All the extensions defined to be used.
     extensions :: Set.Set Extension
-    extensions = Set.fromList $ mapMaybe readExtension $
+    extensions = Set.fromList $
+      concatMap
+      (mapMaybe readExtension . snd)
+      (languagePragmas
+        (pragmas (modComments x) ++ pragmas (firstDeclComments x)))
       -- Comments appearing without an empty line before the first
       -- declaration in a module are now associated with the
       -- declaration not the module so to be safe, look also at
       -- `firstDeclComments x`
       -- (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
-        concatMap snd $ languagePragmas (pragmas (modComments x) ++ pragmas (firstDeclComments x))
 
     -- Those extensions we detect to be useful.
     useful :: Set.Set Extension

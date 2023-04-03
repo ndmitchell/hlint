@@ -64,8 +64,7 @@ pragmas x =
 
 -- All the extensions defined to be used.
 extensions :: EpAnnComments -> Set.Set Extension
-extensions = Set.fromList . mapMaybe readExtension .
-    concatMap snd . languagePragmas . pragmas
+extensions = Set.fromList . concatMap (mapMaybe readExtension . snd) . languagePragmas . pragmas
 
 -- Utility for a case insensitive prefix strip.
 stripPrefixCI :: String -> String -> Maybe String
