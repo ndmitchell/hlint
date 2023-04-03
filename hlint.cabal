@@ -159,6 +159,7 @@ library
         Hint.Match
         Hint.Monad
         Hint.Naming
+        Hint.Negation
         Hint.NewType
         Hint.Pattern
         Hint.Pragma

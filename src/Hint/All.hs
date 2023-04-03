@@ -21,6 +21,7 @@ import Hint.Lambda
 import Hint.Bracket
 import Hint.Fixities
 import Hint.Naming
+import Hint.Negation
 import Hint.Pattern
 import Hint.Import
 import Hint.Export
@@ -37,7 +38,7 @@ import Hint.NumLiteral
 -- | A list of the builtin hints wired into HLint.
 --   This list is likely to grow over time.
 data HintBuiltin =
-    HintList | HintListRec | HintMonad | HintLambda | HintFixities |
+    HintList | HintListRec | HintMonad | HintLambda | HintFixities | HintNegation |
     HintBracket | HintNaming | HintPattern | HintImport | HintExport |
     HintPragma | HintExtensions | HintUnsafe | HintDuplicate | HintRestrict |
     HintComment | HintNewType | HintSmell | HintNumLiteral
@@ -63,6 +64,7 @@ builtin x = case x of
     HintNaming     -> decl namingHint
     HintBracket    -> decl bracketHint
     HintFixities   -> mempty{hintDecl=fixitiesHint}
+    HintNegation   -> decl negationParensHint
     HintSmell      -> mempty{hintDecl=smellHint,hintModule=smellModuleHint}
     HintPattern    -> decl patternHint
     HintMonad      -> decl monadHint
