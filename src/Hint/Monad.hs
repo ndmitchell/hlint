@@ -66,6 +66,7 @@ issue978 = do \
 
 foo x y z = return 7 -- Make foo into a pure function
 foo x y z = pure 7 -- Make foo into a pure function
+foo x y z = pure $ x + y -- Make foo into a pure function
 foo x y z = negate 7
 </TEST>
 -}
@@ -119,13 +120,10 @@ monadHint _ _ d =
         isHsDo _ = False
 
 gratuitouslyMonadic :: LHsDecl GhcPs -> [Idea]
-gratuitouslyMonadic e@(L _ x) = case x of
-  ValD _ func@(FunBind _ (L _ n) (MG _ (L _ ms))) ->
-    let fname = occNameString $ rdrNameOcc n in do
-    guard $ fname /= "main"
-    L _ (Match _ _ _ (GRHSs _ xs _)) <- ms
-    L _ (GRHS _ _ (L _ (HsApp _ (L _ (HsVar _ (L _ myFunc))) _))) <- xs
-    guard (occNameString (rdrNameOcc myFunc) `elem` ["pure", "return"])
+gratuitouslyMonadic e@(L _ d) = case d of
+  ValD _ func@(FunBind _ (L _ n) (MG _ (L _ ms))) -> do
+    guard $ fname /= "main"  -- Account for "main = pure ()" test
+    guard $ all gratuitouslyMonadicExpr $ allMatchExprs ms
     pure $ rawIdea
       Suggestion
       "Unnecessarily monadic"
@@ -134,7 +132,20 @@ gratuitouslyMonadic e@(L _ x) = case x of
       (Just $ unwords ["Make", fname, "into a pure function"])
       []
       []
+    where
+      fname = occNameString $ rdrNameOcc n
+      -- Iterate over all of the patterns of the function, as well as all of the guards
+      allMatchExprs ms = [expr | L _ (Match _ _ _ (GRHSs _ xs _)) <- ms, L _ (GRHS _ _ expr) <- xs]
   _ -> []
+
+-- | Handles both of:
+--     pure x
+--     pure $ f x
+gratuitouslyMonadicExpr :: LHsExpr GhcPs -> Bool
+gratuitouslyMonadicExpr x = case simplifyExp x of
+  L _ (HsApp _ (L _ (HsVar _ (L _ myFunc))) _) ->
+    occNameString (rdrNameOcc myFunc) `elem` ["pure", "return"]
+  _ -> False
 
 -- | Call with the name of the declaration,
 --   the nearest enclosing `do` expression
