@@ -25,6 +25,7 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Deriving.Aeson
 import System.Console.CmdArgs.Implicit
 import Data.Aeson hiding (Error)
+import Util (backquote)
 
 getSeverity :: String -> Maybe Severity
 getSeverity "ignore" = Just Ignore
@@ -82,8 +83,8 @@ instance Show Note where
     show IncreasesLaziness = "increases laziness"
     show DecreasesLaziness = "decreases laziness"
     show (RemovesError x) = "removes error " ++ x
-    show (ValidInstance x y) = "requires a valid `" ++ x ++ "` instance for `" ++ y ++ "`"
-    show (RequiresExtension x) = "may require `{-# LANGUAGE " ++ x ++ " #-}` adding to the top of the file"
+    show (ValidInstance x y) = unwords ["requires a valid", backquote x, "instance for", backquote y]
+    show (RequiresExtension x) = unwords ["may require adding", backquote $ unwords ["{-# LANGUAGE", x, "#-}"], "to the top of the file"]
     show (Note x) = x
 
 

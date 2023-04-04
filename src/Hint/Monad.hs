@@ -74,6 +74,7 @@ foo x y z = negate 7
 module Hint.Monad(monadHint) where
 
 import Hint.Type
+import Util (backquote)
 
 import GHC.Hs hiding (Warning)
 import GHC.Types.Fixity
@@ -128,7 +129,7 @@ gratuitouslyMonadic e@(L _ d) = case d of
       "Unnecessarily monadic"
       (locA $ getLoc e)
       (unsafePrettyPrint e)
-      (Just $ unwords ["Demote", "`" <> fname <> "`", "to a pure function"])
+      (Just $ unwords ["Demote", backquote fname, "to a pure function"])
       []
       []
     where

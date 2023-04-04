@@ -4,7 +4,8 @@ module Util(
     forceList,
     gzip, universeParentBi,
     exitMessage, exitMessageImpure,
-    getContentsUTF8, wildcardMatch
+    getContentsUTF8, wildcardMatch,
+    backquote
     ) where
 
 import System.Exit
@@ -41,6 +42,11 @@ getContentsUTF8 = do
     hSetEncoding stdin utf8
     getContents
 
+---------------------------------------------------------------------
+-- RENDERING
+
+backquote :: String -> String
+backquote s = "`" <> s <> "`"
 
 ---------------------------------------------------------------------
 -- DATA.GENERICS
@@ -53,7 +59,6 @@ gzip f x y | toConstr x /= toConstr y = Nothing
          -- unsafeCoerce is safe because gmapQ on the same constr gives the same fields
          -- in the same order
     where op (Box x) (Box y) = f x (unsafeCoerce y)
-
 
 ---------------------------------------------------------------------
 -- DATA.GENERICS.UNIPLATE.OPERATIONS
