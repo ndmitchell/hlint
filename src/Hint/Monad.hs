@@ -63,9 +63,9 @@ issue978 = do \
    if False then main else do \
    return ()
 
-foo x y z = return 7 -- Make foo into a pure function
-foo x y z = pure 7 -- Make foo into a pure function
-foo x y z = pure $ x + y -- Make foo into a pure function
+foo x y z = return 7 -- Demote `foo` to a pure function
+foo x y z = pure 7 -- Demote `foo` to a pure function
+foo x y z = pure $ x + y -- Demote `foo` to a pure function
 foo x y z = negate 7
 </TEST>
 -}
@@ -128,7 +128,7 @@ gratuitouslyMonadic e@(L _ d) = case d of
       "Unnecessarily monadic"
       (locA $ getLoc e)
       (unsafePrettyPrint e)
-      (Just $ unwords ["Make", fname, "into a pure function"])
+      (Just $ unwords ["Demote", "`" <> fname <> "`", "to a pure function"])
       []
       []
     where
