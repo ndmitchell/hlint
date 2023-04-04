@@ -57,7 +57,7 @@ getHLintDataDir :: IO FilePath
 getHLintDataDir = getDataDir
 
 
--- | The function produces a tuple containg 'ParseFlags' (for 'parseModuleEx'),
+-- | The function produces a tuple containing 'ParseFlags' (for 'parseModuleEx'),
 --   and 'Classify' and 'Hint' for 'applyHints'.
 --   It approximates the normal HLint configuration steps, roughly:
 --

@@ -44,7 +44,7 @@ instance Monoid Vars where
     mconcat vs = Vars (Set.unions $ map bound vs) (Set.unions $ map free vs)
 
 -- A type `a` is a model of `AllVars a` if exists a function
--- `allVars` for producing a pair of the bound and free varaiable
+-- `allVars` for producing a pair of the bound and free variable
 -- sets in a value of `a`.
 class AllVars a where
     -- | Return the variables, erring on the side of more free
@@ -52,7 +52,7 @@ class AllVars a where
     allVars :: a -> Vars
 
 -- A type `a` is a model of `FreeVars a` if exists a function
--- `freeVars` for producing a set of free varaiable of a value of
+-- `freeVars` for producing a set of free variables of a value of
 -- `a`.
 class FreeVars a where
     -- | Return the variables, erring on the side of more free

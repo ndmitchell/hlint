@@ -55,7 +55,7 @@ unsafeHint _ (ModuleEx (L _ m)) = \ld@(L loc d) ->
      | d@(ValD _
            FunBind {fun_id=L _ (Unqual x)
                       , fun_matches=MG{mg_ext=FromSource,mg_alts=L _ [L _ Match {m_pats=[]}]}}) <- [d]
-     -- 'x' is a synonym for an appliciation involing 'unsafePerformIO'
+     -- 'x' is a synonym for an application involving 'unsafePerformIO'
      , isUnsafeDecl d
      -- 'x' is not marked 'NOINLINE'.
      , x `notElem` noinline]

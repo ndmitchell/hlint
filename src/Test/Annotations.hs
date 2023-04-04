@@ -163,7 +163,7 @@ testRefactor :: Maybe FilePath -> Maybe Idea -> String -> IO [String]
 testRefactor Nothing _ _ = pure []
 -- Skip refactoring test if there is no hint.
 testRefactor _ Nothing _ = pure []
--- Skip refactoring test if the hint has no suggestion (such as "Parse error" or "Avoid restricted fuction").
+-- Skip refactoring test if the hint has no suggestion (such as "Parse error" or "Avoid restricted function").
 testRefactor _ (Just idea) _ | isNothing (ideaTo idea) = pure []
 -- Skip refactoring test if the hint does not support refactoring.
 testRefactor _ (Just idea) _ | null (ideaRefactoring idea) = pure []
