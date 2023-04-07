@@ -12,7 +12,7 @@ extra-deps:
 #  - archive: /users/shayne/project/ghc-lib-parser-ex/ghc-lib-parser-ex-8.10.0.18.tar.gz
 #    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
 
-ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-local-binds -Werror=unused-top-binds -Werror=orphans}
+ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-local-binds -Werror=unused-top-binds -Werror=orphans -Werror=prepositive-qualified-module}
 
 # Enabling this stanza forces both hlint and ghc-lib-parser-ex to
 # depend on ghc-lib-parser.

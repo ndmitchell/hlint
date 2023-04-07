@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -19,7 +20,7 @@ import Data.Monoid
 import Data.Semigroup
 import Data.List.Extra
 import Data.Set (Set)
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 import Prelude
 
 ( ^+ ) :: Set OccName -> Set OccName -> Set OccName

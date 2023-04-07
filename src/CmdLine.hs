@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE PatternGuards, DeriveDataTypeable, TupleSections #-}
 {-# OPTIONS_GHC -Wno-missing-fields -fno-cse -O0 #-}
 
@@ -9,7 +10,7 @@ module CmdLine(
 
 import Control.Monad.Extra
 import Control.Exception.Extra
-import qualified Data.ByteString as BS
+import Data.ByteString qualified as BS
 import Data.Char
 import Data.List.Extra
 import Data.Maybe

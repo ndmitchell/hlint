@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 -- |
@@ -14,13 +15,13 @@ import Data.Aeson (ToJSON(..), (.=), encode, object)
 import Data.Char (toUpper)
 import Data.Text (Text)
 
-import qualified Data.Text as T
-import qualified Data.ByteString.Lazy.Char8 as C8
+import Data.Text qualified as T
+import Data.ByteString.Lazy.Char8 qualified as C8
 
 import Idea (Idea(..), Severity(..))
 
-import qualified GHC.Types.SrcLoc as GHC
-import qualified GHC.Util as GHC
+import GHC.Types.SrcLoc qualified as GHC
+import GHC.Util qualified as GHC
 
 data Issue = Issue
     { issueType :: Text

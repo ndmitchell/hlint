@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -21,7 +22,7 @@ module SARIF ( printIdeas
 import Data.Aeson hiding (Error)
 import Data.Aeson.Encoding
 import Data.ByteString.Lazy (ByteString)
-import qualified Data.ByteString.Lazy as B
+import Data.ByteString.Lazy qualified as B
 import Data.Text.Lazy (Text)
 import Data.Version (showVersion)
 import GHC.Util

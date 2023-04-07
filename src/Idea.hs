@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE RecordWildCards, NoMonomorphismRestriction #-}
 
 module Idea(
@@ -13,7 +14,7 @@ import Data.List.Extra
 import Config.Type
 import HsColour
 import Refact.Types hiding (SrcSpan)
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 import Prelude
 import GHC.Types.SrcLoc
 import GHC.Utils.Outputable

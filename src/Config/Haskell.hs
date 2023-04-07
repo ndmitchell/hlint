@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE PatternGuards, ViewPatterns, TupleSections #-}
 module Config.Haskell(
     readPragma,
@@ -23,7 +24,7 @@ import GHC.Hs.Lit
 import GHC.Data.FastString
 import GHC.Parser.Annotation
 import GHC.Utils.Outputable
-import qualified GHC.Data.Strict
+import GHC.Data.Strict qualified
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
