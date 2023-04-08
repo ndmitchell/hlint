@@ -208,7 +208,7 @@ lambdaExp _ o@(L _ (HsPar _ _ (view -> App2 (view -> Var_ "flip") origf@(view ->
         to = nlHsPar $ noLocA $ SectionR EpAnnNotUsed origf y
         op = if isSymbolRdrName (unLoc f)
                then unsafePrettyPrint f
-               else "`" ++ unsafePrettyPrint f ++ "`"
+               else backquote $ unsafePrettyPrint f
         var = if rdrNameStr f == "x" then "y" else "x"
         r = Replace Expr (toSSA o) [(var, toSSA y)] ("(" ++ op ++ " " ++ var ++ ")")
 

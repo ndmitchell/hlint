@@ -62,6 +62,11 @@ issue978 = do \
    print "x" \
    if False then main else do \
    return ()
+
+foo x y z = return 7 -- Demote `foo` to a pure function
+foo x y z = pure 7 -- Demote `foo` to a pure function
+foo x y z = pure $ x + y -- Demote `foo` to a pure function
+foo x y z = negate 7
 </TEST>
 -}
 
@@ -69,6 +74,7 @@ issue978 = do \
 module Hint.Monad(monadHint) where
 
 import Hint.Type
+import Util (backquote)
 
 import GHC.Hs hiding (Warning)
 import GHC.Types.Fixity
@@ -78,6 +84,7 @@ import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
 import GHC.Data.Bag
 import qualified GHC.Data.Strict
+import Control.Monad ( guard )
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -99,8 +106,11 @@ unitFuncs :: [String]
 unitFuncs = ["when","unless","void"]
 
 monadHint :: DeclHint
-monadHint _ _ d = concatMap (f Nothing Nothing) $ childrenBi d
+monadHint _ _ d =
+  baseHints <> gratuitousHints
     where
+        baseHints = concatMap (f Nothing Nothing) $ childrenBi d
+        gratuitousHints = concatMap gratuitouslyMonadic $ universeBi d
         decl = declName d
         f parentDo parentExpr x =
             monadExp decl parentDo parentExpr x ++
@@ -109,6 +119,33 @@ monadHint _ _ d = concatMap (f Nothing Nothing) $ childrenBi d
         isHsDo (L _ HsDo{}) = True
         isHsDo _ = False
 
+gratuitouslyMonadic :: LHsDecl GhcPs -> [Idea]
+gratuitouslyMonadic e@(L _ d) = case d of
+  ValD _ func@(FunBind _ (L _ n) (MG _ (L _ ms))) -> do
+    guard $ fname /= "main"  -- Account for "main = pure ()" test
+    guard $ all gratuitouslyMonadicExpr $ allMatchExprs ms
+    pure $ rawIdea
+      Suggestion
+      "Unnecessarily monadic"
+      (locA $ getLoc e)
+      (unsafePrettyPrint e)
+      (Just $ unwords ["Demote", backquote fname, "to a pure function"])
+      []
+      []
+    where
+      fname = occNameString $ rdrNameOcc n
+      -- Iterate over all of the patterns of the function, as well as all of the guards
+      allMatchExprs ms = [expr | L _ (Match _ _ _ (GRHSs _ xs _)) <- ms, L _ (GRHS _ _ expr) <- xs]
+  _ -> []
+
+-- | Handles both of:
+--     pure x
+--     pure $ f x
+gratuitouslyMonadicExpr :: LHsExpr GhcPs -> Bool
+gratuitouslyMonadicExpr x = case simplifyExp x of
+  L _ (HsApp _ (L _ (HsVar _ (L _ myFunc))) _) ->
+    occNameString (rdrNameOcc myFunc) `elem` ["pure", "return"]
+  _ -> False
 
 -- | Call with the name of the declaration,
 --   the nearest enclosing `do` expression
