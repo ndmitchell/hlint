@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts #-}
 {-
     Find and match:
@@ -50,7 +51,7 @@ import Prelude
 import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSSA,modComments,firstDeclComments)
 
 import Refact.Types hiding (SrcSpan)
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 
 import GHC.Hs
 import GHC.Types.SrcLoc

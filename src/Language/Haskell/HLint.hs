@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE PatternGuards, RecordWildCards #-}
 
 -- |  This module provides a way to apply HLint hints. If you want to just run @hlint@ in-process
@@ -33,13 +34,13 @@ module Language.Haskell.HLint(
 import Config.Type
 import Config.Read
 import Idea
-import qualified Apply as H
+import Apply qualified as H
 import HLint
 import Fixity
 import GHC.Data.FastString ( unpackFS )
 import GHC.All
 import Hint.All hiding (resolveHints)
-import qualified Hint.All as H
+import Hint.All qualified as H
 import GHC.Types.SrcLoc
 import CmdLine
 import Paths_hlint
@@ -49,7 +50,7 @@ import Data.Maybe
 import System.FilePath
 import Data.Functor
 import Prelude
-import qualified Hint.Restrict as Restrict
+import Hint.Restrict qualified as Restrict
 
 
 -- | Get the Cabal configured data directory of HLint.

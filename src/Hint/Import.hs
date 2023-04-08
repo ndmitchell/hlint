@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase, PatternGuards, RecordWildCards #-}
 {-
     Reduce the number of import declarations.
@@ -39,7 +40,7 @@ module Hint.Import(importHint) where
 
 import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),suggest,toSSA,rawIdea)
 import Refact.Types hiding (ModuleName)
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 import Data.Tuple.Extra
 import Data.List.Extra
 import Data.Generics.Uniplate.DataOnly

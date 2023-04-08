@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module GHC.Util.SrcLoc (
@@ -10,7 +11,7 @@ import GHC.Parser.Annotation
 import GHC.Types.SrcLoc
 import GHC.Utils.Outputable
 import GHC.Data.FastString
-import qualified GHC.Data.Strict
+import GHC.Data.Strict qualified
 
 import Data.Default
 import Data.Data

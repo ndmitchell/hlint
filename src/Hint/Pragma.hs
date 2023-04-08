@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -34,10 +35,10 @@ module Hint.Pragma(pragmaHint) where
 
 import Hint.Type(ModuHint,Idea(..),Severity(..),toSSAnc,rawIdea,modComments,firstDeclComments)
 import Data.List.Extra
-import qualified Data.List.NonEmpty as NE
+import Data.List.NonEmpty qualified as NE
 import Data.Maybe
 import Refact.Types
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 
 import GHC.Hs
 import GHC.Types.SrcLoc

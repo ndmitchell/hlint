@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase, PatternGuards, TupleSections, ViewPatterns #-}
 
 {-
@@ -110,7 +111,7 @@ import Hint.Type (DeclHint, Idea, Note(RequiresExtension), suggest, warn, toSS, 
 import Util
 import Data.List.Extra
 import Data.Set (Set)
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 import Refact.Types hiding (Match)
 import Data.Generics.Uniplate.DataOnly (universe, universeBi, transformBi)
 

@@ -171,7 +171,7 @@ library
         Test.Annotations
         Test.InputOutput
         Test.Util
-    ghc-options: -Wunused-binds -Wunused-imports -Worphans
+    ghc-options: -Wunused-binds -Wunused-imports -Worphans -Wprepositive-qualified-module
 
 
 executable hlint

@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -30,8 +31,8 @@ import Data.Default
 import Data.Maybe
 import Data.Tuple.Extra
 import Data.List hiding (find)
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map as Map
+import Data.List.NonEmpty qualified as NE
+import Data.Map qualified as Map
 
 import GHC.Types.SrcLoc
 import GHC.Hs

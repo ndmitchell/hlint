@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PatternGuards #-}
@@ -77,7 +78,7 @@ import GHC.Types.Basic
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
 import GHC.Data.Bag
-import qualified GHC.Data.Strict
+import GHC.Data.Strict qualified
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -90,7 +91,7 @@ import Data.Tuple.Extra
 import Data.Maybe
 import Data.List.Extra
 import Refact.Types hiding (Match)
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 
 
 badFuncs :: [String]

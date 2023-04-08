@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 
 {-
 <TEST>
@@ -21,7 +22,7 @@ import Refact.Types(Refactoring(ModifyComment))
 import GHC.Types.SrcLoc
 import GHC.Parser.Annotation
 import GHC.Util
-import qualified GHC.Data.Strict
+import GHC.Data.Strict qualified
 
 directives :: [String]
 directives = words $

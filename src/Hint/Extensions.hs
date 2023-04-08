@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase, NamedFieldPuns, ScopedTypeVariables #-}
 
 {-
@@ -268,8 +269,8 @@ import Data.Maybe
 import Data.List.Extra
 import Data.Data
 import Refact.Types
-import qualified Data.Set as Set
-import qualified Data.Map as Map
+import Data.Set qualified as Set
+import Data.Map qualified as Map
 
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
@@ -277,7 +278,7 @@ import GHC.Hs
 import GHC.Types.Basic
 import GHC.Types.Name.Reader
 import GHC.Types.ForeignCall
-import qualified GHC.Data.Strict
+import GHC.Data.Strict qualified
 import GHC.Types.PkgQual
 
 import GHC.Util

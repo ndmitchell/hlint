@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Report(writeReport) where
@@ -5,14 +6,14 @@ module Report(writeReport) where
 import Idea
 import Data.Tuple.Extra
 import Data.List.Extra
-import qualified Data.List.NonEmpty as NE
+import Data.List.NonEmpty qualified as NE
 import Data.Maybe
 import Data.Version
 import Timing
 import Paths_hlint
 import HsColour
 import EmbedData
-import qualified GHC.Util as GHC
+import GHC.Util qualified as GHC
 
 
 writeTemplate :: FilePath -> [(String,[String])] -> FilePath -> IO ()

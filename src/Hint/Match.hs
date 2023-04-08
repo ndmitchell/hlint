@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE RecordWildCards, NamedFieldPuns, TupleSections #-}
 {-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts #-}
 
@@ -43,8 +44,8 @@ import Hint.Type (ModuleEx,Idea,idea,ideaNote,toSSA)
 
 import Util
 import Timing
-import qualified Data.Set as Set
-import qualified Refact.Types as R
+import Data.Set qualified as Set
+import Refact.Types qualified as R
 
 import Control.Monad
 import Data.Tuple.Extra

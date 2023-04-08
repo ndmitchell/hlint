@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE CPP, PatternGuards, RecordWildCards, ViewPatterns #-}
 
 -- | Check the <TEST> annotations within source and hint files.
@@ -17,7 +18,7 @@ import System.Exit
 import System.FilePath
 import System.IO.Extra
 import GHC.All
-import qualified Data.ByteString.Char8 as BS
+import Data.ByteString.Char8 qualified as BS
 
 import Config.Type
 import Idea

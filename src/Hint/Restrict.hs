@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -25,9 +26,9 @@ import Config.Type
 import Util
 
 import Data.Generics.Uniplate.DataOnly
-import qualified Data.List.NonEmpty as NonEmpty
-import qualified Data.Set as Set
-import qualified Data.Map as Map
+import Data.List.NonEmpty qualified as NonEmpty
+import Data.Set qualified as Set
+import Data.Map qualified as Map
 import Data.List.Extra
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe

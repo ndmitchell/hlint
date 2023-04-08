@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-
@@ -48,7 +49,7 @@ import Data.List.NonEmpty (toList)
 import Data.Data
 import Data.Char
 import Data.Maybe
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 
 import GHC.Types.Basic
 import GHC.Types.SourceText

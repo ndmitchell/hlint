@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 
 module Apply(applyHints, applyHintFile, applyHintFiles) where
 
@@ -18,7 +19,7 @@ import Config.Haskell
 import GHC.Types.SrcLoc
 import GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Hs
-import qualified Data.HashSet as Set
+import Data.HashSet qualified as Set
 import Prelude
 import Util
 import Timing
