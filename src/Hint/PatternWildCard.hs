@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-
     Warn against wildcards in pattern
 
@@ -22,7 +23,11 @@ patternWildCardHint :: DeclHint
 patternWildCardHint _ _ code = concatMap inspectCode $ childrenBi code
 
 inspectCode :: LHsExpr GhcPs -> [Idea]
+#if __GLASGOW_HASKELL__ >= 906
+inspectCode (L _ ((HsCase _ _ (MG _ (L _ cases))))) = concatMap inspectCase cases
+#else
 inspectCode (L _ ((HsCase _ _ (MG _ (L _ cases) _)))) = concatMap inspectCase cases
+#endif
 inspectCode o = concatMap inspectCode $ children o
 
 inspectCase :: LMatch GhcPs (LHsExpr GhcPs) -> [Idea]
