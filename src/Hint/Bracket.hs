@@ -152,7 +152,7 @@ bracketHint _ _ x =
      splices x = x
 
 -- If we find ourselves in the context of a section and we want to
--- issue a warning that a child therein has unneccessary brackets,
+-- issue a warning that a child therein has unnecessary brackets,
 -- we'd rather report 'Found : (`Foo` (Bar Baz))' rather than 'Found :
 -- `Foo` (Bar Baz)'. If left to 'unsafePrettyPrint' we'd get the
 -- latter (in contrast to the HSE pretty printer). This patches things

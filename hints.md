@@ -2584,6 +2584,38 @@ repeat (f x)
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use cycle</td>
+<td>
+LHS:
+<code>
+concatMap f (repeat x)
+</code>
+<br>
+RHS:
+<code>
+cycle (f x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use cycle</td>
+<td>
+LHS:
+<code>
+concat (repeat x)
+</code>
+<br>
+RHS:
+<code>
+cycle x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use repeat</td>
 <td>
 LHS:
@@ -3474,6 +3506,22 @@ map f (fromMaybe [] x)
 RHS:
 <code>
 maybe [] (map f) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use maybe</td>
+<td>
+LHS:
+<code>
+concatMap f (fromMaybe [] x)
+</code>
+<br>
+RHS:
+<code>
+maybe [] (concatMap f) x
 </code>
 <br>
 </td>
@@ -7402,6 +7450,102 @@ x Data.Functor.$> y
 <br>
 </td>
 <td>Suggestion</td>
+</tr>
+<tr>
+<td>Using fmap on tuple</td>
+<td>
+LHS:
+<code>
+fmap f (x, b)
+</code>
+<br>
+RHS:
+<code>
+(x, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <$> on tuple</td>
+<td>
+LHS:
+<code>
+f <$> (x, b)
+</code>
+<br>
+RHS:
+<code>
+(x, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <&> on tuple</td>
+<td>
+LHS:
+<code>
+(x, b) <&> f
+</code>
+<br>
+RHS:
+<code>
+(x, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using fmap on tuple</td>
+<td>
+LHS:
+<code>
+fmap f (x, y, b)
+</code>
+<br>
+RHS:
+<code>
+(x, y, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <$> on tuple</td>
+<td>
+LHS:
+<code>
+f <$> (x, y, b)
+</code>
+<br>
+RHS:
+<code>
+(x, y, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <&> on tuple</td>
+<td>
+LHS:
+<code>
+(x, y, b) <&> f
+</code>
+<br>
+RHS:
+<code>
+(x, y, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use <$></td>
@@ -12279,6 +12423,310 @@ Data.Foldable.for_ m f
 <td>Warning</td>
 </tr>
 <tr>
+<td>Fuse concatMap/fmap</td>
+<td>
+LHS:
+<code>
+concatMap f (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (f . g) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Fuse concatMap/<$></td>
+<td>
+LHS:
+<code>
+concatMap f (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (f . g) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Fuse concatMap/<&></td>
+<td>
+LHS:
+<code>
+concatMap f (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+concatMap (f . g) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+null (concatMap f x)
+</code>
+<br>
+RHS:
+<code>
+all (null . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+or (concat x)
+</code>
+<br>
+RHS:
+<code>
+any or x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+or (concatMap f x)
+</code>
+<br>
+RHS:
+<code>
+any (or . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+and (concat x)
+</code>
+<br>
+RHS:
+<code>
+all and x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+and (concatMap f x)
+</code>
+<br>
+RHS:
+<code>
+all (and . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+any f (concat x)
+</code>
+<br>
+RHS:
+<code>
+any (any f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+any f (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+any (any f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+all f (concat x)
+</code>
+<br>
+RHS:
+<code>
+all (all f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+all f (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+all (all f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use foldr</td>
+<td>
+LHS:
+<code>
+foldr f z (concat x)
+</code>
+<br>
+RHS:
+<code>
+foldr (foldr f) z x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use foldr</td>
+<td>
+LHS:
+<code>
+foldr f z (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+foldr (foldr f . g) z x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use foldMap</td>
+<td>
+LHS:
+<code>
+fold (concatMap f x)
+</code>
+<br>
+RHS:
+<code>
+foldMap (fold . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use foldMap</td>
+<td>
+LHS:
+<code>
+foldMap f (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+foldMap (foldMap f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Move concatMap out</td>
+<td>
+LHS:
+<code>
+catMaybes (concatMap f x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (catMaybes . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Move concatMap out</td>
+<td>
+LHS:
+<code>
+filter f (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (filter f . g) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Move concatMap out</td>
+<td>
+LHS:
+<code>
+mapMaybe f (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (mapMaybe f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use any</td>
 <td>
 LHS:
@@ -13547,6 +13995,38 @@ RHS:
 <td>
 LHS:
 <code>
+concatMap f [a]
+</code>
+<br>
+RHS:
+<code>
+f a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+concatMap f []
+</code>
+<br>
+RHS:
+<code>
+[]
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
 zip [] []
 </code>
 <br>
@@ -14055,6 +14535,22 @@ b
 <td>Warning</td>
 </tr>
 <tr>
+<td>Using concatMap on tuple</td>
+<td>
+LHS:
+<code>
+concatMap f (x, b)
+</code>
+<br>
+RHS:
+<code>
+f b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Using and on tuple</td>
 <td>
 LHS:
@@ -14369,6 +14865,22 @@ concat (x, y, b)
 RHS:
 <code>
 b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using concatMap on tuple</td>
+<td>
+LHS:
+<code>
+concatMap f (x, y, b)
+</code>
+<br>
+RHS:
+<code>
+f b
 </code>
 <br>
 </td>

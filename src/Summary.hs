@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
@@ -5,7 +6,7 @@
 
 module Summary (generateMdSummary, generateJsonSummary, generateExhaustiveConfig) where
 
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 import Control.Monad.Extra
 import System.FilePath
 import Data.List.Extra

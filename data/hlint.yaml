@@ -155,6 +155,8 @@
     - warn: {lhs: take n (repeat x), rhs: replicate n x}
     - warn: {lhs: map f (replicate n x), rhs: replicate n (f x)}
     - warn: {lhs: map f (repeat x), rhs: repeat (f x)}
+    - warn: {lhs: concatMap f (repeat x), rhs: cycle (f x)}
+    - warn: {lhs: concat (repeat x), rhs: cycle x}
     - warn: {lhs: "cycle [x]", rhs: repeat x}
     - warn: {lhs: head (reverse x), rhs: last x}
     - warn: {lhs: last (reverse x), rhs: head x, note: IncreasesLaziness}
@@ -211,6 +213,7 @@
     - hint: {lhs: "\\x -> [x]", rhs: "(:[])", name: "Use :"}
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: not (isApp f)}
     - hint: {lhs: "map f (fromMaybe [] x)", rhs: "maybe [] (map f) x"}
+    - hint: {lhs: "concatMap f (fromMaybe [] x)", rhs: "maybe [] (concatMap f) x"}
     - warn: {lhs: not (elem x y), rhs: notElem x y}
     - warn: {lhs: not (notElem x y), rhs: elem x y}
     - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
@@ -487,6 +490,12 @@
     - hint: {lhs: x <&> const y, rhs: x Data.Functor.$> y}
     - hint: {lhs: x <&> pure y, rhs: x Data.Functor.$> y}
     - hint: {lhs: x <&> return y, rhs: x Data.Functor.$> y}
+    - warn: {lhs: "fmap f (x,b)", rhs: "(x,f b)", name: Using fmap on tuple}
+    - warn: {lhs: "f <$> (x,b)", rhs: "(x,f b)", name: Using <$> on tuple}
+    - warn: {lhs: "(x,b) <&> f", rhs: "(x,f b)", name: Using <&> on tuple}
+    - warn: {lhs: "fmap f (x,y,b)", rhs: "(x,y,f b)", name: Using fmap on tuple}
+    - warn: {lhs: "f <$> (x,y,b)", rhs: "(x,y,f b)", name: Using <$> on tuple}
+    - warn: {lhs: "(x,y,b) <&> f", rhs: "(x,y,f b)", name: Using <&> on tuple}
 
     # APPLICATIVE
 
@@ -851,6 +860,25 @@
     - warn: {lhs: case m of Just x -> f x; _ -> pure (), rhs: Data.Foldable.for_ m f}
     - warn: {lhs: case m of Just x -> f x; _ -> return (), rhs: Data.Foldable.forM_ m f}
     - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.for_ m f}
+    - hint: {lhs: concatMap f (fmap g x), rhs: concatMap (f . g) x, name: Fuse concatMap/fmap}
+    - hint: {lhs: concatMap f (g <$> x), rhs: concatMap (f . g) x, name: Fuse concatMap/<$>}
+    - hint: {lhs: concatMap f (x <&> g), rhs: concatMap (f . g) x, name: Fuse concatMap/<&>}
+    - warn: {lhs: null (concatMap f x), rhs: all (null . f) x}
+    - warn: {lhs: or (concat x), rhs: any or x}
+    - warn: {lhs: or (concatMap f x), rhs: any (or . f) x}
+    - warn: {lhs: and (concat x), rhs: all and x}
+    - warn: {lhs: and (concatMap f x), rhs: all (and . f) x}
+    - warn: {lhs: any f (concat x), rhs: any (any f) x}
+    - warn: {lhs: any f (concatMap g x), rhs: any (any f . g) x}
+    - warn: {lhs: all f (concat x), rhs: all (all f) x}
+    - warn: {lhs: all f (concatMap g x), rhs: all (all f . g) x}
+    - hint: {lhs: foldr f z (concat x), rhs: foldr (foldr f) z x}
+    - hint: {lhs: foldr f z (concatMap g x), rhs: foldr (foldr f . g) z x}
+    - warn: {lhs: fold (concatMap f x), rhs: foldMap (fold . f) x}
+    - warn: {lhs: foldMap f (concatMap g x), rhs: foldMap (foldMap f . g) x}
+    - warn: {lhs: catMaybes (concatMap f x), rhs: concatMap (catMaybes . f) x, name: Move concatMap out}
+    - hint: {lhs: filter f (concatMap g x), rhs: concatMap (filter f . g) x, name: Move concatMap out}
+    - warn: {lhs: mapMaybe f (concatMap g x), rhs: concatMap (mapMaybe f . g) x, name: Move concatMap out}
     - warn: {lhs: or (fmap p x), rhs: any p x}
     - warn: {lhs: or (p <$> x), rhs: any p x}
     - warn: {lhs: or (x <&> p), rhs: any p x}
@@ -936,6 +964,8 @@
     - warn: {lhs: x / 1, rhs: x, name: Evaluate}
     - warn: {lhs: "concat [a]", rhs: a, name: Evaluate}
     - warn: {lhs: "concat []", rhs: "[]", name: Evaluate}
+    - warn: {lhs: "concatMap f [a]", rhs: f a, name: Evaluate}
+    - warn: {lhs: "concatMap f []", rhs: "[]", name: Evaluate}
     - warn: {lhs: "zip [] []", rhs: "[]", name: Evaluate}
     - warn: {lhs: const x y, rhs: x, name: Evaluate}
     - warn: {lhs: any (const False), rhs: const False, note: IncreasesLaziness, name: Evaluate}
@@ -971,6 +1001,7 @@
     - warn: {lhs: "sum         (x,b)", rhs: b, name: Using sum on tuple}
     - warn: {lhs: "product     (x,b)", rhs: b, name: Using product on tuple}
     - warn: {lhs: "concat      (x,b)", rhs: b, name: Using concat on tuple}
+    - warn: {lhs: "concatMap f (x,b)", rhs: f b, name: Using concatMap on tuple}
     - warn: {lhs: "and         (x,b)", rhs: b, name: Using and on tuple}
     - warn: {lhs: "or          (x,b)", rhs: b, name: Using or on tuple}
     - warn: {lhs: "any     f   (x,b)", rhs: f b, name: Using any on tuple}
@@ -992,6 +1023,7 @@
     - warn: {lhs: "sum         (x,y,b)", rhs: b, name: Using sum on tuple}
     - warn: {lhs: "product     (x,y,b)", rhs: b, name: Using product on tuple}
     - warn: {lhs: "concat      (x,y,b)", rhs: b, name: Using concat on tuple}
+    - warn: {lhs: "concatMap f (x,y,b)", rhs: f b, name: Using concatMap on tuple}
     - warn: {lhs: "and         (x,y,b)", rhs: b, name: Using and on tuple}
     - warn: {lhs: "or          (x,y,b)", rhs: b, name: Using or on tuple}
     - warn: {lhs: "any     f   (x,y,b)", rhs: f b, name: Using any on tuple}
@@ -1305,6 +1337,7 @@
     - warn: {lhs: unless (notNull x), rhs: when (null x), name: Use when}
     - warn: {lhs: not (notNull x), rhs: null x}
     - warn: {lhs: notNull (concat x), rhs: any notNull x}
+    - warn: {lhs: notNull (concatMap f x), rhs: any (notNull . f) x}
     - warn: {lhs: notNull (filter f x), rhs: any f x}
     - warn: {lhs: "notNull [x]", rhs: "True", name: Evaluate}
     - warn: {lhs: "notNull []", rhs: "False", name: Evaluate}

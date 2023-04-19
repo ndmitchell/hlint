@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns, MultiParamTypeClasses, FlexibleInstances, FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
@@ -39,7 +40,7 @@ import Data.Maybe
 
 import Refact (substVars, toSSA)
 import Refact.Types hiding (SrcSpan, Match)
-import qualified Refact.Types as R (SrcSpan)
+import Refact.Types qualified as R (SrcSpan)
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr

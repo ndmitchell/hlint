@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 
 module GHC.Util.ApiAnnotation (
     comment_, commentText, isCommentMultiline
@@ -16,7 +17,7 @@ import Language.Haskell.GhclibParserEx.GHC.Driver.Session
 import Control.Applicative
 import Data.List.Extra
 import Data.Maybe
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 
 trimCommentStart :: String -> String
 trimCommentStart s
@@ -64,8 +65,7 @@ pragmas x =
 
 -- All the extensions defined to be used.
 extensions :: EpAnnComments -> Set.Set Extension
-extensions = Set.fromList . mapMaybe readExtension .
-    concatMap snd . languagePragmas . pragmas
+extensions = Set.fromList . concatMap (mapMaybe readExtension . snd) . languagePragmas . pragmas
 
 -- Utility for a case insensitive prefix strip.
 stripPrefixCI :: String -> String -> Maybe String

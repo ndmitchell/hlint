@@ -98,6 +98,7 @@ HLint is integrated into lots of places:
 * [hint-man](https://github.com/apps/hint-man) automatically submits reviews to opened pull requests in your repositories with inline hints.
 * [CircleCI](https://circleci.com/orbs/registry/orb/haskell-works/hlint) has a plugin to run HLint more easily.
 * [haskell/actions](https://github.com/haskell/actions) has `hlint-setup` and `hlint-run` actions for GitHub.
+* [haskell-actions/hlint-scan](https://github.com/haskell-actions/hlint-scan) is a GitHub action using HLint for [code scanning](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/about-code-scanning).
 
 ### Automatically Applying Hints
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 module Extension(
   defaultExtensions,
   configExtensions,
@@ -6,9 +7,9 @@ module Extension(
   ) where
 
 import Data.List.Extra
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 import GHC.LanguageExtensions.Type
-import qualified Language.Haskell.GhclibParserEx.GHC.Driver.Session as GhclibParserEx
+import Language.Haskell.GhclibParserEx.GHC.Driver.Session qualified as GhclibParserEx
 
 badExtensions =
   reallyBadExtensions ++

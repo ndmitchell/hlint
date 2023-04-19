@@ -1,5 +1,5 @@
 # For hlint/ghc-9.6.*, the minimum build compiler is ghc-9.2.2 (ghc-9.2.1 was a broken release). 9.2.2 exhibits the "'ffitarget_x86.h' file not found" problem on macOS.  in this case, build with invoke `C_INCLUDE_PATH="$(xcrun --show-sdk-path)"/usr/include/ffi stack build`.
-resolver:  nightly-2023-03-12 # ghc-9.4.4
+resolver:  nightly-2023-04-02 # ghc-9.4.4
 
 packages:
   - .
@@ -12,7 +12,7 @@ extra-deps:
 #  - archive: /users/shayne/project/ghc-lib-parser-ex/ghc-lib-parser-ex-8.10.0.18.tar.gz
 #    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
 
-ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-local-binds -Werror=unused-top-binds -Werror=orphans}
+ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-local-binds -Werror=unused-top-binds -Werror=orphans -Werror=prepositive-qualified-module}
 
 # Enabling this stanza forces both hlint and ghc-lib-parser-ex to
 # depend on ghc-lib-parser.

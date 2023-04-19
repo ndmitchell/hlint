@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
 
 module Refact
@@ -17,10 +18,10 @@ import System.Directory.Extra
 import System.Exit
 import System.IO.Extra
 import System.Process.Extra
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 
-import qualified GHC.Types.SrcLoc as GHC
-import qualified GHC.Parser.Annotation as GHC
+import GHC.Types.SrcLoc qualified as GHC
+import GHC.Parser.Annotation qualified as GHC
 
 import GHC.Util.SrcLoc (getAncLoc)
 

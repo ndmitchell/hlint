@@ -1,8 +1,11 @@
 Changelog for HLint (* = breaking change)
 
+    #1478, Fix no warn on (x.y) by treating x.y as atom
+    #1481, more hints about concat/concatMap
+    #1485, add more hints about using a Functor on a literal tuple
     #1479, add specialised not hints for notElem/notNull
     #1437, don't add/remove Monad constraints in replacements
-    #1475, rules for (elem False) and (notElem True) 
+    #1475, rules for (elem False) and (notElem True)
     #1476, generalise map-consuming rules from lists to Foldables/Traversables
     #1480, add hints about notElem and notNull
     #1482, support SARIF output

@@ -61,10 +61,10 @@ removeParens :: [String] -> Subst (LHsExpr GhcPs) -> Subst (LHsExpr GhcPs)
 removeParens noParens (Subst xs) = Subst $
   map (\(x, y) -> if x `elem` noParens then (x, fromParen y) else (x, y)) xs
 
--- Peform a substition.
+-- Perform a substitution.
 -- Returns (suggested replacement, (refactor template, no bracket vars)). It adds/removes brackets
 -- for both the suggested replacement and the refactor template appropriately. The "no bracket vars"
--- is a list of substituation variables which, when expanded, should have the brackets stripped.
+-- is a list of substitution variables which, when expanded, should have the brackets stripped.
 --
 -- Examples:
 --   (traverse foo (bar baz), (traverse f (x), []))
@@ -228,7 +228,7 @@ noExtra _ = Nothing
 -- dot at the root, since otherwise you get two matches because of
 -- 'readRule' (Bug #570).
 unifyExp' :: NameMatch -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst (LHsExpr GhcPs))
--- Don't subsitute for type apps, since no one writes rules imagining
+-- Don't substitute for type apps, since no one writes rules imagining
 -- they exist.
 unifyExp' nm root (L _ (HsVar _ (rdrNameStr -> v))) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst [(v, y)]
 unifyExp' nm root (L _ (HsVar _ x)) (L _ (HsVar _ y)) | nm x y = Just mempty

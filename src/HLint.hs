@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
@@ -36,7 +37,7 @@ import GHC.All
 import CC
 import EmbedData
 
-import qualified SARIF
+import SARIF qualified
 
 -- | This function takes a list of command line arguments, and returns the given hints.
 --   To see a list of arguments type @hlint --help@ at the console.

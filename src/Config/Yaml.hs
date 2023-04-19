@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards, GeneralizedNewtypeDeriving, TupleSections #-}
@@ -31,10 +32,10 @@ import Data.Maybe
 import Data.List.Extra
 import Data.Tuple.Extra
 import Control.Monad.Extra
-import qualified Data.Text as T
-import qualified Data.Vector as V
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.HashMap.Strict as Map
+import Data.Text qualified as T
+import Data.Vector qualified as V
+import Data.ByteString.Char8 qualified as BS
+import Data.HashMap.Strict qualified as Map
 import Data.Generics.Uniplate.DataOnly
 import GHC.All
 import Fixity
@@ -67,7 +68,7 @@ import Data.YAML (Pos)
 import Data.YAML.Aeson (encode1Strict, decode1Strict)
 import Data.Aeson hiding (encode)
 import Data.Aeson.Types (Parser)
-import qualified Data.ByteString as BSS
+import Data.ByteString qualified as BSS
 
 decodeFileEither :: FilePath -> IO (Either (Pos, String) ConfigYaml)
 decodeFileEither path = decode1Strict <$> BSS.readFile path

@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 
 module Timing(
     timed, timedIO,
@@ -5,7 +6,7 @@ module Timing(
     printTimings
     ) where
 
-import qualified Data.HashMap.Strict as Map
+import Data.HashMap.Strict qualified as Map
 import Control.Exception
 import Data.IORef.Extra
 import Data.Tuple.Extra

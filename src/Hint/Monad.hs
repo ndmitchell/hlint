@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PatternGuards #-}
@@ -77,7 +78,7 @@ import GHC.Types.Basic
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
 import GHC.Data.Bag
-import qualified GHC.Data.Strict
+import GHC.Data.Strict qualified
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -90,7 +91,7 @@ import Data.Tuple.Extra
 import Data.Maybe
 import Data.List.Extra
 import Refact.Types hiding (Match)
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 
 
 badFuncs :: [String]
@@ -173,9 +174,9 @@ doAsBrackets (Just (i, o)) x = needBracket i o x
 doAsBrackets Nothing x = False
 
 
--- Sometimes people write do, to avoid identation, see
+-- Sometimes people write do, to avoid indentation, see
 -- https://github.com/ndmitchell/hlint/issues/978
--- Return True if they are using do as avoiding identation
+-- Return True if they are using do as avoiding indentation
 doAsAvoidingIndentation :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
 doAsAvoidingIndentation (Just (L _ (HsDo _ _ (L anna _)))) (L _ (HsDo _ _ (L annb _)))
   | SrcSpanAnn _ (RealSrcSpan a _) <- anna

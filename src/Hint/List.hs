@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts #-}
 {-
     Find and match:
@@ -50,7 +51,7 @@ import Prelude
 import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSSA,modComments,firstDeclComments)
 
 import Refact.Types hiding (SrcSpan)
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 
 import GHC.Hs
 import GHC.Types.SrcLoc
@@ -274,7 +275,7 @@ stringType (L _ x) = case x of
   InstD _ ClsInstD{
     cid_inst=
         ClsInstDecl{cid_binds=x, cid_tyfam_insts=y, cid_datafam_insts=z}} ->
-    f x ++ f y ++ f z -- Pretty much everthing but the instance type.
+    f x ++ f y ++ f z -- Pretty much everything but the instance type.
   _ -> f x
   where
     f x = concatMap g $ childrenBi x

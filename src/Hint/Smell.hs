@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 
 module Hint.Smell (smellModuleHint,smellHint) where
 
@@ -80,7 +81,7 @@ import Config.Type
 
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 
 import GHC.Utils.Outputable
 import GHC.Types.Basic

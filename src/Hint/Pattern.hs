@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE ViewPatterns, PatternGuards, TypeFamilies #-}
 
 {-
@@ -66,7 +67,7 @@ import Data.Tuple
 import Data.Maybe
 import Data.Either
 import Refact.Types hiding (RType(Pattern, Match), SrcSpan)
-import qualified Refact.Types as R (RType(Pattern, Match), SrcSpan)
+import Refact.Types qualified as R (RType(Pattern, Match), SrcSpan)
 
 import GHC.Hs
 import GHC.Types.SrcLoc
@@ -74,7 +75,7 @@ import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
 import GHC.Data.Bag
 import GHC.Types.Basic hiding (Pattern)
-import qualified GHC.Data.Strict
+import GHC.Data.Strict qualified
 
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
