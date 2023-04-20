@@ -86,7 +86,7 @@ data ParseError = ParseError
 -- | Result of 'parseModuleEx', representing a parsed module.
 data ModuleEx = ModuleEx {
     ghcModule :: Located (HsModule GhcPs),
-    hlintExtensions :: [Extension]
+    configuredExtensions :: [Extension]
 }
 
 -- | Extract a complete list of all the comments in a module.

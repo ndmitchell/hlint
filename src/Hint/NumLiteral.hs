@@ -21,7 +21,7 @@
 
 module Hint.NumLiteral (numLiteralHint) where
 
-import GHC.All (hlintExtensions)
+import GHC.All (configuredExtensions)
 import GHC.Hs
 import GHC.LanguageExtensions.Type (Extension (..))
 import GHC.Types.SrcLoc
@@ -54,7 +54,7 @@ numLiteralHint _ modu =
      const []
   where
     moduleExtensions = union (extensions (modComments modu)) (extensions (firstDeclComments modu))
-    activeExtensions = hlintExtensions modu <> toList moduleExtensions
+    activeExtensions = configuredExtensions modu <> toList moduleExtensions
 
 suggestUnderscore :: LHsExpr GhcPs -> [Idea]
 suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsIntegral intLit@(IL (SourceText srcTxt) _ _))))) =
