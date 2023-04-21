@@ -66,3 +66,10 @@ OUTPUT
 No hints
 
 ---------------------------------------------------------------------
+RUN tests/importStyle-3.hs --hint=data/import_style.yaml -XImportQualifiedPost
+FILE tests/importStyle-3.hs
+import HypotheticalModule2 qualified
+import HypotheticalModule4 qualified as HM4
+OUTPUT
+No hints
+---------------------------------------------------------------------
