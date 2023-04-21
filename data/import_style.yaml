@@ -5,3 +5,4 @@
   - {name: 'HypotheticalModule3.*', importStyle: unqualified}
   - {name: 'HypotheticalModule3.OtherSubModule', importStyle: unrestricted, qualifiedStyle: post}
   - {name: HypotheticalModule4, importStyle: qualified, as: HM4, asRequired: true}
+  - {name: HypotheticalModule5, importStyle: qualified, qualifiedStyle: post}
