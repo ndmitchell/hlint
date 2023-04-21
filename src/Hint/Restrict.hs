@@ -31,6 +31,7 @@ import Data.Set qualified as Set
 import Data.Map qualified as Map
 import Data.List.Extra
 import Data.List.NonEmpty (nonEmpty)
+import Data.Either
 import Data.Maybe
 import Data.Monoid
 import Data.Semigroup
@@ -157,6 +158,11 @@ checkPragmas modu flags exts mps =
      , not $ null bad]
    isGood def mp x = maybe def (within modu "" . riWithin) $ Map.lookup x mp
 
+
+-- | Extension to GHC's 'ImportDeclQualifiedStyle', expressing @qualifiedStyle: unrestricted@,
+-- i.e. the preference of "either pre- or post-, but qualified" in a rule.
+data QualifiedPostOrPre = QualifiedPostOrPre deriving Eq
+
 checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
   where
@@ -190,30 +196,31 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
               case fromMaybe ImportStyleUnrestricted $ getAlt riImportStyle of
                 ImportStyleUnrestricted
                   | NotQualified <- ideclQualified -> (Nothing, Nothing)
-                  | otherwise -> (second (<> " or unqualified") <$> expectedQualStyle, Nothing)
-                ImportStyleQualified -> (expectedQualStyleDef, Nothing)
+                  | otherwise -> (Just $ second (<> " or unqualified") expectedQualStyle, Nothing)
+                ImportStyleQualified -> (Just expectedQualStyle, Nothing)
                 ImportStyleExplicitOrQualified
                   | Just (False, _) <- first (== EverythingBut) <$> ideclImportList -> (Nothing, Nothing)
                   | otherwise ->
-                      ( second (<> " or with an explicit import list") <$> expectedQualStyleDef
+                      ( Just $ second (<> " or with an explicit import list") expectedQualStyle
                       , Nothing )
                 ImportStyleExplicit
                   | Just (False, _) <- first (== EverythingBut) <$> ideclImportList -> (Nothing, Nothing)
                   | otherwise ->
-                      ( Just (NotQualified, "unqualified")
+                      ( Just (Right NotQualified, "unqualified")
                       , Just $ Just (Exactly, noLocA []) )
-                ImportStyleUnqualified -> (Just (NotQualified, "unqualified"), Nothing)
-            expectedQualStyleDef = expectedQualStyle <|> Just (QualifiedPre, "qualified")
+                ImportStyleUnqualified -> (Just (Right NotQualified, "unqualified"), Nothing)
             expectedQualStyle =
               case fromMaybe QualifiedStyleUnrestricted $ getAlt riQualifiedStyle of
-                QualifiedStyleUnrestricted -> Nothing
-                QualifiedStylePost -> Just (QualifiedPost, "post-qualified")
-                QualifiedStylePre -> Just (QualifiedPre, "pre-qualified")
+                QualifiedStyleUnrestricted -> (Left QualifiedPostOrPre, "qualified")
+                QualifiedStylePost -> (Right QualifiedPost, "post-qualified")
+                QualifiedStylePre -> (Right QualifiedPre, "pre-qualified")
             qualIdea
-              | Just ideclQualified == (fst <$> expectedQual) = Nothing
+              | Just (Right ideclQualified) == (fst <$> expectedQual) = Nothing
+              | Just (Left QualifiedPostOrPre) == (fst <$> expectedQual)
+                && ideclQualified `elem` [QualifiedPost, QualifiedPre] = Nothing
               | otherwise = expectedQual
         whenJust qualIdea $ \(qual, hint) -> do
-          let i' = noLoc $ (unLoc i){ ideclQualified = qual
+          let i' = noLoc $ (unLoc i){ ideclQualified = fromRight QualifiedPre qual
                                     , ideclImportList = fromMaybe ideclImportList expectedHiding }
               msg = moduleNameString (unLoc ideclName) <> " should be imported " <> hint
           Left $ warn msg (reLoc i) i' []
