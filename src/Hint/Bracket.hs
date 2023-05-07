@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns, ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -111,6 +112,14 @@ no = f @($x)
 
 -- template haskell is harder
 issue1292 = [e| handleForeignCatch $ \ $(varP pylonExPtrVarName) -> $(quoteExp C.block modifiedStr) |]
+
+-- no warnings for single-argument constraint contexts
+foo :: (A) => ()
+bar :: (A a) => ()
+foo' :: ((A) => ()) -> ()
+bar' :: ((A a) => ()) -> ()
+data Dict c where Dict :: (c) => Dict c
+data Dict' c a where Dict' :: (c a) => Dict' c a
 </TEST>
 -}
 
@@ -134,10 +143,17 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 bracketHint :: DeclHint
 bracketHint _ _ x =
   concatMap (\x -> bracket prettyExpr isPartialAtom True x ++ dollar x) (childrenBi (descendBi splices $ descendBi annotations x) :: [LHsExpr GhcPs]) ++
-  concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi x :: [LHsType GhcPs]) ++
+  concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi (preprocess x) :: [LHsType GhcPs]) ++
   concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi x :: [LPat GhcPs]) ++
   concatMap fieldDecl (childrenBi x)
    where
+     preprocess = transformBi removeSingleAtomConstrCtxs
+       where
+         removeSingleAtomConstrCtxs :: LHsContext GhcPs -> LHsContext GhcPs
+         removeSingleAtomConstrCtxs = fmap $ \case
+           [ty] | isAtom ty -> []
+           tys -> tys
+
      -- Brackets the roots of annotations are fine, so we strip them.
      annotations :: AnnDecl GhcPs -> AnnDecl GhcPs
      annotations= descendBi $ \x -> case (x :: LHsExpr GhcPs) of
