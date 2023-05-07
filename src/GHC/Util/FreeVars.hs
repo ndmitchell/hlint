@@ -232,7 +232,7 @@ instance AllVars (LocatedA (HsBindLR GhcPs GhcPs)) where
   allVars (L _ (PatSynBind _ PSB{})) = mempty -- Come back to it.
 
 instance AllVars (MatchGroup GhcPs (LocatedA (HsExpr GhcPs))) where
-  allVars (MG _ _alts@(L _ alts)) = inVars (foldMap (allVars . m_pats) ms) (allVars (map m_grhss ms))
+  allVars (MG _ _alts@(L _ alts)) = foldMap (\m -> inVars (allVars (m_pats m)) (allVars (m_grhss m))) ms
     where ms = map unLoc alts
 
 instance AllVars (LocatedA (Match GhcPs (LocatedA (HsExpr GhcPs)))) where
