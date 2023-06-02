@@ -593,6 +593,10 @@
     - warn: {lhs: return x *> m, rhs: m}
     - warn: {lhs: pure x >> m, rhs: m}
     - warn: {lhs: return x >> m, rhs: m}
+    - warn: {lhs: "forM [1..n] (const f)", rhs: replicateM n f}
+    - warn: {lhs: "for [1..n] (const f)", rhs: replicateM n f}
+    - warn: {lhs: "forM [1..n] (\\_ -> x)", rhs: replicateM n x}
+    - warn: {lhs: "for [1..n] (\\_ -> x)", rhs: replicateM n x}
 
     # STATE MONAD
 
