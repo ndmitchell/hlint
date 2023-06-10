@@ -17,6 +17,8 @@ import System.Console.CmdArgs.Verbosity
 import System.Exit
 import System.IO.Extra
 import Prelude
+import Data.Version (showVersion)
+import Paths_hlint (version)
 
 import Test.Util
 
@@ -26,7 +28,7 @@ testInputOutput main = do
     xs <- liftIO $ getDirectoryContents "tests"
     xs <- pure $ filter ((==) ".test" . takeExtension) xs
     forM_ xs $ \file -> do
-        ios <- liftIO $ parseInputOutputs <$> readFile ("tests" </> file)
+        ios <- liftIO $ parseInputOutputs templateVars <$> readFile ("tests" </> file)
         forM_ (zipFrom 1 ios) $ \(i,io@InputOutput{..}) -> do
             progress
             liftIO $ forM_ files $ \(name,contents) -> do
@@ -43,8 +45,15 @@ data InputOutput = InputOutput
     ,exit :: Maybe ExitCode
     } deriving Eq
 
-parseInputOutputs :: String -> [InputOutput]
-parseInputOutputs = f z . lines
+type TemplateKey = String
+type TemplateValue = String
+newtype OutputTemplateVar = OutputTemplateVar (TemplateKey, TemplateValue)
+
+templateVars :: [OutputTemplateVar]
+templateVars = OutputTemplateVar <$> [ ("__VERSION__", showVersion version)]
+
+parseInputOutputs :: [OutputTemplateVar] -> String -> [InputOutput]
+parseInputOutputs templateVars = f z . lines
     where
         z = InputOutput "unknown" [] [] "" Nothing
         interest x = any (`isPrefixOf` x) ["----","FILE","RUN","OUTPUT","EXIT"]
@@ -52,12 +61,15 @@ parseInputOutputs = f z . lines
         f io ((stripPrefix "RUN " -> Just flags):xs) = f io{run = splitArgs flags} xs
         f io ((stripPrefix "EXIT " -> Just code):xs) = f io{exit = Just $ let i = read code in if i == 0 then ExitSuccess else ExitFailure i} xs
         f io ((stripPrefix "FILE " -> Just file):xs) | (str,xs) <- g xs = f io{files = files io ++ [(file,unlines str)]} xs
-        f io ("OUTPUT":xs) | (str,xs) <- g xs = f io{output = unlines str} xs
+        f io ("OUTPUT":xs) | (str,xs) <- g xs = f io{output = (foo . unlines) str} xs
         f io ((isPrefixOf "----" -> True):xs) = [io | io /= z] ++ f z xs
         f io [] = [io | io /= z]
         f io (x:xs) = error $ "Unknown test item, " ++ x
 
         g = first (reverse . dropWhile null . reverse) . break interest
+        replaceTemplate (OutputTemplateVar (key, value)) = replace key value
+        foo = foldl (.) id $ replaceTemplate <$> templateVars
+
 
 
 ---------------------------------------------------------------------
