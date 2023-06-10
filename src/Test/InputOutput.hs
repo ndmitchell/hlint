@@ -17,6 +17,8 @@ import System.Console.CmdArgs.Verbosity
 import System.Exit
 import System.IO.Extra
 import Prelude
+import Data.Version (showVersion)
+import Paths_hlint (version)
 
 import Test.Util
 
@@ -48,6 +50,8 @@ parseInputOutputs = f z . lines
     where
         z = InputOutput "unknown" [] [] "" Nothing
         interest x = any (`isPrefixOf` x) ["----","FILE","RUN","OUTPUT","EXIT"]
+        outputTemplateVars = [ ("__VERSION__", showVersion version) ]
+        substituteTemplateVars = mconcatMap (uncurry replace) outputTemplateVars
 
         f io ((stripPrefix "RUN " -> Just flags):xs) = f io{run = splitArgs flags} xs
         f io ((stripPrefix "EXIT " -> Just code):xs) = f io{exit = Just $ let i = read code in if i == 0 then ExitSuccess else ExitFailure i} xs
@@ -57,7 +61,7 @@ parseInputOutputs = f z . lines
         f io [] = [io | io /= z]
         f io (x:xs) = error $ "Unknown test item, " ++ x
 
-        g = first (reverse . dropWhile null . reverse) . break interest
+        g = first (fmap substituteTemplateVars . reverse . dropWhile null . reverse) . break interest
 
 
 ---------------------------------------------------------------------
