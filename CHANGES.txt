@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
     
+    #1517, support NO_COLOR
     #1505, don't suggest redundant brackets around constraints
     #1478, Fix no warn on (x.y) by treating x.y as atom
     #1481, more hints about concat/concatMap
