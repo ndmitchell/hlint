@@ -52,6 +52,32 @@ Perhaps:
 1 hint
 
 ---------------------------------------------------------------------
+RUN tests/use-const.hs
+FILE tests/use-const.hs
+test = f (\x -> y)
+OUTPUT
+tests/use-const.hs:1:11-17: Suggestion: Use const
+Found:
+  \ x -> y
+Perhaps:
+  const y
+
+1 hint
+
+---------------------------------------------------------------------
+RUN tests/use-const-named-puns.hs
+FILE tests/use-const-named-puns.hs
+{-# LANGUAGE NamedFieldPuns #-}
+data Y = Y
+data X = X
+    {foo :: Y
+    ,bar :: Y
+    }
+test x = f (\foo -> x{foo})
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
 RUN tests/typesig-ignore.hs
 FILE tests/typesig-ignore.hs
 -- Bug #563
