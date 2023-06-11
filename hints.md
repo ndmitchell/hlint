@@ -12615,38 +12615,6 @@ all (all f . g) x
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use foldr</td>
-<td>
-LHS:
-<code>
-foldr f z (concat x)
-</code>
-<br>
-RHS:
-<code>
-foldr (foldr f) z x
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
-<td>Use foldr</td>
-<td>
-LHS:
-<code>
-foldr f z (concatMap g x)
-</code>
-<br>
-RHS:
-<code>
-foldr (foldr f . g) z x
-</code>
-<br>
-</td>
-<td>Suggestion</td>
-</tr>
-<tr>
 <td>Use foldMap</td>
 <td>
 LHS:
