@@ -169,8 +169,7 @@ runHints :: [String] -> [Setting] -> Cmd -> IO [Idea]
 runHints args settings cmd@CmdMain{..} =
     withNumCapabilities cmdThreads $ do
         let outStrLn = whenNormal . putStrLn
-        ideas <- getIdeas cmd settings
-        ideas <- pure $ if cmdShowAll then ideas else  filter (\i -> ideaSeverity i /= Ignore) ideas
+        ideas <- filterIdeas <$> getIdeas cmd settings
         if cmdJson then
             putStrLn $ showIdeasJson ideas
          else if cmdCC then
@@ -188,6 +187,12 @@ runHints args settings cmd@CmdMain{..} =
             mapM_ (outStrLn . showItem) ideas
             handleReporting ideas cmd
         pure ideas
+  where
+    filteredSeverities
+        | cmdShowAll = []
+        | cmdIgnoreSuggestions = [Ignore, Suggestion]
+        | otherwise = [Ignore]
+    filterIdeas = filter (\i -> ideaSeverity i `notElem` filteredSeverities)
 
 getIdeas :: Cmd -> [Setting] -> IO [Idea]
 getIdeas cmd@CmdMain{..} settings = do

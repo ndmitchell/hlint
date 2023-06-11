@@ -1,0 +1,24 @@
+---------------------------------------------------------------------
+RUN tests/flag-ignore-suggestions-1.hs --ignore-suggestions
+FILE tests/flag-ignore-suggestions-1.hs
+main = map f $ map g xs
+OUTPUT
+No hints
+
+EXIT 0
+---------------------------------------------------------------------
+RUN tests/flag-ignore-suggestions-2.hs --ignore-suggestions
+FILE tests/flag-ignore-suggestions-2.hs
+foo = (+1)
+bar x = foo x
+main = map f $ map g xs
+OUTPUT
+tests/flag-ignore-suggestions-2.hs:2:1-13: Warning: Eta reduce
+Found:
+  bar x = foo x
+Perhaps:
+  bar = foo
+
+1 hint
+
+EXIT 1
