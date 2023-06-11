@@ -85,7 +85,7 @@ exitWithHelp = do
 data ColorMode
     = Never  -- ^ Terminal output will never be coloured.
     | Always -- ^ Terminal output will always be coloured.
-    | Auto   -- ^ Terminal output will be coloured if $TERM and stdout appear to support it.
+    | Auto   -- ^ Terminal output will be coloured if $TERM and stdout appear to support it, and NO_COLOR is not set.
       deriving (Show, Typeable, Data)
 
 
@@ -228,13 +228,14 @@ cmdCpp cmd
 
 -- | Determines whether to use colour or not.
 cmdUseColour :: Cmd -> IO Bool
-cmdUseColour cmd = case cmdColor cmd of
-  Always -> pure True
-  Never  -> pure False
-  Auto   -> do
-    supportsANSI <- hSupportsANSIWithoutEmulation stdout
-    pure $ Just True == supportsANSI
-
+cmdUseColour cmd = do
+  noColor <- lookupEnv "NO_COLOR" 
+  case cmdColor cmd of
+    Always -> pure True
+    Never  -> pure False
+    Auto   -> do
+      supportsANSI <- hSupportsANSIWithoutEmulation stdout
+      pure $ Just True == supportsANSI && isNothing noColor
 
 "." <\> x = x
 x <\> y = x </> y
