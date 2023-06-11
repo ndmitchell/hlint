@@ -69,10 +69,7 @@ RUN tests/use-const-named-puns.hs
 FILE tests/use-const-named-puns.hs
 {-# LANGUAGE NamedFieldPuns #-}
 data Y = Y
-data X = X
-    {foo :: Y
-    ,bar :: Y
-    }
+data X = X {foo :: Y,bar :: Y}
 test x = f (\foo -> x{foo})
 OUTPUT
 No hints
