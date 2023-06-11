@@ -229,6 +229,8 @@ cmdCpp cmd
 -- | Determines whether to use colour or not.
 cmdUseColour :: Cmd -> IO Bool
 cmdUseColour cmd = do
+  -- https://no-color.org
+  -- if NO_COLOR is set, regardless of value, we do not colour output.
   noColor <- lookupEnv "NO_COLOR" 
   case cmdColor cmd of
     Always -> pure True
