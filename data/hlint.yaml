@@ -876,8 +876,6 @@
     - warn: {lhs: any f (concatMap g x), rhs: any (any f . g) x}
     - warn: {lhs: all f (concat x), rhs: all (all f) x}
     - warn: {lhs: all f (concatMap g x), rhs: all (all f . g) x}
-    - hint: {lhs: foldr f z (concat x), rhs: foldr (foldr f) z x}
-    - hint: {lhs: foldr f z (concatMap g x), rhs: foldr (foldr f . g) z x}
     - warn: {lhs: fold (concatMap f x), rhs: foldMap (fold . f) x}
     - warn: {lhs: foldMap f (concatMap g x), rhs: foldMap (foldMap f . g) x}
     - warn: {lhs: catMaybes (concatMap f x), rhs: concatMap (catMaybes . f) x, name: Move concatMap out}
