@@ -147,7 +147,7 @@ mode = cmdArgsMode $ modes
         ,cmdThreads = 1 &= name "threads" &= name "j" &= opt (0 :: Int) &= help "Number of threads to use (-j for all)"
         ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
         ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
-        ,cmdIgnoreSuggestions = nam_ "ignore-suggestions" &= help "Ignore suggestions"
+        ,cmdIgnoreSuggestions = nam_ "ignore-suggestions" &= help "Ignore suggestions, only show warnings and errors"
         ,cmdExtension = nam "extension" &= typ "EXT" &= help "File extensions to search (default hs/lhs)"
         ,cmdLanguage = nam_ "language" &= name "X" &= typ "EXTENSION" &= help "Language extensions (Arrows, NoCPP)"
         ,cmdCross = nam_ "cross" &= help "Work between modules"
