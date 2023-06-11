@@ -119,7 +119,9 @@ instance Brackets (LocatedA (Pat GhcPs)) where
     ListPat{} -> True
     -- This is technically atomic, but lots of people think it shouldn't be
     ConPat _ _ RecCon{} -> False
-    ConPat _ _ (PrefixCon _ []) -> True
+    -- Before we only checked args, but not type args, resulting in a
+    -- false positive for things like (Proxy @a)
+    ConPat _ _ (PrefixCon [] []) -> True
     VarPat{} -> True
     WildPat{} -> True
     SumPat{} -> True

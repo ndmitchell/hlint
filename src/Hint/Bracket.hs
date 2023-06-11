@@ -120,6 +120,9 @@ foo' :: ((A) => ()) -> ()
 bar' :: ((A a) => ()) -> ()
 data Dict c where Dict :: (c) => Dict c
 data Dict' c a where Dict' :: (c a) => Dict' c a
+
+issue1501: Redundant bracket hint resulted in a parse error
+\(Proxy @a) -> True
 </TEST>
 -}
 
