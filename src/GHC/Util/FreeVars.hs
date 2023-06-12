@@ -174,6 +174,7 @@ instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldOcc GhcPs)) (
    freeVars o@(L _ (HsFieldBind _ _ x _)) = freeVars x
 
 instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (AmbiguousFieldOcc GhcPs)) (LocatedA (HsExpr GhcPs)))) where
+  freeVars (L _ (HsFieldBind _ x _ True)) = Set.singleton $ rdrNameOcc $ rdrNameAmbiguousFieldOcc $ unLoc x -- a pun
   freeVars (L _ (HsFieldBind _ _ x _)) = freeVars x
 
 instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldLabelStrings GhcPs)) (LocatedA (HsExpr GhcPs)))) where
