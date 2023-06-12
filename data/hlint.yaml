@@ -1502,6 +1502,8 @@
 # yes = a & (mapped . b) %~ c -- a <&> b %~ c
 # test a = foo (\x -> True) -- const True
 # test a = foo (\_ -> True) -- const True
+# {-# LANGUAGE NamedFieldPuns #-}; data Foo = Foo {foo :: Int}; issue1430_ctor x = f (\foo-> Foo{foo})
+# {-# LANGUAGE NamedFieldPuns #-}; data Foo = Foo {foo :: Int}; issue1430_update x = f (\foo -> x{foo})
 # test a = foo (\x -> x) -- id
 # h a = flip f x (y z) -- f (y z) x
 # h a = flip f x $ y z
