@@ -201,7 +201,7 @@ checkSide x bind = maybe True bool x
       isType "Compare" x = True -- Just a hint for proof stuff
       isType "Atom" x = isAtom x
       isType "WHNF" x = isWHNF x
-      isType "Wildcard" x = any isFieldPun (universeBi x) || any hasFieldsDotDot (universeBi x)
+      isType "Wildcard" x = any hasFieldsDotDot (universeBi x)
       isType "Nat" (asInt -> Just x) | x >= 0 = True
       isType "Pos" (asInt -> Just x) | x >  0 = True
       isType "Neg" (asInt -> Just x) | x <  0 = True
