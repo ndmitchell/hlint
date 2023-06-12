@@ -129,3 +129,39 @@ import Network.Wai.Internal
 #endif
 OUTPUT
 No hints
+
+---------------------------------------------------------------------
+RUN tests/cpp-file5.hs
+FILE tests/cpp-file5.hs
+{-# LANGUAGE CPP #-}
+main =
+#if __GLASGOW_HASKELL__ > 800
+  print __GLASGOW_HASKELL__
+#else
+  putStrLn $ show __GLASGOW_HASKELL__
+#endif
+OUTPUT
+tests/cpp-file5.hs:1:1-20: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE CPP #-}
+Note: may break the code
+
+1 hint
+
+---------------------------------------------------------------------
+RUN --cpp-define "__GLASGOW_HASKELL__=123" tests/cpp-file6.hs
+FILE tests/cpp-file6.hs
+{-# LANGUAGE CPP #-}
+main =
+#if __GLASGOW_HASKELL__ == 123
+  print __GLASGOW_HASKELL__
+#else
+  putStrLn $ show __GLASGOW_HASKELL__
+#endif
+OUTPUT
+tests/cpp-file6.hs:1:1-20: Warning: Avoid restricted extensions
+Found:
+  {-# LANGUAGE CPP #-}
+Note: may break the code
+
+1 hint
