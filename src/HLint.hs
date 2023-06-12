@@ -228,8 +228,15 @@ handleReporting showideas cmd@CmdMain{..} = do
         outStrLn $ "Writing report to " ++ x ++ " ..."
         writeReport cmdDataDir x showideas
     unless cmdNoSummary $ do
-        let n = length showideas
-        outStrLn $ if n == 0 then "No hints" else show n ++ " hint" ++ ['s' | n/=1]
+        let nbErrors =  length . filter (\idea -> ideaSeverity idea == Error) $ showideas
+        let nbHints = length showideas - nbErrors
+        when (nbErrors > 0) (outStrLn $ formatOutput nbErrors "error")
+        unless (nbErrors > 0 && nbHints == 0) (outStrLn $ formatOutput nbHints "hint")
+
+    where
+        formatOutput :: Int -> String -> String
+        formatOutput number name =
+            if number == 0 then "No " ++ name ++ "s" else show number ++ " " ++ name ++ ['s' | number/=1]
 
 evaluateList :: [a] -> IO [a]
 evaluateList xs = do

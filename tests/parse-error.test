@@ -18,7 +18,7 @@ Found:
 
   > where
 
-1 hint
+1 error
 
 ---------------------------------------------------------------------
 RUN tests/ignore-parse-error3.hs
@@ -30,4 +30,5 @@ tests/ignore-parse-error3.hs:1:1: Error: Parse error: tests/ignore-parse-error3.
 Found:
   {-# LANGUAGE InvalidExtension #-}
 
-1 hint
+1 error
+

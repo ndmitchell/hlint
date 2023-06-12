@@ -53,7 +53,7 @@ Found:
 
   main = undefined
 
-1 hint
+1 error
 
 ---------------------------------------------------------------------
 RUN tests/cpp-ext-disable.hs
