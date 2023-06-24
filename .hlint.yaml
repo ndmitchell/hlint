@@ -27,6 +27,7 @@
   - name: [TemplateHaskell]
   - name: [DerivingVia, DeriveGeneric, DataKinds]
   - {name: CPP, within: [HsColour, Config.Yaml, Test.Annotations]} # so it can be disabled to avoid GPL code
+  - {name: CPP, within: CmdLine} # Don't think this one is really necessary
 
 - flags:
   - default: false
