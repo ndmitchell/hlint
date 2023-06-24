@@ -1,5 +1,8 @@
 Changelog for HLint (* = breaking change)
 
+    #1522, define __GLASGOW_HASKELL__ for cmdCpp
+    #1519, don't suggest removing brackets that result in a parse error
+    #1512, add hints to convert for [1..n] to replicateM n
     #1430, add ignore-suggestions flag
     #1517, support NO_COLOR
     #1505, don't suggest redundant brackets around constraints
