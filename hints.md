@@ -9004,6 +9004,70 @@ m
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use replicateM</td>
+<td>
+LHS:
+<code>
+forM [1 .. n] (const f)
+</code>
+<br>
+RHS:
+<code>
+replicateM n f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use replicateM</td>
+<td>
+LHS:
+<code>
+for [1 .. n] (const f)
+</code>
+<br>
+RHS:
+<code>
+replicateM n f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use replicateM</td>
+<td>
+LHS:
+<code>
+forM [1 .. n] (\ _ -> x)
+</code>
+<br>
+RHS:
+<code>
+replicateM n x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use replicateM</td>
+<td>
+LHS:
+<code>
+for [1 .. n] (\ _ -> x)
+</code>
+<br>
+RHS:
+<code>
+replicateM n x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use evalState</td>
 <td>
 LHS:
