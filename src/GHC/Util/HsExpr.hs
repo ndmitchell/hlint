@@ -27,7 +27,6 @@ import GHC.Util.Brackets
 import GHC.Util.FreeVars
 import GHC.Util.View
 
-import Control.Applicative
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Writer.CPS
@@ -87,7 +86,7 @@ universeApps :: LHsExpr GhcPs -> [LHsExpr GhcPs]
 universeApps x = x : concatMap universeApps (childrenApps x)
 
 descendAppsM :: Monad m => (LHsExpr GhcPs  -> m (LHsExpr GhcPs)) -> LHsExpr GhcPs -> m (LHsExpr GhcPs)
-descendAppsM f (L l (HsApp _ x y)) = liftA2 (\x y -> L l $ HsApp EpAnnNotUsed x y) (descendAppsM f x) (f y)
+descendAppsM f (L l (HsApp _ x y)) = (\x y -> L l $ HsApp EpAnnNotUsed x y) <$> descendAppsM f x <*> f y
 descendAppsM f x = descendM f x
 
 transformAppsM :: Monad m => (LHsExpr GhcPs -> m (LHsExpr GhcPs)) -> LHsExpr GhcPs -> m (LHsExpr GhcPs)
