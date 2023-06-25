@@ -129,7 +129,6 @@ unify' nm root x y
     | Just (x :: EpAnn EpAnnUnboundVar) <- cast x = Just mempty
     | Just (x :: EpAnn AnnExplicitSum) <- cast x = Just mempty
     | Just (x :: EpAnn AnnProjection) <- cast x = Just mempty
-    | Just (x :: EpAnn Anchor) <- cast x = Just mempty
     | Just (x :: EpAnn EpaLocation) <- cast x = Just mempty
     | Just (x :: EpAnn AnnFieldLabel) <- cast x = Just mempty
     | Just (x :: EpAnn EpAnnSumPat) <- cast x = Just mempty
