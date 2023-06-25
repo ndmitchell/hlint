@@ -114,29 +114,29 @@ unify' nm root x y
     | Just (x, y) <- cast (x, y) = if (x :: FastString) == y then Just mempty else Nothing
 
     -- We need some type magic to reduce this.
-    | Just (x :: EpAnn AnnsModule) <- cast x = Just mempty
-    | Just (x :: EpAnn NameAnn) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnListItem) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnList) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnPragma) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnContext) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnParen) <- cast x = Just mempty
     | Just (x :: EpAnn Anchor) <- cast x = Just mempty
-    | Just (x :: EpAnn NoEpAnns) <- cast x = Just mempty
-    | Just (x :: EpAnn GrhsAnn) <- cast x = Just mempty
-    | Just (x :: EpAnn [AddEpAnn]) <- cast x = Just mempty
-    | Just (x :: EpAnn EpAnnHsCase) <- cast x = Just mempty
-    | Just (x :: EpAnn EpAnnUnboundVar) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnContext) <- cast x = Just mempty
     | Just (x :: EpAnn AnnExplicitSum) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnProjection) <- cast x = Just mempty
-    | Just (x :: EpAnn EpaLocation) <- cast x = Just mempty
     | Just (x :: EpAnn AnnFieldLabel) <- cast x = Just mempty
-    | Just (x :: EpAnn EpAnnSumPat) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnSig) <- cast x = Just mempty
-    | Just (x :: EpAnn HsRuleAnn) <- cast x = Just mempty
-    | Just (x :: EpAnn EpAnnImportDecl) <- cast x = Just mempty
-    | Just (x :: EpAnn (AddEpAnn, AddEpAnn)) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnList) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnListItem) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnParen) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnPragma) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnProjection) <- cast x = Just mempty
     | Just (x :: EpAnn AnnsIf) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnSig) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnsModule) <- cast x = Just mempty
+    | Just (x :: EpAnn EpaLocation) <- cast x = Just mempty
+    | Just (x :: EpAnn EpAnnHsCase) <- cast x = Just mempty
+    | Just (x :: EpAnn EpAnnImportDecl) <- cast x = Just mempty
+    | Just (x :: EpAnn EpAnnSumPat) <- cast x = Just mempty
+    | Just (x :: EpAnn EpAnnUnboundVar) <- cast x = Just mempty
+    | Just (x :: EpAnn GrhsAnn) <- cast x = Just mempty
+    | Just (x :: EpAnn HsRuleAnn) <- cast x = Just mempty
+    | Just (x :: EpAnn NameAnn) <- cast x = Just mempty
+    | Just (x :: EpAnn NoEpAnns) <- cast x = Just mempty
+    | Just (x :: EpAnn [AddEpAnn]) <- cast x = Just mempty
+    | Just (x :: EpAnn (AddEpAnn, AddEpAnn)) <- cast x = Just mempty
     | Just (x :: TokenLocation) <- cast y = Just mempty
     | Just (y :: SrcSpan) <- cast y = Just mempty
 
