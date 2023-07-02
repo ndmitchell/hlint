@@ -52,10 +52,9 @@ jobs:
     steps:
     - run: git config --global core.autocrlf false
     - uses: actions/checkout@v2
-    - uses: haskell/actions/setup@v1
+    - uses: haskell/actions/setup@v2
       with:
-        # Force a version that works with Mac
-        ghc-version: '9.2.3'
+        ghc-version: '9.6'
     - uses: ndmitchell/neil@master
       with:
         make-release: true
