@@ -9,15 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create-release.outputs.upload_url }}
-      filename: ${{ steps.username_repo.outputs._1 }}-${{ steps.reftags_version.outputs._1 }}
+      filename: hlint-${{ steps.reftags_version.outputs._1 }}
 
     steps:
-    - uses: rishabhgupta/split-by@v1
-      id: username_repo
-      with:
-        string: ${{ github.repository }} # e.g. ndmitchell/neil
-        split-by: '/'
-
     - uses: rishabhgupta/split-by@v1
       id: reftags_version
       with:
