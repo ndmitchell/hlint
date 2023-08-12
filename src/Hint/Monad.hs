@@ -64,10 +64,25 @@ issue978 = do \
    if False then main else do \
    return ()
 
-foo x y z = return 7 -- Demote `foo` to a pure function
-foo x y z = pure 7 -- Demote `foo` to a pure function
-foo x y z = pure $ x + y -- Demote `foo` to a pure function
-foo x y z = negate 7
+foo x = return 7 -- Demote `foo` to a pure function
+foo x = pure 7 -- Demote `foo` to a pure function
+foo x y = pure $ x + y -- Demote `foo` to a pure function
+foo x = negate 7
+
+foo x = do \
+   let y = x + 7 \
+       z = y + 2 \
+   let w = z - 4 \
+   return w -- Demote `foo` to a pure function
+
+foo x = do \
+   let z = y - 2 \
+   return $ z * 3 \
+   where y = x + 1 -- Demote `foo` to a pure function
+
+foo x = do \
+  let y = pure x \
+  y
 </TEST>
 -}
 
@@ -138,14 +153,30 @@ gratuitouslyMonadic e@(L _ d) = case d of
       allMatchExprs ms = [expr | L _ (Match _ _ _ (GRHSs _ xs _)) <- ms, L _ (GRHS _ _ expr) <- xs]
   _ -> []
 
--- | Handles both of:
+-- | Handles expressions of both these forms:
 --     pure x
 --     pure $ f x
+--
+-- Also recurses into `do` blocks to check whether it consists entirely
+-- (excluding any Let bindings) of "Body Statements" with
+-- such expressions. This catches at least some real-world
+-- sightings of the phenomenon.
 gratuitouslyMonadicExpr :: LHsExpr GhcPs -> Bool
-gratuitouslyMonadicExpr x = case simplifyExp x of
-  L _ (HsApp _ (L _ (HsVar _ (L _ myFunc))) _) ->
-    occNameString (rdrNameOcc myFunc) `elem` ["pure", "return"]
-  _ -> False
+gratuitouslyMonadicExpr x =
+  case simplifyExp x of
+    L _ (HsApp _ (L _ (HsVar _ (L _ myFunc))) _) ->
+      occNameString (rdrNameOcc myFunc) `elem` ["pure", "return"]
+    L _ (HsDo _ _ (L _ statements)) -> all isGratuitouslyMonadicBodyStatement $
+      filter (not . isLetStatement) statements
+    _ -> False
+  where
+    isGratuitouslyMonadicBodyStatement statement = case statement of
+      (L _ (BodyStmt _ x _ _)) -> gratuitouslyMonadicExpr x
+      _ -> False
+
+    isLetStatement statement = case statement of
+      (L _ (LetStmt _ _)) -> True
+      _ -> False
 
 -- | Call with the name of the declaration,
 --   the nearest enclosing `do` expression
