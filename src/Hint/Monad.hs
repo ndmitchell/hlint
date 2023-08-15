@@ -83,6 +83,19 @@ foo x = do \
 foo x = do \
   let y = pure x \
   y
+
+{-# LANGUAGE BlockArguments #-} \
+x = \
+  (+) \
+    do 3 + 5 \
+    do 4 * 7
+
+y = do \
+  let z = 5 \
+  z
+
+f bla do \
+  g x y z
 </TEST>
 -}
 
