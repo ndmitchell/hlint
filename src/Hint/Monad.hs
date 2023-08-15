@@ -163,6 +163,7 @@ gratuitouslyMonadic e@(L _ d) = case d of
     where
       fname = occNameString $ rdrNameOcc n
       -- Iterate over all of the patterns of the function, as well as all of the guards
+      allMatchExprs :: [LMatch GhcPs (LHsExpr GhcPs)] -> [LHsExpr GhcPs]
       allMatchExprs ms = [expr | L _ (Match _ _ _ (GRHSs _ xs _)) <- ms, L _ (GRHS _ _ expr) <- xs]
   _ -> []
 
