@@ -188,9 +188,7 @@ gratuitouslyMonadicExpr x =
       (L _ (BodyStmt _ x _ _)) -> gratuitouslyMonadicExpr x
       _ -> False
 
-    isLetStatement statement = case statement of
-      (L _ (LetStmt _ _)) -> True
-      _ -> False
+    isLetStatement (L _ z) = isLetStmt z
 
 -- | Call with the name of the declaration,
 --   the nearest enclosing `do` expression
