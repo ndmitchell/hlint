@@ -142,10 +142,7 @@ monadHint _ _ d =
         decl = declName d
         f parentDo parentExpr x =
             monadExp decl parentDo parentExpr x ++
-            concat [f (if isHsDo x then Just x else parentDo) (Just (i, x)) c | (i, c) <- zipFrom 0 $ children x]
-
-        isHsDo (L _ HsDo{}) = True
-        isHsDo _ = False
+            concat [f (if isDo x then Just x else parentDo) (Just (i, x)) c | (i, c) <- zipFrom 0 $ children x]
 
 gratuitouslyMonadic :: LHsDecl GhcPs -> [Idea]
 gratuitouslyMonadic e@(L _ d) = case d of
@@ -181,14 +178,12 @@ gratuitouslyMonadicExpr x =
     L _ (HsApp _ (L _ (HsVar _ (L _ myFunc))) _) ->
       occNameString (rdrNameOcc myFunc) `elem` ["pure", "return"]
     L _ (HsDo _ _ (L _ statements)) -> all isGratuitouslyMonadicBodyStatement $
-      filter (not . isLetStatement) statements
+      filter (not . isLetStmt . unLoc) statements
     _ -> False
   where
     isGratuitouslyMonadicBodyStatement statement = case statement of
-      (L _ (BodyStmt _ x _ _)) -> gratuitouslyMonadicExpr x
+      L _ (BodyStmt _ x _ _) -> gratuitouslyMonadicExpr x
       _ -> False
-
-    isLetStatement (L _ z) = isLetStmt z
 
 -- | Call with the name of the declaration,
 --   the nearest enclosing `do` expression
