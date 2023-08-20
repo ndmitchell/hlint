@@ -63,6 +63,39 @@ issue978 = do \
    print "x" \
    if False then main else do \
    return ()
+
+foo x = return 7 -- Demote `foo` to a pure function
+foo x = pure 7 -- Demote `foo` to a pure function
+foo x y = pure $ x + y -- Demote `foo` to a pure function
+foo x = negate 7
+
+foo x = do \
+   let y = x + 7 \
+       z = y + 2 \
+   let w = z - 4 \
+   return w -- Demote `foo` to a pure function
+
+foo x = do \
+   let z = y - 2 \
+   return $ z * 3 \
+   where y = x + 1 -- Demote `foo` to a pure function
+
+foo x = do \
+  let y = pure x \
+  y
+
+{-# LANGUAGE BlockArguments #-} \
+x = \
+  (+) \
+    do 3 + 5 \
+    do 4 * 7
+
+y = do \
+  let z = 5 \
+  z
+
+f bla do \
+  g x y z
 </TEST>
 -}
 
@@ -79,6 +112,7 @@ import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
 import GHC.Data.Bag
 import GHC.Data.Strict qualified
+import Control.Monad ( guard )
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -100,16 +134,56 @@ unitFuncs :: [String]
 unitFuncs = ["when","unless","void"]
 
 monadHint :: DeclHint
-monadHint _ _ d = concatMap (f Nothing Nothing) $ childrenBi d
+monadHint _ _ d =
+  baseHints <> gratuitousHints
     where
+        baseHints = concatMap (f Nothing Nothing) $ childrenBi d
+        gratuitousHints = concatMap gratuitouslyMonadic $ universeBi d
         decl = declName d
         f parentDo parentExpr x =
             monadExp decl parentDo parentExpr x ++
-            concat [f (if isHsDo x then Just x else parentDo) (Just (i, x)) c | (i, c) <- zipFrom 0 $ children x]
+            concat [f (if isDo x then Just x else parentDo) (Just (i, x)) c | (i, c) <- zipFrom 0 $ children x]
 
-        isHsDo (L _ HsDo{}) = True
-        isHsDo _ = False
+gratuitouslyMonadic :: LHsDecl GhcPs -> [Idea]
+gratuitouslyMonadic e@(L _ d) = case d of
+  ValD _ func@(FunBind _ (L _ n) (MG _ (L _ ms))) -> do
+    guard $ fname /= "main"  -- Account for "main = pure ()" test
+    guard $ all gratuitouslyMonadicExpr $ allMatchExprs ms
+    pure $ rawIdea
+      Suggestion
+      "Unnecessarily monadic"
+      (locA $ getLoc e)
+      (unsafePrettyPrint e)
+      (Just $ unwords ["Demote", "`" <> fname <> "`", "to a pure function"])
+      []
+      []
+    where
+      fname = occNameString $ rdrNameOcc n
+      -- Iterate over all of the patterns of the function, as well as all of the guards
+      allMatchExprs :: [LMatch GhcPs (LHsExpr GhcPs)] -> [LHsExpr GhcPs]
+      allMatchExprs ms = [expr | L _ (Match _ _ _ (GRHSs _ xs _)) <- ms, L _ (GRHS _ _ expr) <- xs]
+  _ -> []
 
+-- | Handles expressions of both these forms:
+--     pure x
+--     pure $ f x
+--
+-- Also recurses into `do` blocks to check whether it consists entirely
+-- (excluding any Let bindings) of "Body Statements" with
+-- such expressions. This catches at least some real-world
+-- sightings of the phenomenon.
+gratuitouslyMonadicExpr :: LHsExpr GhcPs -> Bool
+gratuitouslyMonadicExpr x =
+  case simplifyExp x of
+    L _ (HsApp _ (L _ (HsVar _ (L _ myFunc))) _) ->
+      occNameString (rdrNameOcc myFunc) `elem` ["pure", "return"]
+    L _ (HsDo _ _ (L _ statements)) -> all isGratuitouslyMonadicBodyStatement $
+      filter (not . isLetStmt . unLoc) statements
+    _ -> False
+  where
+    isGratuitouslyMonadicBodyStatement statement = case statement of
+      L _ (BodyStmt _ x _ _) -> gratuitouslyMonadicExpr x
+      _ -> False
 
 -- | Call with the name of the declaration,
 --   the nearest enclosing `do` expression

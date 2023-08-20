@@ -972,6 +972,33 @@ do f . g <$> bar
 <td>Warning</td>
 </tr>
 <tr>
+<td>Unnecessarily monadic</td>
+<td>
+Example: 
+<pre>
+foo x = do 
+   let z = y - 2 
+   return $ z * 3 
+   where y = x + 1
+</pre>
+Found:
+<pre>
+foo x
+  = do let z = y - 2
+       return $ z * 3
+  where
+      y = x + 1
+</pre>
+Suggestion:
+<code>
+Demote `foo` to a pure function
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Redundant void</td>
 <td>
 Example: 
