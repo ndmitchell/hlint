@@ -1117,6 +1117,37 @@ Does not support refactoring.
 </tr>
 </table>
 
+## Builtin Negation
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Parenthesize unary negation</td>
+<td>
+Example: 
+<code>
+yes = -x `mod` y
+</code>
+<br>
+Found:
+<code>
+- x `mod` y
+</code>
+<br>
+Suggestion:
+<code>
+- (x `mod` y)
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+</table>
+
 ## Builtin NewType
 
 <table>
