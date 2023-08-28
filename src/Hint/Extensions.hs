@@ -249,6 +249,8 @@ f = (. foo) -- @NoRefactor: refactor requires GHC >= 9.2.1
 foo = [|| x ||]
 {-# LANGUAGE TemplateHaskell #-} \
 foo = $bar
+{-# LANGUAGE TemplateHaskell #-} \
+foo = $$typedExpressionSplice
 {-# LANGUAGE TypeData # -} \
 type data Nat = Zero | Succ Nat  -- @NoRefactor: refactor requires GHC >= 9.6.1
 {-# LANGUAGE TypeData #-} \
@@ -425,7 +427,7 @@ used EmptyCase = hasS f
     f _ = False
 used KindSignatures = hasT (un :: HsKind GhcPs)
 used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
-used TemplateHaskell = hasS $ not . isQuasiQuoteSplice
+used TemplateHaskell = hasS (not . isQuasiQuoteSplice) ||^ hasS isTypedSplice
 used TemplateHaskellQuotes = hasS f
   where
     f :: HsExpr GhcPs -> Bool
