@@ -428,10 +428,6 @@ used EmptyCase = hasS f
 used KindSignatures = hasT (un :: HsKind GhcPs)
 used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
 used TemplateHaskell = hasS (not . isQuasiQuoteSplice) ||^ hasS isTypedSplice
-  where
-    isTypedSplice :: HsExpr GhcPs -> Bool
-    isTypedSplice (HsTypedSplice _ _) = True
-    isTypedSplice _ = False
 used TemplateHaskellQuotes = hasS f
   where
     f :: HsExpr GhcPs -> Bool
