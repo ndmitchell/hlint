@@ -22,7 +22,7 @@ import Fixity
 import Extension
 import GHC.Data.FastString
 
-import GHC.Hs
+import GHC.Hs hiding (comments)
 import GHC.Types.SrcLoc
 import GHC.Types.Fixity
 import GHC.Types.Error

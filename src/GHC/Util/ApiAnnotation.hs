@@ -1,9 +1,15 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 
 module GHC.Util.ApiAnnotation (
-    comment_, commentText, isCommentMultiline
-  , pragmas, flags, languagePragmas
-  , mkFlags, mkLanguagePragmas
+    comment_
+  , commentText
+  , GHC.Util.ApiAnnotation.comments
+  , isCommentMultiline
+  , pragmas
+  , flags
+  , languagePragmas
+  , mkFlags
+  , mkLanguagePragmas
   , extensions
 ) where
 
@@ -44,6 +50,12 @@ comment_ (L _ (EpaComment EpaEofComment _)) = ""
 -- | The comment string with delimiters removed.
 commentText :: LEpaComment -> String
 commentText = trimCommentDelims . comment_
+
+-- | Total replacement for the partial `GHC.Parser.Annotation.comments` field of
+-- `EpAnn`
+comments :: EpAnn ann -> EpAnnComments
+comments EpAnn{ GHC.Parser.Annotation.comments = result } = result
+comments EpAnnNotUsed = emptyComments
 
 isCommentMultiline :: LEpaComment -> Bool
 isCommentMultiline (L _ (EpaComment (EpaBlockComment _) _)) = True
