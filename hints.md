@@ -7226,7 +7226,7 @@ fmap (f . g) x
 <td>
 LHS:
 <code>
-f <$> g <$> x
+f <$> (g <$> x)
 </code>
 <br>
 RHS:
@@ -7296,6 +7296,22 @@ x <&> id
 RHS:
 <code>
 x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <$></td>
+<td>
+LHS:
+<code>
+f <$> g <$> x
+</code>
+<br>
+RHS:
+<code>
+f . g <$> x
 </code>
 <br>
 </td>
