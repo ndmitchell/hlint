@@ -214,12 +214,18 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
                 QualifiedStyleUnrestricted -> (Left QualifiedPostOrPre, "qualified")
                 QualifiedStylePost -> (Right QualifiedPost, "post-qualified")
                 QualifiedStylePre -> (Right QualifiedPre, "pre-qualified")
+            -- unless expectedQual is Nothing, it holds the Idea (hint) to ultimately emit,
+            -- except in these cases when the rule's requirements are fulfilled in-source:
             qualIdea
+              -- the rule demands a particular importStyle, and the decl obeys exactly
               | Just (Right ideclQualified) == (fst <$> expectedQual) = Nothing
+              -- the rule demands a QualifiedPostOrPre import, and the decl does either
               | Just (Left QualifiedPostOrPre) == (fst <$> expectedQual)
                 && ideclQualified `elem` [QualifiedPost, QualifiedPre] = Nothing
+              -- otherwise, expectedQual gets converted into a warning below (or is Nothing)
               | otherwise = expectedQual
         whenJust qualIdea $ \(qual, hint) -> do
+          -- convert non-Nothing qualIdea into hlint's refactoring Idea
           let i' = noLoc $ (unLoc i){ ideclQualified = fromRight QualifiedPre qual
                                     , ideclImportList = fromMaybe ideclImportList expectedHiding }
               msg = moduleNameString (unLoc ideclName) <> " should be imported " <> hint
