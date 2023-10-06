@@ -752,6 +752,10 @@
     - warn: {lhs: lefts (nubOrd x), rhs: nubOrd (lefts x), name: Move nubOrd out}
     - warn: {lhs: rights (nubOrd x), rhs: nubOrd (rights x), name: Move nubOrd out}
     - warn: {lhs: filter f (reverse x), rhs: reverse (filter f x), name: Move reverse out}
+    - warn: {lhs: maybe (pure Nothing) (fmap Just . f), rhs: traverse f}
+    - warn: {lhs: maybe (pure Nothing) ((Just <$>) . f), rhs: traverse f}
+    - warn: {lhs: maybe (pure Nothing) (\x -> fmap Just (f x)), rhs: traverse f}
+    - warn: {lhs: maybe (pure Nothing) (\x -> Just <$> f x), rhs: traverse f}
 
     # EITHER
 
