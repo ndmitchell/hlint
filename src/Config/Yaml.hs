@@ -163,7 +163,7 @@ parseFail (Val focus path) msg = fail $
     -- aim to show a smallish but relevant context
     dotDot (fromMaybe (encode focus) $ listToMaybe $ dropWhile (\x -> BS.length x > 250) $ map encode contexts)
     where
-        (steps, contexts) = unzip $ reverse path
+        (steps, contexts) = Prelude.unzip $ reverse path
         dotDot x = let (a,b) = BS.splitAt 250 x in BS.unpack a ++ (if BS.null b then "" else "...")
 
 parseArray :: Val -> Parser [Val]

@@ -170,7 +170,7 @@ lambdaBind
     where
           reform :: [LPat GhcPs] -> LHsExpr GhcPs -> Located (HsDecl GhcPs)
           reform ps b = L (combineSrcSpans (locA loc1) (locA loc2)) $ ValD noExtField $
-             origBind {fun_matches = MG Generated (noLocA [noLocA $ Match EpAnnNotUsed ctxt ps $ GRHSs emptyComments [noLocA $ GRHS EpAnnNotUsed [] b] $ EmptyLocalBinds noExtField])}
+             origBind {fun_matches = MG (Generated DoPmc) (noLocA [noLocA $ Match EpAnnNotUsed ctxt ps $ GRHSs emptyComments [noLocA $ GRHS EpAnnNotUsed [] b] $ EmptyLocalBinds noExtField])}
 
           mkSubtsAndTpl newPats newBody = (sub, tpl)
             where
