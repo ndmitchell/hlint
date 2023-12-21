@@ -22,6 +22,7 @@
 module Hint.NumLiteral (numLiteralHint) where
 
 import GHC.Hs
+import GHC.Data.FastString
 import GHC.LanguageExtensions.Type (Extension (..))
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
@@ -49,18 +50,20 @@ numLiteralHint _ modu =
 
 suggestUnderscore :: LHsExpr GhcPs -> [Idea]
 suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsIntegral intLit@(IL (SourceText srcTxt) _ _))))) =
-  [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` srcTxt, srcTxt /= underscoredSrcTxt ]
+  [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` srcTxt', srcTxt' /= underscoredSrcTxt ]
   where
-    underscoredSrcTxt = addUnderscore srcTxt
+    srcTxt' = unpackFS srcTxt
+    underscoredSrcTxt = addUnderscore srcTxt'
     y :: LocatedAn an (HsExpr GhcPs)
-    y = noLocA $ HsOverLit EpAnnNotUsed $ ol{ol_val = HsIntegral intLit{il_text = SourceText underscoredSrcTxt}}
+    y = noLocA $ HsOverLit EpAnnNotUsed $ ol{ol_val = HsIntegral intLit{il_text = SourceText (fsLit underscoredSrcTxt)}}
     r = Replace Expr (toSSA x) [("a", toSSA y)] "a"
 suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsFractional fracLit@(FL (SourceText srcTxt) _ _ _ _))))) =
-  [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` srcTxt, srcTxt /= underscoredSrcTxt ]
+  [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` srcTxt', srcTxt' /= underscoredSrcTxt ]
   where
-    underscoredSrcTxt = addUnderscore srcTxt
+    srcTxt' = unpackFS srcTxt
+    underscoredSrcTxt = addUnderscore srcTxt'
     y :: LocatedAn an (HsExpr GhcPs)
-    y = noLocA $ HsOverLit EpAnnNotUsed $ ol{ol_val = HsFractional fracLit{fl_text = SourceText underscoredSrcTxt}}
+    y = noLocA $ HsOverLit EpAnnNotUsed $ ol{ol_val = HsFractional fracLit{fl_text = SourceText (fsLit underscoredSrcTxt)}}
     r = Replace Expr (toSSA x) [("a", toSSA y)] "a"
 suggestUnderscore _ = mempty
 

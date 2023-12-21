@@ -102,7 +102,7 @@ shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
     L locGRHS (GRHS ttg0 guards (L locExpr dots))
     where
         dots :: HsExpr GhcPs
-        dots = HsLit EpAnnNotUsed (HsString (SourceText "...") (mkFastString "..."))
+        dots = HsLit EpAnnNotUsed (HsString (SourceText (fsLit "...")) (fsLit "..."))
 
 getNames :: LHsDecl GhcPs -> [String]
 getNames decl = maybeToList (declName decl) ++ getConstructorNames (unLoc decl)

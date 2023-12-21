@@ -29,6 +29,7 @@ import GHC.Types.Error hiding (Severity)
 import Config.Type
 import Data.Either.Extra
 import Data.Maybe
+import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import Data.Tuple.Extra
 import Control.Monad.Extra
@@ -163,7 +164,7 @@ parseFail (Val focus path) msg = fail $
     -- aim to show a smallish but relevant context
     dotDot (fromMaybe (encode focus) $ listToMaybe $ dropWhile (\x -> BS.length x > 250) $ map encode contexts)
     where
-        (steps, contexts) = unzip $ reverse path
+        (steps, contexts) = Prelude.unzip $ reverse path
         dotDot x = let (a,b) = BS.splitAt 250 x in BS.unpack a ++ (if BS.null b then "" else "...")
 
 parseArray :: Val -> Parser [Val]
@@ -235,7 +236,7 @@ parseGHC parser v = do
     case parser defaultParseFlags{enabledExtensions=configExtensions, disabledExtensions=[]} x of
         POk _ x -> pure x
         PFailed ps ->
-          let errMsg = head . bagToList . getMessages $ GhcPsMessage <$> snd (getPsMessages ps)
+          let errMsg = NE.head . NE.fromList . bagToList . getMessages $ GhcPsMessage <$> snd (getPsMessages ps)
               msg = showSDoc baseDynFlags $ pprLocMsgEnvelopeDefault errMsg
           in parseFail v $ "Failed to parse " ++ msg ++ ", when parsing:\n " ++ x
 

@@ -176,7 +176,7 @@ findCase x = do
       gRHS e = noLocA $ GRHS EpAnnNotUsed [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
       gRHSSs e = GRHSs emptyComments [gRHS e] emptyLocalBinds -- Guarded rhs set.
       match e = Match{m_ext=EpAnnNotUsed,m_pats=ps12, m_grhss=gRHSSs e, ..} -- Match.
-      matchGroup e = MG{mg_alts=noLocA [noLocA $ match e], mg_ext=Generated, ..} -- Match group.
+      matchGroup e = MG{mg_alts=noLocA [noLocA $ match e], mg_ext=Generated DoPmc, ..} -- Match group.
       funBind e = FunBind {fun_matches=matchGroup e, ..} :: HsBindLR GhcPs GhcPs -- Fun bind.
 
   pure (ListCase ps b1 (x, xs, b2), noLocA . ValD noExtField . funBind)

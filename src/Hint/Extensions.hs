@@ -274,6 +274,7 @@ import Refact.Types
 import Data.Set qualified as Set
 import Data.Map qualified as Map
 
+import GHC.Data.FastString
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
 import GHC.Hs
@@ -492,8 +493,8 @@ used MultiWayIf = hasS isMultiIf
 used NumericUnderscores = hasS f
   where
     f :: OverLitVal -> Bool
-    f (HsIntegral (IL (SourceText t) _ _)) = '_' `elem` t
-    f (HsFractional (FL (SourceText t) _ _ _ _)) = '_' `elem` t
+    f (HsIntegral (IL (SourceText t) _ _)) = '_' `elem` unpackFS t
+    f (HsFractional (FL (SourceText t) _ _ _ _)) = '_' `elem` unpackFS t
     f _ = False
 
 used LambdaCase = hasS isLCase

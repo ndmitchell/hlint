@@ -12,6 +12,7 @@ import Control.Monad.Extra
 import Control.Exception.Extra
 import Data.ByteString qualified as BS
 import Data.Char
+import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import Data.Maybe
 import Data.Functor
@@ -184,7 +185,7 @@ mode = cmdArgsMode $ modes
     ] &= program "hlint" &= verbosity
     &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2023")
     where
-        nam xs = nam_ xs &= name [head xs]
+        nam xs = nam_ xs &= name [NE.head $ NE.fromList xs]
         nam_ xs = def &= explicit &= name xs
 
 -- | Where should we find the configuration files?
