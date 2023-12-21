@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -14,6 +15,7 @@ import Control.Monad.Trans.Except
 import Control.Monad.IO.Class
 import Util
 import Data.Char
+import Data.List.NonEmpty qualified
 import Data.List.Extra
 import Timing
 import Language.Preprocessor.Cpphs
@@ -192,12 +194,12 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
     POk s a -> do
       let errs = bagToList . getMessages $ GhcPsMessage <$> snd (getPsMessages s)
       if not $ null errs then
-        except $ parseFailureErr dynFlags str file str errs
+        except $ parseFailureErr dynFlags str file str $ Data.List.NonEmpty.fromList errs
       else do
         let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
         pure $ ModuleEx (applyFixities fixes a)
     PFailed s ->
-      except $ parseFailureErr dynFlags str file str $ bagToList . getMessages  $ GhcPsMessage <$> snd (getPsMessages s)
+      except $ parseFailureErr dynFlags str file str $ Data.List.NonEmpty.fromList . bagToList . getMessages  $ GhcPsMessage <$> snd (getPsMessages s)
   where
     -- If parsing pragmas fails, synthesize a parse error from the
     -- error message.
@@ -206,7 +208,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
       in ParseError (mkSrcSpan loc loc) msg src
 
     parseFailureErr dynFlags ppstr file str errs =
-      let errMsg = head errs
+      let errMsg = Data.List.NonEmpty.head errs
           loc = errMsgSpan errMsg
           doc = pprLocMsgEnvelopeDefault errMsg
       in ghcFailOpParseModuleEx ppstr file str (loc, doc)

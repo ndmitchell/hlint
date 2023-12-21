@@ -1,3 +1,5 @@
+{-# HLint ignore "Avoid restricted flags" #-}
+{-# OPTIONS_GHC -Wno-unrecognised-warning-flags -Wno-unrecognised-pragmas -Wno-x-partial #-}
 {-# LANGUAGE ImportQualifiedPost, CPP #-}
 {-# LANGUAGE PatternGuards, DeriveDataTypeable, TupleSections #-}
 {-# OPTIONS_GHC -Wno-missing-fields -fno-cse -O0 #-}

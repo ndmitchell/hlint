@@ -9,6 +9,7 @@ module Summary (generateMdSummary, generateJsonSummary, generateExhaustiveConfig
 import Data.Map qualified as Map
 import Control.Monad.Extra
 import System.FilePath
+import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import System.Directory
 
@@ -121,7 +122,7 @@ genExhaustiveConfig severity Summary{..} = unlines $
     ++ ["", "# All LHS/RHS hints"]
     ++ (mkLine <$> sortDedup (hintRuleName <$> sLhsRhsRules))
   where
-    sortDedup = fmap head . group . sort
+    sortDedup = fmap (NE.head . NE.fromList) . group . sort
     mkLine name = "- " <> show severity <> ": {name: " <> jsonToString name <> "}"
 
 genSummaryMd :: Summary -> String
@@ -161,7 +162,7 @@ showBuiltin BuiltinHint{..} = row1
   where
     row1 = row $
       [ "<td>" ++ hName ++ "</td>", "<td>"]
-      ++ showExample (head hExamples)
+      ++ showExample (NE.head $ NE.fromList hExamples)
       ++ ["Does not support refactoring." | not hRefactoring]
       ++ ["</td>"] ++
       [ "<td>" ++ show hSeverity ++ "</td>"

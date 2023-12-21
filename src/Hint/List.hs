@@ -44,6 +44,7 @@ module Hint.List(listHint) where
 
 import Control.Applicative
 import Data.Generics.Uniplate.DataOnly
+import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import Data.Maybe
 import Prelude
@@ -103,9 +104,9 @@ listComp _ = []
 
 listCompCheckGuards :: LHsExpr GhcPs -> HsDoFlavour -> [ExprLStmt GhcPs] -> [Idea]
 listCompCheckGuards o ctx stmts =
-  let revs = reverse stmts
-      e@(L _ LastStmt{}) = head revs -- In a ListComp, this is always last.
-      xs = reverse (tail revs) in
+  let revs = NE.reverse $ NE.fromList stmts
+      e@(L _ LastStmt{}) = NE.head revs -- In a ListComp, this is always last.
+      xs = reverse (NE.tail revs) in
   list_comp_aux e xs
   where
     list_comp_aux e xs
@@ -128,10 +129,10 @@ listCompCheckMap ::
 listCompCheckMap o mp f ctx stmts  | varToStr mp == "map" =
     [suggest "Move map inside list comprehension" (reLoc o) (reLoc o2) (suggestExpr o o2)]
     where
-      revs = reverse stmts
-      L _ (LastStmt _ body b s) = head revs -- In a ListComp, this is always last.
+      revs = NE.reverse $ NE.fromList stmts
+      L _ (LastStmt _ body b s) = NE.head revs -- In a ListComp, this is always last.
       last = noLocA $ LastStmt noExtField (noLocA $ HsApp EpAnnNotUsed (paren f) (paren body)) b s
-      o2 =noLocA $ HsDo EpAnnNotUsed ctx (noLocA $ reverse (tail revs) ++ [last])
+      o2 =noLocA $ HsDo EpAnnNotUsed ctx (noLocA $ reverse (NE.tail revs) ++ [last])
 listCompCheckMap _ _ _ _ _ = []
 
 suggestExpr :: LHsExpr GhcPs -> LHsExpr GhcPs -> [Refactoring R.SrcSpan]
@@ -162,7 +163,7 @@ listExp :: Bool -> Bool -> LHsExpr GhcPs -> [Idea]
 listExp overloadedListsOn b (fromParen -> x) =
   if null res
     then concatMap (listExp overloadedListsOn $ isAppend x) $ children x
-    else [head res]
+    else [NE.head $ NE.fromList res]
   where
     res = [suggest name (reLoc x) (reLoc x2) [r]
           | (name, f) <- checks overloadedListsOn
@@ -170,7 +171,7 @@ listExp overloadedListsOn b (fromParen -> x) =
           , let r = Replace Expr (toSSA x) subts temp ]
 
 listPat :: LPat GhcPs -> [Idea]
-listPat x = if null res then concatMap listPat $ children x else [head res]
+listPat x = if null res then concatMap listPat $ children x else [NE.head $ NE.fromList res]
     where res = [suggest name (reLoc x) (reLoc x2) [r]
                   | (name, f) <- pchecks
                   , Just (x2, subts, temp) <- [f x]
