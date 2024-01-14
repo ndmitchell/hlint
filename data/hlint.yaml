@@ -214,6 +214,7 @@
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: not (isApp f)}
     - hint: {lhs: "map f (fromMaybe [] x)", rhs: "maybe [] (map f) x"}
     - hint: {lhs: "concatMap f (fromMaybe [] x)", rhs: "maybe [] (concatMap f) x"}
+    - hint: {lhs: "concat (fromMaybe [] x)", rhs: "maybe [] concat x"}
     - warn: {lhs: not (elem x y), rhs: notElem x y}
     - warn: {lhs: not (notElem x y), rhs: elem x y}
     - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
@@ -881,8 +882,11 @@
     - warn: {lhs: fold (concatMap f x), rhs: foldMap (fold . f) x}
     - warn: {lhs: foldMap f (concatMap g x), rhs: foldMap (foldMap f . g) x}
     - warn: {lhs: catMaybes (concatMap f x), rhs: concatMap (catMaybes . f) x, name: Move catMaybes}
+    - warn: {lhs: catMaybes (concat x), rhs: concatMap catMaybes x, name: Move catMaybes}
     - hint: {lhs: filter f (concatMap g x), rhs: concatMap (filter f . g) x, name: Move filter}
+    - hint: {lhs: filter f (concat x), rhs: concatMap (filter f) x, name: Move filter}
     - warn: {lhs: mapMaybe f (concatMap g x), rhs: concatMap (mapMaybe f . g) x, name: Move mapMaybe}
+    - warn: {lhs: mapMaybe f (concat x), rhs: concatMap (mapMaybe f) x, name: Move mapMaybe}
     - warn: {lhs: or (fmap p x), rhs: any p x}
     - warn: {lhs: or (p <$> x), rhs: any p x}
     - warn: {lhs: or (x <&> p), rhs: any p x}
