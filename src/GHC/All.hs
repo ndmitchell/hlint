@@ -110,13 +110,13 @@ ghcFailOpParseModuleEx :: String
                        -> FilePath
                        -> String
                        -> (SrcSpan, SDoc)
-                       -> Either ParseError ModuleEx
+                       -> IO (Either ParseError ModuleEx)
 ghcFailOpParseModuleEx ppstr file str (loc, err) = do
    let pe = case loc of
             RealSrcSpan r _ -> context (srcSpanStartLine r) ppstr
             _ -> ""
        msg = GHC.Driver.Ppr.showSDoc baseDynFlags err
-   Left $ ParseError loc msg pe
+   pure $ Left $ ParseError loc msg pe
 
 -- GHC extensions to enable/disable given HSE parse flags.
 ghcExtensionsFromParseFlags :: ParseFlags -> ([Extension], [Extension])
@@ -194,12 +194,12 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
     POk s a -> do
       let errs = bagToList . getMessages $ GhcPsMessage <$> snd (getPsMessages s)
       if not $ null errs then
-        except $ parseFailureErr dynFlags str file str $ NE.fromList errs
+        ExceptT $ parseFailureErr dynFlags str file str $ NE.fromList errs
       else do
         let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
         pure $ ModuleEx (applyFixities fixes a)
     PFailed s ->
-      except $ parseFailureErr dynFlags str file str $ NE.fromList . bagToList . getMessages  $ GhcPsMessage <$> snd (getPsMessages s)
+      ExceptT $ parseFailureErr dynFlags str file str $ NE.fromList . bagToList . getMessages  $ GhcPsMessage <$> snd (getPsMessages s)
   where
     -- If parsing pragmas fails, synthesize a parse error from the
     -- error message.

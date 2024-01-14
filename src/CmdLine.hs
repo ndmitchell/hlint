@@ -183,7 +183,7 @@ mode = cmdArgsMode $ modes
                    ,"To check all Haskell files in 'src' and generate a report type:"
                    ,"  hlint src --report"]
     ] &= program "hlint" &= verbosity
-    &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2023")
+    &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2024")
     where
         nam xs = nam_ xs &= name [NE.head $ NE.fromList xs]
         nam_ xs = def &= explicit &= name xs

@@ -14,5 +14,5 @@ stack*.yaml.lock
 /TAGS
 \#*\#
 .\#*\#
-
+/.sl/
 *.dump-hi

@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1540, correct Functor law hint, was missing brackets
 3.6.1, released 2023-07-03
     Attempt to make a binary release
 3.6, released 2023-06-26
