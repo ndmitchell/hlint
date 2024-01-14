@@ -144,7 +144,7 @@ optToLanguage (L loc _, flags) languagePragmas
       -- 'ls' is a list of language features enabled by this
       -- OPTIONS_GHC pragma that are not enabled by LANGUAGE pragmas
       -- in this module.
-      let ls = filter (not . (`elem` languagePragmas)) (concat $ catMaybes vs) in
+      let ls = concatMap (filter (`notElem` languagePragmas)) $ catMaybes vs in
       Just (res, ls)
   where
     -- Try reinterpreting each flag as a list of language features
