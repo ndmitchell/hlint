@@ -279,7 +279,7 @@ getFile ignore (p:ath) exts t file = do
         pure [x | x <- xs, drop1 (takeExtension x) `elem` exts, not $ avoidFile x]
      else do
         isFil <- doesFileExist $ p <\> file
-        if isFil then 
+        if isFil then
             pure [p <\> file | not $ ignore $ p <\> file]
          else do
             res <- getModule p exts file
