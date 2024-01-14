@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1555, slightly more efficient concatMap usages (e.g. pull filter out)
     #1500, suggest avoiding NonEmpty.unzip (use Functor.unzip)
 *   #1544, upgrade to GHC 9.8
     #1540, correct Functor law hint, was missing brackets
