@@ -45,7 +45,7 @@ negationParensHint _ _ x =
 negatedOp :: LHsExpr GhcPs -> [Idea]
 negatedOp e =
   case e of
-    L b1 (NegApp a1 inner@(L _ (OpApp {})) a2) ->
+    L b1 (NegApp a1 inner@(L _ OpApp {}) a2) ->
       pure $
         rawIdea
           Suggestion

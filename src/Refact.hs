@@ -10,6 +10,7 @@ module Refact
 
 import Control.Exception.Extra
 import Control.Monad
+import Data.List.NonEmpty qualified as NE
 import Data.Maybe
 import Data.Version.Extra
 import GHC.LanguageExtensions.Type
@@ -58,7 +59,7 @@ refactorPath rpath = do
     mexc <- findExecutable excPath
     case mexc of
         Just exc -> do
-            ver <- readVersion . tail <$> readProcess exc ["--version"] ""
+            ver <- readVersion . NE.tail . NE.fromList <$> readProcess exc ["--version"] ""
             pure $ if ver >= minRefactorVersion
                        then Right exc
                        else Left $ "Your version of refactor is too old, please install apply-refact "

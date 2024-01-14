@@ -58,7 +58,7 @@ dotApps (x : xs) = dotApp x (dotApps xs)
 
 -- | @lambda [p0, p1..pn] body@ makes @\p1 p1 .. pn -> body@
 lambda :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
-lambda vs body = noLocA $ HsLam noExtField (MG Generated (noLocA [noLocA $ Match EpAnnNotUsed LambdaExpr vs (GRHSs emptyComments [noLocA $ GRHS EpAnnNotUsed [] body] (EmptyLocalBinds noExtField))]))
+lambda vs body = noLocA $ HsLam noExtField (MG (Generated DoPmc) (noLocA [noLocA $ Match EpAnnNotUsed LambdaExpr vs (GRHSs emptyComments [noLocA $ GRHS EpAnnNotUsed [] body] (EmptyLocalBinds noExtField))]))
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -242,7 +242,7 @@ niceLambdaR ss e =
   let grhs = noLocA $ GRHS EpAnnNotUsed [] e :: LGRHS GhcPs (LHsExpr GhcPs)
       grhss = GRHSs {grhssExt = emptyComments, grhssGRHSs=[grhs], grhssLocalBinds=EmptyLocalBinds noExtField}
       match = noLocA $ Match {m_ext=EpAnnNotUsed, m_ctxt=LambdaExpr, m_pats=map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
-      matchGroup = MG {mg_ext=Generated, mg_alts=noLocA [match]}
+      matchGroup = MG {mg_ext=Generated DoPmc, mg_alts=noLocA [match]}
   in (noLocA $ HsLam noExtField matchGroup, const [])
 
 
@@ -252,7 +252,7 @@ replaceBranches :: LHsExpr GhcPs -> ([LHsExpr GhcPs], [LHsExpr GhcPs] -> LHsExpr
 replaceBranches (L l (HsIf _ a b c)) = ([b, c], \[b, c] -> L l (HsIf EpAnnNotUsed a b c))
 
 replaceBranches (L s (HsCase _ a (MG FromSource (L l bs)))) =
-  (concatMap f bs, L s . HsCase EpAnnNotUsed a . MG Generated . L l . g bs)
+  (concatMap f bs, L s . HsCase EpAnnNotUsed a . MG (Generated DoPmc). L l . g bs)
   where
     f :: LMatch GhcPs (LHsExpr GhcPs) -> [LHsExpr GhcPs]
     f (L _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (L _ (GRHS _ _ x)) <- xs]

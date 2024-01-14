@@ -60,13 +60,15 @@ unsafeHint _ (ModuleEx (L _ m)) = \ld@(L loc d) ->
      -- 'x' is not marked 'NOINLINE'.
      , x `notElem` noinline]
   where
+    noInline :: FastString
+    noInline = fsLit "{-# NOINLINE"
     gen :: OccName -> LHsDecl GhcPs
     gen x = noLocA $
       SigD noExtField (InlineSig EpAnnNotUsed (noLocA (mkRdrUnqual x))
-                      (InlinePragma (SourceText "{-# NOINLINE") (NoInline (SourceText "{-# NOINLINE")) Nothing NeverActive FunLike))
+                      (InlinePragma (SourceText noInline) (NoInline (SourceText noInline)) Nothing NeverActive FunLike))
     noinline :: [OccName]
     noinline = [q | L _(SigD _ (InlineSig _ (L _ (Unqual q))
-                                                (InlinePragma _ (NoInline (SourceText "{-# NOINLINE")) Nothing NeverActive FunLike))
+                                                (InlinePragma _ (NoInline (SourceText noInline)) Nothing NeverActive FunLike))
         ) <- hsmodDecls m]
 
 isUnsafeDecl :: HsDecl GhcPs -> Bool

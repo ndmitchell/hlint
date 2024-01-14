@@ -122,8 +122,8 @@ instance FreeVars (LocatedA (HsExpr GhcPs)) where
   freeVars (L _ (RecordCon _ _ (HsRecFields flds _))) = Set.unions $ map freeVars flds -- Record construction.
   freeVars (L _ (RecordUpd _ e flds)) =
     case flds of
-      Left fs -> Set.unions $ freeVars e : map freeVars fs
-      Right ps -> Set.unions $ freeVars e : map freeVars ps
+      RegularRecUpdFields _ fs -> Set.unions $ freeVars e : map freeVars fs
+      OverloadedRecUpdFields _ ps -> Set.unions $ freeVars e : map freeVars ps
   freeVars (L _ (HsMultiIf _ grhss)) = free (allVars grhss) -- Multi-way if.
   freeVars (L _ (HsTypedBracket _ e)) = freeVars e
   freeVars (L _ (HsUntypedBracket _ (ExpBr _ e))) = freeVars e
@@ -174,7 +174,7 @@ instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldOcc GhcPs)) (
    freeVars o@(L _ (HsFieldBind _ _ x _)) = freeVars x
 
 instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (AmbiguousFieldOcc GhcPs)) (LocatedA (HsExpr GhcPs)))) where
-  freeVars (L _ (HsFieldBind _ x _ True)) = Set.singleton $ rdrNameOcc $ rdrNameAmbiguousFieldOcc $ unLoc x -- a pun
+  freeVars (L _ (HsFieldBind _ x _ True)) = Set.singleton $ rdrNameOcc $ ambiguousFieldOccRdrName $ unLoc x -- a pun
   freeVars (L _ (HsFieldBind _ _ x _)) = freeVars x
 
 instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldLabelStrings GhcPs)) (LocatedA (HsExpr GhcPs)))) where
