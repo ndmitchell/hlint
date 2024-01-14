@@ -29,7 +29,7 @@ jobs:
     - name: Get GHC libdir
       id: get-ghc-libdir
       run: |
-        echo "::set-output name=libdir::$(ghc --print-libdir)"
+        echo "libdir=$(ghc --print-libdir)" >> $GITHUB_OUTPUT
       shell: bash
     - run: cabal v2-freeze --enable-tests
     - uses: actions/cache@v2
