@@ -1125,6 +1125,7 @@
     - warn: {lhs: "[] /= x", rhs: not (null x), name: Use null}
     - warn: {lhs: "\"\" /= x", rhs: not (null x), name: Use null}
     - warn: {lhs: "maybe []", rhs: foldMap}
+    - warn: {lhs: "Data.List.NonEmpty.unzip", rhs: "Data.Functor.unzip", name: "Avoid NonEmpty.unzip", note: "Because the function is being deprecated"}
 
 - group:
     name: generalise-for-conciseness
