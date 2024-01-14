@@ -3559,6 +3559,22 @@ maybe [] (concatMap f) x
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Use maybe</td>
+<td>
+LHS:
+<code>
+concat (fromMaybe [] x)
+</code>
+<br>
+RHS:
+<code>
+maybe [] concat x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Use notElem</td>
 <td>
 LHS:
@@ -9979,6 +9995,22 @@ RHS:
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Avoid NonEmpty.unzip</td>
+<td>
+LHS:
+<code>
+Data.List.NonEmpty.unzip
+</code>
+<br>
+RHS:
+<code>
+Data.Functor.unzip
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use fromMaybe</td>
 <td>
 LHS:
@@ -12758,7 +12790,7 @@ foldMap (foldMap f . g) x
 <td>Warning</td>
 </tr>
 <tr>
-<td>Move concatMap out</td>
+<td>Move catMaybes</td>
 <td>
 LHS:
 <code>
@@ -12774,7 +12806,23 @@ concatMap (catMaybes . f) x
 <td>Warning</td>
 </tr>
 <tr>
-<td>Move concatMap out</td>
+<td>Move catMaybes</td>
+<td>
+LHS:
+<code>
+catMaybes (concat x)
+</code>
+<br>
+RHS:
+<code>
+concatMap catMaybes x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Move filter</td>
 <td>
 LHS:
 <code>
@@ -12790,7 +12838,23 @@ concatMap (filter f . g) x
 <td>Suggestion</td>
 </tr>
 <tr>
-<td>Move concatMap out</td>
+<td>Move filter</td>
+<td>
+LHS:
+<code>
+filter f (concat x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (filter f) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Move mapMaybe</td>
 <td>
 LHS:
 <code>
@@ -12800,6 +12864,22 @@ mapMaybe f (concatMap g x)
 RHS:
 <code>
 concatMap (mapMaybe f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Move mapMaybe</td>
+<td>
+LHS:
+<code>
+mapMaybe f (concat x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (mapMaybe f) x
 </code>
 <br>
 </td>
