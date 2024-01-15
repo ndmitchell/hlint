@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+3.8, released 2024-01-15
     #1552, make --git and --ignore-glob work nicely together
     #1502, fix incorrect free variable calculation in some cases
     #1555, slightly more efficient concatMap usages (e.g. pull filter out)
