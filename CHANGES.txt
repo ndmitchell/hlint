@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1549, downgrade a few of the error severities to warn
 3.8, released 2024-01-15
     #1552, make --git and --ignore-glob work nicely together
     #1502, fix incorrect free variable calculation in some cases
