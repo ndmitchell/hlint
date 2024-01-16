@@ -12045,7 +12045,7 @@ readTVarIO x
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use newTVarIO</td>
@@ -12061,7 +12061,7 @@ newTVarIO x
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use newTMVarIO</td>
@@ -12077,7 +12077,7 @@ newTMVarIO x
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use newEmptyTMVarIO</td>
@@ -12093,7 +12093,7 @@ newEmptyTMVarIO
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use typeRep</td>
@@ -15363,7 +15363,7 @@ Control.Lens.has a
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use False</td>
@@ -15395,7 +15395,7 @@ Control.Lens.nullOf a
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use optional</td>
