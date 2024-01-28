@@ -1,6 +1,8 @@
 name: ci
 on:
   push:
+    branches-ignore:
+      - 'ghc-next'
   pull_request:
   schedule:
   - cron:  '0 3 * * 6' # 3am Saturday
