@@ -158,11 +158,11 @@
     - warn: {lhs: concatMap f (repeat x), rhs: cycle (f x)}
     - warn: {lhs: concat (repeat x), rhs: cycle x}
     - warn: {lhs: "cycle [x]", rhs: repeat x}
-    - hint: {lhs: filter f (cycle x), rhs: cycle (filter f x)}
-    - hint: {lhs: mapMaybe f (cycle x), rhs: cycle (mapMaybe f x)}
-    - hint: {lhs: catMaybes (cycle x), rhs: cycle (catMaybes x)}
-    - hint: {lhs: lefts (cycle x), rhs: cycle (lefts x)}
-    - hint: {lhs: rights (cycle x), rhs: cycle (rights x)}
+    - hint: {lhs: filter f (cycle x), rhs: cycle (filter f x), name: Move cycle out}
+    - hint: {lhs: mapMaybe f (cycle x), rhs: cycle (mapMaybe f x), name: Move cycle out}
+    - hint: {lhs: catMaybes (cycle x), rhs: cycle (catMaybes x), name: Move cycle out}
+    - hint: {lhs: lefts (cycle x), rhs: cycle (lefts x), name: Move cycle out}
+    - hint: {lhs: rights (cycle x), rhs: cycle (rights x), name: Move cycle out}
     - warn: {lhs: head (reverse x), rhs: last x}
     - warn: {lhs: last (reverse x), rhs: head x, note: IncreasesLaziness}
     - warn: {lhs: head (drop n x), rhs: x !! n, side: isNat n}
