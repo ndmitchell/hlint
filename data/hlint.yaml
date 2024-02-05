@@ -120,7 +120,7 @@
     - warn: {lhs: reverse (sortOn f x), rhs: sortOn (Data.Ord.Down . f) x, name: Avoid reverse, note: Stabilizes sort order}
     - warn: {lhs: reverse (sort x), rhs: sortBy (comparing Data.Ord.Down) x, name: Avoid reverse, note: Stabilizes sort order}
     - hint: {lhs: flip (g `on` h), rhs: flip g `on` h, name: Move flip}
-    - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h), name: Fuse on/on}
+    - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h), name: Use on once}
     - warn: {lhs: if a >= b then a else b, rhs: max a b}
     - warn: {lhs: if a >= b then b else a, rhs: min a b}
     - warn: {lhs: if a > b then a else b, rhs: max a b}
