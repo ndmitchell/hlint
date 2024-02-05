@@ -366,8 +366,8 @@
     - warn: {lhs: f (fst p) (snd p), rhs: uncurry f p}
     - warn: {lhs: "uncurry (\\x y -> z)", rhs: "\\(x,y) -> z"}
     - warn: {lhs: "curry (\\(x,y) -> z)", rhs: "\\x y -> z"}
-    - warn: {lhs: uncurry (curry f), rhs: f}
-    - warn: {lhs: curry (uncurry f), rhs: f}
+    - warn: {lhs: uncurry (curry f), rhs: f, name: Redundant curry/uncurry}
+    - warn: {lhs: curry (uncurry f), rhs: f, name: Redundant curry/uncurry}
     - warn: {lhs: "uncurry f (a, b)", rhs: f a b}
     - warn: {lhs: ($) (f x), rhs: f x, name: Redundant $}
     - warn: {lhs: (f $), rhs: f, name: Redundant $}
@@ -505,8 +505,8 @@
     - hint: {lhs: return x <*> y, rhs: x <$> y}
     - warn: {lhs: x <* pure y, rhs: x}
     - warn: {lhs: x <* return y, rhs: x}
-    - warn: {lhs: pure x *> y, rhs: "y"}
-    - warn: {lhs: return x *> y, rhs: "y"}
+    - warn: {lhs: pure x *> y, rhs: "y", name: Redundant *>}
+    - warn: {lhs: return x *> y, rhs: "y", name: Redundant *>}
 
     # MONAD
 
@@ -591,10 +591,10 @@
     - warn: {lhs: a >>= \_ -> b, rhs: a >> b}
     - warn: {lhs: m <* pure x, rhs: m}
     - warn: {lhs: m <* return x, rhs: m}
-    - warn: {lhs: pure x *> m, rhs: m}
-    - warn: {lhs: return x *> m, rhs: m}
-    - warn: {lhs: pure x >> m, rhs: m}
-    - warn: {lhs: return x >> m, rhs: m}
+    - warn: {lhs: pure x *> m, rhs: m, name: Redundant *>}
+    - warn: {lhs: return x *> m, rhs: m, name: Redundant *>}
+    - warn: {lhs: pure x >> m, rhs: m, name: Redundant >>}
+    - warn: {lhs: return x >> m, rhs: m, name: Redundant >>}
     - warn: {lhs: "forM [1..n] (const f)", rhs: replicateM n f}
     - warn: {lhs: "for [1..n] (const f)", rhs: replicateM n f}
     - warn: {lhs: "forM [1..n] (\\_ -> x)", rhs: replicateM n x}
