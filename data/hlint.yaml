@@ -902,32 +902,32 @@
     - hint: {lhs: foldr f z (fmap g x), rhs: foldr (f . g) z x, name: Fuse foldr/fmap}
     - hint: {lhs: foldr f z (g <$> x), rhs: foldr (f . g) z x, name: Fuse foldr/<$>}
     - hint: {lhs: foldr f z (x <&> g), rhs: foldr (f . g) z x, name: Fuse foldr/<&>}
-    - warn: {lhs: fold (toList x), rhs: fold x}
-    - warn: {lhs: foldMap f (toList x), rhs: foldMap f x}
-    - warn: {lhs: foldMap' f (toList x), rhs: foldMap' f x}
-    - warn: {lhs: foldr f z (toList x), rhs: foldr f z x}
-    - warn: {lhs: foldr' f z (toList x), rhs: foldr' f z x}
-    - warn: {lhs: foldl f z (toList x), rhs: foldl f z x}
-    - warn: {lhs: foldl' f z (toList x), rhs: foldl' f z x}
-    - warn: {lhs: foldr1 f (toList x), rhs: foldr1 f x}
-    - warn: {lhs: foldl1 f (toList x), rhs: foldl1 f x}
-    - warn: {lhs: null (toList x), rhs: null x}
-    - warn: {lhs: length (toList x), rhs: length x}
-    - warn: {lhs: elem y (toList x), rhs: elem y x}
-    - warn: {lhs: notElem y (toList x), rhs: notElem y x}
-    - warn: {lhs: maximum (toList x), rhs: maximum x}
-    - warn: {lhs: minimum (toList x), rhs: minimum x}
-    - warn: {lhs: maximumBy f (toList x), rhs: maximumBy f x}
-    - warn: {lhs: minimumBy f (toList x), rhs: minimumBy f x}
-    - warn: {lhs: sum (toList x), rhs: sum x}
-    - warn: {lhs: product (toList x), rhs: product x}
-    - warn: {lhs: and (toList x), rhs: and x}
-    - warn: {lhs: or (toList x), rhs: or x}
-    - warn: {lhs: all f (toList x), rhs: all f x}
-    - warn: {lhs: any f (toList x), rhs: any f x}
-    - warn: {lhs: find f (toList x), rhs: find f x}
-    - warn: {lhs: concat (toList x), rhs: concat x}
-    - warn: {lhs: concatMap f (toList x), rhs: concatMap f x}
+    - warn: {lhs: fold (Data.Foldable.toList x), rhs: fold x}
+    - warn: {lhs: foldMap f (Data.Foldable.toList x), rhs: foldMap f x}
+    - warn: {lhs: foldMap' f (Data.Foldable.toList x), rhs: foldMap' f x}
+    - warn: {lhs: foldr f z (Data.Foldable.toList x), rhs: foldr f z x}
+    - warn: {lhs: foldr' f z (Data.Foldable.toList x), rhs: foldr' f z x}
+    - warn: {lhs: foldl f z (Data.Foldable.toList x), rhs: foldl f z x}
+    - warn: {lhs: foldl' f z (Data.Foldable.toList x), rhs: foldl' f z x}
+    - warn: {lhs: foldr1 f (Data.Foldable.toList x), rhs: foldr1 f x}
+    - warn: {lhs: foldl1 f (Data.Foldable.toList x), rhs: foldl1 f x}
+    - warn: {lhs: null (Data.Foldable.toList x), rhs: null x}
+    - warn: {lhs: length (Data.Foldable.toList x), rhs: length x}
+    - warn: {lhs: elem y (Data.Foldable.toList x), rhs: elem y x}
+    - warn: {lhs: notElem y (Data.Foldable.toList x), rhs: notElem y x}
+    - warn: {lhs: maximum (Data.Foldable.toList x), rhs: maximum x}
+    - warn: {lhs: minimum (Data.Foldable.toList x), rhs: minimum x}
+    - warn: {lhs: maximumBy f (Data.Foldable.toList x), rhs: maximumBy f x}
+    - warn: {lhs: minimumBy f (Data.Foldable.toList x), rhs: minimumBy f x}
+    - warn: {lhs: sum (Data.Foldable.toList x), rhs: sum x}
+    - warn: {lhs: product (Data.Foldable.toList x), rhs: product x}
+    - warn: {lhs: and (Data.Foldable.toList x), rhs: and x}
+    - warn: {lhs: or (Data.Foldable.toList x), rhs: or x}
+    - warn: {lhs: all f (Data.Foldable.toList x), rhs: all f x}
+    - warn: {lhs: any f (Data.Foldable.toList x), rhs: any f x}
+    - warn: {lhs: find f (Data.Foldable.toList x), rhs: find f x}
+    - warn: {lhs: concat (Data.Foldable.toList x), rhs: concat x}
+    - warn: {lhs: concatMap f (Data.Foldable.toList x), rhs: concatMap f x}
 
     # STATE MONAD
 
