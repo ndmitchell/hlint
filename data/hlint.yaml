@@ -164,7 +164,7 @@
     - warn: {lhs: head (drop n x), rhs: x !! max 0 n, side: not (isNat n) && not (isNeg n)}
     - warn: {lhs: reverse (init x), rhs: tail (reverse x)}
     - warn: {lhs: reverse (tail (reverse x)), rhs: init x, note: IncreasesLaziness}
-    - warn: {lhs: reverse (reverse x), rhs: x, note: IncreasesLaziness, name: Avoid reverse}
+    - warn: {lhs: reverse (reverse x), rhs: x, note: IncreasesLaziness, name: Redundant reverse}
     - warn: {lhs: isPrefixOf (reverse x) (reverse y), rhs: isSuffixOf x y}
     - warn: {lhs: "foldr (++) []", rhs: concat}
     - warn: {lhs: foldr (++) "", rhs: concat}
