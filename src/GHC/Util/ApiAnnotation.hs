@@ -45,7 +45,6 @@ comment_ (L _ (EpaComment (EpaDocComment ds ) _)) = renderHsDocString ds
 comment_ (L _ (EpaComment (EpaDocOptions s) _)) = s
 comment_ (L _ (EpaComment (EpaLineComment s) _)) = s
 comment_ (L _ (EpaComment (EpaBlockComment s) _)) = s
-comment_ (L _ (EpaComment EpaEofComment _)) = ""
 
 -- | The comment string with delimiters removed.
 commentText :: LEpaComment -> String
@@ -55,7 +54,6 @@ commentText = trimCommentDelims . comment_
 -- `EpAnn`
 comments :: EpAnn ann -> EpAnnComments
 comments EpAnn{ GHC.Parser.Annotation.comments = result } = result
-comments EpAnnNotUsed = emptyComments
 
 isCommentMultiline :: LEpaComment -> Bool
 isCommentMultiline (L _ (EpaComment (EpaBlockComment _) _)) = True
@@ -107,10 +105,10 @@ languagePragmas ps =
              , let exts = map trim (splitOn "," rest)]
 
 -- Given a list of flags, make a GHC options pragma.
-mkFlags :: Anchor -> [String] -> LEpaComment
+mkFlags :: NoCommentsLocation -> [String] -> LEpaComment
 mkFlags anc flags =
   L anc $ EpaComment (EpaBlockComment ("{-# " ++ "OPTIONS_GHC " ++ unwords flags ++ " #-}")) (anchor anc)
 
-mkLanguagePragmas :: Anchor -> [String] -> LEpaComment
+mkLanguagePragmas :: NoCommentsLocation -> [String] -> LEpaComment
 mkLanguagePragmas anc exts =
   L anc $ EpaComment (EpaBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")) (anchor anc)
