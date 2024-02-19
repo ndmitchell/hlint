@@ -442,7 +442,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
               scope'= asScope' packageMap' (map (fmap unextendInstances) groupImports)
 
 asScope' :: Map.HashMap String [LocatedA (ImportDecl GhcPs)] -> [Either String (LocatedA (ImportDecl GhcPs))] -> Scope
-asScope' packages xs = scopeCreate (HsModule (XModulePs EpAnnNotUsed NoLayoutInfo Nothing Nothing) Nothing Nothing (concatMap f xs) [])
+asScope' packages xs = scopeCreate (HsModule (XModulePs noAnn EpNoLayout Nothing Nothing) Nothing Nothing (concatMap f xs) [])
     where
         f (Right x) = [x]
         f (Left x) | Just pkg <- Map.lookup x packages = pkg

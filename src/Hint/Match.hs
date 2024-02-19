@@ -101,8 +101,8 @@ dotVersion (L l (OpApp _ x op y)) =
 
   --   If a == b then
   --   x is 'a', op is '==' and y is 'b' and,
-  let lSec = addParen (L l (SectionL EpAnnNotUsed x op)) -- (a == )
-      rSec = addParen (L l (SectionR EpAnnNotUsed op y)) -- ( == b)
+  let lSec = addParen (L l (SectionL noExtField x op)) -- (a == )
+      rSec = addParen (L l (SectionR noExtField op y)) -- ( == b)
   in (first (lSec :) <$> dotVersion y) ++ (first (rSec :) <$> dotVersion x) -- [([(a ==)], b), ([(b == )], a])].
 dotVersion _ = []
 
@@ -142,7 +142,7 @@ matchIdea sb declName HintRule{..} parent x = do
 
   -- Need to check free vars before unqualification, but after subst
   -- (with 'e') need to unqualify before substitution (with 'res').
-  let rhs' | Just fun <- extra = rebracket1 $ noLocA (HsApp EpAnnNotUsed fun rhs)
+  let rhs' | Just fun <- extra = rebracket1 $ noLocA (HsApp noExtField fun rhs)
            | otherwise = rhs
       (e, (tpl, substNoParens)) = substitute u rhs'
       noParens = [varToStr $ fromParen x | L _ (HsApp _ (varToStr -> "_noParen_") x) <- universe tpl]
@@ -183,7 +183,7 @@ checkSide x bind = maybe True bool x
         | varToStr op == "||" = bool x || bool y
         | varToStr op == "==" = expr (fromParen1 x) `astEq` expr (fromParen1 y)
       bool (L _ (HsApp _ x y)) | varToStr x == "not" = not $ bool y
-      bool (L _ (HsPar _ _ x _)) = bool x
+      bool (L _ (HsPar _ x)) = bool x
 
       bool (L _ (HsApp _ cond (sub -> y)))
         | 'i' : 's' : typ <- varToStr cond = isType typ y
@@ -220,7 +220,7 @@ checkSide x bind = maybe True bool x
         typ == top
 
       asInt :: LHsExpr GhcPs -> Maybe Integer
-      asInt (L _ (HsPar _ _ x _)) = asInt x
+      asInt (L _ (HsPar _ x)) = asInt x
       asInt (L _ (NegApp _ x _)) = negate <$> asInt x
       asInt (L _ (HsLit _ (HsInt _ (IL _ _ x)) )) = Just x
       asInt (L _ (HsOverLit _ (OverLit _ (HsIntegral (IL _ _ x))))) = Just x
@@ -276,5 +276,5 @@ addBracketTy= transformBi f
   where
     f :: LHsType GhcPs -> LHsType GhcPs
     f (L _ (HsAppTy _ t x@(L _ HsAppTy{}))) =
-      noLocA (HsAppTy noExtField t (noLocA (HsParTy EpAnnNotUsed x)))
+      noLocA (HsAppTy noExtField t (noLocA (HsParTy noAnn x)))
     f x = x

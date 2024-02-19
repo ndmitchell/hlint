@@ -120,8 +120,8 @@ monadExp decl parentDo parentExpr x =
   case x of
     (view -> App2 op x1 x2) | isTag ">>" op -> f x1
     (view -> App2 op x1 (view -> LamConst1 _)) | isTag ">>=" op -> f x1
-    (L l (HsApp _ op x)) | isTag "void" op -> seenVoid (L l . HsApp EpAnnNotUsed op) x
-    (L l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (L l . OpApp EpAnnNotUsed op dol) x
+    (L l (HsApp _ op x)) | isTag "void" op -> seenVoid (L l . HsApp noExtField op) x
+    (L l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (L l . OpApp noAnn op dol) x
     (L loc (HsDo _ ctx (L loc2 [L loc3 (BodyStmt _ y _ _ )]))) ->
       let doOrMDo = case ctx of MDoExpr _ -> "mdo"; _ -> "do"
        in [ ideaRemove Ignore ("Redundant " ++ doOrMDo) (doSpan doOrMDo (locA loc)) doOrMDo [Replace Expr (toSSA x) [("y", toSSA y)] "y"]
@@ -129,14 +129,14 @@ monadExp decl parentDo parentExpr x =
           , not $ doAsAvoidingIndentation parentDo x
           ]
     (L loc (HsDo _ (DoExpr mm) (L _ xs))) ->
-      monadSteps (L loc . HsDo EpAnnNotUsed (DoExpr mm) . noLocA) xs ++
+      monadSteps (L loc . HsDo noAnn (DoExpr mm) . noLocA) xs ++
       [suggest "Use let" (reLoc from) (reLoc to) [r] | (from, to, r) <- monadLet xs] ++
       concat [f x | (L _ (BodyStmt _ x _ _)) <- dropEnd1 xs] ++
       concat [f x | (L _ (BindStmt _ (L _ WildPat{}) x)) <- dropEnd1 xs]
     _ -> []
   where
     f = monadNoResult (fromMaybe "" decl) id
-    seenVoid wrap (L l (HsPar x p y q)) = seenVoid (wrap . L l . \y -> HsPar x p y q) y
+    seenVoid wrap (L l (HsPar x y)) = seenVoid (wrap . L l . \y -> HsPar x y) y
     seenVoid wrap x =
       -- Suggest `traverse_ f x` given `void $ traverse_ f x`
       [warn "Redundant void" (reLoc (wrap x)) (reLoc x) [Replace Expr (toSSA (wrap x)) [("a", toSSA x)] "a"] | returnsUnit x]
@@ -179,9 +179,9 @@ doAsBrackets Nothing x = False
 -- Return True if they are using do as avoiding indentation
 doAsAvoidingIndentation :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
 doAsAvoidingIndentation (Just (L _ (HsDo _ _ (L anna _)))) (L _ (HsDo _ _ (L annb _)))
-  | SrcSpanAnn _ (RealSrcSpan a _) <- anna
-  , SrcSpanAnn _ (RealSrcSpan b _) <- annb
-    = srcSpanStartCol a == srcSpanStartCol b
+  | EpAnn (EpaSpan (RealSrcSpan a _)) _ _ <- anna
+  , EpAnn (EpaSpan (RealSrcSpan b _)) _ _ <- annb
+  = srcSpanStartCol a == srcSpanStartCol b
 doAsAvoidingIndentation parent self = False
 
 -- Apply a function to the application head, including `head arg` and `head $ arg`, which modifies
@@ -190,9 +190,9 @@ modifyAppHead :: forall a. (LIdP GhcPs -> (LIdP GhcPs, a)) -> LHsExpr GhcPs -> (
 modifyAppHead f = go id
   where
     go :: (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, Maybe a)
-    go wrap (L l (HsPar _ p x q)) = go (wrap . L l . \y -> HsPar EpAnnNotUsed p y q) x
-    go wrap (L l (HsApp _ x y)) = go (\x -> wrap $ L l (HsApp EpAnnNotUsed x y)) x
-    go wrap (L l (OpApp _ x op y)) | isDol op = go (\x -> wrap $ L l (OpApp EpAnnNotUsed x op y)) x
+    go wrap (L l (HsPar _ x)) = go (wrap . L l . \y -> HsPar noAnn y) x
+    go wrap (L l (HsApp _ x y)) = go (\x -> wrap $ L l (HsApp noExtField x y)) x
+    go wrap (L l (OpApp _ x op y)) | isDol op = go (\x -> wrap $ L l (OpApp noAnn x op y)) x
     go wrap (L l (HsVar _ x)) = (wrap (L l (HsVar NoExtField x')), Just a)
       where (x', a) = f x
     go _ expr = (expr, Nothing)
@@ -205,11 +205,11 @@ returnsUnit = fromMaybe False
 -- See through HsPar, and down HsIf/HsCase, return the name to use in
 -- the hint, and the revised expression.
 monadNoResult :: String -> (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> [Idea]
-monadNoResult inside wrap (L l (HsPar _ _ x _)) = monadNoResult inside (wrap . nlHsPar) x
-monadNoResult inside wrap (L l (HsApp _ x y)) = monadNoResult inside (\x -> wrap $ L l (HsApp EpAnnNotUsed x y)) x
+monadNoResult inside wrap (L l (HsPar _ x)) = monadNoResult inside (wrap . nlHsPar) x
+monadNoResult inside wrap (L l (HsApp _ x y)) = monadNoResult inside (\x -> wrap $ L l (HsApp noExtField x y)) x
 monadNoResult inside wrap (L l (OpApp _ x tag@(L _ (HsVar _ (L _ op))) y))
-    | isDol tag = monadNoResult inside (\x -> wrap $ L l (OpApp EpAnnNotUsed x tag y)) x
-    | occNameStr op == ">>=" = monadNoResult inside (wrap . L l . OpApp EpAnnNotUsed x tag) y
+    | isDol tag = monadNoResult inside (\x -> wrap $ L l (OpApp noAnn x tag y)) x
+    | occNameStr op == ">>=" = monadNoResult inside (wrap . L l . OpApp noAnn x tag) y
 monadNoResult inside wrap x
     | x2 : _ <- filter (`isTag` x) badFuncs
     , let x3 = x2 ++ "_"
@@ -235,7 +235,7 @@ monadStep wrap o@[ g@(L _ (BindStmt _ (L _ (VarPat _ (L _ p))) x))
 -- Suggest to use join. Rewrite 'do x <- $1; x; $2' as 'do join $1; $2'.
 monadStep wrap o@(g@(L _ (BindStmt _ (view -> PVar_ p) x)):q@(L _ (BodyStmt _ (view -> Var_ v) _ _)):xs)
   | p == v && v `notElem` varss xs
-  = let app = noLocA $ HsApp EpAnnNotUsed (strToVar "join") x
+  = let app = noLocA $ HsApp noExtField (strToVar "join") x
         body = noLocA $ BodyStmt noExtField (rebracket1 app) noSyntaxExpr noSyntaxExpr
         stmts = body : xs
     in [warn "Use join" (reLoc (wrap o)) (reLoc (wrap stmts)) r]
@@ -261,7 +261,7 @@ monadStep wrap
     , q@(L _ (BodyStmt _ (fromApplies -> (ret:f:fs, view -> Var_ v)) _ _))]
   | isReturn ret, notDol x, u == v, length fs < 3, all isSimple (f : fs), v `notElem` vars (f : fs)
   =
-      [warn "Use <$>" (reLoc (wrap o)) (reLoc (wrap [noLocA $ BodyStmt noExtField (noLocA $ OpApp EpAnnNotUsed (foldl' (\acc e -> noLocA $ OpApp EpAnnNotUsed acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr]))
+      [warn "Use <$>" (reLoc (wrap o)) (reLoc (wrap [noLocA $ BodyStmt noExtField (noLocA $ OpApp noAnn (foldl' (\acc e -> noLocA $ OpApp noAnn acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr]))
       [Replace Stmt (toSSA g) (("x", toSSA x):zip vs (toSSA <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSSA q)]]
   where
     isSimple (fromApps -> xs) = all isAtom (x : xs)
@@ -295,14 +295,14 @@ monadLet xs = mapMaybe mkLet xs
     template :: String -> LHsExpr GhcPs -> ExprLStmt GhcPs
     template lhs rhs =
         let p = noLocA $ mkRdrUnqual (mkVarOcc lhs)
-            grhs = noLocA (GRHS EpAnnNotUsed [] rhs)
+            grhs = noLocA (GRHS noAnn [] rhs)
             grhss = GRHSs emptyComments [grhs] (EmptyLocalBinds noExtField)
-            match = noLocA $ Match EpAnnNotUsed (FunRhs p Prefix NoSrcStrict) [] grhss
-            fb = noLocA $ FunBind noExtField p (MG (Generated DoPmc) (noLocA [match]))
+            match = noLocA $ Match noAnn (FunRhs p Prefix NoSrcStrict) [] grhss
+            fb = noLocA $ FunBind noExtField p (MG (Generated OtherExpansion SkipPmc) (noLocA [match]))
             binds = unitBag fb
             valBinds = ValBinds NoAnnSortKey binds []
-            localBinds = HsValBinds EpAnnNotUsed valBinds
-         in noLocA $ LetStmt EpAnnNotUsed localBinds
+            localBinds = HsValBinds noAnn valBinds
+         in noLocA $ LetStmt noAnn localBinds
 
 fromApplies :: LHsExpr GhcPs -> ([LHsExpr GhcPs], LHsExpr GhcPs)
 fromApplies (L _ (HsApp _ f x)) = first (f:) $ fromApplies (fromParen x)
@@ -310,7 +310,7 @@ fromApplies (L _ (OpApp _ f (isDol -> True) x)) = first (f:) $ fromApplies x
 fromApplies x = ([], x)
 
 fromRet :: LHsExpr GhcPs -> Maybe (String, LHsExpr GhcPs)
-fromRet (L _ (HsPar _ _ x _)) = fromRet x
-fromRet (L _ (OpApp _ x (L _ (HsVar _ (L _ y))) z)) | occNameStr y == "$" = fromRet $ noLocA (HsApp EpAnnNotUsed x z)
+fromRet (L _ (HsPar _ x)) = fromRet x
+fromRet (L _ (OpApp _ x (L _ (HsVar _ (L _ y))) z)) | occNameStr y == "$" = fromRet $ noLocA (HsApp noExtField x z)
 fromRet (L _ (HsApp _ x y)) | isReturn x = Just (unsafePrettyPrint x, y)
 fromRet _ = Nothing

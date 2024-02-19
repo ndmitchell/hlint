@@ -103,7 +103,7 @@ firstDeclComments :: ModuleEx -> EpAnnComments
 firstDeclComments m =
   case hsmodDecls . unLoc . ghcModule $ m of
         [] -> EpaCommentsBalanced [] []
-        L (SrcSpanAnn ann _) _ : _ -> comments ann
+        L ann _ : _ -> comments ann
 
 -- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String

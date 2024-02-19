@@ -160,13 +160,13 @@ bracketHint _ _ x =
      -- Brackets the roots of annotations are fine, so we strip them.
      annotations :: AnnDecl GhcPs -> AnnDecl GhcPs
      annotations= descendBi $ \x -> case (x :: LHsExpr GhcPs) of
-       L _ (HsPar _ _ x _) -> x
+       L _ (HsPar _ x) -> x
        x -> x
 
      -- Brackets at the root of splices used to be required, but now they aren't
      splices :: HsDecl GhcPs -> HsDecl GhcPs
      splices (SpliceD a x) = SpliceD a $ flip descendBi x $ \x -> case (x :: LHsExpr GhcPs) of
-       L _ (HsPar _ _ x _) -> x
+       L _ (HsPar _ x) -> x
        x -> x
      splices x = x
 
@@ -271,32 +271,32 @@ dollar :: LHsExpr GhcPs -> [Idea]
 dollar = concatMap f . universe
   where
     f x = [ (suggest "Redundant $" (reLoc x) (reLoc y) [r]){ideaSpan = locA (getLoc d)} | L _ (OpApp _ a d b) <- [x], isDol d
-            , let y = noLocA (HsApp EpAnnNotUsed a b) :: LHsExpr GhcPs
+            , let y = noLocA (HsApp noExtField a b) :: LHsExpr GhcPs
             , not $ needBracket 0 y a
             , not $ needBracket 1 y b
             , not $ isPartialAtom (Just x) b
             , let r = Replace Expr (toSSA x) [("a", toSSA a), ("b", toSSA b)] "a b"]
           ++
           [ suggest "Move brackets to avoid $" (reLoc x) (reLoc (t y)) [r]
-            |(t, e@(L _ (HsPar _ _ (L _ (OpApp _ a1 op1 a2)) _))) <- splitInfix x
+            |(t, e@(L _ (HsPar _ (L _ (OpApp _ a1 op1 a2))))) <- splitInfix x
             , isDol op1
             , isVar a1 || isApp a1 || isPar a1, not $ isAtom a2
             , varToStr a1 /= "select" -- special case for esqueleto, see #224
-            , let y = noLocA $ HsApp EpAnnNotUsed a1 (nlHsPar a2)
+            , let y = noLocA $ HsApp noExtField a1 (nlHsPar a2)
             , let r = Replace Expr (toSSA e) [("a", toSSA a1), ("b", toSSA a2)] "a (b)" ]
           ++  -- Special case of (v1 . v2) <$> v3
           [ (suggest "Redundant bracket" (reLoc x) (reLoc y) [r]){ideaSpan = locA locPar}
-          | L _ (OpApp _ (L locPar (HsPar _ _ o1@(L locNoPar (OpApp _ _ (isDot -> True) _)) _)) o2 v3) <- [x], varToStr o2 == "<$>"
-          , let y = noLocA (OpApp EpAnnNotUsed o1 o2 v3) :: LHsExpr GhcPs
+          | L _ (OpApp _ (L locPar (HsPar _ o1@(L locNoPar (OpApp _ _ (isDot -> True) _)))) o2 v3) <- [x], varToStr o2 == "<$>"
+          , let y = noLocA (OpApp noAnn o1 o2 v3) :: LHsExpr GhcPs
           , let r = Replace Expr (toRefactSrcSpan (locA locPar)) [("a", toRefactSrcSpan (locA locNoPar))] "a"]
           ++
           [ suggest "Redundant section" (reLoc x) (reLoc y) [r]
-          | L _ (HsApp _ (L _ (HsPar _ _ (L _ (SectionL _ a b)) _)) c) <- [x]
+          | L _ (HsApp _ (L _ (HsPar _ (L _ (SectionL _ a b)))) c) <- [x]
           -- , error $ show (unsafePrettyPrint a, gshow b, unsafePrettyPrint c)
-          , let y = noLocA $ OpApp EpAnnNotUsed a b c :: LHsExpr GhcPs
+          , let y = noLocA $ OpApp noAnn a b c :: LHsExpr GhcPs
           , let r = Replace Expr (toSSA x) [("x", toSSA a), ("op", toSSA b), ("y", toSSA c)] "x op y"]
 
 splitInfix :: LHsExpr GhcPs -> [(LHsExpr GhcPs -> LHsExpr GhcPs, LHsExpr GhcPs)]
 splitInfix (L l (OpApp _ lhs op rhs)) =
-  [(L l . OpApp EpAnnNotUsed lhs op, rhs), (\lhs -> L l (OpApp EpAnnNotUsed lhs op rhs), lhs)]
+  [(L l . OpApp noAnn lhs op, rhs), (\lhs -> L l (OpApp noAnn lhs op rhs), lhs)]
 splitInfix _ = []

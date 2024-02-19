@@ -99,10 +99,10 @@ unqualNames _ = []
 instance FreeVars (LocatedA (HsExpr GhcPs)) where
   freeVars (L _ (HsVar _ x)) = Set.fromList $ unqualNames x -- Variable.
   freeVars (L _ (HsUnboundVar _ x)) = Set.fromList [rdrNameOcc x] -- Unbound variable; also used for "holes".
-  freeVars (L _ (HsLam _ mg)) = free (allVars mg) -- Lambda abstraction. Currently always a single match.
-  freeVars (L _ (HsLamCase _ _ MG{mg_alts=(L _ ms)})) = free (allVars ms) -- Lambda case
+  freeVars (L _ (HsLam _ LamSingle mg)) = free (allVars mg) -- Lambda abstraction. Currently always a single match.
+  freeVars (L _ (HsLam _ _ MG{mg_alts=(L _ ms)})) = free (allVars ms) -- Lambda case
   freeVars (L _ (HsCase _ of_ MG{mg_alts=(L _ ms)})) = freeVars of_ ^+ free (allVars ms) -- Case expr.
-  freeVars (L _ (HsLet _ _ binds _ e)) = inFree binds e -- Let (rec).
+  freeVars (L _ (HsLet _ binds e)) = inFree binds e -- Let (rec).
   freeVars (L _ (HsDo _ ctxt (L _ stmts))) = snd $ foldl' alg mempty stmts -- Do block.
     where
       alg ::
@@ -169,11 +169,11 @@ instance FreeVars (HsTupArg GhcPs) where
   freeVars (Present _ args) = freeVars args
   freeVars _ = mempty
 
-instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldOcc GhcPs)) (LocatedA (HsExpr GhcPs)))) where
+instance FreeVars (LocatedA (HsFieldBind (LocatedA (FieldOcc GhcPs)) (LocatedA (HsExpr GhcPs)))) where
    freeVars o@(L _ (HsFieldBind _ x _ True)) = Set.singleton $ occName $ unLoc $ foLabel $ unLoc x -- a pun
    freeVars o@(L _ (HsFieldBind _ _ x _)) = freeVars x
 
-instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (AmbiguousFieldOcc GhcPs)) (LocatedA (HsExpr GhcPs)))) where
+instance FreeVars (LocatedA (HsFieldBind (LocatedA (AmbiguousFieldOcc GhcPs)) (LocatedA (HsExpr GhcPs)))) where
   freeVars (L _ (HsFieldBind _ x _ True)) = Set.singleton $ rdrNameOcc $ ambiguousFieldOccRdrName $ unLoc x -- a pun
   freeVars (L _ (HsFieldBind _ _ x _)) = freeVars x
 
@@ -182,7 +182,7 @@ instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldLabelStrings 
 
 instance AllVars (LocatedA (Pat GhcPs)) where
   allVars (L _ (VarPat _ (L _ x))) = Vars (Set.singleton $ rdrNameOcc x) Set.empty -- Variable pattern.
-  allVars (L _ (AsPat _  n _ x)) = allVars (noLocA $ VarPat noExtField n :: LocatedA (Pat GhcPs)) <> allVars x -- As pattern.
+  allVars (L _ (AsPat _ n x)) = allVars (noLocA $ VarPat noExtField n :: LocatedA (Pat GhcPs)) <> allVars x -- As pattern.
   allVars (L _ (ConPat _ _ (RecCon (HsRecFields flds _)))) = allVars flds
   allVars (L _ (NPlusKPat _ n _ _ _ _)) = allVars (noLocA $ VarPat noExtField n :: LocatedA (Pat GhcPs)) -- n+k pattern.
   allVars (L _ (ViewPat _ e p)) = freeVars_ e <> allVars p -- View pattern.
@@ -203,7 +203,7 @@ instance AllVars (LocatedA (Pat GhcPs)) where
 
   allVars p = allVars $ children p
 
-instance AllVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldOcc GhcPs)) (LocatedA (Pat GhcPs)))) where
+instance AllVars (LocatedA (HsFieldBind (LocatedA (FieldOcc GhcPs)) (LocatedA (Pat GhcPs)))) where
    allVars (L _ (HsFieldBind _ _ x _)) = allVars x
 
 instance AllVars (LocatedA (StmtLR GhcPs GhcPs (LocatedA (HsExpr GhcPs)))) where
@@ -241,7 +241,7 @@ instance AllVars (LocatedA (Match GhcPs (LocatedA (HsExpr GhcPs)))) where
   allVars (L _ (Match _ (StmtCtxt ctxt) pats grhss)) = allVars ctxt <> allVars pats <> allVars grhss -- Pattern of a do-stmt, list comprehension, pattern guard etc.
   allVars (L _ (Match _ _ pats grhss)) = inVars (allVars pats) (allVars grhss) -- Everything else.
 
-instance AllVars (HsStmtContext GhcPs) where
+instance AllVars (HsStmtContext (GenLocated SrcSpanAnnN RdrName)) where
   allVars (PatGuard FunRhs{mc_fun=n}) = allVars (noLocA $ VarPat noExtField n :: LocatedA (Pat GhcPs))
   allVars ParStmtCtxt{} = mempty -- Come back to it.
   allVars TransStmtCtxt{}  = mempty -- Come back to it.
