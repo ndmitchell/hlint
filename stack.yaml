@@ -1,24 +1,11 @@
-# For hlint/ghc-9.8.*, the minimum build compiler is ghc-9.4.1.
-resolver:  lts-21.6 # ghc-9.4.5
-
+# For hlint/ghc-9.10.*, the minimum build compiler is ghc-9.6.1.
+resolver:  lts-22.21 # ghc-9.6.5
+allow-newer: True
 packages:
   - .
-
 extra-deps:
-  - ghc-lib-parser-9.8.2.20240223
-  - ghc-lib-parser-ex-9.8.0.2
-# To test hlint against experimental builds of ghc-lib-parser-ex,
-# modify extra-deps like this:
-#  - archive: /users/shayne/project/ghc-lib-parser-ex/ghc-lib-parser-ex-8.10.0.18.tar.gz
-#    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
-
+  - github: shayne-fletcher/text-short
+    commit: "qualify-foldl"
+  - ghc-lib-parser-9.10.1.20240511
+  - ghc-lib-parser-ex-9.10.0.0
 ghc-options: {"$locals": -ddump-to-file -ddump-hi -Werror=unused-imports -Werror=unused-local-binds -Werror=unused-top-binds -Werror=orphans -Werror=prepositive-qualified-module}
-
-# Enabling this stanza forces both hlint and ghc-lib-parser-ex to
-# depend on ghc-lib-parser.
-# flags:
-#   hlint:
-#     ghc-lib: true
-#   ghc-lib-parser-ex:
-#     auto: false
-#     no-ghc-lib: false

@@ -131,10 +131,10 @@ possImport (L _ i) (L _ (Unqual x)) =
     tag = occNameString x
 
     g :: LIE GhcPs -> Maybe Bool -- Does this import cover the name 'x'?
-    g (L _ (IEVar _ y)) = Just $ tag == unwrapName y
-    g (L _ (IEThingAbs _ y)) = Just $ tag == unwrapName y
-    g (L _ (IEThingAll _ y)) = if tag == unwrapName y then Just True else Nothing
-    g (L _ (IEThingWith _ y _wildcard ys)) = Just $ tag `elem` unwrapName y : map unwrapName ys
+    g (L _ (IEVar _ y _)) = Just $ tag == unwrapName y
+    g (L _ (IEThingAbs _ y _)) = Just $ tag == unwrapName y
+    g (L _ (IEThingAll _ y _)) = if tag == unwrapName y then Just True else Nothing
+    g (L _ (IEThingWith _ y _ ys _)) = Just $ tag `elem` unwrapName y : map unwrapName ys
     g _ = Just False
 
     unwrapName :: LIEWrappedName GhcPs -> String

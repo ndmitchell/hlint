@@ -53,17 +53,17 @@ findSetting x = []
 
 findBind :: HsBind GhcPs -> [Setting]
 findBind VarBind{var_id, var_rhs} = findExp var_id [] $ unLoc var_rhs
-findBind FunBind{fun_id, fun_matches} = findExp (unLoc fun_id) [] $ HsLam noExtField fun_matches
+findBind FunBind{fun_id, fun_matches} = findExp (unLoc fun_id) [] $ HsLam noAnn LamSingle fun_matches
 findBind _ = []
 
 findExp :: IdP GhcPs -> [String] -> HsExpr GhcPs -> [Setting]
-findExp name vs (HsLam _ MG{mg_alts=L _ [L _ Match{m_pats, m_grhss=GRHSs{grhssGRHSs=[L _ (GRHS _ [] x)], grhssLocalBinds=(EmptyLocalBinds _)}}]})
+findExp name vs (HsLam _ LamSingle MG{mg_alts=L _ [L _ Match{m_pats, m_grhss=GRHSs{grhssGRHSs=[L _ (GRHS _ [] x)], grhssLocalBinds=(EmptyLocalBinds _)}}]})
     = if length m_pats == length ps then findExp name (vs++ps) $ unLoc x else []
     where ps = [rdrNameStr x | L _ (VarPat _ x) <- m_pats]
 findExp name vs HsLam{} = []
 findExp name vs HsVar{} = []
 findExp name vs (OpApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $
-    HsApp EpAnnNotUsed x $ nlHsPar $ noLocA $ HsApp EpAnnNotUsed y $ noLocA $ mkVar "_hlint"
+    HsApp noExtField x $ nlHsPar $ noLocA $ HsApp noExtField y $ noLocA $ mkVar "_hlint"
 
 findExp name vs bod = [SettingMatchExp $
         HintRule Warning defaultHintName []
@@ -74,7 +74,7 @@ findExp name vs bod = [SettingMatchExp $
 
         rep = zip vs $ map (mkVar . pure) ['a'..]
         f (HsVar _ x) | Just y <- lookup (rdrNameStr x) rep = y
-        f (OpApp _ x dol y) | isDol dol = HsApp EpAnnNotUsed x $ nlHsPar y
+        f (OpApp _ x dol y) | isDol dol = HsApp noExtField x $ nlHsPar y
         f x = x
 
 
