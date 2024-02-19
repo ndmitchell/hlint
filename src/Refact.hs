@@ -44,10 +44,10 @@ toRefactSrcSpan = \case
 toSS :: GHC.Located a -> R.SrcSpan
 toSS = toRefactSrcSpan . GHC.getLoc
 
-toSSA :: GHC.GenLocated (GHC.SrcSpanAnn' a) e -> R.SrcSpan
+toSSA :: GHC.GenLocated (GHC.EpAnn a) e -> R.SrcSpan
 toSSA = toRefactSrcSpan . GHC.getLocA
 
-toSSAnc :: GHC.GenLocated GHC.Anchor e -> R.SrcSpan
+toSSAnc :: GHC.GenLocated GHC.NoCommentsLocation e -> R.SrcSpan
 toSSAnc = toRefactSrcSpan . getAncLoc
 
 checkRefactor :: Maybe FilePath -> IO FilePath

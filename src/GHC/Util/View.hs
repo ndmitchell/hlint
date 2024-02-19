@@ -18,7 +18,7 @@ fromParen :: LocatedA (HsExpr GhcPs) -> LocatedA (HsExpr GhcPs)
 fromParen x = maybe x fromParen $ remParen x
 
 fromPParen :: LocatedA (Pat GhcPs) -> LocatedA (Pat GhcPs)
-fromPParen (L _ (ParPat _ _ x _ )) = fromPParen x
+fromPParen (L _ (ParPat _ x)) = fromPParen x
 fromPParen x = x
 
 class View a b where
@@ -32,7 +32,7 @@ data App2  = NoApp2  | App2 (LocatedA (HsExpr GhcPs)) (LocatedA (HsExpr GhcPs)) 
 data LamConst1 = NoLamConst1 | LamConst1 (LocatedA (HsExpr GhcPs))
 
 instance View (LocatedA (HsExpr GhcPs)) LamConst1 where
-  view (fromParen -> (L _ (HsLam _ (MG FromSource (L _ [L _ (Match _ LambdaExpr [L _ WildPat {}]
+  view (fromParen -> (L _ (HsLam _ _ (MG FromSource (L _ [L _ (Match _ (LamAlt _) [L _ (VisPat _ (L _ WildPat {}))]
     (GRHSs _ [L _ (GRHS _ [] x)] ((EmptyLocalBinds _))))]))))) = LamConst1 x
   view _ = NoLamConst1
 
@@ -49,6 +49,17 @@ instance View (LocatedA (HsExpr GhcPs)) App2 where
   view (fromParen -> L _ (HsApp _ (L _ (HsApp _ f x)) y)) = App2 f x y
   view _ = NoApp2
 
+instance View (LocatedA (ArgPat GhcPs)) PVar_ where
+  view (L _ (VisPat _ (fromPParen -> L _ (VarPat _ (L _ x))))) = PVar_ $ occNameStr x
+  view _ = NoPVar_
+
+instance View (LocatedA (ArgPat GhcPs)) PApp_ where
+  view (L _ (VisPat _ (fromPParen -> L _ (ConPat _ (L _ x) (PrefixCon _ args))))) =
+    PApp_ (occNameStr x) args
+  view (L _ (VisPat _ (fromPParen -> L _ (ConPat _ (L _ x) (InfixCon lhs rhs))))) =
+    PApp_ (occNameStr x) [lhs, rhs]
+  view _ = NoPApp_
+
 instance View (LocatedA (Pat GhcPs)) PVar_ where
   view (fromPParen -> L _ (VarPat _ (L _ x))) = PVar_ $ occNameStr x
   view _ = NoPVar_
@@ -61,5 +72,5 @@ instance View (LocatedA (Pat GhcPs)) PApp_ where
   view _ = NoPApp_
 
 -- A lambda with no guards and no where clauses
-pattern SimpleLambda :: [LocatedA (Pat GhcPs)] -> LocatedA (HsExpr GhcPs) -> LocatedA (HsExpr GhcPs)
-pattern SimpleLambda vs body <- L _ (HsLam _ (MG _ (L _ [L _ (Match _ _ vs (GRHSs _ [L _ (GRHS _ [] body)] ((EmptyLocalBinds _))))])))
+pattern SimpleLambda :: [LocatedA (ArgPat GhcPs)] -> LocatedA (HsExpr GhcPs) -> LocatedA (HsExpr GhcPs)
+pattern SimpleLambda vs body <- L _ (HsLam _ LamSingle (MG _ (L _ [L _ (Match _ _ vs (GRHSs _ [L _ (GRHS _ [] body)] ((EmptyLocalBinds _))))])))
