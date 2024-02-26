@@ -428,6 +428,10 @@ used EmptyCase = hasS f
     f _ = False
 used KindSignatures = hasT (un :: HsKind GhcPs)
 used BangPatterns = hasS isPBangPat ||^ hasS isStrictMatch
+  where
+     -- Todo: Fix typing bug in ghc-lib-parser-ex.
+     isStrictMatch :: HsMatchContext GhcPs -> Bool
+     isStrictMatch =  \case  FunRhs{mc_strictness=SrcStrict} -> True; _ -> False
 used TemplateHaskell = hasS (not . isQuasiQuoteSplice) ||^ hasS isTypedSplice
 used TemplateHaskellQuotes = hasS f
   where

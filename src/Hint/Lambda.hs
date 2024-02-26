@@ -123,6 +123,7 @@ import GHC.Types.Name.Occurrence
 import GHC.Types.Name.Reader
 import GHC.Types.SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr (isTypeApp, isOpApp, isLambda, isQuasiQuoteExpr, isVar, isDol, strToVar)
+import Language.Haskell.GhclibParserEx.GHC.Hs.Pat (isWildPat)
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import GHC.Util.Brackets (isAtom)
@@ -345,9 +346,6 @@ mkOrigPats funName pats = (zipWith munge vars pats', vars)
           let used = Set.fromList [rdrNameStr name | (L _ (VarPat _ name)) <- universe p]
            in (used, (True, p))
       | otherwise = (mempty, (False, p))
-
-    isWildPat :: LPat GhcPs -> Bool
-    isWildPat = \case (L _ (WildPat _)) -> True; _ -> False
 
     -- Replace the pattern with a variable pattern if the pattern doesn't contain wildcards.
     munge :: String -> (Bool, LPat GhcPs) -> LPat GhcPs
