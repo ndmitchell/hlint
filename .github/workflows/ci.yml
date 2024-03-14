@@ -3,6 +3,7 @@ on:
   push:
     branches-ignore:
       - 'ghc-next'
+      - 'ghc-9.10.1'
   pull_request:
   schedule:
   - cron:  '0 3 * * 6' # 3am Saturday
