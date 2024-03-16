@@ -4,8 +4,7 @@ on:
     branches-ignore:
       - 'ghc-next'
       - 'ghc-9.10.1'
-      - 'ghc-9.10-workflow'
-  pull_request:
+    pull_request:
   schedule:
   - cron:  '0 3 * * 6' # 3am Saturday
 jobs:
