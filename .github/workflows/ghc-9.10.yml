@@ -1,0 +1,32 @@
+name: ghc-9.10-from-scratch
+on:
+  push:
+    branches:
+      - 'ghc-9.10*'
+  schedule:
+    - cron:  '0 8 * * 6' # once a week. saturdays at 8am
+jobs:
+  ghc-9-10:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+    steps:
+      - name: Install build tools
+        run: brew install automake
+        if: matrix.os == 'macos'
+      - name: Configure
+        # e.g. Don't recursively delete '.stack-work' (`stack clean --full`)
+        run: echo "GHCLIB_AZURE='1'" >> $GITHUB_ENV
+        shell: bash
+      - name: Boot
+        run: |-
+          cabal update
+          git clone https://github.com/shayne-fletcher/hlint-from-scratch.git
+          hlint-from-scratch/hlint-from-scratch.sh --init="$HOME/project"
+        shell: bash
+      - name: Build and Test ('ghc-9.10.1')
+        run: hlint-from-scratch/hlint-from-scratch.sh --ghc-flavor="ghc-9.10.1" --stack-yaml=stack-exact.yaml --resolver=ghc-9.6.4 --no-checkout
+        shell: bash
