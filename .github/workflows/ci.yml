@@ -4,7 +4,9 @@ on:
     branches-ignore:
       - 'ghc-next*'
       - 'ghc-9.10*'
-    pull_request:
+  pull_request:
+    branches-ignore:
+      - 'ghc-next*'
   schedule:
   - cron:  '0 3 * * 6' # 3am Saturday
 jobs:
