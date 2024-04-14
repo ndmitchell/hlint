@@ -24,6 +24,7 @@ jobs:
       - name: Boot
         run: |-
           cabal update
+          cabal install apply-refact
           git clone https://github.com/shayne-fletcher/hlint-from-scratch.git
           hlint-from-scratch/hlint-from-scratch.sh --init="$HOME/project"
         shell: bash
