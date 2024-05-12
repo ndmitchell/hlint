@@ -18,6 +18,13 @@ jobs:
         with:
           enable-stack: true
           stack-version: 'latest'
+      - name: Upgrade stack from git
+        run: |-
+           stack upgrade --git
+           echo "$HOME/.local/bin" >> $GITHUB_PATH
+           which stack
+           stack --version
+        shell: bash
       - name: Install build tools
         run: brew install automake
         if: matrix.os == 'macos'
