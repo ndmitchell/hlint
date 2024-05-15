@@ -16,6 +16,7 @@ jobs:
     steps:
       - uses: haskell-actions/setup@v2
         with:
+          ghc-version: '9.6.4'
           enable-stack: true
           stack-version: 'latest'
       - name: Upgrade stack from git
