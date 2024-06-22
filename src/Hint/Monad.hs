@@ -77,7 +77,6 @@ import GHC.Types.SrcLoc
 import GHC.Types.Basic
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
-import GHC.Data.Bag
 import GHC.Data.Strict qualified
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
@@ -297,9 +296,9 @@ monadLet xs = mapMaybe mkLet xs
         let p = noLocA $ mkRdrUnqual (mkVarOcc lhs)
             grhs = noLocA (GRHS noAnn [] rhs)
             grhss = GRHSs emptyComments [grhs] (EmptyLocalBinds noExtField)
-            match = noLocA $ Match noAnn (FunRhs p Prefix NoSrcStrict) [] grhss
+            match = noLocA $ Match noAnn (FunRhs p Prefix NoSrcStrict) (noLocA []) grhss
             fb = noLocA $ FunBind noExtField p (MG (Generated OtherExpansion SkipPmc) (noLocA [match]))
-            binds = unitBag fb
+            binds = [fb]
             valBinds = ValBinds NoAnnSortKey binds []
             localBinds = HsValBinds noAnn valBinds
          in noLocA $ LetStmt noAnn localBinds
