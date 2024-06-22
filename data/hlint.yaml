@@ -111,6 +111,8 @@
     - warn: {lhs: compare x y == GT, rhs: x > y}
     - warn: {lhs: compare x y == EQ, rhs: x == y}
     - warn: {lhs: compare x y /= EQ, rhs: x /= y}
+    - warn: {lhs: on compare, rhs: comparing}
+    - warn: {lhs: compare `on` f, rhs: comparing f}
     - warn: {lhs: head (sort x), rhs: minimum x}
     - warn: {lhs: last (sort x), rhs: maximum x}
     - warn: {lhs: head (sortBy f x), rhs: minimumBy f x, side: isCompare f}
