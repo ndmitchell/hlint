@@ -16,16 +16,16 @@ jobs:
     steps:
       - uses: haskell-actions/setup@v2
         with:
-          ghc-version: '9.6.4'
+          ghc-version: '9.8.1'
           enable-stack: true
-          stack-version: 'latest'
-      - name: Upgrade stack from git
-        run: |-
-           stack upgrade --git
-           echo "$HOME/.local/bin" >> $GITHUB_PATH
-           which stack
-           stack --version
-        shell: bash
+          stack-version: '2.15.7'
+      # - name: Upgrade stack from git
+      #   run: |-
+      #      stack upgrade --git
+      #      echo "$HOME/.local/bin" >> $GITHUB_PATH
+      #      which stack
+      #      stack --version
+      #   shell: bash
       - name: Install build tools
         run: brew install automake
         if: matrix.os == 'macos'
@@ -41,5 +41,5 @@ jobs:
           hlint-from-scratch/hlint-from-scratch.sh --init="$HOME/project"
         shell: bash
       - name: Build and Test ('ghc-9.10.1')
-        run: hlint-from-scratch/hlint-from-scratch.sh --ghc-flavor="ghc-9.10.1" --stack-yaml=stack-exact.yaml --resolver=ghc-9.6.4 --no-checkout
+        run: hlint-from-scratch/hlint-from-scratch.sh --ghc-flavor="ghc-9.10.1" --stack-yaml=stack-exact.yaml --resolver=ghc-9.8.1 --no-checkout
         shell: bash
