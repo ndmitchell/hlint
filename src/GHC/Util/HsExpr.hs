@@ -21,7 +21,6 @@ import GHC.Types.SrcLoc
 import GHC.Data.FastString
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
-import GHC.Data.Bag(bagToList)
 
 import GHC.Util.Brackets
 import GHC.Util.FreeVars
@@ -58,7 +57,7 @@ dotApps (x : xs) = dotApp x (dotApps xs)
 
 -- | @lambda [p0, p1..pn] body@ makes @\p1 p1 .. pn -> body@
 lambda :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
-lambda vs body = noLocA $ HsLam noAnn LamSingle (MG (Generated OtherExpansion DoPmc) (noLocA [noLocA $ Match noAnn (LamAlt LamSingle) vs (GRHSs emptyComments [noLocA $ GRHS noAnn [] body] (EmptyLocalBinds noExtField))]))
+lambda vs body = noLocA $ HsLam noAnn LamSingle (MG (Generated OtherExpansion DoPmc) (noLocA [noLocA $ Match noAnn (LamAlt LamSingle) (L noSpanAnchor vs) (GRHSs emptyComments [noLocA $ GRHS noAnn [] body] (EmptyLocalBinds noExtField))]))
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -124,8 +123,8 @@ simplifyExp :: LHsExpr GhcPs -> LHsExpr GhcPs
 simplifyExp (L l (OpApp _ x op y)) | isDol op = L l (HsApp noExtField x (nlHsPar y))
 simplifyExp e@(L _ (HsLet _ ((HsValBinds _ (ValBinds _ binds []))) z)) =
   -- An expression of the form, 'let x = y in z'.
-  case bagToList binds of
-    [L _ (FunBind _ _ (MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) [] (GRHSs _[L _ (GRHS _ [] y)] ((EmptyLocalBinds _))))])))]
+  case binds of
+    [L _ (FunBind _ _ (MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _) (L _ []) (GRHSs _ [L _ (GRHS _ [] y)] ((EmptyLocalBinds _))))])))]
          -- If 'x' is not in the free variables of 'y', beta-reduce to
          -- 'z[(y)/x]'.
       | occNameStr x `notElem` vars y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
@@ -241,7 +240,7 @@ niceLambdaR [] e = (e, \s -> [Replace Expr s [("a", toSSA e)] "a"])
 niceLambdaR ss e =
   let grhs = noLocA $ GRHS noAnn [] e :: LGRHS GhcPs (LHsExpr GhcPs)
       grhss = GRHSs {grhssExt = emptyComments, grhssGRHSs=[grhs], grhssLocalBinds=EmptyLocalBinds noExtField}
-      match = noLocA $ Match {m_ext=noAnn, m_ctxt=LamAlt LamSingle, m_pats=map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
+      match = noLocA $ Match {m_ext=noAnn, m_ctxt=LamAlt LamSingle, m_pats=noLocA $ map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
       matchGroup = MG {mg_ext=Generated OtherExpansion SkipPmc, mg_alts=noLocA [match]}
   in (noLocA $ HsLam noAnn LamSingle matchGroup, const [])
 
