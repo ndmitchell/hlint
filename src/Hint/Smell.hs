@@ -86,7 +86,6 @@ import Data.Map qualified as Map
 import GHC.Utils.Outputable
 import GHC.Types.Basic
 import GHC.Hs
-import GHC.Data.Bag
 import GHC.Types.SrcLoc
 import GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -151,7 +150,7 @@ rhsSpans ctx (L _ r@(GRHS _ _ (L l _))) =
 -- The spans of a 'where' clause are the spans of its bindings.
 whereSpans :: HsLocalBinds GhcPs -> [(SrcSpan, Idea)]
 whereSpans (HsValBinds _ (ValBinds _ bs _)) =
-  concatMap (declSpans . (\(L loc bind) -> L loc (ValD noExtField bind))) (bagToList bs)
+  concatMap (declSpans . (\(L loc bind) -> L loc (ValD noExtField bind))) bs
 whereSpans _ = []
 
 spanLength :: SrcSpan -> Int

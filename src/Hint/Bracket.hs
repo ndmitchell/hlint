@@ -287,16 +287,16 @@ dollar = concatMap f . universe
           ++  -- Special case of (v1 . v2) <$> v3
           [ (suggest "Redundant bracket" (reLoc x) (reLoc y) [r]){ideaSpan = locA locPar}
           | L _ (OpApp _ (L locPar (HsPar _ o1@(L locNoPar (OpApp _ _ (isDot -> True) _)))) o2 v3) <- [x], varToStr o2 == "<$>"
-          , let y = noLocA (OpApp noAnn o1 o2 v3) :: LHsExpr GhcPs
+          , let y = noLocA (OpApp noExtField o1 o2 v3) :: LHsExpr GhcPs
           , let r = Replace Expr (toRefactSrcSpan (locA locPar)) [("a", toRefactSrcSpan (locA locNoPar))] "a"]
           ++
           [ suggest "Redundant section" (reLoc x) (reLoc y) [r]
           | L _ (HsApp _ (L _ (HsPar _ (L _ (SectionL _ a b)))) c) <- [x]
           -- , error $ show (unsafePrettyPrint a, gshow b, unsafePrettyPrint c)
-          , let y = noLocA $ OpApp noAnn a b c :: LHsExpr GhcPs
+          , let y = noLocA $ OpApp noExtField a b c :: LHsExpr GhcPs
           , let r = Replace Expr (toSSA x) [("x", toSSA a), ("op", toSSA b), ("y", toSSA c)] "x op y"]
 
 splitInfix :: LHsExpr GhcPs -> [(LHsExpr GhcPs -> LHsExpr GhcPs, LHsExpr GhcPs)]
 splitInfix (L l (OpApp _ lhs op rhs)) =
-  [(L l . OpApp noAnn lhs op, rhs), (\lhs -> L l (OpApp noAnn lhs op rhs), lhs)]
+  [(L l . OpApp noExtField lhs op, rhs), (\lhs -> L l (OpApp noExtField lhs op rhs), lhs)]
 splitInfix _ = []
