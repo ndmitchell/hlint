@@ -134,16 +134,16 @@ matchListRec o@(ListCase vs nil (x, xs, cons))
 asDo :: LHsExpr GhcPs -> [LStmt GhcPs (LHsExpr GhcPs)]
 asDo (view ->
        App2 bind lhs
-         (L _ (HsLam _ MG {
+         (L _ (HsLam _ LamSingle MG {
               mg_ext=FromSource
             , mg_alts=L _ [
-                 L _ Match {  m_ctxt=LambdaExpr
+                 L _ Match {  m_ctxt=(LamAlt LamSingle)
                             , m_pats=[v@(L _ VarPat{})]
                             , m_grhss=GRHSs _
                                         [L _ (GRHS _ [] rhs)]
                                         (EmptyLocalBinds _)}]}))
       ) =
-  [ noLocA $ BindStmt EpAnnNotUsed v lhs
+  [ noLocA $ BindStmt noAnn v lhs
   , noLocA $ BodyStmt noExtField rhs noSyntaxExpr noSyntaxExpr ]
 asDo (L _ (HsDo _ (DoExpr _) (L _ stmts))) = stmts
 asDo x = [noLocA $ BodyStmt noExtField x noSyntaxExpr noSyntaxExpr]
@@ -173,10 +173,10 @@ findCase x = do
 
   let ps12 = let (a, b) = splitAt p1 ps1 in map strToPat (a ++ xs : b) -- Function arguments.
       emptyLocalBinds = EmptyLocalBinds noExtField :: HsLocalBindsLR GhcPs GhcPs -- Empty where clause.
-      gRHS e = noLocA $ GRHS EpAnnNotUsed [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
+      gRHS e = noLocA $ GRHS noAnn [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
       gRHSSs e = GRHSs emptyComments [gRHS e] emptyLocalBinds -- Guarded rhs set.
-      match e = Match{m_ext=EpAnnNotUsed,m_pats=ps12, m_grhss=gRHSSs e, ..} -- Match.
-      matchGroup e = MG{mg_alts=noLocA [noLocA $ match e], mg_ext=Generated DoPmc, ..} -- Match group.
+      match e = Match{m_ext=noAnn,m_pats=ps12, m_grhss=gRHSSs e, ..} -- Match.
+      matchGroup e = MG{mg_alts=noLocA [noLocA $ match e], mg_ext=Generated OtherExpansion SkipPmc, ..} -- Match group.
       funBind e = FunBind {fun_matches=matchGroup e, ..} :: HsBindLR GhcPs GhcPs -- Fun bind.
 
   pure (ListCase ps b1 (x, xs, b2), noLocA . ValD noExtField . funBind)
@@ -225,7 +225,7 @@ findPat ps = do
 
 readPat :: LPat GhcPs -> Maybe (Either String BList)
 readPat (view -> PVar_ x) = Just $ Left x
-readPat (L _ (ParPat _ _ (L _ (ConPat _ (L _ n) (InfixCon (view -> PVar_ x) (view -> PVar_ xs)))) _))
+readPat (L _ (ParPat _ (L _ (ConPat _ (L _ n) (InfixCon (view -> PVar_ x) (view -> PVar_ xs))))))
  | n == consDataCon_RDR = Just $ Right $ BCons x xs
 readPat (L _ (ConPat _ (L _ n) (PrefixCon [] [])))
   | n == nameRdrName nilDataConName = Just $ Right BNil
