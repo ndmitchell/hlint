@@ -1,1 +1,2 @@
+allow-newer: all
 packages: ./hlint.cabal

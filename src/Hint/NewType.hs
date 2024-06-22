@@ -151,7 +151,7 @@ isHashy :: HsType GhcPs -> Bool
 isHashy x = or ["#" `isSuffixOf` unsafePrettyPrint v | v@HsTyVar{} <- universe x]
 
 warnBang :: HsType GhcPs -> Bool
-warnBang (HsBangTy _ (HsSrcBang _ _ SrcStrict) _) = False
+warnBang (HsBangTy _ (HsBang _ SrcStrict) _) = False
 warnBang _ = True
 
 emptyOrNoContext :: Maybe (LHsContext GhcPs) -> Bool

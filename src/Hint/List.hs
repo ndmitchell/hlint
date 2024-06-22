@@ -260,7 +260,7 @@ useCons False (view -> App2 op x y) | varToStr op == "++"
     f _ = Nothing
 
     gen :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
-    gen x = noLocA . OpApp noAnn x (noLocA (HsVar noExtField  (noLocA consDataCon_RDR)))
+    gen x = noLocA . OpApp noExtField x (noLocA (HsVar noExtField  (noLocA consDataCon_RDR)))
 useCons _ _ = Nothing
 
 typeListChar :: LHsType GhcPs
