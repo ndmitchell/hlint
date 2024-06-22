@@ -107,8 +107,8 @@ languagePragmas ps =
 -- Given a list of flags, make a GHC options pragma.
 mkFlags :: NoCommentsLocation -> [String] -> LEpaComment
 mkFlags anc flags =
-  L anc $ EpaComment (EpaBlockComment ("{-# " ++ "OPTIONS_GHC " ++ unwords flags ++ " #-}")) (anchor anc)
+  L anc $ EpaComment (EpaBlockComment ("{-# " ++ "OPTIONS_GHC " ++ unwords flags ++ " #-}")) (epaLocationRealSrcSpan anc)
 
 mkLanguagePragmas :: NoCommentsLocation -> [String] -> LEpaComment
 mkLanguagePragmas anc exts =
-  L anc $ EpaComment (EpaBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")) (anchor anc)
+  L anc $ EpaComment (EpaBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")) (epaLocationRealSrcSpan anc)

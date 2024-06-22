@@ -12,7 +12,6 @@ import Data.Generics.Uniplate.DataOnly
 import GHC.Hs hiding (Warning)
 import GHC.Types.Name.Reader
 import GHC.Types.Name
-import GHC.Data.Bag
 import GHC.Types.SrcLoc
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -46,7 +45,7 @@ renderSetting _ = []
 findSetting :: LocatedA (HsDecl GhcPs) -> [Setting]
 findSetting (L _ (ValD _ x)) = findBind x
 findSetting (L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
-    concatMap (findBind . unLoc) $ bagToList cid_binds
+    concatMap (findBind . unLoc) cid_binds
 findSetting (L _ (SigD _ (FixSig _ x))) = map Infix $ fromFixitySig x
 findSetting x = []
 
@@ -57,9 +56,9 @@ findBind FunBind{fun_id, fun_matches} = findExp (unLoc fun_id) [] $ HsLam noAnn 
 findBind _ = []
 
 findExp :: IdP GhcPs -> [String] -> HsExpr GhcPs -> [Setting]
-findExp name vs (HsLam _ LamSingle MG{mg_alts=L _ [L _ Match{m_pats, m_grhss=GRHSs{grhssGRHSs=[L _ (GRHS _ [] x)], grhssLocalBinds=(EmptyLocalBinds _)}}]})
-    = if length m_pats == length ps then findExp name (vs++ps) $ unLoc x else []
-    where ps = [rdrNameStr x | L _ (VarPat _ x) <- m_pats]
+findExp name vs (HsLam _ LamSingle MG{mg_alts=L _ [L _ Match{m_pats=L _ pats, m_grhss=GRHSs{grhssGRHSs=[L _ (GRHS _ [] x)], grhssLocalBinds=(EmptyLocalBinds _)}}]})
+    = if length pats == length ps then findExp name (vs++ps) $ unLoc x else []
+    where ps = [rdrNameStr x | L _ (VarPat _ x) <- pats]
 findExp name vs HsLam{} = []
 findExp name vs HsVar{} = []
 findExp name vs (OpApp _ x dot y) | isDot dot = findExp name (vs++["_hlint"]) $

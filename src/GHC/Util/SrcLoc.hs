@@ -20,7 +20,7 @@ import Data.Generics.Uniplate.DataOnly
 -- Get the 'SrcSpan' out of a value located by an 'NoCommentsLocation'
 -- (e.g. comments).
 getAncLoc :: GenLocated NoCommentsLocation a -> SrcSpan
-getAncLoc o = RealSrcSpan (GHC.Parser.Annotation.anchor (GHC.Types.SrcLoc.getLoc o)) GHC.Data.Strict.Nothing
+getAncLoc o = RealSrcSpan (GHC.Parser.Annotation.epaLocationRealSrcSpan (GHC.Types.SrcLoc.getLoc o)) GHC.Data.Strict.Nothing
 
 -- 'stripLocs x' is 'x' with all contained source locs replaced by
 -- 'noSrcSpan'.

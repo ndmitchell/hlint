@@ -69,11 +69,10 @@ import Data.Either
 import Refact.Types hiding (RType(Pattern, Match), SrcSpan)
 import Refact.Types qualified as R (RType(Pattern, Match), SrcSpan)
 
-import GHC.Hs
+import GHC.Hs hiding(asPattern)
 import GHC.Types.SrcLoc
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
-import GHC.Data.Bag
 import GHC.Types.Basic hiding (Pattern)
 import GHC.Data.Strict qualified
 
@@ -163,7 +162,7 @@ hints _ (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
   = [suggestRemove "Redundant where" whereSpan "where" [ {- TODO refactoring for redundant where -} ]]
   where
     f :: HsLocalBinds GhcPs -> Bool
-    f (HsValBinds _ (ValBinds _ bag _)) = isEmptyBag bag
+    f (HsValBinds _ (ValBinds _ l _)) = null l
     f (HsIPBinds _ (IPBinds _ l)) = null l
     f _ = False
     whereSpan = case l of
@@ -195,14 +194,14 @@ asPattern (L loc x) = concatMap decl (universeBi x)
     decl _ = []
 
     match :: LMatch GhcPs (LHsExpr GhcPs) -> (Pattern, String -> Pattern -> [Refactoring R.SrcSpan] -> Idea)
-    match o@(L loc (Match _ ctx pats grhss)) = (Pattern (locA loc) R.Match pats grhss, \msg (Pattern _ _ pats grhss) rs -> suggest msg (reLoc o) (noLoc (Match noAnn ctx  pats grhss) :: Located (Match GhcPs (LHsExpr GhcPs))) rs)
+    match o@(L loc (Match _ ctx (L lpats pats) grhss)) = (Pattern (locA loc) R.Match pats grhss, \msg (Pattern _ _ pats grhss) rs -> suggest msg (reLoc o) (noLoc (Match noExtField ctx  (L lpats pats) grhss) :: Located (Match GhcPs (LHsExpr GhcPs))) rs)
 
 -- First Bool is if 'Strict' is a language extension. Second Bool is
 -- if this pattern in this context is going to be evaluated strictly.
 patHint :: Bool -> Bool -> LPat GhcPs -> [Idea]
 patHint _ _ o@(L _ (ConPat _ name (PrefixCon _ args)))
   | length args >= 3 && all isPWildcard args =
-  let rec_fields = HsRecFields [] Nothing :: HsRecFields GhcPs (LPat GhcPs)
+  let rec_fields = HsRecFields noExtField [] Nothing :: HsRecFields GhcPs (LPat GhcPs)
       new        = noLocA $ ConPat noAnn name (RecCon rec_fields) :: LPat GhcPs
   in
   [suggest "Use record patterns" (reLoc o) (reLoc new) [Replace R.Pattern (toSSA o) [] (unsafePrettyPrint new)]]
@@ -239,11 +238,11 @@ patHint _ _ _ = []
 
 expHint :: LHsExpr GhcPs -> [Idea]
  -- Note the 'FromSource' in these equations (don't warn on generated match groups).
-expHint o@(L _ (HsCase _ _ (MG FromSource (L _ [L _ (Match _ CaseAlt [L _ (WildPat _)] (GRHSs _ [L _ (GRHS _ [] e)] (EmptyLocalBinds _))) ])))) =
+expHint o@(L _ (HsCase _ _ (MG FromSource (L _ [L _ (Match _ CaseAlt (L _ [L _ (WildPat _)]) (GRHSs _ [L _ (GRHS _ [] e)] (EmptyLocalBinds _))) ])))) =
   [suggest "Redundant case" (reLoc o) (reLoc e) [r]]
   where
     r = Replace Expr (toSSA o) [("x", toSSA e)] "x"
-expHint o@(L _ (HsCase _ (L _ (HsVar _ (L _ x))) (MG FromSource (L _ [L _ (Match _ CaseAlt [L _ (VarPat _ (L _ y))] (GRHSs _ [L _ (GRHS _ [] e)] (EmptyLocalBinds _))) ]))))
+expHint o@(L _ (HsCase _ (L _ (HsVar _ (L _ x))) (MG FromSource (L _ [L _ (Match _ CaseAlt (L _ [L _ (VarPat _ (L _ y))]) (GRHSs _ [L _ (GRHS _ [] e)] (EmptyLocalBinds _))) ]))))
   | occNameStr x == occNameStr y =
       [suggest "Redundant case" (reLoc o) (reLoc e) [r]]
   where
