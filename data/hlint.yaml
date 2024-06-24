@@ -755,6 +755,7 @@
     - warn: {lhs: lefts (nubOrd x), rhs: nubOrd (lefts x), name: Move nubOrd out}
     - warn: {lhs: rights (nubOrd x), rhs: nubOrd (rights x), name: Move nubOrd out}
     - warn: {lhs: filter f (reverse x), rhs: reverse (filter f x), name: Move reverse out}
+    - warn: {lhs: mapMaybe f (reverse x), rhs: reverse (mapMaybe f x), name: Move reverse out}
 
     # EITHER
 
