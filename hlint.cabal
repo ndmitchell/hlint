@@ -168,6 +168,7 @@ library
         Hint.Type
         Hint.Unsafe
         Hint.NumLiteral
+        Hint.NoCapitalisms
         Test.All
         Test.Annotations
         Test.InputOutput

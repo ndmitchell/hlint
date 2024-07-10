@@ -1176,6 +1176,38 @@ Does not support refactoring.
 </tr>
 </table>
 
+## Builtin NoCapitalisms
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Avoid capitalisms</td>
+<td>
+Example: 
+<code>
+type WarpTLSException = ()
+</code>
+<br>
+Found:
+<code>
+type WarpTLSException = ()
+</code>
+<br>
+Suggestion:
+<code>
+
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Suggestion</td>
+</tr>
+</table>
+
 ## Builtin NumLiteral
 
 <table>
