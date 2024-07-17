@@ -33,5 +33,5 @@ jobs:
           GHCLIB_AZURE=1; export GHCLIB_AZURE
           git clone https://github.com/shayne-fletcher/hlint-from-scratch.git
           hlint-from-scratch/hlint-from-scratch.sh --init="$HOME/project"
-          hlint-from-scratch/hlint-from-scratch.sh --ghc-flavor="9.10.1" --stack-yaml=stack-exact.yaml --resolver=ghc-9.8.2 --no-checkout
+          hlint-from-scratch/hlint-from-scratch.sh --ghc-flavor="ghc-9.10.1" --stack-yaml=stack-exact.yaml --resolver=ghc-9.8.2 --no-checkout
         if: matrix.os == 'ubuntu' || matrix.os == 'macos'
