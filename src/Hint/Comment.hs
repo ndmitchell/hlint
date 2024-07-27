@@ -62,22 +62,36 @@ isSingleSome comm@(L (anchor -> span) _) =
 commentLine :: LEpaComment -> Int
 commentLine (L (anchor -> span) _) = srcLocLine $ realSrcSpanStart span
 
--- | Is the next line in a string of empty comments leading up to a non-emtpy
--- comment?
-nextLineIsComment :: Int -> [Int] -> [Int] -> Bool
-nextLineIsComment x singles somes = Just True == do
-  next <- find (x <) somes
-  pure $ [x + 1 .. next] `isInfixOf` singles
+-- | Do we have two consecutive empty single comment lines?
+doubleEmpty :: [Int] -> [Int] -> Bool
+doubleEmpty singles somes = let empties = somes \\ singles in
+  0 `elem` zipWith (-) (drop 1 $ empties) empties
+
+-- | Do we have trailing empty single comment lines?
+trailingEmpty :: [Int] -> [Int] -> Bool
+trailingEmpty singles somes = leadingEmpty (reverse singles) (reverse somes)
+
+-- | Do we have leading empty single comment lines?
+leadingEmpty :: [Int] -> [Int] -> Bool
+leadingEmpty singles somes = let empties = somes \\ singles in
+  case (empties, somes) of
+      (_, []) -> True
+      ([], _) -> False
+      (e : _, s : _) -> e < s
 
 check :: [Int] -> [Int] -> LEpaComment -> [Idea]
 check singles somes comm@(L{})
   | isHaddockWhitespace comm =
       if | isMultiline -> [emptyHaddockMulti comm]
-         | nextLineIsComment (commentLine comm) singles somes -> []
-         | otherwise -> [emptyHaddockSingle comm]
+         | leadingEmpty singles somes -> [leadingEmptyHaddockSingle comm]
+         | trailingEmpty singles somes -> [trailingEmptyHaddockSingle comm]
+         | doubleEmpty singles somes -> [doubleEmptyHaddockSingle comm]
+         | otherwise -> []
   | isCommentWhitespace comm =
       if | isMultiline -> [emptyCommentMulti comm]
-         | not $ nextLineIsComment (commentLine comm) singles somes -> [emptyCommentSingle comm]
+         | leadingEmpty singles somes -> [leadingEmptyCommentSingle comm]
+         | trailingEmpty singles somes -> [trailingEmptyCommentSingle comm]
+         | doubleEmpty singles somes -> [doubleEmptyCommentSingle comm]
          | otherwise -> []
   | isMultiline, null (commentText comm) = [emptyCommentMulti comm]
   | isMultiline, "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
@@ -101,9 +115,17 @@ isCommentWhitespace :: LEpaComment -> Bool
 isCommentWhitespace comm@(L (anchor -> span) _ ) =
   not (isPointRealSpan span) && isStringWhitespace (commentText comm)
 
-emptyCommentSingle, emptyHaddockSingle  :: LEpaComment -> Idea
-emptyCommentSingle = emptyComment ("--" ++) "Empty single-line comment"
-emptyHaddockSingle = emptyComment ("--" ++) "Empty single-line haddock"
+doubleEmptyCommentSingle, doubleEmptyHaddockSingle :: LEpaComment -> Idea
+doubleEmptyCommentSingle = emptyComment ("--" ++) "Double empty single-line comment"
+doubleEmptyHaddockSingle = emptyComment ("--" ++) "Double empty single-line haddock"
+
+trailingEmptyCommentSingle, trailingEmptyHaddockSingle :: LEpaComment -> Idea
+trailingEmptyCommentSingle = emptyComment ("--" ++) "Trailing empty single-line comment"
+trailingEmptyHaddockSingle = emptyComment ("--" ++) "Trailing empty single-line haddock"
+
+leadingEmptyCommentSingle, leadingEmptyHaddockSingle :: LEpaComment -> Idea
+leadingEmptyCommentSingle = emptyComment ("--" ++) "Leading empty single-line comment"
+leadingEmptyHaddockSingle = emptyComment ("--" ++) "Leading empty single-line haddock"
 
 emptyCommentMulti, emptyHaddockMulti :: LEpaComment -> Idea
 emptyCommentMulti = emptyComment (\s -> "{-" ++ s ++ "-}") "Empty multi-line comment"

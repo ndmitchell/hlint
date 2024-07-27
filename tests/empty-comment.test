@@ -9,12 +9,12 @@ haddockBelowSingle = 1
 -- ^
 
 OUTPUT
-tests/empty-comment-single.hs:2:1-4: Suggestion: Empty single-line haddock
+tests/empty-comment-single.hs:2:1-4: Suggestion: Leading empty single-line haddock
 Found:
   -- |
 Perhaps you should remove it.
 
-tests/empty-comment-single.hs:6:1-4: Suggestion: Empty single-line haddock
+tests/empty-comment-single.hs:6:1-4: Suggestion: Leading empty single-line haddock
 Found:
   -- ^
 Perhaps you should remove it.
@@ -34,18 +34,7 @@ haddockAboveSingles = 1
 haddockAboveDoctest = 1
 
 OUTPUT
-tests/empty-comment-singles.hs:2:1-4: Suggestion: Empty single-line haddock
-Found:
-  -- |
-Perhaps you should remove it.
-
-tests/empty-comment-singles.hs:3:1-2: Suggestion: Empty single-line comment
-Found:
-  --
-Perhaps you should remove it.
-
-2 hints
-
+No hints
 
 ---------------------------------------------------------------------
 RUN tests/empty-comment-multi.hs
@@ -178,17 +167,17 @@ data HaddockMulti = HaddockMulti
   }
 
 OUTPUT
-tests/empty-comment-record.hs:4:3-6: Suggestion: Empty single-line haddock
+tests/empty-comment-record.hs:4:3-6: Suggestion: Leading empty single-line haddock
 Found:
   -- ^
 Perhaps you should remove it.
 
-tests/empty-comment-record.hs:5:3-6: Suggestion: Empty single-line haddock
+tests/empty-comment-record.hs:5:3-6: Suggestion: Leading empty single-line haddock
 Found:
   -- |
 Perhaps you should remove it.
 
-tests/empty-comment-record.hs:7:35-38: Suggestion: Empty single-line haddock
+tests/empty-comment-record.hs:7:35-38: Suggestion: Leading empty single-line haddock
 Found:
   -- ^
 Perhaps you should remove it.
