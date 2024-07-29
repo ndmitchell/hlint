@@ -12,26 +12,38 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos]
+        os: [ubuntu, macos, windows]
     steps:
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        id: setup-haskell
+        with:
+          ghc-version: 9.10.1
+          cabal-version: 'latest'
       - name: Install build tools (macOS)
         run: brew install automake
         if: matrix.os == 'macos'
-      - name: Install stack
-        shell: bash
-        run: curl -sSL https://get.haskellstack.org/ | sh -s - -f
-      - name: Install ghcup (unix)
+      - name: Configure msys2 (windows)
         shell: bash
         run: |-
-          curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_GHC_VERSION=9.8.2 BOOTSTRAP_HASKELL_CABAL_VERSION=latest BOOTSTRAP_HASKELL_INSTALL_NO_STACK=1 BOOTSTRAP_HASKELL_INSTALL_NO_STACK_HOOK=1 BOOTSTRAP_HASKELL_ADJUST_BASHRC=N sh
-          echo "$HOME/.ghcup/bin" >> $GITHUB_PATH
-          echo "$HOME/.ghcup/ghc/9.8.2/bin" >> $GITHUB_PATH
-        if: matrix.os == 'ubuntu' || matrix.os ==  'macos'
+          echo "MSYSTEM=CLANG64" >> $GITHUB_ENV
+          echo "/c/mingw64/usr/bin" >> $GITHUB_PATH
+          echo "/c/msys64/usr/bin" >> $GITHUB_PATH
+        if: matrix.os == 'windows'
+      - name: Run hlint-from-scratch (windows)
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail '{0}'
+        run: |-
+          GHCLIB_AZURE=1; export GHCLIB_AZURE
+          pacman -S autoconf automake-wrapper make patch python tar mintty --noconfirm
+          git clone https://github.com/shayne-fletcher/hlint-from-scratch.git
+          hlint-from-scratch/hlint-from-scratch.sh --init="$HOME/project"
+          hlint-from-scratch/hlint-from-scratch.sh --ghc-flavor="ghc-9.10.1" --no-checkout
+        if: matrix.os == 'windows'
       - name: Run hlint-from-scratch (unix)
         shell: bash
         run: |-
           GHCLIB_AZURE=1; export GHCLIB_AZURE
           git clone https://github.com/shayne-fletcher/hlint-from-scratch.git
           hlint-from-scratch/hlint-from-scratch.sh --init="$HOME/project"
-          hlint-from-scratch/hlint-from-scratch.sh --ghc-flavor="ghc-9.10.1" --stack-yaml=stack-exact.yaml --resolver=ghc-9.8.2 --no-checkout
+          hlint-from-scratch/hlint-from-scratch.sh --ghc-flavor="ghc-9.10.1" --no-checkout
         if: matrix.os == 'ubuntu' || matrix.os == 'macos'
