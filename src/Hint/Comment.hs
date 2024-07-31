@@ -46,7 +46,7 @@ isSingle :: LEpaComment -> Bool
 isSingle comm@(L (anchor -> span) _) =
   isOneLineRealSpan span
   && not (isPointRealSpan span)
-  && not (isCommentMultiline comm || isHaddock comm)
+  && not (isCommentMultiline comm || isHaddock comm || isDoctest comm)
 
 -- | A single line comment about something where something is:
 -- * Not a haddock comment "-- |" or "-- ^"
@@ -56,7 +56,7 @@ isSingleSome :: LEpaComment -> Bool
 isSingleSome comm@(L (anchor -> span) _) =
   isOneLineSpan (RealSrcSpan span GHC.Data.Strict.Nothing)
   && not (isPointRealSpan span)
-  && not (isCommentMultiline comm || isHaddock comm || isCommentWhitespace comm)
+  && not (isCommentMultiline comm || isHaddock comm || isDoctest comm || isCommentWhitespace comm)
 
 -- | The start line number of a comment.
 commentLine :: LEpaComment -> Int
@@ -87,6 +87,11 @@ check singles somes comm@(L{})
          | trailingEmpty singles somes -> [trailingEmptyHaddockSingle comm]
          | doubleEmpty singles somes -> [doubleEmptyHaddockSingle comm]
          | otherwise -> []
+  | isDoctestWhitespace comm =
+      if | leadingEmpty singles somes -> [leadingEmptyDoctestSingle comm]
+         | trailingEmpty singles somes -> [trailingEmptyDoctestSingle comm]
+         | doubleEmpty singles somes -> [doubleEmptyDoctestSingle comm]
+         | otherwise -> []
   | isCommentWhitespace comm =
       if | isMultiline -> [emptyCommentMulti comm]
          | leadingEmpty singles somes -> [leadingEmptyCommentSingle comm]
@@ -102,11 +107,11 @@ check singles somes comm@(L{})
       name = takeWhile (\x -> isAlphaNum x || x == '_') $ trimStart s
 check _ _ _ = []
 
-isHaddockWhitespace :: LEpaComment -> Bool
-isHaddockWhitespace comm = isHaddock comm && isStringWhitespace (drop 2 $ commentText comm)
-
 isHaddock :: LEpaComment -> Bool
 isHaddock (take 2 . commentText -> s) = " |" == s || " ^" == s
+
+isDoctest :: LEpaComment -> Bool
+isDoctest (commentText -> s) = " >>>" `isPrefixOf` s
 
 isStringWhitespace :: String -> Bool
 isStringWhitespace = not . any (`notElem` " \t\r\n")
@@ -115,17 +120,27 @@ isCommentWhitespace :: LEpaComment -> Bool
 isCommentWhitespace comm@(L (anchor -> span) _ ) =
   not (isPointRealSpan span) && isStringWhitespace (commentText comm)
 
-doubleEmptyCommentSingle, doubleEmptyHaddockSingle :: LEpaComment -> Idea
+isHaddockWhitespace :: LEpaComment -> Bool
+isHaddockWhitespace comm = isHaddock comm && isStringWhitespace (drop 2 $ commentText comm)
+
+isDoctestWhitespace :: LEpaComment -> Bool
+isDoctestWhitespace comm@(L (anchor -> span) _ ) =
+  not (isPointRealSpan span) && isDoctest comm
+
+doubleEmptyCommentSingle, doubleEmptyHaddockSingle, doubleEmptyDoctestSingle :: LEpaComment -> Idea
 doubleEmptyCommentSingle = emptyComment ("--" ++) "Double empty single-line comment"
 doubleEmptyHaddockSingle = emptyComment ("--" ++) "Double empty single-line haddock"
+doubleEmptyDoctestSingle = emptyComment ("--" ++) "Double empty single-line doctest"
 
-trailingEmptyCommentSingle, trailingEmptyHaddockSingle :: LEpaComment -> Idea
+trailingEmptyCommentSingle, trailingEmptyHaddockSingle, trailingEmptyDoctestSingle :: LEpaComment -> Idea
 trailingEmptyCommentSingle = emptyComment ("--" ++) "Trailing empty single-line comment"
 trailingEmptyHaddockSingle = emptyComment ("--" ++) "Trailing empty single-line haddock"
+trailingEmptyDoctestSingle = emptyComment ("--" ++) "Trailing empty single-line doctest"
 
-leadingEmptyCommentSingle, leadingEmptyHaddockSingle :: LEpaComment -> Idea
+leadingEmptyCommentSingle, leadingEmptyHaddockSingle , leadingEmptyDoctestSingle :: LEpaComment -> Idea
 leadingEmptyCommentSingle = emptyComment ("--" ++) "Leading empty single-line comment"
 leadingEmptyHaddockSingle = emptyComment ("--" ++) "Leading empty single-line haddock"
+leadingEmptyDoctestSingle = emptyComment ("--" ++) "Leading empty single-line doctest"
 
 emptyCommentMulti, emptyHaddockMulti :: LEpaComment -> Idea
 emptyCommentMulti = emptyComment (\s -> "{-" ++ s ++ "-}") "Empty multi-line comment"
