@@ -34,7 +34,27 @@ haddockAboveSingles = 1
 haddockAboveDoctest = 1
 
 OUTPUT
-No hints
+tests/empty-comment-singles.hs:2:1-4: Suggestion: Leading empty single-line haddock
+Found:
+  -- |
+Perhaps you should remove it.
+
+tests/empty-comment-singles.hs:3:1-2: Suggestion: Leading empty single-line comment
+Found:
+  --
+Perhaps you should remove it.
+
+tests/empty-comment-singles.hs:6:1-4: Suggestion: Leading empty single-line haddock
+Found:
+  -- |
+Perhaps you should remove it.
+
+tests/empty-comment-singles.hs:7:1-6: Suggestion: Leading empty single-line doctest
+Found:
+  -- >>>
+Perhaps you should remove it.
+
+4 hints
 
 ---------------------------------------------------------------------
 RUN tests/empty-comment-multi.hs
