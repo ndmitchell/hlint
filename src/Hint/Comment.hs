@@ -79,24 +79,31 @@ leadingEmpty singles somes = let empties = somes \\ singles in
       ([], _) -> False
       (e : _, s : _) -> e < s
 
+data EmptyComment = EmptyHaddock | EmptyDoctest | EmptyComment
+
+ppr :: EmptyComment -> String
+ppr EmptyHaddock = "haddock"
+ppr EmptyDoctest = "doctest"
+ppr EmptyComment = "comment"
+
 check :: [Int] -> [Int] -> LEpaComment -> [Idea]
 check singles somes comm@(L{})
   | isHaddockWhitespace comm =
       if | isMultiline -> [emptyHaddockMulti comm]
-         | leadingEmpty singles somes -> [leadingEmptyHaddockSingle comm]
-         | trailingEmpty singles somes -> [trailingEmptyHaddockSingle comm]
-         | doubleEmpty singles somes -> [doubleEmptyHaddockSingle comm]
+         | leadingEmpty singles somes -> [leadingEmptyIdea EmptyHaddock comm]
+         | trailingEmpty singles somes -> [trailingEmptyIdea EmptyHaddock comm]
+         | doubleEmpty singles somes -> [doubleEmptyIdea EmptyHaddock comm]
          | otherwise -> []
   | isDoctestWhitespace comm =
-      if | leadingEmpty singles somes -> [leadingEmptyDoctestSingle comm]
-         | trailingEmpty singles somes -> [trailingEmptyDoctestSingle comm]
-         | doubleEmpty singles somes -> [doubleEmptyDoctestSingle comm]
+      if | leadingEmpty singles somes -> [leadingEmptyIdea EmptyDoctest comm]
+         | trailingEmpty singles somes -> [trailingEmptyIdea EmptyDoctest comm]
+         | doubleEmpty singles somes -> [doubleEmptyIdea EmptyDoctest comm]
          | otherwise -> []
   | isCommentWhitespace comm =
       if | isMultiline -> [emptyCommentMulti comm]
-         | leadingEmpty singles somes -> [leadingEmptyCommentSingle comm]
-         | trailingEmpty singles somes -> [trailingEmptyCommentSingle comm]
-         | doubleEmpty singles somes -> [doubleEmptyCommentSingle comm]
+         | leadingEmpty singles somes -> [leadingEmptyIdea EmptyComment comm]
+         | trailingEmpty singles somes -> [trailingEmptyIdea EmptyComment comm]
+         | doubleEmpty singles somes -> [doubleEmptyIdea EmptyComment comm]
          | otherwise -> []
   | isMultiline, null (commentText comm) = [emptyCommentMulti comm]
   | isMultiline, "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
@@ -124,27 +131,23 @@ isHaddockWhitespace :: LEpaComment -> Bool
 isHaddockWhitespace comm = isHaddock comm && isStringWhitespace (drop 2 $ commentText comm)
 
 isDoctestWhitespace :: LEpaComment -> Bool
-isDoctestWhitespace comm@(L (anchor -> span) _ ) =
-  not (isPointRealSpan span) && isDoctest comm
+isDoctestWhitespace comm@(L (anchor -> span) _ ) = not (isPointRealSpan span) && isDoctest comm
 
-doubleEmptyCommentSingle, doubleEmptyHaddockSingle, doubleEmptyDoctestSingle :: LEpaComment -> Idea
-doubleEmptyCommentSingle = emptyComment ("--" ++) "Double empty single-line comment"
-doubleEmptyHaddockSingle = emptyComment ("--" ++) "Double empty single-line haddock"
-doubleEmptyDoctestSingle = emptyComment ("--" ++) "Double empty single-line doctest"
+doubleEmptyIdea :: EmptyComment -> LEpaComment -> Idea
+doubleEmptyIdea s = emptyComment ("--" ++) $ "Double empty single-line " ++ ppr s
 
-trailingEmptyCommentSingle, trailingEmptyHaddockSingle, trailingEmptyDoctestSingle :: LEpaComment -> Idea
-trailingEmptyCommentSingle = emptyComment ("--" ++) "Trailing empty single-line comment"
-trailingEmptyHaddockSingle = emptyComment ("--" ++) "Trailing empty single-line haddock"
-trailingEmptyDoctestSingle = emptyComment ("--" ++) "Trailing empty single-line doctest"
+trailingEmptyIdea :: EmptyComment -> LEpaComment -> Idea
+trailingEmptyIdea s = emptyComment ("--" ++) $ "Trailing empty single-line " ++ ppr s
 
-leadingEmptyCommentSingle, leadingEmptyHaddockSingle , leadingEmptyDoctestSingle :: LEpaComment -> Idea
-leadingEmptyCommentSingle = emptyComment ("--" ++) "Leading empty single-line comment"
-leadingEmptyHaddockSingle = emptyComment ("--" ++) "Leading empty single-line haddock"
-leadingEmptyDoctestSingle = emptyComment ("--" ++) "Leading empty single-line doctest"
+leadingEmptyIdea :: EmptyComment -> LEpaComment -> Idea
+leadingEmptyIdea s = emptyComment ("--" ++) $ "Leading empty single-line " ++ ppr s
+
+emptyMultiIdea :: String -> LEpaComment -> Idea
+emptyMultiIdea s = emptyComment (\s -> "{-" ++ s ++ "-}") $ "Empty multi-line " ++ s
 
 emptyCommentMulti, emptyHaddockMulti :: LEpaComment -> Idea
-emptyCommentMulti = emptyComment (\s -> "{-" ++ s ++ "-}") "Empty multi-line comment"
-emptyHaddockMulti = emptyComment (\s -> "{-" ++ s ++ "-}") "Empty multi-line haddock"
+emptyCommentMulti = emptyMultiIdea "comment"
+emptyHaddockMulti = emptyMultiIdea "haddock"
 
 refact :: SrcSpan -> String -> [Refactoring R.SrcSpan]
 refact loc s = [ModifyComment (toRefactSrcSpan loc) s]
