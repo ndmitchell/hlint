@@ -177,7 +177,7 @@ showBuiltin BuiltinHint{..} = row1
       where
       eTo' = case eTo of
         Nothing -> ""
-        Just "" -> "Perhaps you should remove it."
+        Just "" -> "You may be able to remove it."
         Just s -> s
 
 lhsRhsTable :: [HintRule] -> [String]
