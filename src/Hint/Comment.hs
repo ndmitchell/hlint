@@ -17,8 +17,9 @@
 
 module Hint.Comment(commentHint) where
 
+import Debug.Trace
+
 import Hint.Type
-import Data.Char
 import Data.List.Extra
 import Refact.Types(Refactoring(ModifyComment))
 import Refact.Types qualified as R (SrcSpan)
@@ -32,13 +33,57 @@ directives = words $
     "LANGUAGE OPTIONS_GHC INCLUDE WARNING DEPRECATED MINIMAL INLINE NOINLINE INLINABLE " ++
     "CONLIKE LINE SPECIALIZE SPECIALISE UNPACK NOUNPACK SOURCE"
 
+commentRuns :: ModuleEx -> [[LEpaComment]]
+commentRuns m =
+    traceShow (map (map commentText) xs)
+    xs
+  where
+    comments :: [LEpaComment]
+    comments = ghcComments m
+
+    xs =
+      foldl'
+        (\xs y@(L (anchor -> spanY) _) ->
+          case xs of
+            [] -> [[y]]
+            head@(((L (anchor -> spanX) _)) : _) : tails ->
+              let startX = srcSpanStartLine spanX
+                  startY = srcSpanStartLine spanY
+                  endX = srcSpanEndLine spanX
+                  endY = srcSpanEndLine spanY
+              in
+                traceShow ((startY, endY), (startX, endX)) $
+                if endY + 1 == startX then (y : head) : tails else [y] : xs
+            )
+        []
+        (reverse comments)
+
+dropBlankLinesHint :: [LEpaComment] -> (Bool, [Idea])
+dropBlankLinesHint comments =
+  (True, traceShow ys $ traceShow xs $ trace content'' $ trace content $ traceShow comments [])
+  -- (True, [])
+  where
+    xs = commentText <$> comments
+    content = unlines $ ("- --" ++) <$> xs
+
+    ys = (\l ->
+      [ x
+      | (x,y) <- zip l (tail l)
+      , x /= y || x /= ""
+      ]) xs
+
+    content'' = unlines $ ("+ --" ++) <$> ys
 
 commentHint :: ModuHint
-commentHint _ m = concatMap (check singleLines someLines) comments
+commentHint _ m =
+  if any fst runs
+    then concatMap snd runs
+    else concatMap (check singleLines someLines) comments
   where
     comments = ghcComments m
     singleLines = sort $ commentLine <$> filter isSingle comments
     someLines = sort $ commentLine <$> filter isSingleSome comments
+    runs = dropBlankLinesHint <$> commentRuns m
 
 -- | Does the commment start with "--"? Can be empty. Excludes haddock single
 -- line comments, "-- |" and "-- ^".
@@ -69,49 +114,67 @@ doubleEmpty singles somes = let empties = somes \\ singles in
 
 -- | Do we have trailing empty single comment lines?
 trailingEmpty :: [Int] -> [Int] -> Bool
-trailingEmpty singles somes = leadingEmpty (reverse singles) (reverse somes)
+trailingEmpty singles somes =
+  traceShow ("trailing", singles, somes) $
+  leadingEmpty (reverse singles) (reverse somes)
 
 -- | Do we have leading empty single comment lines?
 leadingEmpty :: [Int] -> [Int] -> Bool
-leadingEmpty singles somes = let empties = somes \\ singles in
+leadingEmpty singles somes =
+  let empties = singles \\ somes in
+  traceShow ("leading", empties, singles, somes) $
   case (empties, somes) of
       (_, []) -> True
       ([], _) -> False
-      (e : _, s : _) -> e < s
+      (e : _, s : _) -> traceShow ("e vs s", e < s) $ e < s
 
-data EmptyComment = EmptyHaddock | EmptyDoctest | EmptyComment
+data EmptyComment = EmptyHaddock | EmptyDoctest | EmptyComment deriving Eq
 
 ppr :: EmptyComment -> String
 ppr EmptyHaddock = "haddock"
 ppr EmptyDoctest = "doctest"
 ppr EmptyComment = "comment"
 
+commentFirstLine :: LEpaComment -> Maybe EmptyComment
+commentFirstLine comm@(L _ _) = let s = commentText comm
+  in case s of
+    "" -> Just EmptyComment
+    " |" -> Just EmptyHaddock
+    " >>>" -> Just EmptyDoctest
+    _ -> Nothing
+
 check :: [Int] -> [Int] -> LEpaComment -> [Idea]
 check singles somes comm@(L{})
-  | isHaddockWhitespace comm =
+  | isHaddockWhitespace comm = traceShow ("haddock", comm) $
       if | isMultiline -> [emptyHaddockMulti comm]
+         | leadingEmptyHaddock ->
+            traceShow (line, singles, somes) $
+            [replaceComment "Try this" comm]
+            --[leadingEmptyIdea EmptyHaddock comm]
          | leadingEmpty singles somes -> [leadingEmptyIdea EmptyHaddock comm]
-         | trailingEmpty singles somes -> [trailingEmptyIdea EmptyHaddock comm]
-         | doubleEmpty singles somes -> [doubleEmptyIdea EmptyHaddock comm]
+        --  | trailingEmpty singles somes -> [trailingEmptyIdea EmptyHaddock comm]
+        --  | doubleEmpty singles somes -> [doubleEmptyIdea EmptyHaddock comm]
          | otherwise -> []
-  | isDoctestWhitespace comm =
-      if | leadingEmpty singles somes -> [leadingEmptyIdea EmptyDoctest comm]
-         | trailingEmpty singles somes -> [trailingEmptyIdea EmptyDoctest comm]
-         | doubleEmpty singles somes -> [doubleEmptyIdea EmptyDoctest comm]
-         | otherwise -> []
-  | isCommentWhitespace comm =
-      if | isMultiline -> [emptyCommentMulti comm]
-         | leadingEmpty singles somes -> [leadingEmptyIdea EmptyComment comm]
-         | trailingEmpty singles somes -> [trailingEmptyIdea EmptyComment comm]
-         | doubleEmpty singles somes -> [doubleEmptyIdea EmptyComment comm]
-         | otherwise -> []
-  | isMultiline, null (commentText comm) = [emptyCommentMulti comm]
-  | isMultiline, "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
-  | isMultiline, name `elem` directives = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
+  -- | isDoctestWhitespace comm =
+  --     if | leadingEmpty singles somes -> [leadingEmptyIdea EmptyDoctest comm]
+  --        | trailingEmpty singles somes -> [trailingEmptyIdea EmptyDoctest comm]
+  --        | doubleEmpty singles somes -> [doubleEmptyIdea EmptyDoctest comm]
+  --        | otherwise -> []
+  -- | isCommentWhitespace comm =
+  --     if | isMultiline -> [emptyCommentMulti comm]
+  --        | leadingEmpty singles somes -> [leadingEmptyIdea EmptyComment comm]
+  --        | trailingEmpty singles somes -> [trailingEmptyIdea EmptyComment comm]
+  --        | doubleEmpty singles somes -> [doubleEmptyIdea EmptyComment comm]
+  --        | otherwise -> []
+  -- | isMultiline, null (commentText comm) = [emptyCommentMulti comm]
+  -- | isMultiline, "#" `isSuffixOf` s && not ("#" `isPrefixOf` s) = [grab "Fix pragma markup" comm $ '#':s]
+  -- | isMultiline, name `elem` directives = [grab "Use pragma syntax" comm $ "# " ++ trim s ++ " #"]
     where
       isMultiline = isCommentMultiline comm
       s = commentText comm
-      name = takeWhile (\x -> isAlphaNum x || x == '_') $ trimStart s
+      leadingEmptyHaddock = commentFirstLine comm == Just EmptyHaddock
+      line = commentLine comm
+      -- name = takeWhile (\x -> isAlphaNum x || x == '_') $ trimStart s
 check _ _ _ = []
 
 isHaddock :: LEpaComment -> Bool
@@ -151,6 +214,21 @@ emptyHaddockMulti = emptyMultiIdea "haddock"
 
 refact :: SrcSpan -> String -> [Refactoring R.SrcSpan]
 refact loc s = [ModifyComment (toRefactSrcSpan loc) s]
+
+replaceComment :: String -> LEpaComment -> Idea
+replaceComment update o@(L pos _) =
+  let s1 = commentText o
+      loc = RealSrcSpan (anchor pos) GHC.Data.Strict.Nothing
+  in
+    rawIdea
+      Suggestion
+      "Remove comment blank lines"
+      loc
+      s1
+      (Just update)
+      []
+      (refact loc "")
+      --[ModifyComment (toRefactSrcSpan pos) "Do this"]
 
 emptyComment :: (String -> String) -> String -> LEpaComment -> Idea
 emptyComment f msg o@(L pos _) =
