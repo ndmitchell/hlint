@@ -61,6 +61,9 @@ commentRuns m =
         []
         (reverse comments)
 
+isHaddockLeader :: String -> Bool
+isHaddockLeader h = h == " |" || h == " ^"
+
 dropBlankLinesHint :: [LEpaComment] -> (Bool, [Idea])
 dropBlankLinesHint comments =
   ( True
@@ -82,9 +85,14 @@ dropBlankLinesHint comments =
       ]) (xs ++ [""])
 
     -- Get rid of leading empty lines with haddock comments.
+    -- TODO: Add configuration on how to merge into haddock leader.
     ys' = case ys of
-      h : "" : y : ys | h == " |" || h == " ^" -> (h ++ y) : ys
-      h : "" : ys | h == " |" || h == " ^" -> h : ys
+      -- Merge first non-empty line with haddock leader.
+      h : "" : y : ys | isHaddockLeader h -> (h ++ y) : ys
+
+      -- Place first non-empty line one line after haddock leader.
+      h : "" : ys | isHaddockLeader h -> h : ys
+
       _ -> ys
 
     content'' = unlines $ ("+ --" ++) <$> ys'
