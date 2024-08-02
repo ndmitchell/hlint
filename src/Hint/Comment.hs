@@ -38,8 +38,11 @@ commentRuns m =
     traceShow (map (map commentText) xs)
     xs
   where
+    -- Comments need to be sorted by line number for detecting runs of single
+    -- line comments but @ghcComments@ doesn't always do that even though most
+    -- of the time it seems to.
     comments :: [LEpaComment]
-    comments = ghcComments m
+    comments = sortOn (\(L (anchor -> span) _) -> srcSpanStartLine span) $ ghcComments m
 
     xs =
       foldl'
