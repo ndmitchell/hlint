@@ -1,4 +1,5 @@
 {-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE LambdaCase #-}
 
 {-
 <TEST>
@@ -33,17 +34,32 @@ directives = words $
     "LANGUAGE OPTIONS_GHC INCLUDE WARNING DEPRECATED MINIMAL INLINE NOINLINE INLINABLE " ++
     "CONLIKE LINE SPECIALIZE SPECIALISE UNPACK NOUNPACK SOURCE"
 
-commentRuns :: ModuleEx -> [[LEpaComment]]
-commentRuns m =
+data Comments = Comments
+    { commPragma :: ![LEpaComment]
+    , commBlockHaddocks :: ![LEpaComment]
+    , commBlocks :: ![LEpaComment]
+    -- TODO: Process the different types of block comments; [" |",""].
+    -- * Haddock comments
+    -- * Simple comments
+    , commRunHaddocks :: ![[LEpaComment]]
+    , commRuns :: ![[LEpaComment]]
+    , commLineHaddocks :: ![LEpaComment]
+    , commLines :: ![LEpaComment]
+    }
+
+classifyComments :: [LEpaComment] -> Comments
+classifyComments xs = Comments pragmas blockHaddocks blocks runHaddocks runs lineHaddocks lines where
+  (partition isCommentPragma -> (pragmas, allBlocks), singles) = partition isCommentMultiline xs
+  (blockHaddocks, blocks) = partition isCommentHaddock allBlocks
+  (concat -> singles', rawRuns) = partition ((== 1) . length) $ commentRuns singles
+  (runHaddocks, runs) = partition (\case x : _  -> isCommentHaddock x; _ -> False) rawRuns
+  (lineHaddocks, lines) = partition isCommentHaddock singles'
+
+commentRuns :: [LEpaComment] -> [[LEpaComment]]
+commentRuns comments =
     traceShow (map (map commentText) xs)
     xs
   where
-    -- Comments need to be sorted by line number for detecting runs of single
-    -- line comments but @ghcComments@ doesn't always do that even though most
-    -- of the time it seems to.
-    comments :: [LEpaComment]
-    comments = sortOn (\(L (anchor -> span) _) -> srcSpanStartLine span) $ ghcComments m
-
     xs =
       foldl'
         (\xs y@(L (anchor -> spanY) _) ->
@@ -104,14 +120,32 @@ commentHint _ m =
   -- b) runs of single-line comments
   -- c) single-line comments
   -- TODO: Remove (True, _) runs and then run the other checks on the rest.
-  if any fst runs
-    then concatMap snd runs
+  traceShow ("pragmas", commentText <$> pragmas) $
+  traceShow ("blockHaddocks", commentText <$> blockHaddocks) $
+  traceShow ("blocks", commentText <$> blocks) $
+  traceShow ("runHaddocks", fmap commentText <$> runHaddocks) $
+  traceShow ("runs", fmap commentText <$> runs) $
+  traceShow ("lineHaddocks", commentText <$> lineHaddocks) $
+  traceShow ("lines", commentText <$> lines) $
+  if any fst runReplacements
+    then concatMap snd runReplacements
     else concatMap (check singleLines someLines) comments
   where
-    comments = ghcComments m
+    -- Comments need to be sorted by line number for detecting runs of single
+    -- line comments but @ghcComments@ doesn't always do that even though most
+    -- of the time it seems to.
+    comments :: [LEpaComment]
+    comments = sortOn (\(L (anchor -> span) _) -> srcSpanStartLine span) $ ghcComments m
+
     singleLines = sort $ commentLine <$> filter isSingle comments
     someLines = sort $ commentLine <$> filter isSingleSome comments
-    runs = dropBlankLinesHint <$> commentRuns m
+
+    Comments pragmas blockHaddocks blocks runHaddocks runs lineHaddocks lines = classifyComments comments
+
+    runReplacements =
+      (dropBlankLinesHint <$> runHaddocks)
+      ++
+      (dropBlankLinesHint <$> runs)
 
 -- | Does the commment start with "--"? Can be empty. Excludes haddock single
 -- line comments, "-- |" and "-- ^".
