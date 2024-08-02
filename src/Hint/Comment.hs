@@ -60,22 +60,39 @@ commentRuns m =
 
 dropBlankLinesHint :: [LEpaComment] -> (Bool, [Idea])
 dropBlankLinesHint comments =
-  (True, traceShow ys $ traceShow xs $ trace content'' $ trace content $ traceShow comments [])
+  ( True
+  , traceShow xs $
+    traceShow ys $
+    traceShow ys' $
+    trace content $
+    trace content''
+    [])
   -- (True, [])
   where
     xs = commentText <$> comments
     content = unlines $ ("- --" ++) <$> xs
 
     ys = (\l ->
-      [ x
+      [ traceShow ("x", "y", (x, y)) x
       | (x,y) <- zip l (tail l)
       , x /= y || x /= ""
-      ]) xs
+      ]) (xs ++ [""])
 
-    content'' = unlines $ ("+ --" ++) <$> ys
+    -- Get rid of leading empty lines with haddock comments.
+    ys' = case ys of
+      h : "" : y : ys | h == " |" || h == " ^" -> (h ++ y) : ys
+      h : "" : ys | h == " |" || h == " ^" -> h : ys
+      _ -> ys
+
+    content'' = unlines $ ("+ --" ++) <$> ys'
 
 commentHint :: ModuHint
 commentHint _ m =
+  -- PLAN: Split the comment into;
+  -- a) block comments {- .. -}
+  -- b) runs of single-line comments
+  -- c) single-line comments
+  -- TODO: Remove (True, _) runs and then run the other checks on the rest.
   if any fst runs
     then concatMap snd runs
     else concatMap (check singleLines someLines) comments
