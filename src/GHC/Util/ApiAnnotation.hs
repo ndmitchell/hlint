@@ -5,6 +5,7 @@ module GHC.Util.ApiAnnotation (
   , commentText
   , GHC.Util.ApiAnnotation.comments
   , isCommentMultiline
+  , isCommentPragma
   , pragmas
   , flags
   , languagePragmas
@@ -60,6 +61,11 @@ comments EpAnnNotUsed = emptyComments
 isCommentMultiline :: LEpaComment -> Bool
 isCommentMultiline (L _ (EpaComment (EpaBlockComment _) _)) = True
 isCommentMultiline _ = False
+
+isCommentPragma :: LEpaComment -> Bool
+isCommentPragma (L _ (EpaComment (EpaBlockComment comm) _)) =
+  "{-#" `isPrefixOf` comm && "#-}" `isSuffixOf` comm
+isCommentPragma _ = False
 
 -- Pragmas have the form @{-# ...#-}@.
 pragmas :: EpAnnComments -> [(LEpaComment, String)]
