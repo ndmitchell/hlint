@@ -1,0 +1,5 @@
+-- |
+haddockAboveSingle = 1
+
+haddockBelowSingle = 1
+-- ^

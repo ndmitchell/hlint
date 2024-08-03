@@ -1,0 +1,11 @@
+-- |
+--
+--
+-- foo
+haddockAboveIntoNonEmpty = 1
+
+haddockBelowIntoNonEmpty = 1
+-- ^
+--
+--
+-- foo
