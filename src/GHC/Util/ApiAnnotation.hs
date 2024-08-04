@@ -70,7 +70,7 @@ isCommentPragma _ = False
 
 isCommentHaddock :: LEpaComment -> Bool
 isCommentHaddock (L _ (EpaComment (EpaBlockComment comm) _)) =
-  "{- |" `isPrefixOf` comm && "-}" `isSuffixOf` comm
+  ("{- |" `isPrefixOf` comm || "{- ^" `isPrefixOf` comm) && "-}" `isSuffixOf` comm
 isCommentHaddock (L _ (EpaComment (EpaLineComment comm) _)) =
   "-- |" `isPrefixOf` comm || "-- ^" `isPrefixOf` comm
 isCommentHaddock _ = False
