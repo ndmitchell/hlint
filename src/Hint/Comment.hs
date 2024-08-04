@@ -127,9 +127,7 @@ commentHint _ m =
   traceShow ("runs", fmap commentText <$> runs) $
   traceShow ("lineHaddocks", commentText <$> lineHaddocks) $
   traceShow ("lines", commentText <$> lines) $
-  if any fst runReplacements
-    then concatMap snd runReplacements
-    else concatMap (check singleLines someLines) comments
+  blockHaddockIdeas ++ ideas
   where
     -- Comments need to be sorted by line number for detecting runs of single
     -- line comments but @ghcComments@ doesn't always do that even though most
@@ -142,10 +140,16 @@ commentHint _ m =
 
     Comments pragmas blockHaddocks blocks runHaddocks runs lineHaddocks lines = classifyComments comments
 
+    blockHaddockIdeas = concatMap checkEmptyBlockHaddocks blockHaddocks
+
     runReplacements =
       (dropBlankLinesHint <$> runHaddocks)
       ++
       (dropBlankLinesHint <$> runs)
+
+    ideas = if any fst runReplacements
+      then concatMap snd runReplacements
+      else concatMap (check singleLines someLines) comments
 
 -- | Does the commment start with "--"? Can be empty. Excludes haddock single
 -- line comments, "-- |" and "-- ^".
@@ -205,11 +209,14 @@ commentFirstLine comm@(L _ _) = let s = commentText comm
     " >>>" -> Just EmptyDoctest
     _ -> Nothing
 
+checkEmptyBlockHaddocks :: LEpaComment -> [Idea]
+checkEmptyBlockHaddocks comm = [emptyHaddockMulti comm | isHaddockWhitespace comm]
+
 check :: [Int] -> [Int] -> LEpaComment -> [Idea]
 check singles somes comm@(L{})
-  | isHaddockWhitespace comm = traceShow ("haddock", comm) $
-      if | isMultiline -> [emptyHaddockMulti comm]
-         | leadingEmptyHaddock ->
+  -- Multi-line haddock comments are handled elsewhere.
+  | isHaddockWhitespace comm && not (isCommentMultiline comm) = traceShow ("haddock", comm) $
+      if | leadingEmptyHaddock ->
             traceShow (line, singles, somes) $
             [replaceComment "Try this" comm]
             --[leadingEmptyIdea EmptyHaddock comm]
