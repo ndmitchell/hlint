@@ -127,7 +127,9 @@ commentHint _ m =
   traceShow ("runs", fmap commentText <$> runs) $
   traceShow ("lineHaddocks", commentText <$> lineHaddocks) $
   traceShow ("lines", commentText <$> lines) $
-  blockHaddockIdeas ++ ideas
+  blockHaddockIdeas
+  ++ blockIdeas
+  ++ ideas
   where
     -- Comments need to be sorted by line number for detecting runs of single
     -- line comments but @ghcComments@ doesn't always do that even though most
@@ -140,7 +142,8 @@ commentHint _ m =
 
     Comments pragmas blockHaddocks blocks runHaddocks runs lineHaddocks lines = classifyComments comments
 
-    blockHaddockIdeas = concatMap checkEmptyBlockHaddocks blockHaddocks
+    blockHaddockIdeas = concatMap checkEmptyBlockHaddock blockHaddocks
+    blockIdeas = concatMap checkEmptyBlock blocks
 
     runReplacements =
       (dropBlankLinesHint <$> runHaddocks)
@@ -209,8 +212,11 @@ commentFirstLine comm@(L _ _) = let s = commentText comm
     " >>>" -> Just EmptyDoctest
     _ -> Nothing
 
-checkEmptyBlockHaddocks :: LEpaComment -> [Idea]
-checkEmptyBlockHaddocks comm = [emptyHaddockMulti comm | isHaddockWhitespace comm]
+checkEmptyBlockHaddock :: LEpaComment -> [Idea]
+checkEmptyBlockHaddock comm = [emptyHaddockMulti comm | isHaddockWhitespace comm]
+
+checkEmptyBlock :: LEpaComment -> [Idea]
+checkEmptyBlock comm = [emptyCommentMulti comm | isCommentWhitespace comm]
 
 check :: [Int] -> [Int] -> LEpaComment -> [Idea]
 check singles somes comm@(L{})
