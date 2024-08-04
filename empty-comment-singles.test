@@ -1,0 +1,7 @@
+-- |
+--
+haddockAboveSingles = 1
+
+-- |
+-- >>>
+haddockAboveDoctest = 1

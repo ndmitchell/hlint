@@ -1,0 +1,11 @@
+-- |
+--
+-- Comment with blank line comment space above and below.
+--
+commentWithSpace = 1
+
+-- | Introduction line.
+--
+-- Comment with introduction line above and blank line below.
+--
+CommentWithSpaceOnlyAfter = 1
