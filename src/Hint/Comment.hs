@@ -19,6 +19,7 @@
 module Hint.Comment(commentHint) where
 
 import Debug.Trace
+import Data.Maybe (fromMaybe)
 
 import Hint.Type
 import Data.List.Extra
@@ -127,7 +128,8 @@ commentHint _ m =
   traceShow ("runs", fmap commentText <$> runs) $
   traceShow ("lineHaddocks", commentText <$> lineHaddocks) $
   traceShow ("lines", commentText <$> lines) $
-  blockHaddockIdeas
+  pragmaIdeas
+  ++ blockHaddockIdeas
   ++ blockIdeas
   ++ ideas
   where
@@ -142,6 +144,7 @@ commentHint _ m =
 
     Comments pragmas blockHaddocks blocks runHaddocks runs lineHaddocks lines = classifyComments comments
 
+    pragmaIdeas = concatMap checkEmptyPragma pragmas
     blockHaddockIdeas = concatMap checkEmptyBlockHaddock blockHaddocks
     blockIdeas = concatMap checkEmptyBlock blocks
 
@@ -218,6 +221,9 @@ checkEmptyBlockHaddock comm = [emptyHaddockMulti comm | isHaddockWhitespace comm
 checkEmptyBlock :: LEpaComment -> [Idea]
 checkEmptyBlock comm = [emptyCommentMulti comm | isCommentWhitespace comm]
 
+checkEmptyPragma :: LEpaComment -> [Idea]
+checkEmptyPragma comm = [emptyPragma comm | isPragmaWhitespace comm]
+
 check :: [Int] -> [Int] -> LEpaComment -> [Idea]
 check singles somes comm@(L{})
   -- Multi-line haddock comments are handled elsewhere.
@@ -268,6 +274,10 @@ isCommentWhitespace comm@(L (anchor -> span) _ ) =
 isHaddockWhitespace :: LEpaComment -> Bool
 isHaddockWhitespace comm = isHaddock comm && isStringWhitespace (drop 2 $ commentText comm)
 
+isPragmaWhitespace :: LEpaComment -> Bool
+isPragmaWhitespace comm = maybe False isStringWhitespace
+  (stripSuffix "#" =<< stripPrefix "#" (commentText comm))
+
 isDoctestWhitespace :: LEpaComment -> Bool
 isDoctestWhitespace comm@(L (anchor -> span) _ ) = not (isPointRealSpan span) && isDoctest comm
 
@@ -282,6 +292,9 @@ leadingEmptyIdea s = emptyComment ("--" ++) $ "Leading empty single-line " ++ pp
 
 emptyMultiIdea :: String -> LEpaComment -> Idea
 emptyMultiIdea s = emptyComment (\s -> "{-" ++ s ++ "-}") $ "Empty multi-line " ++ s
+
+emptyPragma :: LEpaComment -> Idea
+emptyPragma = emptyComment (\s -> "{-" ++ s ++ "-}") $ "Empty pragma "
 
 emptyCommentMulti, emptyHaddockMulti :: LEpaComment -> Idea
 emptyCommentMulti = emptyMultiIdea "comment"
