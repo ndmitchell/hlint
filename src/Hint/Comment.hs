@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
 
@@ -81,16 +82,14 @@ commentRuns comments =
 isHaddockLeader :: String -> Bool
 isHaddockLeader h = h == " |" || h == " ^"
 
-dropBlankLinesHint :: [LEpaComment] -> (Bool, [Idea])
+dropBlankLinesHint :: [LEpaComment] -> [Idea]
 dropBlankLinesHint comments =
-  ( True
-  , traceShow xs $
-    traceShow ys $
-    traceShow ys' $
-    trace content $
-    trace content''
-    [])
-  -- (True, [])
+  traceShow xs $
+  traceShow ys $
+  traceShow ys' $
+  trace content $
+  trace content'' $
+  replaceComment "Drop blank lines" (head comments) : map (emptyComment (\s -> "{-" ++ s ++ "-}") "Drop blank lines") (tail comments)
   where
     xs = commentText <$> comments
     content = unlines $ ("- --" ++) <$> xs
@@ -131,6 +130,7 @@ commentHint _ m =
   pragmaIdeas
   ++ blockHaddockIdeas
   ++ blockIdeas
+  -- ++ runHaddockIdeas
   ++ ideas
   where
     -- Comments need to be sorted by line number for detecting runs of single
@@ -147,15 +147,40 @@ commentHint _ m =
     pragmaIdeas = concatMap checkEmptyPragma pragmas
     blockHaddockIdeas = concatMap checkEmptyBlockHaddock blockHaddocks
     blockIdeas = concatMap checkEmptyBlock blocks
+    -- runHaddockIdeas = concatMap (\x -> traceShow ("YYYY", x) checkEmptyRunHaddock x) runHaddocks
+    -- runHaddockIdeas = concatMap (\cs@(c : _) -> let s = commentText <$> cs in
+    --   traceShow ("ZZZZ", s) checkEmptyRunHaddock s c) runHaddocks
+    runHaddockIdeas = case runHaddocks of
+      [xs@(x : _), ys@(y : _)] ->
+        -- (let s = commentText <$> xs in traceShow ("XXXX", s, x) checkEmptyRunHaddock s x)
+        -- ++
+        (let s = commentText <$> ys in traceShow ("YYYY", s, y) checkEmptyRunHaddock s y)
+      _ -> []
+    runIdeas = [] -- concatMap checkEmptyRun runs
 
-    runReplacements =
-      (dropBlankLinesHint <$> runHaddocks)
-      ++
-      (dropBlankLinesHint <$> runs)
+    runReplacements = runHaddockIdeas ++ runIdeas
 
-    ideas = if any fst runReplacements
-      then concatMap snd runReplacements
+    ideas = if not (null runReplacements)
+      then runReplacements
       else concatMap (check singleLines someLines) comments
+
+checkEmptyRunHaddock :: [String] -> LEpaComment -> [Idea]
+checkEmptyRunHaddock cs c@(L pos _) = trace "CHECK-EMPTY-RUN-HADDOCK" $
+  let s = unlines cs
+      s' = unlines ["--" ++ t | t <- lines s]
+      msg = s' -- "QQQ: at " ++ show pos ++ " with content: " ++ s'
+  in
+    traceShow ("run", s, s', commentText c, pos) $
+    if | isHaddockStringWhitespace s -> [emptyComment (const msg) ("Empty haddock run: " ++ show pos) c]
+       | isHaddockDoctestWhitespace cs -> [emptyComment (const msg) ("Empty doctest run: " ++ show pos) c]
+       | otherwise -> []
+
+-- checkEmptyRunHaddock :: [String] -> LEpaComment -> [Idea]
+-- checkEmptyRunHaddock cs c@(L pos _) = traceShow ("run", s, s', commentText c, pos) $
+--   [emptyComment (const ("XXX: at " ++ show pos ++ " with content: " ++ s')) "Empty haddock run" c | isHaddockStringWhitespace s]
+--   where
+--     s = unlines cs
+--     s' = unlines ["--" ++ t | t <- lines s]
 
 -- | Does the commment start with "--"? Can be empty. Excludes haddock single
 -- line comments, "-- |" and "-- ^".
@@ -224,14 +249,25 @@ checkEmptyBlock comm = [emptyCommentMulti comm | isCommentWhitespace comm]
 checkEmptyPragma :: LEpaComment -> [Idea]
 checkEmptyPragma comm = [emptyPragma comm | isPragmaWhitespace comm]
 
+-- checkEmptyRunHaddock :: [LEpaComment] -> [Idea]
+-- checkEmptyRunHaddock cs@(c@(L pos _) : _) = traceShow ("run", s, s', commentText c, pos) $
+--   [emptyComment (const ("XXX: at " ++ show pos ++ " with content: " ++ s')) "Empty haddock run" c | isHaddockStringWhitespace s]
+--   where
+--     s = unlines $ commentText <$> cs
+--     s' = unlines ["--" ++ t | t <- lines s]
+
+checkEmptyRun :: [LEpaComment] -> [Idea]
+checkEmptyRun = dropBlankLinesHint
+
 check :: [Int] -> [Int] -> LEpaComment -> [Idea]
 check singles somes comm@(L{})
   -- Multi-line haddock comments are handled elsewhere.
   | isHaddockWhitespace comm && not (isCommentMultiline comm) = traceShow ("haddock", comm) $
       if | leadingEmptyHaddock ->
-            traceShow (line, singles, somes) $
-            [replaceComment "Try this" comm]
-            --[leadingEmptyIdea EmptyHaddock comm]
+            traceShow (line, singles, somes)
+            -- [replaceComment "Try this" comm]
+            -- [leadingEmptyIdea EmptyHaddock comm]
+            []
          | leadingEmpty singles somes -> [leadingEmptyIdea EmptyHaddock comm]
         --  | trailingEmpty singles somes -> [trailingEmptyIdea EmptyHaddock comm]
         --  | doubleEmpty singles somes -> [doubleEmptyIdea EmptyHaddock comm]
@@ -272,11 +308,21 @@ isCommentWhitespace comm@(L (anchor -> span) _ ) =
   not (isPointRealSpan span) && isStringWhitespace (commentText comm)
 
 isHaddockWhitespace :: LEpaComment -> Bool
-isHaddockWhitespace comm = isHaddock comm && isStringWhitespace (drop 2 $ commentText comm)
+isHaddockWhitespace comm = isHaddock comm && isHaddockStringWhitespace (commentText comm)
+
+isHaddockStringWhitespace :: String -> Bool
+isHaddockStringWhitespace s = isStringWhitespace (drop 2 s)
 
 isPragmaWhitespace :: LEpaComment -> Bool
 isPragmaWhitespace comm = maybe False isStringWhitespace
   (stripSuffix "#" =<< stripPrefix "#" (commentText comm))
+
+isHaddockDoctestWhitespace :: [String] -> Bool
+isHaddockDoctestWhitespace [] = False
+isHaddockDoctestWhitespace (x : xs) = isHaddockStringWhitespace x && and
+  [ null s || " >>>" == s
+  | s <- xs
+  ]
 
 isDoctestWhitespace :: LEpaComment -> Bool
 isDoctestWhitespace comm@(L (anchor -> span) _ ) = not (isPointRealSpan span) && isDoctest comm
@@ -319,9 +365,9 @@ replaceComment update o@(L pos _) =
       --[ModifyComment (toRefactSrcSpan pos) "Do this"]
 
 emptyComment :: (String -> String) -> String -> LEpaComment -> Idea
-emptyComment f msg o@(L pos _) =
-  let s1 = commentText o
-      loc = RealSrcSpan (anchor pos) GHC.Data.Strict.Nothing
+emptyComment f msg o@(L pos _) = traceShow ("EMPTY-COMMENT", show pos) $
+  let !s1 = commentText o
+      !loc = RealSrcSpan (anchor pos) GHC.Data.Strict.Nothing
   in ideaRemove Suggestion msg loc (f s1) (refact loc "")
 
 grab :: String -> LEpaComment -> String -> Idea
