@@ -3,7 +3,7 @@
 
 module Idea(
     Idea(..),
-    rawIdea, idea, suggest, suggestRemove, ideaRemove, warn, ignore,
+    rawIdea, idea, suggest, suggestRemove, ideaRemove, warn, ignore, remark,
     rawIdeaN, suggestN, ignoreNoSuggestion,
     showIdeasJson, showIdeaANSI,
     Note(..), showNotes,
@@ -98,6 +98,10 @@ idea severity hint from to =
 -- Construct an Idea that suggests "Perhaps you should remove it."
 ideaRemove :: Severity -> String -> SrcSpan -> String -> [Refactoring R.SrcSpan] -> Idea
 ideaRemove severity hint span from = rawIdea severity hint span from (Just "") []
+
+remark :: GHC.Utils.Outputable.Outputable a
+              => Severity -> String -> Located a -> Idea
+remark severity hint from = rawIdeaN severity hint (getLoc from) (unsafePrettyPrint from) Nothing []
 
 suggest :: (GHC.Utils.Outputable.Outputable a, GHC.Utils.Outputable.Outputable b) =>
             String -> Located a -> Located b -> [Refactoring R.SrcSpan] -> Idea
