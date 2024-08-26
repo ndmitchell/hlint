@@ -120,7 +120,7 @@
     - warn: {lhs: reverse (sortOn f x), rhs: sortOn (Data.Ord.Down . f) x, name: Avoid reverse, note: Stabilizes sort order}
     - warn: {lhs: reverse (sort x), rhs: sortBy (comparing Data.Ord.Down) x, name: Avoid reverse, note: Stabilizes sort order}
     - hint: {lhs: flip (g `on` h), rhs: flip g `on` h, name: Move flip}
-    - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h), name: Fuse on/on}
+    - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h), name: Use on once}
     - warn: {lhs: if a >= b then a else b, rhs: max a b}
     - warn: {lhs: if a >= b then b else a, rhs: min a b}
     - warn: {lhs: if a > b then a else b, rhs: max a b}
@@ -165,7 +165,7 @@
     - warn: {lhs: head (drop n x), rhs: x !! max 0 n, side: not (isNat n) && not (isNeg n)}
     - warn: {lhs: reverse (init x), rhs: tail (reverse x)}
     - warn: {lhs: reverse (tail (reverse x)), rhs: init x, note: IncreasesLaziness}
-    - warn: {lhs: reverse (reverse x), rhs: x, note: IncreasesLaziness, name: Avoid reverse}
+    - warn: {lhs: reverse (reverse x), rhs: x, note: IncreasesLaziness, name: Redundant reverse}
     - warn: {lhs: isPrefixOf (reverse x) (reverse y), rhs: isSuffixOf x y}
     - warn: {lhs: "foldr (++) []", rhs: concat}
     - warn: {lhs: foldr (++) "", rhs: concat}
@@ -367,8 +367,8 @@
     - warn: {lhs: f (fst p) (snd p), rhs: uncurry f p}
     - warn: {lhs: "uncurry (\\x y -> z)", rhs: "\\(x,y) -> z"}
     - warn: {lhs: "curry (\\(x,y) -> z)", rhs: "\\x y -> z"}
-    - warn: {lhs: uncurry (curry f), rhs: f}
-    - warn: {lhs: curry (uncurry f), rhs: f}
+    - warn: {lhs: uncurry (curry f), rhs: f, name: Redundant curry/uncurry}
+    - warn: {lhs: curry (uncurry f), rhs: f, name: Redundant curry/uncurry}
     - warn: {lhs: "uncurry f (a, b)", rhs: f a b}
     - warn: {lhs: ($) (f x), rhs: f x, name: Redundant $}
     - warn: {lhs: (f $), rhs: f, name: Redundant $}
@@ -506,8 +506,8 @@
     - hint: {lhs: return x <*> y, rhs: x <$> y}
     - warn: {lhs: x <* pure y, rhs: x}
     - warn: {lhs: x <* return y, rhs: x}
-    - warn: {lhs: pure x *> y, rhs: "y"}
-    - warn: {lhs: return x *> y, rhs: "y"}
+    - warn: {lhs: pure x *> y, rhs: "y", name: Redundant *>}
+    - warn: {lhs: return x *> y, rhs: "y", name: Redundant *>}
 
     # MONAD
 
@@ -592,10 +592,10 @@
     - warn: {lhs: a >>= \_ -> b, rhs: a >> b}
     - warn: {lhs: m <* pure x, rhs: m}
     - warn: {lhs: m <* return x, rhs: m}
-    - warn: {lhs: pure x *> m, rhs: m}
-    - warn: {lhs: return x *> m, rhs: m}
-    - warn: {lhs: pure x >> m, rhs: m}
-    - warn: {lhs: return x >> m, rhs: m}
+    - warn: {lhs: pure x *> m, rhs: m, name: Redundant *>}
+    - warn: {lhs: return x *> m, rhs: m, name: Redundant *>}
+    - warn: {lhs: pure x >> m, rhs: m, name: Redundant >>}
+    - warn: {lhs: return x >> m, rhs: m, name: Redundant >>}
     - warn: {lhs: "forM [1..n] (const f)", rhs: replicateM n f}
     - warn: {lhs: "for [1..n] (const f)", rhs: replicateM n f}
     - warn: {lhs: "forM [1..n] (\\_ -> x)", rhs: replicateM n x}
@@ -681,14 +681,14 @@
     - warn: {lhs: maybe Nothing Just, rhs: id, name: Redundant maybe}
     - warn: {lhs: maybe False (const True), rhs: Data.Maybe.isJust}
     - warn: {lhs: maybe True (const False), rhs: Data.Maybe.isNothing}
-    - warn: {lhs: maybe False (x ==), rhs: (Just x ==)}
-    - warn: {lhs: maybe True (x /=), rhs: (Just x /=)}
-    - warn: {lhs: maybe False (== x), rhs: (Just x ==), note: ValidInstance Eq x}
-    - warn: {lhs: maybe True (/= x), rhs: (Just x /=), note: ValidInstance Eq x}
+    - warn: {lhs: maybe False (x ==), rhs: (Just x ==), name: Redundant maybe}
+    - warn: {lhs: maybe True (x /=), rhs: (Just x /=), name: Redundant maybe}
+    - warn: {lhs: maybe False (== x), rhs: (Just x ==), note: ValidInstance Eq x, name: Redundant maybe}
+    - warn: {lhs: maybe True (/= x), rhs: (Just x /=), note: ValidInstance Eq x, name: Redundant maybe}
     # The following two hints seem to be somewhat unwelcome, e.g.
     # https://github.com/ndmitchell/hlint/issues/1177
-    - ignore: {lhs: fromMaybe False x, rhs: Just True == x} # Eta expanded, see https://github.com/ndmitchell/hlint/issues/970#issuecomment-643645053
-    - ignore: {lhs: fromMaybe True x, rhs: Just False /= x}
+    - ignore: {lhs: fromMaybe False x, rhs: Just True == x, name: Redundant fromMaybe} # Eta expanded, see https://github.com/ndmitchell/hlint/issues/970#issuecomment-643645053
+    - ignore: {lhs: fromMaybe True x, rhs: Just False /= x, name: Redundant fromMaybe}
     - warn: {lhs: not (isNothing x), rhs: isJust x}
     - warn: {lhs: not (isJust x), rhs: isNothing x}
     - warn: {lhs: "maybe [] (:[])", rhs: maybeToList}
@@ -876,12 +876,12 @@
     - warn: {lhs: or (concatMap f x), rhs: any (or . f) x}
     - warn: {lhs: and (concat x), rhs: all and x}
     - warn: {lhs: and (concatMap f x), rhs: all (and . f) x}
-    - warn: {lhs: any f (concat x), rhs: any (any f) x}
-    - warn: {lhs: any f (concatMap g x), rhs: any (any f . g) x}
-    - warn: {lhs: all f (concat x), rhs: all (all f) x}
-    - warn: {lhs: all f (concatMap g x), rhs: all (all f . g) x}
+    - warn: {lhs: any f (concat x), rhs: any (any f) x, name: Use any nested}
+    - warn: {lhs: any f (concatMap g x), rhs: any (any f . g) x, name: Use any nested}
+    - warn: {lhs: all f (concat x), rhs: all (all f) x, name: Use all nested}
+    - warn: {lhs: all f (concatMap g x), rhs: all (all f . g) x, name: Use all nested}
     - warn: {lhs: fold (concatMap f x), rhs: foldMap (fold . f) x}
-    - warn: {lhs: foldMap f (concatMap g x), rhs: foldMap (foldMap f . g) x}
+    - warn: {lhs: foldMap f (concatMap g x), rhs: foldMap (foldMap f . g) x, name: Use foldMap nested}
     - warn: {lhs: catMaybes (concatMap f x), rhs: concatMap (catMaybes . f) x, name: Move catMaybes}
     - warn: {lhs: catMaybes (concat x), rhs: concatMap catMaybes x, name: Move catMaybes}
     - hint: {lhs: filter f (concatMap g x), rhs: concatMap (filter f . g) x, name: Move filter}
