@@ -1236,10 +1236,10 @@
 
     # Data.List
 
-    - warn: {lhs: head l, rhs: "case l of x:_ -> x; [] -> error _", side: not (isNonEmpty l), name: Avoid partial function}
-    - warn: {lhs: last l, rhs: "case reverse l of x:_ -> x; [] -> error _", side: not (isNonEmpty l), name: Avoid partial function}
-    - warn: {lhs: tail l, rhs: "case l of _:xs -> xs; [] -> error _", side: not (isNonEmpty x), name: Avoid partial function}
-    - warn: {lhs: init l, rhs: "case reverse l of _:xs -> reverse xs; [] -> error _", side: not (isNonEmpty x), name: Avoid partial function}
+    - warn: {lhs: head l, rhs: "case l of x:_ -> x; [] -> error _", name: Avoid partial function}
+    - warn: {lhs: last l, rhs: "case reverse l of x:_ -> x; [] -> error _", name: Avoid partial function}
+    - warn: {lhs: tail l, rhs: "case l of _:xs -> xs; [] -> error _", name: Avoid partial function}
+    - warn: {lhs: init l, rhs: "case reverse l of _:xs -> reverse xs; [] -> error _", name: Avoid partial function}
     - warn: {lhs: l !! n, rhs: "case drop n l of x:_ -> x; [] -> error _", name: Avoid partial function}
 
     # Data.List.NonEmpty
