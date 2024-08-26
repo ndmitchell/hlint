@@ -975,11 +975,9 @@
     - warn: {lhs: "concatMap f [a]", rhs: f a, name: Evaluate}
     - warn: {lhs: "concatMap f []", rhs: "[]", name: Evaluate}
     - warn: {lhs: "zip [] x", rhs: "[]", name: Evaluate}
-    - warn: {lhs: "zip x []", rhs: "[]", side: isNonEmpty x, name: Evaluate}
-    - warn: {lhs: "zip x []", rhs: "[]", side: "notEq x [] && not (isNonEmpty x)", note: IncreasesLaziness, name: Evaluate}
+    - warn: {lhs: "zip x []", rhs: "[]", side: "notEq x []", note: IncreasesLaziness, name: Evaluate}
     - warn: {lhs: "zipWith f [] x", rhs: "[]", name: Evaluate}
-    - warn: {lhs: "zipWith f x []", rhs: "[]", side: isNonEmpty x, name: Evaluate}
-    - warn: {lhs: "zipWith f x []", rhs: "[]", side: "notEq x [] && not (isNonEmpty x)", note: IncreasesLaziness, name: Evaluate}
+    - warn: {lhs: "zipWith f x []", rhs: "[]", side: "notEq x []", note: IncreasesLaziness, name: Evaluate}
     - warn: {lhs: const x y, rhs: x, name: Evaluate}
     - warn: {lhs: any (const False), rhs: const False, note: IncreasesLaziness, name: Evaluate}
     - warn: {lhs: all (const True), rhs: const True, note: IncreasesLaziness, name: Evaluate}
