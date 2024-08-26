@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1571, rename a few hints to make them clearer
     #1599, add translated 0 0 hint for CodeWorld project
     #1600, add sum [x, y] ==> x + y
     #1549, downgrade a few of the error severities to warn
