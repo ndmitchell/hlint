@@ -88,6 +88,7 @@ import GHC.Types.Basic
 import GHC.Hs
 import GHC.Data.Bag
 import GHC.Types.SrcLoc
+import GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 smellModuleHint :: [Setting] -> ModuHint
@@ -142,7 +143,7 @@ declSpans f@(L l (ValD _ FunBind {})) = [(locA l, warn "Long function" (reLoc f)
 declSpans _ = []
 
 -- The span of a guarded right hand side.
-rhsSpans :: HsMatchContext GhcPs -> LGRHS GhcPs (LHsExpr GhcPs) -> [(SrcSpan, Idea)]
+rhsSpans :: HsMatchContext (GenLocated SrcSpanAnnN RdrName) -> LGRHS GhcPs (LHsExpr GhcPs) -> [(SrcSpan, Idea)]
 rhsSpans _ (L _ (GRHS _ _ (L _ RecordCon {}))) = [] -- record constructors get a pass
 rhsSpans ctx (L _ r@(GRHS _ _ (L l _))) =
   [(locA l, rawIdea Config.Type.Warning "Long function" (locA l) (showSDocUnsafe (pprGRHS ctx r)) Nothing [] [])]

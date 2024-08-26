@@ -16,3 +16,4 @@ stack*.yaml.lock
 .\#*\#
 /.sl/
 *.dump-hi
+.DS_Store

@@ -250,10 +250,10 @@ lookupRestrictItem ideclName mp =
 importListToIdents :: IE GhcPs -> [String]
 importListToIdents =
   catMaybes .
-  \case (IEVar _ n)              -> [fromName n]
-        (IEThingAbs _ n)         -> [fromName n]
-        (IEThingAll _ n)         -> [fromName n]
-        (IEThingWith _ n _ ns)   -> fromName n : map fromName ns
+  \case (IEVar _ n _)              -> [fromName n]
+        (IEThingAbs _ n _)         -> [fromName n]
+        (IEThingAll _ n _)         -> [fromName n]
+        (IEThingWith _ n _ ns _)   -> fromName n : map fromName ns
         _                        -> []
   where
     fromName :: LIEWrappedName GhcPs -> Maybe String
@@ -271,7 +271,7 @@ importListToIdents =
 
 checkFunctions :: Scope -> String -> [LHsDecl GhcPs] -> RestrictFunctions -> [Idea]
 checkFunctions scope modu decls (def, mp) =
-    [ (ideaMessage message $ ideaNoTo $ warn "Avoid restricted function" (reLocN x) (reLocN x) []){ideaDecl = [dname]}
+    [ (ideaMessage message $ ideaNoTo $ warn "Avoid restricted function" (reLoc x) (reLoc x) []){ideaDecl = [dname]}
     | d <- decls
     , let dname = fromMaybe "" (declName d)
     , x <- universeBi d :: [LocatedN RdrName]

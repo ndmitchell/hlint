@@ -327,7 +327,9 @@ getExtensions args = (lang, foldl f (startExts, []) exts)
 
         langs, exts :: [String]
         (langs, exts) = partition (isJust . flip lookup ls) args
-        ls = [ (show x, x) | x <- [Haskell98, Haskell2010 , GHC2021] ]
+
+        ls :: [(String, Language)]
+        ls = [(show x, x) | x <- enumerate]
 
         f :: ([Extension], [Extension]) -> String -> ([Extension], [Extension])
         f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x, let xs = expandDisable x = (deletes xs a, xs ++ deletes xs e)

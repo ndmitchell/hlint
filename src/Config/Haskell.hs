@@ -45,7 +45,7 @@ readPragma (HsAnnotation _ provenance expr) = f expr
                     Nothing -> errorOn expr "bad classify pragma"
                     Just severity -> Just $ Classify severity (trimStart b) "" name
             where (a,b) = break isSpace $ trimStart $ drop 6 s
-        f (L _ (HsPar _ _ x _)) = f x
+        f (L _ (HsPar _ x)) = f x
         f (L _ (ExprWithTySig _ x _)) = f x
         f _ = Nothing
 

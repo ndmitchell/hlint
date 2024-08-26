@@ -26,9 +26,9 @@ instance Brackets (LocatedA (HsExpr GhcPs)) where
   -- result in a "naked" section. Consequently, given an expression,
   -- when stripping brackets (c.f. 'Hint.Brackets), don't remove the
   -- paren's surrounding a section - they are required.
-  remParen (L _ (HsPar _ _ (L _ SectionL{}) _)) = Nothing
-  remParen (L _ (HsPar _ _ (L _ SectionR{}) _)) = Nothing
-  remParen (L _ (HsPar _ _ x _)) = Just x
+  remParen (L _ (HsPar _ (L _ SectionL{}))) = Nothing
+  remParen (L _ (HsPar _ (L _ SectionR{}))) = Nothing
+  remParen (L _ (HsPar _ x)) = Just x
   remParen _ = Nothing
 
   addParen = nlHsPar
@@ -108,7 +108,7 @@ isAtomOrApp (L _ (HsApp _ _ x)) = isAtomOrApp x
 isAtomOrApp _ = False
 
 instance Brackets (LocatedA (Pat GhcPs)) where
-  remParen (L _ (ParPat _ _ x _)) = Just x
+  remParen (L _ (ParPat _ x)) = Just x
   remParen _ = Nothing
 
   addParen = nlParPat
@@ -151,7 +151,7 @@ instance Brackets (LocatedA (Pat GhcPs)) where
 instance Brackets (LocatedA (HsType GhcPs)) where
   remParen (L _ (HsParTy _ x)) = Just x
   remParen _ = Nothing
-  addParen e = noLocA $ HsParTy EpAnnNotUsed e
+  addParen e = noLocA $ HsParTy noAnn e
 
   isAtom (L _ x) = case x of
       HsParTy{} -> True

@@ -89,7 +89,7 @@ naming seen originalDecl =
 shorten :: LHsDecl GhcPs -> LHsDecl GhcPs
 shorten (L locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG FromSource (L locMatches matches))))) =
     L locDecl (ValD ttg0 bind {fun_matches = matchGroup {mg_alts = L locMatches $ map shortenMatch matches}})
-shorten (L locDecl (ValD ttg0 bind@(PatBind _ _ grhss@(GRHSs _ rhss _)))) =
+shorten (L locDecl (ValD ttg0 bind@(PatBind _ _ _ grhss@(GRHSs _ rhss _)))) =
     L locDecl (ValD ttg0 bind {pat_rhs = grhss {grhssGRHSs = map shortenLGRHS rhss}})
 shorten x = x
 
@@ -102,7 +102,7 @@ shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
     L locGRHS (GRHS ttg0 guards (L locExpr dots))
     where
         dots :: HsExpr GhcPs
-        dots = HsLit EpAnnNotUsed (HsString (SourceText (fsLit "...")) (fsLit "..."))
+        dots = HsLit noExtField (HsString (SourceText (fsLit "...")) (fsLit "..."))
 
 getNames :: LHsDecl GhcPs -> [String]
 getNames decl = maybeToList (declName decl) ++ getConstructorNames (unLoc decl)
