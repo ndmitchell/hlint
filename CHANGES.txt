@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
 
+    #1568, add mapMaybe f (reverse x) ==> reverse (mapMaybe f x)
     #1569, avoid redundant Foldable.toList calls in Foldable operations
     #1571, rename a few hints to make them clearer
     #1599, add translated 0 0 hint for CodeWorld project
