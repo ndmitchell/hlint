@@ -1,0 +1,10 @@
+{-##-}
+pragmaEmpty = 1
+
+{-# #-}
+pragmaEmptySpace = 1
+
+{-#
+
+    #-}
+pragmaEmptyLines = 1
