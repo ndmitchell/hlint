@@ -80,7 +80,7 @@ showEx tt Idea{..} = unlines $
     where
         f x = ("Found" ++ ":") : map ("  "++) (lines (tt x))
 
-        p x | null xs = ["You may be able to remove it."]
+        p x | null xs = ["You can remove it."]
             | otherwise = ("Perhaps" ++ ":") : map ("  "++) xs
             where xs = lines $ tt x
 

@@ -26,7 +26,7 @@ OUTPUT
 tests/note.hs:1:1-32: Warning: Unused LANGUAGE pragma
 Found:
   {-# LANGUAGE RecordWildCards #-}
-You may be able to remove it.
+You can remove it.
 Note: may require `{-# LANGUAGE DisambiguateRecordFields #-}` adding to the top of the file
 
 tests/note.hs:5:11-24: Suggestion: Use null
@@ -219,13 +219,13 @@ OUTPUT
 tests/restricted-extension.hs:1:1-31: Warning: Unused LANGUAGE pragma
 Found:
   {-# LANGUAGE DeriveFoldable #-}
-You may be able to remove it.
+You can remove it.
 Note: Extension DeriveFoldable is implied by DeriveTraversable
 
 tests/restricted-extension.hs:2:1-30: Warning: Unused LANGUAGE pragma
 Found:
   {-# LANGUAGE DeriveFunctor #-}
-You may be able to remove it.
+You can remove it.
 Note: Extension DeriveFunctor is implied by DeriveTraversable
 
 tests/restricted-extension.hs:2:1-30: Warning: Avoid restricted extensions
