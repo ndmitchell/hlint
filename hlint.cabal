@@ -62,7 +62,7 @@ flag hsyaml
   manual: True
   description: Use HsYAML instead of yaml
 
-library
+library hlint-lib
     default-language:   Haskell2010
     build-depends:
         base == 4.*, process, filepath, directory, containers,
@@ -107,6 +107,8 @@ library
 
     hs-source-dirs:     src
     exposed-modules:
+        HLint
+        -- this doesn't seem used anywhere in its own right?
         Language.Haskell.HLint
     other-modules:
         Paths_hlint
@@ -114,7 +116,6 @@ library
         CmdLine
         Extension
         Fixity
-        HLint
         HsColour
         Idea
         Report
@@ -174,10 +175,9 @@ library
         Test.Util
     ghc-options: -Wunused-binds -Wunused-imports -Worphans -Wprepositive-qualified-module
 
-
 executable hlint
     default-language:   Haskell2010
-    build-depends:      base, hlint
+    build-depends:      base, hlint-lib
     main-is:            src/Main.hs
 
     -- See https://github.com/ndmitchell/hlint/pull/1169 for benchmarks
@@ -185,3 +185,8 @@ executable hlint
     ghc-options:        -rtsopts -with-rtsopts=-A32m
     if flag(threaded)
         ghc-options:    -threaded
+
+test-suite test-hlint
+    type:               exitcode-stdio-1.0
+    main-is:            tests/Main.hs
+    build-depends:      base, hlint-lib
