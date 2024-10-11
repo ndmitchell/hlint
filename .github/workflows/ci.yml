@@ -3,7 +3,7 @@ on:
   push:
     branches-ignore:
       - 'ghc-next*'
-      - 'ghc-9.10*'
+      - 'ghc-9.12*'
   pull_request:
     branches-ignore:
       - 'ghc-next*'
