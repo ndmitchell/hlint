@@ -386,6 +386,7 @@
     - warn: {lhs: g <**> flip f, rhs: g >>= f, name: Redundant flip}
     - warn: {lhs: flip f =<< g, rhs: f <*> g, name: Redundant flip}
     - warn: {lhs: g >>= flip f, rhs: g Control.Applicative.<**> f, name: Redundant flip}
+    - warn: {lhs: ($ x) . f, rhs: flip f x}
 
     # CHAR
 
