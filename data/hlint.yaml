@@ -513,7 +513,6 @@
     - warn: {lhs: "x <*> Last Nothing", rhs: "Last Nothing" }
     - warn: {lhs: "x <*> Left a", rhs: "Left a" }
     - warn: {lhs: "x <*> Ap []", rhs: "Ap []" }
-    - warn: {lhs: "x <*> Ap mempty", rhs: "Ap mempty" }
     - warn: {lhs: "x <*> []", rhs: "[]" }
 
     # MONAD
