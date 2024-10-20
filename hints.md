@@ -7723,6 +7723,102 @@ y
 <td>Warning</td>
 </tr>
 <tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> Nothing
+</code>
+<br>
+RHS:
+<code>
+Nothing
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> First Nothing
+</code>
+<br>
+RHS:
+<code>
+First Nothing
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> Last Nothing
+</code>
+<br>
+RHS:
+<code>
+Last Nothing
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> Left a
+</code>
+<br>
+RHS:
+<code>
+Left a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> Ap []
+</code>
+<br>
+RHS:
+<code>
+Ap []
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> []
+</code>
+<br>
+RHS:
+<code>
+[]
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Monad law, left identity</td>
 <td>
 LHS:
