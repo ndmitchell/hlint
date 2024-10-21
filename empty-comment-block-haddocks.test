@@ -1,0 +1,21 @@
+{- |-}
+haddockAboveMultiEmpty = 1
+
+{- | -}
+haddockAboveMultiEmptySpace = 1
+
+{- |
+
+    -}
+haddockAboveMultiEmptyLines = 1
+
+haddockBelowMultiEmpty = 1
+{- ^-}
+
+haddockBelowMultiEmptySpace = 1
+{- ^-}
+
+haddockBelowMultiEmptyLines = 1
+{- ^
+
+    -}

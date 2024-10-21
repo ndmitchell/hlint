@@ -1,0 +1,15 @@
+data HaddockSingle = HaddockSingle
+  { haddockFieldEmptyBelow :: Int
+  -- ^
+  -- |
+  , haddockFieldAboveEmpty :: Int
+  , haddockFieldEmptyAfter :: Int -- ^
+  }
+
+data HaddockMulti = HaddockMulti
+  { haddockFieldEmptyBelow :: Int
+  {- ^-}
+  {- |-}
+  , haddockFieldAboveEmpty :: Int
+  , haddockFieldEmptyAfter :: Int {- ^-}
+  }
