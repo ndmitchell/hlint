@@ -1,4 +1,1 @@
-if impl(ghc == 9.12.1)
-  allow-newer: ghc-prim, base, template-haskell
-
 packages: ./hlint.cabal
