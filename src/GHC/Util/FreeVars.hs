@@ -128,7 +128,6 @@ instance FreeVars (LocatedA (HsExpr GhcPs)) where
   freeVars (L _ (HsUntypedBracket _ (ExpBr _ e))) = freeVars e
   freeVars (L _ (HsUntypedBracket _ (VarBr _ _ v))) = Set.fromList [occName (unLoc v)]
 
-  freeVars (L _ HsRecSel{}) = mempty -- Variable pointing to a record selector.
   freeVars (L _ HsOverLabel{}) = mempty -- Overloaded label. The id of the in-scope fromLabel.
   freeVars (L _ HsIPVar{}) = mempty -- Implicit parameter.
   freeVars (L _ HsOverLit{}) = mempty -- Overloaded literal.
@@ -171,10 +170,6 @@ instance FreeVars (HsTupArg GhcPs) where
 instance FreeVars (LocatedA (HsFieldBind (LocatedA (FieldOcc GhcPs)) (LocatedA (HsExpr GhcPs)))) where
    freeVars o@(L _ (HsFieldBind _ x _ True)) = Set.singleton $ occName $ unLoc $ foLabel $ unLoc x -- a pun
    freeVars o@(L _ (HsFieldBind _ _ x _)) = freeVars x
-
-instance FreeVars (LocatedA (HsFieldBind (LocatedA (AmbiguousFieldOcc GhcPs)) (LocatedA (HsExpr GhcPs)))) where
-  freeVars (L _ (HsFieldBind _ x _ True)) = Set.singleton $ rdrNameOcc $ ambiguousFieldOccRdrName $ unLoc x -- a pun
-  freeVars (L _ (HsFieldBind _ _ x _)) = freeVars x
 
 instance FreeVars (LocatedA (HsFieldBind (LocatedAn NoEpAnns (FieldLabelStrings GhcPs)) (LocatedA (HsExpr GhcPs)))) where
   freeVars (L _ (HsFieldBind _ _ x _)) = freeVars x
