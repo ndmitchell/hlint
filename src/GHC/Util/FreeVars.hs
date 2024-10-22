@@ -18,6 +18,7 @@ import Data.Generics.Uniplate.DataOnly
 import Data.Monoid
 import Data.Semigroup
 import Data.List.Extra
+import Data.List.NonEmpty(toList)
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Prelude
@@ -123,7 +124,7 @@ instance FreeVars (LocatedA (HsExpr GhcPs)) where
     case flds of
       RegularRecUpdFields _ fs -> Set.unions $ freeVars e : map freeVars fs
       OverloadedRecUpdFields _ ps -> Set.unions $ freeVars e : map freeVars ps
-  freeVars (L _ (HsMultiIf _ grhss)) = free (allVars grhss) -- Multi-way if.
+  freeVars (L _ (HsMultiIf _ grhss)) = free (allVars (toList grhss)) -- Multi-way if.
   freeVars (L _ (HsTypedBracket _ e)) = freeVars e
   freeVars (L _ (HsUntypedBracket _ (ExpBr _ e))) = freeVars e
   freeVars (L _ (HsUntypedBracket _ (VarBr _ _ v))) = Set.fromList [occName (unLoc v)]
@@ -240,7 +241,7 @@ instance AllVars (HsStmtContext (GenLocated SrcSpanAnnN RdrName)) where
   allVars _ = mempty
 
 instance AllVars (GRHSs GhcPs (LocatedA (HsExpr GhcPs))) where
-  allVars (GRHSs _ grhss binds) = inVars binds (mconcatMap allVars grhss)
+  allVars (GRHSs _ grhss binds) = inVars binds (mconcatMap allVars (toList grhss))
 
 instance AllVars (LocatedAn NoEpAnns (GRHS GhcPs (LocatedA (HsExpr GhcPs)))) where
   allVars (L _ (GRHS _ guards expr)) = Vars (bound gs) (free gs ^+ (freeVars expr ^- bound gs)) where gs = allVars guards

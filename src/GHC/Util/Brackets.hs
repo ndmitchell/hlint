@@ -59,12 +59,10 @@ instance Brackets (LocatedA (HsExpr GhcPs)) where
       _  -> False
       where
         isNegativeLit (HsInt _ i) = il_neg i
-        isNegativeLit (HsRat _ f _) = fl_neg f
         isNegativeLit (HsFloatPrim _ f) = fl_neg f
         isNegativeLit (HsDoublePrim _ f) = fl_neg f
         isNegativeLit (HsIntPrim _ x) = x < 0
         isNegativeLit (HsInt64Prim _ x) = x < 0
-        isNegativeLit (HsInteger _ x _) = x < 0
         isNegativeLit _ = False
         isNegativeOverLit OverLit {ol_val=HsIntegral i} = il_neg i
         isNegativeOverLit OverLit {ol_val=HsFractional f} = fl_neg f
@@ -131,8 +129,6 @@ instance Brackets (LocatedA (Pat GhcPs)) where
       isSignedLit HsInt{} = True
       isSignedLit HsIntPrim{} = True
       isSignedLit HsInt64Prim{} = True
-      isSignedLit HsInteger{} = True
-      isSignedLit HsRat{} = True
       isSignedLit HsFloatPrim{} = True
       isSignedLit HsDoublePrim{} = True
       isSignedLit _ = False
