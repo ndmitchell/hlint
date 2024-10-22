@@ -69,7 +69,7 @@ import Data.Either
 import Refact.Types hiding (RType(Pattern, Match), SrcSpan)
 import Refact.Types qualified as R (RType(Pattern, Match), SrcSpan)
 
-import GHC.Hs hiding(asPattern)
+import GHC.Hs hiding (asPattern)
 import GHC.Types.SrcLoc
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
