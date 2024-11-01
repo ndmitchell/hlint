@@ -15,6 +15,7 @@ import Control.Monad.Trans.Except
 import Control.Monad.IO.Class
 import Util
 import Data.Char
+import Data.List
 import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import Timing
@@ -39,6 +40,8 @@ import Data.Generics.Uniplate.DataOnly
 
 import Language.Haskell.GhclibParserEx.GHC.Parser
 import Language.Haskell.GhclibParserEx.Fixity
+import Language.Haskell.GhclibParserEx.GHC.Driver.Session
+
 import GHC.Util
 
 -- | What C pre processor should be used.
@@ -131,7 +134,7 @@ ghcFixitiesFromParseFlags = map toFixity . fixities
 
 parseModeToFlags :: ParseFlags -> DynFlags
 parseModeToFlags parseMode =
-    flip lang_set (baseLanguage parseMode) $ foldl' xopt_unset (foldl' xopt_set baseDynFlags enable) disable
+  flip lang_set (baseLanguage parseMode) $ foldl xopt_unset (foldl' xopt_set baseDynFlags enable) disable
   where
     (enable, disable) = ghcExtensionsFromParseFlags parseMode
 
@@ -163,6 +166,16 @@ createModuleExWithFixities :: [(String, Fixity)] -> Located (HsModule GhcPs) -> 
 createModuleExWithFixities fixities ast =
   ModuleEx (applyFixities (fixitiesFromModule ast ++ fixities) ast)
 
+impliedEnables :: Extension -> [Extension]
+impliedEnables ext = case Data.List.lookup ext extensionImplications of
+  Just exts -> ext : fst exts
+  Nothing -> [ext]
+
+impliedDisables :: Extension -> [Extension]
+impliedDisables ext = case Data.List.lookup ext extensionImplications  of
+  Just exts -> ext : snd exts
+  Nothing -> []
+
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
 -- filename @-@ is treated as @stdin@. Requires some flags (often
@@ -179,7 +192,11 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
     Nothing | file == "-" -> liftIO getContentsUTF8
             | otherwise -> liftIO $ readFileUTF8' file
   str <- pure $ dropPrefix "\65279" str -- Remove the BOM if it exists, see #130.
-  let enableDisableExts = ghcExtensionsFromParseFlags flags
+  let (enable, disable) = ghcExtensionsFromParseFlags flags
+  -- Enable/disable extensions and the extensions they imply.
+      impliedEnabled = concatMap impliedEnables enable
+      impliedDisabled = concatMap impliedDisables disable
+      enableDisableExts = (impliedEnabled, impliedDisabled)
   -- Read pragmas for the first time.
   dynFlags <- withExceptT (parsePragmasErr str) $ ExceptT (parsePragmasIntoDynFlags baseDynFlags enableDisableExts file str)
   dynFlags <- pure $ lang_set dynFlags $ baseLanguage flags
