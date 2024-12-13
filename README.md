@@ -447,7 +447,7 @@ and `qualifiedStyle` fields, only the first definition will take effect.
 - modules:
   - {name: [Data.Map, Data.Map.*], as: Map}
   - {name: Test.Hspec, within: **.*Spec }
-  - {name: '**', importStyle: post}
+  - {name: '**', qualifiedStyle: post}
 ```
 
 ## Hacking HLint
