@@ -6055,6 +6055,22 @@ g Control.Applicative.<**> f
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use flip</td>
+<td>
+LHS:
+<code>
+($ x) . f
+</code>
+<br>
+RHS:
+<code>
+flip f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use isAsciiLower</td>
 <td>
 LHS:
