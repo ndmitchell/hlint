@@ -13670,6 +13670,166 @@ concatMap f x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+foldrM f c (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+foldrM f c x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+foldlM f c (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+foldlM f c x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+traverse_ f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+traverse_ f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+for_ (Data.Foldable.toList x) f
+</code>
+<br>
+RHS:
+<code>
+for_ x f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+sequenceA_ (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+sequenceA_ x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+asum (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+asum x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+mapM_ f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+mapM_ f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+forM_ (Data.Foldable.toList x) f
+</code>
+<br>
+RHS:
+<code>
+forM_ x f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+sequence_ (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+sequence_ x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+msum (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+msum x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use gets</td>
 <td>
 LHS:
