@@ -1,0 +1,12 @@
+{-##-}
+
+{--}
+commentMultiEmpty = 1
+
+{- -}
+commentMultiEmptySpace = 1
+
+{-
+
+    -}
+commentMultiEmptyLines = 1

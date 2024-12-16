@@ -1,0 +1,239 @@
+---------------------------------------------------------------------
+RUN tests/empty-comment-single.hs
+FILE tests/empty-comment-single.hs
+
+-- |
+haddockAboveSingle = 1
+
+haddockBelowSingle = 1
+-- ^
+
+OUTPUT
+tests/empty-comment-single.hs:2:1-4: Suggestion: Leading empty single-line haddock
+Found:
+  -- |
+Perhaps you should remove it.
+
+tests/empty-comment-single.hs:6:1-4: Suggestion: Leading empty single-line haddock
+Found:
+  -- ^
+Perhaps you should remove it.
+
+2 hints
+
+---------------------------------------------------------------------
+RUN tests/empty-comment-singles.hs
+FILE tests/empty-comment-singles.hs
+
+-- |
+--
+haddockAboveSingles = 1
+
+-- |
+-- >>>
+haddockAboveDoctest = 1
+
+OUTPUT
+tests/empty-comment-singles.hs:2:1-4: Suggestion: Leading empty single-line haddock
+Found:
+  -- |
+Perhaps you should remove it.
+
+tests/empty-comment-singles.hs:3:1-2: Suggestion: Leading empty single-line comment
+Found:
+  --
+Perhaps you should remove it.
+
+tests/empty-comment-singles.hs:6:1-4: Suggestion: Leading empty single-line haddock
+Found:
+  -- |
+Perhaps you should remove it.
+
+tests/empty-comment-singles.hs:7:1-6: Suggestion: Leading empty single-line doctest
+Found:
+  -- >>>
+Perhaps you should remove it.
+
+4 hints
+
+---------------------------------------------------------------------
+RUN tests/empty-comment-multi.hs
+FILE tests/empty-comment-multi.hs
+
+{--}
+commentMultiEmpty = 1
+
+{- -}
+commentMultiEmptySpace = 1
+
+{-
+
+    -}
+commentMultiEmptyLines = 1
+
+{- |-}
+haddockAboveMultiEmpty = 1
+
+{- | -}
+haddockAboveMultiEmptySpace = 1
+
+{- |
+
+    -}
+haddockAboveMultiEmptyLines = 1
+
+haddockBelowMultiEmpty = 1
+{- ^-}
+
+haddockBelowMultiEmptySpace = 1
+{- ^-}
+
+haddockBelowMultiEmptyLines = 1
+{- ^
+
+    -}
+
+OUTPUT
+tests/empty-comment-multi.hs:2:1-4: Suggestion: Empty multi-line comment
+Found:
+  {--}
+Perhaps you should remove it.
+
+tests/empty-comment-multi.hs:5:1-5: Suggestion: Empty multi-line comment
+Found:
+  {- -}
+Perhaps you should remove it.
+
+tests/empty-comment-multi.hs:(8,1)-(10,6): Suggestion: Empty multi-line comment
+Found:
+  {-
+
+      -}
+Perhaps you should remove it.
+
+tests/empty-comment-multi.hs:13:1-6: Suggestion: Empty multi-line haddock
+Found:
+  {- |-}
+Perhaps you should remove it.
+
+tests/empty-comment-multi.hs:16:1-7: Suggestion: Empty multi-line haddock
+Found:
+  {- | -}
+Perhaps you should remove it.
+
+tests/empty-comment-multi.hs:(19,1)-(21,6): Suggestion: Empty multi-line haddock
+Found:
+  {- |
+
+      -}
+Perhaps you should remove it.
+
+tests/empty-comment-multi.hs:25:1-6: Suggestion: Empty multi-line haddock
+Found:
+  {- ^-}
+Perhaps you should remove it.
+
+tests/empty-comment-multi.hs:28:1-6: Suggestion: Empty multi-line haddock
+Found:
+  {- ^-}
+Perhaps you should remove it.
+
+tests/empty-comment-multi.hs:(31,1)-(33,6): Suggestion: Empty multi-line haddock
+Found:
+  {- ^
+
+      -}
+Perhaps you should remove it.
+
+9 hints
+
+---------------------------------------------------------------------
+RUN tests/empty-comment-nonempty.hs
+FILE tests/empty-comment-nonempty.hs
+
+-- |
+--
+--
+-- foo
+haddockAboveIntoNonEmpty = 1
+
+haddockBelowIntoNonEmpty = 1
+-- ^
+--
+--
+-- foo
+
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/empty-comment-record.hs
+FILE tests/empty-comment-record.hs
+
+data HaddockSingle = HaddockSingle
+  { haddockFieldEmptyBelow :: Int
+  -- ^
+  -- |
+  , haddockFieldAboveEmpty :: Int
+  , haddockFieldEmptyAfter :: Int -- ^
+  }
+
+data HaddockMulti = HaddockMulti
+  { haddockFieldEmptyBelow :: Int
+  {- ^-}
+  {- |-}
+  , haddockFieldAboveEmpty :: Int
+  , haddockFieldEmptyAfter :: Int {- ^-}
+  }
+
+OUTPUT
+tests/empty-comment-record.hs:4:3-6: Suggestion: Leading empty single-line haddock
+Found:
+  -- ^
+Perhaps you should remove it.
+
+tests/empty-comment-record.hs:5:3-6: Suggestion: Leading empty single-line haddock
+Found:
+  -- |
+Perhaps you should remove it.
+
+tests/empty-comment-record.hs:7:35-38: Suggestion: Leading empty single-line haddock
+Found:
+  -- ^
+Perhaps you should remove it.
+
+tests/empty-comment-record.hs:12:3-8: Suggestion: Empty multi-line haddock
+Found:
+  {- ^-}
+Perhaps you should remove it.
+
+tests/empty-comment-record.hs:13:3-8: Suggestion: Empty multi-line haddock
+Found:
+  {- |-}
+Perhaps you should remove it.
+
+tests/empty-comment-record.hs:15:35-40: Suggestion: Empty multi-line haddock
+Found:
+  {- ^-}
+Perhaps you should remove it.
+
+6 hints
+
+---------------------------------------------------------------------
+RUN tests/empty-comment-mixed.hs
+FILE tests/empty-comment-mixed.hs
+
+-- |
+--
+-- Comment with blank line comment space above and below.
+--
+commentWithSpace = 1
+
+-- | Introduction line.
+--
+-- Comment with introduction line above and blank line below.
+--
+CommentWithSpaceOnlyAfter = 1
+
+OUTPUT
+No hints

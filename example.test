@@ -1,0 +1,73 @@
+-- | AA
+--
+--
+-- BB
+--
+--
+-- Comment with blank line comment space above and below.
+--
+--
+-- CC
+--
+--
+--
+--
+commentWithSpace = 1
+
+-- |
+--
+-- 11
+--
+--
+-- 22
+--
+--
+-- Comment with blank line comment space above and below.
+--
+--
+-- 33
+--
+commentWithSpace1 = 1
+
+commentWithSpace2 = 1
+-- ^
+--
+-- ZZ
+--
+--
+-- YY
+--
+--
+-- Comment with blank line comment space above and below.
+--
+--
+-- XX
+--
+
+-- | A comment as a string.
+
+{- |-}
+{--}
+
+--
+
+{-##-}
+
+-- |
+-- >>> :{
+--  let
+--    x = 1
+--    y = 2
+--  in x + y + multiline
+-- :}
+-- 6
+multiline = 3
+
+{- | >>> :{
+let x = 1
+    y = 2
+  in x + y + works
+:}
+6
+-}
+works = 3
