@@ -85,6 +85,6 @@ errorOn (L pos val) msg = exitMessageImpure $
 errorOnComment :: LEpaComment -> String -> b
 errorOnComment c@(L s _) msg = exitMessageImpure $
     let isMultiline = isCommentMultiline c in
-    showSrcSpan (RealSrcSpan (anchor s) GHC.Data.Strict.Nothing) ++
+    showSrcSpan (RealSrcSpan (epaLocationRealSrcSpan s) GHC.Data.Strict.Nothing) ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     (if isMultiline then "{-" else "--") ++ commentText c ++ (if isMultiline then "-}" else "")

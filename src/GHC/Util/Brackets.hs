@@ -36,8 +36,6 @@ instance Brackets (LocatedA (HsExpr GhcPs)) where
   isAtom (L _ x) = case x of
       HsVar{} -> True
       HsUnboundVar{} -> True
-      -- Technically atomic, but lots of people think it shouldn't be
-      HsRecSel{} -> False
       -- Only relevant for OverloadedRecordDot extension
       HsGetField{} -> True
       HsOverLabel{} -> True

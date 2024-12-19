@@ -53,7 +53,6 @@ import Data.Maybe
 import Config.Type
 import Data.Generics.Uniplate.DataOnly
 
-import GHC.Data.Bag
 import GHC.Hs
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
@@ -121,7 +120,7 @@ findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
 -- | A list of root expressions, with their associated names
 findDecls :: LHsDecl GhcPs -> [(String, LHsExpr GhcPs)]
 findDecls x@(L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
-    [(fromMaybe "" $ bindName xs, x) | xs <- bagToList cid_binds, x <- childrenBi xs]
+    [(fromMaybe "" $ bindName xs, x) | xs <- cid_binds, x <- childrenBi xs]
 findDecls (L _ RuleD{}) = [] -- Often rules contain things that HLint would rewrite.
 findDecls x = map (fromMaybe "" $ declName x,) $ childrenBi x
 

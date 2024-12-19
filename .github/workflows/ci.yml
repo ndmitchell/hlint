@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        ghc: ['9.10', '9.8', '9.6']
+        ghc: ['9.10', '9.8']
         include:
         - os: windows-latest
           ghc: '9.8'
@@ -30,7 +30,7 @@ jobs:
       with:
         ghc-version: ${{ matrix.ghc }}
     - run: cabal install apply-refact --install-method=copy
-      if: matrix.ghc == '9.8' || matrix.ghc == '9.6'
+      if: matrix.ghc == '9.8'
     - name: Get GHC libdir
       id: get-ghc-libdir
       run: echo "libdir=$(ghc --print-libdir)" >> $GITHUB_OUTPUT
