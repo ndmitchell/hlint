@@ -54,7 +54,7 @@ unsafeHint _ (ModuleEx (L _ m)) = \ld@(L loc d) ->
      -- 'x' does not declare a new function.
      | d@(ValD _
            FunBind {fun_id=L _ (Unqual x)
-                      , fun_matches=MG{mg_ext=FromSource,mg_alts=L _ [L _ Match {m_pats=[]}]}}) <- [d]
+                      , fun_matches=MG{mg_ext=FromSource,mg_alts=L _ [L _ Match {m_pats=L _ []}]}}) <- [d]
      -- 'x' is a synonym for an application involving 'unsafePerformIO'
      , isUnsafeDecl d
      -- 'x' is not marked 'NOINLINE'.

@@ -138,7 +138,7 @@ asDo (view ->
               mg_ext=FromSource
             , mg_alts=L _ [
                  L _ Match {  m_ctxt=(LamAlt LamSingle)
-                            , m_pats=[v@(L _ VarPat{})]
+                            , m_pats=L _ [v@(L _ VarPat{})]
                             , m_grhss=GRHSs _
                                         [L _ (GRHS _ [] rhs)]
                                         (EmptyLocalBinds _)}]}))
@@ -175,7 +175,7 @@ findCase x = do
       emptyLocalBinds = EmptyLocalBinds noExtField :: HsLocalBindsLR GhcPs GhcPs -- Empty where clause.
       gRHS e = noLocA $ GRHS noAnn [] e :: LGRHS GhcPs (LHsExpr GhcPs) -- Guarded rhs.
       gRHSSs e = GRHSs emptyComments [gRHS e] emptyLocalBinds -- Guarded rhs set.
-      match e = Match{m_ext=noAnn,m_pats=ps12, m_grhss=gRHSSs e, ..} -- Match.
+      match e = Match{m_ext=noExtField,m_pats=noLocA ps12, m_grhss=gRHSSs e, ..} -- Match.
       matchGroup e = MG{mg_alts=noLocA [noLocA $ match e], mg_ext=Generated OtherExpansion SkipPmc, ..} -- Match group.
       funBind e = FunBind {fun_matches=matchGroup e, ..} :: HsBindLR GhcPs GhcPs -- Fun bind.
 
@@ -212,7 +212,7 @@ findBranch (L _ x) = do
                         , grhssLocalBinds=EmptyLocalBinds _
                         }
             } <- pure x
-  (a, b, c) <- findPat ps
+  (a, b, c) <- findPat (unLoc ps)
   pure $ Branch (occNameStr name) a b c $ simplifyExp body
 
 findPat :: [LPat GhcPs] -> Maybe ([String], Int, BList)
