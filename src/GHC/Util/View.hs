@@ -32,7 +32,7 @@ data App2  = NoApp2  | App2 (LocatedA (HsExpr GhcPs)) (LocatedA (HsExpr GhcPs)) 
 data LamConst1 = NoLamConst1 | LamConst1 (LocatedA (HsExpr GhcPs))
 
 instance View (LocatedA (HsExpr GhcPs)) LamConst1 where
-  view (fromParen -> (L _ (HsLam _ _ (MG FromSource (L _ [L _ (Match _ (LamAlt _) [L _ WildPat {}]
+  view (fromParen -> (L _ (HsLam _ _ (MG FromSource (L _ [L _ (Match _ (LamAlt _) (L _ [L _ WildPat {}])
     (GRHSs _ [L _ (GRHS _ [] x)] ((EmptyLocalBinds _))))]))))) = LamConst1 x
   view _ = NoLamConst1
 
@@ -62,4 +62,4 @@ instance View (LocatedA (Pat GhcPs)) PApp_ where
 
 -- A lambda with no guards and no where clauses
 pattern SimpleLambda :: [LocatedA (Pat GhcPs)] -> LocatedA (HsExpr GhcPs) -> LocatedA (HsExpr GhcPs)
-pattern SimpleLambda vs body <- L _ (HsLam _ LamSingle (MG _ (L _ [L _ (Match _ _ vs (GRHSs _ [L _ (GRHS _ [] body)] ((EmptyLocalBinds _))))])))
+pattern SimpleLambda vs body <- L _ (HsLam _ LamSingle (MG _ (L _ [L _ (Match _ _ (L _ vs) (GRHSs _ [L _ (GRHS _ [] body)] ((EmptyLocalBinds _))))])))

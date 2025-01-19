@@ -119,7 +119,7 @@ possImport (L _ i) (L _ (Unqual x)) =
     then maybe PossiblyImported (f . first (== EverythingBut)) (ideclImportList i)
     else NotImported
   where
-    f :: (Bool, LocatedL [LIE GhcPs]) -> IsImported
+    f :: (Bool, LocatedLI [LocatedA (IE GhcPs)]) -> IsImported
     f (hide, L _ xs)
       | hide = if Just True `elem` ms then NotImported else PossiblyImported
       | Just True `elem` ms = Imported

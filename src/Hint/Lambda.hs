@@ -149,7 +149,7 @@ lambdaBind :: LHsBind GhcPs -> RType -> [Idea]
 lambdaBind
     o@(L _ origBind@FunBind {fun_id = funName@(L loc1 _), fun_matches =
         MG {mg_alts =
-            L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _) pats (GRHSs _ [L _ (GRHS _ [] origBody@(L loc2 _))] bind))]}}) rtype
+            L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _ _) (L _ pats) (GRHSs _ [L _ (GRHS _ [] origBody@(L loc2 _))] bind))]}}) rtype
     | EmptyLocalBinds _ <- bind
     , isLambda $ fromParen origBody
     , null (universeBi pats :: [HsExpr GhcPs])
@@ -172,7 +172,7 @@ lambdaBind
     where
           reform :: [LPat GhcPs] -> LHsExpr GhcPs -> Located (HsDecl GhcPs)
           reform ps b = L (combineSrcSpans (locA loc1) (locA loc2)) $ ValD noExtField $
-             origBind {fun_matches = MG (Generated OtherExpansion SkipPmc) (noLocA [noLocA $ Match noAnn ctxt ps $ GRHSs emptyComments [noLocA $ GRHS noAnn [] b] $ EmptyLocalBinds noExtField])}
+             origBind {fun_matches = MG (Generated OtherExpansion SkipPmc) (noLocA [noLocA $ Match noExtField ctxt (L noSpanAnchor ps) $ GRHSs emptyComments [noLocA $ GRHS noAnn [] b] $ EmptyLocalBinds noExtField])}
 
           mkSubtsAndTpl newPats newBody = (sub, tpl)
             where
@@ -270,7 +270,7 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                  --     * mark match as being in a lambda context so that it's printed properly
                  oldMG@(MG _ (L _ [L _ oldmatch]))
                    | all (\(L _ (GRHS _ stmts _)) -> null stmts) (grhssGRHSs (m_grhss oldmatch)) ->
-                     let patLocs = fmap (locA . getLoc) (m_pats oldmatch)
+                     let patLocs = fmap (locA . getLoc) ((unLoc . m_pats) oldmatch)
                          bodyLocs = concatMap (\case L _ (GRHS _ _ body) -> [locA (getLoc body)])
                                         $ grhssGRHSs (m_grhss oldmatch)
                          r | notNull patLocs && notNull bodyLocs =
@@ -280,12 +280,12 @@ lambdaExp _ o@(SimpleLambda [view -> PVar_ x] (L _ expr)) =
                                      ((if needParens then "\\(x)" else "\\x") ++ " -> y")
                                  ]
                            | otherwise = []
-                         needParens = any (patNeedsParens appPrec . unLoc) (m_pats oldmatch)
+                         needParens = any (patNeedsParens appPrec . unLoc) ((unLoc . m_pats) oldmatch)
                       in [ suggest "Use lambda" (reLoc o)
                              ( noLoc $ HsLam noAnn LamSingle oldMG
                                  { mg_alts = noLocA
                                      [ noLocA oldmatch
-                                         { m_pats = map mkParPat $ m_pats oldmatch
+                                         { m_pats = L noSpanAnchor (map mkParPat $ (unLoc . m_pats) oldmatch)
                                          , m_ctxt = LamAlt LamSingle
                                          }
                                      ]

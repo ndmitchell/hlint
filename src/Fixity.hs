@@ -12,7 +12,6 @@ import GHC.Hs.Extension
 import GHC.Types.Name.Occurrence
 import GHC.Types.Name.Reader
 import GHC.Types.Fixity
-import GHC.Types.SourceText
 import GHC.Parser.Annotation
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.Fixity
@@ -28,7 +27,7 @@ import Language.Haskell.GhclibParserEx.Fixity
 type FixityInfo = (String, Associativity, Int)
 
 fromFixitySig :: FixitySig GhcPs -> [FixityInfo]
-fromFixitySig (FixitySig _ names (Fixity _ i dir)) =
+fromFixitySig (FixitySig _ names (Fixity i dir)) =
     [(rdrNameStr name, f dir, i) | name <- names]
     where
         f InfixL = LeftAssociative
@@ -36,14 +35,14 @@ fromFixitySig (FixitySig _ names (Fixity _ i dir)) =
         f InfixN = NotAssociative
 
 toFixity :: FixityInfo -> (String, Fixity)
-toFixity (name, dir, i) = (name, Fixity NoSourceText i $ f dir)
+toFixity (name, dir, i) = (name, Fixity i $ f dir)
     where
         f LeftAssociative = InfixL
         f RightAssociative = InfixR
         f NotAssociative = InfixN
 
 fromFixity :: (String, Fixity) -> FixityInfo
-fromFixity (name, Fixity _ i dir) = (name, assoc dir, i)
+fromFixity (name, Fixity i dir) = (name, assoc dir, i)
   where
     assoc dir = case dir of
       InfixL -> LeftAssociative

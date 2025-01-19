@@ -77,7 +77,6 @@ import GHC.Types.SrcLoc
 import GHC.Types.Basic
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
-import GHC.Data.Bag
 import GHC.Data.Strict qualified
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
@@ -121,7 +120,7 @@ monadExp decl parentDo parentExpr x =
     (view -> App2 op x1 x2) | isTag ">>" op -> f x1
     (view -> App2 op x1 (view -> LamConst1 _)) | isTag ">>=" op -> f x1
     (L l (HsApp _ op x)) | isTag "void" op -> seenVoid (L l . HsApp noExtField op) x
-    (L l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (L l . OpApp noAnn op dol) x
+    (L l (OpApp _ op dol x)) | isTag "void" op, isDol dol -> seenVoid (L l . OpApp noExtField op dol) x
     (L loc (HsDo _ ctx (L loc2 [L loc3 (BodyStmt _ y _ _ )]))) ->
       let doOrMDo = case ctx of MDoExpr _ -> "mdo"; _ -> "do"
        in [ ideaRemove Ignore ("Redundant " ++ doOrMDo) (doSpan doOrMDo (locA loc)) doOrMDo [Replace Expr (toSSA x) [("y", toSSA y)] "y"]
@@ -192,7 +191,7 @@ modifyAppHead f = go id
     go :: (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, Maybe a)
     go wrap (L l (HsPar _ x)) = go (wrap . L l . \y -> HsPar noAnn y) x
     go wrap (L l (HsApp _ x y)) = go (\x -> wrap $ L l (HsApp noExtField x y)) x
-    go wrap (L l (OpApp _ x op y)) | isDol op = go (\x -> wrap $ L l (OpApp noAnn x op y)) x
+    go wrap (L l (OpApp _ x op y)) | isDol op = go (\x -> wrap $ L l (OpApp noExtField x op y)) x
     go wrap (L l (HsVar _ x)) = (wrap (L l (HsVar NoExtField x')), Just a)
       where (x', a) = f x
     go _ expr = (expr, Nothing)
@@ -208,8 +207,8 @@ monadNoResult :: String -> (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> 
 monadNoResult inside wrap (L l (HsPar _ x)) = monadNoResult inside (wrap . nlHsPar) x
 monadNoResult inside wrap (L l (HsApp _ x y)) = monadNoResult inside (\x -> wrap $ L l (HsApp noExtField x y)) x
 monadNoResult inside wrap (L l (OpApp _ x tag@(L _ (HsVar _ (L _ op))) y))
-    | isDol tag = monadNoResult inside (\x -> wrap $ L l (OpApp noAnn x tag y)) x
-    | occNameStr op == ">>=" = monadNoResult inside (wrap . L l . OpApp noAnn x tag) y
+    | isDol tag = monadNoResult inside (\x -> wrap $ L l (OpApp noExtField x tag y)) x
+    | occNameStr op == ">>=" = monadNoResult inside (wrap . L l . OpApp noExtField x tag) y
 monadNoResult inside wrap x
     | x2 : _ <- filter (`isTag` x) badFuncs
     , let x3 = x2 ++ "_"
@@ -261,7 +260,7 @@ monadStep wrap
     , q@(L _ (BodyStmt _ (fromApplies -> (ret:f:fs, view -> Var_ v)) _ _))]
   | isReturn ret, notDol x, u == v, length fs < 3, all isSimple (f : fs), v `notElem` vars (f : fs)
   =
-      [warn "Use <$>" (reLoc (wrap o)) (reLoc (wrap [noLocA $ BodyStmt noExtField (noLocA $ OpApp noAnn (foldl' (\acc e -> noLocA $ OpApp noAnn acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr]))
+      [warn "Use <$>" (reLoc (wrap o)) (reLoc (wrap [noLocA $ BodyStmt noExtField (noLocA $ OpApp noExtField (foldl' (\acc e -> noLocA $ OpApp noExtField acc (strToVar ".") e) f fs) (strToVar "<$>") x) noSyntaxExpr noSyntaxExpr]))
       [Replace Stmt (toSSA g) (("x", toSSA x):zip vs (toSSA <$> f:fs)) (intercalate " . " (take (length fs + 1) vs) ++ " <$> x"), Delete Stmt (toSSA q)]]
   where
     isSimple (fromApps -> xs) = all isAtom (x : xs)
@@ -297,9 +296,9 @@ monadLet xs = mapMaybe mkLet xs
         let p = noLocA $ mkRdrUnqual (mkVarOcc lhs)
             grhs = noLocA (GRHS noAnn [] rhs)
             grhss = GRHSs emptyComments [grhs] (EmptyLocalBinds noExtField)
-            match = noLocA $ Match noAnn (FunRhs p Prefix NoSrcStrict) [] grhss
+            match = noLocA $ Match noExtField (FunRhs p Prefix NoSrcStrict noAnn) (noLocA []) grhss
             fb = noLocA $ FunBind noExtField p (MG (Generated OtherExpansion SkipPmc) (noLocA [match]))
-            binds = unitBag fb
+            binds = [fb]
             valBinds = ValBinds NoAnnSortKey binds []
             localBinds = HsValBinds noAnn valBinds
          in noLocA $ LetStmt noAnn localBinds

@@ -301,7 +301,7 @@ extensionsHint :: ModuHint
 extensionsHint _ x =
     [
         rawIdea Hint.Type.Warning "Unused LANGUAGE pragma"
-        (RealSrcSpan (anchor sl) GHC.Data.Strict.Nothing)
+        (RealSrcSpan (epaLocationRealSrcSpan sl) GHC.Data.Strict.Nothing)
         (comment_ (mkLanguagePragmas sl exts))
         (Just newPragma)
         ( [RequiresExtension (show gone) | (_, Just x) <- before \\ after, gone <- Map.findWithDefault [] x disappear] ++
