@@ -85,7 +85,7 @@ encode = encode1Strict
 
 #else
 
-import Data.Yaml
+import Data.Yaml.Include
 import Control.Exception.Extra
 
 #endif
