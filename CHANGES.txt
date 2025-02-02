@@ -1,7 +1,8 @@
 Changelog for HLint (* = breaking change)
 
+3.10, released 2024-02-02
     #1617, hints for when x <*> y could be y, e.g. []
-*   #1594, upgrade to GHC 9.10
+*   #1594, upgrade to GHC 9.12
     #1568, add mapMaybe f (reverse x) ==> reverse (mapMaybe f x)
     #1569, avoid redundant Foldable.toList calls in Foldable operations
     #1571, rename a few hints to make them clearer
