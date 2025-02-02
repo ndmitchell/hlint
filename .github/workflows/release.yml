@@ -45,7 +45,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: haskell/actions/setup@v2
       with:
-        ghc-version: '9.6'
+        ghc-version: '9.12'
     - uses: ndmitchell/neil@master
       with:
         make-release: true
