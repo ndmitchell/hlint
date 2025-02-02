@@ -1,9 +1,8 @@
 name: release
 on:
-  # Match when pushing tags v*, i.e. v1.0, v20.15.10
-  push:
-    tags: ['v*']
-
+    release:
+      types: [created]
+  
 jobs:
   init:
     runs-on: ubuntu-latest
