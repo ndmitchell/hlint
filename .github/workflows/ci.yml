@@ -39,4 +39,6 @@ jobs:
       with:
         path: ${{ steps.setup-haskell.outputs.cabal-store }}
         key: ${{ runner.os }}-${{ matrix.ghc }}-${{ steps.get-ghc-libdir.outputs.libdir }}-${{ hashFiles('cabal.project.freeze') }}
-    - run: cabal run exe:hlint -- --test
+    - uses: ndmitchell/neil@master
+      with:
+        hlint-arguments: src
