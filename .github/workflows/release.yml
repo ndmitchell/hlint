@@ -1,5 +1,6 @@
 name: release
 on:
+    workflow_dispatch:
     release:
       types: [created]
   
@@ -21,6 +22,8 @@ jobs:
       id: create-release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        latest: true
 
   build:
     needs: init
