@@ -29,7 +29,7 @@ jobs:
       id: setup-haskell
       with:
         ghc-version: ${{ matrix.ghc }}
-    - run: cabal update && cabal install apply-refact --install-method=copy
+    - run: cabal install apply-refact-0.15.0.0 --install-method=copy
     - name: Get GHC libdir
       id: get-ghc-libdir
       run: echo "libdir=$(ghc --print-libdir)" >> $GITHUB_OUTPUT
