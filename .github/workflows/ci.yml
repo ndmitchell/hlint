@@ -24,14 +24,11 @@ jobs:
           ghc: '9.12'
     steps:
     - run: git config --global core.autocrlf false
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: haskell-actions/setup@v2
       id: setup-haskell
       with:
         ghc-version: ${{ matrix.ghc }}
-    - run: cabal install apply-refact --install-method=copy
-      # Not available on GHC 9.10, see https://github.com/mpickering/apply-refact/pull/149
-      if: matrix.ghc == '9.12' || matrix.ghc == '9.8'
     - name: Get GHC libdir
       id: get-ghc-libdir
       run: echo "libdir=$(ghc --print-libdir)" >> $GITHUB_OUTPUT
@@ -41,6 +38,9 @@ jobs:
       with:
         path: ${{ steps.setup-haskell.outputs.cabal-store }}
         key: ${{ runner.os }}-${{ matrix.ghc }}-${{ steps.get-ghc-libdir.outputs.libdir }}-${{ hashFiles('cabal.project.freeze') }}
+    - run: cabal install apply-refact --install-method=copy
+      # Not available on GHC 9.10, see https://github.com/mpickering/apply-refact/pull/149
+      if: matrix.ghc == '9.12' || matrix.ghc == '9.8'
     - uses: ndmitchell/neil@master
       with:
         hlint-arguments: src
