@@ -42,8 +42,8 @@ jobs:
 
     steps:
     - run: git config --global core.autocrlf false
-    - uses: actions/checkout@v2
-    - uses: haskell/actions/setup@v2
+    - uses: actions/checkout@v4
+    - uses: haskell-actions/setup@v2
       with:
         ghc-version: '9.12'
     - uses: ndmitchell/neil@master
