@@ -18,13 +18,10 @@ jobs:
         string: ${{ github.ref }} # e.g. refs/tags/v0.11.1.1
         split-by: 'v'
 
-    - uses: actions/create-release@v1
+    - uses: joutvhu/get-release@v1
       id: create-release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ steps.reftags_version.outputs._1 }}
-        release_name: v${{ steps.reftags_version.outputs._1 }}
 
   build:
     needs: init
