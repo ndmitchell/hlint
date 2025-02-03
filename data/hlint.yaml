@@ -937,6 +937,16 @@
     - warn: {lhs: find f (Data.Foldable.toList x), rhs: find f x}
     - warn: {lhs: concat (Data.Foldable.toList x), rhs: concat x}
     - warn: {lhs: concatMap f (Data.Foldable.toList x), rhs: concatMap f x}
+    - warn: {lhs: foldrM f c (Data.Foldable.toList x), rhs: foldrM f c x}
+    - warn: {lhs: foldlM f c (Data.Foldable.toList x), rhs: foldlM f c x}
+    - warn: {lhs: traverse_ f (Data.Foldable.toList x), rhs: traverse_ f x}
+    - warn: {lhs: for_ (Data.Foldable.toList x) f, rhs: for_ x f}
+    - warn: {lhs: sequenceA_ (Data.Foldable.toList x), rhs: sequenceA_ x}
+    - warn: {lhs: asum (Data.Foldable.toList x), rhs: asum x}
+    - warn: {lhs: mapM_ f (Data.Foldable.toList x), rhs: mapM_ f x}
+    - warn: {lhs: forM_ (Data.Foldable.toList x) f, rhs: forM_ x f}
+    - warn: {lhs: sequence_ (Data.Foldable.toList x), rhs: sequence_ x}
+    - warn: {lhs: msum (Data.Foldable.toList x), rhs: msum x}
 
     # STATE MONAD
 
