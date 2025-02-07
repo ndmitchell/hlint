@@ -1,0 +1,49 @@
+name: ghc-next-from-scratch
+on:
+  push:
+    branches:
+      - 'ghc-next*'
+  schedule:
+    - cron:  '0 8 * * 6' # once a week. saturdays at 8am
+jobs:
+  ghc-next:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        id: setup-haskell
+        with:
+          ghc-version: 9.10.1
+          cabal-version: 'latest'
+      - name: Install build tools (macOS)
+        run: brew install automake
+        if: matrix.os == 'macos'
+      - name: Configure msys2 (windows)
+        shell: bash
+        run: |-
+          echo "MSYSTEM=CLANG64" >> $GITHUB_ENV
+          echo "/c/mingw64/usr/bin" >> $GITHUB_PATH
+          echo "/c/msys64/usr/bin" >> $GITHUB_PATH
+        if: matrix.os == 'windows'
+      - name: Run hlint-from-scratch (windows)
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail '{0}'
+        run: |-
+          GHCLIB_AZURE=1; export GHCLIB_AZURE
+          pacman -S autoconf automake-wrapper make patch python tar mintty --noconfirm
+          git clone https://github.com/shayne-fletcher/hlint-from-scratch.git
+          hlint-from-scratch/hlint-from-scratch.sh --init="$HOME/project"
+          hlint-from-scratch/hlint-from-scratch.sh --ghc-flavor="ghc-master" --no-checkout
+        if: matrix.os == 'windows'
+      - name: Run hlint-from-scratch (unix)
+        shell: bash
+        run: |-
+          GHCLIB_AZURE=1; export GHCLIB_AZURE
+          git clone https://github.com/shayne-fletcher/hlint-from-scratch.git
+          hlint-from-scratch/hlint-from-scratch.sh --init="$HOME/project"
+          hlint-from-scratch/hlint-from-scratch.sh --ghc-flavor="ghc-master" --no-checkout
+        if: matrix.os == 'ubuntu' || matrix.os == 'macos'

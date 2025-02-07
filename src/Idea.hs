@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE RecordWildCards, NoMonomorphismRestriction #-}
 
 module Idea(
@@ -13,7 +14,7 @@ import Data.List.Extra
 import Config.Type
 import HsColour
 import Refact.Types hiding (SrcSpan)
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 import Prelude
 import GHC.Types.SrcLoc
 import GHC.Utils.Outputable
@@ -36,7 +37,7 @@ data Idea = Idea
     deriving Eq
 
 -- I don't use aeson here for 2 reasons:
--- 1) Aeson doesn't esape unicode characters, and I want to (allows me to ignore encoding)
+-- 1) Aeson doesn't escape unicode characters, and I want to (allows me to ignore encoding)
 -- 2) I want to control the format so it's slightly human readable as well
 showIdeaJson :: Idea -> String
 showIdeaJson idea@Idea{ideaSpan=srcSpan@SrcSpan{..}, ..} = dict

@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE ViewPatterns, PatternGuards, FlexibleContexts #-}
 {-
     Find and match:
@@ -43,18 +44,18 @@ module Hint.List(listHint) where
 
 import Control.Applicative
 import Data.Generics.Uniplate.DataOnly
+import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import Data.Maybe
 import Prelude
 
-import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSSA,modComments)
+import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSSA,modComments,firstDeclComments)
 
 import Refact.Types hiding (SrcSpan)
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 
 import GHC.Hs
 import GHC.Types.SrcLoc
-import GHC.Types.Basic hiding (Pattern)
 import GHC.Types.SourceText
 import GHC.Types.Name.Reader
 import GHC.Data.FastString
@@ -72,7 +73,11 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 listHint :: DeclHint
 listHint _ modu = listDecl overloadedListsOn
   where
-    exts = concatMap snd (languagePragmas (pragmas (modComments modu)))
+    -- Comments appearing without a line-break before the first
+    -- declaration in a module are now associated with the declaration
+    -- not the module so to be safe, look also at `firstDeclComments
+    -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+    exts = concatMap snd (languagePragmas (pragmas (modComments modu) ++ pragmas (firstDeclComments modu)))
     overloadedListsOn = "OverloadedLists" `elem` exts
 
 listDecl :: Bool -> LHsDecl GhcPs -> [Idea]
@@ -99,9 +104,9 @@ listComp _ = []
 
 listCompCheckGuards :: LHsExpr GhcPs -> HsDoFlavour -> [ExprLStmt GhcPs] -> [Idea]
 listCompCheckGuards o ctx stmts =
-  let revs = reverse stmts
-      e@(L _ LastStmt{}) = head revs -- In a ListComp, this is always last.
-      xs = reverse (tail revs) in
+  let revs = NE.reverse $ NE.fromList stmts
+      e@(L _ LastStmt{}) = NE.head revs -- In a ListComp, this is always last.
+      xs = reverse (NE.tail revs) in
   list_comp_aux e xs
   where
     list_comp_aux e xs
@@ -111,9 +116,9 @@ listCompCheckGuards o ctx stmts =
       | otherwise = []
       where
         ys = moveGuardsForward xs
-        o' = noLocA $ ExplicitList EpAnnNotUsed []
-        o2 = noLocA $ HsDo EpAnnNotUsed ctx (noLocA (filter ((/= Just "True") . qualCon) xs ++ [e]))
-        o3 = noLocA $ HsDo EpAnnNotUsed ctx (noLocA $ ys ++ [e])
+        o' = noLocA $ ExplicitList noAnn []
+        o2 = noLocA $ HsDo noAnn ctx (noLocA (filter ((/= Just "True") . qualCon) xs ++ [e]))
+        o3 = noLocA $ HsDo noAnn ctx (noLocA $ ys ++ [e])
         cons = mapMaybe qualCon xs
         qualCon :: ExprLStmt GhcPs -> Maybe String
         qualCon (L _ (BodyStmt _ (L _ (HsVar _ (L _ x))) _ _)) = Just (occNameStr x)
@@ -124,10 +129,11 @@ listCompCheckMap ::
 listCompCheckMap o mp f ctx stmts  | varToStr mp == "map" =
     [suggest "Move map inside list comprehension" (reLoc o) (reLoc o2) (suggestExpr o o2)]
     where
-      revs = reverse stmts
-      L _ (LastStmt _ body b s) = head revs -- In a ListComp, this is always last.
-      last = noLocA $ LastStmt noExtField (noLocA $ HsApp EpAnnNotUsed (paren f) (paren body)) b s
-      o2 =noLocA $ HsDo EpAnnNotUsed ctx (noLocA $ reverse (tail revs) ++ [last])
+      revs = NE.reverse $ NE.fromList stmts
+      L _ (LastStmt _ body b s) = NE.head revs -- In a ListComp, this is always last.
+      last = noLocA $ LastStmt noExtField (noLocA $ HsApp noExtField (paren f) (paren body)) b s
+      o2 =noLocA $ HsDo noAnn ctx (noLocA $ reverse (NE.tail revs) ++ [last])
+
 listCompCheckMap _ _ _ _ _ = []
 
 suggestExpr :: LHsExpr GhcPs -> LHsExpr GhcPs -> [Refactoring R.SrcSpan]
@@ -158,7 +164,7 @@ listExp :: Bool -> Bool -> LHsExpr GhcPs -> [Idea]
 listExp overloadedListsOn b (fromParen -> x) =
   if null res
     then concatMap (listExp overloadedListsOn $ isAppend x) $ children x
-    else [head res]
+    else [NE.head $ NE.fromList res]
   where
     res = [suggest name (reLoc x) (reLoc x2) [r]
           | (name, f) <- checks overloadedListsOn
@@ -166,7 +172,7 @@ listExp overloadedListsOn b (fromParen -> x) =
           , let r = Replace Expr (toSSA x) subts temp ]
 
 listPat :: LPat GhcPs -> [Idea]
-listPat x = if null res then concatMap listPat $ children x else [head res]
+listPat x = if null res then concatMap listPat $ children x else [NE.head $ NE.fromList res]
     where res = [suggest name (reLoc x) (reLoc x2) [r]
                   | (name, f) <- pchecks
                   , Just (x2, subts, temp) <- [f x]
@@ -198,9 +204,9 @@ usePString _ = Nothing
 usePList :: LPat GhcPs -> Maybe (LPat GhcPs, [(String, R.SrcSpan)], String)
 usePList =
   fmap  ( (\(e, s) ->
-             (noLocA (ListPat EpAnnNotUsed e)
+             (noLocA (ListPat noAnn e)
              , map (fmap toRefactSrcSpan . fst) s
-             , unsafePrettyPrint (noLocA $ ListPat EpAnnNotUsed (map snd s) :: LPat GhcPs))
+             , unsafePrettyPrint (noLocA $ ListPat noAnn (map snd s) :: LPat GhcPs))
           )
           . unzip
         )
@@ -215,16 +221,16 @@ usePList =
 
 useString :: p -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [a], String)
 useString b (L _ (ExplicitList _ xs)) | not $ null xs, Just s <- mapM fromChar xs =
-  let literal = noLocA (HsLit EpAnnNotUsed (HsString NoSourceText (fsLit (show s)))) :: LHsExpr GhcPs
+  let literal = noLocA (HsLit noExtField (HsString NoSourceText (fsLit (show s)))) :: LHsExpr GhcPs
   in Just (literal, [], unsafePrettyPrint literal)
 useString _ _ = Nothing
 
 useList :: p -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String)
 useList b =
   fmap  ( (\(e, s) ->
-             (noLocA (ExplicitList EpAnnNotUsed e)
+             (noLocA (ExplicitList noAnn e)
              , map (fmap toSSA) s
-             , unsafePrettyPrint (noLocA $ ExplicitList EpAnnNotUsed (map snd s) :: LHsExpr GhcPs))
+             , unsafePrettyPrint (noLocA $ ExplicitList noAnn (map snd s) :: LHsExpr GhcPs))
           )
           . unzip
         )
@@ -254,24 +260,24 @@ useCons False (view -> App2 op x y) | varToStr op == "++"
     f _ = Nothing
 
     gen :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
-    gen x = noLocA . OpApp EpAnnNotUsed x (noLocA (HsVar noExtField  (noLocA consDataCon_RDR)))
+    gen x = noLocA . OpApp noExtField x (noLocA (HsVar noExtField  (noLocA consDataCon_RDR)))
 useCons _ _ = Nothing
 
 typeListChar :: LHsType GhcPs
 typeListChar =
-  noLocA $ HsListTy EpAnnNotUsed
-    (noLocA (HsTyVar EpAnnNotUsed NotPromoted (noLocA (mkVarUnqual (fsLit "Char")))))
+  noLocA $ HsListTy noAnn
+    (noLocA (HsTyVar noAnn NotPromoted (noLocA (mkVarUnqual (fsLit "Char")))))
 
 typeString :: LHsType GhcPs
 typeString =
-  noLocA $ HsTyVar EpAnnNotUsed NotPromoted (noLocA (mkVarUnqual (fsLit "String")))
+  noLocA $ HsTyVar noAnn NotPromoted (noLocA (mkVarUnqual (fsLit "String")))
 
 stringType :: LHsDecl GhcPs  -> [Idea]
 stringType (L _ x) = case x of
   InstD _ ClsInstD{
     cid_inst=
         ClsInstDecl{cid_binds=x, cid_tyfam_insts=y, cid_datafam_insts=z}} ->
-    f x ++ f y ++ f z -- Pretty much everthing but the instance type.
+    f x ++ f y ++ f z -- Pretty much everything but the instance type.
   _ -> f x
   where
     f x = concatMap g $ childrenBi x

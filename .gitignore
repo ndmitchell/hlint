@@ -14,5 +14,6 @@ stack*.yaml.lock
 /TAGS
 \#*\#
 .\#*\#
-
+/.sl/
 *.dump-hi
+.DS_Store

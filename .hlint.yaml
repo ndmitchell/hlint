@@ -16,6 +16,7 @@
 
 - extensions:
   - default: false
+  - name: [ImportQualifiedPost]
   - name: [DeriveDataTypeable, DeriveFunctor, GeneralizedNewtypeDeriving, NoMonomorphismRestriction, OverloadedStrings]
   - name: [MultiWayIf, PatternGuards, RecordWildCards, ViewPatterns, PatternSynonyms, TupleSections, LambdaCase]
   - name: [Rank2Types, ScopedTypeVariables]
@@ -26,6 +27,7 @@
   - name: [TemplateHaskell]
   - name: [DerivingVia, DeriveGeneric, DataKinds]
   - {name: CPP, within: [HsColour, Config.Yaml, Test.Annotations]} # so it can be disabled to avoid GPL code
+  - {name: CPP, within: CmdLine} # Don't think this one is really necessary
 
 - flags:
   - default: false
@@ -70,7 +72,7 @@
 
 # doesn't fit with the other statements
 - ignore: {name: Use let, within: [HLint, Test.All]}
-# this const has meaingful argument names
+# this const has meaningful argument names
 - ignore: {name: Use const, within: Config.Yaml}
 # TEMPORARY: this lint is deleted on HEAD
 - ignore: {name: Use String}

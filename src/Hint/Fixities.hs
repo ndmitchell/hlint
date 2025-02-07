@@ -73,7 +73,6 @@ needParenAsChild :: HsExpr p -> Bool
 needParenAsChild HsLet{} = True
 needParenAsChild HsDo{} = True
 needParenAsChild HsLam{} = True
-needParenAsChild HsLamCase{} = True
 needParenAsChild HsCase{} = True
 needParenAsChild HsIf{} = True
 needParenAsChild _ = False

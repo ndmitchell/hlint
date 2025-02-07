@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -20,16 +21,17 @@ foo = nub s
 </TEST>
 -}
 
-import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea,modComments)
+import Hint.Type(ModuHint,ModuleEx(..),Idea(..),Severity(..),warn,rawIdea,modComments,firstDeclComments)
 import Config.Type
 import Util
 
 import Data.Generics.Uniplate.DataOnly
-import qualified Data.List.NonEmpty as NonEmpty
-import qualified Data.Set as Set
-import qualified Data.Map as Map
+import Data.List.NonEmpty qualified as NonEmpty
+import Data.Set qualified as Set
+import Data.Map qualified as Map
 import Data.List.Extra
 import Data.List.NonEmpty (nonEmpty)
+import Data.Either
 import Data.Maybe
 import Data.Monoid
 import Data.Semigroup
@@ -41,7 +43,6 @@ import Prelude
 
 import GHC.Hs
 import GHC.Types.Name.Reader
-import GHC.Unit.Module
 import GHC.Types.SrcLoc
 import GHC.Types.Name.Occurrence
 import Language.Haskell.GhclibParserEx.GHC.Hs
@@ -51,8 +52,14 @@ import GHC.Util
 -- FIXME: The settings should be partially applied, but that's hard to orchestrate right now
 restrictHint :: [Setting] -> ModuHint
 restrictHint settings scope m =
-    let anns = modComments m
-        ps   = pragmas anns
+    -- Comments appearing without an empty line before the first
+    -- declaration in a module are now associated with the declaration
+    -- not the module so to be safe, look also at `firstDeclComments
+    -- modu`
+    -- (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+    let annsMod = modComments m
+        annsFirstDecl = firstDeclComments m
+        ps   = pragmas annsMod ++ pragmas annsFirstDecl
         opts = flags ps
         exts = languagePragmas ps in
     checkPragmas modu opts exts rOthers ++
@@ -151,6 +158,11 @@ checkPragmas modu flags exts mps =
      , not $ null bad]
    isGood def mp x = maybe def (within modu "" . riWithin) $ Map.lookup x mp
 
+
+-- | Extension to GHC's 'ImportDeclQualifiedStyle', expressing @qualifiedStyle: unrestricted@,
+-- i.e. the preference of "either pre- or post-, but qualified" in a rule.
+data QualifiedPostOrPre = QualifiedPostOrPre deriving Eq
+
 checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
 checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
   where
@@ -162,7 +174,7 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
           Left $ ideaNoTo $ warn "Avoid restricted module" (reLoc i) (reLoc i) []
 
         let importedIdents = Set.fromList $
-              case ideclHiding of
+              case first (== EverythingBut) <$> ideclImportList of
                 Just (False, lxs) -> concatMap (importListToIdents . unLoc) (unLoc lxs)
                 _ -> []
             invalidIdents = case riRestrictIdents of
@@ -184,31 +196,38 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
               case fromMaybe ImportStyleUnrestricted $ getAlt riImportStyle of
                 ImportStyleUnrestricted
                   | NotQualified <- ideclQualified -> (Nothing, Nothing)
-                  | otherwise -> (second (<> " or unqualified") <$> expectedQualStyle, Nothing)
-                ImportStyleQualified -> (expectedQualStyleDef, Nothing)
+                  | otherwise -> (Just $ second (<> " or unqualified") expectedQualStyle, Nothing)
+                ImportStyleQualified -> (Just expectedQualStyle, Nothing)
                 ImportStyleExplicitOrQualified
-                  | Just (False, _) <- ideclHiding -> (Nothing, Nothing)
+                  | Just (False, _) <- first (== EverythingBut) <$> ideclImportList -> (Nothing, Nothing)
                   | otherwise ->
-                      ( second (<> " or with an explicit import list") <$> expectedQualStyleDef
+                      ( Just $ second (<> " or with an explicit import list") expectedQualStyle
                       , Nothing )
                 ImportStyleExplicit
-                  | Just (False, _) <- ideclHiding -> (Nothing, Nothing)
+                  | Just (False, _) <- first (== EverythingBut) <$> ideclImportList -> (Nothing, Nothing)
                   | otherwise ->
-                      ( Just (NotQualified, "unqualified")
-                      , Just $ Just (False, noLocA []) )
-                ImportStyleUnqualified -> (Just (NotQualified, "unqualified"), Nothing)
-            expectedQualStyleDef = expectedQualStyle <|> Just (QualifiedPre, "qualified")
+                      ( Just (Right NotQualified, "unqualified")
+                      , Just $ Just (Exactly, noLocA []) )
+                ImportStyleUnqualified -> (Just (Right NotQualified, "unqualified"), Nothing)
             expectedQualStyle =
               case fromMaybe QualifiedStyleUnrestricted $ getAlt riQualifiedStyle of
-                QualifiedStyleUnrestricted -> Nothing
-                QualifiedStylePost -> Just (QualifiedPost, "post-qualified")
-                QualifiedStylePre -> Just (QualifiedPre, "pre-qualified")
+                QualifiedStyleUnrestricted -> (Left QualifiedPostOrPre, "qualified")
+                QualifiedStylePost -> (Right QualifiedPost, "post-qualified")
+                QualifiedStylePre -> (Right QualifiedPre, "pre-qualified")
+            -- unless expectedQual is Nothing, it holds the Idea (hint) to ultimately emit,
+            -- except in these cases when the rule's requirements are fulfilled in-source:
             qualIdea
-              | Just ideclQualified == (fst <$> expectedQual) = Nothing
+              -- the rule demands a particular importStyle, and the decl obeys exactly
+              | Just (Right ideclQualified) == (fst <$> expectedQual) = Nothing
+              -- the rule demands a QualifiedPostOrPre import, and the decl does either
+              | Just (Left QualifiedPostOrPre) == (fst <$> expectedQual)
+                && ideclQualified `elem` [QualifiedPost, QualifiedPre] = Nothing
+              -- otherwise, expectedQual gets converted into a warning below (or is Nothing)
               | otherwise = expectedQual
         whenJust qualIdea $ \(qual, hint) -> do
-          let i' = noLoc $ (unLoc i){ ideclQualified = qual
-                                    , ideclHiding = fromMaybe ideclHiding expectedHiding }
+          -- convert non-Nothing qualIdea into hlint's refactoring Idea
+          let i' = noLoc $ (unLoc i){ ideclQualified = fromRight QualifiedPre qual
+                                    , ideclImportList = fromMaybe ideclImportList expectedHiding }
               msg = moduleNameString (unLoc ideclName) <> " should be imported " <> hint
           Left $ warn msg (reLoc i) i' []
 
@@ -231,16 +250,16 @@ lookupRestrictItem ideclName mp =
 importListToIdents :: IE GhcPs -> [String]
 importListToIdents =
   catMaybes .
-  \case (IEVar _ n)              -> [fromName n]
-        (IEThingAbs _ n)         -> [fromName n]
-        (IEThingAll _ n)         -> [fromName n]
-        (IEThingWith _ n _ ns)   -> fromName n : map fromName ns
+  \case (IEVar _ n _)              -> [fromName n]
+        (IEThingAbs _ n _)         -> [fromName n]
+        (IEThingAll _ n _)         -> [fromName n]
+        (IEThingWith _ n _ ns _)   -> fromName n : map fromName ns
         _                        -> []
   where
-    fromName :: LIEWrappedName (IdP GhcPs) -> Maybe String
+    fromName :: LIEWrappedName GhcPs -> Maybe String
     fromName wrapped =
       case unLoc wrapped of
-        IEName      n -> fromId (unLoc n)
+        IEName    _ n -> fromId (unLoc n)
         IEPattern _ n -> ("pattern " ++) <$> fromId (unLoc n)
         IEType    _ n -> ("type " ++) <$> fromId (unLoc n)
 
@@ -252,7 +271,7 @@ importListToIdents =
 
 checkFunctions :: Scope -> String -> [LHsDecl GhcPs] -> RestrictFunctions -> [Idea]
 checkFunctions scope modu decls (def, mp) =
-    [ (ideaMessage message $ ideaNoTo $ warn "Avoid restricted function" (reLocN x) (reLocN x) []){ideaDecl = [dname]}
+    [ (ideaMessage message $ ideaNoTo $ warn "Avoid restricted function" (reLoc x) (reLoc x) []){ideaDecl = [dname]}
     | d <- decls
     , let dname = fromMaybe "" (declName d)
     , x <- universeBi d :: [LocatedN RdrName]

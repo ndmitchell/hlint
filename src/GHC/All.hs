@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -5,7 +6,7 @@ module GHC.All(
     CppFlags(..), ParseFlags(..), defaultParseFlags,
     parseFlagsAddFixities, parseFlagsSetLanguage,
     ParseError(..), ModuleEx(..),
-    parseModuleEx, createModuleEx, createModuleExWithFixities, ghcComments, modComments,
+    parseModuleEx, createModuleEx, createModuleExWithFixities, ghcComments, modComments, firstDeclComments,
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
     ) where
 
@@ -14,6 +15,8 @@ import Control.Monad.Trans.Except
 import Control.Monad.IO.Class
 import Util
 import Data.Char
+import Data.List
+import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import Timing
 import Language.Preprocessor.Cpphs
@@ -22,7 +25,7 @@ import Fixity
 import Extension
 import GHC.Data.FastString
 
-import GHC.Hs
+import GHC.Hs hiding (comments)
 import GHC.Types.SrcLoc
 import GHC.Types.Fixity
 import GHC.Types.Error
@@ -37,6 +40,8 @@ import Data.Generics.Uniplate.DataOnly
 
 import Language.Haskell.GhclibParserEx.GHC.Parser
 import Language.Haskell.GhclibParserEx.Fixity
+import Language.Haskell.GhclibParserEx.GHC.Driver.Session
+
 import GHC.Util
 
 -- | What C pre processor should be used.
@@ -85,7 +90,7 @@ data ParseError = ParseError
 
 -- | Result of 'parseModuleEx', representing a parsed module.
 newtype ModuleEx = ModuleEx {
-    ghcModule :: Located HsModule
+    ghcModule :: Located (HsModule GhcPs)
 }
 
 -- | Extract a complete list of all the comments in a module.
@@ -94,7 +99,14 @@ ghcComments = universeBi . ghcModule
 
 -- | Extract just the list of a modules' leading comments (pragmas).
 modComments :: ModuleEx -> EpAnnComments
-modComments = comments . hsmodAnn . unLoc . ghcModule
+modComments = comments . hsmodAnn . hsmodExt . unLoc . ghcModule
+
+-- | Extract comments associated with the first declaration of a module.
+firstDeclComments :: ModuleEx -> EpAnnComments
+firstDeclComments m =
+  case hsmodDecls . unLoc . ghcModule $ m of
+        [] -> EpaCommentsBalanced [] []
+        L ann _ : _ -> comments ann
 
 -- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String
@@ -117,12 +129,12 @@ ghcExtensionsFromParseFlags ParseFlags{enabledExtensions=es, disabledExtensions=
 ghcFixitiesFromParseFlags :: ParseFlags -> [(String, GHC.Types.Fixity.Fixity)]
 ghcFixitiesFromParseFlags = map toFixity . fixities
 
--- These next two functions get called frorm 'Config/Yaml.hs' for user
+-- These next two functions get called from 'Config/Yaml.hs' for user
 -- defined hint rules.
 
 parseModeToFlags :: ParseFlags -> DynFlags
 parseModeToFlags parseMode =
-    flip lang_set (baseLanguage parseMode) $ foldl' xopt_unset (foldl' xopt_set baseDynFlags enable) disable
+  flip lang_set (baseLanguage parseMode) $ foldl xopt_unset (foldl' xopt_set baseDynFlags enable) disable
   where
     (enable, disable) = ghcExtensionsFromParseFlags parseMode
 
@@ -147,12 +159,22 @@ parseDeclGhcWithMode parseMode s =
 -- | Create a 'ModuleEx' from a GHC module. It is assumed the incoming
 -- parsed module has not been adjusted to account for operator
 -- fixities (it uses the HLint default fixities).
-createModuleEx :: Located HsModule -> ModuleEx
+createModuleEx :: Located (HsModule GhcPs) -> ModuleEx
 createModuleEx = createModuleExWithFixities (map toFixity defaultFixities)
 
-createModuleExWithFixities :: [(String, Fixity)] -> Located HsModule -> ModuleEx
+createModuleExWithFixities :: [(String, Fixity)] -> Located (HsModule GhcPs) -> ModuleEx
 createModuleExWithFixities fixities ast =
   ModuleEx (applyFixities (fixitiesFromModule ast ++ fixities) ast)
+
+impliedEnables :: Extension -> [Extension]
+impliedEnables ext = case Data.List.lookup ext extensionImplications of
+  Just exts -> ext : fst exts
+  Nothing -> [ext]
+
+impliedDisables :: Extension -> [Extension]
+impliedDisables ext = case Data.List.lookup ext extensionImplications  of
+  Just exts -> ext : snd exts
+  Nothing -> []
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
@@ -170,7 +192,11 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
     Nothing | file == "-" -> liftIO getContentsUTF8
             | otherwise -> liftIO $ readFileUTF8' file
   str <- pure $ dropPrefix "\65279" str -- Remove the BOM if it exists, see #130.
-  let enableDisableExts = ghcExtensionsFromParseFlags flags
+  let (enable, disable) = ghcExtensionsFromParseFlags flags
+  -- Enable/disable extensions and the extensions they imply.
+      impliedEnabled = concatMap impliedEnables enable
+      impliedDisabled = concatMap impliedDisables disable
+      enableDisableExts = (impliedEnabled, impliedDisabled)
   -- Read pragmas for the first time.
   dynFlags <- withExceptT (parsePragmasErr str) $ ExceptT (parsePragmasIntoDynFlags baseDynFlags enableDisableExts file str)
   dynFlags <- pure $ lang_set dynFlags $ baseLanguage flags
@@ -185,12 +211,12 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
     POk s a -> do
       let errs = bagToList . getMessages $ GhcPsMessage <$> snd (getPsMessages s)
       if not $ null errs then
-        ExceptT $ parseFailureErr dynFlags str file str errs
+        ExceptT $ parseFailureErr dynFlags str file str $ NE.fromList errs
       else do
         let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
         pure $ ModuleEx (applyFixities fixes a)
     PFailed s ->
-      ExceptT $ parseFailureErr dynFlags str file str $ bagToList . getMessages  $ GhcPsMessage <$> snd (getPsMessages s)
+      ExceptT $ parseFailureErr dynFlags str file str $ NE.fromList . bagToList . getMessages  $ GhcPsMessage <$> snd (getPsMessages s)
   where
     -- If parsing pragmas fails, synthesize a parse error from the
     -- error message.
@@ -199,9 +225,9 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
       in ParseError (mkSrcSpan loc loc) msg src
 
     parseFailureErr dynFlags ppstr file str errs =
-      let errMsg = head errs
+      let errMsg = NE.head errs
           loc = errMsgSpan errMsg
-          doc = pprLocMsgEnvelope errMsg
+          doc = pprLocMsgEnvelopeDefault errMsg
       in ghcFailOpParseModuleEx ppstr file str (loc, doc)
 
 -- | Given a line number, and some source code, put bird ticks around the appropriate bit.

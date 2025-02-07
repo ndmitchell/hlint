@@ -31,7 +31,7 @@ inspectCode (L _ ((HsCase _ _ (MG _ (L _ cases) _)))) = concatMap inspectCase ca
 inspectCode o = concatMap inspectCode $ children o
 
 inspectCase :: LMatch GhcPs (LHsExpr GhcPs) -> [Idea]
-inspectCase c@(L _ (Match _ _ pats _)) = concatMap inspectPat pats
+inspectCase c@(L _ (Match _ _ (L _ pats) _)) = concatMap inspectPat pats
 
 inspectPat :: LPat GhcPs -> [Idea]
 inspectPat c@(L _ (WildPat _)) = [ignoreNoSuggestion "Don't use wildcard in pattern match" (reLoc c)]

@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE RecordWildCards, NamedFieldPuns, TupleSections #-}
 {-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts #-}
 
@@ -43,8 +44,8 @@ import Hint.Type (ModuleEx,Idea,idea,ideaNote,toSSA)
 
 import Util
 import Timing
-import qualified Data.Set as Set
-import qualified Refact.Types as R
+import Data.Set qualified as Set
+import Refact.Types qualified as R
 
 import Control.Monad
 import Data.Tuple.Extra
@@ -52,7 +53,6 @@ import Data.Maybe
 import Config.Type
 import Data.Generics.Uniplate.DataOnly
 
-import GHC.Data.Bag
 import GHC.Hs
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
@@ -100,8 +100,8 @@ dotVersion (L l (OpApp _ x op y)) =
 
   --   If a == b then
   --   x is 'a', op is '==' and y is 'b' and,
-  let lSec = addParen (L l (SectionL EpAnnNotUsed x op)) -- (a == )
-      rSec = addParen (L l (SectionR EpAnnNotUsed op y)) -- ( == b)
+  let lSec = addParen (L l (SectionL noExtField x op)) -- (a == )
+      rSec = addParen (L l (SectionR noExtField op y)) -- ( == b)
   in (first (lSec :) <$> dotVersion y) ++ (first (rSec :) <$> dotVersion x) -- [([(a ==)], b), ([(b == )], a])].
 dotVersion _ = []
 
@@ -120,7 +120,7 @@ findIdeas matches s _ decl = timed "Hint" "Match apply" $ forceList
 -- | A list of root expressions, with their associated names
 findDecls :: LHsDecl GhcPs -> [(String, LHsExpr GhcPs)]
 findDecls x@(L _ (InstD _ (ClsInstD _ ClsInstDecl{cid_binds}))) =
-    [(fromMaybe "" $ bindName xs, x) | xs <- bagToList cid_binds, x <- childrenBi xs]
+    [(fromMaybe "" $ bindName xs, x) | xs <- cid_binds, x <- childrenBi xs]
 findDecls (L _ RuleD{}) = [] -- Often rules contain things that HLint would rewrite.
 findDecls x = map (fromMaybe "" $ declName x,) $ childrenBi x
 
@@ -141,7 +141,7 @@ matchIdea sb declName HintRule{..} parent x = do
 
   -- Need to check free vars before unqualification, but after subst
   -- (with 'e') need to unqualify before substitution (with 'res').
-  let rhs' | Just fun <- extra = rebracket1 $ noLocA (HsApp EpAnnNotUsed fun rhs)
+  let rhs' | Just fun <- extra = rebracket1 $ noLocA (HsApp noExtField fun rhs)
            | otherwise = rhs
       (e, (tpl, substNoParens)) = substitute u rhs'
       noParens = [varToStr $ fromParen x | L _ (HsApp _ (varToStr -> "_noParen_") x) <- universe tpl]
@@ -182,7 +182,7 @@ checkSide x bind = maybe True bool x
         | varToStr op == "||" = bool x || bool y
         | varToStr op == "==" = expr (fromParen1 x) `astEq` expr (fromParen1 y)
       bool (L _ (HsApp _ x y)) | varToStr x == "not" = not $ bool y
-      bool (L _ (HsPar _ _ x _)) = bool x
+      bool (L _ (HsPar _ x)) = bool x
 
       bool (L _ (HsApp _ cond (sub -> y)))
         | 'i' : 's' : typ <- varToStr cond = isType typ y
@@ -200,7 +200,7 @@ checkSide x bind = maybe True bool x
       isType "Compare" x = True -- Just a hint for proof stuff
       isType "Atom" x = isAtom x
       isType "WHNF" x = isWHNF x
-      isType "Wildcard" x = any isFieldPun (universeBi x) || any hasFieldsDotDot (universeBi x)
+      isType "Wildcard" x = any hasFieldsDotDot (universeBi x)
       isType "Nat" (asInt -> Just x) | x >= 0 = True
       isType "Pos" (asInt -> Just x) | x >  0 = True
       isType "Neg" (asInt -> Just x) | x <  0 = True
@@ -219,7 +219,7 @@ checkSide x bind = maybe True bool x
         typ == top
 
       asInt :: LHsExpr GhcPs -> Maybe Integer
-      asInt (L _ (HsPar _ _ x _)) = asInt x
+      asInt (L _ (HsPar _ x)) = asInt x
       asInt (L _ (NegApp _ x _)) = negate <$> asInt x
       asInt (L _ (HsLit _ (HsInt _ (IL _ _ x)) )) = Just x
       asInt (L _ (HsOverLit _ (OverLit _ (HsIntegral (IL _ _ x))))) = Just x
@@ -275,5 +275,5 @@ addBracketTy= transformBi f
   where
     f :: LHsType GhcPs -> LHsType GhcPs
     f (L _ (HsAppTy _ t x@(L _ HsAppTy{}))) =
-      noLocA (HsAppTy noExtField t (noLocA (HsParTy EpAnnNotUsed x)))
+      noLocA (HsAppTy noExtField t (noLocA (HsParTy noAnn x)))
     f x = x

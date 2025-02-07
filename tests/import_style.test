@@ -66,3 +66,64 @@ OUTPUT
 No hints
 
 ---------------------------------------------------------------------
+RUN tests/importStyle-postqual-pos.hs --hint=data/import_style.yaml -XImportQualifiedPost
+FILE tests/importStyle-postqual-pos.hs
+import HypotheticalModule1 qualified as HM1
+import HypotheticalModule2 qualified
+import HypotheticalModule2 qualified as Arbitrary
+import HypotheticalModule3 qualified
+import HypotheticalModule3 qualified as Arbitrary
+import HypotheticalModule4 qualified as HM4
+import HypotheticalModule5 qualified
+import HypotheticalModule5 qualified as HM5
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/importStyle-postqual-neg.hs --hint=data/import_style.yaml -XImportQualifiedPost
+FILE tests/importStyle-postqual-neg.hs
+import HypotheticalModule1 qualified
+import qualified HypotheticalModule4
+import qualified HypotheticalModule4 as Verbotten
+import qualified HypotheticalModule4 as HM4
+import HypotheticalModule5 as HM5
+import qualified HypotheticalModule5
+
+OUTPUT
+tests/importStyle-postqual-neg.hs:1:1-36: Warning: Avoid restricted alias
+Found:
+  import HypotheticalModule1 qualified
+Perhaps:
+  import HypotheticalModule1 qualified as HM1
+Note: may break the code
+
+tests/importStyle-postqual-neg.hs:2:1-36: Warning: Avoid restricted alias
+Found:
+  import qualified HypotheticalModule4
+Perhaps:
+  import qualified HypotheticalModule4 as HM4
+Note: may break the code
+
+tests/importStyle-postqual-neg.hs:3:1-49: Warning: Avoid restricted alias
+Found:
+  import qualified HypotheticalModule4 as Verbotten
+Perhaps:
+  import qualified HypotheticalModule4 as HM4
+Note: may break the code
+
+tests/importStyle-postqual-neg.hs:5:1-33: Warning: HypotheticalModule5 should be imported post-qualified
+Found:
+  import HypotheticalModule5 as HM5
+Perhaps:
+  import HypotheticalModule5 qualified as HM5
+Note: may break the code
+
+tests/importStyle-postqual-neg.hs:6:1-36: Warning: HypotheticalModule5 should be imported post-qualified
+Found:
+  import qualified HypotheticalModule5
+Perhaps:
+  import HypotheticalModule5 qualified
+Note: may break the code
+
+5 hints
+---------------------------------------------------------------------

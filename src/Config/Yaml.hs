@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings, ViewPatterns, RecordWildCards, GeneralizedNewtypeDeriving, TupleSections #-}
@@ -28,13 +29,14 @@ import GHC.Types.Error hiding (Severity)
 import Config.Type
 import Data.Either.Extra
 import Data.Maybe
+import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import Data.Tuple.Extra
 import Control.Monad.Extra
-import qualified Data.Text as T
-import qualified Data.Vector as V
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.HashMap.Strict as Map
+import Data.Text qualified as T
+import Data.Vector qualified as V
+import Data.ByteString.Char8 qualified as BS
+import Data.HashMap.Strict qualified as Map
 import Data.Generics.Uniplate.DataOnly
 import GHC.All
 import Fixity
@@ -67,7 +69,7 @@ import Data.YAML (Pos)
 import Data.YAML.Aeson (encode1Strict, decode1Strict)
 import Data.Aeson hiding (encode)
 import Data.Aeson.Types (Parser)
-import qualified Data.ByteString as BSS
+import Data.ByteString qualified as BSS
 
 decodeFileEither :: FilePath -> IO (Either (Pos, String) ConfigYaml)
 decodeFileEither path = decode1Strict <$> BSS.readFile path
@@ -162,7 +164,7 @@ parseFail (Val focus path) msg = fail $
     -- aim to show a smallish but relevant context
     dotDot (fromMaybe (encode focus) $ listToMaybe $ dropWhile (\x -> BS.length x > 250) $ map encode contexts)
     where
-        (steps, contexts) = unzip $ reverse path
+        (steps, contexts) = Prelude.unzip $ reverse path
         dotDot x = let (a,b) = BS.splitAt 250 x in BS.unpack a ++ (if BS.null b then "" else "...")
 
 parseArray :: Val -> Parser [Val]
@@ -234,8 +236,8 @@ parseGHC parser v = do
     case parser defaultParseFlags{enabledExtensions=configExtensions, disabledExtensions=[]} x of
         POk _ x -> pure x
         PFailed ps ->
-          let errMsg = head . bagToList . getMessages $ GhcPsMessage <$> snd (getPsMessages ps)
-              msg = showSDoc baseDynFlags $ pprLocMsgEnvelope errMsg
+          let errMsg = NE.head . NE.fromList . bagToList . getMessages $ GhcPsMessage <$> snd (getPsMessages ps)
+              msg = showSDoc baseDynFlags $ pprLocMsgEnvelopeDefault errMsg
           in parseFail v $ "Failed to parse " ++ msg ++ ", when parsing:\n " ++ x
 
 ---------------------------------------------------------------------
@@ -440,7 +442,7 @@ settingsFromConfigYaml (mconcat -> ConfigYaml configs) = settings ++ concatMap f
               scope'= asScope' packageMap' (map (fmap unextendInstances) groupImports)
 
 asScope' :: Map.HashMap String [LocatedA (ImportDecl GhcPs)] -> [Either String (LocatedA (ImportDecl GhcPs))] -> Scope
-asScope' packages xs = scopeCreate (HsModule EpAnnNotUsed NoLayoutInfo Nothing Nothing (concatMap f xs) [] Nothing Nothing)
+asScope' packages xs = scopeCreate (HsModule (XModulePs noAnn EpNoLayout Nothing Nothing) Nothing Nothing (concatMap f xs) [])
     where
         f (Right x) = [x]
         f (Left x) | Just pkg <- Map.lookup x packages = pkg

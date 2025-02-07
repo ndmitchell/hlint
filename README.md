@@ -1,4 +1,4 @@
-# HLint [![Hackage version](https://img.shields.io/hackage/v/hlint.svg?label=Hackage)](https://hackage.haskell.org/package/hlint) [![Stackage version](https://www.stackage.org/package/hlint/badge/nightly?label=Stackage)](https://www.stackage.org/package/hlint) [![Build status](https://img.shields.io/github/workflow/status/ndmitchell/hlint/ci/master.svg)](https://github.com/ndmitchell/hlint/actions)
+# HLint [![Hackage version](https://img.shields.io/hackage/v/hlint.svg?label=Hackage)](https://hackage.haskell.org/package/hlint) [![Stackage version](https://www.stackage.org/package/hlint/badge/nightly?label=Stackage)](https://www.stackage.org/package/hlint) [![Build status](https://img.shields.io/github/actions/workflow/status/ndmitchell/hlint/ci.yml?branch=master)](https://github.com/ndmitchell/hlint/actions)
 
 HLint is a tool for suggesting possible improvements to Haskell code. These suggestions include ideas such as using alternative functions, simplifying code and spotting redundancies. This document is structured as follows:
 
@@ -98,6 +98,7 @@ HLint is integrated into lots of places:
 * [hint-man](https://github.com/apps/hint-man) automatically submits reviews to opened pull requests in your repositories with inline hints.
 * [CircleCI](https://circleci.com/orbs/registry/orb/haskell-works/hlint) has a plugin to run HLint more easily.
 * [haskell/actions](https://github.com/haskell/actions) has `hlint-setup` and `hlint-run` actions for GitHub.
+* [haskell-actions/hlint-scan](https://github.com/haskell-actions/hlint-scan) is a GitHub action using HLint for [code scanning](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/about-code-scanning).
 
 ### Automatically Applying Hints
 
@@ -446,7 +447,7 @@ and `qualifiedStyle` fields, only the first definition will take effect.
 - modules:
   - {name: [Data.Map, Data.Map.*], as: Map}
   - {name: Test.Hspec, within: **.*Spec }
-  - {name: '**', importStyle: post}
+  - {name: '**', qualifiedStyle: post}
 ```
 
 ## Hacking HLint

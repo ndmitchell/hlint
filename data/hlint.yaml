@@ -120,7 +120,7 @@
     - warn: {lhs: reverse (sortOn f x), rhs: sortOn (Data.Ord.Down . f) x, name: Avoid reverse, note: Stabilizes sort order}
     - warn: {lhs: reverse (sort x), rhs: sortBy (comparing Data.Ord.Down) x, name: Avoid reverse, note: Stabilizes sort order}
     - hint: {lhs: flip (g `on` h), rhs: flip g `on` h, name: Move flip}
-    - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h), name: Fuse on/on}
+    - hint: {lhs: (f `on` g) `on` h, rhs: f `on` (g . h), name: Use on once}
     - warn: {lhs: if a >= b then a else b, rhs: max a b}
     - warn: {lhs: if a >= b then b else a, rhs: min a b}
     - warn: {lhs: if a > b then a else b, rhs: max a b}
@@ -149,12 +149,15 @@
     - warn: {lhs: concat (x <&> f), rhs: concatMap f x}
     - warn: {lhs: concat (fmap f x), rhs: concatMap f x}
     - hint: {lhs: "concat [a, b]", rhs: a ++ b}
+    - hint: {lhs: "sum [a, b]", rhs: a + b, name: "Use + directly"}
     - hint: {lhs: map f (map g x), rhs: map (f . g) x, name: Use map once}
     - hint: {lhs: concatMap f (map g x), rhs: concatMap (f . g) x, name: Fuse concatMap/map}
     - hint: {lhs: x !! 0, rhs: head x}
     - warn: {lhs: take n (repeat x), rhs: replicate n x}
     - warn: {lhs: map f (replicate n x), rhs: replicate n (f x)}
     - warn: {lhs: map f (repeat x), rhs: repeat (f x)}
+    - warn: {lhs: concatMap f (repeat x), rhs: cycle (f x)}
+    - warn: {lhs: concat (repeat x), rhs: cycle x}
     - warn: {lhs: "cycle [x]", rhs: repeat x}
     - warn: {lhs: head (reverse x), rhs: last x}
     - warn: {lhs: last (reverse x), rhs: head x, note: IncreasesLaziness}
@@ -162,7 +165,7 @@
     - warn: {lhs: head (drop n x), rhs: x !! max 0 n, side: not (isNat n) && not (isNeg n)}
     - warn: {lhs: reverse (init x), rhs: tail (reverse x)}
     - warn: {lhs: reverse (tail (reverse x)), rhs: init x, note: IncreasesLaziness}
-    - warn: {lhs: reverse (reverse x), rhs: x, note: IncreasesLaziness, name: Avoid reverse}
+    - warn: {lhs: reverse (reverse x), rhs: x, note: IncreasesLaziness, name: Redundant reverse}
     - warn: {lhs: isPrefixOf (reverse x) (reverse y), rhs: isSuffixOf x y}
     - warn: {lhs: "foldr (++) []", rhs: concat}
     - warn: {lhs: foldr (++) "", rhs: concat}
@@ -176,6 +179,8 @@
     - warn: {lhs: foldr (.) id l z, rhs: foldr ($) z l}
     - warn: {lhs: span (not . p), rhs: break p}
     - warn: {lhs: break (not . p), rhs: span p}
+    - warn: {lhs: span (notElem x), rhs: break (elem x), name: Use break}
+    - warn: {lhs: break (notElem x), rhs: span (elem x), name: Use span}
     - warn: {lhs: "(takeWhile p x, dropWhile p x)", rhs: span p x, note: DecreasesLaziness}
     - warn: {lhs: fst (span p x), rhs: takeWhile p x}
     - warn: {lhs: snd (span p x), rhs: dropWhile p x}
@@ -209,7 +214,10 @@
     - hint: {lhs: "\\x -> [x]", rhs: "(:[])", name: "Use :"}
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: not (isApp f)}
     - hint: {lhs: "map f (fromMaybe [] x)", rhs: "maybe [] (map f) x"}
+    - hint: {lhs: "concatMap f (fromMaybe [] x)", rhs: "maybe [] (concatMap f) x"}
+    - hint: {lhs: "concat (fromMaybe [] x)", rhs: "maybe [] concat x"}
     - warn: {lhs: not (elem x y), rhs: notElem x y}
+    - warn: {lhs: not (notElem x y), rhs: elem x y}
     - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
     - warn: {lhs: "x ++ concatMap (' ':) y", rhs: "unwords (x:y)"}
     - warn: {lhs: intercalate " ", rhs: unwords}
@@ -233,6 +241,10 @@
     - warn: {lhs: notElem False, rhs: and}
     - warn: {lhs: True `elem` l, rhs: or l}
     - warn: {lhs: False `notElem` l, rhs: and l}
+    - warn: {lhs: elem False, rhs: any not, name: Use any}
+    - warn: {lhs: notElem True, rhs: all not, name: Use all}
+    - warn: {lhs: False `elem` l, rhs: any not l, name: Use any}
+    - warn: {lhs: True `notElem` l, rhs: all not l, name: Use all}
     - warn: {lhs: findIndex ((==) a), rhs: elemIndex a}
     - warn: {lhs: findIndex (a ==), rhs: elemIndex a}
     - warn: {lhs: findIndex (== a), rhs: elemIndex a}
@@ -296,6 +308,12 @@
     - warn: {lhs: foldMap f (x <&> g), rhs: foldMap (f . g) x, name: Fuse foldMap/<&>}
     - warn: {lhs: foldMap f (fmap g x), rhs: foldMap (f . g) x, name: Fuse foldMap/fmap}
     - warn: {lhs: foldMap f (map g x), rhs: foldMap (f . g) x, name: Fuse foldMap/map}
+    - warn: {lhs: traverse f (fmap g x), rhs: traverse (f . g) x, name: Fuse traverse/fmap}
+    - warn: {lhs: traverse f (g <$> x), rhs: traverse (f . g) x, name: Fuse traverse/<$>}
+    - warn: {lhs: traverse f (x <&> g), rhs: traverse (f . g) x, name: Fuse traverse/<&>}
+    - warn: {lhs: traverse_ f (fmap g x), rhs: traverse_ (f . g) x, name: Fuse traverse_/fmap}
+    - warn: {lhs: traverse_ f (g <$> x), rhs: traverse_ (f . g) x, name: Fuse traverse_/<$>}
+    - warn: {lhs: traverse_ f (x <&> g), rhs: traverse_ (f . g) x, name: Fuse traverse_/<&>}
 
     # BY
 
@@ -349,8 +367,8 @@
     - warn: {lhs: f (fst p) (snd p), rhs: uncurry f p}
     - warn: {lhs: "uncurry (\\x y -> z)", rhs: "\\(x,y) -> z"}
     - warn: {lhs: "curry (\\(x,y) -> z)", rhs: "\\x y -> z"}
-    - warn: {lhs: uncurry (curry f), rhs: f}
-    - warn: {lhs: curry (uncurry f), rhs: f}
+    - warn: {lhs: uncurry (curry f), rhs: f, name: Redundant curry/uncurry}
+    - warn: {lhs: curry (uncurry f), rhs: f, name: Redundant curry/uncurry}
     - warn: {lhs: "uncurry f (a, b)", rhs: f a b}
     - warn: {lhs: ($) (f x), rhs: f x, name: Redundant $}
     - warn: {lhs: (f $), rhs: f, name: Redundant $}
@@ -368,6 +386,7 @@
     - warn: {lhs: g <**> flip f, rhs: g >>= f, name: Redundant flip}
     - warn: {lhs: flip f =<< g, rhs: f <*> g, name: Redundant flip}
     - warn: {lhs: g >>= flip f, rhs: g Control.Applicative.<**> f, name: Redundant flip}
+    - warn: {lhs: ($ x) . f, rhs: flip f x}
 
     # CHAR
 
@@ -456,11 +475,12 @@
     # FUNCTOR
 
     - warn: {lhs: fmap f (fmap g x), rhs: fmap (f . g) x, name: Functor law}
-    - warn: {lhs: f <$> g <$> x, rhs: f . g <$> x, name: Functor law}
+    - warn: {lhs: f <$> (g <$> x), rhs: f . g <$> x, name: Functor law}
     - warn: {lhs: x <&> g <&> f, rhs: x <&> f . g, name: Functor law}
     - warn: {lhs: fmap id, rhs: id, name: Functor law}
     - warn: {lhs: id <$> x, rhs: x, name: Functor law}
     - warn: {lhs: x <&> id, rhs: x, name: Functor law}
+    - warn: {lhs: f <$> g <$> x, rhs: f . g <$> x}
     - hint: {lhs: fmap f $ x, rhs: f <$> x, side: isApp x || isAtom x}
     - hint: {lhs: \x -> a <$> b x, rhs: fmap a . b}
     - hint: {lhs: \x -> b x <&> a, rhs: fmap a . b}
@@ -474,6 +494,12 @@
     - hint: {lhs: x <&> const y, rhs: x Data.Functor.$> y}
     - hint: {lhs: x <&> pure y, rhs: x Data.Functor.$> y}
     - hint: {lhs: x <&> return y, rhs: x Data.Functor.$> y}
+    - warn: {lhs: "fmap f (x,b)", rhs: "(x,f b)", name: Using fmap on tuple}
+    - warn: {lhs: "f <$> (x,b)", rhs: "(x,f b)", name: Using <$> on tuple}
+    - warn: {lhs: "(x,b) <&> f", rhs: "(x,f b)", name: Using <&> on tuple}
+    - warn: {lhs: "fmap f (x,y,b)", rhs: "(x,y,f b)", name: Using fmap on tuple}
+    - warn: {lhs: "f <$> (x,y,b)", rhs: "(x,y,f b)", name: Using <$> on tuple}
+    - warn: {lhs: "(x,y,b) <&> f", rhs: "(x,y,f b)", name: Using <&> on tuple}
 
     # APPLICATIVE
 
@@ -481,8 +507,14 @@
     - hint: {lhs: return x <*> y, rhs: x <$> y}
     - warn: {lhs: x <* pure y, rhs: x}
     - warn: {lhs: x <* return y, rhs: x}
-    - warn: {lhs: pure x *> y, rhs: "y"}
-    - warn: {lhs: return x *> y, rhs: "y"}
+    - warn: {lhs: pure x *> y, rhs: "y", name: Redundant *>}
+    - warn: {lhs: return x *> y, rhs: "y", name: Redundant *>}
+    - warn: {lhs: "x <*> Nothing", rhs: "Nothing" }
+    - warn: {lhs: "x <*> First Nothing", rhs: "First Nothing" }
+    - warn: {lhs: "x <*> Last Nothing", rhs: "Last Nothing" }
+    - warn: {lhs: "x <*> Left a", rhs: "Left a" }
+    - warn: {lhs: "x <*> Ap []", rhs: "Ap []" }
+    - warn: {lhs: "x <*> []", rhs: "[]" }
 
     # MONAD
 
@@ -527,7 +559,9 @@
     - hint: {lhs: flip forM, rhs: mapM}
     - hint: {lhs: flip forM_, rhs: mapM_}
     - warn: {lhs: when (not x), rhs: unless x}
+    - warn: {lhs: when (notElem x y), rhs: unless (elem x y), name: Use unless}
     - warn: {lhs: unless (not x), rhs: when x}
+    - warn: {lhs: unless (notElem x y), rhs: when (elem x y), name: Use when}
     - warn: {lhs: x >>= id, rhs: Control.Monad.join x}
     - warn: {lhs: id =<< x, rhs: Control.Monad.join x}
     - hint: {lhs: join (f <$> x), rhs: f =<< x}
@@ -565,10 +599,14 @@
     - warn: {lhs: a >>= \_ -> b, rhs: a >> b}
     - warn: {lhs: m <* pure x, rhs: m}
     - warn: {lhs: m <* return x, rhs: m}
-    - warn: {lhs: pure x *> m, rhs: m}
-    - warn: {lhs: return x *> m, rhs: m}
-    - warn: {lhs: pure x >> m, rhs: m}
-    - warn: {lhs: return x >> m, rhs: m}
+    - warn: {lhs: pure x *> m, rhs: m, name: Redundant *>}
+    - warn: {lhs: return x *> m, rhs: m, name: Redundant *>}
+    - warn: {lhs: pure x >> m, rhs: m, name: Redundant >>}
+    - warn: {lhs: return x >> m, rhs: m, name: Redundant >>}
+    - warn: {lhs: "forM [1..n] (const f)", rhs: replicateM n f}
+    - warn: {lhs: "for [1..n] (const f)", rhs: replicateM n f}
+    - warn: {lhs: "forM [1..n] (\\_ -> x)", rhs: replicateM n x}
+    - warn: {lhs: "for [1..n] (\\_ -> x)", rhs: replicateM n x}
 
     # STATE MONAD
 
@@ -604,7 +642,7 @@
     - warn: {lhs: flip traverse_, rhs: for_}
     - warn: {lhs: flip for_, rhs: traverse_}
     - warn: {lhs: foldr (*>) (pure ()), rhs: sequenceA_}
-    - warn: {lhs: foldr (*>) (return ()), rhs: sequenceA_}
+    - warn: {lhs: foldr (*>) (return ()), rhs: sequence_}
     - warn: {lhs: foldr (<|>) empty, rhs: asum}
     - warn: {lhs: liftA2 (flip ($)), rhs: (<**>)}
     - warn: {lhs: liftA2 f (pure x), rhs: fmap (f x)}
@@ -642,6 +680,7 @@
     - hint: {lhs: "\\x y z -> (x, y, z)", rhs: "(,,)"}
     - hint: {lhs: "(,b) a", rhs: "(a,b)", side: isAtom a, name: Evaluate}
     - hint: {lhs: "(a,) b", rhs: "(a,b)", side: isAtom b, name: Evaluate}
+    - warn: {lhs: "Data.List.NonEmpty.unzip", rhs: "Data.Functor.unzip", name: "Avoid NonEmpty.unzip", note: "The function is being deprecated"}
 
     # MAYBE
 
@@ -649,14 +688,14 @@
     - warn: {lhs: maybe Nothing Just, rhs: id, name: Redundant maybe}
     - warn: {lhs: maybe False (const True), rhs: Data.Maybe.isJust}
     - warn: {lhs: maybe True (const False), rhs: Data.Maybe.isNothing}
-    - warn: {lhs: maybe False (x ==), rhs: (Just x ==)}
-    - warn: {lhs: maybe True (x /=), rhs: (Just x /=)}
-    - warn: {lhs: maybe False (== x), rhs: (Just x ==), note: ValidInstance Eq x}
-    - warn: {lhs: maybe True (/= x), rhs: (Just x /=), note: ValidInstance Eq x}
+    - warn: {lhs: maybe False (x ==), rhs: (Just x ==), name: Redundant maybe}
+    - warn: {lhs: maybe True (x /=), rhs: (Just x /=), name: Redundant maybe}
+    - warn: {lhs: maybe False (== x), rhs: (Just x ==), note: ValidInstance Eq x, name: Redundant maybe}
+    - warn: {lhs: maybe True (/= x), rhs: (Just x /=), note: ValidInstance Eq x, name: Redundant maybe}
     # The following two hints seem to be somewhat unwelcome, e.g.
     # https://github.com/ndmitchell/hlint/issues/1177
-    - ignore: {lhs: fromMaybe False x, rhs: Just True == x} # Eta expanded, see https://github.com/ndmitchell/hlint/issues/970#issuecomment-643645053
-    - ignore: {lhs: fromMaybe True x, rhs: Just False /= x}
+    - ignore: {lhs: fromMaybe False x, rhs: Just True == x, name: Redundant fromMaybe} # Eta expanded, see https://github.com/ndmitchell/hlint/issues/970#issuecomment-643645053
+    - ignore: {lhs: fromMaybe True x, rhs: Just False /= x, name: Redundant fromMaybe}
     - warn: {lhs: not (isNothing x), rhs: isJust x}
     - warn: {lhs: not (isJust x), rhs: isNothing x}
     - warn: {lhs: "maybe [] (:[])", rhs: maybeToList}
@@ -724,6 +763,7 @@
     - warn: {lhs: lefts (nubOrd x), rhs: nubOrd (lefts x), name: Move nubOrd out}
     - warn: {lhs: rights (nubOrd x), rhs: nubOrd (rights x), name: Move nubOrd out}
     - warn: {lhs: filter f (reverse x), rhs: reverse (filter f x), name: Move reverse out}
+    - warn: {lhs: mapMaybe f (reverse x), rhs: reverse (mapMaybe f x), name: Move reverse out}
 
     # EITHER
 
@@ -785,10 +825,10 @@
     # CONCURRENT
 
     - hint: {lhs: mapM_ (writeChan a), rhs: writeList2Chan a}
-    - error: {lhs: atomically (readTVar x), rhs: readTVarIO x}
-    - error: {lhs: atomically (newTVar x), rhs: newTVarIO x}
-    - error: {lhs: atomically (newTMVar x), rhs: newTMVarIO x}
-    - error: {lhs: atomically newEmptyTMVar, rhs: newEmptyTMVarIO}
+    - warn: {lhs: atomically (readTVar x), rhs: readTVarIO x}
+    - warn: {lhs: atomically (newTVar x), rhs: newTVarIO x}
+    - warn: {lhs: atomically (newTMVar x), rhs: newTMVarIO x}
+    - warn: {lhs: atomically newEmptyTMVar, rhs: newEmptyTMVarIO}
 
     # TYPEABLE
 
@@ -829,13 +869,74 @@
 
     # FOLDABLE
 
-    - warn: {lhs: case m of Nothing -> pure (); Just x -> f x, rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Nothing -> pure (); Just x -> f x, rhs: Data.Foldable.for_ m f}
     - warn: {lhs: case m of Nothing -> return (); Just x -> f x, rhs: Data.Foldable.forM_ m f}
-    - warn: {lhs: case m of Just x -> f x; Nothing -> pure (), rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Just x -> f x; Nothing -> pure (), rhs: Data.Foldable.for_ m f}
     - warn: {lhs: case m of Just x -> f x; Nothing -> return (), rhs: Data.Foldable.forM_ m f}
-    - warn: {lhs: case m of Just x -> f x; _ -> pure (), rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: case m of Just x -> f x; _ -> pure (), rhs: Data.Foldable.for_ m f}
     - warn: {lhs: case m of Just x -> f x; _ -> return (), rhs: Data.Foldable.forM_ m f}
-    - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.forM_ m f}
+    - warn: {lhs: when (isJust m) (f (fromJust m)), rhs: Data.Foldable.for_ m f}
+    - hint: {lhs: concatMap f (fmap g x), rhs: concatMap (f . g) x, name: Fuse concatMap/fmap}
+    - hint: {lhs: concatMap f (g <$> x), rhs: concatMap (f . g) x, name: Fuse concatMap/<$>}
+    - hint: {lhs: concatMap f (x <&> g), rhs: concatMap (f . g) x, name: Fuse concatMap/<&>}
+    - warn: {lhs: null (concatMap f x), rhs: all (null . f) x}
+    - warn: {lhs: or (concat x), rhs: any or x}
+    - warn: {lhs: or (concatMap f x), rhs: any (or . f) x}
+    - warn: {lhs: and (concat x), rhs: all and x}
+    - warn: {lhs: and (concatMap f x), rhs: all (and . f) x}
+    - warn: {lhs: any f (concat x), rhs: any (any f) x, name: Use any nested}
+    - warn: {lhs: any f (concatMap g x), rhs: any (any f . g) x, name: Use any nested}
+    - warn: {lhs: all f (concat x), rhs: all (all f) x, name: Use all nested}
+    - warn: {lhs: all f (concatMap g x), rhs: all (all f . g) x, name: Use all nested}
+    - warn: {lhs: fold (concatMap f x), rhs: foldMap (fold . f) x}
+    - warn: {lhs: foldMap f (concatMap g x), rhs: foldMap (foldMap f . g) x, name: Use foldMap nested}
+    - warn: {lhs: catMaybes (concatMap f x), rhs: concatMap (catMaybes . f) x, name: Move catMaybes}
+    - warn: {lhs: catMaybes (concat x), rhs: concatMap catMaybes x, name: Move catMaybes}
+    - hint: {lhs: filter f (concatMap g x), rhs: concatMap (filter f . g) x, name: Move filter}
+    - hint: {lhs: filter f (concat x), rhs: concatMap (filter f) x, name: Move filter}
+    - warn: {lhs: mapMaybe f (concatMap g x), rhs: concatMap (mapMaybe f . g) x, name: Move mapMaybe}
+    - warn: {lhs: mapMaybe f (concat x), rhs: concatMap (mapMaybe f) x, name: Move mapMaybe}
+    - warn: {lhs: or (fmap p x), rhs: any p x}
+    - warn: {lhs: or (p <$> x), rhs: any p x}
+    - warn: {lhs: or (x <&> p), rhs: any p x}
+    - warn: {lhs: and (fmap p x), rhs: all p x}
+    - warn: {lhs: and (p <$> x), rhs: all p x}
+    - warn: {lhs: and (x <&> p), rhs: all p x}
+    - warn: {lhs: any f (fmap g x), rhs: any (f . g) x}
+    - warn: {lhs: any f (g <$> x), rhs: any (f . g) x}
+    - warn: {lhs: any f (x <&> g), rhs: any (f . g) x}
+    - warn: {lhs: all f (fmap g x), rhs: all (f . g) x}
+    - warn: {lhs: all f (g <$> x), rhs: all (f . g) x}
+    - warn: {lhs: all f (x <&> g), rhs: all (f . g) x}
+    - hint: {lhs: foldr f z (fmap g x), rhs: foldr (f . g) z x, name: Fuse foldr/fmap}
+    - hint: {lhs: foldr f z (g <$> x), rhs: foldr (f . g) z x, name: Fuse foldr/<$>}
+    - hint: {lhs: foldr f z (x <&> g), rhs: foldr (f . g) z x, name: Fuse foldr/<&>}
+    - warn: {lhs: fold (Data.Foldable.toList x), rhs: fold x}
+    - warn: {lhs: foldMap f (Data.Foldable.toList x), rhs: foldMap f x}
+    - warn: {lhs: foldMap' f (Data.Foldable.toList x), rhs: foldMap' f x}
+    - warn: {lhs: foldr f z (Data.Foldable.toList x), rhs: foldr f z x}
+    - warn: {lhs: foldr' f z (Data.Foldable.toList x), rhs: foldr' f z x}
+    - warn: {lhs: foldl f z (Data.Foldable.toList x), rhs: foldl f z x}
+    - warn: {lhs: foldl' f z (Data.Foldable.toList x), rhs: foldl' f z x}
+    - warn: {lhs: foldr1 f (Data.Foldable.toList x), rhs: foldr1 f x}
+    - warn: {lhs: foldl1 f (Data.Foldable.toList x), rhs: foldl1 f x}
+    - warn: {lhs: null (Data.Foldable.toList x), rhs: null x}
+    - warn: {lhs: length (Data.Foldable.toList x), rhs: length x}
+    - warn: {lhs: elem y (Data.Foldable.toList x), rhs: elem y x}
+    - warn: {lhs: notElem y (Data.Foldable.toList x), rhs: notElem y x}
+    - warn: {lhs: maximum (Data.Foldable.toList x), rhs: maximum x}
+    - warn: {lhs: minimum (Data.Foldable.toList x), rhs: minimum x}
+    - warn: {lhs: maximumBy f (Data.Foldable.toList x), rhs: maximumBy f x}
+    - warn: {lhs: minimumBy f (Data.Foldable.toList x), rhs: minimumBy f x}
+    - warn: {lhs: sum (Data.Foldable.toList x), rhs: sum x}
+    - warn: {lhs: product (Data.Foldable.toList x), rhs: product x}
+    - warn: {lhs: and (Data.Foldable.toList x), rhs: and x}
+    - warn: {lhs: or (Data.Foldable.toList x), rhs: or x}
+    - warn: {lhs: all f (Data.Foldable.toList x), rhs: all f x}
+    - warn: {lhs: any f (Data.Foldable.toList x), rhs: any f x}
+    - warn: {lhs: find f (Data.Foldable.toList x), rhs: find f x}
+    - warn: {lhs: concat (Data.Foldable.toList x), rhs: concat x}
+    - warn: {lhs: concatMap f (Data.Foldable.toList x), rhs: concatMap f x}
 
     # STATE MONAD
 
@@ -906,6 +1007,8 @@
     - warn: {lhs: x / 1, rhs: x, name: Evaluate}
     - warn: {lhs: "concat [a]", rhs: a, name: Evaluate}
     - warn: {lhs: "concat []", rhs: "[]", name: Evaluate}
+    - warn: {lhs: "concatMap f [a]", rhs: f a, name: Evaluate}
+    - warn: {lhs: "concatMap f []", rhs: "[]", name: Evaluate}
     - warn: {lhs: "zip [] []", rhs: "[]", name: Evaluate}
     - warn: {lhs: const x y, rhs: x, name: Evaluate}
     - warn: {lhs: any (const False), rhs: const False, note: IncreasesLaziness, name: Evaluate}
@@ -937,9 +1040,11 @@
     - warn: {lhs: "toList      (x,b)", rhs: b, name: Using toList on tuple}
     - warn: {lhs: "maximum     (x,b)", rhs: b, name: Using maximum on tuple}
     - warn: {lhs: "minimum     (x,b)", rhs: b, name: Using minimum on tuple}
+    - warn: {lhs: "notElem e   (x,b)", rhs: e /= b, name: Using notElem on tuple}
     - warn: {lhs: "sum         (x,b)", rhs: b, name: Using sum on tuple}
     - warn: {lhs: "product     (x,b)", rhs: b, name: Using product on tuple}
     - warn: {lhs: "concat      (x,b)", rhs: b, name: Using concat on tuple}
+    - warn: {lhs: "concatMap f (x,b)", rhs: f b, name: Using concatMap on tuple}
     - warn: {lhs: "and         (x,b)", rhs: b, name: Using and on tuple}
     - warn: {lhs: "or          (x,b)", rhs: b, name: Using or on tuple}
     - warn: {lhs: "any     f   (x,b)", rhs: f b, name: Using any on tuple}
@@ -957,9 +1062,11 @@
     - warn: {lhs: "toList      (x,y,b)", rhs: b, name: Using toList on tuple}
     - warn: {lhs: "maximum     (x,y,b)", rhs: b, name: Using maximum on tuple}
     - warn: {lhs: "minimum     (x,y,b)", rhs: b, name: Using minimum on tuple}
+    - warn: {lhs: "notElem e   (x,y,b)", rhs: e /= b, name: Using notElem on tuple}
     - warn: {lhs: "sum         (x,y,b)", rhs: b, name: Using sum on tuple}
     - warn: {lhs: "product     (x,y,b)", rhs: b, name: Using product on tuple}
     - warn: {lhs: "concat      (x,y,b)", rhs: b, name: Using concat on tuple}
+    - warn: {lhs: "concatMap f (x,y,b)", rhs: f b, name: Using concatMap on tuple}
     - warn: {lhs: "and         (x,y,b)", rhs: b, name: Using and on tuple}
     - warn: {lhs: "or          (x,y,b)", rhs: b, name: Using or on tuple}
     - warn: {lhs: "any     f   (x,y,b)", rhs: f b, name: Using any on tuple}
@@ -994,9 +1101,9 @@
 
     - warn: {lhs: "Control.Lens.at a . Control.Lens._Just", rhs: "Control.Lens.ix a"}
     - error: {lhs: "Control.Lens.has (Control.Lens.at a)", rhs: "True"}
-    - error: {lhs: "Control.Lens.has (a . Control.Lens.at b)", rhs: "Control.Lens.has a"}
+    - warn: {lhs: "Control.Lens.has (a . Control.Lens.at b)", rhs: "Control.Lens.has a"}
     - error: {lhs: "Control.Lens.nullOf (Control.Lens.at a)", rhs: "False"}
-    - error: {lhs: "Control.Lens.nullOf (a . Control.Lens.at b)", rhs: "Control.Lens.nullOf a"}
+    - warn: {lhs: "Control.Lens.nullOf (a . Control.Lens.at b)", rhs: "Control.Lens.nullOf a"}
 
 - group:
     name: use-lens
@@ -1136,10 +1243,10 @@
 
     # Data.List
 
-    - warn: {lhs: head l, rhs: "case l of x:_ -> x; [] -> error _", side: not (isNonEmpty l), name: Avoid partial function}
-    - warn: {lhs: last l, rhs: "case reverse l of x:_ -> x; [] -> error _", side: not (isNonEmpty l), name: Avoid partial function}
-    - warn: {lhs: tail l, rhs: "case l of _:xs -> xs; [] -> error _", side: not (isNonEmpty x), name: Avoid partial function}
-    - warn: {lhs: init l, rhs: "case reverse l of _:xs -> reverse xs; [] -> error _", side: not (isNonEmpty x), name: Avoid partial function}
+    - warn: {lhs: head l, rhs: "case l of x:_ -> x; [] -> error _", name: Avoid partial function}
+    - warn: {lhs: last l, rhs: "case reverse l of x:_ -> x; [] -> error _", name: Avoid partial function}
+    - warn: {lhs: tail l, rhs: "case l of _:xs -> xs; [] -> error _", name: Avoid partial function}
+    - warn: {lhs: init l, rhs: "case reverse l of _:xs -> reverse xs; [] -> error _", name: Avoid partial function}
     - warn: {lhs: l !! n, rhs: "case drop n l of x:_ -> x; [] -> error _", name: Avoid partial function}
 
     # Data.List.NonEmpty
@@ -1244,7 +1351,11 @@
     - warn: {lhs: "map toUpper", rhs: "upper"}
     - warn: {lhs: "mergeBy compare", rhs: "merge"}
     - warn: {lhs: "breakEnd (not . a)", rhs: "spanEnd a"}
+    - warn: {lhs: "breakEnd notNull", rhs: "spanEnd null", name: Use spanEnd}
+    - warn: {lhs: "breakEnd (notElem x)", rhs: "spanEnd (elem x)", name: Use spanEnd}
     - warn: {lhs: "spanEnd (not . a)", rhs: "breakEnd a"}
+    - warn: {lhs: "spanEnd notNull", rhs: "breakEnd null", name: Use breakEnd}
+    - warn: {lhs: "spanEnd (notElem x)", rhs: "breakEnd (elem x)", name: Use breakEnd}
     - warn: {lhs: "mconcat (map a b)", rhs: "mconcatMap a b"}
     - warn: {lhs: "fromMaybe b (stripPrefix a b)", rhs: "dropPrefix a b"}
     - warn: {lhs: "fromMaybe b (stripSuffix a b)", rhs: "dropSuffix a b"}
@@ -1263,10 +1374,17 @@
     - warn: {lhs: "last (x : y)", rhs: "lastDef x y"}
     - warn: {lhs: "drop 1", rhs: "drop1"}
     - warn: {lhs: "dropEnd 1", rhs: "dropEnd1"}
+    - warn: {lhs: span notNull, rhs: break null, name: Use break}
+    - warn: {lhs: break notNull, rhs: span null, name: Use span}
+    - warn: {lhs: when (notNull x), rhs: unless (null x), name: Use unless}
+    - warn: {lhs: unless (notNull x), rhs: when (null x), name: Use when}
+    - warn: {lhs: not (notNull x), rhs: null x}
     - warn: {lhs: notNull (concat x), rhs: any notNull x}
+    - warn: {lhs: notNull (concatMap f x), rhs: any (notNull . f) x}
     - warn: {lhs: notNull (filter f x), rhs: any f x}
     - warn: {lhs: "notNull [x]", rhs: "True", name: Evaluate}
     - warn: {lhs: "notNull []", rhs: "False", name: Evaluate}
+    - warn: {lhs: "notNull \"\"", rhs: "False", name: Evaluate}
     - hint: {lhs: "\\(x,y) -> (f x, f y)", rhs: both f}
     - warn: {lhs: fromLeft' (Left x), rhs: x, name: Evaluate}
     - warn: {lhs: fromRight' (Right x), rhs: x, name: Evaluate}
@@ -1274,6 +1392,7 @@
     - warn: {lhs: fromEither (Right x), rhs: x, name: Evaluate}
     - hint: {lhs: nub (sort x), rhs: nubSort x}
     - warn: {lhs: sort (nub x), rhs: nubSort x}
+    - warn: {lhs: notNull x, rhs: "True", side: isTuple x, name: Using notNull on tuple}
 
 # hints that will be enabled in future
 - group:
@@ -1324,6 +1443,7 @@
     - warn: {lhs: "duller (- a)", rhs: "brighter a"}
     - warn: {lhs: "darker (- a)", rhs: "lighter a"}
     - warn: {lhs: translated x y (translated u v p), rhs: translated (x + u) (y + v) p, name: Use translated once}
+    - warn: {lhs: translated 0 0 p, rhs: p}
 
 - group:
     name: teaching
@@ -1422,6 +1542,8 @@
 # yes = a & (mapped . b) %~ c -- a <&> b %~ c
 # test a = foo (\x -> True) -- const True
 # test a = foo (\_ -> True) -- const True
+# {-# LANGUAGE NamedFieldPuns #-}; data Foo = Foo {foo :: Int}; issue1430_ctor x = f (\foo-> Foo{foo})
+# {-# LANGUAGE NamedFieldPuns #-}; data Foo = Foo {foo :: Int}; issue1430_update x = f (\foo -> x{foo})
 # test a = foo (\x -> x) -- id
 # h a = flip f x (y z) -- f (y z) x
 # h a = flip f x $ y z

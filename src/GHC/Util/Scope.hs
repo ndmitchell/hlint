@@ -10,7 +10,6 @@ module GHC.Util.Scope (
 import GHC.Hs
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
-import GHC.Unit.Module
 import GHC.Data.FastString
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
@@ -21,6 +20,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 import Data.List.Extra
 import Data.Maybe
+import Data.Bifunctor
 
 -- A scope is a list of import declarations.
 newtype Scope = Scope [LImportDecl GhcPs]
@@ -30,7 +30,7 @@ instance Show Scope where
     show (Scope x) = unsafePrettyPrint x
 
 -- Create a 'Scope from a module's import declarations.
-scopeCreate :: HsModule -> Scope
+scopeCreate :: HsModule GhcPs -> Scope
 scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
   where
     -- Package qualifier of an import declaration.
@@ -40,13 +40,13 @@ scopeCreate xs = Scope $ [prelude | not $ any isPrelude res] ++ res
         RawPkgQual s -> Just s
         NoRawPkgQual -> Nothing
 
-    -- The import declaraions contained by the module 'xs'.
+    -- The import declarations contained by the module 'xs'.
     res :: [LImportDecl GhcPs]
     res = [x | x <- hsmodImports xs
              , pkg x /= Just (StringLiteral NoSourceText (fsLit "hint") Nothing)
           ]
 
-    -- Mock up an import declaraion corresponding to 'import Prelude'.
+    -- Mock up an import declaration corresponding to 'import Prelude'.
     prelude :: LImportDecl GhcPs
     prelude = noLocA $ simpleImportDecl (mkModuleName "Prelude")
 
@@ -116,10 +116,10 @@ possImport (L _ i) (L _ (Qual mod x)) =
   where ms = map unLoc $ ideclName i : maybeToList (ideclAs i)
 possImport (L _ i) (L _ (Unqual x)) =
   if ideclQualified i == NotQualified
-    then maybe PossiblyImported f (ideclHiding i)
+    then maybe PossiblyImported (f . first (== EverythingBut)) (ideclImportList i)
     else NotImported
   where
-    f :: (Bool, LocatedL [LIE GhcPs]) -> IsImported
+    f :: (Bool, LocatedLI [LocatedA (IE GhcPs)]) -> IsImported
     f (hide, L _ xs)
       | hide = if Just True `elem` ms then NotImported else PossiblyImported
       | Just True `elem` ms = Imported
@@ -131,12 +131,12 @@ possImport (L _ i) (L _ (Unqual x)) =
     tag = occNameString x
 
     g :: LIE GhcPs -> Maybe Bool -- Does this import cover the name 'x'?
-    g (L _ (IEVar _ y)) = Just $ tag == unwrapName y
-    g (L _ (IEThingAbs _ y)) = Just $ tag == unwrapName y
-    g (L _ (IEThingAll _ y)) = if tag == unwrapName y then Just True else Nothing
-    g (L _ (IEThingWith _ y _wildcard ys)) = Just $ tag `elem` unwrapName y : map unwrapName ys
+    g (L _ (IEVar _ y _)) = Just $ tag == unwrapName y
+    g (L _ (IEThingAbs _ y _)) = Just $ tag == unwrapName y
+    g (L _ (IEThingAll _ y _)) = if tag == unwrapName y then Just True else Nothing
+    g (L _ (IEThingWith _ y _ ys _)) = Just $ tag `elem` unwrapName y : map unwrapName ys
     g _ = Just False
 
-    unwrapName :: LIEWrappedName RdrName -> String
+    unwrapName :: LIEWrappedName GhcPs -> String
     unwrapName x = occNameString (rdrNameOcc $ ieWrappedName (unLoc x))
 possImport _ _ = NotImported

@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 
 {-
 <TEST>
@@ -21,7 +22,7 @@ import Refact.Types(Refactoring(ModifyComment))
 import GHC.Types.SrcLoc
 import GHC.Parser.Annotation
 import GHC.Util
-import qualified GHC.Data.Strict
+import GHC.Data.Strict qualified
 
 directives :: [String]
 directives = words $
@@ -45,7 +46,7 @@ commentHint _ m = concatMap chk (ghcComments m)
         grab :: String -> LEpaComment -> String -> Idea
         grab msg o@(L pos _) s2 =
           let s1 = commentText o
-              loc = RealSrcSpan (anchor pos) GHC.Data.Strict.Nothing
+              loc = RealSrcSpan (epaLocationRealSrcSpan pos) GHC.Data.Strict.Nothing
           in
           rawIdea Suggestion msg loc (f s1) (Just $ f s2) [] (refact loc)
             where f s = if isCommentMultiline o then "{-" ++ s ++ "-}" else "--" ++ s

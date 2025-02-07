@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DataKinds #-}
@@ -18,7 +19,7 @@ import Data.Monoid
 import Prelude
 
 
-import qualified GHC.Hs
+import GHC.Hs qualified
 import Fixity
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances

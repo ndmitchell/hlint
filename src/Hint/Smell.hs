@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 
 module Hint.Smell (smellModuleHint,smellHint) where
 
@@ -80,13 +81,13 @@ import Config.Type
 
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 
 import GHC.Utils.Outputable
 import GHC.Types.Basic
 import GHC.Hs
-import GHC.Data.Bag
 import GHC.Types.SrcLoc
+import GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
 smellModuleHint :: [Setting] -> ModuHint
@@ -128,7 +129,7 @@ declSpans :: LHsDecl GhcPs -> [(SrcSpan, Idea)]
 declSpans
    (L _ (ValD _
      FunBind {fun_matches=MG {
-                   mg_origin=FromSource
+                   mg_ext=FromSource
                  , mg_alts=(L _ [L _ Match {
                        m_ctxt=ctx
                      , m_grhss=GRHSs{grhssGRHSs=[locGrhs]
@@ -141,7 +142,7 @@ declSpans f@(L l (ValD _ FunBind {})) = [(locA l, warn "Long function" (reLoc f)
 declSpans _ = []
 
 -- The span of a guarded right hand side.
-rhsSpans :: HsMatchContext GhcPs -> LGRHS GhcPs (LHsExpr GhcPs) -> [(SrcSpan, Idea)]
+rhsSpans :: HsMatchContext (GenLocated SrcSpanAnnN RdrName) -> LGRHS GhcPs (LHsExpr GhcPs) -> [(SrcSpan, Idea)]
 rhsSpans _ (L _ (GRHS _ _ (L _ RecordCon {}))) = [] -- record constructors get a pass
 rhsSpans ctx (L _ r@(GRHS _ _ (L l _))) =
   [(locA l, rawIdea Config.Type.Warning "Long function" (locA l) (showSDocUnsafe (pprGRHS ctx r)) Nothing [] [])]
@@ -149,7 +150,7 @@ rhsSpans ctx (L _ r@(GRHS _ _ (L l _))) =
 -- The spans of a 'where' clause are the spans of its bindings.
 whereSpans :: HsLocalBinds GhcPs -> [(SrcSpan, Idea)]
 whereSpans (HsValBinds _ (ValBinds _ bs _)) =
-  concatMap (declSpans . (\(L loc bind) -> L loc (ValD noExtField bind))) (bagToList bs)
+  concatMap (declSpans . (\(L loc bind) -> L loc (ValD noExtField bind))) bs
 whereSpans _ = []
 
 spanLength :: SrcSpan -> Int

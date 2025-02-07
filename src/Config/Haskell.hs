@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE PatternGuards, ViewPatterns, TupleSections #-}
 module Config.Haskell(
     readPragma,
@@ -23,7 +24,7 @@ import GHC.Hs.Lit
 import GHC.Data.FastString
 import GHC.Parser.Annotation
 import GHC.Utils.Outputable
-import qualified GHC.Data.Strict
+import GHC.Data.Strict qualified
 
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
@@ -31,7 +32,7 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 -- | Read an {-# ANN #-} pragma and determine if it is intended for HLint.
 --   Return Nothing if it is not an HLint pragma, otherwise what it means.
 readPragma :: AnnDecl GhcPs -> Maybe Classify
-readPragma (HsAnnotation _ _ provenance expr) = f expr
+readPragma (HsAnnotation _ provenance expr) = f expr
     where
         name = case provenance of
             ValueAnnProvenance (L _ x) -> occNameStr x
@@ -44,7 +45,7 @@ readPragma (HsAnnotation _ _ provenance expr) = f expr
                     Nothing -> errorOn expr "bad classify pragma"
                     Just severity -> Just $ Classify severity (trimStart b) "" name
             where (a,b) = break isSpace $ trimStart $ drop 6 s
-        f (L _ (HsPar _ _ x _)) = f x
+        f (L _ (HsPar _ x)) = f x
         f (L _ (ExprWithTySig _ x _)) = f x
         f _ = Nothing
 
@@ -84,6 +85,6 @@ errorOn (L pos val) msg = exitMessageImpure $
 errorOnComment :: LEpaComment -> String -> b
 errorOnComment c@(L s _) msg = exitMessageImpure $
     let isMultiline = isCommentMultiline c in
-    showSrcSpan (RealSrcSpan (anchor s) GHC.Data.Strict.Nothing) ++
+    showSrcSpan (RealSrcSpan (epaLocationRealSrcSpan s) GHC.Data.Strict.Nothing) ++
     ": Error while reading hint file, " ++ msg ++ "\n" ++
     (if isMultiline then "{-" else "--") ++ commentText c ++ (if isMultiline then "-}" else "")

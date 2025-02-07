@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
 
 module Refact
@@ -9,6 +10,7 @@ module Refact
 
 import Control.Exception.Extra
 import Control.Monad
+import Data.List.NonEmpty qualified as NE
 import Data.Maybe
 import Data.Version.Extra
 import GHC.LanguageExtensions.Type
@@ -17,10 +19,10 @@ import System.Directory.Extra
 import System.Exit
 import System.IO.Extra
 import System.Process.Extra
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 
-import qualified GHC.Types.SrcLoc as GHC
-import qualified GHC.Parser.Annotation as GHC
+import GHC.Types.SrcLoc qualified as GHC
+import GHC.Parser.Annotation qualified as GHC
 
 import GHC.Util.SrcLoc (getAncLoc)
 
@@ -42,10 +44,10 @@ toRefactSrcSpan = \case
 toSS :: GHC.Located a -> R.SrcSpan
 toSS = toRefactSrcSpan . GHC.getLoc
 
-toSSA :: GHC.GenLocated (GHC.SrcSpanAnn' a) e -> R.SrcSpan
+toSSA :: GHC.GenLocated (GHC.EpAnn a) e -> R.SrcSpan
 toSSA = toRefactSrcSpan . GHC.getLocA
 
-toSSAnc :: GHC.GenLocated GHC.Anchor e -> R.SrcSpan
+toSSAnc :: GHC.GenLocated GHC.NoCommentsLocation e -> R.SrcSpan
 toSSAnc = toRefactSrcSpan . getAncLoc
 
 checkRefactor :: Maybe FilePath -> IO FilePath
@@ -57,7 +59,7 @@ refactorPath rpath = do
     mexc <- findExecutable excPath
     case mexc of
         Just exc -> do
-            ver <- readVersion . tail <$> readProcess exc ["--version"] ""
+            ver <- readVersion . NE.tail . NE.fromList <$> readProcess exc ["--version"] ""
             pure $ if ver >= minRefactorVersion
                        then Right exc
                        else Left $ "Your version of refactor is too old, please install apply-refact "

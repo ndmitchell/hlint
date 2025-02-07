@@ -1,5 +1,41 @@
 Changelog for HLint (* = breaking change)
 
+3.10, released 2024-02-02
+    #1617, hints for when x <*> y could be y, e.g. []
+*   #1594, upgrade to GHC 9.12
+    #1568, add mapMaybe f (reverse x) ==> reverse (mapMaybe f x)
+    #1569, avoid redundant Foldable.toList calls in Foldable operations
+    #1571, rename a few hints to make them clearer
+    #1599, add translated 0 0 hint for CodeWorld project
+    #1600, add sum [x, y] ==> x + y
+    #1549, downgrade a few of the error severities to warn
+3.8, released 2024-01-15
+    #1552, make --git and --ignore-glob work nicely together
+    #1502, fix incorrect free variable calculation in some cases
+    #1555, slightly more efficient concatMap usages (e.g. pull filter out)
+    #1500, suggest avoiding NonEmpty.unzip (use Functor.unzip)
+*   #1544, upgrade to GHC 9.8
+    #1540, correct Functor law hint, was missing brackets
+3.6.1, released 2023-07-03
+    Attempt to make a binary release
+3.6, released 2023-06-26
+    #1522, define __GLASGOW_HASKELL__ for cmdCpp
+    #1519, don't suggest removing brackets that result in a parse error
+    #1512, add hints to convert for [1..n] to replicateM n
+    #1430, add ignore-suggestions flag
+    #1517, support NO_COLOR
+    #1505, don't suggest redundant brackets around constraints
+    #1478, Fix no warn on (x.y) by treating x.y as atom
+    #1481, more hints about concat/concatMap
+    #1485, add more hints about using a Functor on a literal tuple
+    #1479, add specialised not hints for notElem/notNull
+    #1437, don't add/remove Monad constraints in replacements
+    #1475, rules for (elem False) and (notElem True)
+    #1476, generalise map-consuming rules from lists to Foldables/Traversables
+    #1480, add hints about notElem and notNull
+    #1482, support SARIF output
+    #1470, drop support for GHC 9.0
+*   #1470, move to GHC 9.6 parser
     #1449, add some more generalize hints that suggest fmap instead of map
     Never suggest concatForM_, because it doesn't exist
     #1467, and groups for warning on partial functions

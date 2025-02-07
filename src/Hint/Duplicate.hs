@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -30,13 +31,12 @@ import Data.Default
 import Data.Maybe
 import Data.Tuple.Extra
 import Data.List hiding (find)
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map as Map
+import Data.List.NonEmpty qualified as NE
+import Data.Map qualified as Map
 
 import GHC.Types.SrcLoc
 import GHC.Hs
 import GHC.Utils.Outputable
-import GHC.Data.Bag
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs
 import Language.Haskell.GhclibParserEx.GHC.Hs.ExtendInstances
@@ -53,7 +53,7 @@ duplicateHint ms =
    dupes [ (m, d, y)
          | (m, d, x) <- ds
          , HsValBinds _ (ValBinds _ b _ ) :: HsLocalBinds GhcPs <- universeBi x
-         , let y = bagToList b
+         , let y = b
          ]
     where
       ds = [(modName m, fromMaybe "" (declName d), unLoc d)

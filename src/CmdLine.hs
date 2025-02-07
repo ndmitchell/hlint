@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost, CPP #-}
 {-# LANGUAGE PatternGuards, DeriveDataTypeable, TupleSections #-}
 {-# OPTIONS_GHC -Wno-missing-fields -fno-cse -O0 #-}
 
@@ -9,8 +10,9 @@ module CmdLine(
 
 import Control.Monad.Extra
 import Control.Exception.Extra
-import qualified Data.ByteString as BS
+import Data.ByteString qualified as BS
 import Data.Char
+import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import Data.Maybe
 import Data.Functor
@@ -20,7 +22,7 @@ import Language.Haskell.GhclibParserEx.GHC.Driver.Session as GhclibParserEx
 import GHC.Driver.Session hiding (verbosity)
 
 import Language.Preprocessor.Cpphs
-import System.Console.ANSI(hSupportsANSIWithoutEmulation)
+import System.Console.ANSI(hSupportsANSI)
 import System.Console.CmdArgs.Explicit(helpText, HelpFormat(..))
 import System.Console.CmdArgs.Implicit
 import System.Directory.Extra
@@ -84,7 +86,7 @@ exitWithHelp = do
 data ColorMode
     = Never  -- ^ Terminal output will never be coloured.
     | Always -- ^ Terminal output will always be coloured.
-    | Auto   -- ^ Terminal output will be coloured if $TERM and stdout appear to support it.
+    | Auto   -- ^ Terminal output will be coloured if $TERM and stdout appear to support it, and NO_COLOR is not set.
       deriving (Show, Typeable, Data)
 
 
@@ -96,13 +98,14 @@ data Cmd
     = CmdMain
         {cmdFiles :: [FilePath]    -- ^ which files to run it on, nothing = none given
         ,cmdReports :: [FilePath]        -- ^ where to generate reports
-        ,cmdGivenHints :: [FilePath]     -- ^ which settignsfiles were explicitly given
+        ,cmdGivenHints :: [FilePath]     -- ^ which settings files were explicitly given
         ,cmdWithGroups :: [String]       -- ^ groups that are given on the command line
         ,cmdGit :: Bool                  -- ^ use git ls-files to find files
         ,cmdColor :: ColorMode           -- ^ color the result
-        ,cmdThreads :: Int              -- ^ Numbmer of threads to use, 0 = whatever GHC has
+        ,cmdThreads :: Int              -- ^ Number of threads to use, 0 = whatever GHC has
         ,cmdIgnore :: [String]           -- ^ the hints to ignore
         ,cmdShowAll :: Bool              -- ^ display all skipped items
+        ,cmdIgnoreSuggestions :: Bool    -- ^ ignore suggestions
         ,cmdExtension :: [String]        -- ^ extensions
         ,cmdLanguage :: [String]      -- ^ the extensions (may be prefixed by "No")
         ,cmdCross :: Bool                -- ^ work between source files, applies to hints such as duplicate code between modules
@@ -117,6 +120,7 @@ data Cmd
         ,cmdCppAnsi :: Bool
         ,cmdJson :: Bool                -- ^ display hint data as JSON
         ,cmdCC :: Bool                  -- ^ display hint data as Code Climate Issues
+        ,cmdSARIF :: Bool               -- ^ display hint data as SARIF
         ,cmdNoSummary :: Bool           -- ^ do not show the summary info
         ,cmdOnly :: [String]            -- ^ specify which hints explicitly
         ,cmdNoExitCode :: Bool
@@ -144,6 +148,7 @@ mode = cmdArgsMode $ modes
         ,cmdThreads = 1 &= name "threads" &= name "j" &= opt (0 :: Int) &= help "Number of threads to use (-j for all)"
         ,cmdIgnore = nam "ignore" &= typ "HINT" &= help "Ignore a particular hint"
         ,cmdShowAll = nam "show" &= help "Show all ignored ideas"
+        ,cmdIgnoreSuggestions = nam_ "ignore-suggestions" &= help "Ignore suggestions, only show warnings and errors"
         ,cmdExtension = nam "extension" &= typ "EXT" &= help "File extensions to search (default hs/lhs)"
         ,cmdLanguage = nam_ "language" &= name "X" &= typ "EXTENSION" &= help "Language extensions (Arrows, NoCPP)"
         ,cmdCross = nam_ "cross" &= help "Work between modules"
@@ -158,6 +163,7 @@ mode = cmdArgsMode $ modes
         ,cmdCppAnsi = nam_ "cpp-ansi" &= help "Use CPP in ANSI compatibility mode"
         ,cmdJson = nam_ "json" &= help "Display hint data as JSON"
         ,cmdCC = nam_ "cc" &= help "Display hint data as Code Climate Issues"
+        ,cmdSARIF = nam_ "sarif" &= help "Display hint data as SARIF"
         ,cmdNoSummary = nam_ "no-summary" &= help "Do not show summary information"
         ,cmdOnly = nam "only" &= typ "HINT" &= help "Specify which hints explicitly"
         ,cmdNoExitCode = nam_ "no-exit-code" &= help "Do not give a negative exit if hints"
@@ -167,7 +173,7 @@ mode = cmdArgsMode $ modes
         ,cmdRefactorOptions = nam_ "refactor-options" &= typ "OPTIONS" &= help "Options to pass to the `refactor` executable"
         ,cmdWithRefactor = nam_ "with-refactor" &= help "Give the path to refactor"
         ,cmdIgnoreGlob = nam_ "ignore-glob" &= help "Ignore paths matching glob pattern (e.g. foo/bar/*.hs)"
-        ,cmdGenerateMdSummary = nam_ "generate-summary" &= opt "hints.md" &= help "Generate a summary of available hints, in Mardown format"
+        ,cmdGenerateMdSummary = nam_ "generate-summary" &= opt "hints.md" &= help "Generate a summary of available hints, in Markdown format"
         ,cmdGenerateJsonSummary = nam_ "generate-summary-json" &= opt "hints.json" &= help "Generate a summary of available hints, in JSON format"
         ,cmdGenerateExhaustiveConf = nam_ "generate-config" &= opt Warning &= typ "LEVEL" &= help "Generate a .hlint.yaml config file with all hints set to the specified severity level (default level: warn, alternatives: ignore, suggest, error)"
         ,cmdTest = nam_ "test" &= help "Run the test suite"
@@ -177,9 +183,9 @@ mode = cmdArgsMode $ modes
                    ,"To check all Haskell files in 'src' and generate a report type:"
                    ,"  hlint src --report"]
     ] &= program "hlint" &= verbosity
-    &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2023")
+    &=  summary ("HLint v" ++ showVersion version ++ ", (C) Neil Mitchell 2006-2025")
     where
-        nam xs = nam_ xs &= name [head xs]
+        nam xs = nam_ xs &= name [NE.head $ NE.fromList xs]
         nam_ xs = def &= explicit &= name xs
 
 -- | Where should we find the configuration files?
@@ -219,19 +225,22 @@ cmdCpp cmd
         {boolopts=defaultBoolOptions{hashline=False, stripC89=True, ansi=cmdCppAnsi cmd}
         ,includes = cmdCppInclude cmd
         ,preInclude = cmdCppFile cmd
-        ,defines = ("__HLINT__","1") : [(a,drop1 b) | x <- cmdCppDefine cmd, let (a,b) = break (== '=') x]
+        ,defines = ("__HLINT__","1") : [(a,drop1 b) | x <- cmdCppDefine cmd, let (a,b) = break (== '=') x] ++ [("__GLASGOW_HASKELL__", show (__GLASGOW_HASKELL__ :: Int))]
         }
 
 
 -- | Determines whether to use colour or not.
 cmdUseColour :: Cmd -> IO Bool
-cmdUseColour cmd = case cmdColor cmd of
-  Always -> pure True
-  Never  -> pure False
-  Auto   -> do
-    supportsANSI <- hSupportsANSIWithoutEmulation stdout
-    pure $ Just True == supportsANSI
-
+cmdUseColour cmd = do
+  -- https://no-color.org
+  -- if NO_COLOR is set, regardless of value, we do not colour output.
+  noColor <- lookupEnv "NO_COLOR"
+  case cmdColor cmd of
+    Always -> pure True
+    Never  -> pure False
+    Auto   -> do
+      supportsANSI <- hSupportsANSI stdout
+      pure $ supportsANSI && isNothing noColor
 
 "." <\> x = x
 x <\> y = x </> y
@@ -270,7 +279,8 @@ getFile ignore (p:ath) exts t file = do
         pure [x | x <- xs, drop1 (takeExtension x) `elem` exts, not $ avoidFile x]
      else do
         isFil <- doesFileExist $ p <\> file
-        if isFil then pure [p <\> file]
+        if isFil then
+            pure [p <\> file | not $ ignore $ p <\> file]
          else do
             res <- getModule p exts file
             case res of
@@ -317,7 +327,9 @@ getExtensions args = (lang, foldl f (startExts, []) exts)
 
         langs, exts :: [String]
         (langs, exts) = partition (isJust . flip lookup ls) args
-        ls = [ (show x, x) | x <- [Haskell98, Haskell2010 , GHC2021] ]
+
+        ls :: [(String, Language)]
+        ls = [(show x, x) | x <- enumerate]
 
         f :: ([Extension], [Extension]) -> String -> ([Extension], [Extension])
         f (a, e) ('N':'o':x) | Just x <- GhclibParserEx.readExtension x, let xs = expandDisable x = (deletes xs a, xs ++ deletes xs e)

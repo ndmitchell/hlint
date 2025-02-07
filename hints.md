@@ -239,12 +239,12 @@ Does not support refactoring.
 <td>
 Example: 
 <pre>
-{-# LANGUAGE OverloadedRecordDot #-} 
-f = (. foo)
+{-# LANGUAGE TypeData #-} 
+data T = MkT
 </pre>
 Found:
 <code>
-{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE TypeData #-}
 </code>
 <br>
 Suggestion:
@@ -1085,6 +1085,37 @@ castFoo = ...
 </code>
 <br>
 Does not support refactoring.
+</td>
+<td>Suggestion</td>
+</tr>
+</table>
+
+## Builtin Negation
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Parenthesize unary negation</td>
+<td>
+Example: 
+<code>
+yes = -x `mod` y
+</code>
+<br>
+Found:
+<code>
+- x `mod` y
+</code>
+<br>
+Suggestion:
+<code>
+- (x `mod` y)
+</code>
+<br>
 </td>
 <td>Suggestion</td>
 </tr>
@@ -2168,7 +2199,7 @@ flip g `on` h
 <td>Suggestion</td>
 </tr>
 <tr>
-<td>Fuse on/on</td>
+<td>Use on once</td>
 <td>
 LHS:
 <code>
@@ -2520,6 +2551,22 @@ a ++ b
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Use + directly</td>
+<td>
+LHS:
+<code>
+sum [a, b]
+</code>
+<br>
+RHS:
+<code>
+a + b
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Use map once</td>
 <td>
 LHS:
@@ -2610,6 +2657,38 @@ map f (repeat x)
 RHS:
 <code>
 repeat (f x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use cycle</td>
+<td>
+LHS:
+<code>
+concatMap f (repeat x)
+</code>
+<br>
+RHS:
+<code>
+cycle (f x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use cycle</td>
+<td>
+LHS:
+<code>
+concat (repeat x)
+</code>
+<br>
+RHS:
+<code>
+cycle x
 </code>
 <br>
 </td>
@@ -2728,7 +2807,7 @@ init x
 <td>Warning</td>
 </tr>
 <tr>
-<td>Avoid reverse</td>
+<td>Redundant reverse</td>
 <td>
 LHS:
 <code>
@@ -2946,6 +3025,38 @@ break (not . p)
 RHS:
 <code>
 span p
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use break</td>
+<td>
+LHS:
+<code>
+span (notElem x)
+</code>
+<br>
+RHS:
+<code>
+break (elem x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use span</td>
+<td>
+LHS:
+<code>
+break (notElem x)
+</code>
+<br>
+RHS:
+<code>
+span (elem x)
 </code>
 <br>
 </td>
@@ -3480,6 +3591,38 @@ maybe [] (map f) x
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Use maybe</td>
+<td>
+LHS:
+<code>
+concatMap f (fromMaybe [] x)
+</code>
+<br>
+RHS:
+<code>
+maybe [] (concatMap f) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use maybe</td>
+<td>
+LHS:
+<code>
+concat (fromMaybe [] x)
+</code>
+<br>
+RHS:
+<code>
+maybe [] concat x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
 <td>Use notElem</td>
 <td>
 LHS:
@@ -3490,6 +3633,22 @@ not (elem x y)
 RHS:
 <code>
 notElem x y
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use elem</td>
+<td>
+LHS:
+<code>
+not (notElem x y)
+</code>
+<br>
+RHS:
+<code>
+elem x y
 </code>
 <br>
 </td>
@@ -3858,6 +4017,70 @@ False `notElem` l
 RHS:
 <code>
 and l
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+elem False
+</code>
+<br>
+RHS:
+<code>
+any not
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+notElem True
+</code>
+<br>
+RHS:
+<code>
+all not
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+False `elem` l
+</code>
+<br>
+RHS:
+<code>
+any not l
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+True `notElem` l
+</code>
+<br>
+RHS:
+<code>
+all not l
 </code>
 <br>
 </td>
@@ -4776,6 +4999,102 @@ foldMap (f . g) x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Fuse traverse/fmap</td>
+<td>
+LHS:
+<code>
+traverse f (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+traverse (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse/<$></td>
+<td>
+LHS:
+<code>
+traverse f (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+traverse (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse/<&></td>
+<td>
+LHS:
+<code>
+traverse f (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+traverse (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse_/fmap</td>
+<td>
+LHS:
+<code>
+traverse_ f (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+traverse_ (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse_/<$></td>
+<td>
+LHS:
+<code>
+traverse_ f (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+traverse_ (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse traverse_/<&></td>
+<td>
+LHS:
+<code>
+traverse_ f (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+traverse_ (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use delete</td>
 <td>
 LHS:
@@ -5480,7 +5799,7 @@ RHS:
 <td>Warning</td>
 </tr>
 <tr>
-<td>Redundant uncurry</td>
+<td>Redundant curry/uncurry</td>
 <td>
 LHS:
 <code>
@@ -5496,7 +5815,7 @@ f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Redundant curry</td>
+<td>Redundant curry/uncurry</td>
 <td>
 LHS:
 <code>
@@ -5762,6 +6081,22 @@ g >>= flip f
 RHS:
 <code>
 g Control.Applicative.<**> f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use flip</td>
+<td>
+LHS:
+<code>
+($ x) . f
+</code>
+<br>
+RHS:
+<code>
+flip f x
 </code>
 <br>
 </td>
@@ -6944,7 +7279,7 @@ fmap (f . g) x
 <td>
 LHS:
 <code>
-f <$> g <$> x
+f <$> (g <$> x)
 </code>
 <br>
 RHS:
@@ -7014,6 +7349,22 @@ x <&> id
 RHS:
 <code>
 x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <$></td>
+<td>
+LHS:
+<code>
+f <$> g <$> x
+</code>
+<br>
+RHS:
+<code>
+f . g <$> x
 </code>
 <br>
 </td>
@@ -7228,6 +7579,102 @@ x Data.Functor.$> y
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Using fmap on tuple</td>
+<td>
+LHS:
+<code>
+fmap f (x, b)
+</code>
+<br>
+RHS:
+<code>
+(x, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <$> on tuple</td>
+<td>
+LHS:
+<code>
+f <$> (x, b)
+</code>
+<br>
+RHS:
+<code>
+(x, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <&> on tuple</td>
+<td>
+LHS:
+<code>
+(x, b) <&> f
+</code>
+<br>
+RHS:
+<code>
+(x, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using fmap on tuple</td>
+<td>
+LHS:
+<code>
+fmap f (x, y, b)
+</code>
+<br>
+RHS:
+<code>
+(x, y, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <$> on tuple</td>
+<td>
+LHS:
+<code>
+f <$> (x, y, b)
+</code>
+<br>
+RHS:
+<code>
+(x, y, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using <&> on tuple</td>
+<td>
+LHS:
+<code>
+(x, y, b) <&> f
+</code>
+<br>
+RHS:
+<code>
+(x, y, f b)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use <$></td>
 <td>
 LHS:
@@ -7292,7 +7739,7 @@ x
 <td>Warning</td>
 </tr>
 <tr>
-<td>Redundant pure</td>
+<td>Redundant *></td>
 <td>
 LHS:
 <code>
@@ -7308,7 +7755,7 @@ y
 <td>Warning</td>
 </tr>
 <tr>
-<td>Redundant return</td>
+<td>Redundant *></td>
 <td>
 LHS:
 <code>
@@ -7318,6 +7765,102 @@ return x *> y
 RHS:
 <code>
 y
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> Nothing
+</code>
+<br>
+RHS:
+<code>
+Nothing
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> First Nothing
+</code>
+<br>
+RHS:
+<code>
+First Nothing
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> Last Nothing
+</code>
+<br>
+RHS:
+<code>
+Last Nothing
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> Left a
+</code>
+<br>
+RHS:
+<code>
+Left a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> Ap []
+</code>
+<br>
+RHS:
+<code>
+Ap []
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <*></td>
+<td>
+LHS:
+<code>
+x <*> []
+</code>
+<br>
+RHS:
+<code>
+[]
 </code>
 <br>
 </td>
@@ -7980,6 +8523,22 @@ unless x
 <td>Warning</td>
 </tr>
 <tr>
+<td>Use unless</td>
+<td>
+LHS:
+<code>
+when (notElem x y)
+</code>
+<br>
+RHS:
+<code>
+unless (elem x y)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use when</td>
 <td>
 LHS:
@@ -7990,6 +8549,22 @@ unless (not x)
 RHS:
 <code>
 when x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use when</td>
+<td>
+LHS:
+<code>
+unless (notElem x y)
+</code>
+<br>
+RHS:
+<code>
+when (elem x y)
 </code>
 <br>
 </td>
@@ -8588,7 +9163,7 @@ m
 <td>Warning</td>
 </tr>
 <tr>
-<td>Redundant pure</td>
+<td>Redundant *></td>
 <td>
 LHS:
 <code>
@@ -8604,7 +9179,7 @@ m
 <td>Warning</td>
 </tr>
 <tr>
-<td>Redundant return</td>
+<td>Redundant *></td>
 <td>
 LHS:
 <code>
@@ -8620,7 +9195,7 @@ m
 <td>Warning</td>
 </tr>
 <tr>
-<td>Redundant pure</td>
+<td>Redundant >></td>
 <td>
 LHS:
 <code>
@@ -8636,7 +9211,7 @@ m
 <td>Warning</td>
 </tr>
 <tr>
-<td>Redundant return</td>
+<td>Redundant >></td>
 <td>
 LHS:
 <code>
@@ -8646,6 +9221,70 @@ return x >> m
 RHS:
 <code>
 m
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use replicateM</td>
+<td>
+LHS:
+<code>
+forM [1 .. n] (const f)
+</code>
+<br>
+RHS:
+<code>
+replicateM n f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use replicateM</td>
+<td>
+LHS:
+<code>
+for [1 .. n] (const f)
+</code>
+<br>
+RHS:
+<code>
+replicateM n f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use replicateM</td>
+<td>
+LHS:
+<code>
+forM [1 .. n] (\ _ -> x)
+</code>
+<br>
+RHS:
+<code>
+replicateM n x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use replicateM</td>
+<td>
+LHS:
+<code>
+for [1 .. n] (\ _ -> x)
+</code>
+<br>
+RHS:
+<code>
+replicateM n x
 </code>
 <br>
 </td>
@@ -9068,7 +9707,7 @@ sequenceA_
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use sequenceA_</td>
+<td>Use sequence_</td>
 <td>
 LHS:
 <code>
@@ -9077,7 +9716,7 @@ foldr (*>) (return ())
 <br>
 RHS:
 <code>
-sequenceA_
+sequence_
 </code>
 <br>
 </td>
@@ -9516,6 +10155,22 @@ RHS:
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Avoid NonEmpty.unzip</td>
+<td>
+LHS:
+<code>
+Data.List.NonEmpty.unzip
+</code>
+<br>
+RHS:
+<code>
+Data.Functor.unzip
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use fromMaybe</td>
 <td>
 LHS:
@@ -9580,7 +10235,7 @@ Data.Maybe.isNothing
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use Just</td>
+<td>Redundant maybe</td>
 <td>
 LHS:
 <code>
@@ -9596,7 +10251,7 @@ RHS:
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use Just</td>
+<td>Redundant maybe</td>
 <td>
 LHS:
 <code>
@@ -9612,7 +10267,7 @@ RHS:
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use Just</td>
+<td>Redundant maybe</td>
 <td>
 LHS:
 <code>
@@ -9628,7 +10283,7 @@ RHS:
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use Just</td>
+<td>Redundant maybe</td>
 <td>
 LHS:
 <code>
@@ -9644,7 +10299,7 @@ RHS:
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use Just</td>
+<td>Redundant fromMaybe</td>
 <td>
 LHS:
 <code>
@@ -9660,7 +10315,7 @@ Just True == x
 <td>Ignore</td>
 </tr>
 <tr>
-<td>Use Just</td>
+<td>Redundant fromMaybe</td>
 <td>
 LHS:
 <code>
@@ -10753,6 +11408,22 @@ reverse (filter f x)
 <td>Warning</td>
 </tr>
 <tr>
+<td>Move reverse out</td>
+<td>
+LHS:
+<code>
+mapMaybe f (reverse x)
+</code>
+<br>
+RHS:
+<code>
+reverse (mapMaybe f x)
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Use lefts</td>
 <td>
 LHS:
@@ -11550,7 +12221,7 @@ readTVarIO x
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use newTVarIO</td>
@@ -11566,7 +12237,7 @@ newTVarIO x
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use newTMVarIO</td>
@@ -11582,7 +12253,7 @@ newTMVarIO x
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use newEmptyTMVarIO</td>
@@ -11598,7 +12269,7 @@ newEmptyTMVarIO
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use typeRep</td>
@@ -11953,7 +12624,7 @@ mkWeakPair a b c
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <pre>
@@ -11963,7 +12634,7 @@ case m of
 </pre>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>
@@ -11987,7 +12658,7 @@ Data.Foldable.forM_ m f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <pre>
@@ -11997,7 +12668,7 @@ case m of
 </pre>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>
@@ -12021,7 +12692,7 @@ Data.Foldable.forM_ m f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <pre>
@@ -12031,7 +12702,7 @@ case m of
 </pre>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
 </code>
 <br>
 </td>
@@ -12055,7 +12726,7 @@ Data.Foldable.forM_ m f
 <td>Warning</td>
 </tr>
 <tr>
-<td>Use forM_</td>
+<td>Use for_</td>
 <td>
 LHS:
 <code>
@@ -12064,7 +12735,983 @@ when (isJust m) (f (fromJust m))
 <br>
 RHS:
 <code>
-Data.Foldable.forM_ m f
+Data.Foldable.for_ m f
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse concatMap/fmap</td>
+<td>
+LHS:
+<code>
+concatMap f (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (f . g) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Fuse concatMap/<$></td>
+<td>
+LHS:
+<code>
+concatMap f (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (f . g) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Fuse concatMap/<&></td>
+<td>
+LHS:
+<code>
+concatMap f (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+concatMap (f . g) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+null (concatMap f x)
+</code>
+<br>
+RHS:
+<code>
+all (null . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+or (concat x)
+</code>
+<br>
+RHS:
+<code>
+any or x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+or (concatMap f x)
+</code>
+<br>
+RHS:
+<code>
+any (or . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+and (concat x)
+</code>
+<br>
+RHS:
+<code>
+all and x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+and (concatMap f x)
+</code>
+<br>
+RHS:
+<code>
+all (and . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any nested</td>
+<td>
+LHS:
+<code>
+any f (concat x)
+</code>
+<br>
+RHS:
+<code>
+any (any f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any nested</td>
+<td>
+LHS:
+<code>
+any f (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+any (any f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all nested</td>
+<td>
+LHS:
+<code>
+all f (concat x)
+</code>
+<br>
+RHS:
+<code>
+all (all f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all nested</td>
+<td>
+LHS:
+<code>
+all f (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+all (all f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use foldMap</td>
+<td>
+LHS:
+<code>
+fold (concatMap f x)
+</code>
+<br>
+RHS:
+<code>
+foldMap (fold . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use foldMap nested</td>
+<td>
+LHS:
+<code>
+foldMap f (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+foldMap (foldMap f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Move catMaybes</td>
+<td>
+LHS:
+<code>
+catMaybes (concatMap f x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (catMaybes . f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Move catMaybes</td>
+<td>
+LHS:
+<code>
+catMaybes (concat x)
+</code>
+<br>
+RHS:
+<code>
+concatMap catMaybes x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Move filter</td>
+<td>
+LHS:
+<code>
+filter f (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (filter f . g) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Move filter</td>
+<td>
+LHS:
+<code>
+filter f (concat x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (filter f) x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Move mapMaybe</td>
+<td>
+LHS:
+<code>
+mapMaybe f (concatMap g x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (mapMaybe f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Move mapMaybe</td>
+<td>
+LHS:
+<code>
+mapMaybe f (concat x)
+</code>
+<br>
+RHS:
+<code>
+concatMap (mapMaybe f) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+or (fmap p x)
+</code>
+<br>
+RHS:
+<code>
+any p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+or (p <$> x)
+</code>
+<br>
+RHS:
+<code>
+any p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use any</td>
+<td>
+LHS:
+<code>
+or (x <&> p)
+</code>
+<br>
+RHS:
+<code>
+any p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+and (fmap p x)
+</code>
+<br>
+RHS:
+<code>
+all p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+and (p <$> x)
+</code>
+<br>
+RHS:
+<code>
+all p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Use all</td>
+<td>
+LHS:
+<code>
+and (x <&> p)
+</code>
+<br>
+RHS:
+<code>
+all p x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant fmap</td>
+<td>
+LHS:
+<code>
+any f (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+any (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <$></td>
+<td>
+LHS:
+<code>
+any f (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+any (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <&></td>
+<td>
+LHS:
+<code>
+any f (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+any (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant fmap</td>
+<td>
+LHS:
+<code>
+all f (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+all (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <$></td>
+<td>
+LHS:
+<code>
+all f (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+all (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant <&></td>
+<td>
+LHS:
+<code>
+all f (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+all (f . g) x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Fuse foldr/fmap</td>
+<td>
+LHS:
+<code>
+foldr f z (fmap g x)
+</code>
+<br>
+RHS:
+<code>
+foldr (f . g) z x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Fuse foldr/<$></td>
+<td>
+LHS:
+<code>
+foldr f z (g <$> x)
+</code>
+<br>
+RHS:
+<code>
+foldr (f . g) z x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Fuse foldr/<&></td>
+<td>
+LHS:
+<code>
+foldr f z (x <&> g)
+</code>
+<br>
+RHS:
+<code>
+foldr (f . g) z x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+fold (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+fold x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+foldMap f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+foldMap f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+foldMap' f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+foldMap' f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+foldr f z (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+foldr f z x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+foldr' f z (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+foldr' f z x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+foldl f z (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+foldl f z x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+foldl' f z (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+foldl' f z x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+foldr1 f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+foldr1 f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+foldl1 f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+foldl1 f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+null (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+null x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+length (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+length x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+elem y (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+elem y x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+notElem y (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+notElem y x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+maximum (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+maximum x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+minimum (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+minimum x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+maximumBy f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+maximumBy f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+minimumBy f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+minimumBy f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+sum (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+sum x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+product (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+product x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+and (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+and x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+or (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+or x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+all f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+all f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+any f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+any f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+find f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+find f x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+concat (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+concat x
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Redundant toList</td>
+<td>
+LHS:
+<code>
+concatMap f (Data.Foldable.toList x)
+</code>
+<br>
+RHS:
+<code>
+concatMap f x
 </code>
 <br>
 </td>
@@ -13099,6 +14746,38 @@ RHS:
 <td>
 LHS:
 <code>
+concatMap f [a]
+</code>
+<br>
+RHS:
+<code>
+f a
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
+concatMap f []
+</code>
+<br>
+RHS:
+<code>
+[]
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Evaluate</td>
+<td>
+LHS:
+<code>
 zip [] []
 </code>
 <br>
@@ -13543,6 +15222,22 @@ b
 <td>Warning</td>
 </tr>
 <tr>
+<td>Using notElem on tuple</td>
+<td>
+LHS:
+<code>
+notElem e (x, b)
+</code>
+<br>
+RHS:
+<code>
+e /= b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Using sum on tuple</td>
 <td>
 LHS:
@@ -13585,6 +15280,22 @@ concat (x, b)
 RHS:
 <code>
 b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using concatMap on tuple</td>
+<td>
+LHS:
+<code>
+concatMap f (x, b)
+</code>
+<br>
+RHS:
+<code>
+f b
 </code>
 <br>
 </td>
@@ -13847,6 +15558,22 @@ b
 <td>Warning</td>
 </tr>
 <tr>
+<td>Using notElem on tuple</td>
+<td>
+LHS:
+<code>
+notElem e (x, y, b)
+</code>
+<br>
+RHS:
+<code>
+e /= b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>Using sum on tuple</td>
 <td>
 LHS:
@@ -13889,6 +15616,22 @@ concat (x, y, b)
 RHS:
 <code>
 b
+</code>
+<br>
+</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Using concatMap on tuple</td>
+<td>
+LHS:
+<code>
+concatMap f (x, y, b)
+</code>
+<br>
+RHS:
+<code>
+f b
 </code>
 <br>
 </td>
@@ -14212,7 +15955,7 @@ Control.Lens.has a
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use False</td>
@@ -14244,7 +15987,7 @@ Control.Lens.nullOf a
 </code>
 <br>
 </td>
-<td>Error</td>
+<td>Warning</td>
 </tr>
 <tr>
 <td>Use optional</td>

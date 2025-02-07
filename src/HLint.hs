@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
@@ -17,6 +18,7 @@ import System.Exit
 import System.IO.Extra
 import System.Time.Extra
 import Data.Tuple.Extra
+import Data.Bifunctor (bimap)
 import Prelude
 
 import CmdLine
@@ -36,6 +38,7 @@ import GHC.All
 import CC
 import EmbedData
 
+import SARIF qualified
 
 -- | This function takes a list of command line arguments, and returns the given hints.
 --   To see a list of arguments type @hlint --help@ at the console.
@@ -167,12 +170,13 @@ runHints :: [String] -> [Setting] -> Cmd -> IO [Idea]
 runHints args settings cmd@CmdMain{..} =
     withNumCapabilities cmdThreads $ do
         let outStrLn = whenNormal . putStrLn
-        ideas <- getIdeas cmd settings
-        ideas <- pure $ if cmdShowAll then ideas else  filter (\i -> ideaSeverity i /= Ignore) ideas
+        ideas <- filterIdeas <$> getIdeas cmd settings
         if cmdJson then
             putStrLn $ showIdeasJson ideas
          else if cmdCC then
             mapM_ (printIssue . fromIdea) ideas
+         else if cmdSARIF then
+            SARIF.printIdeas ideas
          else if cmdSerialise then do
             hSetBuffering stdout NoBuffering
             print $ map (show &&& ideaRefactoring) ideas
@@ -184,6 +188,12 @@ runHints args settings cmd@CmdMain{..} =
             mapM_ (outStrLn . showItem) ideas
             handleReporting ideas cmd
         pure ideas
+  where
+    filteredSeverities
+        | cmdShowAll = []
+        | cmdIgnoreSuggestions = [Ignore, Suggestion]
+        | otherwise = [Ignore]
+    filterIdeas = filter (\i -> ideaSeverity i `notElem` filteredSeverities)
 
 getIdeas :: Cmd -> [Setting] -> IO [Idea]
 getIdeas cmd@CmdMain{..} settings = do
@@ -219,8 +229,14 @@ handleReporting showideas cmd@CmdMain{..} = do
         outStrLn $ "Writing report to " ++ x ++ " ..."
         writeReport cmdDataDir x showideas
     unless cmdNoSummary $ do
-        let n = length showideas
-        outStrLn $ if n == 0 then "No hints" else show n ++ " hint" ++ ['s' | n/=1]
+        let (nbErrors, nbHints) = bimap length length $ partition (\idea -> ideaSeverity idea == Error) showideas
+        when (nbErrors > 0) (outStrLn $ formatOutput nbErrors "error")
+        unless (nbErrors > 0 && nbHints == 0) (outStrLn $ formatOutput nbHints "hint")
+
+    where
+        formatOutput :: Int -> String -> String
+        formatOutput number name =
+            if number == 0 then "No " ++ name ++ "s" else show number ++ " " ++ name ++ ['s' | number/=1]
 
 evaluateList :: [a] -> IO [a]
 evaluateList xs = do

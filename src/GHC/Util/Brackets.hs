@@ -26,9 +26,9 @@ instance Brackets (LocatedA (HsExpr GhcPs)) where
   -- result in a "naked" section. Consequently, given an expression,
   -- when stripping brackets (c.f. 'Hint.Brackets), don't remove the
   -- paren's surrounding a section - they are required.
-  remParen (L _ (HsPar _ _ (L _ SectionL{}) _)) = Nothing
-  remParen (L _ (HsPar _ _ (L _ SectionR{}) _)) = Nothing
-  remParen (L _ (HsPar _ _ x _)) = Just x
+  remParen (L _ (HsPar _ (L _ SectionL{}))) = Nothing
+  remParen (L _ (HsPar _ (L _ SectionR{}))) = Nothing
+  remParen (L _ (HsPar _ x)) = Just x
   remParen _ = Nothing
 
   addParen = nlHsPar
@@ -36,8 +36,8 @@ instance Brackets (LocatedA (HsExpr GhcPs)) where
   isAtom (L _ x) = case x of
       HsVar{} -> True
       HsUnboundVar{} -> True
-      -- Technically atomic, but lots of people think it shouldn't be
-      HsRecSel{} -> False
+      -- Only relevant for OverloadedRecordDot extension
+      HsGetField{} -> True
       HsOverLabel{} -> True
       HsIPVar{} -> True
       -- Note that sections aren't atoms (but parenthesized sections are).
@@ -52,7 +52,8 @@ instance Brackets (LocatedA (HsExpr GhcPs)) where
       HsUntypedBracket{} -> True
       -- HsSplice might be $foo, where @($foo) would require brackets,
       -- but in that case the $foo is a type, so we can still mark Splice as atomic
-      HsSpliceE{} -> True
+      HsTypedSplice{} -> True
+      HsUntypedSplice{} -> True
       HsOverLit _ x | not $ isNegativeOverLit x -> True
       HsLit _ x     | not $ isNegativeLit x     -> True
       _  -> False
@@ -105,8 +106,9 @@ isAtomOrApp (L _ (HsApp _ _ x)) = isAtomOrApp x
 isAtomOrApp _ = False
 
 instance Brackets (LocatedA (Pat GhcPs)) where
-  remParen (L _ (ParPat _ _ x _)) = Just x
+  remParen (L _ (ParPat _ x)) = Just x
   remParen _ = Nothing
+
   addParen = nlParPat
 
   isAtom (L _ x) = case x of
@@ -115,7 +117,9 @@ instance Brackets (LocatedA (Pat GhcPs)) where
     ListPat{} -> True
     -- This is technically atomic, but lots of people think it shouldn't be
     ConPat _ _ RecCon{} -> False
-    ConPat _ _ (PrefixCon _ []) -> True
+    -- Before we only checked args, but not type args, resulting in a
+    -- false positive for things like (Proxy @a)
+    ConPat _ _ (PrefixCon [] []) -> True
     VarPat{} -> True
     WildPat{} -> True
     SumPat{} -> True
@@ -145,7 +149,7 @@ instance Brackets (LocatedA (Pat GhcPs)) where
 instance Brackets (LocatedA (HsType GhcPs)) where
   remParen (L _ (HsParTy _ x)) = Just x
   remParen _ = Nothing
-  addParen e = noLocA $ HsParTy EpAnnNotUsed e
+  addParen e = noLocA $ HsParTy noAnn e
 
   isAtom (L _ x) = case x of
       HsParTy{} -> True

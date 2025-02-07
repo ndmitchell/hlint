@@ -1,8 +1,15 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 
 module GHC.Util.ApiAnnotation (
-    comment_, commentText, isCommentMultiline
-  , pragmas, flags, languagePragmas
-  , mkFlags, mkLanguagePragmas
+    comment_
+  , commentText
+  , GHC.Util.ApiAnnotation.comments
+  , isCommentMultiline
+  , pragmas
+  , flags
+  , languagePragmas
+  , mkFlags
+  , mkLanguagePragmas
   , extensions
 ) where
 
@@ -16,7 +23,7 @@ import Language.Haskell.GhclibParserEx.GHC.Driver.Session
 import Control.Applicative
 import Data.List.Extra
 import Data.Maybe
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 
 trimCommentStart :: String -> String
 trimCommentStart s
@@ -38,11 +45,15 @@ comment_ (L _ (EpaComment (EpaDocComment ds ) _)) = renderHsDocString ds
 comment_ (L _ (EpaComment (EpaDocOptions s) _)) = s
 comment_ (L _ (EpaComment (EpaLineComment s) _)) = s
 comment_ (L _ (EpaComment (EpaBlockComment s) _)) = s
-comment_ (L _ (EpaComment EpaEofComment _)) = ""
 
 -- | The comment string with delimiters removed.
 commentText :: LEpaComment -> String
 commentText = trimCommentDelims . comment_
+
+-- | Total replacement for the partial `GHC.Parser.Annotation.comments` field of
+-- `EpAnn`
+comments :: EpAnn ann -> EpAnnComments
+comments EpAnn{ GHC.Parser.Annotation.comments = result } = result
 
 isCommentMultiline :: LEpaComment -> Bool
 isCommentMultiline (L _ (EpaComment (EpaBlockComment _) _)) = True
@@ -64,8 +75,7 @@ pragmas x =
 
 -- All the extensions defined to be used.
 extensions :: EpAnnComments -> Set.Set Extension
-extensions = Set.fromList . mapMaybe readExtension .
-    concatMap snd . languagePragmas . pragmas
+extensions = Set.fromList . concatMap (mapMaybe readExtension . snd) . languagePragmas . pragmas
 
 -- Utility for a case insensitive prefix strip.
 stripPrefixCI :: String -> String -> Maybe String
@@ -87,7 +97,7 @@ flags ps =
 
 -- Language pragmas. The first element of the
 -- pair is the (located) annotation comment that enables the
--- pragmas enumerated by he second element of the pair.
+-- pragmas enumerated by the second element of the pair.
 languagePragmas :: [(LEpaComment, String)] -> [(LEpaComment, [String])]
 languagePragmas ps =
   [(c, exts) | (c, s) <- ps
@@ -95,10 +105,10 @@ languagePragmas ps =
              , let exts = map trim (splitOn "," rest)]
 
 -- Given a list of flags, make a GHC options pragma.
-mkFlags :: Anchor -> [String] -> LEpaComment
+mkFlags :: NoCommentsLocation -> [String] -> LEpaComment
 mkFlags anc flags =
-  L anc $ EpaComment (EpaBlockComment ("{-# " ++ "OPTIONS_GHC " ++ unwords flags ++ " #-}")) (anchor anc)
+  L anc $ EpaComment (EpaBlockComment ("{-# " ++ "OPTIONS_GHC " ++ unwords flags ++ " #-}")) (epaLocationRealSrcSpan anc)
 
-mkLanguagePragmas :: Anchor -> [String] -> LEpaComment
+mkLanguagePragmas :: NoCommentsLocation -> [String] -> LEpaComment
 mkLanguagePragmas anc exts =
-  L anc $ EpaComment (EpaBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")) (anchor anc)
+  L anc $ EpaComment (EpaBlockComment ("{-# " ++ "LANGUAGE " ++ intercalate ", " exts ++ " #-}")) (epaLocationRealSrcSpan anc)

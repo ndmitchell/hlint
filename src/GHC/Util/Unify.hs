@@ -1,5 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, FlexibleContexts, ScopedTypeVariables, TupleSections #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving, DeriveFunctor #-}
+{-# LANGUAGE DataKinds #-}
 
 module GHC.Util.Unify(
     Subst(..), fromSubst,
@@ -61,10 +62,10 @@ removeParens :: [String] -> Subst (LHsExpr GhcPs) -> Subst (LHsExpr GhcPs)
 removeParens noParens (Subst xs) = Subst $
   map (\(x, y) -> if x `elem` noParens then (x, fromParen y) else (x, y)) xs
 
--- Peform a substition.
+-- Perform a substitution.
 -- Returns (suggested replacement, (refactor template, no bracket vars)). It adds/removes brackets
 -- for both the suggested replacement and the refactor template appropriately. The "no bracket vars"
--- is a list of substituation variables which, when expanded, should have the brackets stripped.
+-- is a list of substitution variables which, when expanded, should have the brackets stripped.
 --
 -- Examples:
 --   (traverse foo (bar baz), (traverse f (x), []))
@@ -77,13 +78,13 @@ substitute (Subst bind) = transformBracketOld exp . transformBi pat . transformB
     exp (L _ (HsVar _ x)) = lookup (rdrNameStr x) bind
     -- Operator applications.
     exp (L loc (OpApp _ lhs (L _ (HsVar _ x)) rhs))
-      | Just y <- lookup (rdrNameStr x) bind = Just (L loc (OpApp EpAnnNotUsed lhs y rhs))
+      | Just y <- lookup (rdrNameStr x) bind = Just (L loc (OpApp noExtField lhs y rhs))
     -- Left sections.
     exp (L loc (SectionL _ exp (L _ (HsVar _ x))))
-      | Just y <- lookup (rdrNameStr x) bind = Just (L loc (SectionL EpAnnNotUsed exp y))
+      | Just y <- lookup (rdrNameStr x) bind = Just (L loc (SectionL noExtField exp y))
     -- Right sections.
     exp (L loc (SectionR _ (L _ (HsVar _ x)) exp))
-      | Just y <- lookup (rdrNameStr x) bind = Just (L loc (SectionR EpAnnNotUsed y exp))
+      | Just y <- lookup (rdrNameStr x) bind = Just (L loc (SectionR noExtField y exp))
     exp _ = Nothing
 
     pat :: LPat GhcPs -> LPat GhcPs
@@ -114,30 +115,36 @@ unify' nm root x y
     | Just (x, y) <- cast (x, y) = if (x :: FastString) == y then Just mempty else Nothing
 
     -- We need some type magic to reduce this.
-    | Just (x :: EpAnn AnnsModule) <- cast x = Just mempty
-    | Just (x :: EpAnn NameAnn) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnListItem) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnList) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnPragma) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnContext) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnParen) <- cast x = Just mempty
-    | Just (x :: EpAnn Anchor) <- cast x = Just mempty
-    | Just (x :: EpAnn NoEpAnns) <- cast x = Just mempty
-    | Just (x :: EpAnn GrhsAnn) <- cast x = Just mempty
-    | Just (x :: EpAnn [AddEpAnn]) <- cast x = Just mempty
-    | Just (x :: EpAnn EpAnnHsCase) <- cast x = Just mempty
-    | Just (x :: EpAnn EpAnnUnboundVar) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnExplicitSum) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnProjection) <- cast x = Just mempty
-    | Just (x :: EpAnn Anchor) <- cast x = Just mempty
     | Just (x :: EpAnn EpaLocation) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnContext) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnExplicitSum) <- cast x = Just mempty
     | Just (x :: EpAnn AnnFieldLabel) <- cast x = Just mempty
-    | Just (x :: EpAnn EpAnnSumPat) <- cast x = Just mempty
-    | Just (x :: EpAnn AnnSig) <- cast x = Just mempty
-    | Just (x :: EpAnn HsRuleAnn) <- cast x = Just mempty
-    | Just (x :: EpAnn EpAnnImportDecl) <- cast x = Just mempty
-    | Just (x :: EpAnn (AddEpAnn, AddEpAnn)) <- cast x = Just mempty
+    | Just (x :: EpAnn (AnnList [EpToken ","])) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnListItem) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnParen) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnPragma) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnProjection) <- cast x = Just mempty
     | Just (x :: EpAnn AnnsIf) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnSig) <- cast x = Just mempty
+    | Just (x :: EpAnn AnnsModule) <- cast x = Just mempty
+    | Just (x :: EpAnn EpAnnHsCase) <- cast x = Just mempty
+    | Just (x :: EpAnn EpAnnImportDecl) <- cast x = Just mempty
+    | Just (x :: EpAnn EpAnnSumPat) <- cast x = Just mempty
+    | Just (x :: EpAnn EpAnnUnboundVar) <- cast x = Just mempty
+    | Just (x :: EpAnn GrhsAnn) <- cast x = Just mempty
+    | Just (x :: EpAnn HsRuleAnn) <- cast x = Just mempty
+    | Just (x :: EpAnn NameAnn) <- cast x = Just mempty
+    | Just (x :: EpAnn NoEpAnns) <- cast x = Just mempty
+    | Just (x :: EpToken "let") <- cast x = Just mempty
+    | Just (x :: EpToken "in") <- cast x = Just mempty
+    | Just (x :: EpToken "@") <- cast x = Just mempty
+    | Just (x :: EpToken "(") <- cast x = Just mempty
+    | Just (x :: EpToken ")") <- cast x = Just mempty
+    | Just (x :: EpToken "type") <- cast x = Just mempty
+    | Just (x :: EpToken "%") <- cast x = Just mempty
+    | Just (x :: EpToken "%1") <- cast x = Just mempty
+    | Just (x :: EpToken "⊸") <- cast x = Just mempty
+    | Just (x :: EpUniToken "->" "→") <- cast x = Just mempty
     | Just (x :: TokenLocation) <- cast y = Just mempty
     | Just (y :: SrcSpan) <- cast y = Just mempty
 
@@ -155,7 +162,7 @@ unifyComposed' nm x1 y11 dot y12 =
   ((, Just y11) <$> unifyExp' nm False x1 y12)
     <|> case y12 of
           (L _ (OpApp _ y121 dot' y122)) | isDot dot' ->
-            unifyComposed' nm x1 (noLocA (OpApp EpAnnNotUsed y11 dot y121)) dot' y122
+            unifyComposed' nm x1 (noLocA (OpApp noExtField y11 dot y121)) dot' y122
           _ -> Nothing
 
 -- unifyExp handles the cases where both x and y are HsApp, or y is OpApp. Otherwise,
@@ -189,7 +196,7 @@ unifyExp nm root x@(L _ (HsApp _ x1 x2)) (L _ (HsApp _ y1 y2)) =
               -- Attempt #1: rewrite '(fun1 . fun2) arg' as 'fun1 (fun2 arg)', and unify it with 'x'.
               -- The guard ensures that you don't get duplicate matches because the matching engine
               -- auto-generates hints in dot-form.
-              (, Nothing) <$> unifyExp' nm root x (noLocA (HsApp EpAnnNotUsed y11 (noLocA (HsApp EpAnnNotUsed y12 y2))))
+              (, Nothing) <$> unifyExp' nm root x (noLocA (HsApp noExtField y11 (noLocA (HsApp noExtField y12 y2))))
           else do
               -- Attempt #2: rewrite '(fun1 . fun2 ... funn) arg' as 'fun1 $ (fun2 ... funn) arg',
               -- 'fun1 . fun2 $ (fun3 ... funn) arg', 'fun1 . fun2 . fun3 $ (fun4 ... funn) arg',
@@ -204,9 +211,9 @@ unifyExp nm root x@(L _ (HsApp _ x1 x2)) (L _ (HsApp _ y1 y2)) =
 unifyExp nm root x (L _ (OpApp _ lhs2 op2@(L _ (HsVar _ op2')) rhs2))
     | (L _ (OpApp _ lhs1 op1@(L _ (HsVar _ op1')) rhs1)) <- x =
         guard (nm op1' op2') >> (, Nothing) <$> liftA2 (<>) (unifyExp' nm False lhs1 lhs2) (unifyExp' nm False rhs1 rhs2)
-    | isDol op2 = unifyExp nm root x $ noLocA (HsApp EpAnnNotUsed lhs2 rhs2)
-    | isAmp op2 = unifyExp nm root x $ noLocA (HsApp EpAnnNotUsed rhs2 lhs2)
-    | otherwise  = unifyExp nm root x $ noLocA (HsApp EpAnnNotUsed (noLocA (HsApp EpAnnNotUsed op2 (addPar lhs2))) (addPar rhs2))
+    | isDol op2 = unifyExp nm root x $ noLocA (HsApp noExtField lhs2 rhs2)
+    | isAmp op2 = unifyExp nm root x $ noLocA (HsApp noExtField rhs2 lhs2)
+    | otherwise  = unifyExp nm root x $ noLocA (HsApp noExtField (noLocA (HsApp noExtField op2 (addPar lhs2))) (addPar rhs2))
         where
           -- add parens around when desugaring the expression, if necessary
           addPar :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -228,7 +235,7 @@ noExtra _ = Nothing
 -- dot at the root, since otherwise you get two matches because of
 -- 'readRule' (Bug #570).
 unifyExp' :: NameMatch -> Bool -> LHsExpr GhcPs -> LHsExpr GhcPs -> Maybe (Subst (LHsExpr GhcPs))
--- Don't subsitute for type apps, since no one writes rules imagining
+-- Don't substitute for type apps, since no one writes rules imagining
 -- they exist.
 unifyExp' nm root (L _ (HsVar _ (rdrNameStr -> v))) y | isUnifyVar v, not $ isTypeApp y = Just $ Subst [(v, y)]
 unifyExp' nm root (L _ (HsVar _ x)) (L _ (HsVar _ y)) | nm x y = Just mempty
@@ -288,7 +295,7 @@ unifyPat' nm x y =
 unifyType' :: NameMatch -> LHsType GhcPs -> LHsType GhcPs -> Maybe (Subst (LHsExpr GhcPs))
 unifyType' nm (L loc (HsTyVar _ _ x)) y =
   let wc = HsWC noExtField y :: LHsWcType (NoGhcTc GhcPs)
-      unused = strToVar "__unused__" :: LHsExpr GhcPs
-      appType = L loc (HsAppType noSrcSpan unused wc) :: LHsExpr GhcPs
+      unused = strToVar "__unused__"
+      appType = L loc (HsAppType noAnn unused wc)
  in Just $ Subst [(rdrNameStr x, appType)]
 unifyType' nm x y = unifyDef' nm x y

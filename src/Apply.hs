@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 
 module Apply(applyHints, applyHintFile, applyHintFiles) where
 
@@ -16,9 +17,9 @@ import Data.Ord
 import Config.Type
 import Config.Haskell
 import GHC.Types.SrcLoc
-import GHC.Hs
+import GHC.Hs hiding (comments)
 import Language.Haskell.GhclibParserEx.GHC.Hs
-import qualified Data.HashSet as Set
+import Data.HashSet qualified as Set
 import Prelude
 import Util
 import Timing
@@ -73,7 +74,7 @@ applyHintsReal settings hints_ ms = concat $
 removeRequiresExtensionNotes :: ModuleEx -> Idea -> Idea
 removeRequiresExtensionNotes m = \x -> x{ideaNote = filter keep $ ideaNote x}
     where
-        exts = Set.fromList $ concatMap snd $ languagePragmas $ pragmas (comments (hsmodAnn (unLoc . ghcModule $ m)))
+        exts = Set.fromList $ concatMap snd $ languagePragmas $ pragmas (comments (hsmodAnn (hsmodExt . unLoc . ghcModule $ m)))
         keep (RequiresExtension x) = not $ x `Set.member` exts
         keep _ = True
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns, ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -44,6 +45,13 @@ issue970 = (f x +) (g x) -- f x + (g x)
 issue969 = (Just \x -> x || x) *> Just True
 issue1179 = do(this is a test) -- do this is a test
 issue1212 = $(Git.hash)
+
+-- no record dot syntax
+referenceDesignator = ReferenceDesignator (p.placementReferenceDesignator)
+
+-- record dot syntax
+{-# LANGUAGE OverloadedRecordDot #-} \
+referenceDesignator = ReferenceDesignator (p.placementReferenceDesignator) -- p.placementReferenceDesignator @NoRefactor: refactor requires GHC >= 9.2.1
 
 -- type bracket reduction
 foo :: (Int -> Int) -> Int
@@ -104,6 +112,17 @@ no = f @($x)
 
 -- template haskell is harder
 issue1292 = [e| handleForeignCatch $ \ $(varP pylonExPtrVarName) -> $(quoteExp C.block modifiedStr) |]
+
+-- no warnings for single-argument constraint contexts
+foo :: (A) => ()
+bar :: (A a) => ()
+foo' :: ((A) => ()) -> ()
+bar' :: ((A a) => ()) -> ()
+data Dict c where Dict :: (c) => Dict c
+data Dict' c a where Dict' :: (c a) => Dict' c a
+
+-- issue1501: Redundant bracket hint resulted in a parse error
+x = f $ \(Proxy @a) -> True
 </TEST>
 -}
 
@@ -127,25 +146,32 @@ import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 bracketHint :: DeclHint
 bracketHint _ _ x =
   concatMap (\x -> bracket prettyExpr isPartialAtom True x ++ dollar x) (childrenBi (descendBi splices $ descendBi annotations x) :: [LHsExpr GhcPs]) ++
-  concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi x :: [LHsType GhcPs]) ++
+  concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi (preprocess x) :: [LHsType GhcPs]) ++
   concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi x :: [LPat GhcPs]) ++
   concatMap fieldDecl (childrenBi x)
    where
+     preprocess = transformBi removeSingleAtomConstrCtxs
+       where
+         removeSingleAtomConstrCtxs :: LHsContext GhcPs -> LHsContext GhcPs
+         removeSingleAtomConstrCtxs = fmap $ \case
+           [ty] | isAtom ty -> []
+           tys -> tys
+
      -- Brackets the roots of annotations are fine, so we strip them.
      annotations :: AnnDecl GhcPs -> AnnDecl GhcPs
      annotations= descendBi $ \x -> case (x :: LHsExpr GhcPs) of
-       L _ (HsPar _ _ x _) -> x
+       L _ (HsPar _ x) -> x
        x -> x
 
      -- Brackets at the root of splices used to be required, but now they aren't
      splices :: HsDecl GhcPs -> HsDecl GhcPs
      splices (SpliceD a x) = SpliceD a $ flip descendBi x $ \x -> case (x :: LHsExpr GhcPs) of
-       L _ (HsPar _ _ x _) -> x
+       L _ (HsPar _ x) -> x
        x -> x
      splices x = x
 
 -- If we find ourselves in the context of a section and we want to
--- issue a warning that a child therein has unneccessary brackets,
+-- issue a warning that a child therein has unnecessary brackets,
 -- we'd rather report 'Found : (`Foo` (Bar Baz))' rather than 'Found :
 -- `Foo` (Bar Baz)'. If left to 'unsafePrettyPrint' we'd get the
 -- latter (in contrast to the HSE pretty printer). This patches things
@@ -162,12 +188,15 @@ remParens' = fmap go . remParen
   where
     go e = maybe e go (remParen e)
 
+-- note(sf, 2022-06-02): i've completely bluffed my way through this.
+-- see
+-- https://gitlab.haskell.org/ghc/ghc/-/commit/7975202ba9010c581918413808ee06fbab9ac85f
+-- for where splice expressions were refactored.
 isPartialAtom :: Maybe (LHsExpr GhcPs) -> LHsExpr GhcPs -> Bool
 -- Might be '$x', which was really '$ x', but TH enabled misparsed it.
-isPartialAtom _ (L _ (HsSpliceE _ (HsTypedSplice _ DollarSplice _ _) )) = True
-isPartialAtom _ (L _ (HsSpliceE _ (HsUntypedSplice _ DollarSplice _ _) )) = True
+isPartialAtom _ (L _ (HsUntypedSplice _ HsUntypedSpliceExpr{})) = True
 -- Might be '$(x)' where the brackets are required in GHC 8.10 and below
-isPartialAtom (Just (L _ HsSpliceE{})) _ = True
+isPartialAtom (Just (L _ HsUntypedSplice{})) _ = True
 isPartialAtom _ x = isRecConstr x || isRecUpdate x
 
 bracket :: forall a . (Data a, Outputable a, Brackets (LocatedA a)) => (LocatedA a -> String) -> (Maybe (LocatedA a) -> LocatedA a -> Bool) -> Bool -> LocatedA a -> [Idea]
@@ -242,32 +271,32 @@ dollar :: LHsExpr GhcPs -> [Idea]
 dollar = concatMap f . universe
   where
     f x = [ (suggest "Redundant $" (reLoc x) (reLoc y) [r]){ideaSpan = locA (getLoc d)} | L _ (OpApp _ a d b) <- [x], isDol d
-            , let y = noLocA (HsApp EpAnnNotUsed a b) :: LHsExpr GhcPs
+            , let y = noLocA (HsApp noExtField a b) :: LHsExpr GhcPs
             , not $ needBracket 0 y a
             , not $ needBracket 1 y b
             , not $ isPartialAtom (Just x) b
             , let r = Replace Expr (toSSA x) [("a", toSSA a), ("b", toSSA b)] "a b"]
           ++
           [ suggest "Move brackets to avoid $" (reLoc x) (reLoc (t y)) [r]
-            |(t, e@(L _ (HsPar _ _ (L _ (OpApp _ a1 op1 a2)) _))) <- splitInfix x
+            |(t, e@(L _ (HsPar _ (L _ (OpApp _ a1 op1 a2))))) <- splitInfix x
             , isDol op1
             , isVar a1 || isApp a1 || isPar a1, not $ isAtom a2
             , varToStr a1 /= "select" -- special case for esqueleto, see #224
-            , let y = noLocA $ HsApp EpAnnNotUsed a1 (nlHsPar a2)
+            , let y = noLocA $ HsApp noExtField a1 (nlHsPar a2)
             , let r = Replace Expr (toSSA e) [("a", toSSA a1), ("b", toSSA a2)] "a (b)" ]
           ++  -- Special case of (v1 . v2) <$> v3
           [ (suggest "Redundant bracket" (reLoc x) (reLoc y) [r]){ideaSpan = locA locPar}
-          | L _ (OpApp _ (L locPar (HsPar _ _ o1@(L locNoPar (OpApp _ _ (isDot -> True) _)) _)) o2 v3) <- [x], varToStr o2 == "<$>"
-          , let y = noLocA (OpApp EpAnnNotUsed o1 o2 v3) :: LHsExpr GhcPs
+          | L _ (OpApp _ (L locPar (HsPar _ o1@(L locNoPar (OpApp _ _ (isDot -> True) _)))) o2 v3) <- [x], varToStr o2 == "<$>"
+          , let y = noLocA (OpApp noExtField o1 o2 v3) :: LHsExpr GhcPs
           , let r = Replace Expr (toRefactSrcSpan (locA locPar)) [("a", toRefactSrcSpan (locA locNoPar))] "a"]
           ++
           [ suggest "Redundant section" (reLoc x) (reLoc y) [r]
-          | L _ (HsApp _ (L _ (HsPar _ _ (L _ (SectionL _ a b)) _)) c) <- [x]
+          | L _ (HsApp _ (L _ (HsPar _ (L _ (SectionL _ a b)))) c) <- [x]
           -- , error $ show (unsafePrettyPrint a, gshow b, unsafePrettyPrint c)
-          , let y = noLocA $ OpApp EpAnnNotUsed a b c :: LHsExpr GhcPs
+          , let y = noLocA $ OpApp noExtField a b c :: LHsExpr GhcPs
           , let r = Replace Expr (toSSA x) [("x", toSSA a), ("op", toSSA b), ("y", toSSA c)] "x op y"]
 
 splitInfix :: LHsExpr GhcPs -> [(LHsExpr GhcPs -> LHsExpr GhcPs, LHsExpr GhcPs)]
 splitInfix (L l (OpApp _ lhs op rhs)) =
-  [(L l . OpApp EpAnnNotUsed lhs op, rhs), (\lhs -> L l (OpApp EpAnnNotUsed lhs op rhs), lhs)]
+  [(L l . OpApp noExtField lhs op, rhs), (\lhs -> L l (OpApp noExtField lhs op rhs), lhs)]
 splitInfix _ = []

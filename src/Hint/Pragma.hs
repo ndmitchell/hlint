@@ -1,3 +1,4 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -32,12 +33,12 @@
 
 module Hint.Pragma(pragmaHint) where
 
-import Hint.Type(ModuHint,Idea(..),Severity(..),toSSAnc,rawIdea,modComments)
+import Hint.Type(ModuHint,Idea(..),Severity(..),toSSAnc,rawIdea,modComments,firstDeclComments)
 import Data.List.Extra
-import qualified Data.List.NonEmpty as NE
+import Data.List.NonEmpty qualified as NE
 import Data.Maybe
 import Refact.Types
-import qualified Refact.Types as R
+import Refact.Types qualified as R
 
 import GHC.Hs
 import GHC.Types.SrcLoc
@@ -48,7 +49,11 @@ import GHC.Driver.Session
 
 pragmaHint :: ModuHint
 pragmaHint _ modu =
-  let ps = pragmas (modComments modu)
+  -- Comments appearing without a line-break before the first
+  -- declaration in a module are now associated with the declaration
+  -- not the module so to be safe, look also at `firstDeclComments
+  -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+  let ps = pragmas (modComments modu) ++ pragmas (firstDeclComments modu)
       opts = flags ps
       lang = languagePragmas ps in
     languageDupes lang ++ optToPragma opts lang
@@ -139,7 +144,7 @@ optToLanguage (L loc _, flags) languagePragmas
       -- 'ls' is a list of language features enabled by this
       -- OPTIONS_GHC pragma that are not enabled by LANGUAGE pragmas
       -- in this module.
-      let ls = filter (not . (`elem` languagePragmas)) (concat $ catMaybes vs) in
+      let ls = concatMap (filter (`notElem` languagePragmas)) $ catMaybes vs in
       Just (res, ls)
   where
     -- Try reinterpreting each flag as a list of language features
