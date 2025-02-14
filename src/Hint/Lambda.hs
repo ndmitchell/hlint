@@ -39,6 +39,10 @@ f = foo (\y -> g x . h $ y) -- g x . h
 f = foo (\y -> g x . h $ y) -- @Message Avoid lambda
 f = foo ((*) x) -- (x *)
 f = (*) x
+f = g \x -> h 3 x -- (h 3)
+f = g (\x -> h 3 x) -- h 3
+f = g \x -> (`h` 3) x -- (`h` 3)
+f = g \x -> h x -- h
 f = foo (flip op x) -- (`op` x)
 f = foo (flip op x) -- @Message Use section
 f = foo (flip x y) -- (`x` y)
@@ -217,7 +221,7 @@ lambdaExp _ o@(L _ (HsPar _ (view -> App2 (view -> Var_ "flip") origf@(view -> R
 
 lambdaExp p o@(L _ (HsLam _ LamSingle _))
     | not $ any isOpApp p
-    , (res, refact) <- niceLambdaR [] o
+    , (res, refact) <- niceLambdaR p [] o
     , not $ isLambda res
     , not $ any isQuasiQuoteExpr $ universe res
     , not $ "runST" `Set.member` Set.map occNameString (freeVars o)
