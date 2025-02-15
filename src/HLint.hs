@@ -222,7 +222,7 @@ handleRefactoring ideas files cmd@CmdMain{..} = do
             exitCode <- runRefactoring path file f enabledExtensions disabledExtensions cmdRefactorOptions
 
             case exitCode of
-              ExitSuccess   -> return ()
+              ExitSuccess   -> pure ()
               ExitFailure _ -> exitWith exitCode
 
 handleReporting :: [Idea] -> Cmd -> IO ()
