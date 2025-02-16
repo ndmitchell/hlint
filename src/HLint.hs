@@ -209,18 +209,21 @@ getIdeas cmd@CmdMain{..} settings = do
 -- #746: run refactor even if no hint, which ensures consistent output
 -- whether there are hints or not.
 handleRefactoring :: [Idea] -> [String] -> Cmd -> IO ()
-handleRefactoring ideas files cmd@CmdMain{..} =
-    case cmdFiles of
-        [file] -> do
-            -- Ensure that we can find the executable
-            path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
-            -- writeFile "hlint.refact"
-            let hints =  show $ map (show &&& ideaRefactoring) ideas
-            withTempFile $ \f -> do
-                writeFile f hints
-                let ParseFlags{enabledExtensions, disabledExtensions} = cmdParseFlags cmd
-                exitWith =<< runRefactoring path file f enabledExtensions disabledExtensions cmdRefactorOptions
-        _ -> errorIO "Refactor flag can only be used with an individual file"
+handleRefactoring ideas files cmd@CmdMain{..} = do
+    -- Ensure that we can find the executable
+    path <- checkRefactor (if cmdWithRefactor == "" then Nothing else Just cmdWithRefactor)
+    forM_ cmdFiles $ \file -> do
+        -- writeFile "hlint.refact"
+        let fileIdeas = filter (\i -> file == ideaFile i) ideas
+        let hints =  show $ map (show &&& ideaRefactoring) fileIdeas
+        withTempFile $ \f -> do
+            writeFile f hints
+            let ParseFlags{enabledExtensions, disabledExtensions} = cmdParseFlags cmd
+            exitCode <- runRefactoring path file f enabledExtensions disabledExtensions cmdRefactorOptions
+
+            case exitCode of
+              ExitSuccess   -> pure ()
+              ExitFailure _ -> exitWith exitCode
 
 handleReporting :: [Idea] -> Cmd -> IO ()
 handleReporting showideas cmd@CmdMain{..} = do

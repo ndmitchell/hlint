@@ -6,6 +6,7 @@ module Idea(
     rawIdea, idea, suggest, suggestRemove, ideaRemove, warn, ignore,
     rawIdeaN, suggestN, ignoreNoSuggestion,
     showIdeasJson, showIdeaANSI,
+    ideaFile,
     Note(..), showNotes,
     Severity(..),
     ) where
@@ -16,6 +17,7 @@ import HsColour
 import Refact.Types hiding (SrcSpan)
 import Refact.Types qualified as R
 import Prelude
+import GHC.Data.FastString
 import GHC.Types.SrcLoc
 import GHC.Utils.Outputable
 import GHC.Util
@@ -35,6 +37,12 @@ data Idea = Idea
     ,ideaRefactoring :: [Refactoring R.SrcSpan] -- ^ How to perform this idea
     }
     deriving Eq
+
+ideaFile :: Idea -> String
+ideaFile idea =
+  case srcSpanFileName_maybe (ideaSpan idea) of
+    Just file -> unpackFS file
+    Nothing   -> error "SrcSpan has no associated file"
 
 -- I don't use aeson here for 2 reasons:
 -- 1) Aeson doesn't escape unicode characters, and I want to (allows me to ignore encoding)
