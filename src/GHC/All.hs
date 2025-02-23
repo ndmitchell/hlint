@@ -89,8 +89,9 @@ data ParseError = ParseError
     }
 
 -- | Result of 'parseModuleEx', representing a parsed module.
-newtype ModuleEx = ModuleEx {
+data ModuleEx = ModuleEx {
     ghcModule :: Located (HsModule GhcPs)
+  , ghcLanguage :: Maybe Language
 }
 
 -- | Extract a complete list of all the comments in a module.
@@ -159,10 +160,10 @@ parseDeclGhcWithMode parseMode s =
 -- | Create a 'ModuleEx' from a GHC module. It is assumed the incoming
 -- parsed module has not been adjusted to account for operator
 -- fixities (it uses the HLint default fixities).
-createModuleEx :: Located (HsModule GhcPs) -> ModuleEx
+createModuleEx :: Located (HsModule GhcPs) -> Maybe Language -> ModuleEx
 createModuleEx = createModuleExWithFixities (map toFixity defaultFixities)
 
-createModuleExWithFixities :: [(String, Fixity)] -> Located (HsModule GhcPs) -> ModuleEx
+createModuleExWithFixities :: [(String, Fixity)] -> Located (HsModule GhcPs) -> Maybe Language -> ModuleEx
 createModuleExWithFixities fixities ast =
   ModuleEx (applyFixities (fixitiesFromModule ast ++ fixities) ast)
 
@@ -214,7 +215,7 @@ parseModuleEx flags file str = timedIO "Parse" file $ runExceptT $ do
         ExceptT $ parseFailureErr dynFlags str file str $ NE.fromList errs
       else do
         let fixes = fixitiesFromModule a ++ ghcFixitiesFromParseFlags flags
-        pure $ ModuleEx (applyFixities fixes a)
+        pure $ ModuleEx (applyFixities fixes a) (language dynFlags)
     PFailed s ->
       ExceptT $ parseFailureErr dynFlags str file str $ NE.fromList . bagToList . getMessages  $ GhcPsMessage <$> snd (getPsMessages s)
   where
