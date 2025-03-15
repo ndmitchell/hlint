@@ -115,7 +115,9 @@ module Hint.Lambda(lambdaHint) where
 
 import Hint.Type (DeclHint, Idea, Note(RequiresExtension), suggest, warn, toSS, toSSA, suggestN, ideaNote, substVars, toRefactSrcSpan)
 import Util
+import Data.List qualified
 import Data.List.Extra
+import Data.List.NonEmpty(NonEmpty(..))
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Refact.Types hiding (Match)
@@ -154,7 +156,7 @@ lambdaBind :: LHsBind GhcPs -> RType -> [Idea]
 lambdaBind
     o@(L _ origBind@FunBind {fun_id = funName@(L loc1 _), fun_matches =
         MG {mg_alts =
-            L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _ _) (L _ pats) (GRHSs _ [L _ (GRHS _ [] origBody@(L loc2 _))] bind))]}}) rtype
+            L _ [L _ (Match _ ctxt@(FunRhs _ Prefix _ _) (L _ pats) (GRHSs _ (L _ (GRHS _ [] origBody@(L loc2 _)) :| []) bind))]}}) rtype
     | EmptyLocalBinds _ <- bind
     , isLambda $ fromParen origBody
     , null (universeBi pats :: [HsExpr GhcPs])
@@ -177,7 +179,7 @@ lambdaBind
     where
           reform :: [LPat GhcPs] -> LHsExpr GhcPs -> Located (HsDecl GhcPs)
           reform ps b = L (combineSrcSpans (locA loc1) (locA loc2)) $ ValD noExtField $
-             origBind {fun_matches = MG (Generated OtherExpansion SkipPmc) (noLocA [noLocA $ Match noExtField ctxt (L noSpanAnchor ps) $ GRHSs emptyComments [noLocA $ GRHS noAnn [] b] $ EmptyLocalBinds noExtField])}
+             origBind {fun_matches = MG (Generated OtherExpansion SkipPmc) (noLocA [noLocA $ Match noExtField ctxt (L noSpanAnchor ps) $ GRHSs emptyComments (noLocA (GRHS noAnn [] b) :| []) $ EmptyLocalBinds noExtField])}
 
           mkSubtsAndTpl newPats newBody = (sub, tpl)
             where
@@ -339,7 +341,7 @@ fromLambda x = ([], x)
 mkOrigPats :: Maybe String -> [LPat GhcPs] -> ([LPat GhcPs], [String])
 mkOrigPats funName pats = (zipWith munge vars pats', vars)
   where
-    (Set.unions -> used, pats') = unzip (map f pats)
+    (Set.unions -> used, pats') = Data.List.unzip (map f pats)
 
     -- Remove variables that occur in the function name or patterns with wildcards
     vars = filter (\s -> s `Set.notMember` used && Just s /= funName) substVars
