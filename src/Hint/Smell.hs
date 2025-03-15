@@ -81,6 +81,7 @@ import Config.Type
 
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
+import Data.List.NonEmpty(NonEmpty(..))
 import Data.Map qualified as Map
 
 import GHC.Utils.Outputable
@@ -132,7 +133,7 @@ declSpans
                    mg_ext=FromSource
                  , mg_alts=(L _ [L _ Match {
                        m_ctxt=ctx
-                     , m_grhss=GRHSs{grhssGRHSs=[locGrhs]
+                     , m_grhss=GRHSs{grhssGRHSs=(locGrhs :| [])
                                  , grhssLocalBinds=where_}}])}})) =
  -- The span of the right hand side and the spans of each binding in
  -- the where clause.
