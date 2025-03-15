@@ -18,6 +18,7 @@ import Data.Generics.Uniplate.DataOnly
 import Data.Monoid
 import Data.Semigroup
 import Data.List.Extra
+import Data.List.NonEmpty(toList)
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Prelude
@@ -97,7 +98,7 @@ unqualNames _ = []
 
 instance FreeVars (LocatedA (HsExpr GhcPs)) where
   freeVars (L _ (HsVar _ x)) = Set.fromList $ unqualNames x -- Variable.
-  freeVars (L _ (HsUnboundVar _ x)) = Set.fromList [rdrNameOcc x] -- Unbound variable; also used for "holes".
+  freeVars (L _ (HsHole (HoleVar (L _ x)))) = Set.fromList [rdrNameOcc x] -- Unbound variable; also used for "holes".
   freeVars (L _ (HsLam _ LamSingle mg)) = free (allVars mg) -- Lambda abstraction. Currently always a single match.
   freeVars (L _ (HsLam _ _ MG{mg_alts=(L _ ms)})) = free (allVars ms) -- Lambda case
   freeVars (L _ (HsCase _ of_ MG{mg_alts=(L _ ms)})) = freeVars of_ ^+ free (allVars ms) -- Case expr.
@@ -123,7 +124,7 @@ instance FreeVars (LocatedA (HsExpr GhcPs)) where
     case flds of
       RegularRecUpdFields _ fs -> Set.unions $ freeVars e : map freeVars fs
       OverloadedRecUpdFields _ ps -> Set.unions $ freeVars e : map freeVars ps
-  freeVars (L _ (HsMultiIf _ grhss)) = free (allVars grhss) -- Multi-way if.
+  freeVars (L _ (HsMultiIf _ grhss)) = free (allVars (toList grhss)) -- Multi-way if.
   freeVars (L _ (HsTypedBracket _ e)) = freeVars e
   freeVars (L _ (HsUntypedBracket _ (ExpBr _ e))) = freeVars e
   freeVars (L _ (HsUntypedBracket _ (VarBr _ _ v))) = Set.fromList [occName (unLoc v)]
@@ -240,7 +241,7 @@ instance AllVars (HsStmtContext (GenLocated SrcSpanAnnN RdrName)) where
   allVars _ = mempty
 
 instance AllVars (GRHSs GhcPs (LocatedA (HsExpr GhcPs))) where
-  allVars (GRHSs _ grhss binds) = inVars binds (mconcatMap allVars grhss)
+  allVars (GRHSs _ grhss binds) = inVars binds (mconcatMap allVars (toList grhss))
 
 instance AllVars (LocatedAn NoEpAnns (GRHS GhcPs (LocatedA (HsExpr GhcPs)))) where
   allVars (L _ (GRHS _ guards expr)) = Vars (bound gs) (free gs ^+ (freeVars expr ^- bound gs)) where gs = allVars guards

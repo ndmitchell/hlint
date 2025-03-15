@@ -89,6 +89,7 @@ import Data.Generics.Uniplate.DataOnly
 import Data.Tuple.Extra
 import Data.Maybe
 import Data.List.Extra
+import Data.List.NonEmpty(NonEmpty(..))
 import Refact.Types hiding (Match)
 import Refact.Types qualified as R
 
@@ -295,7 +296,7 @@ monadLet xs = mapMaybe mkLet xs
     template lhs rhs =
         let p = noLocA $ mkRdrUnqual (mkVarOcc lhs)
             grhs = noLocA (GRHS noAnn [] rhs)
-            grhss = GRHSs emptyComments [grhs] (EmptyLocalBinds noExtField)
+            grhss = GRHSs emptyComments (grhs :| []) (EmptyLocalBinds noExtField)
             match = noLocA $ Match noExtField (FunRhs p Prefix NoSrcStrict noAnn) (noLocA []) grhss
             fb = noLocA $ FunBind noExtField p (MG (Generated OtherExpansion SkipPmc) (noLocA [match]))
             binds = [fb]
