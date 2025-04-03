@@ -36,7 +36,7 @@ jobs:
         - os: ubuntu-20.04
           SUFFIX: x86_64-linux.tar.gz
         - os: macOS-latest
-          SUFFIX: x86_64-osx.tar.gz
+          SUFFIX: arm64-osx.tar.gz
         - os: windows-latest
           SUFFIX: x86_64-windows.zip
 
