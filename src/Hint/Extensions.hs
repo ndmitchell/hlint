@@ -262,7 +262,7 @@ data T = MkT -- @NoRefactor: refactor requires GHC >= 9.6.1
 
 module Hint.Extensions(extensionsHint) where
 
-import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSSAnc,ghcModule,modComments,firstDeclComments)
+import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSSAnc,ghcExtensionsEnabledInModule,ghcModule,modComments,firstDeclComments)
 import Extension
 
 import Data.Generics.Uniplate.DataOnly
@@ -336,16 +336,7 @@ extensionsHint _ x =
 
     -- All the extensions defined to be used.
     extensions :: Set Extension
-    extensions = Set.fromList $
-      concatMap
-      (mapMaybe readExtension . snd)
-      (languagePragmas
-        (pragmas (modComments x) ++ pragmas (firstDeclComments x)))
-      -- Comments appearing without an empty line before the first
-      -- declaration in a module are now associated with the
-      -- declaration not the module so to be safe, look also at
-      -- `firstDeclComments x`
-      -- (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+    extensions = ghcExtensionsEnabledInModule x
 
     -- Those extensions we detect to be useful.
     useful :: Set Extension
