@@ -43,6 +43,7 @@ f = g \x -> h 3 x -- (h 3)
 f = g (\x -> h 3 x) -- h 3
 f = g \x -> (`h` 3) x -- (`h` 3)
 f = g \x -> h x -- h
+f = ($ 42) \_ -> pure ()
 f = foo (flip op x) -- (`op` x)
 f = foo (flip op x) -- @Message Use section
 f = foo (flip x y) -- (`x` y)

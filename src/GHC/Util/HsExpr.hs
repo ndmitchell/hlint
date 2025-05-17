@@ -243,7 +243,7 @@ niceLambdaR parent = go
           -- e.g., parent = `f \x -> g 3 x`; e = `g 3`.
           -- Brackets should be placed around `e` to produce `f (g 3)` instead of `f g 3`.
           addBrackets = case parent of
-            Just p -> isApp p && not (isVar e)
+            Just p -> isApp p && not (isVar e) && not (isLambda e)
             Nothing -> False
           e' = if addBrackets then mkHsPar e else e
           tpl = if addBrackets then "(a)" else "a"
