@@ -243,13 +243,18 @@ getRestrictItem def ideclName mp =
 lookupRestrictItem :: LocatedA ModuleName -> Map.Map String RestrictItem -> [RestrictItem]
 lookupRestrictItem ideclName mp =
     let moduleName = moduleNameString $ unLoc ideclName
-        exact = Map.lookup moduleName mp
-        wildcard = nonEmpty
+        mexact = Map.lookup moduleName mp
+        wildcard = catMaybes . NonEmpty.toList . sequence . nonEmpty
             . fmap snd
             . reverse -- the hope is less specific matches will end up last, but it's not guaranteed
             . filter (liftA2 (&&) (elem '*') (`wildcardMatch` moduleName) . fst)
             $ Map.toList mp
-    in catMaybes (exact : NonEmpty.toList (sequence wildcard))
+    in
+        case mexact of
+            Nothing ->
+                wildcard
+            Just exact ->
+                [sconcat (exact NonEmpty.:| wildcard)]
 
 importListToIdents :: IE GhcPs -> [String]
 importListToIdents =
