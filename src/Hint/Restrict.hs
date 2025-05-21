@@ -164,79 +164,83 @@ checkPragmas modu flags exts mps =
 data QualifiedPostOrPre = QualifiedPostOrPre deriving Eq
 
 checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
-checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
+checkImports modu lImportDecls (def, mp) = concatMap getImportHint lImportDecls
   where
-    getImportHint :: LImportDecl GhcPs -> Maybe Idea
+    getImportHint :: LImportDecl GhcPs -> [Idea]
     getImportHint i@(L _ ImportDecl{..}) = do
-      let RestrictItem{..} = getRestrictItem def ideclName mp
-      either (Just . ideaMessage riMessage) (const Nothing) $ do
-        unless (within modu "" riWithin) $
-          Left $ ideaNoTo $ warn "Avoid restricted module" (reLoc i) (reLoc i) []
+      let restrictItems = getRestrictItem def ideclName mp
+      flip mapMaybe restrictItems $ \RestrictItem {..} ->
+          either (Just . ideaMessage riMessage) (const Nothing) $ do
+            unless (within modu "" riWithin) $
+              Left $ ideaNoTo $ warn "Avoid restricted module" (reLoc i) (reLoc i) []
 
-        let importedIdents = Set.fromList $
-              case first (== EverythingBut) <$> ideclImportList of
-                Just (False, lxs) -> concatMap (importListToIdents . unLoc) (unLoc lxs)
-                _ -> []
-            invalidIdents = case riRestrictIdents of
-              NoRestrictIdents -> Set.empty
-              ForbidIdents badIdents -> importedIdents `Set.intersection` Set.fromList badIdents
-              OnlyIdents onlyIdents -> importedIdents `Set.difference` Set.fromList onlyIdents
-        unless (Set.null invalidIdents) $
-          Left $ ideaNoTo $ warn "Avoid restricted identifiers" (reLoc i) (reLoc i) []
+            let importedIdents = Set.fromList $
+                  case first (== EverythingBut) <$> ideclImportList of
+                    Just (False, lxs) -> concatMap (importListToIdents . unLoc) (unLoc lxs)
+                    _ -> []
+                invalidIdents = case riRestrictIdents of
+                  NoRestrictIdents -> Set.empty
+                  ForbidIdents badIdents -> importedIdents `Set.intersection` Set.fromList badIdents
+                  OnlyIdents onlyIdents -> importedIdents `Set.difference` Set.fromList onlyIdents
+            unless (Set.null invalidIdents) $
+              Left $ ideaNoTo $ warn "Avoid restricted identifiers" (reLoc i) (reLoc i) []
 
-        let qualAllowed = case (riAs, ideclAs) of
-              ([], _) -> True
-              (_, Nothing) -> maybe True not $ getAlt riAsRequired
-              (_, Just (L _ modName)) -> moduleNameString modName `elem` riAs
-        unless qualAllowed $ do
-          let i' = noLoc $ (unLoc i){ ideclAs = noLocA . mkModuleName <$> listToMaybe riAs }
-          Left $ warn "Avoid restricted alias" (reLoc i) i' []
+            let qualAllowed = case (riAs, ideclAs) of
+                  ([], _) -> True
+                  (_, Nothing) -> maybe True not $ getAlt riAsRequired
+                  (_, Just (L _ modName)) -> moduleNameString modName `elem` riAs
+            unless qualAllowed $ do
+              let i' = noLoc $ (unLoc i){ ideclAs = noLocA . mkModuleName <$> listToMaybe riAs }
+              Left $ warn "Avoid restricted alias" (reLoc i) i' []
 
-        let (expectedQual, expectedHiding) =
-              case fromMaybe ImportStyleUnrestricted $ getAlt riImportStyle of
-                ImportStyleUnrestricted
-                  | NotQualified <- ideclQualified -> (Nothing, Nothing)
-                  | otherwise -> (Just $ second (<> " or unqualified") expectedQualStyle, Nothing)
-                ImportStyleQualified -> (Just expectedQualStyle, Nothing)
-                ImportStyleExplicitOrQualified
-                  | Just (False, _) <- first (== EverythingBut) <$> ideclImportList -> (Nothing, Nothing)
-                  | otherwise ->
-                      ( Just $ second (<> " or with an explicit import list") expectedQualStyle
-                      , Nothing )
-                ImportStyleExplicit
-                  | Just (False, _) <- first (== EverythingBut) <$> ideclImportList -> (Nothing, Nothing)
-                  | otherwise ->
-                      ( Just (Right NotQualified, "unqualified")
-                      , Just $ Just (Exactly, noLocA []) )
-                ImportStyleUnqualified -> (Just (Right NotQualified, "unqualified"), Nothing)
-            expectedQualStyle =
-              case fromMaybe QualifiedStyleUnrestricted $ getAlt riQualifiedStyle of
-                QualifiedStyleUnrestricted -> (Left QualifiedPostOrPre, "qualified")
-                QualifiedStylePost -> (Right QualifiedPost, "post-qualified")
-                QualifiedStylePre -> (Right QualifiedPre, "pre-qualified")
-            -- unless expectedQual is Nothing, it holds the Idea (hint) to ultimately emit,
-            -- except in these cases when the rule's requirements are fulfilled in-source:
-            qualIdea
-              -- the rule demands a particular importStyle, and the decl obeys exactly
-              | Just (Right ideclQualified) == (fst <$> expectedQual) = Nothing
-              -- the rule demands a QualifiedPostOrPre import, and the decl does either
-              | Just (Left QualifiedPostOrPre) == (fst <$> expectedQual)
-                && ideclQualified `elem` [QualifiedPost, QualifiedPre] = Nothing
-              -- otherwise, expectedQual gets converted into a warning below (or is Nothing)
-              | otherwise = expectedQual
-        whenJust qualIdea $ \(qual, hint) -> do
-          -- convert non-Nothing qualIdea into hlint's refactoring Idea
-          let i' = noLoc $ (unLoc i){ ideclQualified = fromRight QualifiedPre qual
-                                    , ideclImportList = fromMaybe ideclImportList expectedHiding }
-              msg = moduleNameString (unLoc ideclName) <> " should be imported " <> hint
-          Left $ warn msg (reLoc i) i' []
+            let (expectedQual, expectedHiding) =
+                  case fromMaybe ImportStyleUnrestricted $ getAlt riImportStyle of
+                    ImportStyleUnrestricted
+                      | NotQualified <- ideclQualified -> (Nothing, Nothing)
+                      | otherwise -> (Just $ second (<> " or unqualified") expectedQualStyle, Nothing)
+                    ImportStyleQualified -> (Just expectedQualStyle, Nothing)
+                    ImportStyleExplicitOrQualified
+                      | Just (False, _) <- first (== EverythingBut) <$> ideclImportList -> (Nothing, Nothing)
+                      | otherwise ->
+                          ( Just $ second (<> " or with an explicit import list") expectedQualStyle
+                          , Nothing )
+                    ImportStyleExplicit
+                      | Just (False, _) <- first (== EverythingBut) <$> ideclImportList -> (Nothing, Nothing)
+                      | otherwise ->
+                          ( Just (Right NotQualified, "unqualified")
+                          , Just $ Just (Exactly, noLocA []) )
+                    ImportStyleUnqualified -> (Just (Right NotQualified, "unqualified"), Nothing)
+                expectedQualStyle =
+                  case fromMaybe QualifiedStyleUnrestricted $ getAlt riQualifiedStyle of
+                    QualifiedStyleUnrestricted -> (Left QualifiedPostOrPre, "qualified")
+                    QualifiedStylePost -> (Right QualifiedPost, "post-qualified")
+                    QualifiedStylePre -> (Right QualifiedPre, "pre-qualified")
+                -- unless expectedQual is Nothing, it holds the Idea (hint) to ultimately emit,
+                -- except in these cases when the rule's requirements are fulfilled in-source:
+                qualIdea
+                  -- the rule demands a particular importStyle, and the decl obeys exactly
+                  | Just (Right ideclQualified) == (fst <$> expectedQual) = Nothing
+                  -- the rule demands a QualifiedPostOrPre import, and the decl does either
+                  | Just (Left QualifiedPostOrPre) == (fst <$> expectedQual)
+                    && ideclQualified `elem` [QualifiedPost, QualifiedPre] = Nothing
+                  -- otherwise, expectedQual gets converted into a warning below (or is Nothing)
+                  | otherwise = expectedQual
+            whenJust qualIdea $ \(qual, hint) -> do
+              -- convert non-Nothing qualIdea into hlint's refactoring Idea
+              let i' = noLoc $ (unLoc i){ ideclQualified = fromRight QualifiedPre qual
+                                        , ideclImportList = fromMaybe ideclImportList expectedHiding }
+                  msg = moduleNameString (unLoc ideclName) <> " should be imported " <> hint
+              Left $ warn msg (reLoc i) i' []
 
-getRestrictItem :: Bool -> LocatedA ModuleName -> Map.Map String RestrictItem -> RestrictItem
-getRestrictItem def ideclName =
-  fromMaybe (RestrictItem mempty mempty mempty mempty [("","") | def] NoRestrictIdents Nothing)
-    . lookupRestrictItem ideclName
+getRestrictItem :: Bool -> LocatedA ModuleName -> Map.Map String RestrictItem -> [RestrictItem]
+getRestrictItem def ideclName mp =
+    case lookupRestrictItem ideclName mp of
+        [] ->
+            pure (RestrictItem mempty mempty mempty mempty [("","") | def] NoRestrictIdents Nothing)
+        restricts ->
+            restricts
 
-lookupRestrictItem :: LocatedA ModuleName -> Map.Map String RestrictItem -> Maybe RestrictItem
+lookupRestrictItem :: LocatedA ModuleName -> Map.Map String RestrictItem -> [RestrictItem]
 lookupRestrictItem ideclName mp =
     let moduleName = moduleNameString $ unLoc ideclName
         exact = Map.lookup moduleName mp
@@ -245,7 +249,7 @@ lookupRestrictItem ideclName mp =
             . reverse -- the hope is less specific matches will end up last, but it's not guaranteed
             . filter (liftA2 (&&) (elem '*') (`wildcardMatch` moduleName) . fst)
             $ Map.toList mp
-    in exact <> sconcat (sequence wildcard)
+    in catMaybes (exact : NonEmpty.toList (sequence wildcard))
 
 importListToIdents :: IE GhcPs -> [String]
 importListToIdents =
