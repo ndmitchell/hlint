@@ -1189,12 +1189,12 @@ Does not support refactoring.
 <td>
 Example: 
 <code>
-type WarpTLSException = ()
+getFOO = _
 </code>
 <br>
 Found:
 <code>
-type WarpTLSException = ()
+getFOO = ...
 </code>
 <br>
 Suggestion:
@@ -1204,7 +1204,7 @@ Suggestion:
 <br>
 Does not support refactoring.
 </td>
-<td>Suggestion</td>
+<td>Ignore</td>
 </tr>
 </table>
 

@@ -3,44 +3,48 @@
 {-
     Detect uses of capitalisms
 
-    Only allow up to two consecutive capital letters in identifiers.
+    Only allow up to two consecutive capital letters in top level
+    identifiers.
 
     Identifiers containing underscores are exempted from thus rule.
     Identifiers of FFI bindings are exempted from thus rule.
 
+    Locally bound identifiers and module names are not checked.
+
 <TEST>
-module SSL.Foo -- ???
 data LHsDecl
-class FOO a where -- ???
-class Foo a where getFOO -- ???
-data Foo = Bar | BAAZ -- ???
-data Foo = B_ar | BAAZ -- ???
+class FOO a where -- @Ignore
+class Foo a where getFOO :: Bool
+data Foo = Bar | BAAZ -- @Ignore
+data Foo = B_ar | BAAZ -- @Ignore
 data Foo = Bar | B_AAZ
-data OTPToken = OTPToken -- ???
+data OTPToken = OTPToken -- @Ignore
 data OTP_Token = Foo 
-sendSMS = ... -- ???
-runTLS = ... -- ???
-runTLSSocket = ... -- ???
+sendSMS = _ -- @Ignore
+runTLS = _ -- @Ignore
+runTLSSocket = _ -- @Ignore
 runTLS_Socket
-newtype TLSSettings = ... -- ???
+newtype TLSSettings = TLSSettings -- @Ignore
 tlsSettings
 data CertSettings = CertSettings
 tlsServerHooks
-tlsServerDHEParams = ... -- ???
-type WarpTLSException = () -- ???
+tlsServerDHEParams = _  -- @Ignore
+type WarpTLSException = () -- @Ignore
 get_SMS
 runCI
 foreign import ccall _FIREMISSLES :: IO ()
-let getSMS = x in foo --- ???
+getSMS :: IO () -- @Ignore
+gFOO = _ -- @Ignore
+geFOO = _ -- @Ignore
+getFOO = _ -- @Ignore
 </TEST>
 -}
 
-
 module Hint.NoCapitalisms(noCapitalismsHint) where
 
-import Hint.Type (DeclHint,remark, Severity (Ignore))
-import Data.List.Extra (nubOrd)
-import Data.List.NonEmpty (toList)
+import Hint.Type
+import Data.List.Extra as E
+import Data.List.NonEmpty as NE
 import Data.Char
 import Data.Maybe
 
@@ -71,29 +75,31 @@ hasCapitalism :: String -> Bool
 hasCapitalism s = any isAllUpper (trigrams s)
   where
     isAllUpper = all isUpper
-    trigrams = \case
-      a:b:c:as -> [a,b,c] : trigrams (c:as)
-      _otherwise -> []
+
+trigrams :: String -> [String]
+trigrams = \case
+  a:b:c:as -> [a,b,c] : trigrams (b:c:as)
+  _otherwise -> []
 
 --- these are copied from Hint.Naming ---
 
 shorten :: LHsDecl GhcPs -> LHsDecl GhcPs
 shorten (L locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG FromSource (L locMatches matches))))) =
-    L locDecl (ValD ttg0 bind {fun_matches = matchGroup {mg_alts = L locMatches $ map shortenMatch matches}})
-shorten (L locDecl (ValD ttg0 bind@(PatBind _ _ grhss@(GRHSs _ rhss _)))) =
-    L locDecl (ValD ttg0 bind {pat_rhs = grhss {grhssGRHSs = map shortenLGRHS rhss}})
+    L locDecl (ValD ttg0 bind {fun_matches = matchGroup {mg_alts = L locMatches $ E.map shortenMatch matches}})
+shorten (L locDecl (ValD ttg0 bind@(PatBind _ _ _ grhss@(GRHSs _ rhss _)))) =
+    L locDecl (ValD ttg0 bind {pat_rhs = grhss {grhssGRHSs = E.map shortenLGRHS rhss}})
 shorten x = x
 
 shortenMatch :: LMatch GhcPs (LHsExpr GhcPs) -> LMatch GhcPs (LHsExpr GhcPs)
 shortenMatch (L locMatch match@(Match _ _ _ grhss@(GRHSs _ rhss _))) =
-    L locMatch match {m_grhss = grhss {grhssGRHSs = map shortenLGRHS rhss}}
+    L locMatch match {m_grhss = grhss {grhssGRHSs = E.map shortenLGRHS rhss}}
 
 shortenLGRHS :: LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
 shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
     L locGRHS (GRHS ttg0 guards (L locExpr dots))
     where
         dots :: HsExpr GhcPs
-        dots = HsLit EpAnnNotUsed (HsString (SourceText (fsLit "...")) (fsLit "..."))
+        dots = HsLit noExtField (HsString (SourceText (fsLit "...")) (fsLit "..."))
 
 getNames :: LHsDecl GhcPs -> [String]
 getNames decl = maybeToList (declName decl) ++ getConstructorNames (unLoc decl)
@@ -105,9 +111,9 @@ getConstructorNames tycld = case tycld of
     _ -> []
   where
     conNames :: [LConDecl GhcPs] -> [String]
-    conNames =  concatMap (map unsafePrettyPrint . conNamesInDecl . unLoc)
+    conNames =  concatMap (E.map unsafePrettyPrint . conNamesInDecl . unLoc)
 
     conNamesInDecl :: ConDecl GhcPs -> [LIdP GhcPs]
     conNamesInDecl ConDeclH98  {con_name  = name}  = [name]
-    conNamesInDecl ConDeclGADT {con_names = names} = Data.List.NonEmpty.toList names
+    conNamesInDecl ConDeclGADT {con_names = names} = NE.toList names
 
