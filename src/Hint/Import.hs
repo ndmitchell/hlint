@@ -214,23 +214,23 @@ combine :: LImportDecl GhcPs
         -> LImportDecl GhcPs
         -> Maybe (LImportDecl GhcPs, [Refactoring R.SrcSpan])
 combine x@(L loc x') y@(L _ y')
-  -- Both (un/)qualified, common 'as', same names : Delete the second.
+  -- Both (un/)qualified, common 'as', same names: Delete the second.
   | qual, as, specs = Just (x, [Delete Import (toSSA y)])
-    -- Both (un/)qualified, common 'as', different names : Merge the
-    -- second into the first and delete it.
+  -- Both (un/)qualified, common 'as', different names: Merge the
+  -- second into the first and delete it.
   | qual, as
   , Just (False, xs) <- first (== EverythingBut) <$> ideclImportList x'
   , Just (False, ys) <- first (== EverythingBut) <$> ideclImportList y' =
       let newImp = L loc x'{ideclImportList = Just (Exactly, noLocA (unLoc xs ++ unLoc ys))}
       in Just (newImp, [Replace Import (toSSA x) [] (unsafePrettyPrint (unLoc newImp))
                        , Delete Import (toSSA y)])
-  -- Both (un/qualified), common 'as', one has names the other doesn't
-  -- : Delete the one with names.
+  -- Both (un/)qualified, common 'as', one has names the other doesn't:
+  -- Delete the one with names.
   | qual, as, isNothing (ideclImportList x') || isNothing (ideclImportList y') =
        let (newImp, toDelete) = if isNothing (ideclImportList x') then (x, y) else (y, x)
        in Just (newImp, [Delete Import (toSSA toDelete)])
   -- Both unqualified, same names, one (and only one) has an 'as'
-  -- clause : Delete the one without an 'as'.
+  -- clause: Delete the one without an 'as'.
   | ideclQualified x' == NotQualified, qual, specs, length ass == 1 =
        let (newImp, toDelete) = if isJust (ideclAs x') then (x, y) else (y, x)
        in Just (newImp, [Delete Import (toSSA toDelete)])
