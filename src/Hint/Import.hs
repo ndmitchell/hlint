@@ -132,9 +132,9 @@ reduceImports ms@(m:_) =
 simplifyThingsWith :: ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
                -> ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
 simplifyThingsWith (xs, rs) = fromMaybe (xs, rs) $ do
-  let (ys, ss) = second concat . unzip $ map combineThingFields xs
+  let (ys, ss) = second concat $ unzip $ map combineThingFields xs
   guard $ not (null ys)
-  return (ys, override ss rs)
+  pure (ys, override ss rs)
   where
     override :: [Refactoring R.SrcSpan] -> [Refactoring R.SrcSpan] -> [Refactoring R.SrcSpan]
     override [] rs = rs
@@ -165,7 +165,7 @@ simplifyThingsWith (xs, rs) = fromMaybe (xs, rs) $ do
             $ sortBy (compare `on` thingKey) things_with
       
       let new_lid = L loc (ie {ideclImportList = Just (hidden, noLocA $ rest ++ concat new_is)})
-      return (new_lid, [Replace Import (toSSA lid) [] (unsafePrettyPrint new_lid)])
+      pure (new_lid, [Replace Import (toSSA lid) [] (unsafePrettyPrint new_lid)])
       where
         -- Overkill; is there a better/idiomatic way to do this? We need
         -- an Ord instances for `LIEWrappedName pass`.
@@ -178,7 +178,7 @@ simplifyThingsWith (xs, rs) = fromMaybe (xs, rs) $ do
 
         addFields :: [LIEWrappedName GhcPs] -> LIE GhcPs -> LIE GhcPs
         addFields fs' (L loc (IEThingWith src thing wild fs xd)) =
-          L loc (IEThingWith src thing wild (nubSortBy (compare `on` nameKey) $ fs ++ fs') xd)
+          L loc (IEThingWith src thing wild (nubSortOn nameKey $ fs ++ fs') xd)
             -- Use `nubSortBy` to ensure that we don't have duplicate fields, which
             -- seems possible, given that we're in `pass` `GhcPs`.
         addFields _ lie = lie
