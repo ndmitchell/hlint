@@ -16,7 +16,6 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import GHC.Util
 
 -- | Replace RHSs of top-level value declarations with an ellipsis
--- TODO remove where clauses, these are apparently not caught here
 shorten :: LHsDecl GhcPs -> LHsDecl GhcPs
 shorten (L locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG FromSource (L locMatches matches))))) =
     L locDecl (ValD ttg0 bind {fun_matches = matchGroup {mg_alts = L locMatches $ E.map shortenMatch matches}})
