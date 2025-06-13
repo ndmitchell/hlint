@@ -3,8 +3,8 @@
 {-
     Detect uses of capitalisms
 
-    Only allow up to two consecutive capital letters in top level
-    identifiers.
+    Do not allow two consecutive capital letters in top level
+    identifiers of types, classes, values and constructors.
 
     Identifiers containing underscores are exempted from thus rule.
     Identifiers of FFI bindings are exempted from thus rule.
@@ -12,7 +12,13 @@
     Locally bound identifiers and module names are not checked.
 
 <TEST>
-data LHsDecl
+data IO -- @Ignore
+data PersonID = P -- @Ignore
+sendIO :: IO () -- @Ignore
+sendIO = _ -- @Ignore
+class HasIO where -- @Ignore
+data Foo = FO -- @Ignore
+data LHsDecl -- @Ignore
 class FOO a where -- @Ignore
 class Foo a where getFOO :: Bool
 data Foo = Bar | BAAZ -- @Ignore
@@ -72,13 +78,13 @@ hasUnderscore :: String -> Bool
 hasUnderscore = elem '_'
 
 hasCapitalism :: String -> Bool
-hasCapitalism s = any isAllUpper (trigrams s)
+hasCapitalism s = any isAllUpper (bigrams s)
   where
     isAllUpper = all isUpper
 
-trigrams :: String -> [String]
-trigrams = \case
-  a:b:c:as -> [a,b,c] : trigrams (b:c:as)
+bigrams :: String -> [String]
+bigrams = \case
+  a:b:as -> [a,b] : bigrams (b:as)
   _otherwise -> []
 
 --- these are copied from Hint.Naming ---
