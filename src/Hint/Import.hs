@@ -30,8 +30,11 @@ import qualified A; import A
 import B; import A; import A -- import A
 import A hiding(Foo); import A hiding(Bar)
 import A (foo) \
+import A (fie) \
 import A (bar) \
-import A (baz) -- import A ( foo, bar, baz )
+import A (baz) -- import A ( foo, fie, bar, baz )
+import A (Foo(A,B), Bar(C,D)) \
+import A (Baz(E,F)) -- import A (Bar(C,D), Baz(E,F), Foo(A,B))
 import A (Foo(A,B), Foo(C), Bar) \
 import A (Foo(C,D), Baz) -- import A (Bar, Baz, Foo(A,B,C,D))
 import A (Foo(A,B), Bar(C,D), Foo(E), Foo(C,D)) \
@@ -94,27 +97,32 @@ reduceImports :: [LImportDecl GhcPs] -> [Idea]
 reduceImports [] = []
 reduceImports ms@(m:_) =
   [rawIdea Hint.Type.Warning "Use fewer imports" (locA (getLoc m)) (f ms) (Just $ f x) [] rs
-  | Just (x, rs) <- [simplifyThingsWith <$> simplify ms]]
+  | Just (x, rs) <- [simplify ms]]
   where f = unlines . map unsafePrettyPrint
 
 {-
-    Combine multiple fields for any imported "thing" (type or class). Provided
-    any given "thing" (type or class) appears in only one non-hiding import
-    declaration (i.e., as guaranteed by simplify), this will combine
-    each thing's explicit field imports into a single import list element.
-
-    Hiding imports are left untouched.
-
-    For example:
+    The simplify function combines multiple import declarations for any
+    given module into a single import declaration. It also combines multiple
+    imports of the same field for any imported class, type, or constructor. It
+    will combine imports like:
+    ```haskell
+    import A (Foo(A,B), Bar(C,D))
+    import A (Baz(E,F))
+    ```
+    into:
+    ```haskell
+    import A (Bar(C,D), Baz(E,F), Foo(A,B))
+    ```
+    Both simplifications will be applied. For example, the imports:
     ```haskell
     import A (Foo(A,B), Bar(C,D), Foo(E), Foo(C,D))
     import A (Foo(A,F), Baz(D,A))
     ```
-    would be `simplify`d to:
+    would first be simplified to combine the imports:
     ```haskell
     import A (Foo(A,B), Bar(C,D), Foo(E), Foo(C,D), Foo(A,F), Baz(D,A))
     ```
-    and then `simplifyThingsWith` would yield:
+    and then further simplified to combine the fields:
     ```haskell
     import A (Bar(C,D), Baz(D,A), Foo(A,B,C,D,E,F))
     ```
@@ -129,28 +137,94 @@ reduceImports ms@(m:_) =
     "wrong" when unicode identifiers are involved (or it might be spot on).
     Whether this matters is another question.
 -}
-simplifyThingsWith :: ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
-               -> ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
-simplifyThingsWith (xs, rs) = fromMaybe (xs, rs) $ do
-  let (ys, ss) = second concat $ unzip $ map combineThingFields xs
-  guard $ not (null ys)
-  pure (ys, override ss rs)
-  where
-    override :: [Refactoring R.SrcSpan] -> [Refactoring R.SrcSpan] -> [Refactoring R.SrcSpan]
-    override [] rs = rs
-    override ss [] = ss
-    override (s@(Replace _ sp _ _):ss) rs =
-      s : override ss (filter (\r -> toSSA r /= Just sp) rs)
-      -- If a `Replace` refactoring is already present for this span, drop it,
-      -- and add the new refactoring. Recursively, override with the rest of
-      -- the new refactorings.
-      where
-        toSSA :: Refactoring R.SrcSpan -> Maybe R.SrcSpan
-        toSSA (Replace _ sp _ _) = Just sp
-        toSSA _ = Nothing
 
-    combineThingFields :: LImportDecl GhcPs -> (LImportDecl GhcPs, [Refactoring R.SrcSpan])
-    combineThingFields lid@(L loc ie) = fromMaybe (lid, []) $ do
+simplify :: [LImportDecl GhcPs]
+         -> Maybe ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
+simplify xs = simplifyImportLists <$> simplifyImportDecls xs
+  -- First, simplify the import declarations, then simplify the import
+  -- lists within the resulting import declarations.
+
+simplifyImportDecls :: [LImportDecl GhcPs]
+                    -> Maybe ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
+simplifyImportDecls [] = Nothing
+simplifyImportDecls (x : xs) = case simplifyHead x xs of
+  Nothing -> first (x:) <$> simplifyImportDecls xs
+  Just (xs', rs) ->
+    let deletions = filter (\case Delete{} -> True; _ -> False) rs
+    in
+    Just $ maybe (xs', rs) (second (++ deletions)) $ simplifyImportDecls xs'
+  where
+    simplifyHead :: LImportDecl GhcPs
+                -> [LImportDecl GhcPs]
+                -> Maybe ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
+    simplifyHead x (y : ys) = case combine x y of
+        Nothing -> first (y:) <$> simplifyHead x ys
+        Just (xy, rs) -> Just (xy : ys, rs)
+    simplifyHead x [] = Nothing
+
+    combine :: LImportDecl GhcPs
+            -> LImportDecl GhcPs
+            -> Maybe (LImportDecl GhcPs, [Refactoring R.SrcSpan])
+    combine x@(L loc x') y@(L _ y')
+      -- Both (un/)qualified, common 'as', same names: Delete the second.
+      | qual, as, specs = Just (x, [Delete Import (toSSA y)])
+      -- Both (un/)qualified, common 'as', different names: Merge the
+      -- second into the first and delete it.
+      | qual, as
+      , Just (False, xs) <- first (== EverythingBut) <$> ideclImportList x'
+      , Just (False, ys) <- first (== EverythingBut) <$> ideclImportList y' =
+          let newImp = L loc x'{ideclImportList = Just (Exactly, noLocA (unLoc xs ++ unLoc ys))}
+          in Just (newImp, [Replace Import (toSSA x) [] (unsafePrettyPrint (unLoc newImp))
+                          , Delete Import (toSSA y)])
+      -- Both (un/)qualified, common 'as', one has names the other doesn't:
+      -- Delete the one with names.
+      | qual, as, isNothing (ideclImportList x') || isNothing (ideclImportList y') =
+          let (newImp, toDelete) = if isNothing (ideclImportList x') then (x, y) else (y, x)
+          in Just (newImp, [Delete Import (toSSA toDelete)])
+      -- Both unqualified, same names, one (and only one) has an 'as'
+      -- clause: Delete the one without an 'as'.
+      | ideclQualified x' == NotQualified, qual, specs, length ass == 1 =
+          let (newImp, toDelete) = if isJust (ideclAs x') then (x, y) else (y, x)
+          in Just (newImp, [Delete Import (toSSA toDelete)])
+      -- No hints.
+      | otherwise = Nothing
+        where
+            eqMaybe:: Eq a => Maybe (LocatedA a) -> Maybe (LocatedA a) -> Bool
+            eqMaybe (Just x) (Just y) = x `eqLocated` y
+            eqMaybe Nothing Nothing = True
+            eqMaybe _ _ = False
+
+            qual = ideclQualified x' == ideclQualified y'
+            as = ideclAs x' `eqMaybe` ideclAs y'
+            ass = mapMaybe ideclAs [x', y']
+            specs = transformBi (const noSrcSpan) (ideclImportList x') ==
+                        transformBi (const noSrcSpan) (ideclImportList y')
+
+-- Combine multiple fields for any imported class, type, or data constructor.
+simplifyImportLists :: ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
+                    -> ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
+simplifyImportLists (xs, rs) = fromMaybe (xs, rs) $ do
+  let (ys, ss) = second concat $ unzip $ map combineFieldsInImportList xs
+  guard $ not (null ys)
+  pure (ys, overrideReplaces ss rs)
+  where
+    overrideReplaces :: [Refactoring R.SrcSpan] -> [Refactoring R.SrcSpan] -> [Refactoring R.SrcSpan]
+    overrideReplaces [] rs = rs
+    overrideReplaces ss [] = ss
+    overrideReplaces (s@(Replace _ sp _ _):ss) rs =
+      s : overrideReplaces ss (filter (\r -> replaceToSSA r /= Just sp) rs)
+        -- If a `Replace` refactoring is already present for this span, drop it,
+        -- and add the new refactoring. Other refactoring types (e.g. `Delete`)
+        -- are preserved, by virtue of `replaceToSSA` yielding `Nothing` for
+        -- all but `Replace`. Then, recursively override using the rest of
+        -- the new refactorings.
+       where
+        replaceToSSA :: Refactoring R.SrcSpan -> Maybe R.SrcSpan
+        replaceToSSA (Replace _ sp _ _) = Just sp
+        replaceToSSA _ = Nothing
+
+    combineFieldsInImportList :: LImportDecl GhcPs -> (LImportDecl GhcPs, [Refactoring R.SrcSpan])
+    combineFieldsInImportList lid@(L loc ie) = fromMaybe (lid, []) $ do
       (hidden, is) <- ideclImportList ie
       let (things_with, rest) =
             partition (\case L _ (IEThingWith{}) -> True; _ -> False) (unLoc is)
@@ -163,7 +237,7 @@ simplifyThingsWith (xs, rs) = fromMaybe (xs, rs) $ do
               -- same "thing" appear in the same group. (This is redundant
               -- if an earlier pass has already sorted them.)
             $ sortBy (compare `on` thingKey) things_with
-      
+
       let new_lid = L loc (ie {ideclImportList = Just (hidden, noLocA $ rest ++ concat new_is)})
       pure (new_lid, [Replace Import (toSSA lid) [] (unsafePrettyPrint new_lid)])
       where
@@ -192,61 +266,6 @@ simplifyThingsWith (xs, rs) = fromMaybe (xs, rs) $ do
           where
             fields = concat $
               mapMaybe (\case L _ (IEThingWith _ _ _ fs _) -> Just fs; _ -> Nothing) ies
-
-simplify :: [LImportDecl GhcPs]
-         -> Maybe ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
-simplify [] = Nothing
-simplify (x : xs) = case simplifyHead x xs of
-    Nothing -> first (x:) <$> simplify xs
-    Just (xs, rs) ->
-      let deletions = filter (\case Delete{} -> True; _ -> False) rs
-       in Just $ maybe (xs, rs) (second (++ deletions)) $ simplify xs
-
-simplifyHead :: LImportDecl GhcPs
-             -> [LImportDecl GhcPs]
-             -> Maybe ([LImportDecl GhcPs], [Refactoring R.SrcSpan])
-simplifyHead x (y : ys) = case combine x y of
-    Nothing -> first (y:) <$> simplifyHead x ys
-    Just (xy, rs) -> Just (xy : ys, rs)
-simplifyHead x [] = Nothing
-
-combine :: LImportDecl GhcPs
-        -> LImportDecl GhcPs
-        -> Maybe (LImportDecl GhcPs, [Refactoring R.SrcSpan])
-combine x@(L loc x') y@(L _ y')
-  -- Both (un/)qualified, common 'as', same names: Delete the second.
-  | qual, as, specs = Just (x, [Delete Import (toSSA y)])
-  -- Both (un/)qualified, common 'as', different names: Merge the
-  -- second into the first and delete it.
-  | qual, as
-  , Just (False, xs) <- first (== EverythingBut) <$> ideclImportList x'
-  , Just (False, ys) <- first (== EverythingBut) <$> ideclImportList y' =
-      let newImp = L loc x'{ideclImportList = Just (Exactly, noLocA (unLoc xs ++ unLoc ys))}
-      in Just (newImp, [Replace Import (toSSA x) [] (unsafePrettyPrint (unLoc newImp))
-                       , Delete Import (toSSA y)])
-  -- Both (un/)qualified, common 'as', one has names the other doesn't:
-  -- Delete the one with names.
-  | qual, as, isNothing (ideclImportList x') || isNothing (ideclImportList y') =
-       let (newImp, toDelete) = if isNothing (ideclImportList x') then (x, y) else (y, x)
-       in Just (newImp, [Delete Import (toSSA toDelete)])
-  -- Both unqualified, same names, one (and only one) has an 'as'
-  -- clause: Delete the one without an 'as'.
-  | ideclQualified x' == NotQualified, qual, specs, length ass == 1 =
-       let (newImp, toDelete) = if isJust (ideclAs x') then (x, y) else (y, x)
-       in Just (newImp, [Delete Import (toSSA toDelete)])
-  -- No hints.
-  | otherwise = Nothing
-    where
-        eqMaybe:: Eq a => Maybe (LocatedA a) -> Maybe (LocatedA a) -> Bool
-        eqMaybe (Just x) (Just y) = x `eqLocated` y
-        eqMaybe Nothing Nothing = True
-        eqMaybe _ _ = False
-
-        qual = ideclQualified x' == ideclQualified y'
-        as = ideclAs x' `eqMaybe` ideclAs y'
-        ass = mapMaybe ideclAs [x', y']
-        specs = transformBi (const noSrcSpan) (ideclImportList x') ==
-                    transformBi (const noSrcSpan) (ideclImportList y')
 
 stripRedundantAlias :: LImportDecl GhcPs -> [Idea]
 stripRedundantAlias x@(L _ i@ImportDecl {..})
