@@ -42,18 +42,15 @@ foreign import ccall hexml_node_child :: IO ()
 
 module Hint.Naming(namingHint) where
 
+import Hint.NameHelpers
 import Hint.Type (Idea,DeclHint,suggest,ghcModule)
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra (nubOrd, isPrefixOf)
-import Data.List.NonEmpty (toList)
 import Data.Data
 import Data.Char
 import Data.Maybe
 import Data.Set qualified as Set
 
-import GHC.Types.Basic
-import GHC.Types.SourceText
-import GHC.Data.FastString
 import GHC.Hs.Decls
 import GHC.Hs.Extension
 import GHC.Hs
@@ -62,7 +59,6 @@ import GHC.Types.SrcLoc
 
 import Language.Haskell.GhclibParserEx.GHC.Hs.Decls
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
-import GHC.Util
 
 namingHint :: DeclHint
 namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ hsmodDecls $ unLoc (ghcModule modu)
@@ -85,40 +81,6 @@ naming seen originalDecl =
             , not $ suggestedName `Set.member` seen
             ]
         replacedDecl = replaceNames suggestedNames originalDecl
-
-shorten :: LHsDecl GhcPs -> LHsDecl GhcPs
-shorten (L locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG FromSource (L locMatches matches))))) =
-    L locDecl (ValD ttg0 bind {fun_matches = matchGroup {mg_alts = L locMatches $ map shortenMatch matches}})
-shorten (L locDecl (ValD ttg0 bind@(PatBind _ _ _ grhss@(GRHSs _ rhss _)))) =
-    L locDecl (ValD ttg0 bind {pat_rhs = grhss {grhssGRHSs = map shortenLGRHS rhss}})
-shorten x = x
-
-shortenMatch :: LMatch GhcPs (LHsExpr GhcPs) -> LMatch GhcPs (LHsExpr GhcPs)
-shortenMatch (L locMatch match@(Match _ _ _ grhss@(GRHSs _ rhss _))) =
-    L locMatch match {m_grhss = grhss {grhssGRHSs = map shortenLGRHS rhss}}
-
-shortenLGRHS :: LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
-shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
-    L locGRHS (GRHS ttg0 guards (L locExpr dots))
-    where
-        dots :: HsExpr GhcPs
-        dots = HsLit noExtField (HsString (SourceText (fsLit "...")) (fsLit "..."))
-
-getNames :: LHsDecl GhcPs -> [String]
-getNames decl = maybeToList (declName decl) ++ getConstructorNames (unLoc decl)
-
-getConstructorNames :: HsDecl GhcPs -> [String]
-getConstructorNames tycld = case tycld of
-    (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ (NewTypeCon con) _))) -> conNames [con]
-    (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ (DataTypeCons _ cons) _))) -> conNames cons
-    _ -> []
-  where
-    conNames :: [LConDecl GhcPs] -> [String]
-    conNames =  concatMap (map unsafePrettyPrint . conNamesInDecl . unLoc)
-
-    conNamesInDecl :: ConDecl GhcPs -> [LIdP GhcPs]
-    conNamesInDecl ConDeclH98  {con_name  = name}  = [name]
-    conNamesInDecl ConDeclGADT {con_names = names} = Data.List.NonEmpty.toList names
 
 isSym :: String -> Bool
 isSym (x:_) = not $ isAlpha x || x `elem` "_'"
