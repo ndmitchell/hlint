@@ -76,3 +76,6 @@
 - ignore: {name: Use const, within: Config.Yaml}
 # TEMPORARY: this lint is deleted on HEAD
 - ignore: {name: Use String}
+# We don't use NumericUnderscores, but hints aren't aware of which extensions
+# are restricted.
+- ignore: {name: Use underscore}
