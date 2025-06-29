@@ -51,7 +51,7 @@ import Prelude
 import GHC.Data.Bag
 import GHC.Parser.Lexer
 import GHC.Utils.Error hiding (Severity)
-import GHC.Hs
+import GHC.Hs hiding (Infix)
 import GHC.Types.SrcLoc
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence

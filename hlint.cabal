@@ -185,5 +185,6 @@ executable hlint
     ghc-options:        -rtsopts -with-rtsopts=-A32m
     if flag(threaded)
         ghc-options:    -threaded
+
     if os(darwin)
         ld-options:     -framework Security

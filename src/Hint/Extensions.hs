@@ -278,7 +278,6 @@ import GHC.Data.FastString
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
 import GHC.Hs
-import GHC.Types.Basic
 import GHC.Types.Name.Reader
 import GHC.Types.ForeignCall
 import GHC.Data.Strict qualified

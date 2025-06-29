@@ -26,7 +26,7 @@ import Refact.Types
 
 import GHC.Types.Fixity(compareFixity)
 import Fixity
-import GHC.Hs
+import GHC.Hs hiding (Infix)
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import GHC.Types.SrcLoc

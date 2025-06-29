@@ -10,7 +10,7 @@ import Config.Type
 import Fixity
 import Data.Generics.Uniplate.DataOnly
 import Data.List.NonEmpty(NonEmpty(..))
-import GHC.Hs hiding (Warning)
+import GHC.Hs hiding (Infix, Warning)
 import GHC.Types.Name.Reader
 import GHC.Types.Name
 import GHC.Types.SrcLoc

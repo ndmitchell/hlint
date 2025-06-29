@@ -7,11 +7,11 @@ module Fixity(
     ) where
 
 import GHC.Generics(Associativity(..))
+import GHC.Hs.Basic
 import GHC.Hs.Binds
 import GHC.Hs.Extension
 import GHC.Types.Name.Occurrence
 import GHC.Types.Name.Reader
-import GHC.Types.Fixity
 import GHC.Parser.Annotation
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.Fixity

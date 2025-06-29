@@ -72,7 +72,7 @@ module Hint.Monad(monadHint) where
 import Hint.Type
 
 import GHC.Hs hiding (Warning)
-import GHC.Types.Fixity
+import GHC.Types.Fixity()
 import GHC.Types.SrcLoc
 import GHC.Types.Basic
 import GHC.Types.Name.Reader

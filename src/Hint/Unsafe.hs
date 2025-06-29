@@ -30,6 +30,7 @@ import GHC.Data.FastString
 import GHC.Types.Basic
 import GHC.Types.SourceText
 import GHC.Types.SrcLoc
+import Language.Haskell.Syntax.Binds.InlinePragma
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 
@@ -66,10 +67,10 @@ unsafeHint _ (ModuleEx (L _ m)) = \ld@(L loc d) ->
     gen :: OccName -> LHsDecl GhcPs
     gen x = noLocA $
       SigD noExtField (InlineSig noAnn (noLocA (mkRdrUnqual x))
-                      (InlinePragma (SourceText noInline) (NoInline (SourceText noInline)) Nothing NeverActive FunLike))
+                      (InlinePragma (SourceText noInline) NoInline NeverActive FunLike))
     noinline :: [OccName]
     noinline = [q | L _(SigD _ (InlineSig _ (L _ (Unqual q))
-                                                (InlinePragma _ (NoInline (SourceText noInline)) Nothing NeverActive FunLike))
+                                                (InlinePragma _ NoInline NeverActive FunLike))
         ) <- hsmodDecls m]
 
 isUnsafeDecl :: HsDecl GhcPs -> Bool

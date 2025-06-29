@@ -17,7 +17,7 @@ import Data.Ord
 import Config.Type
 import Config.Haskell
 import GHC.Types.SrcLoc
-import GHC.Hs hiding (comments)
+import GHC.Hs hiding (comments, Infix)
 import Language.Haskell.GhclibParserEx.GHC.Hs
 import Data.HashSet qualified as Set
 import Prelude
