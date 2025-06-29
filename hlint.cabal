@@ -158,16 +158,18 @@ library
         Hint.ListRec
         Hint.Match
         Hint.Monad
+        Hint.NameHelpers
         Hint.Naming
         Hint.Negation
         Hint.NewType
+        Hint.NoCapitalisms
+        Hint.NumLiteral
         Hint.Pattern
         Hint.Pragma
         Hint.Restrict
         Hint.Smell
         Hint.Type
         Hint.Unsafe
-        Hint.NumLiteral
         Test.All
         Test.Annotations
         Test.InputOutput
