@@ -1,0 +1,17 @@
+---------------------------------------------------------------------
+RUN tests/ghc2021.hs
+FILE tests/ghc2021.hs
+{-# LANGUAGE FlexibleContexts #-}
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/ghc2021.hs -XGHC2021
+OUTPUT
+tests/ghc2021.hs:1:1-33: Warning: Unused LANGUAGE pragma
+Found:
+  {-# LANGUAGE FlexibleContexts #-}
+Perhaps you should remove it.
+Note: Extension FlexibleContexts is implied by GHC2021
+
+1 hint

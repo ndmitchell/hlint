@@ -262,7 +262,7 @@ data T = MkT -- @NoRefactor: refactor requires GHC >= 9.6.1
 
 module Hint.Extensions(extensionsHint) where
 
-import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSSAnc,ghcModule,modComments,firstDeclComments)
+import Hint.Type(ModuHint,rawIdea,Severity(Warning),Note(..),toSSAnc,ghcModule,modComments,firstDeclComments,ModuleEx (..))
 import Extension
 
 import Data.Generics.Uniplate.DataOnly
@@ -275,6 +275,7 @@ import Data.Set qualified as Set
 import Data.Map qualified as Map
 
 import GHC.Data.FastString
+import GHC.Driver.Session (languageExtensions)
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
 import GHC.Hs
@@ -298,7 +299,7 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 extensionsHint :: ModuHint
-extensionsHint _ x =
+extensionsHint _ x@ModuleEx{ghcLanguage} =
     [
         rawIdea Hint.Type.Warning "Unused LANGUAGE pragma"
         (RealSrcSpan (epaLocationRealSrcSpan sl) GHC.Data.Strict.Nothing)
@@ -319,7 +320,7 @@ extensionsHint _ x =
     , let after = filter (maybe True (`Set.member` keep) . snd) before
     , before /= after
     , let explainedRemovals
-            | null after && not (any (`Map.member` implied) $ mapMaybe snd before) = []
+            | null after && not (any (`Set.member` impliedExtensions) $ mapMaybe snd before) = []
             | otherwise = before \\ after
     , let newPragma =
             if null after then "" else comment_ (mkLanguagePragmas sl $ map fst after)
@@ -359,9 +360,18 @@ extensionsHint _ x =
         | e <- Set.toList useful
         , a:_ <- [filter (`Set.member` useful) $ extensionImpliedEnabledBy e]
         ]
+    impliedByLanguage :: Set.Set Extension
+    impliedByLanguage = case ghcLanguage of
+        Just l -> Set.fromList $ languageExtensions (Just l)
+        -- If we pass 'Nothing' to 'languageExtensions', the latest language
+        -- (i.e. GHC2021) is used; which might be unexpected for users on older
+        -- GHC versions where GHC2021 doesn't even exist yet.
+        Nothing -> Set.empty
+    impliedExtensions :: Set.Set Extension
+    impliedExtensions = Map.keysSet implied `Set.union` impliedByLanguage
     -- Those we should keep.
     keep :: Set.Set Extension
-    keep =  useful `Set.difference` Map.keysSet implied
+    keep =  useful `Set.difference` impliedExtensions
     -- The meaning of (a,b) is a used to imply b, but has gone, so
     -- suggest enabling b.
     disappear :: Map.Map Extension [Extension]
@@ -375,10 +385,14 @@ extensionsHint _ x =
         , usedTH || usedExt a (ghcModule x)
         ]
     reason :: Extension -> String
-    reason x =
-      case Map.lookup x implied of
-        Just a -> "implied by " ++ show a
-        Nothing -> "not used"
+    reason x
+      | Just a <- Map.lookup x implied
+      = "implied by " ++ show a
+      | x `Set.member` impliedByLanguage
+      , Just l <- ghcLanguage
+      = "implied by " ++ show l
+      | otherwise
+      = "not used"
 
 deriveHaskell = ["Eq","Ord","Enum","Ix","Bounded","Read","Show"]
 deriveGenerics = ["Data","Typeable","Generic","Generic1","Lift"]
