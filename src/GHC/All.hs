@@ -8,6 +8,7 @@ module GHC.All(
     ParseError(..), ModuleEx(..),
     parseModuleEx, createModuleEx, createModuleExWithFixities, ghcComments, modComments, firstDeclComments,
     parseExpGhcWithMode, parseImportDeclGhcWithMode, parseDeclGhcWithMode,
+    ghcExtensionsEnabledInModule,
     ) where
 
 import GHC.Driver.Ppr
@@ -18,6 +19,8 @@ import Data.Char
 import Data.List
 import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
+import Data.Set (Set)
+import Data.Set qualified as Set
 import Timing
 import Language.Preprocessor.Cpphs
 import System.IO.Extra
@@ -107,6 +110,15 @@ firstDeclComments m =
   case hsmodDecls . unLoc . ghcModule $ m of
         [] -> EpaCommentsBalanced [] []
         L ann _ : _ -> comments ann
+
+-- | The extensions enabled in pragmas at the top of a module.
+ghcExtensionsEnabledInModule :: ModuleEx -> Set Extension
+ghcExtensionsEnabledInModule modu =
+  -- Comments appearing without an empty line before the first
+  -- declaration in a module are now associated with the declaration
+  -- not the module so to be safe, look also at `firstDeclComments
+  -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+  extensions (modComments modu) `Set.union` extensions (firstDeclComments modu)
 
 -- | The error handler invoked when GHC parsing has failed.
 ghcFailOpParseModuleEx :: String
