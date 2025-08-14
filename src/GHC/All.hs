@@ -174,7 +174,7 @@ impliedEnables ext = case Data.List.lookup ext extensionImplications of
 impliedDisables :: Extension -> [Extension]
 impliedDisables ext = case Data.List.lookup ext extensionImplications  of
   Just exts -> ext : snd exts
-  Nothing -> []
+  Nothing -> [ext]
 
 -- | Parse a Haskell module. Applies the C pre processor, and uses
 -- best-guess fixity resolution if there are ambiguities.  The
