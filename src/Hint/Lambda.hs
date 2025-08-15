@@ -77,6 +77,8 @@ f = \z -> foo $ bar x $ baz z where -- foo . bar x . baz
 f = \z -> foo $ z $ baz z where
 f = \x -> bar map (filter x) where -- bar map . filter
 f = bar &+& \x -> f (g x)
+f = bar &+& \x -> f x -- f
+f = bar $ \x -> f (g x) -- f . g
 foo = [\column -> set column [treeViewColumnTitle := printf "%s (match %d)" name (length candidnates)]]
 foo = [\x -> x]
 foo = [\m x -> insert x x m]
@@ -221,9 +223,14 @@ lambdaExp _ o@(L _ (HsPar _ (view -> App2 (view -> Var_ "flip") origf@(view -> R
         r = Replace Expr (toSSA o) [(var, toSSA y)] ("(" ++ op ++ " " ++ var ++ ")")
 
 lambdaExp p o@(L _ (HsLam _ LamSingle _))
-    | not $ any isOpApp p
-    , (res, refact) <- niceLambdaR p [] o
+    | (res, refact) <- niceLambdaR p [] o
     , not $ isLambda res
+    -- Do not suggest "Avoid lambda" if both the parent and the result are `OpApps`.
+    -- For example, this should be avoided: `bar &+& \x -> f (g x)` ==> `bar &+& f . g`,
+    -- since it may not be valid depending on the precedence of `&+&`.
+    -- An exception is when the parent is `$`. Since `$` has the lowest precedence, it is
+    -- always safe to apply this hint.
+    , not (any isOpApp p) || not (isOpApp res) || any isDollarApp p
     , not $ any isQuasiQuoteExpr $ universe res
     , not $ "runST" `Set.member` Set.map occNameString (freeVars o)
     , let name = "Avoid lambda" ++ (if countRightSections res > countRightSections o then " using `infix`" else "")
@@ -321,6 +328,11 @@ lambdaExp _ _ = []
 
 varBody :: LHsExpr GhcPs
 varBody = strToVar "body"
+
+isDollarApp :: LHsExpr GhcPs -> Bool
+isDollarApp = \case
+  (L _ (OpApp _ _ op _)) -> isDol op
+  _ -> False
 
 -- | Squash lambdas and replace any repeated pattern variable with @_@
 fromLambda :: LHsExpr GhcPs -> ([LPat GhcPs], LHsExpr GhcPs)
