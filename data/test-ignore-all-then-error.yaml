@@ -1,0 +1,5 @@
+- ignore: {}
+- error:
+    name: 'Only use one undefined'
+    lhs: 'undefined undefined'
+    rhs: 'undefined'
