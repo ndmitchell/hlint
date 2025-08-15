@@ -475,8 +475,8 @@
     # FUNCTOR
 
     - warn: {lhs: fmap f (fmap g x), rhs: fmap (f . g) x, name: Functor law}
-    - warn: {lhs: f <$> (g <$> x), rhs: f . g <$> x, name: Functor law}
-    - warn: {lhs: x <&> g <&> f, rhs: x <&> f . g, name: Functor law}
+    - ignore: {lhs: f <$> (g <$> x), rhs: f . g <$> x, name: Functor law}
+    - ignore: {lhs: x <&> g <&> f, rhs: x <&> f . g, name: Functor law}
     - warn: {lhs: fmap id, rhs: id, name: Functor law}
     - warn: {lhs: id <$> x, rhs: x, name: Functor law}
     - warn: {lhs: x <&> id, rhs: x, name: Functor law}
