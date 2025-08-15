@@ -135,7 +135,7 @@ monadExp decl parentDo parentExpr x =
     _ -> []
   where
     f = monadNoResult (fromMaybe "" decl) id
-    seenVoid wrap (L l (HsPar x y)) = seenVoid (wrap . L l . \y -> HsPar x y) y
+    seenVoid wrap (L l (HsPar x y)) = seenVoid (wrap . L l . HsPar x) y
     seenVoid wrap x =
       -- Suggest `traverse_ f x` given `void $ traverse_ f x`
       [warn "Redundant void" (reLoc (wrap x)) (reLoc x) [Replace Expr (toSSA (wrap x)) [("a", toSSA x)] "a"] | returnsUnit x]
@@ -189,7 +189,7 @@ modifyAppHead :: forall a. (LIdP GhcPs -> (LIdP GhcPs, a)) -> LHsExpr GhcPs -> (
 modifyAppHead f = go id
   where
     go :: (LHsExpr GhcPs -> LHsExpr GhcPs) -> LHsExpr GhcPs -> (LHsExpr GhcPs, Maybe a)
-    go wrap (L l (HsPar _ x)) = go (wrap . L l . \y -> HsPar noAnn y) x
+    go wrap (L l (HsPar _ x)) = go (wrap . L l . HsPar noAnn) x
     go wrap (L l (HsApp _ x y)) = go (\x -> wrap $ L l (HsApp noExtField x y)) x
     go wrap (L l (OpApp _ x op y)) | isDol op = go (\x -> wrap $ L l (OpApp noExtField x op y)) x
     go wrap (L l (HsVar _ x)) = (wrap (L l (HsVar NoExtField x')), Just a)

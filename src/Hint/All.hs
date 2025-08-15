@@ -74,7 +74,7 @@ builtin x = case x of
         wrap = timed "Hint" (drop 4 $ show x) . forceList
         decl f = mempty{hintDecl=const $ \a b c -> wrap $ f a b c}
         modu f = mempty{hintModule=const $ \a b -> wrap $ f a b}
-        mods f = mempty{hintModules=const $ \a -> wrap $ f a}
+        mods f = mempty{hintModules=const $ wrap . f}
 
 -- | A list of builtin hints, currently including entries such as @\"List\"@ and @\"Bracket\"@.
 builtinHints :: [(String, Hint)]
