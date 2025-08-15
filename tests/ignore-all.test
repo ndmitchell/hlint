@@ -1,0 +1,12 @@
+---------------------------------------------------------------------
+RUN tests/ignore-all-then-error.hs --hint=data/test-ignore-all-then-error.yaml
+FILE tests/ignore-all-then-error.hs
+main = undefined undefined
+OUTPUT
+tests/ignore-all-then-error.hs:1:8-26: Error: Only use one undefined
+Found:
+  undefined undefined
+Perhaps:
+  undefined
+
+1 error
