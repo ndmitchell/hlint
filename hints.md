@@ -7256,7 +7256,7 @@ f . g <$> x
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>Ignore</td>
 </tr>
 <tr>
 <td>Functor law</td>
@@ -7272,7 +7272,7 @@ x <&> f . g
 </code>
 <br>
 </td>
-<td>Warning</td>
+<td>Ignore</td>
 </tr>
 <tr>
 <td>Functor law</td>
