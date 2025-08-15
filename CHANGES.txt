@@ -1,5 +1,5 @@
 Changelog for HLint (* = breaking change)
-
+    #1659, disable f <$> (g <$> x) ==> f . g <$> x, and x <&> g <&> f ==> x <&> f . g
 3.10, released 2024-02-02
     #1617, hints for when x <*> y could be y, e.g. []
 *   #1594, upgrade to GHC 9.12
