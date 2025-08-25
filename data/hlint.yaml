@@ -1213,6 +1213,8 @@
     - warn: {lhs: g =<< map f x, rhs: g . f =<< x}
     - hint: {lhs: join (map f x), rhs: f =<< x}
     - warn: {lhs: map unzip (mapM f x), rhs: Control.Monad.mapAndUnzipM f x}
+    - warn: {lhs: mconcat (fmap f x), rhs: foldMap f x}
+    - warn: {lhs: mconcat (f <$> x), rhs: foldMap f x}
 
 # Warn on partial functions whose use can be avoided relatively easily.
 # These functions are in the base package, excluding IO and GHC modules.
