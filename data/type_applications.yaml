@@ -1,0 +1,5 @@
+- functions:
+  - {name: fromIntegral, typeApplications: required}
+  - {name: Just, typeApplications: required}
+  - {name: id, typeApplications: forbidden}
+  - {name: Left, typeApplications: forbidden}

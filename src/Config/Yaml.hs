@@ -343,7 +343,19 @@ parseRestrict restrictType v = do
         Just def -> do
             b <- parseBool def
             allowFields v ["default"]
-            pure $ Restrict restrictType b [] mempty mempty mempty mempty [] NoRestrictIdents Nothing
+            pure Restrict
+              { restrictType = restrictType
+              , restrictDefault = b
+              , restrictName = []
+              , restrictAs = mempty
+              , restrictAsRequired = mempty
+              , restrictImportStyle = mempty
+              , restrictQualifiedStyle = mempty
+              , restrictTypeApp = Nothing
+              , restrictWithin = []
+              , restrictIdents = NoRestrictIdents
+              , restrictMessage = Nothing
+              }
         Nothing -> do
             restrictName <- parseFieldOpt "name" v >>= maybe (pure []) parseArrayString
             restrictWithin <- parseFieldOpt "within" v >>= maybe (pure [("","")]) (parseArray >=> concatMapM parseWithin)
@@ -361,6 +373,10 @@ parseRestrict restrictType v = do
               , ("post"        , QualifiedStylePost)
               , ("unrestricted", QualifiedStyleUnrestricted)
               ]
+            restrictTypeApp <- parseFieldOpt "typeApplications" v >>= maybeParseEnum
+              [ ("required" , TypeAppRequired)
+              , ("forbidden", TypeAppForbidden)
+              ]
 
 
             restrictBadIdents <- parseFieldOpt "badidents" v
@@ -375,9 +391,10 @@ parseRestrict restrictType v = do
             restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
             allowFields v $
                 ["name", "within", "message"] ++
-                if restrictType == RestrictModule
-                    then ["as", "asRequired", "importStyle", "qualifiedStyle", "badidents", "only"]
-                    else []
+                case restrictType of
+                    RestrictModule -> ["as", "asRequired", "importStyle", "qualifiedStyle", "badidents", "only"]
+                    RestrictFunction -> ["typeApplications"]
+                    _ -> []
             pure Restrict{restrictDefault=True,..}
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)
