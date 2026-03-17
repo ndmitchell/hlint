@@ -228,7 +228,7 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
           -- convert non-Nothing qualIdea into hlint's refactoring Idea
           let i' = noLoc $ (unLoc i){ ideclQualified = fromRight QualifiedPre qual
                                     , ideclImportList = fromMaybe ideclImportList expectedHiding }
-              msg = moduleNameString (unLoc ideclName) <> " should be imported " <> hint
+              msg = "Should be imported " <> hint
           Left $ warn msg (reLoc i) i' []
 
 getRestrictItem :: Bool -> LocatedA ModuleName -> Map.Map String RestrictItem -> RestrictItem
