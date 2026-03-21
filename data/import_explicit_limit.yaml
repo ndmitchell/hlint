@@ -1,0 +1,3 @@
+- smell:
+    type: many explicit imports
+    limit: 2
