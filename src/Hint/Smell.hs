@@ -74,6 +74,20 @@ import A
 import A; import B
 import A
 </TEST>
+
+<TEST> [{smell: { type: many explicit imports, limit: 2}}]
+import A (x, y, z) --
+import A (x, y)
+import A
+import A hiding (x, y, z)
+</TEST>
+
+<TEST>
+import A (x, y, z)
+import A (x, y)
+import A
+import A hiding (x, y, z)
+</TEST>
 -}
 
 import Hint.Type(ModuHint,ModuleEx(..),DeclHint,Idea(..),rawIdea,warn)
