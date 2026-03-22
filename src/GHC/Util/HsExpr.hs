@@ -33,6 +33,7 @@ import Control.Monad.Trans.Writer.CPS
 import Data.Data
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
+import Data.List.NonEmpty(NonEmpty(..), fromList, toList)
 import Data.Tuple.Extra
 import Data.Maybe
 
@@ -57,7 +58,7 @@ dotApps (x : xs) = dotApp x (dotApps xs)
 
 -- | @lambda [p0, p1..pn] body@ makes @\p1 p1 .. pn -> body@
 lambda :: [LPat GhcPs] -> LHsExpr GhcPs -> LHsExpr GhcPs
-lambda vs body = noLocA $ HsLam noAnn LamSingle (MG (Generated OtherExpansion DoPmc) (noLocA [noLocA $ Match noExtField (LamAlt LamSingle) (L noSpanAnchor vs) (GRHSs emptyComments [noLocA $ GRHS noAnn [] body] (EmptyLocalBinds noExtField))]))
+lambda vs body = noLocA $ HsLam noAnn LamSingle (MG (Generated OtherExpansion DoPmc) (noLocA [noLocA $ Match noExtField (LamAlt LamSingle) (L noSpanAnchor vs) (GRHSs emptyComments (noLocA (GRHS noAnn [] body) :| []) (EmptyLocalBinds noExtField))]))
 
 -- | 'paren e' wraps 'e' in parens if 'e' is non-atomic.
 paren :: LHsExpr GhcPs -> LHsExpr GhcPs
@@ -124,7 +125,7 @@ simplifyExp (L l (OpApp _ x op y)) | isDol op = L l (HsApp noExtField x (nlHsPar
 simplifyExp e@(L _ (HsLet _ ((HsValBinds _ (ValBinds _ binds []))) z)) =
   -- An expression of the form, 'let x = y in z'.
   case binds of
-    [L _ (FunBind _ _ (MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _ _) (L _ []) (GRHSs _ [L _ (GRHS _ [] y)] ((EmptyLocalBinds _))))])))]
+    [L _ (FunBind _ _ (MG _ (L _ [L _ (Match _(FunRhs (L _ x) _ _ _) (L _ []) (GRHSs _ (L _ (GRHS _ [] y) :| []) ((EmptyLocalBinds _))))])))]
          -- If 'x' is not in the free variables of 'y', beta-reduce to
          -- 'z[(y)/x]'.
       | occNameStr x `notElem` vars y && length [() | Unqual a <- universeBi z, a == rdrNameOcc x] <= 1 ->
@@ -251,11 +252,10 @@ niceLambdaR parent = go
     -- Base case. Just a good old fashioned lambda.
     go ss e =
       let grhs = noLocA $ GRHS noAnn [] e :: LGRHS GhcPs (LHsExpr GhcPs)
-          grhss = GRHSs {grhssExt = emptyComments, grhssGRHSs=[grhs], grhssLocalBinds=EmptyLocalBinds noExtField}
+          grhss = GRHSs {grhssExt = emptyComments, grhssGRHSs=fromList [grhs], grhssLocalBinds=EmptyLocalBinds noExtField}
           match = noLocA $ Match {m_ext=noExtField, m_ctxt=LamAlt LamSingle, m_pats=noLocA $ map strToPat ss, m_grhss=grhss} :: LMatch GhcPs (LHsExpr GhcPs)
           matchGroup = MG {mg_ext=Generated OtherExpansion SkipPmc, mg_alts=noLocA [match]}
       in (noLocA $ HsLam noAnn LamSingle matchGroup, const [])
-
 
 -- 'case' and 'if' expressions have branches, nothing else does (this
 -- doesn't consider 'HsMultiIf' perhaps it should?).
@@ -266,12 +266,12 @@ replaceBranches (L s (HsCase _ a (MG FromSource (L l bs)))) =
   (concatMap f bs, L s . HsCase noAnn a . MG (Generated OtherExpansion SkipPmc). L l . g bs)
   where
     f :: LMatch GhcPs (LHsExpr GhcPs) -> [LHsExpr GhcPs]
-    f (L _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (L _ (GRHS _ _ x)) <- xs]
+    f (L _ (Match _ CaseAlt _ (GRHSs _ xs _))) = [x | (L _ (GRHS _ _ x)) <- toList xs]
     f _ = error "GHC.Util.HsExpr.replaceBranches: unexpected XMatch"
 
     g :: [LMatch GhcPs (LHsExpr GhcPs)] -> [LHsExpr GhcPs] -> [LMatch GhcPs (LHsExpr GhcPs)]
     g (L s1 (Match _ CaseAlt a (GRHSs _ ns b)) : rest) xs =
-      L s1 (Match noExtField CaseAlt a (GRHSs emptyComments [L a (GRHS noAnn gs x) | (L a (GRHS _ gs _), x) <- zip ns as] b)) : g rest bs
+      L s1 (Match noExtField CaseAlt a (GRHSs emptyComments (fromList [L a (GRHS noAnn gs x) | (L a (GRHS _ gs _), x) <- zip (toList ns) as]) b)) : g rest bs
       where  (as, bs) = splitAt (length ns) xs
     g [] [] = []
     g _ _ = error "GHC.Util.HsExpr.replaceBranches': internal invariant failed, lists are of differing lengths"
