@@ -542,8 +542,8 @@
     - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x $ _noParen_ y, side: not (isAtom y)}
     - warn: {lhs: if x then y else pure (), rhs: Control.Monad.when x y, side: isAtom y}
     - warn: {lhs: if x then y else return (), rhs: Control.Monad.when x y, side: isAtom y}
-    - warn: {lhs: if x then pure () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: isAtom y}
-    - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: isAtom y}
+    - warn: {lhs: if x then pure () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: not (isAtom y)}
+    - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x $ _noParen_ y, side: not (isAtom y)}
     - warn: {lhs: if x then pure () else y, rhs: Control.Monad.unless x y, side: isAtom y}
     - warn: {lhs: if x then return () else y, rhs: Control.Monad.unless x y, side: isAtom y}
     - warn: {lhs: sequence (map f x), rhs: mapM f x}
