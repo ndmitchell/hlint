@@ -224,7 +224,7 @@ bracket pretty isPartialAtom root = f Nothing
     f (Just (i, o, gen)) v@(remParens' -> Just x)
       | not $ needBracket i o x
       , not $ isPartialAtom (Just o) x
-      , not $ any isSplicePat $ universeBi o -- over-appoximate ,see #1292
+      , not $ any isSplicePat $ universeBi o -- over-approximate ,see #1292
       = rawIdea Suggestion msg (getLocA v) (pretty o) (Just (pretty (gen x))) [] [r] : g x
       where
         typ = findType v

@@ -154,7 +154,7 @@ matchIdea sb declName HintRule{..} parent x = do
 
   -- Check it isn't going to get broken by QuasiQuotes as per #483. If
   -- we have lambdas we might be moving, and QuasiQuotes, we might
-  -- inadvertantly break free vars because quasi quotes don't show
+  -- inadvertently break free vars because quasi quotes don't show
   -- what free vars they make use of.
   guard $ not (any isLambda $ universe lhs) || not (any isQuasiQuoteExpr $ universe x)
 
