@@ -166,7 +166,7 @@ data Restrict = Restrict
     ,restrictMessage :: Maybe String
     } deriving Show
 
-data SmellType = SmellLongFunctions | SmellLongTypeLists | SmellManyArgFunctions | SmellManyImports
+data SmellType = SmellLongFunctions | SmellLongTypeLists | SmellManyArgFunctions | SmellManyImports | SmellManyExplicitImports
   deriving (Show,Eq,Ord)
 
 getSmellType :: String -> Maybe SmellType
@@ -174,6 +174,7 @@ getSmellType "long functions" = Just SmellLongFunctions
 getSmellType "long type lists" = Just SmellLongTypeLists
 getSmellType "many arg functions" = Just SmellManyArgFunctions
 getSmellType "many imports" = Just SmellManyImports
+getSmellType "many explicit imports" = Just SmellManyExplicitImports
 getSmellType _ = Nothing
 
 data Setting
