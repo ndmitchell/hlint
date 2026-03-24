@@ -74,6 +74,48 @@ foo . bar x <$> baz q
 <td>Suggestion</td>
 </tr>
 <tr>
+<td>Redundant $ with block argument</td>
+<td>
+Example: 
+<pre>
+{-# LANGUAGE BlockArguments #-} 
+a = f $ \case _ -> x
+</pre>
+Found:
+<code>
+f $ \case _ -> x
+</code>
+<br>
+Suggestion:
+<code>
+f \case _ -> x
+</code>
+<br>
+</td>
+<td>Suggestion</td>
+</tr>
+<tr>
+<td>Redundant $ with block argument</td>
+<td>
+Example: 
+<code>
+a = f $ \case _ -> x
+</code>
+<br>
+Found:
+<code>
+f $ \case _ -> x
+</code>
+<br>
+Suggestion:
+<code>
+f \case _ -> x
+</code>
+<br>
+</td>
+<td>Ignore</td>
+</tr>
+<tr>
 <td>Redundant $</td>
 <td>
 Example: 
