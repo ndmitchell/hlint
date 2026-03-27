@@ -87,11 +87,21 @@ instance Semigroup RestrictItem where
       <> RestrictItem y1 y2 y3 y4 y5 y6 y7
       = RestrictItem (x1<>y1) (x2<>y2) (x3<>y3) (x4<>y4) (x5<>y5) (x6<>y6) (x7<>y7)
 
+data RestrictFunctionItem = RestrictFunctionItem
+    {rfiWithin :: [(String, String)]
+    ,rfiMessage :: Maybe String
+    ,rfiTypeApp :: Maybe RestrictTypeApp
+    }
+
+instance Semigroup RestrictFunctionItem where
+    RestrictFunctionItem a1 a2 a3 <> RestrictFunctionItem b1 b2 b3 =
+        RestrictFunctionItem (a1 <> b1) (a2 <> b2) (a3 <> b3)
+
 -- Contains a map from module (Nothing if the rule is unqualified) to (within, message), so that we can
 -- distinguish functions with the same name.
 -- For example, this allows us to have separate rules for "Data.Map.fromList" and "Data.Set.fromList".
 -- Using newtype rather than type because we want to define (<>) as 'Map.unionWith (<>)'.
-newtype RestrictFunction = RestrictFun (Map.Map (Maybe String) ([(String, String)], Maybe String))
+newtype RestrictFunction = RestrictFun (Map.Map (Maybe String) RestrictFunctionItem)
 
 instance Semigroup RestrictFunction where
     RestrictFun m1 <> RestrictFun m2 = RestrictFun (Map.unionWith (<>) m1 m2)
@@ -104,7 +114,11 @@ restrictions settings = (rFunction, rOthers)
     where
         (map snd -> rfs, ros) = partition ((== RestrictFunction) . fst) [(restrictType x, x) | SettingRestrict x <- settings]
         rFunction = (all restrictDefault rfs, Map.fromListWith (<>) [mkRf s r | r <- rfs, s <- restrictName r])
-        mkRf s Restrict{..} = (name, RestrictFun $ Map.singleton modu (restrictWithin, restrictMessage))
+        mkRf s Restrict{..} = (name, RestrictFun $ Map.singleton modu RestrictFunctionItem
+            { rfiWithin = restrictWithin
+            , rfiMessage = restrictMessage
+            , rfiTypeApp = restrictTypeApp
+            })
           where
             -- Parse module and name from s. module = Nothing if the rule is unqualified.
             (modu, name) = first (fmap NonEmpty.init . NonEmpty.nonEmpty) (breakEnd (== '.') s)
@@ -271,14 +285,57 @@ importListToIdents =
 
 checkFunctions :: Scope -> String -> [LHsDecl GhcPs] -> RestrictFunctions -> [Idea]
 checkFunctions scope modu decls (def, mp) =
-    [ (ideaMessage message $ ideaNoTo $ warn "Avoid restricted function" (reLoc x) (reLoc x) []){ideaDecl = [dname]}
+    [ (ideaMessage rfiMessage $ ideaNoTo $ warn hint (reLoc x) (reLoc x) []){ideaDecl = [dname]}
     | d <- decls
     , let dname = fromMaybe "" (declName d)
     , x <- universeBi d :: [LocatedN RdrName]
     , let xMods = possModules scope x
-    , let (withins, message) = fromMaybe ([("","") | def], Nothing) (findFunction mp x xMods)
-    , not $ within modu dname withins
+    , let RestrictFunctionItem{..} = fromMaybe defaultRestrictFunction (findFunction mp x xMods)
+    , let withinOk = within modu dname rfiWithin
+    , let typeAppOk = maybe True (\req -> typeAppSatisfies req typeAppHeads (locA $ getLoc x)) rfiTypeApp
+    , let hint = case () of
+            _ | not withinOk -> "Avoid restricted function"
+              | otherwise    -> typeAppHint rfiTypeApp
+    , not withinOk || not typeAppOk
     ]
+  where
+    typeAppHeads = visibleTypeAppHeads decls
+    defaultRestrictFunction = RestrictFunctionItem [("","") | def] Nothing Nothing
+
+typeAppHint :: Maybe RestrictTypeApp -> String
+typeAppHint (Just TypeAppRequired) = "Use visible type application"
+typeAppHint (Just TypeAppForbidden) = "Avoid visible type application"
+typeAppHint Nothing = "Avoid restricted function"
+
+typeAppSatisfies :: RestrictTypeApp -> Set.Set SrcSpanD -> SrcSpan -> Bool
+typeAppSatisfies TypeAppRequired heads = (`Set.member` heads) . SrcSpanD
+typeAppSatisfies TypeAppForbidden heads = (`Set.notMember` heads) . SrcSpanD
+
+visibleTypeAppHeads :: [LHsDecl GhcPs] -> Set.Set SrcSpanD
+visibleTypeAppHeads decls =
+    Set.fromList $ exprHeads ++ patHeads
+  where
+    exprHeads =
+        [ SrcSpanD $ locA $ getLoc name
+        | expr <- universeBi decls :: [LHsExpr GhcPs]
+        , L _ (HsAppType _ fun _) <- [expr]
+        , Just name <- [typeAppHead fun]
+        ]
+    patHeads =
+        [ SrcSpanD $ locA $ getLoc name
+        | pat <- universeBi decls :: [LPat GhcPs]
+        , L _ (ConPat _ name details) <- [pat]
+        , hasTypeApp details
+        ]
+    hasTypeApp (PrefixCon tyArgs _) = not $ null tyArgs
+    hasTypeApp _ = False
+
+typeAppHead :: LHsExpr GhcPs -> Maybe (LocatedN RdrName)
+typeAppHead (L _ (HsVar _ name)) = Just name
+typeAppHead (L _ (HsApp _ fun _)) = typeAppHead fun
+typeAppHead (L _ (HsAppType _ fun _)) = typeAppHead fun
+typeAppHead (L _ (HsPar _ fun)) = typeAppHead fun
+typeAppHead _ = Nothing
 
 -- Returns Just iff there are rules for x, which are either unqualified, or qualified with a module that is
 -- one of x's possible modules.
@@ -288,7 +345,7 @@ findFunction
     :: Map.Map String RestrictFunction
     -> LocatedN RdrName
     -> [ModuleName]
-    -> Maybe ([(String, String)], Maybe String)
+    -> Maybe RestrictFunctionItem
 findFunction restrictMap (rdrNameStr -> x) (map moduleNameString -> possMods) = do
     (RestrictFun mp) <- Map.lookup x restrictMap
     n <- NonEmpty.nonEmpty . Map.elems $ Map.filterWithKey (const . maybe True (`elem` possMods)) mp

@@ -9,7 +9,7 @@
 module Config.Type(
     Severity(..), Classify(..), HintRule(..), Note(..), Setting(..),
     Restrict(..), RestrictType(..), RestrictIdents(..), SmellType(..),
-    RestrictImportStyle(..), QualifiedStyle(..),
+    RestrictImportStyle(..), QualifiedStyle(..), RestrictTypeApp(..),
     defaultHintName, isUnifyVar, showNotes, getSeverity, getRestrictType, getSmellType
     ) where
 
@@ -147,6 +147,16 @@ data RestrictImportStyle
   | ImportStyleUnrestricted
   deriving Show
 
+data RestrictTypeApp
+  = TypeAppRequired
+  | TypeAppForbidden
+  deriving (Eq, Show)
+
+instance Semigroup RestrictTypeApp where
+  TypeAppRequired <> TypeAppRequired = TypeAppRequired
+  TypeAppForbidden <> TypeAppForbidden = TypeAppForbidden
+  x <> y = error $ "Incompatible type application restrictions: " ++ show (x, y)
+
 data QualifiedStyle
   = QualifiedStylePre
   | QualifiedStylePost
@@ -161,6 +171,7 @@ data Restrict = Restrict
     ,restrictAsRequired :: Alt Maybe Bool -- for RestrictModule only
     ,restrictImportStyle :: Alt Maybe RestrictImportStyle -- for RestrictModule only
     ,restrictQualifiedStyle :: Alt Maybe QualifiedStyle -- for RestrictModule only
+    ,restrictTypeApp :: Maybe RestrictTypeApp -- for RestrictFunction only
     ,restrictWithin :: [(String, String)]
     ,restrictIdents :: RestrictIdents -- for RestrictModule only, what identifiers can be imported from it
     ,restrictMessage :: Maybe String

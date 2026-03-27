@@ -430,6 +430,16 @@ This:
 * Requires that `Unsafe` must always be imported qualified, and can't be aliased.
 * Forbids `import qualified Prelude` and `import Prelude qualified` (with or without explicit import list).
 
+For restricted functions, you can also control visible type applications with `typeApplications` set to either `'required'` or `'forbidden'`:
+
+```yaml
+- functions:
+  - {name: fromIntegral, typeApplications: required}
+  - {name: show, typeApplications: required}
+```
+
+This flags any call to `fromIntegral` or `show` that omits visible type arguments.
+
 You can match on module names using [glob](https://en.wikipedia.org/wiki/Glob_(programming))-style wildcards. Module names are treated like file paths, except that periods in module names are like directory separators in file paths. So `**.*Spec` will match `Spec`, `PreludeSpec`, `Data.ListSpec`, and many more. But `*Spec` won't match `Data.ListSpec` because of the separator. See [the filepattern library](https://hackage.haskell.org/package/filepattern) for a more thorough description of the matching.
 
 Restrictions are unified between wildcard and specific matches. With `asRequired`, `importStyle` and `qualifiedStyle` fields, the more specific option takes precedence. The list fields are merged. With multiple wildcard matches, the precedence between them is not guaranteed (but in practice, names are sorted in the reverse lexicograpic order, and the first one wins -- which hopefully means the more specific one more often than not)
