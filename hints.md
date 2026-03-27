@@ -1176,6 +1176,38 @@ Does not support refactoring.
 </tr>
 </table>
 
+## Builtin NoCapitalisms
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Avoid capitalisms</td>
+<td>
+Example: 
+<code>
+getFOO = _
+</code>
+<br>
+Found:
+<code>
+getFOO = ...
+</code>
+<br>
+Suggestion:
+<code>
+
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Ignore</td>
+</tr>
+</table>
+
 ## Builtin NumLiteral
 
 <table>
