@@ -37,6 +37,10 @@ foo = [_ | x <- _, let _ = A{x}]
 issue1039 = foo (map f [1 | _ <- []]) -- [f 1 | _ <- []]
 {-# LANGUAGE OverloadedLists #-} \
 issue114 = True:[]
+import Data.List(intercalate)
+yes1039 = intercalate " " xs -- unwords xs
+{-# LANGUAGE OverloadedStrings #-}
+no_issue1674 = intercalate " " xs  -- No suggestion with OverloadedStrings (issue #1674)
 </TEST>
 -}
 
@@ -71,7 +75,7 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 
 listHint :: DeclHint
-listHint _ modu = listDecl overloadedListsOn
+listHint _ modu = listDecl overloadedListsOn overloadedStringsOn
   where
     -- Comments appearing without a line-break before the first
     -- declaration in a module are now associated with the declaration
@@ -79,10 +83,11 @@ listHint _ modu = listDecl overloadedListsOn
     -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
     exts = concatMap snd (languagePragmas (pragmas (modComments modu) ++ pragmas (firstDeclComments modu)))
     overloadedListsOn = "OverloadedLists" `elem` exts
+    overloadedStringsOn = "OverloadedStrings" `elem` exts
 
-listDecl :: Bool -> LHsDecl GhcPs -> [Idea]
-listDecl overloadedListsOn x =
-  concatMap (listExp overloadedListsOn False) (childrenBi x) ++
+listDecl :: Bool -> Bool -> LHsDecl GhcPs -> [Idea]
+listDecl overloadedListsOn overloadedStringsOn x =
+  concatMap (listExp overloadedListsOn overloadedStringsOn False) (childrenBi x) ++
   stringType x ++
   concatMap listPat (childrenBi x) ++
   concatMap listComp (universeBi x)
@@ -160,14 +165,14 @@ moveGuardsForward = reverse . f [] . reverse
     f guards (x@(L _ LetStmt{}):xs) = f (x:guards) xs
     f guards xs = reverse guards ++ xs
 
-listExp :: Bool -> Bool -> LHsExpr GhcPs -> [Idea]
-listExp overloadedListsOn b (fromParen -> x) =
+listExp :: Bool -> Bool -> Bool -> LHsExpr GhcPs -> [Idea]
+listExp overloadedListsOn overloadedStringsOn b (fromParen -> x) =
   if null res
-    then concatMap (listExp overloadedListsOn $ isAppend x) $ children x
+    then concatMap (listExp overloadedListsOn overloadedStringsOn $ isAppend x) $ children x
     else [NE.head $ NE.fromList res]
   where
     res = [suggest name (reLoc x) (reLoc x2) [r]
-          | (name, f) <- checks overloadedListsOn
+          | (name, f) <- checks overloadedListsOn overloadedStringsOn
           , Just (x2, subts, temp) <- [f b x]
           , let r = Replace Expr (toSSA x) subts temp ]
 
@@ -182,12 +187,13 @@ isAppend :: View a App2 => a -> Bool
 isAppend (view -> App2 op _ _) = varToStr op == "++"
 isAppend _ = False
 
-checks :: Bool -> [(String, Bool -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String))]
-checks overloadedListsOn = let (*) = (,) in drop1 -- see #174
+checks :: Bool -> Bool -> [(String, Bool -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String))]
+checks overloadedListsOn overloadedStringsOn = let (*) = (,) in drop1 -- see #174
   [ "Use string literal" * useString
   , "Use :" * useCons
   ]
   <> ["Use list literal" * useList | not overloadedListsOn ] -- see #114
+  <> ["Use unwords" * useUnwords | not overloadedStringsOn ] -- see #1674
 
 pchecks :: [(String, LPat GhcPs -> Maybe (LPat GhcPs, [(String, R.SrcSpan)], String))]
 pchecks = let (*) = (,) in drop1 -- see #174
@@ -262,6 +268,21 @@ useCons False (view -> App2 op x y) | varToStr op == "++"
     gen :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
     gen x = noLocA . OpApp noExtField x (noLocA (HsVar noExtField  (noLocA consDataCon_RDR)))
 useCons _ _ = Nothing
+
+-- Check for intercalate " " and suggest unwords, but only if OverloadedStrings is not enabled
+-- With OverloadedStrings, the " " may be polymorphic and unwords won't work
+useUnwords :: View a App2 => Bool -> a -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String)
+useUnwords _ (view -> App2 fname spaceArg arg) | varToStr fname == "intercalate"
+                                               , isStringLiteral " " spaceArg =
+  Just (noLocA $ HsApp noExtField (noLocA (HsVar noExtField (noLocA (mkVarUnqual (fsLit "unwords"))))) arg
+       , []
+       , "unwords")
+useUnwords _ _ = Nothing
+
+-- Helper to check if an expression is a string literal with a specific value
+isStringLiteral :: String -> LHsExpr GhcPs -> Bool
+isStringLiteral s (L _ (HsLit _ (HsString _ fs))) = unpackFS fs == s
+isStringLiteral _ _ = False
 
 typeListChar :: LHsType GhcPs
 typeListChar =

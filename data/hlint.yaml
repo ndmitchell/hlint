@@ -220,7 +220,8 @@
     - warn: {lhs: not (notElem x y), rhs: elem x y}
     - hint: {lhs: foldr f z (map g x), rhs: foldr (f . g) z x, name: Fuse foldr/map}
     - warn: {lhs: "x ++ concatMap (' ':) y", rhs: "unwords (x:y)"}
-    - warn: {lhs: intercalate " ", rhs: unwords}
+    # Moved to code-based hint in Hint/List.hs to check for OverloadedStrings (issue #1674)
+    # - warn: {lhs: intercalate " ", rhs: unwords}
     - hint: {lhs: concat (intersperse x y), rhs: intercalate x y, side: notEq x " "}
     - hint: {lhs: concat (intersperse " " x), rhs: unwords x}
     - warn: {lhs: null (concat x), rhs: all null x}
