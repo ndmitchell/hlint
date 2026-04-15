@@ -20,6 +20,8 @@ foo x | otherwise = y -- foo x = y
 foo x = x + x where --
 foo x | a = b | True = d -- foo x | a = b ; | otherwise = d
 foo (Bar _ _ _ _) = x -- Bar{}
+foo (Bar @_ _ _ _) = x  -- No suggestion, has type application
+foo (Bar @A @B _ _ _) = x  -- No suggestion, has multiple type applications
 foo (Bar _ x _ _) = x
 foo (Bar _ _) = x
 foo = case f v of _ -> x -- x
@@ -199,8 +201,9 @@ asPattern (L loc x) = concatMap decl (universeBi x)
 -- First Bool is if 'Strict' is a language extension. Second Bool is
 -- if this pattern in this context is going to be evaluated strictly.
 patHint :: Bool -> Bool -> LPat GhcPs -> [Idea]
-patHint _ _ o@(L _ (ConPat _ name (PrefixCon _ args)))
-  | length args >= 3 && all isPWildcard args =
+patHint _ _ o@(L _ (ConPat _ name (PrefixCon tyargs args)))
+  | null tyargs  -- Only suggest record patterns if there are no type applications
+  , length args >= 3 && all isPWildcard args =
   let rec_fields = HsRecFields noExtField [] Nothing :: HsRecFields GhcPs (LPat GhcPs)
       new        = noLocA $ ConPat noAnn name (RecCon rec_fields) :: LPat GhcPs
   in
