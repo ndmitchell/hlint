@@ -1167,7 +1167,7 @@
     imports:
     - package base
     rules:
-    - warn: {lhs: map, rhs: fmap}
+    - warn: {lhs: Data.List.map, rhs: fmap}
     - warn: {lhs: a ++ b, rhs: a <> b}
     - warn: {lhs: "sequence [a]", rhs: "pure <$> a"}
     - warn: {lhs: "x /= []", rhs: not (null x), name: Use null}
