@@ -681,7 +681,6 @@
     - hint: {lhs: "\\x y z -> (x, y, z)", rhs: "(,,)"}
     - hint: {lhs: "(,b) a", rhs: "(a,b)", side: isAtom a, name: Evaluate}
     - hint: {lhs: "(a,) b", rhs: "(a,b)", side: isAtom b, name: Evaluate}
-    - warn: {lhs: "Data.List.NonEmpty.unzip", rhs: "Data.Functor.unzip", name: "Avoid NonEmpty.unzip", note: "The function is being deprecated"}
 
     # MAYBE
 
