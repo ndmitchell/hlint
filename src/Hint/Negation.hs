@@ -12,6 +12,11 @@ no = -(5 + 3)
 no = -5 + 3
 no = -(f x)
 no = -x
+no = -365.25 * nominalDay * fromIntegral y
+no = -a + b
+no = -a - b
+no = -a * b
+no = -a / b
 </TEST>
 -}
 
@@ -23,6 +28,8 @@ import Data.Generics.Uniplate.DataOnly
 import Refact.Types
 import GHC.Hs
 import GHC.Util
+import GHC.Types.Name.Occurrence
+import GHC.Types.Name.Reader
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import GHC.Types.SrcLoc
 
@@ -42,10 +49,16 @@ negationParensHint :: DeclHint
 negationParensHint _ _ x =
   concatMap negatedOp (universeBi x :: [LHsExpr GhcPs])
 
+-- | Fire only when the inner operator has surprising precedence around
+-- unary negation: backtick-infixed functions (fixity 9) or `^`/`^^`/`**`
+-- (fixity 8). Conventional arithmetic operators (`+`, `-`, `*`, `/`,
+-- fixity 6–7) compose with `-` as a human reader would expect, so the
+-- extra parens are visual noise (issue #1636). The exponentiation
+-- surprise was the canonical motivating example of #1484.
 negatedOp :: LHsExpr GhcPs -> [Idea]
 negatedOp e =
   case e of
-    L b1 (NegApp a1 inner@(L _ OpApp {}) a2) ->
+    L b1 (NegApp a1 inner@(L _ (OpApp _ _ op _)) a2) | isSurprisingOp op ->
       pure $
         rawIdea
           Suggestion
@@ -60,3 +73,11 @@ negatedOp e =
           parenthesizedOperand = addParen inner
           newExpr = L b1 $ NegApp a1 parenthesizedOperand a2
     _ -> []
+
+isSurprisingOp :: LHsExpr GhcPs -> Bool
+isSurprisingOp (L _ (HsVar _ (L _ name)))
+  | not (isSymOcc occ) = True -- backtick-infixed function (fixity 9)
+  | occNameString occ `elem` ["^", "^^", "**"] = True -- exponentiation (fixity 8)
+  | otherwise = False
+  where occ = rdrNameOcc name
+isSurprisingOp _ = False
