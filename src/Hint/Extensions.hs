@@ -19,6 +19,8 @@ $(deriveNewtypes typeInfo)
 main = foo ''Bar --
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-} \
 f x = x + [e| x + 1 |] + [foo| x + 1 |] -- {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes #-} \
+[qq| top-level quasi-quote splice |]
 {-# LANGUAGE PatternGuards #-} \
 test = case x of _ | y <- z -> w
 {-# LANGUAGE TemplateHaskell,EmptyDataDecls #-} \
@@ -475,7 +477,7 @@ used PackageImports = hasS f
       f :: ImportDecl GhcPs -> Bool
       f ImportDecl{ideclPkgQual=RawPkgQual _} = True
       f _ = False
-used QuasiQuotes = hasS isQuasiQuoteExpr ||^ hasS isTyQuasiQuote
+used QuasiQuotes = hasS isQuasiQuoteExpr ||^ hasS isTyQuasiQuote ||^ hasS isQuasiQuoteSplice
 used ViewPatterns = hasS isPViewPat
 used InstanceSigs = hasS f
   where
