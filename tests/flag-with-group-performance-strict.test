@@ -1,0 +1,82 @@
+---------------------------------------------------------------------
+FILE tests/flag-with-group-performance-strict.hs
+import qualified Data.List as L
+import qualified Data.Set as Set
+import qualified Data.IORef as IORef
+import qualified Control.Monad.State as State
+import qualified Data.Map.Strict as MS
+import qualified Data.IntMap.Strict as IMS
+import qualified Data.HashMap.Strict as Map
+go f z xs = print (L.foldl f z xs)
+go2 f z xs = print (L.scanl f z xs)
+doubled f s = Set.fromList (map f (Set.toList s))
+mio r f = print (IORef.modifyIORef r f)
+amio r f = print (IORef.atomicModifyIORef r f)
+stm f = print (State.modify f)
+fms f z m = print (MS.foldl f z m)
+fs f z s = print (Set.foldl f z s)
+fims f z m = print (IMS.foldl f z m)
+fhms f z m = print (Map.foldl f z m)
+RUN "--with-group=performance" tests/flag-with-group-performance-strict.hs
+OUTPUT
+tests/flag-with-group-performance-strict.hs:8:20-33: Warning: Use foldl'
+Found:
+  L.foldl f z xs
+Perhaps:
+  L.foldl' f z xs
+
+tests/flag-with-group-performance-strict.hs:9:21-34: Warning: Use scanl'
+Found:
+  L.scanl f z xs
+Perhaps:
+  L.scanl' f z xs
+
+tests/flag-with-group-performance-strict.hs:10:15-49: Warning: Use Data.Set.map
+Found:
+  Set.fromList (map f (Set.toList s))
+Perhaps:
+  Set.map f s
+
+tests/flag-with-group-performance-strict.hs:11:18-38: Warning: Use modifyIORef'
+Found:
+  IORef.modifyIORef r f
+Perhaps:
+  IORef.modifyIORef' r f
+
+tests/flag-with-group-performance-strict.hs:12:19-45: Warning: Use atomicModifyIORef'
+Found:
+  IORef.atomicModifyIORef r f
+Perhaps:
+  IORef.atomicModifyIORef' r f
+
+tests/flag-with-group-performance-strict.hs:13:16-29: Warning: Use modify'
+Found:
+  State.modify f
+Perhaps:
+  State.modify' f
+
+tests/flag-with-group-performance-strict.hs:14:20-33: Warning: Use foldl'
+Found:
+  MS.foldl f z m
+Perhaps:
+  MS.foldl' f z m
+
+tests/flag-with-group-performance-strict.hs:15:19-33: Warning: Use foldl'
+Found:
+  Set.foldl f z s
+Perhaps:
+  Set.foldl' f z s
+
+tests/flag-with-group-performance-strict.hs:16:21-35: Warning: Use foldl'
+Found:
+  IMS.foldl f z m
+Perhaps:
+  IMS.foldl' f z m
+
+tests/flag-with-group-performance-strict.hs:17:21-35: Warning: Use foldl'
+Found:
+  Map.foldl f z m
+Perhaps:
+  Map.foldl' f z m
+
+10 hints
