@@ -1,0 +1,28 @@
+---------------------------------------------------------------------
+FILE tests/flag-with-group-performance-strict.hs
+import qualified Data.List as L
+import qualified Data.Set as Set
+go f z xs = print (L.foldl f z xs)
+go2 f z xs = print (L.scanl f z xs)
+doubled f s = Set.fromList (map f (Set.toList s))
+RUN "--with-group=performance" tests/flag-with-group-performance-strict.hs
+OUTPUT
+tests/flag-with-group-performance-strict.hs:3:20-33: Warning: Use foldl'
+Found:
+  L.foldl f z xs
+Perhaps:
+  L.foldl' f z xs
+
+tests/flag-with-group-performance-strict.hs:4:21-34: Warning: Use scanl'
+Found:
+  L.scanl f z xs
+Perhaps:
+  L.scanl' f z xs
+
+tests/flag-with-group-performance-strict.hs:5:15-49: Warning: Use Data.Set.map
+Found:
+  Set.fromList (map f (Set.toList s))
+Perhaps:
+  Set.map f s
+
+3 hints

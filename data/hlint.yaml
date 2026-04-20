@@ -1547,6 +1547,21 @@
     - warn: {lhs: atomically (signalTSem s), rhs: signalQSem s, name: "Avoid STM", note: "Migrate the variable from TSem to QSem (Control.Concurrent.QSem) and use signalQSem."}
     - warn: {lhs: atomically (newTSem n), rhs: newQSem n, name: "Avoid STM", note: "Migrate to QSem (Control.Concurrent.QSem) and use newQSem."}
 
+    # Strictness: lazy left fold and scan build up thunks of depth proportional
+    # to the list length, which blows the stack on forcing. The strict variants
+    # are drop-in replacements whenever the accumulator is strict-amenable,
+    # which it almost always is in practice.
+    #
+    # Match only the list-qualified forms. Unqualified `foldl` in Prelude
+    # is Data.Foldable.foldl (Foldable-polymorphic), where the
+    # Data.List.foldl' rewrite would be ill-typed on non-list containers.
+    # Apply the same safety to scanl against future generalisations.
+    - warn: {lhs: Data.List.foldl f z x, rhs: Data.List.foldl' f z x, name: "Use foldl'"}
+    - warn: {lhs: Data.List.scanl f z x, rhs: Data.List.scanl' f z x, name: "Use scanl'"}
+
+    # Round-tripping through a list is wasted work; Data.Set.map does it in one pass.
+    - warn: {lhs: Data.Set.fromList (map f (Data.Set.toList s)), rhs: Data.Set.map f s, name: "Use Data.Set.map"}
+
 - group:
     # used for tests, enabled when testing this file
     name: testing
