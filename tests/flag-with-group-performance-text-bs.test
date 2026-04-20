@@ -1,0 +1,68 @@
+---------------------------------------------------------------------
+FILE tests/flag-with-group-performance-text-bs.hs
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Char8 as BSC
+import qualified Data.ByteString.Lazy.Char8 as BLC
+ft f z t = print (T.foldl f z t)
+ftl f z t = print (TL.foldl f z t)
+fbs f z b = print (BS.foldl f z b)
+fbl f z b = print (BL.foldl f z b)
+fbsc f z b = print (BSC.foldl f z b)
+fblc f z b = print (BLC.foldl f z b)
+ct f xs = print (T.concat (map f xs))
+ctl f xs = print (TL.concat (map f xs))
+RUN "--with-group=performance" tests/flag-with-group-performance-text-bs.hs
+OUTPUT
+tests/flag-with-group-performance-text-bs.hs:7:19-31: Warning: Use foldl'
+Found:
+  T.foldl f z t
+Perhaps:
+  T.foldl' f z t
+
+tests/flag-with-group-performance-text-bs.hs:8:20-33: Warning: Use foldl'
+Found:
+  TL.foldl f z t
+Perhaps:
+  TL.foldl' f z t
+
+tests/flag-with-group-performance-text-bs.hs:9:20-33: Warning: Use foldl'
+Found:
+  BS.foldl f z b
+Perhaps:
+  BS.foldl' f z b
+
+tests/flag-with-group-performance-text-bs.hs:10:20-33: Warning: Use foldl'
+Found:
+  BL.foldl f z b
+Perhaps:
+  BL.foldl' f z b
+
+tests/flag-with-group-performance-text-bs.hs:11:21-35: Warning: Use foldl'
+Found:
+  BSC.foldl f z b
+Perhaps:
+  BSC.foldl' f z b
+
+tests/flag-with-group-performance-text-bs.hs:12:21-35: Warning: Use foldl'
+Found:
+  BLC.foldl f z b
+Perhaps:
+  BLC.foldl' f z b
+
+tests/flag-with-group-performance-text-bs.hs:13:18-36: Warning: Use Data.Text.concatMap
+Found:
+  T.concat (map f xs)
+Perhaps:
+  T.concatMap f xs
+
+tests/flag-with-group-performance-text-bs.hs:14:19-38: Warning: Use Data.Text.Lazy.concatMap
+Found:
+  TL.concat (map f xs)
+Perhaps:
+  TL.concatMap f xs
+
+8 hints
+
