@@ -1562,6 +1562,25 @@
     # Round-tripping through a list is wasted work; Data.Set.map does it in one pass.
     - warn: {lhs: Data.Set.fromList (map f (Data.Set.toList s)), rhs: Data.Set.map f s, name: "Use Data.Set.map"}
 
+    # IORef strict updates. modifyIORef / atomicModifyIORef hold onto the old
+    # thunk; the primed forms force the new value.
+    - warn: {lhs: Data.IORef.modifyIORef r f, rhs: Data.IORef.modifyIORef' r f, name: "Use modifyIORef'"}
+    - warn: {lhs: Data.IORef.atomicModifyIORef r f, rhs: Data.IORef.atomicModifyIORef' r f, name: "Use atomicModifyIORef'"}
+
+    # State monad strict update. `modify` leaves a thunk in the state; `modify'`
+    # forces it, which is almost always what you want.
+    - warn: {lhs: Control.Monad.State.modify f, rhs: Control.Monad.State.modify' f, name: "Use modify'"}
+
+    # Strict left folds over containers. The lazy `foldl` on Map/Set/IntMap/HashMap
+    # builds up a thunk chain of depth proportional to the container size.
+    - warn: {lhs: Data.Map.Strict.foldl f z m, rhs: Data.Map.Strict.foldl' f z m, name: "Use foldl'"}
+    - warn: {lhs: Data.Map.Lazy.foldl f z m, rhs: Data.Map.Lazy.foldl' f z m, name: "Use foldl'"}
+    - warn: {lhs: Data.Set.foldl f z s, rhs: Data.Set.foldl' f z s, name: "Use foldl'"}
+    - warn: {lhs: Data.IntMap.Strict.foldl f z m, rhs: Data.IntMap.Strict.foldl' f z m, name: "Use foldl'"}
+    - warn: {lhs: Data.IntMap.Lazy.foldl f z m, rhs: Data.IntMap.Lazy.foldl' f z m, name: "Use foldl'"}
+    - warn: {lhs: Data.HashMap.Strict.foldl f z m, rhs: Data.HashMap.Strict.foldl' f z m, name: "Use foldl'"}
+    - warn: {lhs: Data.HashMap.Lazy.foldl f z m, rhs: Data.HashMap.Lazy.foldl' f z m, name: "Use foldl'"}
+
 - group:
     # used for tests, enabled when testing this file
     name: testing
