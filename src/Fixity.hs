@@ -95,6 +95,8 @@ otherFixities = concat
     -- lattices
   , infixr_ 5 ["\\/"] -- \/
   , infixr_ 6 ["/\\"] -- /\
+    -- generics
+  , infixr_ 6 [":*:"]
   ]
 
 customFixities :: [(String, Fixity)]
