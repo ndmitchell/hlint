@@ -90,12 +90,12 @@ shorten :: LHsDecl GhcPs -> LHsDecl GhcPs
 shorten (L locDecl (ValD ttg0 bind@(FunBind _ _ matchGroup@(MG FromSource (L locMatches matches))))) =
     L locDecl (ValD ttg0 bind {fun_matches = matchGroup {mg_alts = L locMatches $ map shortenMatch matches}})
 shorten (L locDecl (ValD ttg0 bind@(PatBind _ _ _ grhss@(GRHSs _ rhss _)))) =
-    L locDecl (ValD ttg0 bind {pat_rhs = grhss {grhssGRHSs = map shortenLGRHS rhss}})
+    L locDecl (ValD ttg0 bind {pat_rhs = grhss {grhssGRHSs = fmap shortenLGRHS rhss}})
 shorten x = x
 
 shortenMatch :: LMatch GhcPs (LHsExpr GhcPs) -> LMatch GhcPs (LHsExpr GhcPs)
 shortenMatch (L locMatch match@(Match _ _ _ grhss@(GRHSs _ rhss _))) =
-    L locMatch match {m_grhss = grhss {grhssGRHSs = map shortenLGRHS rhss}}
+    L locMatch match {m_grhss = grhss {grhssGRHSs = fmap shortenLGRHS rhss}}
 
 shortenLGRHS :: LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
 shortenLGRHS (L locGRHS (GRHS ttg0 guards (L locExpr _))) =
