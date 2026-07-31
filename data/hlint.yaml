@@ -211,7 +211,8 @@
     - hint: {lhs: any (const True) x, rhs: not (null x), name: Use null}
     - hint: {lhs: length x /= 0, rhs: not (null x), note: IncreasesLaziness, name: Use null}
     - hint: {lhs: 0 /= length x, rhs: not (null x), note: IncreasesLaziness, name: Use null}
-    - hint: {lhs: "\\x -> [x]", rhs: "(:[])", name: "Use :"}
+    # Moved to code-based hint in Hint/List.hs to skip under OverloadedLists (issue #1602)
+    # - hint: {lhs: "\\x -> [x]", rhs: "(:[])", name: "Use :"}
     - hint: {lhs: map f (zip x y), rhs: zipWith (curry f) x y, side: not (isApp f)}
     - hint: {lhs: "map f (fromMaybe [] x)", rhs: "maybe [] (map f) x"}
     - hint: {lhs: "concatMap f (fromMaybe [] x)", rhs: "maybe [] (concatMap f) x"}
