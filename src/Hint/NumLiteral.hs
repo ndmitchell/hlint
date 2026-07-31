@@ -15,6 +15,16 @@
 3.14159265359 -- @Suggestion 3.141_592_653_59 @NoRefactor
 {-# LANGUAGE NumericUnderscores #-} \
 12_33574_56
+{-# LANGUAGE NumericUnderscores, LexicalNegation #-} \
+f = -0.001
+{-# LANGUAGE NumericUnderscores, LexicalNegation #-} \
+f = -1234
+{-# LANGUAGE NumericUnderscores, LexicalNegation #-} \
+f = -12345 -- @Suggestion -12_345 @NoRefactor
+{-# LANGUAGE NumericUnderscores, LexicalNegation #-} \
+f = -3.14159265359 -- @Suggestion -3.141_592_653_59 @NoRefactor
+{-# LANGUAGE NumericUnderscores, LexicalNegation #-} \
+f = -0x12abc.523defp+172345 -- @Suggestion -0x1_2abc.523d_efp+172_345 @NoRefactor
 </TEST>
 
 -}
@@ -83,7 +93,8 @@ addUnderscore intStr = numLitToStr underscoredNumLit
    chunk chunkSize xs = a:chunk chunkSize b where (a, b) = splitAt chunkSize xs
 
 data NumLiteral = NumLiteral
-  { nl_prefix :: String
+  { nl_sign :: String -- "-" with LexicalNegation/NegativeLiterals, where the sign is part of the literal
+  , nl_prefix :: String
   , nl_intPart :: String
   , nl_decSep :: String -- decimal separator
   , nl_fracPart :: String
@@ -92,6 +103,7 @@ data NumLiteral = NumLiteral
   } deriving (Show, Eq)
 
 toNumLiteral :: String -> NumLiteral
+toNumLiteral ('-':str) = (toNumLiteral str){nl_sign = "-"}
 toNumLiteral str = case str of
   '0':'b':digits -> (afterPrefix isBinDigit digits){nl_prefix = "0b"}
   '0':'B':digits -> (afterPrefix isBinDigit digits){nl_prefix = "0B"}
@@ -112,8 +124,8 @@ toNumLiteral str = case str of
     afterDecSep isDigit str = (afterFracPart suffix){nl_fracPart = fracPart}
       where (fracPart, suffix) = span isDigit str
 
-    afterFracPart str = NumLiteral "" "" "" "" expSep exp
+    afterFracPart str = NumLiteral "" "" "" "" "" expSep exp
       where (expSep, exp) = break isDigit str
 
 numLitToStr :: NumLiteral -> String
-numLitToStr (NumLiteral p ip ds fp es e) = p ++ ip ++ ds ++ fp ++ es ++ e
+numLitToStr (NumLiteral s p ip ds fp es e) = s ++ p ++ ip ++ ds ++ fp ++ es ++ e
