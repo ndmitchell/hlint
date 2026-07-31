@@ -1476,6 +1476,46 @@
     - warn: {lhs: foldr' f c (reverse x), rhs: foldl' (flip f) c x, name: Use left fold instead of right fold}
     - warn: {lhs: foldl' f c (reverse x), rhs: foldr (flip f) c x, note: IncreasesLaziness, name: Use right fold instead of left fold}
 
+
+- group:
+    name: performance
+    enabled: false
+    rules:
+
+    # Union with empty is the identity. These show up in generic code paths
+    # ("combine the default with the extras") where the extras are often empty,
+    # and in accumulator-style folds that always start from an empty map.
+    # `union` is O(m + n); dropping the empty side saves the traversal.
+    - warn: {lhs: Data.Map.Strict.union m Data.Map.Strict.empty, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.Map.Strict.union Data.Map.Strict.empty m, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.Map.Lazy.union m Data.Map.Lazy.empty, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.Map.Lazy.union Data.Map.Lazy.empty m, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.IntMap.Strict.union m Data.IntMap.Strict.empty, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.IntMap.Strict.union Data.IntMap.Strict.empty m, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.IntMap.Lazy.union m Data.IntMap.Lazy.empty, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.IntMap.Lazy.union Data.IntMap.Lazy.empty m, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.HashMap.Strict.union m Data.HashMap.Strict.empty, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.HashMap.Strict.union Data.HashMap.Strict.empty m, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.HashMap.Lazy.union m Data.HashMap.Lazy.empty, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.HashMap.Lazy.union Data.HashMap.Lazy.empty m, rhs: m, name: "Redundant union with empty"}
+    - warn: {lhs: Data.Set.union s Data.Set.empty, rhs: s, name: "Redundant union with empty"}
+    - warn: {lhs: Data.Set.union Data.Set.empty s, rhs: s, name: "Redundant union with empty"}
+    - warn: {lhs: Data.HashSet.union s Data.HashSet.empty, rhs: s, name: "Redundant union with empty"}
+    - warn: {lhs: Data.HashSet.union Data.HashSet.empty s, rhs: s, name: "Redundant union with empty"}
+
+    # `map id` over a container is a full structural rebuild that produces the
+    # same container. Dropping it saves O(n) allocation. Safe on every
+    # variant: strict containers force values to WHNF on insertion by
+    # contract, so they never hold bottoms, and `map id` on a lazy container
+    # is a pure identity.
+    - warn: {lhs: Data.Map.Strict.map id m, rhs: m, name: "Redundant map id"}
+    - warn: {lhs: Data.Map.Lazy.map id m, rhs: m, name: "Redundant map id"}
+    - warn: {lhs: Data.IntMap.Strict.map id m, rhs: m, name: "Redundant map id"}
+    - warn: {lhs: Data.IntMap.Lazy.map id m, rhs: m, name: "Redundant map id"}
+    - warn: {lhs: Data.HashMap.Strict.map id m, rhs: m, name: "Redundant map id"}
+    - warn: {lhs: Data.HashMap.Lazy.map id m, rhs: m, name: "Redundant map id"}
+    - warn: {lhs: Data.Set.map id s, rhs: s, name: "Redundant map id"}
+    - warn: {lhs: Data.HashSet.map id s, rhs: s, name: "Redundant map id"}
 - group:
     # used for tests, enabled when testing this file
     name: testing
