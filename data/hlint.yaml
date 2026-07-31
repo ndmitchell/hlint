@@ -65,6 +65,18 @@
     modules:
     - import CodeWorld
 
+- package:
+    name: containers
+    modules:
+    - import Data.IntMap
+    - import Data.IntMap.Lazy
+    - import Data.IntMap.Strict
+    - import Data.IntSet
+    - import Data.Map
+    - import Data.Map.Lazy
+    - import Data.Map.Strict
+    - import Data.Set
+
 - group:
     name: default
     enabled: true
@@ -1132,6 +1144,43 @@
     - package base
     rules:
     - hint: {lhs: "TH.varE 'a", rhs: "[|a|]", name: Use TH quotation brackets}
+
+- group:
+    name: containers
+    enabled: true
+    imports:
+    - package base
+    - package containers
+    rules:
+    - warn: {lhs: foldMap f (Data.IntMap.toList x), rhs: Data.IntMap.foldMapWithKey (curry f) x}
+    - warn: {lhs: foldr f z (Data.IntMap.toList x), rhs: Data.IntMap.foldrWithKey (curry f) z x}
+    - warn: {lhs: foldr' f z (Data.IntMap.toList x), rhs: Data.IntMap.foldrWithKey' (curry f) z x}
+    - warn: {lhs: foldl f z (Data.IntMap.toList x), rhs: Data.IntMap.foldlWithKey (curry . f) z x}
+    - warn: {lhs: foldl' f z (Data.IntMap.toList x), rhs: Data.IntMap.foldlWithKey' (curry . f) z x}
+    - warn: {lhs: null (Data.IntMap.toList x), rhs: Data.IntMap.null x}
+    - warn: {lhs: length (Data.IntMap.toList x), rhs: Data.IntMap.size x}
+
+    - warn: {lhs: foldr f z (Data.IntSet.toList x), rhs: Data.IntSet.foldr f z x}
+    - warn: {lhs: foldr' f z (Data.IntSet.toList x), rhs: Data.IntSet.foldr' f z x}
+    - warn: {lhs: foldl f z (Data.IntSet.toList x), rhs: Data.IntSet.foldl f z x}
+    - warn: {lhs: foldl' f z (Data.IntSet.toList x), rhs: Data.IntSet.foldl' f z x}
+    - warn: {lhs: null (Data.IntSet.toList x), rhs: Data.IntSet.null x}
+    - warn: {lhs: length (Data.IntSet.toList x), rhs: Data.IntSet.size x}
+    - warn: {lhs: elem y (Data.IntSet.toList x), rhs: Data.IntSet.member y x}
+    - warn: {lhs: notElem y (Data.IntSet.toList x), rhs: Data.IntSet.notMember y x}
+
+    - warn: {lhs: foldMap f (Data.Map.toList x), rhs: Data.Map.foldMapWithKey (curry f) x}
+    - warn: {lhs: foldr f z (Data.Map.toList x), rhs: Data.Map.foldrWithKey (curry f) z x}
+    - warn: {lhs: foldr' f z (Data.Map.toList x), rhs: Data.Map.foldrWithKey' (curry f) z x}
+    - warn: {lhs: foldl f z (Data.Map.toList x), rhs: Data.Map.foldlWithKey (curry . f) z x}
+    - warn: {lhs: foldl' f z (Data.Map.toList x), rhs: Data.Map.foldlWithKey' (curry . f) z x}
+    - warn: {lhs: null (Data.Map.toList x), rhs: Data.Map.null x}
+    - warn: {lhs: length (Data.Map.toList x), rhs: Data.Map.size x}
+
+    - warn: {lhs: null (Data.Set.toList x), rhs: Data.Set.null x}
+    - warn: {lhs: length (Data.Set.toList x), rhs: Data.Set.size x}
+    - warn: {lhs: elem y (Data.Set.toList x), rhs: Data.Set.member y x}
+    - warn: {lhs: notElem y (Data.Set.toList x), rhs: Data.Set.notMember y x}
 
 - group:
     name: attoparsec
