@@ -74,6 +74,20 @@ import A
 import A; import B
 import A
 </TEST>
+
+<TEST> [{smell: { type: many explicit imports, limit: 2}}]
+import A (x, y, z) --
+import A (x, y)
+import A
+import A hiding (x, y, z)
+</TEST>
+
+<TEST>
+import A (x, y, z)
+import A (x, y)
+import A
+import A hiding (x, y, z)
+</TEST>
 -}
 
 import Hint.Type(ModuHint,ModuleEx(..),DeclHint,Idea(..),rawIdea,warn)
@@ -93,16 +107,33 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 smellModuleHint :: [Setting] -> ModuHint
 smellModuleHint settings scope m =
   let (L _ mod) = ghcModule m
-      imports = hsmodImports mod in
-  case Map.lookup SmellManyImports (smells settings) of
+      imports = hsmodImports mod
+      sm = smells settings in
+  manyImportsHint sm imports ++
+  concatMap (explicitImportLengthHint sm) imports
+
+manyImportsHint :: Map.Map SmellType Int -> [LImportDecl GhcPs] -> [Idea]
+manyImportsHint sm imports =
+  case Map.lookup SmellManyImports sm of
     Just n | length imports >= n ->
              let span = foldl1 combineSrcSpans $ locA . getLoc <$> imports
                  displayImports = unlines $ f <$> imports
-             in [rawIdea Config.Type.Warning "Many imports" span displayImports  Nothing [] [] ]
+             in [rawIdea Config.Type.Warning "Many imports" span displayImports Nothing [] []]
       where
         f :: LImportDecl GhcPs -> String
         f = trimStart . unsafePrettyPrint
     _ -> []
+
+explicitImportLengthHint :: Map.Map SmellType Int -> LImportDecl GhcPs -> [Idea]
+explicitImportLengthHint sm imp@(L _ decl) =
+  case Map.lookup SmellManyExplicitImports sm of
+    Just limit ->
+      case ideclImportList decl of
+        Just (Exactly, L _ names) | length names > limit ->
+          [rawIdea Config.Type.Warning "Too many explicit imports" (locA $ getLoc imp)
+            (trimStart $ unsafePrettyPrint imp) Nothing [] []]
+        _ -> []
+    Nothing -> []
 
 smellHint :: [Setting] -> DeclHint
 smellHint settings scope m d =
