@@ -2,7 +2,7 @@
     Suggest the usage of underscore when NumericUnderscores is enabled.
 
 <TEST>
-123456
+123456 -- @Suggestion 123_456 @NoRefactor
 {-# LANGUAGE NumericUnderscores #-} \
 1234
 {-# LANGUAGE NumericUnderscores #-} \
@@ -21,6 +21,7 @@
 
 module Hint.NumLiteral (numLiteralHint) where
 
+import GHC.All (configuredExtensions)
 import GHC.Hs
 import GHC.Data.FastString
 import GHC.LanguageExtensions.Type (Extension (..))
@@ -28,36 +29,50 @@ import GHC.Types.SrcLoc
 import GHC.Types.SourceText
 import GHC.Util.ApiAnnotation (extensions)
 import Data.Char (isDigit, isOctDigit, isHexDigit)
+import Data.Foldable (toList)
 import Data.List (intercalate)
 import Data.Set (union)
 import Data.Generics.Uniplate.DataOnly (universeBi)
 import Refact.Types
 
 import Hint.Type (DeclHint, toSSA, modComments, firstDeclComments)
-import Idea (Idea, suggest)
+import Idea (Idea(..), Note(..), suggest)
 
 numLiteralHint :: DeclHint
 numLiteralHint _ modu =
-  -- Comments appearing without an empty line before the first
-  -- declaration in a module are now associated with the declaration
-  -- not the module so to be safe, look also at `firstDeclComments
-  -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
-  let exts = union (extensions (modComments modu)) (extensions (firstDeclComments modu)) in
-  if NumericUnderscores `elem` exts then
+  -- TODO: there's a subtle bug when the module disables `NumericUnderscores`.
+  -- This seems pathological, though, because who would enable it for their
+  -- project but disable it in specific files?
+  if NumericUnderscores `elem` activeExtensions then
      concatMap suggestUnderscore . universeBi
   else
      const []
+  where
+    -- Comments appearing without an empty line before the first
+    -- declaration in a module are now associated with the declaration
+    -- not the module so to be safe, look also at `firstDeclComments
+    -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
+    moduleExtensions = extensions (modComments modu) `union` extensions (firstDeclComments modu)
+    activeExtensions = configuredExtensions modu <> toList moduleExtensions
 
 suggestUnderscore :: LHsExpr GhcPs -> [Idea]
 suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsIntegral intLit@(IL (SourceText srcTxt) _ _))))) =
-  [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` unpackFS srcTxt, unpackFS srcTxt /= underscoredSrcTxt ]
+  [ (suggest "Use underscore" (reLoc x) (reLoc y) [r])
+      { ideaNote = [ RequiresExtension "NumericUnderscores" ]
+      }
+  | '_' `notElem` unpackFS srcTxt, unpackFS srcTxt /= underscoredSrcTxt
+  ]
   where
     underscoredSrcTxt = addUnderscore (unpackFS srcTxt)
     y :: LocatedAn NoEpAnns (HsExpr GhcPs)
     y = noLocA $ HsOverLit noExtField $ ol{ol_val = HsIntegral intLit{il_text = SourceText (fsLit underscoredSrcTxt)}}
     r = Replace Expr (toSSA x) [("a", toSSA y)] "a"
 suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsFractional fracLit@(FL (SourceText srcTxt) _ _ _ _))))) =
-  [ suggest "Use underscore" (reLoc x) (reLoc y) [r] | '_' `notElem` unpackFS srcTxt, unpackFS srcTxt /= underscoredSrcTxt ]
+  [ (suggest "Use underscore" (reLoc x) (reLoc y) [r])
+      { ideaNote = [ RequiresExtension "NumericUnderscores" ]
+      }
+  | '_' `notElem` unpackFS srcTxt, unpackFS srcTxt /= underscoredSrcTxt
+  ]
   where
     underscoredSrcTxt = addUnderscore (unpackFS srcTxt)
     y :: LocatedAn NoEpAnns (HsExpr GhcPs)
