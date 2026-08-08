@@ -980,6 +980,10 @@
     - warn: {lhs: "fst (x,y)", rhs: x, name: Evaluate}
     - warn: {lhs: "snd (x,y)", rhs: "y", name: Evaluate}
     - warn: {lhs: fromJust (Just x), rhs: x, name: Evaluate}
+    - warn: {lhs: fromMaybe x Nothing, rhs: x, name: Evaluate}
+    - warn: {lhs: fromMaybe y (Just x), rhs: x, name: Evaluate}
+    - warn: {lhs: maybe x f Nothing, rhs: x, name: Evaluate}
+    - warn: {lhs: maybe y f (Just x), rhs: f x, name: Evaluate}
     - warn: {lhs: fromLeft y (Left x), rhs: x, name: Evaluate}
     - warn: {lhs: fromLeft y (Right x), rhs: "y", name: Evaluate}
     - warn: {lhs: fromRight y (Right x), rhs: x, name: Evaluate}
