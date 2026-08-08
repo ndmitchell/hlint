@@ -4,7 +4,7 @@
 -- Running this script should report two errors
 
 import Data.List
-import Language.Haskell.HLint
+import HLint
 import Language.Haskell.TH.Syntax
 import Network.HTTP
 
