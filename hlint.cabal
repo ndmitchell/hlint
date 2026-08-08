@@ -162,6 +162,7 @@ library
         Hint.Negation
         Hint.NewType
         Hint.Pattern
+        Hint.PatternWildCard
         Hint.Pragma
         Hint.Restrict
         Hint.Smell
