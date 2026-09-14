@@ -4,7 +4,7 @@
 
 module GHC.Util.Scope (
    Scope
-  ,scopeCreate,scopeMatch,scopeMove,possModules
+  ,scopeCreate,scopeMatch,scopeMove,possModules,importedUnqualified
 ) where
 
 import GHC.Hs
@@ -102,6 +102,15 @@ possModules (Scope is) x =
         | otherwise = res0
 
     prelude = mkModuleName "Prelude"
+
+-- Calculate which modules certainly bring 'x' into scope unqualified, namely
+-- those imported with an explicit list naming it. Deliberately narrower than
+-- 'possModules': an open import could bring anything into scope, and
+-- 'scopeCreate' gives every scope an 'import Prelude', so guessing here would
+-- report every name as already taken.
+importedUnqualified :: Scope -> RdrName -> [ModuleName]
+importedUnqualified (Scope is) x =
+    [unLoc $ ideclName $ unLoc i | i <- is, possImport i (noLocA x) == Imported]
 
 data IsImported = Imported | PossiblyImported | NotImported  deriving (Eq)
 

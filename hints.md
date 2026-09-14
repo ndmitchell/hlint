@@ -1487,6 +1487,39 @@ Suggestion:
 </tr>
 </table>
 
+## Builtin Stutter
+
+<table>
+<tr>
+<th>Hint Name</th>
+<th>Hint</th>
+<th>Severity</th>
+</tr>
+<tr>
+<td>Redundant module qualifier</td>
+<td>
+Example: 
+<pre>
+import Data.Map (Map) 
+import qualified Data.Map as Map 
+foo :: Map.Map k v
+</pre>
+Found:
+<code>
+Map.Map
+</code>
+<br>
+Suggestion:
+<code>
+Map
+</code>
+<br>
+Does not support refactoring.
+</td>
+<td>Suggestion</td>
+</tr>
+</table>
+
 ## Builtin Unsafe
 
 <table>
