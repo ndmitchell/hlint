@@ -1,5 +1,6 @@
 Changelog for HLint (* = breaking change)
     #1701, add a "Redundant module qualifier" hint, suggesting Map instead of Map.Map
+    #1637, add a typeApplications option for restricted functions
     #1660, Allow "Avoid lambda" to trigger in more cases
     #1659, disable f <$> (g <$> x) ==> f . g <$> x, and x <&> g <&> f ==> x <&> f . g
 3.10, released 2024-02-02

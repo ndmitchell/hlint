@@ -32,6 +32,7 @@ import Data.Maybe
 import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import Data.Tuple.Extra
+import Control.Applicative
 import Control.Monad.Extra
 import Data.Text qualified as T
 import Data.Vector qualified as V
@@ -343,7 +344,7 @@ parseRestrict restrictType v = do
         Just def -> do
             b <- parseBool def
             allowFields v ["default"]
-            pure $ Restrict restrictType b [] mempty mempty mempty mempty [] NoRestrictIdents Nothing
+            pure $ Restrict restrictType b [] mempty mempty mempty mempty Nothing [] NoRestrictIdents Nothing
         Nothing -> do
             restrictName <- parseFieldOpt "name" v >>= maybe (pure []) parseArrayString
             restrictWithin <- parseFieldOpt "within" v >>= maybe (pure [("","")]) (parseArray >=> concatMapM parseWithin)
@@ -361,7 +362,17 @@ parseRestrict restrictType v = do
               , ("post"        , QualifiedStylePost)
               , ("unrestricted", QualifiedStyleUnrestricted)
               ]
-
+            restrictTypeApp <- parseFieldOpt "typeApplications" v >>= maybe (pure Nothing) (\val ->
+              let bad = parseFail val "typeApplications must be 'required', 'forbidden', or an integer >= 1" in
+              case getVal val of
+                -- 'parseInt' rejects a fractional number with a message of its
+                -- own, which does not name the field it came from.
+                Number{} -> do
+                  n <- parseInt val <|> bad
+                  if n < 1 then bad else pure $ Just $ TypeAppRequired n
+                String "required" -> pure $ Just $ TypeAppRequired 1
+                String "forbidden" -> pure $ Just TypeAppForbidden
+                _ -> bad)
 
             restrictBadIdents <- parseFieldOpt "badidents" v
             restrictOnlyAllowedIdents <- parseFieldOpt "only" v
@@ -375,9 +386,11 @@ parseRestrict restrictType v = do
             restrictMessage <- parseFieldOpt "message" v >>= maybeParse parseString
             allowFields v $
                 ["name", "within", "message"] ++
-                if restrictType == RestrictModule
-                    then ["as", "asRequired", "importStyle", "qualifiedStyle", "badidents", "only"]
-                    else []
+                case restrictType of
+                    RestrictModule -> ["as", "asRequired", "importStyle", "qualifiedStyle", "badidents", "only"]
+                    RestrictFunction -> ["typeApplications"]
+                    RestrictExtension -> []
+                    RestrictFlag -> []
             pure Restrict{restrictDefault=True,..}
 
 parseWithin :: Val -> Parser [(String, String)] -- (module, decl)

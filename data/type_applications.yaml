@@ -1,0 +1,8 @@
+- functions:
+  - {name: show, typeApplications: required}
+  - {name: fromIntegral, typeApplications: 2}
+  - {name: id, typeApplications: forbidden}
+  - {name: Just, typeApplications: required}
+  - {name: Left, typeApplications: forbidden}
+  - {name: Data.Map.fromList, typeApplications: required}
+  - {name: Data.Set.fromList, typeApplications: forbidden}
