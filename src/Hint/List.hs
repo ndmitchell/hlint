@@ -47,14 +47,16 @@ import Data.Generics.Uniplate.DataOnly
 import Data.List.NonEmpty qualified as NE
 import Data.List.Extra
 import Data.Maybe
+import Data.Set (member)
 import Prelude
 
-import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSSA,modComments,firstDeclComments)
+import Hint.Type(DeclHint,Idea,suggest,ignore,substVars,toRefactSrcSpan,toSSA,ghcExtensionsEnabledInModule)
 
 import Refact.Types hiding (SrcSpan)
 import Refact.Types qualified as R
 
 import GHC.Hs
+import GHC.LanguageExtensions.Type (Extension(..))
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
 import GHC.Types.Name.Reader
@@ -73,12 +75,8 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 listHint :: DeclHint
 listHint _ modu = listDecl overloadedListsOn
   where
-    -- Comments appearing without a line-break before the first
-    -- declaration in a module are now associated with the declaration
-    -- not the module so to be safe, look also at `firstDeclComments
-    -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
-    exts = concatMap snd (languagePragmas (pragmas (modComments modu) ++ pragmas (firstDeclComments modu)))
-    overloadedListsOn = "OverloadedLists" `elem` exts
+    exts = ghcExtensionsEnabledInModule modu
+    overloadedListsOn = OverloadedLists `member` exts
 
 listDecl :: Bool -> LHsDecl GhcPs -> [Idea]
 listDecl overloadedListsOn x =

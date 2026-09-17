@@ -59,10 +59,11 @@ otherwise = True
 
 module Hint.Pattern(patternHint) where
 
-import Hint.Type(DeclHint,Idea,modComments,firstDeclComments,ideaTo,toSSA,toRefactSrcSpan,suggest,suggestRemove,warn)
+import Hint.Type(DeclHint,Idea,ghcExtensionsEnabledInModule,ideaTo,toSSA,toRefactSrcSpan,suggest,suggestRemove,warn)
 import Data.Generics.Uniplate.DataOnly
 import Data.Function
 import Data.List.Extra
+import Data.Set (member)
 import Data.Tuple
 import Data.Maybe
 import Data.Either
@@ -70,13 +71,13 @@ import Refact.Types hiding (RType(Pattern, Match), SrcSpan)
 import Refact.Types qualified as R (RType(Pattern, Match), SrcSpan)
 
 import GHC.Hs hiding(asPattern)
+import GHC.LanguageExtensions.Type (Extension(..))
 import GHC.Types.SrcLoc
 import GHC.Types.Name.Reader
 import GHC.Types.Name.Occurrence
 import GHC.Types.Basic hiding (Pattern)
 import GHC.Data.Strict qualified
 
-import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
 import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
@@ -91,13 +92,7 @@ patternHint _scope modu x =
     concatMap (patHint strict True) (universeBi $ transformBi noPatBind x) ++
     concatMap expHint (universeBi x)
   where
-    -- Comments appearing without an empty line before the first
-    -- declaration in a module are now associated with the declaration
-    -- not the module so to be safe, look also at `firstDeclComments
-    -- modu`
-    -- (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
-    exts = nubOrd $ concatMap snd (languagePragmas (pragmas (modComments modu) ++ pragmas (firstDeclComments modu))) -- language extensions enabled at source
-    strict = "Strict" `elem` exts
+    strict = Strict `member` ghcExtensionsEnabledInModule modu
 
     noPatBind :: LHsBind GhcPs -> LHsBind GhcPs
     noPatBind (L loc a@PatBind{}) = L loc a{pat_lhs=noLocA (WildPat noExtField)}

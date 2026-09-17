@@ -93,7 +93,7 @@ main = 1; {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 main = 1; {-# ANN module (1 + (2)) #-} -- 2
 
 -- special case from esqueleto, see #224
-main = operate <$> (select $ from $ \user -> return $ user ^. UserEmail)
+main = operate <$> (select $ from $ \user -> return $ user ^. UserEmail) -- @Ignore ???
 -- unknown fixity, see #426
 bad x = x . (x +? x . x)
 -- special case people don't like to warn on
@@ -111,7 +111,7 @@ function (Ctor (Rec { field })) = Ctor (Rec {field = 1})
 no = f @($x)
 
 -- template haskell is harder
-issue1292 = [e| handleForeignCatch $ \ $(varP pylonExPtrVarName) -> $(quoteExp C.block modifiedStr) |]
+issue1292 = [e| handleForeignCatch $ \ $(varP pylonExPtrVarName) -> $(quoteExp C.block modifiedStr) |] -- @Ignore ???
 
 -- no warnings for single-argument constraint contexts
 foo :: (A) => ()
@@ -122,21 +122,33 @@ data Dict c where Dict :: (c) => Dict c
 data Dict' c a where Dict' :: (c a) => Dict' c a
 
 -- issue1501: Redundant bracket hint resulted in a parse error
-x = f $ \(Proxy @a) -> True
+x = f $ \(Proxy @a) -> True -- @Ignore ???
+
+-- dollar reduction tests with block arguments
+-- (keep these after any other tests that ignore this suggestion, so that
+-- hints.md is less confusing)
+{-# LANGUAGE BlockArguments #-} \
+a = f $ do x -- f do x
+a = f $ do x -- @Ignore f do x
+{-# LANGUAGE BlockArguments #-} \
+a = f $ \case _ -> x -- f \case _ -> x
+a = f $ \case _ -> x -- @Ignore f \case _ -> x
 </TEST>
 -}
 
 
 module Hint.Bracket(bracketHint) where
 
-import Hint.Type(DeclHint,Idea(..),rawIdea,warn,suggest,Severity(..),toRefactSrcSpan,toSSA)
+import Hint.Type(DeclHint,Idea(..),ghcExtensionsEnabledInModule,idea,rawIdea,warn,suggest,Severity(..),toRefactSrcSpan,toSSA)
 import Data.Data
 import Data.List.Extra
+import Data.Set (member)
 import Data.Generics.Uniplate.DataOnly
 import Refact.Types
 
 import GHC.Hs
-import GHC.Utils.Outputable
+import GHC.LanguageExtensions.Type (Extension(..))
+import GHC.Utils.Outputable hiding ((<>))
 import GHC.Types.SrcLoc
 import GHC.Util
 import Language.Haskell.GhclibParserEx.GHC.Hs.Expr
@@ -144,12 +156,18 @@ import Language.Haskell.GhclibParserEx.GHC.Utils.Outputable
 import Language.Haskell.GhclibParserEx.GHC.Hs.Pat
 
 bracketHint :: DeclHint
-bracketHint _ _ x =
-  concatMap (\x -> bracket prettyExpr isPartialAtom True x ++ dollar x) (childrenBi (descendBi splices $ descendBi annotations x) :: [LHsExpr GhcPs]) ++
+bracketHint _ modu x =
+  concatMap (\x -> bracket prettyExpr isPartialAtom True x ++ dollar blockArgSev x) (childrenBi (descendBi splices $ descendBi annotations x) :: [LHsExpr GhcPs]) ++
   concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi (preprocess x) :: [LHsType GhcPs]) ++
   concatMap (bracket unsafePrettyPrint (\_ _ -> False) False) (childrenBi x :: [LPat GhcPs]) ++
   concatMap fieldDecl (childrenBi x)
    where
+     exts = ghcExtensionsEnabledInModule modu
+     -- Ignore "Redundant $ with block argument" by default, unless we can see
+     -- that BlockArguments are enabled in this file.
+     blockArgSev
+       | BlockArguments `member` exts = Suggestion
+       | otherwise = Ignore
      preprocess = transformBi removeSingleAtomConstrCtxs
        where
          removeSingleAtomConstrCtxs :: LHsContext GhcPs -> LHsContext GhcPs
@@ -267,15 +285,21 @@ fieldDecl _ = []
 
 -- This function relies heavily on fixities having been applied to the
 -- raw parse tree.
-dollar :: LHsExpr GhcPs -> [Idea]
-dollar = concatMap f . universe
+-- `blockArgSev` is the default severity to use for dollars with a block
+-- argument (a lambda, `do`, etc.).
+dollar :: Severity -> LHsExpr GhcPs -> [Idea]
+dollar blockArgSev = concatMap f . universe
   where
-    f x = [ (suggest "Redundant $" (reLoc x) (reLoc y) [r]){ideaSpan = locA (getLoc d)} | L _ (OpApp _ a d b) <- [x], isDol d
+    f x = [ (idea sev ("Redundant $" <> suffix) (reLoc x) (reLoc y) [r]){ideaSpan = locA (getLoc d)} | L _ (OpApp _ a d b) <- [x], isDol d
             , let y = noLocA (HsApp noExtField a b) :: LHsExpr GhcPs
             , not $ needBracket 0 y a
-            , not $ needBracket 1 y b
             , not $ isPartialAtom (Just x) b
-            , let r = Replace Expr (toSSA x) [("a", toSSA a), ("b", toSSA b)] "a b"]
+            , let r = Replace Expr (toSSA x) [("a", toSSA a), ("b", toSSA b)] "a b"
+            , (sev, suffix) <-
+                if needBracket 1 y b
+                then [(blockArgSev, " with block argument") | isBlock (unLoc b)]
+                else [(Suggestion, "")]
+            ]
           ++
           [ suggest "Move brackets to avoid $" (reLoc x) (reLoc (t y)) [r]
             |(t, e@(L _ (HsPar _ (L _ (OpApp _ a1 op1 a2))))) <- splitInfix x
@@ -295,6 +319,14 @@ dollar = concatMap f . universe
           -- , error $ show (unsafePrettyPrint a, gshow b, unsafePrettyPrint c)
           , let y = noLocA $ OpApp noExtField a b c :: LHsExpr GhcPs
           , let r = Replace Expr (toSSA x) [("x", toSSA a), ("op", toSSA b), ("y", toSSA c)] "x op y"]
+    isBlock = \case
+      HsDo {} -> True
+      HsCase {} -> True
+      HsLam {} -> True
+      HsLet {} -> True
+      HsIf {} -> True
+      HsProc {} -> True
+      _ -> False
 
 splitInfix :: LHsExpr GhcPs -> [(LHsExpr GhcPs -> LHsExpr GhcPs, LHsExpr GhcPs)]
 splitInfix (L l (OpApp _ lhs op rhs)) =
