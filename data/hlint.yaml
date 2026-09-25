@@ -1477,6 +1477,40 @@
     - warn: {lhs: foldl' f c (reverse x), rhs: foldr (flip f) c x, note: IncreasesLaziness, name: Use right fold instead of left fold}
 
 - group:
+    # Security hints, enabled by default. Disable per-rule with
+    # `- ignore: {name: "..."}` in .hlint.yaml, or suppress the whole
+    # group with `- group: {name: security, enabled: false}`.
+    #
+    # Rule categories:
+    #   * `read` -> `readMaybe` on non-literal arguments (CWE-502)
+    #   * broken / weak hash primitives: MD5, SHA-1           (CWE-327)
+    name: security
+    enabled: true
+    rules:
+
+    # `read` throws a runtime exception on malformed input; it is the
+    # Haskell analogue of Python's `pickle.load` / `ast.literal_eval` on
+    # untrusted data.  Replace with `readMaybe` from `Text.Read` and
+    # handle `Nothing` explicitly.  Literal arguments (e.g. `read "42"`)
+    # are not flagged because the failure is a programmer bug caught on
+    # first run, not a runtime attack surface.
+    - warn: {lhs: read x, rhs: Text.Read.readMaybe x, side: not (isLitString x), name: "Use readMaybe on untrusted input (CWE-502)"}
+    - warn: {lhs: reads x, rhs: Text.Read.readMaybe x, side: not (isLitString x), name: "Use readMaybe on untrusted input (CWE-502)"}
+
+    # Broken or weak cryptographic hashes.  MD5 and SHA-1 are
+    # cryptographically broken (MD5: chosen-prefix collisions since 2008;
+    # SHA-1: SHAttered, 2017) and must not be used for any security
+    # purpose (authentication, integrity, digital signatures).  Use
+    # SHA-256 or stronger from `Crypto.Hash` (cryptonite/crypton); for
+    # password hashing use `Crypto.KDF.BCrypt` or `Crypto.KDF.Argon2`.
+    - warn: {lhs: Crypto.Hash.MD5.hash x,      rhs: Crypto.Hash.SHA256.hash x, name: "Avoid broken hash MD5 (CWE-327)"}
+    - warn: {lhs: Crypto.Hash.MD5.hashlazy x,  rhs: Crypto.Hash.SHA256.hashlazy x, name: "Avoid broken hash MD5 (CWE-327)"}
+    - warn: {lhs: Crypto.Hash.SHA1.hash x,     rhs: Crypto.Hash.SHA256.hash x, name: "Avoid broken hash SHA-1 (CWE-327)"}
+    - warn: {lhs: Crypto.Hash.SHA1.hashlazy x, rhs: Crypto.Hash.SHA256.hashlazy x, name: "Avoid broken hash SHA-1 (CWE-327)"}
+    - warn: {lhs: Data.Digest.Pure.MD5.md5 x,  rhs: Crypto.Hash.SHA256.hashlazy x, name: "Avoid broken hash MD5 (CWE-327)"}
+    - warn: {lhs: Data.Digest.Pure.SHA.sha1 x, rhs: Data.Digest.Pure.SHA.sha256 x, name: "Avoid broken hash SHA-1 (CWE-327)"}
+
+- group:
     # used for tests, enabled when testing this file
     name: testing
     enabled: false
