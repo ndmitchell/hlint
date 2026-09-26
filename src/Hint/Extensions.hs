@@ -272,7 +272,9 @@ import Data.List.Extra
 import Data.Data
 import Refact.Types
 import Data.Set qualified as Set
+import Data.Set (Set)
 import Data.Map qualified as Map
+import Data.Map (Map)
 
 import GHC.Data.FastString
 import GHC.Types.SrcLoc
@@ -333,7 +335,7 @@ extensionsHint _ x =
       -- programmatically.
 
     -- All the extensions defined to be used.
-    extensions :: Set.Set Extension
+    extensions :: Set Extension
     extensions = Set.fromList $
       concatMap
       (mapMaybe readExtension . snd)
@@ -346,25 +348,25 @@ extensionsHint _ x =
       -- (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
 
     -- Those extensions we detect to be useful.
-    useful :: Set.Set Extension
+    useful :: Set Extension
     useful =
       if usedTH
         then Set.filter (\case TemplateHaskell -> usedExt TemplateHaskell (ghcModule x); _ -> True) extensions
         else Set.filter (`usedExt` ghcModule x) extensions
     -- Those extensions which are useful, but implied by other useful
     -- extensions.
-    implied :: Map.Map Extension Extension
+    implied :: Map Extension Extension
     implied = Map.fromList
         [ (e, a)
         | e <- Set.toList useful
         , a:_ <- [filter (`Set.member` useful) $ extensionImpliedEnabledBy e]
         ]
     -- Those we should keep.
-    keep :: Set.Set Extension
+    keep :: Set Extension
     keep =  useful `Set.difference` Map.keysSet implied
     -- The meaning of (a,b) is a used to imply b, but has gone, so
     -- suggest enabling b.
-    disappear :: Map.Map Extension [Extension]
+    disappear :: Map Extension [Extension]
     disappear =
         Map.fromListWith (++) $
         nubOrdOn snd -- Only keep one instance for each of a.

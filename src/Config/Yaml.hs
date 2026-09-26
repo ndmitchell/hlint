@@ -43,7 +43,6 @@ import GHC.All
 import Fixity
 import Extension
 import GHC.Unit.Module
-import Data.Functor
 import Data.Monoid
 import Data.Semigroup
 import Timing

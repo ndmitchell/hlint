@@ -28,7 +28,9 @@ import Util
 import Data.Generics.Uniplate.DataOnly
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Set qualified as Set
+import Data.Set (Set)
 import Data.Map qualified as Map
+import Data.Map (Map)
 import Data.List.Extra
 import Data.List.NonEmpty (nonEmpty)
 import Data.Either
@@ -96,13 +98,13 @@ instance Semigroup RestrictItem where
 -- rather than some arbitrary function of the two. Withins and messages still
 -- merge, because a name can sensibly be allowed in the union of two places but
 -- cannot sensibly both require and forbid a type application.
-newtype RestrictFunction = RestrictFun (Map.Map (Maybe String) ([(String, String)], Maybe String, Maybe (Max (Arg Int RestrictTypeApp))))
+newtype RestrictFunction = RestrictFun (Map (Maybe String) ([(String, String)], Maybe String, Maybe (Max (Arg Int RestrictTypeApp))))
 
 instance Semigroup RestrictFunction where
     RestrictFun m1 <> RestrictFun m2 = RestrictFun (Map.unionWith (<>) m1 m2)
 
-type RestrictFunctions = (Bool, Map.Map String RestrictFunction)
-type OtherRestrictItems = Map.Map RestrictType (Bool, Map.Map String RestrictItem)
+type RestrictFunctions = (Bool, Map String RestrictFunction)
+type OtherRestrictItems = Map RestrictType (Bool, Map String RestrictItem)
 
 restrictions :: [Setting] -> (RestrictFunctions, OtherRestrictItems)
 restrictions settings = (rFunction, rOthers)
@@ -148,7 +150,7 @@ within modu func = any (\(a,b) -> (a ~= modu || a == "") && (b ~= func || b == "
 checkPragmas :: String
               -> [(LEpaComment, [String])]
               -> [(LEpaComment, [String])]
-              ->  Map.Map RestrictType (Bool, Map.Map String RestrictItem)
+              ->  Map RestrictType (Bool, Map String RestrictItem)
               -> [Idea]
 checkPragmas modu flags exts mps =
   f RestrictFlag "flags" flags ++ f RestrictExtension "extensions" exts
@@ -168,7 +170,7 @@ checkPragmas modu flags exts mps =
 -- i.e. the preference of "either pre- or post-, but qualified" in a rule.
 data QualifiedPostOrPre = QualifiedPostOrPre deriving Eq
 
-checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map.Map String RestrictItem) -> [Idea]
+checkImports :: String -> [LImportDecl GhcPs] -> (Bool, Map String RestrictItem) -> [Idea]
 checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
   where
     getImportHint :: LImportDecl GhcPs -> Maybe Idea
@@ -236,12 +238,12 @@ checkImports modu lImportDecls (def, mp) = mapMaybe getImportHint lImportDecls
               msg = moduleNameString (unLoc ideclName) <> " should be imported " <> hint
           Left $ warn msg (reLoc i) i' []
 
-getRestrictItem :: Bool -> LocatedA ModuleName -> Map.Map String RestrictItem -> RestrictItem
+getRestrictItem :: Bool -> LocatedA ModuleName -> Map String RestrictItem -> RestrictItem
 getRestrictItem def ideclName =
   fromMaybe (RestrictItem mempty mempty mempty mempty [("","") | def] NoRestrictIdents Nothing)
     . lookupRestrictItem ideclName
 
-lookupRestrictItem :: LocatedA ModuleName -> Map.Map String RestrictItem -> Maybe RestrictItem
+lookupRestrictItem :: LocatedA ModuleName -> Map String RestrictItem -> Maybe RestrictItem
 lookupRestrictItem ideclName mp =
     let moduleName = moduleNameString $ unLoc ideclName
         exact = Map.lookup moduleName mp
@@ -311,7 +313,7 @@ addTypeAppCounts c1 c2 = TypeAppCount
 -- visible type application violation.
 restrictFunctionHint
     :: String -> String -> [(String, String)] -> Maybe RestrictTypeApp
-    -> Map.Map SrcSpanD TypeAppCount -> Set.Set SrcSpanD -> LocatedN RdrName -> Maybe String
+    -> Map SrcSpanD TypeAppCount -> Set SrcSpanD -> LocatedN RdrName -> Maybe String
 restrictFunctionHint modu dname withins typeApp typeAppCounts typeAppSites x
     | not $ within modu dname withins = Just "Avoid restricted function"
     | not $ sp `Set.member` typeAppSites = Nothing
@@ -337,10 +339,10 @@ restrictFunctionHint modu dname withins typeApp typeAppCounts typeAppSites x
 --
 -- Note that this does not resolve local binders, so a locally bound name that
 -- shadows a restricted one is still treated as a use of it.
-typeApplicationSites :: [LHsDecl GhcPs] -> Set.Set SrcSpanD
+typeApplicationSites :: [LHsDecl GhcPs] -> Set SrcSpanD
 typeApplicationSites decls = Set.difference sites infixOperators
   where
-    sites :: Set.Set SrcSpanD
+    sites :: Set SrcSpanD
     sites = Set.fromList $
         [ SrcSpanD (locA (getLoc name))
         | L _ (HsVar _ name) <- universeBi decls :: [LHsExpr GhcPs]
@@ -349,7 +351,7 @@ typeApplicationSites decls = Set.difference sites infixOperators
         | L _ (ConPat _ name PrefixCon{}) <- universeBi decls :: [LPat GhcPs]
         ]
 
-    infixOperators :: Set.Set SrcSpanD
+    infixOperators :: Set SrcSpanD
     infixOperators = Set.fromList
         [ SrcSpanD (locA (getLoc name))
         | L _ (HsVar _ name) <- concatMap operator (universeBi decls :: [LHsExpr GhcPs])
@@ -366,7 +368,7 @@ typeApplicationSites decls = Set.difference sites infixOperators
 -- attached to it. Each @\@T@ is a separate 'HsAppType' node (or an element of a
 -- constructor pattern's type-argument list), and every node in an application
 -- chain shares the head name's source span, so summing gives the count.
-typeApplicationCounts :: [LHsDecl GhcPs] -> Map.Map SrcSpanD TypeAppCount
+typeApplicationCounts :: [LHsDecl GhcPs] -> Map SrcSpanD TypeAppCount
 typeApplicationCounts decls = Map.fromListWith addTypeAppCounts $
     [ (SrcSpanD (locA (getLoc h)), countTypeApps [ty])
     | L _ (HsAppType _ fun (HsWC _ ty)) <- universeBi decls :: [LHsExpr GhcPs]
@@ -407,7 +409,7 @@ typeAppHead = \case
 -- If there are multiple matching rules (e.g., there's both an unqualified version and a qualified version), their
 -- withins and messages are concatenated with (<>), and the last-declared type application restriction wins.
 findFunction
-    :: Map.Map String RestrictFunction
+    :: Map String RestrictFunction
     -> LocatedN RdrName
     -> [ModuleName]
     -> Maybe ([(String, String)], Maybe String, Maybe RestrictTypeApp)

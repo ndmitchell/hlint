@@ -24,6 +24,7 @@ import Control.Applicative
 import Data.List.Extra
 import Data.Maybe
 import Data.Set qualified as Set
+import Data.Set (Set)
 
 trimCommentStart :: String -> String
 trimCommentStart s
@@ -74,7 +75,7 @@ pragmas x =
     ]
 
 -- All the extensions defined to be used.
-extensions :: EpAnnComments -> Set.Set Extension
+extensions :: EpAnnComments -> Set Extension
 extensions = Set.fromList . concatMap (mapMaybe readExtension . snd) . languagePragmas . pragmas
 
 -- Utility for a case insensitive prefix strip.

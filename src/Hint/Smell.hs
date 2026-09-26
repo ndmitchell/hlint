@@ -82,6 +82,7 @@ import Config.Type
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
 import Data.Map qualified as Map
+import Data.Map (Map)
 
 import GHC.Utils.Outputable
 import GHC.Types.Basic
@@ -177,5 +178,5 @@ countFunctionArgs (HsFunTy _ _ _ t) = 1 + countFunctionArgs (unLoc t)
 countFunctionArgs (HsParTy _ t) = countFunctionArgs (unLoc t)
 countFunctionArgs _ = 0
 
-smells :: [Setting] -> Map.Map SmellType Int
+smells :: [Setting] -> Map SmellType Int
 smells settings = Map.fromList [ (smellType, smellLimit) | SettingSmell smellType smellLimit  <- settings]

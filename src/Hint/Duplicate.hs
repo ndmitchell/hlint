@@ -33,6 +33,7 @@ import Data.Tuple.Extra
 import Data.List hiding (find)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
+import Data.Map (Map)
 
 import GHC.Types.SrcLoc
 import GHC.Hs
@@ -79,7 +80,7 @@ dupes ys =
 
 -- | The position to return if we match at this point, and the map of where to go next
 --   If two runs have the same vals, always use the first pos you find
-data Dupe pos val = Dupe pos (Map.Map val (Dupe pos val))
+data Dupe pos val = Dupe pos (Map val (Dupe pos val))
 
 
 find :: Ord val => [val] -> Dupe pos val -> (pos, Int)
@@ -100,7 +101,7 @@ duplicateOrdered threshold xs = concat $ concat $ snd $ mapAccumL f (Dupe def Ma
         f d xs = second overlaps $ mapAccumL (g pos) d $ onlyAtLeast threshold $ tails xs
             where pos = Map.fromList $ zip (map fst xs) [0..]
 
-        g :: Map.Map pos Int -> Dupe pos val -> NE.NonEmpty (pos, val) -> (Dupe pos val, [(pos, pos, [val])])
+        g :: Map pos Int -> Dupe pos val -> NE.NonEmpty (pos, val) -> (Dupe pos val, [(pos, pos, [val])])
         g pos d xs = (d2, res)
             where
                 res = [(p,pme,take mx vs) | i >= threshold

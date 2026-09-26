@@ -50,6 +50,7 @@ import Data.Data
 import Data.Char
 import Data.Maybe
 import Data.Set qualified as Set
+import Data.Set (Set)
 
 import GHC.Types.Basic
 import GHC.Types.SourceText
@@ -67,7 +68,7 @@ import GHC.Util
 namingHint :: DeclHint
 namingHint _ modu = naming $ Set.fromList $ concatMap getNames $ hsmodDecls $ unLoc (ghcModule modu)
 
-naming :: Set.Set String -> LHsDecl GhcPs -> [Idea]
+naming :: Set String -> LHsDecl GhcPs -> [Idea]
 naming seen originalDecl =
     [ suggest "Use camelCase"
                (reLoc (shorten originalDecl))
