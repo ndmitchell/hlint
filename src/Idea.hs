@@ -83,12 +83,13 @@ showIdeaANSI = showEx hsColourConsole
 showEx :: (String -> String) -> Idea -> String
 showEx tt Idea{..} = unlines $
     [showSrcSpan ideaSpan ++ ": " ++ (if ideaHint == "" then "" else show ideaSeverity ++ ": " ++ ideaHint)] ++
-    f "Found" (Just ideaFrom) ++ f "Perhaps" ideaTo ++
+    f ideaFrom ++ maybe [] p ideaTo ++
     ["Note: " ++ n | let n = showNotes ideaNote, n /= ""]
     where
-        f msg Nothing = []
-        f msg (Just x) | null xs = [msg ++ " you should remove it."]
-                       | otherwise = (msg ++ ":") : map ("  "++) xs
+        f x = ("Found" ++ ":") : map ("  "++) (lines (tt x))
+
+        p x | null xs = ["You can remove it."]
+            | otherwise = ("Perhaps" ++ ":") : map ("  "++) xs
             where xs = lines $ tt x
 
 
