@@ -1,0 +1,35 @@
+---------------------------------------------------------------------
+RUN tests/import_explicit_limit_pos.hs --hint=data/import_explicit_limit.yaml
+FILE tests/import_explicit_limit_pos.hs
+import A (sort, nub, group)
+import B (Map, lookup, insert)
+OUTPUT
+tests/import_explicit_limit_pos.hs:1:1-27: Warning: Too many explicit imports
+Found:
+  import A ( sort, nub, group )
+
+tests/import_explicit_limit_pos.hs:2:1-30: Warning: Too many explicit imports
+Found:
+  import B ( Map, lookup, insert )
+
+2 hints
+
+---------------------------------------------------------------------
+RUN tests/import_explicit_limit_default.hs
+FILE tests/import_explicit_limit_default.hs
+import A (sort, nub, group)
+import B (Map, lookup, insert)
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
+RUN tests/import_explicit_limit_neg.hs --hint=data/import_explicit_limit.yaml
+FILE tests/import_explicit_limit_neg.hs
+import A (sort, nub)
+import B (sort)
+import C
+import D hiding (sort, nub, group)
+OUTPUT
+No hints
+
+---------------------------------------------------------------------
