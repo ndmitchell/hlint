@@ -9,6 +9,7 @@ import GHC.Util
 import Config.Type
 import Fixity
 import Data.Generics.Uniplate.DataOnly
+import Data.List.NonEmpty(NonEmpty(..))
 import GHC.Hs hiding (Warning)
 import GHC.Types.Name.Reader
 import GHC.Types.Name
@@ -56,7 +57,7 @@ findBind FunBind{fun_id, fun_matches} = findExp (unLoc fun_id) [] $ HsLam noAnn 
 findBind _ = []
 
 findExp :: IdP GhcPs -> [String] -> HsExpr GhcPs -> [Setting]
-findExp name vs (HsLam _ LamSingle MG{mg_alts=L _ [L _ Match{m_pats=L _ pats, m_grhss=GRHSs{grhssGRHSs=[L _ (GRHS _ [] x)], grhssLocalBinds=(EmptyLocalBinds _)}}]})
+findExp name vs (HsLam _ LamSingle MG{mg_alts=L _ [L _ Match{m_pats=L _ pats, m_grhss=GRHSs{grhssGRHSs=(L _ (GRHS _ [] x) :| []), grhssLocalBinds=(EmptyLocalBinds _)}}]})
     = if length pats == length ps then findExp name (vs++ps) $ unLoc x else []
     where ps = [rdrNameStr x | L _ (VarPat _ x) <- pats]
 findExp name vs HsLam{} = []

@@ -245,24 +245,14 @@ bracketError :: (Outputable a, Outputable b, Brackets (LocatedA b)) => String ->
 bracketError msg o x =
   warn msg (reLoc o) (reLoc x) [Replace (findType x) (toSSA o) [("x", toSSA x)] "x"]
 
-fieldDecl ::  LConDeclField GhcPs -> [Idea]
-fieldDecl o@(L loc f@ConDeclField{cd_fld_type=v@(L l (HsParTy _ c))}) =
-   let r = L loc (f{cd_fld_type=c}) :: LConDeclField GhcPs in
+fieldDecl ::  LHsConDeclRecField GhcPs -> [Idea]
+fieldDecl o@(L loc f@HsConDeclRecField{cdrf_spec = CDF{cdf_bang = NoSrcStrict, cdf_type = v@(L l (HsParTy _ c))}}) =
+    let r = L loc (f{cdrf_spec = (cdrf_spec f){cdf_type = c}}) :: LHsConDeclRecField GhcPs in
    [rawIdea Suggestion "Redundant bracket" (locA l)
-    (showSDocUnsafe $ ppr_fld o) -- Note this custom printer!
-    (Just (showSDocUnsafe $ ppr_fld r))
+    (showSDocUnsafe $ ppr o)
+    (Just (showSDocUnsafe $ ppr r))
     []
     [Replace Type (toSSA v) [("x", toSSA c)] "x"]]
-   where
-     -- If we call 'unsafePrettyPrint' on a field decl, we won't like
-     -- the output (e.g. "[foo, bar] :: T"). Here we use a custom
-     -- printer to work around (snarfed from Hs.Types.pprConDeclFields)
-     ppr_fld (L _ ConDeclField { cd_fld_names = ns, cd_fld_type = ty, cd_fld_doc = doc })
-       = pprMaybeWithDoc doc (ppr_names ns <+> dcolon <+> ppr ty)
-     ppr_fld (L _ (XConDeclField x)) = ppr x
-
-     ppr_names [n] = ppr n
-     ppr_names ns = sep (punctuate comma (map ppr ns))
 fieldDecl _ = []
 
 -- This function relies heavily on fixities having been applied to the

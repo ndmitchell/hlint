@@ -57,7 +57,7 @@ newtypeHintDecl :: LHsDecl GhcPs -> [Idea]
 newtypeHintDecl old
     | Just WarnNewtype{newDecl, insideType} <- singleSimpleField old
     = [(suggestN "Use newtype instead of data" (reLoc old) (reLoc newDecl))
-            {ideaNote = [DecreasesLaziness | warnBang insideType]}]
+            {ideaNote = [DecreasesLaziness | warnBang old]}]
 newtypeHintDecl _ = []
 
 newTypeDerivingStrategiesHintDecl :: LHsDecl GhcPs -> [Idea]
@@ -135,24 +135,29 @@ simpleHsDataDefn _ = Nothing
 -- | Checks whether its argument is a \"simple\" constructor (see criteria in 'singleSimpleField')
 -- returning the type inside the constructor if it is. This is needed for strictness analysis.
 simpleCons :: ConDecl GhcPs -> Maybe (HsType GhcPs)
-simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [] [HsScaled _ (L _ inType)]) _)
-    | emptyOrNoContext context
-    , not $ isUnboxedTuple inType
-    , not $ isHashy inType
-    = Just inType
-simpleCons (ConDeclH98 _ _ _ [] context (RecCon (L _ [L _ (ConDeclField _ [_] (L _ inType) _)])) _)
-    | emptyOrNoContext context
-    , not $ isUnboxedTuple inType
-    , not $ isHashy inType
-    = Just inType
+simpleCons (ConDeclH98 _ _ _ [] context (PrefixCon [CDF { cdf_type=(L _ inType) }]) _)
+     | emptyOrNoContext context
+     , not $ isUnboxedTuple inType
+     , not $ isHashy inType
+     = Just inType
+simpleCons (ConDeclH98 _ _ _ [] context (RecCon (L _ [L _ (HsConDeclRecField {cdrf_names=[_], cdrf_spec=CDF{ cdf_type=(L _ inType)}})])) _)
+     | emptyOrNoContext context
+     , not $ isUnboxedTuple inType
+     , not $ isHashy inType
+     = Just inType
 simpleCons _ = Nothing
 
 isHashy :: HsType GhcPs -> Bool
 isHashy x = or ["#" `isSuffixOf` unsafePrettyPrint v | v@HsTyVar{} <- universe x]
 
-warnBang :: HsType GhcPs -> Bool
-warnBang (HsBangTy _ (HsBang _ SrcStrict) _) = False
-warnBang _ = True
+warnBang :: LHsDecl GhcPs -> Bool
+warnBang (L _ (TyClD _ (DataDecl _ _ _ _ (HsDataDefn _ _ _ _ (DataTypeCons _ [L _ constructor]) _)))) = warnBangCtor constructor
+warnBang (L _ (InstD _ (DataFamInstD _ (DataFamInstDecl (FamEqn _ _ _ _ _ (HsDataDefn _ _ _ _ (DataTypeCons _ [L _ constructor]) _)))))) = warnBangCtor constructor
+warnBang _ = False
+
+warnBangCtor (ConDeclH98 _ _ _ [] context (PrefixCon [CDF { cdf_bang = SrcStrict }]) _) = True
+warnBangCtor (ConDeclH98 _ _ _ [] context (RecCon (L _ [L _ (HsConDeclRecField { cdrf_spec=CDF{ cdf_bang = SrcStrict }})])) _) = True
+warnBangCtor _ = False
 
 emptyOrNoContext :: Maybe (LHsContext GhcPs) -> Bool
 emptyOrNoContext Nothing = True
@@ -161,20 +166,14 @@ emptyOrNoContext _ = False
 
 -- | The \"Bang\" here refers to 'HsSrcBang', which notably also includes @UNPACK@ pragmas!
 dropConsBang :: ConDecl GhcPs -> ConDecl GhcPs
--- fields [HsScaled GhcPs (LBangType GhcPs)]
-dropConsBang decl@(ConDeclH98 _ _ _ _ _ (PrefixCon [] fields) _) =
-    -- decl {con_args = PrefixCon $ map getBangType fields}
-    let fs' = map (\(HsScaled s lt) -> HsScaled s (getBangType lt)) fields  :: [HsScaled GhcPs (LBangType GhcPs)]
-    in decl {con_args = PrefixCon [] fs'}
+dropConsBang decl@(ConDeclH98 _ _ _ _ _ (PrefixCon fields) _) =
+    let fs' = map(\f -> f{cdf_unpack=NoSrcUnpack, cdf_bang=NoSrcStrict}) fields
+    in decl {con_args = PrefixCon fs'}
 dropConsBang decl@(ConDeclH98 _ _ _ _ _ (RecCon (L recloc conDeclFields)) _) =
-    decl {con_args = RecCon $ L recloc $ removeUnpacksRecords conDeclFields}
-    where
-        removeUnpacksRecords :: [LConDeclField GhcPs] -> [LConDeclField GhcPs]
-        removeUnpacksRecords = map (\(L conDeclFieldLoc x) -> L conDeclFieldLoc $ removeConDeclFieldUnpacks x)
-
-        removeConDeclFieldUnpacks :: ConDeclField GhcPs -> ConDeclField GhcPs
-        removeConDeclFieldUnpacks conDeclField@(ConDeclField _ _ fieldType _) =
-            conDeclField {cd_fld_type = getBangType fieldType}
+  decl {con_args = RecCon $ L recloc $ removeUnpacksRecords conDeclFields}
+     where
+         removeUnpacksRecords :: [LHsConDeclRecField GhcPs] -> [LHsConDeclRecField GhcPs]
+         removeUnpacksRecords =  map (\(L loc f) -> L loc (f{cdrf_spec=(cdrf_spec f){cdf_unpack=NoSrcUnpack, cdf_bang=NoSrcStrict}}))
 dropConsBang x = x
 
 isUnboxedTuple :: HsType GhcPs -> Bool
