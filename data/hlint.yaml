@@ -1477,6 +1477,35 @@
     - warn: {lhs: foldl' f c (reverse x), rhs: foldr (flip f) c x, note: IncreasesLaziness, name: Use right fold instead of left fold}
 
 - group:
+    name: performance
+    enabled: false
+    rules:
+
+    # Text / ByteString strict left folds. The lazy `foldl` over these
+    # bulk-data types builds a thunk chain proportional to the element
+    # count, which blows the stack on realistic inputs. `foldl'` is a
+    # drop-in, same-module replacement whenever the accumulator is
+    # strict-amenable (which it almost always is for numeric counters,
+    # Builders, strict Maps, etc.). Match fully-qualified names only so
+    # the rule does not fire on the unrelated Foldable-polymorphic
+    # `foldl` from Prelude/Data.Foldable.
+    - warn: {lhs: Data.Text.foldl f z t, rhs: Data.Text.foldl' f z t, name: "Use foldl'"}
+    - warn: {lhs: Data.Text.Lazy.foldl f z t, rhs: Data.Text.Lazy.foldl' f z t, name: "Use foldl'"}
+    - warn: {lhs: Data.ByteString.foldl f z b, rhs: Data.ByteString.foldl' f z b, name: "Use foldl'"}
+    - warn: {lhs: Data.ByteString.Lazy.foldl f z b, rhs: Data.ByteString.Lazy.foldl' f z b, name: "Use foldl'"}
+    - warn: {lhs: Data.ByteString.Char8.foldl f z b, rhs: Data.ByteString.Char8.foldl' f z b, name: "Use foldl'"}
+    - warn: {lhs: Data.ByteString.Lazy.Char8.foldl f z b, rhs: Data.ByteString.Lazy.Char8.foldl' f z b, name: "Use foldl'"}
+
+    # Text concat-of-map fuses into concatMap, avoiding the intermediate
+    # [Text] spine and its associated allocation. Semantics-preserving:
+    # `Data.Text.concatMap f = Data.Text.concat . map f` by construction.
+    # Not applied to ByteString: `Data.ByteString.concatMap` has type
+    # (Word8 -> ByteString) -> ByteString -> ByteString, so it is NOT
+    # the fusion of `concat . map` over `[ByteString]`.
+    - warn: {lhs: Data.Text.concat (map f xs), rhs: Data.Text.concatMap f xs, name: "Use Data.Text.concatMap"}
+    - warn: {lhs: Data.Text.Lazy.concat (map f xs), rhs: Data.Text.Lazy.concatMap f xs, name: "Use Data.Text.Lazy.concatMap"}
+
+- group:
     # used for tests, enabled when testing this file
     name: testing
     enabled: false
