@@ -87,8 +87,16 @@ library
         ghc-boot-th,
         ghc-boot
     else
-      build-depends:
-          ghc-lib-parser == 9.12.*
+      if impl(ghc >= 9.12.3)
+        -- ghc-lib-parser 9.12.2 does not build with GHC >= 9.12.3
+        -- (`GHC.Internal.TH.Ppr` was removed).
+        -- Require >= 9.12.3 to avoid producing an unbuildable install plan.
+        -- See https://github.com/digital-asset/ghc-lib/issues/624
+        build-depends:
+            ghc-lib-parser >= 9.12.3 && < 9.13
+      else
+        build-depends:
+            ghc-lib-parser == 9.12.*
     build-depends:
         ghc-lib-parser-ex >= 9.12 && < 9.13
 
