@@ -1,0 +1,133 @@
+---------------------------------------------------------------------
+FILE tests/flag-with-group-performance-containers.hs
+{-# HLINT ignore "Avoid restricted alias" #-}
+import qualified Data.Map.Strict as MS
+import qualified Data.Map.Lazy as ML
+import qualified Data.IntMap.Strict as IMS
+import qualified Data.IntMap.Lazy as IML
+import qualified Data.HashMap.Strict as HMS
+import qualified Data.HashMap.Lazy as HML
+import qualified Data.Set as Set
+import qualified Data.HashSet as HSet
+uMSr m = print (MS.union m MS.empty)
+uMSl m = print (MS.union MS.empty m)
+uMLr m = print (ML.union m ML.empty)
+uIMSr m = print (IMS.union m IMS.empty)
+uIMLr m = print (IML.union m IML.empty)
+uHMSr m = print (HMS.union m HMS.empty)
+uHMLr m = print (HML.union m HML.empty)
+uSr s = print (Set.union s Set.empty)
+uHSr s = print (HSet.union s HSet.empty)
+miMS m = print (MS.map id m)
+miML m = print (ML.map id m)
+miIMS m = print (IMS.map id m)
+miIML m = print (IML.map id m)
+miHMS m = print (HMS.map id m)
+miHML m = print (HML.map id m)
+miS s = print (Set.map id s)
+miHS s = print (HSet.map id s)
+RUN "--with-group=performance" tests/flag-with-group-performance-containers.hs
+OUTPUT
+tests/flag-with-group-performance-containers.hs:10:17-35: Warning: Redundant union with empty
+Found:
+  MS.union m MS.empty
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:11:17-35: Warning: Redundant union with empty
+Found:
+  MS.union MS.empty m
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:12:17-35: Warning: Redundant union with empty
+Found:
+  ML.union m ML.empty
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:13:18-38: Warning: Redundant union with empty
+Found:
+  IMS.union m IMS.empty
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:14:18-38: Warning: Redundant union with empty
+Found:
+  IML.union m IML.empty
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:15:18-38: Warning: Redundant union with empty
+Found:
+  HMS.union m HMS.empty
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:16:18-38: Warning: Redundant union with empty
+Found:
+  HML.union m HML.empty
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:17:16-36: Warning: Redundant union with empty
+Found:
+  Set.union s Set.empty
+Perhaps:
+  s
+
+tests/flag-with-group-performance-containers.hs:18:17-39: Warning: Redundant union with empty
+Found:
+  HSet.union s HSet.empty
+Perhaps:
+  s
+
+tests/flag-with-group-performance-containers.hs:19:17-27: Warning: Redundant map id
+Found:
+  MS.map id m
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:20:17-27: Warning: Redundant map id
+Found:
+  ML.map id m
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:21:18-29: Warning: Redundant map id
+Found:
+  IMS.map id m
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:22:18-29: Warning: Redundant map id
+Found:
+  IML.map id m
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:23:18-29: Warning: Redundant map id
+Found:
+  HMS.map id m
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:24:18-29: Warning: Redundant map id
+Found:
+  HML.map id m
+Perhaps:
+  m
+
+tests/flag-with-group-performance-containers.hs:25:16-27: Warning: Redundant map id
+Found:
+  Set.map id s
+Perhaps:
+  s
+
+tests/flag-with-group-performance-containers.hs:26:17-29: Warning: Redundant map id
+Found:
+  HSet.map id s
+Perhaps:
+  s
+
+17 hints
