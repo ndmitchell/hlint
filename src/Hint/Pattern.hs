@@ -53,6 +53,7 @@ foo !Bar { bar = x } = x -- Bar { bar = x }
 foo x@_ = x -- x
 foo x@Foo = x
 otherwise = True
+{-# LANGUAGE RebindableSyntax #-}; foo x y = if a then b else if c then d else e
 </TEST>
 -}
 
@@ -84,7 +85,7 @@ import Language.Haskell.GhclibParserEx.GHC.Types.Name.Reader
 
 patternHint :: DeclHint
 patternHint _scope modu x =
-    concatMap (uncurry hints . swap) (asPattern x) ++
+    concatMap (uncurry (hints rebindableSyntax) . swap) (asPattern x) ++
     -- PatBind (used in 'let' and 'where') contains lazy-by-default
     -- patterns, everything else is strict.
     concatMap (patHint strict False) [p | PatBind _ p _ _ <- universeBi x :: [HsBind GhcPs]] ++
@@ -98,6 +99,7 @@ patternHint _scope modu x =
     -- (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
     exts = nubOrd $ concatMap snd (languagePragmas (pragmas (modComments modu) ++ pragmas (firstDeclComments modu))) -- language extensions enabled at source
     strict = "Strict" `elem` exts
+    rebindableSyntax = "RebindableSyntax" `elem` exts
 
     noPatBind :: LHsBind GhcPs -> LHsBind GhcPs
     noPatBind (L loc a@PatBind{}) = L loc a{pat_lhs=noLocA (WildPat noExtField)}
@@ -115,9 +117,9 @@ hints gen (Pattern pats (GuardedRhss _ [GuardedRhs _ [Generator _ pat (App _ op 
         decsBind = nub $ concatMap declBind $ childrenBi bind
 -}
 
-hints :: (String -> Pattern -> [Refactoring R.SrcSpan] -> Idea) -> Pattern -> [Idea]
-hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
-  | length guards > 2 = [gen "Use guards" (Pattern l rtype pat (GRHSs emptyComments guards bind)) [refactoring]]
+hints :: Bool -> (String -> Pattern -> [Refactoring R.SrcSpan] -> Idea) -> Pattern -> [Idea]
+hints rebindableSyntax gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
+  | not rebindableSyntax, length guards > 2 = [gen "Use guards" (Pattern l rtype pat (GRHSs emptyComments guards bind)) [refactoring]]
   where
     rawGuards :: [(LHsExpr GhcPs, LHsExpr GhcPs)]
     rawGuards = asGuards bod
@@ -155,10 +157,10 @@ hints gen (Pattern l rtype pat (GRHSs _ [L _ (GRHS _ [] bod)] bind))
     f :: [Either a (String, R.SrcSpan)] -> [(String, R.SrcSpan)]
     f = rights
     refactoring = Replace rtype (toRefactSrcSpan l) (f patSubts ++ f guardSubts ++ f exprSubts) template
-hints gen (Pattern l t pats o@(GRHSs _ [L _ (GRHS _ [test] bod)] bind))
+hints _ gen (Pattern l t pats o@(GRHSs _ [L _ (GRHS _ [test] bod)] bind))
   | unsafePrettyPrint test `elem` ["otherwise", "True"]
   = [gen "Redundant guard" (Pattern l t pats o{grhssGRHSs=[noLocA (GRHS noAnn [] bod)]}) [Delete Stmt (toSSA test)]]
-hints _ (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
+hints _ _ (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
   = [suggestRemove "Redundant where" whereSpan "where" [ {- TODO refactoring for redundant where -} ]]
   where
     f :: HsLocalBinds GhcPs -> Bool
@@ -171,11 +173,11 @@ hints _ (Pattern l t pats bod@(GRHSs _ _ binds)) | f binds
         let end = realSrcSpanEnd s
             start = mkRealSrcLoc (srcSpanFile s) (srcLocLine end) (srcLocCol end - 5)
          in RealSrcSpan (mkRealSrcSpan start end) GHC.Data.Strict.Nothing
-hints gen (Pattern l t pats o@(GRHSs _ (unsnoc -> Just (gs, L _ (GRHS _ [test] bod))) binds))
+hints _ gen (Pattern l t pats o@(GRHSs _ (unsnoc -> Just (gs, L _ (GRHS _ [test] bod))) binds))
   | unsafePrettyPrint test == "True"
   = let otherwise_ = noLocA $ BodyStmt noExtField (strToVar "otherwise") noSyntaxExpr noSyntaxExpr in
       [gen "Use otherwise" (Pattern l t pats o{grhssGRHSs = gs ++ [noLocA (GRHS noAnn [otherwise_] bod)]}) [Replace Expr (toSSA test) [] "otherwise"]]
-hints _ _ = []
+hints _ _ _ = []
 
 asGuards :: LHsExpr GhcPs -> [(LHsExpr GhcPs, LHsExpr GhcPs)]
 asGuards (L _ (HsPar _ x)) = asGuards x
