@@ -1,0 +1,27 @@
+---------------------------------------------------------------------
+FILE tests/flag-with-group-performance-length.hs
+module Verify (a, b, c) where
+a fn xs = map fn (reverse xs)
+b fn xs = head (map fn xs)
+c fn xs = last (map fn xs)
+RUN "--with-group=performance" tests/flag-with-group-performance-length.hs
+OUTPUT
+tests/flag-with-group-performance-length.hs:2:11-29: Warning: Move reverse out
+Found:
+  map fn (reverse xs)
+Perhaps:
+  reverse (map fn xs)
+
+tests/flag-with-group-performance-length.hs:3:11-26: Warning: Avoid building intermediate list
+Found:
+  head (map fn xs)
+Perhaps:
+  fn (head xs)
+
+tests/flag-with-group-performance-length.hs:4:11-26: Warning: Avoid building intermediate list
+Found:
+  last (map fn xs)
+Perhaps:
+  fn (last xs)
+
+3 hints

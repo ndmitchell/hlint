@@ -1477,6 +1477,34 @@
     - warn: {lhs: foldl' f c (reverse x), rhs: foldr (flip f) c x, note: IncreasesLaziness, name: Use right fold instead of left fold}
 
 - group:
+    name: performance
+    enabled: false
+    imports:
+    - package base
+    rules:
+
+    # Lazy-list O(n) spine-forcing anti-patterns. On a lazy list, walking
+    # the full cons spine just to compute a cheaper property (or build
+    # an intermediate list we then discard) is wasteful and fails to
+    # terminate on infinite inputs. The `length x == 0 / > 0 / <= 0 / ...`
+    # family is already covered in the default group; the rules below
+    # cover the remaining list-spine anti-patterns.
+
+    # `map f (reverse x)` builds the reversed cons spine first, then
+    # walks it again under `map`. Swapping the order keeps the same
+    # result but lets `reverse` traverse the already-mapped spine,
+    # matching the existing "Move reverse out" family in the default
+    # group (filter, mapMaybe, catMaybes, lefts, rights).
+    - warn: {lhs: map f (reverse x), rhs: reverse (map f x), name: "Move reverse out"}
+
+    # `head (map f xs)` and `last (map f xs)` allocate the whole mapped
+    # cons spine even though only one element is ever consumed.
+    # Applying `f` directly to the chosen element sidesteps the
+    # intermediate list and its cons cells.
+    - warn: {lhs: head (map f x), rhs: f (head x), name: "Avoid building intermediate list"}
+    - warn: {lhs: last (map f x), rhs: f (last x), name: "Avoid building intermediate list"}
+
+- group:
     # used for tests, enabled when testing this file
     name: testing
     enabled: false
