@@ -1,0 +1,30 @@
+---------------------------------------------------------------------
+FILE tests/flag-with-group-performance.hs
+import Control.Concurrent.STM
+foo v x = atomically (writeTVar v x)
+bar v = atomically (takeTMVar v)
+baz c x = atomically (writeTChan c x)
+RUN "--with-group=performance" tests/flag-with-group-performance.hs
+OUTPUT
+tests/flag-with-group-performance.hs:2:11-36: Warning: Avoid STM
+Found:
+  atomically (writeTVar v x)
+Perhaps:
+  atomicWriteIORef v x
+Note: TVar with single-variable access - migrate the variable to IORef and use atomicWriteIORef.
+
+tests/flag-with-group-performance.hs:3:9-32: Warning: Avoid STM
+Found:
+  atomically (takeTMVar v)
+Perhaps:
+  takeMVar v
+Note: Migrate the variable from TMVar to MVar and use takeMVar.
+
+tests/flag-with-group-performance.hs:4:11-37: Warning: Avoid STM
+Found:
+  atomically (writeTChan c x)
+Perhaps:
+  writeChan c x
+Note: Migrate the variable from TChan to Chan (Control.Concurrent.Chan) and use writeChan.
+
+3 hints
