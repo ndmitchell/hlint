@@ -21,6 +21,7 @@
 
 module Hint.NumLiteral (numLiteralHint) where
 
+import GHC.All (configuredExtensions)
 import GHC.Hs
 import GHC.Data.FastString
 import GHC.LanguageExtensions.Type (Extension (..))
@@ -28,6 +29,7 @@ import GHC.Types.SrcLoc
 import GHC.Types.SourceText
 import GHC.Util.ApiAnnotation (extensions)
 import Data.Char (isDigit, isOctDigit, isHexDigit)
+import Data.Foldable (toList)
 import Data.List (intercalate)
 import Data.Set (union)
 import Data.Generics.Uniplate.DataOnly (universeBi)
@@ -38,15 +40,22 @@ import Idea (Idea, suggest)
 
 numLiteralHint :: DeclHint
 numLiteralHint _ modu =
+  -- TODO: there's a subtle bug when the module disables `NumericUnderscores`.
+  -- This seems pathological, though, because who would enable it for their
+  -- project but disable it in specific files?
+  --
   -- Comments appearing without an empty line before the first
   -- declaration in a module are now associated with the declaration
   -- not the module so to be safe, look also at `firstDeclComments
   -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
   let exts = union (extensions (modComments modu)) (extensions (firstDeclComments modu)) in
-  if NumericUnderscores `elem` exts then
+  if NumericUnderscores `elem` activeExtensions then
      concatMap suggestUnderscore . universeBi
   else
      const []
+  where
+    moduleExtensions = union (extensions (modComments modu)) (extensions (firstDeclComments modu))
+    activeExtensions = configuredExtensions modu <> toList moduleExtensions
 
 suggestUnderscore :: LHsExpr GhcPs -> [Idea]
 suggestUnderscore x@(L _ (HsOverLit _ ol@(OverLit _ (HsIntegral intLit@(IL (SourceText srcTxt) _ _))))) =
