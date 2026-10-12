@@ -1,0 +1,164 @@
+---------------------------------------------------------------------
+RUN tests/security-hash.hs --hint=data/hlint.yaml
+FILE tests/security-hash.hs
+module Sample where
+
+import qualified Crypto.Hash.MD5 as MD5
+import qualified Crypto.Hash.SHA1 as SHA1
+import qualified Data.Digest.Pure.MD5 as PMD5
+import qualified Data.Digest.Pure.SHA as PSHA
+import qualified Data.ByteString as BS
+
+input :: BS.ByteString
+input = BS.empty
+
+viaMD5, viaMD5Lazy, viaSHA1, viaSHA1Lazy :: BS.ByteString
+viaMD5 = MD5.hash input
+viaMD5Lazy = MD5.hashlazy undefined
+viaSHA1 = SHA1.hash input
+viaSHA1Lazy = SHA1.hashlazy undefined
+
+viaPureMD5 = PMD5.md5 undefined
+viaPureSHA1 = PSHA.sha1 undefined
+OUTPUT
+tests/security-hash.hs:13:10-23: Warning: Avoid broken hash MD5 (CWE-327)
+Found:
+  MD5.hash input
+Perhaps:
+  Crypto.Hash.SHA256.hash input
+
+tests/security-hash.hs:13:10-23: Warning: Avoid broken hash MD5 (CWE-327)
+Found:
+  MD5.hash input
+Perhaps:
+  Crypto.Hash.SHA256.hash input
+
+tests/security-hash.hs:14:14-35: Warning: Avoid broken hash MD5 (CWE-327)
+Found:
+  MD5.hashlazy undefined
+Perhaps:
+  Crypto.Hash.SHA256.hashlazy undefined
+
+tests/security-hash.hs:14:14-35: Warning: Avoid broken hash MD5 (CWE-327)
+Found:
+  MD5.hashlazy undefined
+Perhaps:
+  Crypto.Hash.SHA256.hashlazy undefined
+
+tests/security-hash.hs:15:11-25: Warning: Avoid broken hash SHA-1 (CWE-327)
+Found:
+  SHA1.hash input
+Perhaps:
+  Crypto.Hash.SHA256.hash input
+
+tests/security-hash.hs:15:11-25: Warning: Avoid broken hash SHA-1 (CWE-327)
+Found:
+  SHA1.hash input
+Perhaps:
+  Crypto.Hash.SHA256.hash input
+
+tests/security-hash.hs:16:15-37: Warning: Avoid broken hash SHA-1 (CWE-327)
+Found:
+  SHA1.hashlazy undefined
+Perhaps:
+  Crypto.Hash.SHA256.hashlazy undefined
+
+tests/security-hash.hs:16:15-37: Warning: Avoid broken hash SHA-1 (CWE-327)
+Found:
+  SHA1.hashlazy undefined
+Perhaps:
+  Crypto.Hash.SHA256.hashlazy undefined
+
+tests/security-hash.hs:18:14-31: Warning: Avoid broken hash MD5 (CWE-327)
+Found:
+  PMD5.md5 undefined
+Perhaps:
+  Crypto.Hash.SHA256.hashlazy undefined
+
+tests/security-hash.hs:18:14-31: Warning: Avoid broken hash MD5 (CWE-327)
+Found:
+  PMD5.md5 undefined
+Perhaps:
+  Crypto.Hash.SHA256.hashlazy undefined
+
+tests/security-hash.hs:19:15-33: Warning: Avoid broken hash SHA-1 (CWE-327)
+Found:
+  PSHA.sha1 undefined
+Perhaps:
+  PSHA.sha256 undefined
+
+tests/security-hash.hs:19:15-33: Warning: Avoid broken hash SHA-1 (CWE-327)
+Found:
+  PSHA.sha1 undefined
+Perhaps:
+  PSHA.sha256 undefined
+
+12 hints
+
+---------------------------------------------------------------------
+RUN tests/security-read-nonliteral.hs --hint=data/hlint.yaml
+FILE tests/security-read-nonliteral.hs
+module Sample where
+
+parseStr :: String -> Int
+parseStr s = 1 + read s
+
+parseOther :: String -> Double
+parseOther raw = 0.5 * read raw
+OUTPUT
+tests/security-read-nonliteral.hs:4:18-23: Warning: Use readMaybe on untrusted input (CWE-502)
+Found:
+  read s
+Perhaps:
+  Text.Read.readMaybe s
+
+tests/security-read-nonliteral.hs:4:18-23: Warning: Use readMaybe on untrusted input (CWE-502)
+Found:
+  read s
+Perhaps:
+  Text.Read.readMaybe s
+
+tests/security-read-nonliteral.hs:7:24-31: Warning: Use readMaybe on untrusted input (CWE-502)
+Found:
+  read raw
+Perhaps:
+  Text.Read.readMaybe raw
+
+tests/security-read-nonliteral.hs:7:24-31: Warning: Use readMaybe on untrusted input (CWE-502)
+Found:
+  read raw
+Perhaps:
+  Text.Read.readMaybe raw
+
+4 hints
+
+
+---------------------------------------------------------------------
+RUN tests/security-read-literal.hs --hint=data/hlint.yaml
+FILE tests/security-read-literal.hs
+module Sample where
+
+answer :: Int
+answer = read "42"
+
+piApprox :: Double
+piApprox = read "3.14"
+OUTPUT
+No hints
+
+
+---------------------------------------------------------------------
+RUN tests/security-ignored.hs --hint=data/hlint.yaml -i "Avoid broken hash MD5 (CWE-327)" -i "Use readMaybe on untrusted input (CWE-502)"
+FILE tests/security-ignored.hs
+module Sample where
+
+import qualified Crypto.Hash.MD5 as MD5
+import qualified Data.ByteString as BS
+
+digest :: BS.ByteString
+digest = MD5.hash BS.empty
+
+parseStr :: String -> Int
+parseStr s = 1 + read s
+OUTPUT
+No hints
