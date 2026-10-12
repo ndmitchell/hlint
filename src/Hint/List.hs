@@ -37,6 +37,9 @@ foo = [_ | x <- _, let _ = A{x}]
 issue1039 = foo (map f [1 | _ <- []]) -- [f 1 | _ <- []]
 {-# LANGUAGE OverloadedLists #-} \
 issue114 = True:[]
+{-# LANGUAGE OverloadedLists #-} \
+no_issue1602 = \x -> [x]
+yes_issue1602 = \x -> [x] -- (:[])
 </TEST>
 -}
 
@@ -188,6 +191,7 @@ checks overloadedListsOn = let (*) = (,) in drop1 -- see #174
   , "Use :" * useCons
   ]
   <> ["Use list literal" * useList | not overloadedListsOn ] -- see #114
+  <> ["Use :" * useConsLambda | not overloadedListsOn ] -- see #1602
 
 pchecks :: [(String, LPat GhcPs -> Maybe (LPat GhcPs, [(String, R.SrcSpan)], String))]
 pchecks = let (*) = (,) in drop1 -- see #174
@@ -262,6 +266,20 @@ useCons False (view -> App2 op x y) | varToStr op == "++"
     gen :: LHsExpr GhcPs -> LHsExpr GhcPs -> LHsExpr GhcPs
     gen x = noLocA . OpApp noExtField x (noLocA (HsVar noExtField  (noLocA consDataCon_RDR)))
 useCons _ _ = Nothing
+
+-- Suggest `(: [])` for `\x -> [x]`. Gated on `not overloadedListsOn`
+-- because under OverloadedLists the literal `[x]` can be polymorphic
+-- (e.g. Vector a, Set a, NonEmpty a), whereas `(: [])` specialises
+-- to the list type and the rewrite produces code that no longer
+-- type-checks (issue #1602).
+useConsLambda :: Bool -> LHsExpr GhcPs -> Maybe (LHsExpr GhcPs, [(String, R.SrcSpan)], String)
+useConsLambda _ (SimpleLambda [view -> PVar_ x] (L _ (ExplicitList _ [L _ (HsVar _ (L _ y))])))
+  | occNameStr y == x =
+    let consSection = noLocA (HsPar noAnn (noLocA (SectionR noExtField
+                        (noLocA (HsVar noExtField (noLocA consDataCon_RDR)))
+                        (noLocA (ExplicitList noAnn [])))))
+    in Just (consSection, [], "(: [])")
+useConsLambda _ _ = Nothing
 
 typeListChar :: LHsType GhcPs
 typeListChar =
