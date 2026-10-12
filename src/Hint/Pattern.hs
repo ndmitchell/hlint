@@ -198,9 +198,19 @@ asPattern (L loc x) = concatMap decl (universeBi x)
 
 -- First Bool is if 'Strict' is a language extension. Second Bool is
 -- if this pattern in this context is going to be evaluated strictly.
+-- Check if a type argument is just a wildcard (can be omitted)
+-- Returns True only if the type arg is @_ or similar wildcard notation
+isWildcardTypeArg :: HsConPatTyArg GhcPs -> Bool
+isWildcardTypeArg tyarg =
+  let s = unsafePrettyPrint tyarg
+      -- Normalize: remove whitespace and check if it becomes just "_"
+      normalized = filter (not . (`elem` " \t\n")) s
+  in normalized == "_" || normalized == "@_"
+
 patHint :: Bool -> Bool -> LPat GhcPs -> [Idea]
-patHint _ _ o@(L _ (ConPat _ name (PrefixCon _ args)))
-  | length args >= 3 && all isPWildcard args =
+patHint _ _ o@(L _ (ConPat _ name (PrefixCon tyargs args)))
+  | all isWildcardTypeArg tyargs  -- Only suggest if all type args are wildcards (or none)
+  , length args >= 3 && all isPWildcard args =
   let rec_fields = HsRecFields noExtField [] Nothing :: HsRecFields GhcPs (LPat GhcPs)
       new        = noLocA $ ConPat noAnn name (RecCon rec_fields) :: LPat GhcPs
   in
