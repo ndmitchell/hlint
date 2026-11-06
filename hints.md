@@ -249,7 +249,7 @@ Found:
 <br>
 Suggestion:
 <code>
-Perhaps you should remove it.
+You can remove it.
 </code>
 <br>
 </td>
@@ -1050,7 +1050,7 @@ do
 <br>
 Suggestion:
 <code>
-Perhaps you should remove it.
+You can remove it.
 </code>
 <br>
 </td>
@@ -1319,7 +1319,7 @@ where
 <br>
 Suggestion:
 <code>
-Perhaps you should remove it.
+You can remove it.
 </code>
 <br>
 Does not support refactoring.
