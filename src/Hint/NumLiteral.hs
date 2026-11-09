@@ -26,24 +26,18 @@ import GHC.Data.FastString
 import GHC.LanguageExtensions.Type (Extension (..))
 import GHC.Types.SrcLoc
 import GHC.Types.SourceText
-import GHC.Util.ApiAnnotation (extensions)
 import Data.Char (isDigit, isOctDigit, isHexDigit)
 import Data.List (intercalate)
-import Data.Set (union)
+import Data.Set (member)
 import Data.Generics.Uniplate.DataOnly (universeBi)
 import Refact.Types
 
-import Hint.Type (DeclHint, toSSA, modComments, firstDeclComments)
+import Hint.Type (DeclHint, toSSA, ghcExtensionsEnabledInModule)
 import Idea (Idea, suggest)
 
 numLiteralHint :: DeclHint
 numLiteralHint _ modu =
-  -- Comments appearing without an empty line before the first
-  -- declaration in a module are now associated with the declaration
-  -- not the module so to be safe, look also at `firstDeclComments
-  -- modu` (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/9517).
-  let exts = union (extensions (modComments modu)) (extensions (firstDeclComments modu)) in
-  if NumericUnderscores `elem` exts then
+  if NumericUnderscores `member` ghcExtensionsEnabledInModule modu then
      concatMap suggestUnderscore . universeBi
   else
      const []
