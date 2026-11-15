@@ -16,12 +16,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        ghc: ['9.12', '9.10', '9.8']
+        ghc: ['9.14', '9.12', '9.10']
         include:
         - os: windows-latest
-          ghc: '9.12'
+          ghc: '9.14'
         - os: macOS-latest
-          ghc: '9.12'
+          ghc: '9.14'
     steps:
     - run: git config --global core.autocrlf false
     - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
         ghc-version: ${{ matrix.ghc }}
     - run: cabal install apply-refact --install-method=copy
       # Not available on GHC 9.10, see https://github.com/mpickering/apply-refact/pull/149
-      if: matrix.ghc == '9.12' || matrix.ghc == '9.8'
+      if: matrix.ghc == '9.12'
     - run: cabal v2-freeze --enable-tests
     - uses: actions/cache@v4
       with:

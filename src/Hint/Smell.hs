@@ -95,6 +95,7 @@ import Config.Type
 
 import Data.Generics.Uniplate.DataOnly
 import Data.List.Extra
+import Data.List.NonEmpty(NonEmpty(..))
 import Data.Map qualified as Map
 import Data.Map (Map)
 
@@ -113,7 +114,7 @@ smellModuleHint settings scope m =
   manyImportsHint sm imports ++
   concatMap (explicitImportLengthHint sm) imports
 
-manyImportsHint :: Map.Map SmellType Int -> [LImportDecl GhcPs] -> [Idea]
+manyImportsHint :: Map SmellType Int -> [LImportDecl GhcPs] -> [Idea]
 manyImportsHint sm imports =
   case Map.lookup SmellManyImports sm of
     Just n | length imports >= n ->
@@ -125,7 +126,7 @@ manyImportsHint sm imports =
         f = trimStart . unsafePrettyPrint
     _ -> []
 
-explicitImportLengthHint :: Map.Map SmellType Int -> LImportDecl GhcPs -> [Idea]
+explicitImportLengthHint :: Map SmellType Int -> LImportDecl GhcPs -> [Idea]
 explicitImportLengthHint sm imp@(L _ decl) =
   case Map.lookup SmellManyExplicitImports sm of
     Just limit ->
@@ -164,7 +165,7 @@ declSpans
                    mg_ext=FromSource
                  , mg_alts=(L _ [L _ Match {
                        m_ctxt=ctx
-                     , m_grhss=GRHSs{grhssGRHSs=[locGrhs]
+                     , m_grhss=GRHSs{grhssGRHSs=(locGrhs :| [])
                                  , grhssLocalBinds=where_}}])}})) =
  -- The span of the right hand side and the spans of each binding in
  -- the where clause.

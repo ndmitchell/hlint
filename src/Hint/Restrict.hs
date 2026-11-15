@@ -374,10 +374,18 @@ typeApplicationCounts decls = Map.fromListWith addTypeAppCounts $
     | L _ (HsAppType _ fun (HsWC _ ty)) <- universeBi decls :: [LHsExpr GhcPs]
     , Just h <- [typeAppHead fun]
     ] ++
-    [ (SrcSpanD (locA (getLoc name)), countTypeApps [t | HsConPatTyArg _ (HsTP _ t) <- tyArgs])
-    | L _ (ConPat _ name (PrefixCon tyArgs _)) <- universeBi decls :: [LPat GhcPs]
+    [ (SrcSpanD (locA (getLoc name)), countTypeApps tyArgs)
+    | L _ (ConPat _ name (PrefixCon args)) <- universeBi decls :: [LPat GhcPs]
+    , let tyArgs = conPatTyArgs args
     , not $ null tyArgs
     ]
+  where
+    -- Type arguments of a constructor pattern are the leading invisible
+    -- patterns, as in @C \@t1 \@t2 p1 p2@.
+    conPatTyArgs :: [LPat GhcPs] -> [LHsType GhcPs]
+    conPatTyArgs = \case
+        L _ (InvisPat _ (HsTP _ t)) : ps -> t : conPatTyArgs ps
+        _ -> []
 
 -- | A wildcard argument, as in @fromIntegral \@_ \@_@, leaves the type just as
 -- inferred as writing no type argument at all, so it is written but fixes
